@@ -1,0 +1,10 @@
+def do_chai_work(num_iters)
+{
+  var i = 0;
+  for (var k = 0; k<num_iters * 10; ++k)
+  {
+    i += k;
+  }
+
+  print(i);
+}

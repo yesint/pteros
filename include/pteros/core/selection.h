@@ -1,0 +1,514 @@
+/*
+ *
+ *                This source code is part of
+ *                    ******************
+ *                    ***   Pteros   ***
+ *                    ******************
+ *                 molecular modeling library
+ *
+ * Copyright (c) 2009, Semen Yesylevskyy
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of Artistic License:
+ *
+ * Please note, that Artistic License is slightly more restrictive
+ * then GPL license in terms of distributing the modified versions
+ * of this software (they should be approved first).
+ * Read http://www.opensource.org/licenses/artistic-license-2.0.php
+ * for details. Such license fits scientific software better then
+ * GPL because it prevents the distribution of bugged derivatives.
+ *
+*/
+
+#ifndef SELECTION_H
+#define SELECTION_H
+
+#include <string>
+#include <Eigen/Core>
+#include <Eigen/Geometry>
+#include <boost/signals2.hpp>
+#include "pteros/core/selection_parser.h"
+#include "pteros/core/system.h"
+#include <boost/shared_ptr.hpp>
+
+namespace pteros {
+
+// Forward declaration of frient class
+class System;
+class Selection_parser;
+
+/** @brief Selection class.
+*
+*   Selections are key objects in Pteros. Technically speaking the selection
+*   is just an array, which contains indexes of selected atoms in particlar system.
+*   Selection does not hold the copies of the atoms or their coordinates, it
+*   just points to them serving like a handy alias for certain subset of atoms.
+*   Thus selections may overlap arbitrarily.
+*   Selections are used to perform various operations on the group of selected atoms.
+*   The changes become immediately visible to all other selections, which point to
+*   some of changed atoms.
+*   Each selection is bound to particular System. There are neither 'parentless' selection nor the
+*   selections, which combine the atoms from different systems.
+*   Selections are created using the syntax, which is very similar to those used in VMD.
+*/
+class Selection {
+  /// System and Selection are friends because they are closely integrated.
+  friend class System;
+  friend class Selection_parser;
+
+  public:
+    /// Ensure correct 16-bytes-alignment for Eigen sse2 optimizations
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+    /** Main constructor.
+    *   @param sys System pointed by this selection
+    *   @param str Selection string
+    *   if with_signal is true System with send signals to selection automatically
+    */
+    Selection(System& sys, std::string str);
+
+    /** Constructor with delayed parsing.
+    *   Associates selection with the system @param sys,
+        but does not parse selection.
+    *   Selection text should be passed later by overloaded << operator or by
+    *   calling modify() function.
+    *   if with_signal is true System with send signals to selection automatically
+    */
+    Selection(System& sys);
+
+    /// Default constructor for absolutely empty selection.
+    Selection();
+
+    /** Constructor, which creates selection from the interval of indexes
+        instead of selection string.
+        It is much faster then parsing corresponding string, but is limited
+        to contigous interval of indexes.
+        if with_signal is true System with send signals to selection automatically
+     */
+    Selection(System& sys, int ind1, int ind2);
+
+    /// Assignment operator
+    Selection& operator=(Selection);    
+
+    /// Copy constructor
+    Selection(const Selection&);
+
+    /// Equality operators
+    bool operator==(const Selection &other) const;
+
+    bool operator!=(const Selection &other) const {
+        return !(*this == other);
+    }
+
+    /// Destructor
+    ~Selection();
+
+    /// Append another selection to this one. Acts like logical "OR" between selections.
+    void append(Selection& sel);
+
+    /// Append absolute index to selection
+    void append(int ind);
+
+    /// Modifies both system and string in selection.
+    /// If with_signal is true System with send signals to selection automatically
+    void modify(System& sys, std::string str);
+
+    /** Modifies selection string in existing selection.
+    *   @param str New value of selection text. Selection is re-parsed immediately with
+    *   this new value.
+    */
+    void modify(std::string str);
+
+    /// Modifies both system and selection using the range of indexes.
+    /// If with_signal is true System with send signals to selection automatically.
+    void modify(System& sys, int ind1, int ind2);
+
+    /// Modifies selection using the range of indexes
+    void modify(int ind1, int ind2);
+
+    /// Modifies selection using vector of indexes
+    void modify(std::vector<int>& ind);
+
+    /// Modifies selection using pair of iterators to index array
+    void modify(std::vector<int>::iterator it1, std::vector<int>::iterator it2);
+
+    /** Recomputes selection without re-parsing selection text.
+    *   Only makes sense for coordinate-dependent selections when the coordinates change.
+    *   Called authomatically for coordinate-dependent selections by set_frame()
+    *   If selection is not coordinate-dependent does nothing.
+    */
+    void apply();
+
+    /** Recomputes selection completely.
+    *   May be used when new file is loaded into the system, or when atoms are
+    *   created/deleted. Forces re-parsing of selection text.
+    */
+    void update();
+
+    /// @name Frame functions
+    /// @{
+
+    /// Get current frame selection is pointing to
+    int get_frame() const {return frame;}
+    /// Set current frame for selection
+    void set_frame(int fr);
+    /// @}
+
+    /// Get the size of selection
+    int size() const {return index.size();}
+    /// Get the size of selection. The same as size().
+    int num() const {return index.size();}
+
+    /** Clears selection and frees memory, but do not delete it.
+    *   Selection remains registered in parent system, but is cleared from any data.
+    *   Subsequent call of modify() may populate it again.
+    */
+    void clear();
+
+    /// Selects each residue, which is references by selection.
+    /// All selections for residues are placed into supplied vector.
+    /// Handles multiple chains correctly
+    /// If with_signal is true selections are created with automatic signalling from parent system
+    void each_residue(std::vector<Selection>& sel) const;
+
+    /// @name Get and set functions
+    /// @{
+
+    /// Get pointer to the system, which owns this selection
+    System* get_system() const { return system; }
+    /// Get selection text
+    std::string get_text() const { return sel_text; }
+    /// Get vector of all indexes in selection
+    std::vector<int> get_index() const { return index; }
+    /// Get const iterator for begin of index
+    std::vector<int>::const_iterator index_begin() const { return index.begin(); }
+    /// Get const iterator for the end of index
+    std::vector<int>::const_iterator index_end() const { return index.end(); }
+    /// Get vector of all chains in selection
+    std::vector<char> get_chain() const;
+    /// Set chains from supplied vector.
+    /// Its size must be the save as the size of selection.
+    void set_chain(const std::vector<char>& data);
+    /// Sets chain of all selected atoms to the same given value.
+    void set_chain(char data);
+    /// Get vector of unique chains in selection
+    std::vector<char> get_unique_chain() const;
+    /// Get vector of all resid's in selection
+    /// This works correctly inside one chain only!
+    /// For multiple chains resid's will overlap.
+    std::vector<int> get_resid() const;
+    /// Get vector of unique resid's in selection
+    std::vector<int> get_unique_resid() const;
+    /// Set resid's in selection from supplied vector.
+    /// Its size must be the save as the size of selection.
+    void set_resid(const std::vector<int>& data);
+    /// Sets resid of all selected atoms to the same given value.
+    void set_resid(int data);
+    /// Get vector of all resindexes in selection
+    std::vector<int> get_resindex() const;
+    /// Get vector of unique resindexes's in selection
+    std::vector<int> get_unique_resindex() const;
+    /// Get vector of all atom names in selection
+    std::vector<std::string> get_name() const;
+    /// Set atom names in selection from supplied vector.
+    /// Its size must be the save as the size of selection.
+    void set_name(const std::vector<std::string>& data);
+    /// Sets atom names of all selected atoms to the same given value.
+    void set_name(std::string& data);
+    /// Get coordinates of this selection for current frame
+    Eigen::MatrixXf get_xyz() const;
+    void get_xyz(Eigen::MatrixXf& res) const;
+    /// Set coordinates of this selection for current frame
+    void set_xyz(const Eigen::MatrixXf& coord);
+    /// Computes average structure over the range of frames
+    Eigen::MatrixXf get_average(int b=0, int e=-1) const;
+    /// Get masses of all atoms in selection
+    Eigen::VectorXf get_mass() const;
+    /// Set atom masses in selection to the values from supplied vector.
+    /// Its size must be the save as the size of selection.
+    void set_mass(const Eigen::VectorXf& m);
+    /// Sets masses of all selected atoms to the same given value.
+    void set_mass(float data);
+    /** Extracts X,Y,Z for given atom index for specified range of frames
+        (gets trajectory of given atom).
+    *   Result is returned as MatrixXf, where i-th column is an XYZ vector for frame i.    
+    */
+    Eigen::MatrixXf get_traj(int ind, int b=0, int e=-1) const;
+
+    /// Get beta
+    std::vector<float> get_beta();
+    /// Set beta in selection to the values from supplied vector.
+    /// Its size must be the save as the size of selection.
+    void set_beta(std::vector<float>& data);
+    /// Sets beta of all selected atoms to the same given value.
+    void set_beta(float data);
+
+    /// Returns the volume of rectangular box for current frame.
+    /// Currently does not work for triclinic boxes.
+    float get_box_volume();
+    /// @}
+
+    /// @name Inquery functions
+    /// @{
+
+    /// Get the center of selection.
+    /// @param mass_weighted Use mass-weighting
+    Eigen::Vector3f center(bool mass_weighted = false);
+    /// Get minimal and maximal coordinates in selection
+    void minmax(Eigen::Vector3f& min, Eigen::Vector3f& max);
+    /// @}
+
+    /// @name Geometry transformation functions
+    /// @{
+
+    /// Translate selection by given vector
+    void translate(const Eigen::Vector3f&);
+    /// Rotate around given axis relative to cm
+    /// @param axis Axis of rotation 0=X, 1=Y, 2=Z
+    /// @param angle Rotation angle in radians
+    void rotate(int axis, float angle);
+    /// Rotate around given axis relative to given pivot
+    /// @param axis Axis of rotation 0=X, 1=Y, 2=Z
+    /// @param angle Rotation angle in radians
+    /// @param pivot Rotation around this pivot
+    void rotate(int axis, float angle, const Eigen::Vector3f& pivot); //Around given axis relative to pivot
+    /// Rotate around given vector relative to given pivot
+    /// @param direction Rotate around this vector
+    /// @param angle Rotation angle in radians
+    /// @param pivot Rotation around this pivot
+    void rotate(const Eigen::Vector3f& direction, float angle, const Eigen::Vector3f& pivot);
+    /// Rotation with the given 3x3 rotation matrix around point (0,0,0)
+    void rotate(const Eigen::Matrix3f& m);
+    /// Rotation by given angles around X, Y and Z with given pivot
+    void rotate(const Eigen::Vector3f& angles, const Eigen::Vector3f& pivot);
+    /// @}
+
+    /// @name Fitting and RMSD functions
+    /// @{
+
+    /// RMSD between current and another frame
+    float rmsd(int fr);
+
+    /// RMSD between two frames
+    float rmsd(int fr1, int fr2);
+
+    /// RMSD between two selections of the same size
+    friend float rmsd(Selection& sel1, Selection& sel2);
+
+    /** RMSD between two selections of the same size (for given frames)
+    *   @param sel1 First selection
+    *   @param fr1 Frame for first selection
+    *   @param sel2 Second selection
+    *   @param fr2 Frame for second selection
+    */
+    friend float rmsd(Selection& sel1, int fr1, Selection& sel2, int fr2);
+
+    /// Fit two selection of the same size
+    friend void fit(Selection& sel1, Selection& sel2);
+
+    /// Fit all frames in the trajectory to reference frame
+    void fit_trajectory(int ref_frame=0, int b=0, int e=-1);
+
+    /// Returns fitting transformation for two given selections of the same size
+    friend Eigen::Affine3f fit_transform(Selection&, Selection&);    
+
+    /// Returns fit transformation between frames fr1 and fr2
+    Eigen::Affine3f fit_transform(int fr1, int fr2);
+
+    /// Fits frame fr1 to fr2
+    void fit(int fr1, int fr2);
+
+    /// Apply fitting transformation
+    void apply_transform(Eigen::Affine3f& t);
+    /// @}
+
+    /// @name File IO
+    /// @{
+
+    /** Write structure or trajectory for selection. Type is determined by extension.
+    *   Frames from b to e are written.
+    *   If b and e are not set they default to current frame
+    */
+    void write(std::string fname,int b=-1,int e=-1);
+    /// @}
+
+
+    /// @name Building functions
+    /// @{
+    /// Duplicate current selection in the parent system
+    /// Resulting selection is born without signalling because it is intended for building purposes only
+    void atoms_dup(Selection* res_sel = NULL);
+    /// Deletes current selection from parent system
+    void atoms_delete();
+    /// Creates multiple copies of selection in the parent system and
+    /// distributes them in a grid
+    void distribute(Eigen::Vector3i& ncopies, Eigen::Vector3f& shift);
+    /// Moves selection along given vector until it becomes free of sterical clashes
+    /// with clash_sel within cut-off
+    void remove_overlap(Eigen::Vector3f& dir, const Selection& clash_sel, float cut_off = 0.2);
+    /// Orients selection by principal axes
+    void orient_principal();
+
+    /// @}
+
+    /// @name Signals handling
+    /// @{
+    /// Enable automatic signalling from system
+    void enable_signals();
+    /// Disable automatic signalling from system
+    void disable_signals();
+    /// Returns signalling state of selection
+    bool signals_enabled();
+    /// @}
+
+    void split_by_connectivity(float d, std::vector<Selection>& res);
+
+    /** @name Inlined utility functions.
+    *   Used to access the properties of
+    *   particular atom in selection. The ind passed to these functions is
+    *   is the selection index, not the global system %index. I.e. passing 10 will
+    *   extract the property of %atom with global %index index[10]
+    *   <br>All these function except Index could be used as lvalue, which means that
+    *   it is possible to assign value to them. For example X(10) = 3.14 will assign the
+    *   value 3.14 to the atom with global index index[10].
+    */
+    /// @{
+
+    /// Extracts X for current frame
+    inline float& X(int ind){
+        return system->traj[frame].coord[index[ind]](0);
+    }
+
+    /// Extracts X for given frame frame fr
+    inline float& X(int ind, int fr){
+        return system->traj[fr].coord[index[ind]](0);
+    }
+
+    /// Extracts Y for current frame
+    inline float& Y(int ind){
+        return system->traj[frame].coord[index[ind]](1);
+    }
+
+    /// Extracts Y for given frame frame fr
+    inline float& Y(int ind, int fr){
+    	return system->traj[fr].coord[index[ind]](1);
+    }
+
+    /// Extracts Z for current frame
+    inline float& Z(int ind){
+    	return system->traj[frame].coord[index[ind]](2);
+    }
+
+    /// Extracts Z for given frame frame fr
+    inline float& Z(int ind, int fr){
+    	return system->traj[fr].coord[index[ind]](2);
+    }
+
+    /// Extracts X,Y and Z for current frame
+    inline Eigen::Vector3f& XYZ(int ind){
+    	return system->traj[frame].coord[index[ind]];
+    }
+
+    /// Extracts X,Y and Z for given frame frame fr
+    inline Eigen::Vector3f& XYZ(int ind, int fr){
+    	return system->traj[fr].coord[index[ind]];
+    }
+
+    /// Extracts type
+    inline int& Type(int ind){
+    	return system->atoms[index[ind]].type;
+    }
+
+    /// Extracts residue name
+    inline std::string& Resname(int ind){
+    	return system->atoms[index[ind]].resname;
+    }
+
+    /// Extracts chain
+    inline char& Chain(int ind){
+    	return system->atoms[index[ind]].chain;
+    }
+
+    /// Extracts atom name
+    inline std::string& Name(int ind){
+    	return system->atoms[index[ind]].name;
+    }
+
+    /// Extracts atom mass
+    inline float& Mass(int ind){
+    	return system->atoms[index[ind]].mass;
+    }
+
+    /// Extracts atom charge
+    inline float& Charge(int ind){
+    	return system->atoms[index[ind]].charge;
+    }
+
+    /// Extracts B-factor
+    inline float& Beta(int ind){
+    	return system->atoms[index[ind]].beta;
+    }
+
+    /// Extracts occupancy field
+    inline float& Occupancy(int ind){
+    	return system->atoms[index[ind]].occupancy;
+    }
+
+    /// Extracts residue number
+    inline int& Resid(int ind){
+    	return system->atoms[index[ind]].resid;
+    }
+
+    /// Extracts atom index in the system, which is pointed by selection
+    inline int& Index(int ind){
+    	return index[ind];
+    }
+
+    /// Extracts tag
+    inline std::string& Tag(int ind){
+    	return system->atoms[index[ind]].tag;
+    }
+
+    /// Extracts whole atom
+    inline pteros::Atom& Atom(int ind){
+        return system->atoms[index[ind]];
+    }
+
+    /// Extracts resindex
+    inline int& Resindex(int ind){
+        return system->atoms[index[ind]].resindex;
+    }
+
+    /// @}
+
+protected:
+    /// Row text of selection. Should not be modified directly.
+    std::string sel_text;
+    /// Used with << operator
+    std::ostringstream ss;
+    /// Indexes of atoms in selection
+    std::vector<int> index;
+    /// Pointer to target system
+    System* system;
+
+    /// Stores current frame
+    int frame;
+
+    /// Holds an instance of selection parser
+    boost::shared_ptr<Selection_parser> parser;
+    void allocate_parser();
+
+    /// Private functions for creating selection
+    void create_internal(System& sys, std::string& str);
+    void create_internal(System& sys, int ind1, int ind2);
+    /// Private function for deleting selection
+    void delete_internal();    
+
+    /// Notification responder and connection object
+    boost::signals2::connection connection;
+    void notify_slot(System_notification code, int b, int e);
+};
+
+
+}
+#endif /* SELECTION_H */

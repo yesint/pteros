@@ -1,0 +1,432 @@
+/** \page tutorial Tutorial
+
+<i>This tutorial describes the usage of Pteros as it is expected to work in the stable release. Current version may not be 100% compatible with this description, but the discrepancies are minor.</i>
+
+\section contents Contents
+
+- \ref getting_started
+- \ref selections
+- \ref manip
+- \ref transforms
+- \ref rmsd
+- \ref hi_level
+
+\section getting_started 	Getting started
+
+Suppose that the Pteros library is compiled and all linking requirements are satisfied. In order to start using Pteros in you program you need single include statement:
+
+\code
+#include "pteros/pteros_core.h"
+\endcode
+
+This will include basic classes of the library. More advanced usage requires additional includes.
+All classes and function of the Pteros library are defined inside "pteros" namespace. The following line will allow to omit repetitive "pteros::" prefix in your program
+
+\code
+using namespace pteros;
+\endcode
+
+The fundamental objects in Pteros are \e systems and \e selections. System is what its name suggests - the set of atoms. The attributes and the coordinates of atoms are physically stored in the system. Typically the system is loaded from a structure file in PDB or GRO format. The system can contain several sets of coordinates, called \e frames, which are typically loaded from trajectory files of MD simulations. The system can be created in two ways:
+
+\code
+// Two step method:
+System  sys1; // Empty system
+sys1.load("2lao.pdb"); // Load data into system
+
+// One step method
+System  sys2("2lao.pdb"); // Read the structure file into the system immediately
+\endcode
+
+Atoms and frames are stored inside the system can not be accessed directly. The system is only a container for them, while all manipulations are done by means means \e selections.
+
+\section selections 	Selections
+
+Selection is a subset of atoms in the System. Selection does not hold any data, but merely
+point to particular group of atoms. In order to create a selection you must supply the parent system and the selection string - textual description of selection. The selection syntax in Pteros is very similar to one used in <a href="http://www.ks.uiuc.edu/Research/vmd/">VMD</a>. 
+
+Instead of giving long and boring formal description of the selection syntax, let's learn it by example:
+\code
+System sys("some-protein.pdb");
+
+// Select everything
+Selection sel0(sys,"all");
+
+// Select by atom name(s)
+Selection sel1(sys,"name CA");
+Selection sel2(sys,"name CA CB OA"); // Selects all CA, CB and OA atoms
+
+// Select by residue number. You can use ranges in two forms with "-" and with "to".
+Selection sel3(sys,"resid 3"); // single residue number 3
+Selection sel4(sys,"resid 1-25"); // Residues from 1 to 25 inclusive
+Selection sel5(sys,"resid 100 1-25 200 to 206"); // Residues from 1 to 25, from 200 to 206 and also residue 100
+
+// Select by atom index (starts from zero). You can also use ranges.
+Selection sel6(sys,"index 3");
+Selection sel7(sys,"index 20 5 100-600 700 9 0 2");
+
+// Select by residue name(s)
+Selection sel8(sys,"resname ALA");
+Selection sel9(sys,"resname THR MET");
+
+// Select by chain(s)
+Selection sel10(sys,"chain A B");
+
+// Select by coordinates of atoms (arbitrary arithmetic expressions are supported)
+Selection sel11(sys,"x<10 and y>z*4.5+x");
+
+// This will select all atoms inside a cylinder aligned with Z axis with a radius of 2 Angstroms:
+Selection sel12(sys,"x*x+y*y < 4");
+
+// Arbitraraly complex logic with AND, OR  and NOT could be used
+Selection sel13(sys,"((name CA and resid 10 to 100) or (name CB and resname ALA)) or x^2>y^2");
+Selection sel14(sys,"not (name CA and resid 10-100)");
+
+// Select all atoms, which are within given distance from another selection
+Selection sel15(sys,"within 2.5 of (name CA and resid ALA)");
+
+// Select whole residue if at least one atom from this residue is found in selection, enclosed into "()"
+Selection sel16(sys,"by residue (name CA and resid ALA)");
+
+\endcode
+
+Every selection is associated with one and only one system. You can't select atoms from several systems.
+
+You can also create empty selections and populate them later using modify() method:
+\code
+Selection sel2; // Empty selection, not associated with the system
+Selection sel3(sys); // Selection bounded to system sys, but selection text is not yet specified
+
+// Now populate these selections
+sel2.modify(sys,"name CA");
+sel3.modify("name CB");
+
+// You can reassign selection to another system if you want:
+sel3.modify(other_sys,"name CB");
+\endcode
+
+Selections could be copyed and assigned, particularly it is  possible to place them to STL containers:
+\code
+vector<Selection> vec;
+Selection sel(sys,"all");
+vec.push_back(sel);
+
+// Make a vector of 10 empty selections
+vector<Selection> vec10(10);
+// Populate some of them
+vec10[5].modify(sys,"resname ALA");
+vec10[6].modify(sys,"not name O");
+\endcode
+
+If assigning one selection to another, the deep copy of the selection (not just a reference!) is created.
+
+\code
+Selection s1(sys);
+Selection s2(sys);
+s1 = s2; // s1 is a deep copy of s2. Modifications to s1 do not change s2.
+\endcode
+
+The systems are also copyable, but with one important twist - associated selections are not copyed with the parent system.
+
+\section manip 	Manipulating selections
+
+We can do a lot of different things with selections. Let's start from obtaining residue names of all selected atoms as an STL vector:
+
+\code
+vector<string> res_names = sel1.get_resname();
+\endcode
+
+We can also obtain any property of particular selected atom with very simple syntax. For example let's print the chain and the resid of the first atom in selection:
+
+\code
+cout << sel1.Chain(0) << endl;
+cout << sel1.Resid(0) << endl;
+\endcode
+
+Note that first atom in \e selection is \b not the first atom in the system! If you want to know the index of this atom in the system you should do 
+
+\code
+cout << sel1.Index(0) << endl; //May print "1328". The first atom in selection is in fact the atom 1328 in the system
+\endcode
+
+In fact the code "sel1.Chain(0)" above is an equivalent of verbose expression
+
+\code
+// Just an example, will not compile!
+cout << sys.atoms[sel1.index[0]].chain;
+\endcode
+
+This fragment will not compile because Selection::index is private, but in any case the shorthand function Selection::Chain() simplifies the things a lot. Such shorthand functions are inlined, thus in principle there is no
+performance loss. Other atom attributes could also be accessed by means of such functions with the name, which coincide with the attribute name, but with the capital first letter (Name(i), Chain(i), Index(i), X(i), etc.).
+Main attributes of the atoms are:
+- \b name - the name of atom in PDB file (such as "CA")
+- \b resid - the number of residue (an integer). Unique within each chain.
+- \b resindex - Unique index of the residue in the whole system, even is multiple chains are present.
+- \b resname - the name of the residue in 3-letters code (such as "ALA" or "GLY")
+- \b chain - the chain in PDB file (single character, such as "A")
+- \b tag - arbitrary textual tag (often called "segment" in CHARMM, NAMD or VMD)
+- \b mass - the mass of the atom in atomic units
+
+
+Now let's play with the coordinates of atoms. First of all let's load molecular dynamics trajectory into the system:
+\code
+System s("some-protein.pdb");
+s.load("trajectory.xtc");
+Selection sel1("name CA");
+\endcode
+
+The trajectory should contain the same number of atoms as the system. The XTC and TRR trajectory files are now supportd.
+
+It is also possible to read only certain portion of trajectory, say between frames 10 and 100:
+\code
+System s("some-protein.pdb");
+s.load("trajectory.xtc",10,100);
+\endcode
+
+Selections are always born pointing to the frame 0 (frame count starts from zero).
+Let's make selection point to the frame 3:
+
+\code
+sel1.set_frame(3);
+\endcode
+
+Now we can obtain the coordinate of particular atom \e i for the frame 3:
+
+\code
+float x_coord = sel1.X(i);
+\endcode
+
+or the coordinates of all atoms in selection for frame 3 as:
+
+\code
+vector<float> all_x_coords = sel1.get_x();
+\endcode
+
+It is also possible to get coordinates of any frame by supplying second parameter:
+\code
+// Copy all coordinates of atom 10 for frame 3 to atom 20 for frame 5
+sel1.XYZ(20,5) = sel1.XYZ(10,3);
+\endcode
+
+One can also duplicate frames, copy one frame to the other and delete frames. Note that this is done by the methods of System class:
+\code
+System sys("some-protein.pdb");
+// Duplicate frame 4 (copy becomes the last frame)
+sys.frame_dup(4);
+// Copy coordinates of this duplicated frame to frame 1
+sys.frame_copy(sys.num_frames()-1, 1); // Note the usage of num_frames() to get the nuber of frames in the system
+\endcode
+
+\subsection transforms Geometry transformations
+
+Pteros provides reach set of geometry transformation functions. Transformation applied to
+selection will immediately take effect on all selections, which overlap with given selection. Let's look at some examples:
+
+\code
+// Translate selection by given vector
+Vector3f dir(1.0, 3.4, -4.5);
+sel1.translate(dir);
+
+// Rotate selection around axis X (axis 0) by some angle (in radians) relative to the center of masses
+sel1.rotate(0,0.2);
+
+// Rotate selection around axis Y (axis 1) by some angle (in radians) relative to the given pivot point
+Vector3f pivot(10.0, 20.0, 30.0);
+sel1.rotate(1,-0.1,pivot);
+
+// Rotate selection around given vector, by some angle and relative to given point
+Vector3f axis(0.0, 4.0, -2.0);
+sel1.rotate(axis,0.5,pivot);
+
+\endcode
+
+\subsection rmsd RMS fitting and alignment
+
+It is very easy to compute the RMSD between two selection of the same size (they can belong to different systems):
+\code
+Selection sel1(sys1,"name CA");
+Selection sel2(sys2,"name CB");
+cout << "RMSD=" << rmsd(sel1,sel2) << endl;
+\endcode
+
+We can also do this for arbitrary frames:
+\code
+Selection sel1(sys1,"name CA");
+Selection sel2(sys2,"name CB");
+// RMSD between frame 0 of the first selection and frame 1 of the second one
+cout << "RMSD=" << rmsd(sel1, 0, sel2, 1) << endl;
+\endcode
+
+It is possible to compute RMSD for different frame of the same selection:
+\code
+Selection sel1(sys1,"name CA");
+// RMSD between frames 0 and 1
+cout << "RMSD=" << sel1.rmsd(0,1) << endl;
+\endcode
+
+In order to do RMSD fitting of two selections of the same size it enough to write:
+\code
+Selection sel1(sys1,"name CA");
+Selection sel2(sys2,"name CB");
+// Fit selection sel1 to sel2
+fit(sel1,sel2);
+\endcode
+
+However, the most common situation is when you are fitting together, say, Ca atoms, but need to rotate the whole protein according to this fitting. This is accomplished by computing fitting transformation first and then applying it:
+\code
+Selection sel1(sys,"name CA");
+// Compute a fit transform for fitting frame 1 to frame 3
+Affine3f trans = sel1.fit_transform(1,3);
+// And apply it to the whole protein
+Selection(sys,"all").apply_transform(trans);
+// The perevious line shows how to create a temporary selection "on the fly".
+\endcode
+
+\section hi_level High-level facilities
+
+Although System and Selection classes already provide quite high-level tools fot building custom analysis programs, Pteros contains even more advanced facilities for rapid implementation of complex analysis algorithms. When you build your custom analysis program, it is usually painful to implement the following things:
+- Read only specified range of frames from trajectory based on time or frame number.
+- Read the trajectory, stored by pieces in several files.
+- Read very large trajectory, which doen't fit into the memory frame by frame.
+- Implement parallel execution of several analysis tasks, to keep all procesor cores busy.
+- Implement processing of the command line arguments, which set all options of trajectory processing and represent custom flags for your analysis.
+
+It is necessary to emphasize an importance of parallel processing. MD trajectories are often huge (up to ~100Gb) and reading them from disk tipically takes many minutes, especially if the storage is not local. If you have 5 different anaysis tasks, which should be applied to the same trajectory it is very wasteful to run them sequntially and to read the whole trajectory five times. It is much more logical to read the trajectory only ones and execute all your tasks in parallel for each frame. By doing this you will also utilize the power of you modern multi-core processor effectively.
+
+All these routine operations in Pteros are incapsulated into the Trajectory_processor class. The logic of using this class is the following. You supply it with the set of options, which say which trajectory to read and which frames to include into the analysis. In addition you create a number of Consumer objects, which represent one separated analysis task, and connect them to the Trajectory_processor. After that you run the processor. It launches all supplied tasks in separate parallel threads, read the trajectory frame by frame and pass the frames to each of the tasks for processing. 
+
+Let's write a simple example of computing average minimal and maximal coordinates in selection along the trajectory using the power of Trajectory_processor. First of all we need to subclass a Consumer class:
+
+\code
+class Our_task: public Consumer {
+public:
+	// Constructor
+	Our_task(Trajectory_processor* pr, string sel_str): Consumer(pt){
+		// set selection text
+		sel_text = sel_str;
+	}
+protected:	
+	/// Inherited methods from Consumer:
+	/// Called immediately before first frame is passed
+	virtual void pre_process();
+    	/// Called immediately after last frame is processed
+	virtual void post_process(const Frame_info& info);
+	/// Called each time new frame arrives. This frame is stored in system.traj[0]
+	virtual bool process_frame(const Frame_info& info);
+
+	// Variables, which are specific for our analysis
+	Vector3f min_average, max_average;
+	string sel_text;
+	Selection sel;
+}
+\endcode
+
+All logic of our analysis should be implemented in three virtual methods: pre_process, process_frame and post_process. The names are self-explanational. Let's implement them:
+
+\code
+virtual void pre_process(){
+	// Prepare our min and max variables for computing averages
+	min_average.fill(0.0);
+	max_average.fill(0.0);
+	// Make selection for processing (system is internal System object inherited from Consumer)
+	sel.modify(system,sel_text); 
+}
+
+virtual bool process_frame(const Frame_info& info){
+	// Currently loaded frame is stored in internal system in frame 0.
+	// Our selection already points to it by default.
+	// Compute minimal and maximal values
+	Vector3f min,max;
+	sel.minmax(min,max); //Using minmax() method of selection class
+	// Add to averages
+	min_average += min;
+	max_average += max;
+	return true; // Needed to continue processing
+	// If false is returned then this analysis task will stop
+}
+
+virtual void post_process(const Frame_info& info){
+	// Here we make use of Frame_info object to get the time range of processing
+	min_average /= (info.last_time-info.first_time);
+	max_average /= (info.last_time-info.first_time);
+	// Transpose is used to print a vector in one line instead of column of numbers
+	cout << "Averaged minimal value: " << min_average.transpose() << endl;
+	cout << "Averaged maximal value: " << max_average.transpose() << endl;  
+}
+\endcode
+
+In fact that's all! Now we can write a main program for our small analysis utility:
+\code
+
+#include "pteros/analysis/trajectory_processor.h"
+#include "path to Our_task definition"
+
+using namespace std;
+using namespace pteros;
+
+int main(int argc, char* argv[]){
+	// Create container for command-line options
+        Options_tree options;
+        // Parse command line
+        options.from_command_line(argc,argv);
+	// Create Trajectory processor;
+	Trajectory_processor proc;
+	
+	// Create our analysis task and connect it to processor
+	Our_task task1(&proc, "name CA");
+	// Create another task
+	Our_task task2(&proc, "name CB");
+	// And another one
+	Our_task task2(&proc, "resid 1 to 100");
+	
+	// Run processor!
+	proc.compute();
+}
+\endcode
+
+Now three tasks, operating on different selections will run in parallel during the reading of trajectory. But wait, what trajectory we are going to read? This is cpecified at run time by the command line arguments:
+
+\code
+./our_program --trajectory[ some-protein.pdb traj-part1.xtc traj-part2.xtc --first_frame 14 --last_time 250 ]
+\endcode
+
+The groups of options are passed in square brackets. In our case we specify --trajectory argument, which is absorbed internally by Trajectory_processor. It looks at the list of specified files and finds a structure file (some-protein.pdb in our case). This file is loaded into the "system" variable of all our tasks. Then Trajectory_processor reads all trajectories one by one in order of appearance and calls our task for frame processing. Processing starts at frame 14 and ends when the time stamp in current frame becomes larger then 250 ps. All this complex logic is completely abstracted by the Trajectory_processor class, which saves you a lot of time.
+
+As you noticed, we hard-coded selection texts in out code. Let's do our program more flexible. We will modify it to take multiple additional arguments like this: 
+\code
+./our_program --trajectory[ some-protein.pdb traj-part1.xtc traj-part2.xtc --first_frame 14 --last_time 250 ] \
+	--selection "name CA" --selection "name CB" --selection "resid 1-15"
+\endcode
+
+This is surprisingly simple:
+
+\code
+...
+#include <boost/foreach.hpp>
+#include <boost/ptr_container/ptr_vector.hpp>
+...
+
+int main(int argc, char* argv[]){
+	// Create container for command-line options
+        Options_tree options;
+        // Parse command line
+        options.from_command_line(argc,argv);
+	// Create Trajectory processor;
+	Trajectory_processor proc;
+	// Container for tasks
+	boost::ptr_vector<Task_base> tasks;
+	
+	// Get all options named "selection" and cycle over them
+	BOOST_FOREACH(Options_tree* opt, options->get_options("selection")){
+		// Get selection text as a string from current option
+		string sel_text = o->get_value<string>("");
+		// Create task
+		tasks.push_back( new Our_task(&proc, sel_text) );
+	}
+	
+	// Run processor!
+	proc.compute();
+}
+\endcode
+
+In fact we only need three lines to process our additional options. The usage of boost::foreach and boost::shared_ptr libraries allows to simplify the code considerably, but it is not necessary.
+*/

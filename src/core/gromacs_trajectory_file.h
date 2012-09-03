@@ -1,0 +1,82 @@
+/*
+ *
+ *                This source code is part of
+ *                    ******************
+ *                    ***   Pteros   ***
+ *                    ******************
+ *                 molecular modeling library
+ *
+ * Copyright (c) 2009, Semen Yesylevskyy
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of Artistic License:
+ *
+ * Please note, that Artistic License is slightly more restrictive
+ * then GPL license in terms of distributing the modified versions
+ * of this software (they should be approved first).
+ * Read http://www.opensource.org/licenses/artistic-license-2.0.php
+ * for details. Such license fits scientific software better then
+ * GPL because it prevents the distribution of bugged derivatives.
+ *
+*/
+
+#ifndef GROMACS_TRAJECTORY_FILE_H
+#define GROMACS_TRAJECTORY_FILE_H
+
+#include "xdrfile.h"
+#include "xdrfile_xtc.h"
+#include "xdrfile_trr.h"
+#include <string>
+#include <ctime>
+
+#include "pteros/core/system.h"
+#include "pteros/core/format_recognition.h"
+#include "pteros/core/mol_file.h"
+#include <Eigen/Core>
+
+namespace pteros {
+
+/** Base class for XTC and TRR readers
+  */
+class Gromacs_trajectory_file: public Mol_file {
+    public:      
+
+        Gromacs_trajectory_file(std::string fname, char openmode);
+
+        virtual ~Gromacs_trajectory_file();        
+
+        virtual Mol_file_content get_content_type(){
+            Mol_file_content c;
+            c.trajectory = true;
+            return c;
+        }
+
+    protected:
+
+        XDRFILE* xd;
+        int step, ret;
+        float prec;
+        matrix box;
+        rvec* x;
+        char mode;
+        int fr;
+
+        clock_t time_per_frame;
+
+        virtual void open(std::string fname, char openmode);
+
+        virtual int read_num_atoms(char* fname, int* num){}
+        virtual int read_record(XDRFILE *xd, int natoms, int *step,
+                                float *time, matrix box,rvec *x){}
+        virtual int write_record(XDRFILE *xd,
+                      int natoms,int step,float time,
+                      matrix box,rvec *x){}
+
+        /// Reads next frame into internal storage. Returns false if failed or EOF reached.
+        virtual bool do_read(System *sys, Frame *frame, Mol_file_content what);
+        /// Writes data from given frame to trajectory
+        virtual void do_write(Selection &sel, Mol_file_content what);
+};
+
+}
+#endif // GROMACS_TRAJECTORY_H

@@ -1,0 +1,75 @@
+/**
+\page install_win Installing Pteros on Windows
+
+Installing Pteros on Windows is rather tricky task. This is not the fault of the library itself, but rather the general problem of compiling Boost libraries on Windows and overcoming multiple platform-related issues and bugs. Currently only MinGW gcc compiler is tested on Windows. If you want to use MS Visual Studio or other compilers you'll need to sort the things out yourself.
+
+Python bindings are currently not supported on Windows.
+
+The procedure below was tested on Windows XP 32bit with MinGW GCC compiler version 4.6 and Boost 1.48. There is no guarantee that it will work on other versions. My experience with Windows is rather limited, so any suggestions are appreciated! 
+
+<ol>
+<li>
+Download latest MinGW from here: <a href="http://sourceforge.net/projects/mingw/files/">http://sourceforge.net/projects/mingw/files/</a>.
+During installation check "C++ compiler". Install it to default location (C:\\MinGw).
+<li>
+Update your PATH variable by appending 
+\code
+C:\MinGW\bin;C:\MinGW\mingw32\bin 
+\endcode
+to it. For doing this right-click "My Computer" and go to "Advanced->Environment variables"
+<li>
+Download latest Boost from here: <a href="http://www.boost.org/users/download/">http://www.boost.org/users/download/</a>.
+Unzip it into separate folder (say, C:\\install\\boost_1_48).
+<li>
+Open windows console and cd to this directory. Then execute
+
+\code
+bootstrap.bat mingw
+\endcode
+
+It should finish without errors. 
+<li>
+Find the file project-config.jam. Open it in the text editor and change the line
+\code
+using msvc ;
+\endcode
+to
+\code
+using gcc ;
+\endcode
+After that execute
+\code
+b2 install --prefix=c:\install\boost --toolchain=mingw
+\endcode
+This will compile all boost libraries and install them into c:\\install\\boost. This can take a while, especially on slow machines. Just wait until compilation finishes.
+
+<li>
+Download CMake for Windows from here <a href="http://www.cmake.org/cmake/resources/software.html">http://www.cmake.org/cmake/resources/software.html</a> (use "Win32 installer") and install it. During installation check option "Add CMake to the PATH".
+
+<li>
+Download latest Pteros source code and place it to separate directory (say, C:\\install\\pteros). 
+
+<li>
+Find file CMakeLists.txt in your Pteros folder, open it in the text editor and find the line
+\code
+SET(BOOST_ROOT "c:/install/boost")
+\endcode
+Change the path to the directory where you installed Boost libraries.
+
+<li>
+Create a build directory (for example C:\\install\\pteros_build) and cd to it. 
+Now execute
+\code
+cmake -G "MinGW Makefiles" <path-to-pteros>
+\endcode
+
+<li>
+Execute
+\code
+mingw32-make
+\endcode
+
+Ignore multiple warnings about "dllimport attributes" and "different sizes" - they are harmless.
+</ol>
+
+*/

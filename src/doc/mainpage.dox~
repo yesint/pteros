@@ -1,0 +1,165 @@
+/** \mainpage Welcome to Pteros!
+
+\section contents Contents
+- \ref what_is_pteros
+- \ref is_it_for_you
+- \ref motivation
+- \ref features
+- \ref status
+- \ref install
+- \ref install_win
+- \ref cpp_level
+- \ref tutorial
+- \ref design
+- \ref bench
+
+\section what_is_pteros		What is Pteros?
+
+Pteros is a C++ library for molecular modeling. It is designed to simplify the development of custom programs for molecular modeling, analysis of molecular dynamics trajectories and implementing new simulation algorithms. Pteros provides facilities, which are routinely used in all such programs, namely input/output in popular file formats, powerful and flexible atom selections, geometry transformations, RMSD fitting and alignment, etc. Pteros also contains powerful facilities for parsing command-line arguments in custom programs and for running several analysis tasks in parallel, utilizing the power of modern multi-core processors.
+
+\section is_it_for_you	Is Pteros for you?
+
+Pteros library <i>is</i> for you if:
+
+- You want to implement custom non-standard methods of molecular analysis.
+- Your task is computationally expensive and potentially reusable.
+- You want to run several "heavy" analysis tasks in parallel.
+- You are not satisfied by the speed and memory consumption of the scripting languages embedded into popular molecular analysis programs, such as PyMol or VMD.
+- You know C++ or don't mind learning this rather hard, but very powerful language.
+
+Pteros is <i>not</i> for you if:
+
+- Your goal is to write a "throw-away" one-time analysis script, which takes only few minutes to complete. Using Pteros is an overkill in this case.
+- Your task requires extensive usage of molecular visualizer. Pteros doesn't have one currently.
+- You have no programming skills at all, or you don't want to learn C++.
+
+\section motivation 	Motivation
+
+So, why yet another molecular modeling library? First of all because I didn't find any C++ library for
+molecular modeling which satisfies my needs. Existing libraries are either too complicated or has clumsy and counterintuitive API. Of course all this is the matter of personal preference, but I have a feeling that many other researchers also desperately look for simple and clear library, which can simplify tedious routine tasks in molecular modeling.
+
+There are several molecular modeling programs, which could be controlled by the scripting languages. Such scripting is often used to perform non-standard analysis tasks. This is perfectly acceptable if the execution time is not an issue, however any computationally intensive algorithm will run ridiculously slow in the scripting language like Python or TCL. Pteros is designed as a replacement of such scripting extentions to existing molecular modeling software. With Pteros one can easily write very fast compiled programs in C++ using the same high-level concepts, which are provided by the scripting extentions.
+
+Pteros contains bindings for Python language, but these bindings are not the major focus of its development. They come handy when one need small throw-away program, but all computationally intensive tasks are supposed to be done in C++.
+
+\section features	Features
+
+- Reading/writing several popular molecular data formats (currently PDB, GRO, XTC and TRR are supported).
+- Very powerful and simple syntax for selecting groups of atoms similar to one used in VMD.
+- Selections can be manipulated in many different ways and various properties could be queried.
+- RMSD fitting and alignment.
+- Elastic network model calculations.
+- Computing non-bonded interactions with <i>any</i> force field available in Gromacs format (GROMOS, CHARMM, AMBER, OPLS and more).
+- Support for residue-level potentials.
+- Ability to work with very large trajectories, which does not fit into the memory.
+- Asynchronous processing made easy. Many different analysis tasks could be run in parallel and simulataneously with trajectory reading.
+- Very powerful and flexible syntax of the command-line options for custom analysis programs.
+- Easy to use. API is very simple and intuitive.
+- Easy to extend. Pteros is writen in 100% standard high-level C++.
+- Oriented to reserachers and students, not to programming gurus. The code is well structured and well documented.
+
+\section status		Development status
+Pteros is currently close to what could be called a stable release. The librray is quite stable and usable, but API is still subject to small changes, error reporting is still incomplete and many features are not implemented yet. You are wellcome to participate in pteros development - there are a lot of things to do!
+
+In its final form Pteros will consist of the following components:
+- Core library. <i> Already usable and stable, approximately 80% complete. </i>
+- Analysis framework. <i> Stable and usable, approximately 80% complete </i>
+- Python bindings for the core libarary. <i> 60% complete. Usable, but still somewhat ugly. </i>
+- 3D molecular visualizer based on OpenGL. <i> Planned. </i>
+- Stand-alone GUI molecular viewer and analysis application a-la <a href="http://www.ks.uiuc.edu/Research/vmd/">VMD</a>. <i> Very early design concept. </i>
+
+\section install 	Installation and linking with pteros
+
+\subsection port 	Portability
+Pteros is developed on Linux with gcc compiler. Other compilers and operating systems are not tested, however the code should be 100% portable providing that the dependencies are available for your system. Design decisions are made with portability to Windows and MacOS in mind. Other systems are not considered.
+
+\subsection depend 	Dependencies 
+The prerequisites for compilation of Pteros are the following:
+
+- Standard-conforming C and C++ compilers (tested with gcc).
+- <a href="http://www.cmake.org/">cmake</a> build system.
+- <a href="http://www.boost.org/">boost</a> 1.42 or higher.
+- Python 2.5 of higher (for python bindings only).
+- Subversion client for getting latest source code.
+
+If you are using Debian or Ubuntu it should be enough to run the following command in the terminal as root to install all dependencies:
+\code
+apt-get install g++ cmake cmake-curses-gui libboost-all-dev python-dev python-numpy subversion
+\endcode
+
+
+\subsection build	Building Pteros
+It is highly recommended to get the latest source code could from the SVN repository:
+\code
+svn co https://pteros.svn.sourceforge.net/svnroot/pteros/trunk pteros
+\endcode
+This will create a directory named "pteros" in you current working directory and will download the latest stable branch of Pteros source code into it. Discrete releases, published on the <a href="http://www.sourceforge.net/pteros">Pteros home page</a> are usually out of date because of fast code changes and their usage is discouraged. 
+
+Go to the pteros directory and build the library with these commands:
+
+\code
+cmake .
+make
+\endcode
+
+You may have to edit CMakeLists.txt file to set correct paths for the libraries. The most common problem is the non-standard location of the Boost libraries or too old version of Boost. Pteros is known not to compile with old versions of gcc, but gcc>1.4.3 should work without problems.
+
+
+\subsection linking 	Linking with Pteros
+
+It is recommented to use CMake for all projects, which use Pteros. You \e can use autoconf/automake or custom Makefiles, but this will never be officially supported. The "template" subdirectory contains the skeleton of CMake project, which could be used to link you own program with pteros libraries.
+Here is the minimal CMakeLists.txt file for building your own program, which uses Pteros with CMake (template directory contains a bit more complicated and standard-conforming example):
+
+\code
+cmake_minimum_required(VERSION 2.6)
+project(example_program)
+
+# Set these variables:
+SET(PTEROS_INCLUDE_PATH "<your path>/pteros/include")
+SET(PTEROS_LIB_PATH "<your path>/pteros/lib")
+
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -msse2") 
+SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC") 
+SET(CMAKE_BUILD_TYPE Release)
+find_package(Boost 1.42.0 REQUIRED thread)
+include_directories(${PTEROS_INCLUDE_PATH} ${Boost_INCLUDE_DIRS})
+link_directories(${PTEROS_LIB_PATH})
+link_libraries(pteros pteros_analysis pteros_sim xdrfile ${Boost_LIBRARIES})
+
+# Add your .cpp anf .h files here
+add_executable(example_executable main.cpp)
+\endcode
+
+Pteros uses the <a href="http://www.gromacs.org/Developer_Zone/Programming_Guide/XTC_Library">xdrfile</a> library from <a href="http://www.gromacs.org/">GROMACS</a> internally. The source of the xdrfile is included into the source tree of Pteros, so you don't need to install it separately. However, you have to link to xdrfile if you plan you use XTC or TRR files.
+
+Pteros relies on highly optimized vector/matrix library <a href="http://eigen.tuxfamily.org/index.php?title=Main_Page">Eigen</a>.
+Eigen is also included into the source tree and the headers are added automatically if you include Pteros headers.
+
+\section cpp_level What level of C++ knowledge is required?
+In order to develop you own programs with Pteros you need to know C++ reasonably well. However, you don't need to be a guru. Here is the basic list of things, which you should understand:
+
+- Basic syntax
+- Classes and ingeritance
+- STL containers
+
+In addition you should be familiar with Eigen vector/matrix library. Fortunately, it has an excelent documentation (...). 
+
+In order to modify internals of Pteros you should also be familiar with some Boost libraries, namely Boost.thread, Boost.bind, Boost.signals2, Boost.multiarray, etc.
+
+\section bench Benchmarks
+
+We compared performance of three small test programs in Pteros and VMD. The first program fits all trajectory frames to the reference structure and computes their RMSD with the reference. The second program finds atoms in two selections, with the distance between their centers less then 0.25 nm. The third program creates atom selections for each residue in the system on each loaded frame, which gives good estimate of the raw speed of selection parsing. In VMD the <a href="http://www.ks.uiuc.edu/Research/vmd/script_library/scripts/bigdcd/">bigdcd script</a> was used to process frames one by one without loading the whole trajectory into the memory. The MD trajectory of human tyrosyl-tRNA sinthetase, which contains 10744 atoms was used. First 1000 frames of trajectory where analyzed. Results of comparison are shown below:
+
+<b>Table 1. Execution time (in seconds) of three benchmark programs in Pteros and VMD.</b>
+<table>
+<tr><td>#</td>	<td>Benchmark</td>	<td>Pteros</td>	<td>VMD</td> <td>Ratio VMD/Pteros</td></tr>
+<tr><td>1</td>	<td>Fitting and RMSD calculation</td>	<td>1.6</td> <td>5.1</td> <td>3.18</td></tr>
+<tr><td>2</td>	<td>Finding contacting atoms</td>	<td>3.9</td>	<td>7.4</td>	<td>1.9</td></tr>
+<tr><td>3</td> <td>Creating selections for each residue</td>	<td>63.1</td> <td>2900.0</td> <td>45.9</td></tr>
+</table>
+
+Since VMD scripts for these benchmarks are very simple and call low-level built-in routines for the most of their work, the overhead of the TCL interpreter is rather minimal in our test. Any larger script, which performs complex computations and data manipulations, will have much larger overhead in comparison to compiled code. However, even these small scripts run significantly slower then compiled programs, which use Pteros. The parsing of atom selections in VMD is dramatically (46 times) slower then in Pteros, despite almost identical selection syntax. This introduces large performance penalty for any code in VMD, which creates many selections in the course of execution.
+Due to parallel execution of analysis tasks in Pteros running them simultaneously increases execution time only by few percent, while in VMD the execution time of all tasks is summed up (data not shown).
+Source code of the benchmark programs is included into the Pteros distribution and located in “examples” directory.
+
+*/
