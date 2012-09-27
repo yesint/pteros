@@ -100,6 +100,23 @@ void Grid_searcher::assign_to_grid(float d, Selection& sel,
     p_sel = &sel;
 }
 
+void Grid_searcher::create_custom_grid(int nX, int nY, int nZ){
+    NgridX = nX;
+    NgridY = nY;
+    NgridZ = nZ;
+    grid1.resize( boost::extents[NgridX][NgridY][NgridZ] );
+    }
+
+void Grid_searcher::fill_custom_grid(Selection sel, bool absolute_index, bool periodic){
+    is_periodic = periodic;
+    abs_index = absolute_index;
+    populate_grid(grid1,sel);
+}
+
+vector<int>& Grid_searcher::cell_of_custom_grid(int x, int y, int z){
+    return grid1[x][y][z];
+}
+
 void Grid_searcher::search_within(Vector3f &coor, vector<int> &bon){
     // Determine cell, which given point belongs to
     int n1,n2,n3,i,m1,m2,m3;

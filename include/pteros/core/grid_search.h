@@ -63,6 +63,12 @@ namespace pteros {
                                 bool absolute_index = false,
                                 bool periodic = false);
 
+            void create_custom_grid(int nX, int nY, int nZ);
+            void fill_custom_grid(Selection sel,
+                                  bool absolute_index = false,
+                                  bool periodic = false);
+            std::vector<int>& cell_of_custom_grid(int x, int y, int z);
+
             /// Search contacts within distance from given point in space
             /// Existing grid set in assign_to_grid() is used
             /// Returns the list of atoms in contact with given point
