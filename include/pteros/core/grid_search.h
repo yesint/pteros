@@ -65,8 +65,7 @@ namespace pteros {
 
             void create_custom_grid(int nX, int nY, int nZ);
             void fill_custom_grid(Selection sel,
-                                  bool absolute_index = false,
-                                  bool periodic = false);
+                                  bool absolute_index = false);
             std::vector<int>& cell_of_custom_grid(int x, int y, int z);
 
             /// Search contacts within distance from given point in space

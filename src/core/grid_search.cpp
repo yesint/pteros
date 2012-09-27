@@ -104,12 +104,23 @@ void Grid_searcher::create_custom_grid(int nX, int nY, int nZ){
     NgridX = nX;
     NgridY = nY;
     NgridZ = nZ;
-    grid1.resize( boost::extents[NgridX][NgridY][NgridZ] );
-    }
 
-void Grid_searcher::fill_custom_grid(Selection sel, bool absolute_index, bool periodic){
-    is_periodic = periodic;
+    grid1.resize( boost::extents[NgridX][NgridY][NgridZ] );
+}
+
+void Grid_searcher::fill_custom_grid(Selection sel, bool absolute_index){
+
+    Vector3f box_dim = sel.get_system()->Box(sel.get_frame()).colwise().norm();
+    min.fill(0.0);
+    max = box_dim;
+    // Grid vectors:
+    dX = (max(0)-min(0))/NgridX;
+    dY = (max(1)-min(1))/NgridX;
+    dZ = (max(2)-min(2))/NgridX;
+
+    is_periodic = true;
     abs_index = absolute_index;
+    is_triclinic = false;
     populate_grid(grid1,sel);
 }
 
