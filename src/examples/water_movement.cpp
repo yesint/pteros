@@ -11,14 +11,17 @@ public:
         options = opt;
     }
 protected:
-    virtual void pre_process(){
+    virtual void pre_process(){       
+        // Create selection for water
+        water.modify(system,"resname SOL and name OW");
+
         // Allocate a grid
         // Get size of the cell
-        float cell_size = options->get_value<float>("cell_size", 0.1);
+        float cell_size = options->get_value<double>("cell_size");
         // Get extents of the box
         Vector3f box_dim = system.Box(0).colwise().norm();
 
-        /*
+
         NgridX = floor(box_dim(0)/cell_size);
         NgridY = floor(box_dim(1)/cell_size);
         NgridZ = floor(box_dim(2)/cell_size);
@@ -26,8 +29,8 @@ protected:
         if(NgridX==0) NgridX = 1;
         if(NgridY==0) NgridY = 1;
         if(NgridZ==0) NgridZ = 1;
-        */
-        NgridX = NgridY = NgridZ = 3;
+
+        //NgridX = NgridY = NgridZ = 3;
 
         searcher.create_custom_grid(NgridX, NgridY, NgridZ);
 
@@ -40,8 +43,7 @@ protected:
                 for(k=0;k<NgridZ;++k)
                     grid[i][j][k] = 0.0;
 
-        // Create selection for water
-        water.modify(system,"resname SOL and name OW");
+
     }
 
 
@@ -54,7 +56,7 @@ protected:
         }
 
         // Assign waters to grid
-        searcher.fill_custom_grid(water,false,true);
+        searcher.fill_custom_grid(water,false);
         // Cycle over grid cells
         for(i=0;i<NgridX;++i)
             for(j=0;j<NgridY;++j)
@@ -66,12 +68,12 @@ protected:
                         // For current water get delta of prev and cur coorfinates
                         // And add it to result grid
 
-                        //grid[i][j][k] += (water.XYZ(ind) - last_pos.col(ind)).squaredNorm();
-                        grid[i][j][k] += 1;
+                        grid[i][j][k] += pow( system.distance(water.XYZ(ind),last_pos.col(ind),0,true) ,2);
+                        //grid[i][j][k] += 1;
                     }
                 }
 
-
+        water.get_xyz(last_pos);
         return true;
     }
 
