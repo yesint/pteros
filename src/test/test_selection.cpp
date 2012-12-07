@@ -84,21 +84,22 @@ int main(int argc, char** argv)
         */
         //string fname("/home/semen/work/Projects/kornelyuk/Sasha/dimer_md/1/dimer_pdb2gmx.gro");
         //string fname("/home/semen/work/Projects/asymmetric_bilayer/prepare_small/with_ions.pdb");
+
         string fname = "bilayer.gro";
         System sys(fname);        
-        Selection sel(sys,"not resname W ION");
-        Bilayer bi(sel,"name PO4",2.0);
+        //Selection sel(sys,"not resname W ION");
+        //Bilayer bi(sel,"name PO4",2.0);
 
-        Selection chol(sys,"resname CHOL");
-        Bilayer_point_info info = bi.point_info(chol.XYZ(0));
-        info.print();
+        //Selection chol(sys,"resname CHOL");
+        //Bilayer_point_info info = bi.point_info(chol.XYZ(0));
+        //info.print();
 
 
-        /*
-        //Selection sel(sys,"within_xy 3 of (resid 313 and name PO4)");
-        //sel.set_chain('Q');
-        //Selection(sys,"all").write("sel.pdb");
 
+        Selection sel(sys,"within_xy 3 of (resid 313 and name PO4)");
+        sel.set_chain('Q');
+        Selection(sys,"all").write("sel.pdb");
+/*
         Selection sel(sys,"all");
         Selection sel1(sys,"resid 1-300");
         Selection sel2(sys,"resid 302-600");

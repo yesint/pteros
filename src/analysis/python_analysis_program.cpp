@@ -51,8 +51,7 @@ int main(int argc, char* argv[]){
         }
 
 
-        cout << "Creating trajectory processor..." << endl;
-        //Trajectory_processor processor(options);
+        cout << "Creating trajectory processor..." << endl;       
         Trajectory_processor processor;
         cout << "Creating python task driver..." << endl;
         // This will also parse options from python script and put then into options

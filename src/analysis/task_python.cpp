@@ -72,10 +72,10 @@ Task_python::Task_python(Trajectory_processor *engine, Options_tree *opt): Consu
 
         cout << "Processing in-script trajectory options (if any)..." << endl;
 
-        boost::python::list l = extract<boost::python::list>(main_namespace["trajectory"].attr("files"));
+        boost::python::list l = extract<boost::python::list>(main_namespace["trajectory"]);
         for(int i=0; i<boost::python::len(l); ++i){
             options->add_value("trajectory",extract<string>(l[i])());
-            cout << "trajectory.files += " << extract<string>(l[i])() << endl;
+            cout << "trajectory += " << extract<string>(l[i])() << endl;
         }
 
 
