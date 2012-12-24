@@ -74,7 +74,7 @@ class System {
     /// Mol_file needs an access too
     friend class Mol_file;
 public:
-    /// Ensure correct 16-bytes-alignment for Eigen sse2 optimizations
+    /// Ensure correct 16-bytes-alignment for Eigen vectorization
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
     /// Default constructor
