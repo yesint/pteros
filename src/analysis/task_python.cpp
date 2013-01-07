@@ -72,18 +72,29 @@ Task_python::Task_python(Trajectory_processor *engine, Options_tree *opt): Consu
 
         cout << "Processing in-script trajectory options (if any)..." << endl;
 
-        boost::python::list l = extract<boost::python::list>(main_namespace["trajectory"]);
-        for(int i=0; i<boost::python::len(l); ++i){
-            options->add_value("trajectory",extract<string>(l[i])());
-            cout << "trajectory += " << extract<string>(l[i])() << endl;
+        try {
+            boost::python::list l = extract<boost::python::list>(main_namespace["trajectory"]);
+            for(int i=0; i<boost::python::len(l); ++i){
+                options->add_value("trajectory",extract<string>(l[i])());
+                cout << "trajectory += " << extract<string>(l[i])() << endl;
+            }
+        } catch(error_already_set const &) {
+            cout << "No in-script trajectory options" << endl;
+            PyErr_Clear();
         }
 
+        try {
+            options->add_value("trajectory/first_frame",
+                               extract<int>(main_namespace["trajectory"].attr("first_frame"))());
+            cout << "trajectory.first_frame = "
+                 << extract<int>(main_namespace["trajectory"].attr("first_frame"))() << endl;
+        } catch(error_already_set const &) {
+            cout << "No first_frame, well" << endl;
+            PyErr_Clear();
+        }
 
-        options->add_value("trajectory/first_frame",
-                           extract<int>(main_namespace["trajectory"].attr("first_frame"))());
-        cout << "trajectory.first_frame = "
-             << extract<int>(main_namespace["trajectory"].attr("first_frame"))() << endl;
-
+        // Create a task instance
+        exec("task = Task()",main_namespace);
 
 
     } catch(error_already_set const &) {
@@ -94,7 +105,7 @@ Task_python::Task_python(Trajectory_processor *engine, Options_tree *opt): Consu
 
 void Task_python::pre_process(){
     try {
-        exec("pre_process()",main_namespace);
+        exec("task.pre_process()",main_namespace);
     } catch(error_already_set const &) {
          PyErr_Print();
          throw Pteros_error("Python pre_process failed!");
@@ -105,7 +116,7 @@ bool Task_python::process_frame(const Frame_info &info){
     bool ok;
     try {
         main_namespace["_info"] = ptr(&info);
-        exec("_ret = process_frame(_info)",main_namespace);
+        exec("_ret = task.process_frame(_info)",main_namespace);
         ok = extract<bool>(main_namespace["_ret"]);
     } catch(error_already_set const &) {
          PyErr_Print();
@@ -117,7 +128,7 @@ bool Task_python::process_frame(const Frame_info &info){
 void Task_python::post_process(const Frame_info &info){
     try {        
         main_namespace["_info"] = ptr(&info);
-        exec("post_process(_info)" , main_namespace);
+        exec("task.post_process(_info)" , main_namespace);
 
     } catch(error_already_set const &) {
          PyErr_Print();
