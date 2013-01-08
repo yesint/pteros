@@ -46,7 +46,22 @@ public:
 
 private:
     Options_tree* options;
-    boost::python::object main_namespace;
+    boost::python::object main_namespace;   
+
+    template<class T>
+    void fetch_infile_option(string option){
+        using namespace boost::python;
+        try {
+            options->add_value("trajectory/"+option,
+                               extract<T>(main_namespace["trajectory"].attr(option.c_str()))());
+            T val = extract<T>(main_namespace["trajectory"].attr(option.c_str()))();
+            if(val!=-1)
+                cout << "trajectory."+option+" = " << val << endl;
+        } catch(error_already_set const &) {
+            PyErr_Clear();
+        }
+    }
+
 };
 
 }

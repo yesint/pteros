@@ -109,6 +109,47 @@ void System_atoms_add2(System* s, boost::python::list& atm, boost::python::list&
     System_atoms_add1(s,atm,crd,NULL);
 }
 
+float System_distance1(System* s, int i, int j, int fr, bool is_periodic){
+    s->distance(i,j,fr,is_periodic);
+}
+
+float System_distance2(System* s, int i, int j, int fr){
+    s->distance(i,j,fr,false);
+}
+
+float System_distance3(System* s, PyObject* p1, PyObject* p2, int fr, bool is_periodic){
+    if(PyArray_Check(p1)){
+        MAP_EIGEN_TO_PYARRAY(_p1,Vector3f,p1)
+        MAP_EIGEN_TO_PYARRAY(_p2,Vector3f,p2)
+        s->distance(_p1,_p2,fr,is_periodic);
+    } else {
+        System_distance1(s,extract<int>(p1),extract<int>(p2),fr,is_periodic);
+    }
+}
+
+float System_distance4(System* s, PyObject* p1, PyObject* p2, int fr){
+    System_distance3(s,p1,p2,fr,false);
+}
+
+void System_wrap_to_box(System* s, int frame, PyObject* point){
+    MAP_EIGEN_TO_PYARRAY(p,Vector3f,point)
+    Vector3f pp;
+    s->wrap_to_box(frame,pp);
+    p = pp;
+}
+
+PyObject* System_get_closest_image(System* s, PyObject* point, PyObject* target, int fr){
+    MAP_EIGEN_TO_PYARRAY(p,Vector3f,point)
+    MAP_EIGEN_TO_PYARRAY(t,Vector3f,target)
+    Vector3f pp,tt;
+    pp = p;
+    tt = t;
+    CREATE_PYARRAY_1D(ret,3)
+    MAP_EIGEN_TO_PYARRAY(r,Vector3f,ret)
+    r = s->get_closest_image(pp,tt,fr);
+    return boost::python::incref(ret);
+}
+
 boost::python::list Frame_get_coord(Frame* f){
     boost::python::list l;
     for(int i=0;i<f->coord.size();++i){
@@ -128,6 +169,7 @@ void Frame_set_coord(Frame* f, boost::python::list l){
         f->coord[i] = v;
     }
 }
+
 
 void make_bindings_System(){
     ///////////////////////////////////////////
@@ -166,5 +208,11 @@ void make_bindings_System(){
         .def("atoms_dup", &System_atoms_dup2)
         .def("atoms_add", &System_atoms_add1)
         .def("atoms_add", &System_atoms_add2)
+        .def("distance", &System_distance1)
+        .def("distance", &System_distance2)
+        .def("distance", &System_distance3)
+        .def("distance", &System_distance4)
+        .def("wrap_to_box", &System_wrap_to_box)
+        .def("get_closest_image", &System_get_closest_image)
     ;
 }

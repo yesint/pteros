@@ -122,7 +122,7 @@ bool Trajectory_processor::check_time_range(int fr, float t){
 void Trajectory_processor::read_single_trajectory(string& fname){
     bool term = false; // Termination flag
     try {
-        cout << "==> Reading trajectory" << fname << endl;
+        cout << "==> Reading trajectory " << fname << endl;
 
         boost::shared_ptr<Mol_file> trj = io_factory(fname,'r');
         if(!trj->get_content_type().trajectory)

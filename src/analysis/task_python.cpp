@@ -29,6 +29,7 @@ using namespace boost;
 using namespace boost::python;
 using namespace boost::python::numeric;
 
+
 Task_python::Task_python(Trajectory_processor *engine, Options_tree *opt): Consumer(engine){
     options = opt;
     try {
@@ -48,8 +49,7 @@ Task_python::Task_python(Trajectory_processor *engine, Options_tree *opt): Consu
         string todo = "import sys\n"
                 "sys.path.append('"+module_path+"')\n"
                 "print 'Importing pteros_py module into embedded interpreter...'\n"
-                "from pteros_py import *\n"
-                "print 'Checking import - the System class is imported as:',System\n"
+                "from pteros_py import *\n"                
                 ;
         exec(todo.c_str(),main_namespace);
 
@@ -61,6 +61,11 @@ Task_python::Task_python(Trajectory_processor *engine, Options_tree *opt): Consu
                 "       self.files = []\n"
                 "       self.first_frame = -1\n"
                 "       self.last_frame = -1\n"
+                "       self.first_time = -1\n"
+                "       self.last_time = -1\n"
+                "       self.skip = -1\n"
+                "       self.custom_start_time = -1\n"
+                "       self.custom_dt = -1\n"
                 "\n"
                 "trajectory = Trajectory()\n"
                 ;
@@ -70,31 +75,28 @@ Task_python::Task_python(Trajectory_processor *engine, Options_tree *opt): Consu
         cout << "Loading user-defined script '"+ script_file +"'..." << endl;
         exec_file(script_file.c_str(),main_namespace);
 
-        cout << "Processing in-script trajectory options (if any)..." << endl;
+        cout << "Processing in-script options (if any)..." << endl;
 
         try {
-            boost::python::list l = extract<boost::python::list>(main_namespace["trajectory"]);
+            boost::python::list l = extract<boost::python::list>(main_namespace["trajectory"].attr("files"));
             for(int i=0; i<boost::python::len(l); ++i){
                 options->add_value("trajectory",extract<string>(l[i])());
-                cout << "trajectory += " << extract<string>(l[i])() << endl;
+                cout << "trajectory.files += " << extract<string>(l[i])() << endl;
             }
         } catch(error_already_set const &) {
-            cout << "No in-script trajectory options" << endl;
             PyErr_Clear();
         }
 
-        try {
-            options->add_value("trajectory/first_frame",
-                               extract<int>(main_namespace["trajectory"].attr("first_frame"))());
-            cout << "trajectory.first_frame = "
-                 << extract<int>(main_namespace["trajectory"].attr("first_frame"))() << endl;
-        } catch(error_already_set const &) {
-            cout << "No first_frame, well" << endl;
-            PyErr_Clear();
-        }
+        fetch_infile_option<int>("first_frame");
+        fetch_infile_option<int>("last_frame");
+        fetch_infile_option<float>("first_time");
+        fetch_infile_option<float>("last_time");
+        fetch_infile_option<int>("skip");
+        fetch_infile_option<float>("custom_start_time");
+        fetch_infile_option<float>("custom_dt");
 
-        // Create a task instance
-        exec("task = Task()",main_namespace);
+        // If user specified Create a task instance
+        //exec("task = Task()",main_namespace);
 
 
     } catch(error_already_set const &) {
@@ -105,7 +107,7 @@ Task_python::Task_python(Trajectory_processor *engine, Options_tree *opt): Consu
 
 void Task_python::pre_process(){
     try {
-        exec("task.pre_process()",main_namespace);
+        exec("pre_process()",main_namespace);
     } catch(error_already_set const &) {
          PyErr_Print();
          throw Pteros_error("Python pre_process failed!");
@@ -116,7 +118,7 @@ bool Task_python::process_frame(const Frame_info &info){
     bool ok;
     try {
         main_namespace["_info"] = ptr(&info);
-        exec("_ret = task.process_frame(_info)",main_namespace);
+        exec("_ret = process_frame(_info)",main_namespace);
         ok = extract<bool>(main_namespace["_ret"]);
     } catch(error_already_set const &) {
          PyErr_Print();
@@ -128,7 +130,7 @@ bool Task_python::process_frame(const Frame_info &info){
 void Task_python::post_process(const Frame_info &info){
     try {        
         main_namespace["_info"] = ptr(&info);
-        exec("task.post_process(_info)" , main_namespace);
+        exec("post_process(_info)" , main_namespace);
 
     } catch(error_already_set const &) {
          PyErr_Print();
