@@ -37,6 +37,6 @@ find_package(Boost 1.42.0 REQUIRED thread regex)
 
 include_directories(${PTEROS_INCLUDE_PATH} ${Boost_INCLUDE_DIRS})
 link_directories(${PTEROS_LIB_PATH})
-link_libraries(pteros pteros_analysis pteros_sim xdrfile ${Boost_LIBRARIES})
+link_libraries(pteros pteros_analysis pteros_sim molfile_plugins xdrfile ${Boost_LIBRARIES})
 
 add_subdirectory(src)
