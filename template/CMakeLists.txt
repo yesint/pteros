@@ -10,8 +10,8 @@ project(pteros_template_program)
 ## You have to set two variables below:      ##
 ###############################################
 
-SET(PTEROS_INCLUDE_PATH "<your path>/pteros/include")
-SET(PTEROS_LIB_PATH "<your path>/pteros/lib")
+SET(PTEROS_INCLUDE_PATH "/home/semen/work/Projects/pteros/pteros_git/include")
+SET(PTEROS_LIB_PATH "/home/semen/work/Projects/pteros/pteros_git/lib")
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     SET(BOOST_ROOT "c:/install/boost")
@@ -23,20 +23,20 @@ ENDIF()
 ######################################################################
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -std=c++0x -msse2")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -msse2")
     SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
 ENDIF()
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++0x -DBOOST_THREAD_USE_LIB -msse2")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_THREAD_USE_LIB -msse2")
 ENDIF()
 
 SET(CMAKE_BUILD_TYPE Release)
 
-find_package(Boost 1.42.0 REQUIRED thread)
+find_package(Boost 1.42.0 REQUIRED thread regex)
 
 include_directories(${PTEROS_INCLUDE_PATH} ${Boost_INCLUDE_DIRS})
 link_directories(${PTEROS_LIB_PATH})
-link_libraries(pteros pteros_analysis pteros_sim xdrfile ${Boost_LIBRARIES})
+link_libraries(pteros pteros_analysis pteros_sim molfile_plugins xdrfile ${Boost_LIBRARIES})
 
 add_subdirectory(src)
