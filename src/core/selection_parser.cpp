@@ -70,7 +70,14 @@ char* tok_names[] = {
     "TOK_STR",
     // Parens
     "TOK_LPAREN",
-    "TOK_RPAREN"
+    "TOK_RPAREN",
+    // Distances
+    "TOK_DIST",
+    "TOK_POINT",
+    "TOK_VECTOR",
+    "TOK_PLANE",
+
+    "TOK_PRECOMPUTED"
 };
 
 
@@ -90,6 +97,11 @@ void AstNode::dump(int indent){
     for(int i=0;i<indent;++i) cout << '\t';
     cout << "}" << endl;
 }
+
+string AstNode::decode(){
+    return tok_names[code];
+}
+
 #endif
 
 int AstNode::get_int_child_value(int i){
@@ -121,6 +133,15 @@ float AstNode::get_float_or_int_child_value(int i){
     }
     return d;
 }
+
+bool AstNode::is_coordinate_dependent(){
+    if(code == TOK_X || code == TOK_Y || code == TOK_Z || code == TOK_WITHIN){
+        return true;
+    } else {
+        return false;
+    }
+}
+
 
 Selection_parser::Selection_parser(){
     has_coord = false;
@@ -640,12 +661,26 @@ void Selection_parser::optimize_ast(){
     do_optimization(tree);
 }
 
+bool is_node_pure(AstNode_ptr& node){
+    if(node->is_coordinate_dependent()) return false;
+
+    for(int i=0;i<node->children.size();++i){
+        try {
+            if( is_node_pure(boost::get<AstNode_ptr>(node->children[i])) == false){
+                return false;
+            }
+        } catch(boost::bad_get){};
+    }
+
+    return true;
+}
+
 void Selection_parser::do_optimization(AstNode_ptr& node){
 
+    cout << "OPT: " << node->decode() << endl;
+
     // See if this is a coordinate node
-    if(node->code == TOK_X || node->code == TOK_Y
-        || node->code == TOK_Z || node->code == TOK_WITHIN
-       ) has_coord = true;
+    if(node->is_coordinate_dependent()) has_coord = true;
 
     // If this is a math node and both operands are numbers, simplify it
     if( (node->code == TOK_PLUS || node->code == TOK_MINUS)
@@ -668,6 +703,18 @@ void Selection_parser::do_optimization(AstNode_ptr& node){
             return;
         }
     }
+
+    // Now check if this node does not contain coord-dependent children
+    if(is_node_pure(node)){
+        // Node is pure, so clear all its children and keep precomputed index
+        // Set node type to precomputed
+        node->children.clear();
+        node->code = TOK_PRECOMPUTED;
+#ifdef _DEBUG_PARSER
+        cout << "Node set to precomputed " << endl;
+#endif
+    }
+
     // Go deeper
     for(int i=0;i<node->children.size();++i)
         try {
@@ -703,6 +750,10 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result){
     result.clear();
 
     switch(node->code){
+    case  TOK_PRECOMPUTED: {
+        result = node->precomputed;
+    }
+
     case  TOK_NOT: {
         // Logical NOT
         vector<int> res1;
@@ -753,11 +804,13 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result){
         int Nchildren = node->children.size(); // Get number of children
         string str;
         // Cycle over children
+
         for(i=0;i<Nchildren;++i){
             str = node->get_str_child_value(i);
             for(at=0;at<Natoms;++at)
                 if(sys->atoms[at].name == str) result.push_back(at);
         }
+
         return;
     }
 
@@ -977,7 +1030,9 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result){
               ) result.push_back(at);
         return;
 
-    }
+    }   
+
+    if(node->is_coordinate_dependent()==false) node->precomputed = result;
 
 }
 

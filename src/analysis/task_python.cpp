@@ -124,6 +124,9 @@ bool Task_python::process_frame(const Frame_info &info){
          PyErr_Print();
          throw Pteros_error("Python process_frame failed!");
     }
+    // Check for keyboard interrupts from python interpreter
+    if(PyErr_CheckSignals()==-1) ok = false;
+
     return ok;
 }
 

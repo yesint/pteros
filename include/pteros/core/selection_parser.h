@@ -20,7 +20,7 @@
  *
 */
 
-//#define _DEBUG_PARSER
+#define _DEBUG_PARSER
 
 #ifndef SELECTION_PARSER2_H
 #define SELECTION_PARSER2_H
@@ -89,7 +89,9 @@ enum Codes {
     TOK_DIST,
     TOK_POINT,
     TOK_VECTOR,
-    TOK_PLANE
+    TOK_PLANE,
+
+    TOK_PRECOMPUTED
 };
 
 struct AstNode; // Forward declaration
@@ -107,6 +109,9 @@ typedef boost::variant<
 struct AstNode {
     Codes code; //Code of operation
     std::vector<ast_element> children;
+    std::vector<int> precomputed; // Precomputed indexes for coordinate-independent nodes
+
+    bool is_coordinate_dependent();
     // Returns child elements
     int get_int_child_value(int i);
     char get_char_child_value(int i);
@@ -118,6 +123,7 @@ struct AstNode {
 
 #ifdef _DEBUG_PARSER
     void dump(int indent=0);
+    std::string decode();
 #endif
 };
 
