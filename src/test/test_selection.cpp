@@ -85,7 +85,7 @@ int main(int argc, char** argv)
         //string fname("/home/semen/work/Projects/kornelyuk/Sasha/dimer_md/1/dimer_pdb2gmx.gro");
         //string fname("/home/semen/work/Projects/asymmetric_bilayer/prepare_small/with_ions.pdb");
 
-        string fname = "bilayer.gro";
+        string fname = "/media/data/semen/trajectories/RC/new_protocol/C5/after_C4.gro";
         System sys(fname);        
         //Selection sel(sys,"not resname W ION");
         //Bilayer bi(sel,"name PO4",2.0);
@@ -96,9 +96,9 @@ int main(int argc, char** argv)
 
 
 
-        Selection sel(sys,"within_xy 3 of (resid 313 and name PO4)");
-        sel.set_chain('Q');
-        Selection(sys,"all").write("sel.pdb");
+        Selection sel(sys,"within 0.6 of (resname BCL and name MG)");
+        cout << sel.get_text() << endl;
+
 /*
         Selection sel(sys,"all");
         Selection sel1(sys,"resid 1-300");

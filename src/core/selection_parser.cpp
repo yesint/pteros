@@ -47,6 +47,7 @@ char* tok_names[] = {
     // Prefixes
     "TOK_NOT",
     "TOK_WITHIN",
+    "TOK_PERIODIC",
     "TOK_OF",
     "TOK_BY",
     "TOK_RESIDUE",
@@ -84,7 +85,13 @@ char* tok_names[] = {
 void AstNode::dump(int indent){
     for(int i=0;i<indent;++i) cout << '\t';
     cout << tok_names[code] << "{" << endl;
-    for(int i=0;i<children.size();++i){
+    if(code == TOK_PRECOMPUTED){
+        //for(int j=0;j<precomputed.size();++j) cout << precomputed[j]<<" ";
+        for(int i=0;i<indent;++i) cout << '\t';
+        cout << "\tsz: " << precomputed.size() << endl;
+    }
+
+    for(int i=0;i<children.size();++i){        
         AstNode_ptr p;
         try {
             p = boost::get<AstNode_ptr>(children[i]);
@@ -346,11 +353,12 @@ void Selection_parser::tokenize(const string& s){
     end_token(s,b,cur-1);
 
 #ifdef _DEBUG_PARSER
+    cout << endl <<"Tokenizer result:" << endl;
     boost::shared_ptr<AstNode> node;
     BOOST_FOREACH(node, tokens){
             cout << tok_names[node->code] << " ";
     }
-    cout << endl;
+    cout << endl << endl;
 #endif
 }
 
@@ -639,28 +647,6 @@ struct Grammar {
 } //namespace
 
 
-void Selection_parser::create_ast(string& sel_str){
-#ifdef _DEBUG_PARSER
-	cout << "Going to create AST from: " << sel_str <<endl;
-#endif
-    tokenize(sel_str);
-    Grammar gr(this);
-    int pos = gr.run(tree);
-    if(pos!=tokens.size()) throw Pteros_error("Error near token #"+lexical_cast<string>(pos));
-    // Now we can free tokens array. This will kill all unused nodes
-    tokens.clear();
-#ifdef _DEBUG_PARSER
-    tree->dump();
-#endif
-}
-
-void Selection_parser::optimize_ast(){
-#ifdef _DEBUG_PARSER
-	cout << "Analyzing and optimizing ast" << endl;
-#endif
-    do_optimization(tree);
-}
-
 bool is_node_pure(AstNode_ptr& node){
     if(node->is_coordinate_dependent()) return false;
 
@@ -675,13 +661,31 @@ bool is_node_pure(AstNode_ptr& node){
     return true;
 }
 
+void Selection_parser::create_ast(string& sel_str){
+#ifdef _DEBUG_PARSER
+	cout << "Going to create AST from: " << sel_str <<endl;
+#endif
+    tokenize(sel_str);
+    Grammar gr(this);
+    int pos = gr.run(tree);
+    if(pos!=tokens.size()) throw Pteros_error("Error near token #"+lexical_cast<string>(pos));
+    // Now we can free tokens array. This will kill all unused nodes
+    tokens.clear();
+
+    if(!is_node_pure(tree)) has_coord = true;
+    is_optimized = false; // Not yet optimized
+
+#ifdef _DEBUG_PARSER
+    cout << "Is coordinate dependent? " << has_coord << endl;
+    tree->dump();
+#endif
+}
+
+
+
 void Selection_parser::do_optimization(AstNode_ptr& node){
 
-    cout << "OPT: " << node->decode() << endl;
-
-    // See if this is a coordinate node
-    if(node->is_coordinate_dependent()) has_coord = true;
-
+/*
     // If this is a math node and both operands are numbers, simplify it
     if( (node->code == TOK_PLUS || node->code == TOK_MINUS)
         || (node->code == TOK_MULT || node->code == TOK_DIV) )
@@ -703,15 +707,34 @@ void Selection_parser::do_optimization(AstNode_ptr& node){
             return;
         }
     }
+*/
+    // Skip for trivial nodes
+    if(node->code == TOK_VOID
+        || node->code == TOK_STR
+        || node->code == TOK_FLOAT
+        || node->code == TOK_INT
+       ) return;
 
     // Now check if this node does not contain coord-dependent children
     if(is_node_pure(node)){
+#ifdef _DEBUG_PARSER
+        cout << "Node " << node->decode() << " is pure" << endl;
+#endif
         // Node is pure, so clear all its children and keep precomputed index
-        // Set node type to precomputed
+        // Set node type to precomputed        
+
+        vector<int> res;
+        eval_node(node,res);
+        node->precomputed = res;
         node->children.clear();
         node->code = TOK_PRECOMPUTED;
+
 #ifdef _DEBUG_PARSER
         cout << "Node set to precomputed " << endl;
+#endif
+    } else {
+#ifdef _DEBUG_PARSER
+        cout << "Node " << node->decode() << " is NOT pure" << endl;
 #endif
     }
 
@@ -720,6 +743,7 @@ void Selection_parser::do_optimization(AstNode_ptr& node){
         try {
             do_optimization(boost::get<AstNode_ptr>(node->children[i]));
         } catch(boost::bad_get){};
+
 }
 
 
@@ -732,6 +756,17 @@ void Selection_parser::apply(System* system, long fr, vector<int>& result){
     frame = fr;
     Natoms = sys->num_atoms();
 
+    // For coordinate-dependent selections perform optimization
+    // to precompute all pure not-coordinate-depenednt nodes
+    if(has_coord && !is_optimized){
+        do_optimization(tree);
+        is_optimized = true;
+#ifdef _DEBUG_PARSER
+        cout << "Tree after optimizaton:" << endl;
+        tree->dump(0);
+#endif
+    }
+
     // Eval root node
     eval_node(tree,result);
 
@@ -739,8 +774,8 @@ void Selection_parser::apply(System* system, long fr, vector<int>& result){
     int n = 0;
     for(int i=0;i<result.size();++i)
         cout << result[i] << " ";
-    cout << endl;
-#endif
+    cout << endl;    
+#endif    
 }
 
 void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result){
@@ -752,6 +787,7 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result){
     switch(node->code){
     case  TOK_PRECOMPUTED: {
         result = node->precomputed;
+        return;
     }
 
     case  TOK_NOT: {
@@ -1032,7 +1068,7 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result){
 
     }   
 
-    if(node->is_coordinate_dependent()==false) node->precomputed = result;
+    //if(node->is_coordinate_dependent()==false) node->precomputed = result;
 
 }
 

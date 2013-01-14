@@ -71,8 +71,7 @@ void Selection::allocate_parser(){
     // we will delete it after parsing is complete
     parser.reset();
     parser = boost::shared_ptr<Selection_parser>(new Selection_parser);
-    parser->create_ast(sel_text);
-    parser->optimize_ast();
+    parser->create_ast(sel_text);    
     parser->apply(system, frame, index);
     if(!parser->has_coord){
         parser.reset();

@@ -20,7 +20,7 @@
  *
 */
 
-#define _DEBUG_PARSER
+//#define _DEBUG_PARSER
 
 #ifndef SELECTION_PARSER2_H
 #define SELECTION_PARSER2_H
@@ -154,11 +154,7 @@ public:
     virtual ~Selection_parser();
     /// Generates AST from selection string
     void create_ast(std::string&);
-    /** Analyze and optimize AST.
-    *   Checks for coordinate keywords and sets has_coord accordingly.
-    *   Also precomputes literal expressions like 2+3
-    */
-    void optimize_ast();
+
     /// Apply ast to the system. Fills the vector passed from
     /// enclosing System with selection indexes.
     void apply(System* system, long fr, std::vector<int>& result);
@@ -182,6 +178,8 @@ private:
     void eval_node(AstNode_ptr& node, std::vector<int>& result);
     float eval_numeric(AstNode_ptr& node, int at);
     void do_optimization(AstNode_ptr& node);
+
+    bool is_optimized;
 };
 
 }
