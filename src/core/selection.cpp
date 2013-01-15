@@ -958,7 +958,7 @@ void Selection::write(string fname, int b, int e){
     if(e<b) throw Pteros_error("Invalid frame range for writing!");
     // -1 is special
     if(b==-1) b=get_frame();
-    if(e==-1) b=get_frame();
+    if(e==-1) e=get_frame();
     cout << "Asked to write frames "<<b<<":"<<e<< endl;
 
     boost::shared_ptr<Mol_file> f = io_factory(fname,'w');
