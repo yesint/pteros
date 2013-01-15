@@ -43,7 +43,15 @@ using namespace json_spirit;
 
 int main(int argc, char** argv)
 {
+    System sys("/media/data/semen/trajectories/grand_challenge/nowater.gro");
+    Selection sel(sys,"name PO4");
+    //sel.write("/media/data/semen/trajectories/grand_challenge/sp.gro");
+    Selection lipids;
+    Bilayer bi;
+    lipids.modify(sys,"resname DOPC DOPS");
+    bi.create(lipids,"name PO4",2.0);
 
+    return 0;
 
 
     string s("/home/semen/work/Projects/kornelyuk/Sasha/dimer_md/1/dimer_noPBC_1.xtc");

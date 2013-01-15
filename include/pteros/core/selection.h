@@ -253,7 +253,7 @@ class Selection {
 
     /// Get the center of selection.
     /// @param mass_weighted Use mass-weighting
-    Eigen::Vector3f center(bool mass_weighted = false);
+    Eigen::Vector3f center(bool mass_weighted = false, bool periodic = false);
     /// Get minimal and maximal coordinates in selection
     void minmax(Eigen::Vector3f& min, Eigen::Vector3f& max);
     /// @}

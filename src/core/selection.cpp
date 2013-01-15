@@ -587,7 +587,7 @@ vector<Vector2i> Selection::compute_bonds(){
 ////////////////////////////////////////////
 
 // Center of geometry
-Vector3f Selection::center(bool mass_weighted){
+Vector3f Selection::center(bool mass_weighted, bool periodic){
     Vector3f res;
     int i;
     int n = index.size();
@@ -595,18 +595,39 @@ Vector3f Selection::center(bool mass_weighted){
     if(n==0) throw Pteros_error("Can't get the center of empty selection!");
 
     res.fill(0.0);
-    if(mass_weighted){
-        float m = 0.0;
-        for(i=0; i<n; ++i){
-            res += XYZ(i)*Mass(i);
-            m += Mass(i);
-        }
-        return res/m;
-    } else {
-        for(i=0; i<n; ++i)
-            res += XYZ(i);
 
-        return res/n;
+    if(periodic==false){
+        if(mass_weighted){
+            float m = 0.0;
+            for(i=0; i<n; ++i){
+                res += XYZ(i)*Mass(i);
+                m += Mass(i);
+            }
+            return res/m;
+        } else {
+            for(i=0; i<n; ++i)
+                res += XYZ(i);
+
+            return res/n;
+        }
+    } else {
+        // Periodic center
+        // We will find closest periodic images of all points
+        // using first point as a reference
+        Vector3f ref_point = XYZ(0);
+        if(mass_weighted){
+            float m = 0.0;
+            for(i=0; i<n; ++i){
+                res += system->get_closest_image(XYZ(i),ref_point,frame) * Mass(i);
+                m += Mass(i);
+            }
+            return res/m;
+        } else {
+            for(i=0; i<n; ++i)
+                res += system->get_closest_image(XYZ(i),ref_point,frame);
+
+            return res/n;
+        }
     }
 }
 

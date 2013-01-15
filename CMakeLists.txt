@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.6)
 project(pteros)
 
-OPTION(DEBUG_MODE "Compile in debug mode")
+OPTION(DEBUG_MODE "Compile in debug mode" ON)
 OPTION(PYTHON_BINDINGS "Build python bindings" ON)
 OPTION(CHAISCRIPT_BINDINGS "Build chaiscript bindings")
 OPTION(VMD_PDB "Use VMD molfile plugin for reading PDB files (if OFF - internal reader is used)")

@@ -20,6 +20,8 @@
  *
 */
 
+#define VMD_PDB
+
 #ifndef PDB_FILE_H
 #define PDB_FILE_H
 
@@ -34,16 +36,26 @@ namespace pteros {
 /// Use VMD plugin for PDB
 class PDB_file: public VMD_molfile_plugin_wrapper {
 public:    
-    virtual bool can_read_structure_and_coordinates(){return true;}
-    virtual bool can_write_structure_and_coordinates(){return true;}
-    virtual bool can_read_coordinates(){return true;}
-    virtual bool can_write_coordinates(){return false;}
+
+    virtual Mol_file_content get_content_type(){
+        Mol_file_content c;
+        c.structure = true;
+        c.coordinates = true;
+        return c;
+    }
 
     PDB_file(std::string fname, char open_mode);
 };
 
+
 #else
 // Use internal PDB reader
+
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
+This implementation is currently broken!
+On write very large files fail to align coordinate records correctly
+For now VMD molfile plugin is used for PDB files
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
 
 class PDB_file: public Mol_file {
 public:

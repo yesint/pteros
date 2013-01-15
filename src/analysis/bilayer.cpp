@@ -62,6 +62,8 @@ void Bilayer::create(Selection &sel, std::string head_marker_atom, float d){
 bool dist_sorter(int a ,int b, vector<float>& d){ return d[a]<d[b]; }
 
 Bilayer_point_info Bilayer::point_info(Eigen::Vector3f &point){    
+    // Wrap point
+    //ilayer_ptr->get_system()->wrap_to_box(bilayer_ptr->get_frame(),point);
     // Get periodic distances to all markers in both monolayers
     int i;
     vector<float> dist1(surf[0].size()), dist2(surf[1].size());
@@ -97,8 +99,8 @@ Bilayer_point_info Bilayer::point_info(Eigen::Vector3f &point){
         //spot2.set_chain('Q');
     }
 
-    ret.proj1 = ret.spot1_ptr->center();
-    ret.proj2 = ret.spot2_ptr->center();
+    ret.proj1 = ret.spot1_ptr->center(true,true);
+    ret.proj2 = ret.spot2_ptr->center(true,true);
     // We use get_closest_image to bring projections close to the point according to pbc
     ret.proj1 = bilayer_ptr->get_system()->get_closest_image(ret.proj1,point,bilayer_ptr->get_frame());
     ret.proj2 = bilayer_ptr->get_system()->get_closest_image(ret.proj2,point,bilayer_ptr->get_frame());

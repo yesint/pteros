@@ -41,6 +41,7 @@ PDB_file::PDB_file(string fname, char open_mode): VMD_molfile_plugin_wrapper(fna
     open(fname,open_mode);
 }
 
+
 #else
 
 PDB_file::PDB_file(string fname, char open_mode): Mol_file(fname, open_mode)
