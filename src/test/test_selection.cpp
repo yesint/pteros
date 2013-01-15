@@ -93,7 +93,8 @@ int main(int argc, char** argv)
         //string fname("/home/semen/work/Projects/kornelyuk/Sasha/dimer_md/1/dimer_pdb2gmx.gro");
         //string fname("/home/semen/work/Projects/asymmetric_bilayer/prepare_small/with_ions.pdb");
 
-        string fname = "/media/data/semen/trajectories/RC/new_protocol/C5/after_C4.gro";
+        //string fname = "/media/data/semen/trajectories/RC/new_protocol/C5/after_C4.gro";
+        string fname = "/media/data/semen/trajectories/RC/new_protocol/C5/sp.pdb";
         System sys(fname);        
         //Selection sel(sys,"not resname W ION");
         //Bilayer bi(sel,"name PO4",2.0);

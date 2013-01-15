@@ -84,8 +84,10 @@ bool GRO_file::do_read(System *sys, Frame *frame, Mol_file_content what){
             // Assign masses
             tmp_atom.mass = get_mass_from_atom_name(tmp_atom.name);
             tmp_atom.type = -1; //Undefined type so far
-            // There is no chain in GRO file, so add it manually
+            // There is no chain, occupancy and beta in GRO file, so add it manually
             tmp_atom.chain = 'X';
+            tmp_atom.beta = 0.0;
+            tmp_atom.occupancy = 0.0;
             // Add new atom to the system
             append_atom_in_system(*sys,tmp_atom);
         }

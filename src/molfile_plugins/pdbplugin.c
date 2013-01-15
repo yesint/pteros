@@ -143,7 +143,7 @@ static int read_pdb_structure(void *mydata, int *optflags,
     switch (rectype) {
     case PDB_ATOM:
       atom = atoms+i;
-      get_pdb_fields(pdbrec, strlen(pdbrec), &atomserial, 
+      get_pdb_fields(pdbrec, strlen(pdbrec), &atomserial,
           atom->name, atom->resname, atom->chain, atom->segid, 
           ridstr, atom->insertion, atom->altloc, elementsymbol,
           NULL, NULL, NULL, &atom->occupancy, &atom->bfactor);
@@ -525,6 +525,13 @@ static int write_timestep(void *v, const molfile_timestep_t *ts) {
 	    fprintf(stderr, "PDB WRITE ERROR: Position, occupancy, or b-factor (beta) for atom %d\n", i);
       fprintf(stderr, "                 cannot be written in PDB format.\n");
       fprintf(stderr, "                 File will be truncated.\n");
+      /**/
+      fprintf(stderr, "pos[0]=%f",pos[0]);
+      fprintf(stderr, "pos[1]=%f",pos[1]);
+      fprintf(stderr, "pos[2]=%f",pos[2]);
+      fprintf(stderr, "occ=%f",atom->occupancy);
+      fprintf(stderr, "beta=%f",atom->bfactor);
+      /**/
       return MOLFILE_ERROR;
     }
 

@@ -16,14 +16,19 @@ protected:
     virtual void pre_process(){
         po4.modify(system,"name PO4");
 
-        cout << "PO4: " << po4.size() << endl;        
+        cout << "PO4: " << po4.size() << endl;
+
+        for(int i=0;i<po4.size();++i){
+            cout << po4.Occupancy(i) << " ";
+        }
+        cout << endl;
     }
 
     virtual bool process_frame(const Frame_info& info){
         try{
 
         cout << "Frame " << info.valid_frame << endl;
-        out.open(string("/media/data/semen/trajectories/grand_challenge/midline_"
+        out.open(string("/media/data/semen/trajectories/grand_challenge/midlines/midline_"
                         + boost::lexical_cast<string>(info.valid_frame)+".dat").c_str());
 
         Bilayer_point_info inf;
@@ -49,7 +54,6 @@ protected:
         float shift = 2.0;
         float Ystep = system.Box(0)(1,1)/float(NY+1);
         for(;;){
-            iter++;
             // We are computing average of bilayer centers by going along Y
             // Taking 10 points distributed over whole Y dimension
             tmp = current_end;
@@ -65,7 +69,8 @@ protected:
             }
             current_end /= float(NY);
             //cout << "draw sphere \"" << current_end.transpose()*10 << "\" radius 10" << endl;
-            out << current_end(0) << " " << current_end(2) << endl;
+            out << shift*iter << " " << current_end(0) << " " << current_end(2) << endl;
+            iter++;
 
             if(iter==1) init_pos = current_end;
 
