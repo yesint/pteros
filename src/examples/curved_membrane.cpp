@@ -121,34 +121,130 @@ protected:
             midline[i](2) = midline[i](0) - s + (box_dim(0)-shift)*i/(midline.size()-1);
         }
 
-        // Write out
-        // Make 20 periodic copies for FFT
-        int n = 0;
-        for(int c=0;c<1;++c){
-            for(int i=0;i<midline.size();++i){
-                out << shift*n << " " << midline[i].transpose() << endl;
-                ++n;
-            }
-        }
-
         cout << "Done in " << iter << " steps" << endl;
 
-        // FFT
+        // FFT part
         Eigen::FFT<float> fft;
-        std::vector<std::complex<float> > freqX, freqZ;
-        std::vector<float> dataX, dataZ;
+        std::vector<std::complex<float> > freqX, freqZ; // Frequencies of the X and Z
+        std::vector<float> dataX, dataZ; // X and Z data
+
+        // Transformed frequencies for 1 and 2 derivatives
+        std::vector<std::complex<float> > freqXd1, freqXd2, freqZd1, freqZd2;
+        // Data for 1 and 2 derivatives
+        std::vector<float> dataXd1, dataXd2, dataZd1, dataZd2;
+
+        // Generate data for initial FFT
         for(int c=0;c<50;++c){
             for(int i=0;i<midline.size();++i) dataX.push_back(midline[i](2));
             for(int i=0;i<midline.size();++i) dataZ.push_back(midline[i](1));
         }
 
 
+        /*
+        float T = 100.0;
+        for(int c=0;c<10000;++c){
+            dataZ.push_back( cos(2.0*M_PI*c/T) );
+        }
+        */
+
+        // Do initial forward FFT
         fft.fwd(freqX,dataX);
         fft.fwd(freqZ,dataZ);
+
+        /*
+        // Now restore
+        ofstream inv(string("/media/data/semen/trajectories/grand_challenge/midlines/INV_"
+                        + boost::lexical_cast<string>(info.absolute_frame)+".dat").c_str());
+
+        for(int z=0;z<midline.size();++z){
+            float v = 0;
+            for(int i=1;i<freqZ.size()/2;++i){
+                v += sqrt(norm(freqZ[i]))*sin(z*M_2_PI*shift*i/freqZ.size());
+            }
+            inv << z*shift << " " << v << endl;
+        }
+        */
+
+        // Filter high frequencies
+        for(int i=0;i<freqZ.size();++i){
+            if( 1.0/(shift*i/freqX.size()) < 30 ) freqX[i] = 0.0;
+            if( 1.0/(shift*i/freqZ.size()) < 30 ) freqZ[i] = 0.0;
+        }
+
+        // Transform frequencies for derivatives
+        for(int i=0;i<freqZ.size();++i){
+            freqXd1.push_back( freqX[i]
+                             *complex<float>(0,1)*complex<float>(2.0*M_PI*shift*i/freqZ.size(),0)
+                           );
+            freqXd2.push_back( freqX[i]
+                             *complex<float>(0,1)*complex<float>(2.0*M_PI*shift*i/freqZ.size(),0)
+                             *complex<float>(0,1)*complex<float>(2.0*M_PI*shift*i/freqZ.size(),0)
+                           );
+
+            freqZd1.push_back( freqZ[i]
+                             *complex<float>(0,1)*complex<float>(2.0*M_PI*shift*i/freqZ.size(),0)
+                           );
+            freqZd2.push_back( freqZ[i]
+                             *complex<float>(0,1)*complex<float>(2.0*M_PI*shift*i/freqZ.size(),0)
+                             *complex<float>(0,1)*complex<float>(2.0*M_PI*shift*i/freqZ.size(),0)
+                           );
+        }
+        // Make inverse transforms to get derivatives
+        fft.inv(dataXd1,freqXd1);
+        fft.inv(dataXd2,freqXd2);
+
+        fft.inv(dataZd1,freqZd1);
+        fft.inv(dataZd2,freqZd2);
+
+        // We will only work with first midline.size() points!
+
+        // Output derivatives
+        ofstream der(string("/media/data/semen/trajectories/grand_challenge/midlines/deriv_"
+                        + boost::lexical_cast<string>(info.absolute_frame)+".dat").c_str());
+
+        for(int i=0;i<midline.size();++i){
+            der << shift*i<< " " << dataXd1[i]
+                           << " " << dataXd2[i]
+                           << " " << dataZd1[i]
+                           << " " << dataZd2[i] << endl;
+        }
+        der.close();
+
+        // In d1 for X there is a constant introduced by omited slope! Add it.
+        for(int i=0;i<midline.size();++i){
+            dataXd1[i] += (box_dim(0)-shift)/(midline.size()-1);
+        }
+
+        // Compute curvature
+        std::vector<float> curvature(midline.size());
+
+        for(int i=0;i<midline.size();++i){
+            curvature[i] = (dataXd1[i]*dataZd2[i] - dataZd1[i]*dataXd2[i])/
+                    pow( dataXd1[i]*dataXd1[i] + dataZd1[i]*dataZd1[i] ,3/2);
+        }
+
+
+        /*
+        for(int i=0;i<dataZ.size();++i){
+            inv << i << " " << dataZ[i] << " " << dataX[i] << endl;
+        }
+        inv.close();
+        */
+
+        // Write out
+        int n = 0;
+        for(int i=0;i<midline.size();++i){
+            out << shift*n << " " << midline[i].transpose() << " " << curvature[i] << endl;
+            ++n;
+        }
+
+
+        // Write FFT
         ofstream ff(string("/media/data/semen/trajectories/grand_challenge/midlines/FFT_"
                         + boost::lexical_cast<string>(info.absolute_frame)+".dat").c_str());
-        for(int i=1;i<freqX.size()/2;++i) ff << 1.0/(shift*i/freqX.size()) << " "
-                                             << std::norm(freqX[i]) << " "
+        ff << "# Box: " << box_dim.transpose() << endl;
+        for(int i=1;i<freqZ.size()/2;++i) ff << 1.0/(shift*i/freqZ.size()) << " "
+                                             //<< std::norm(freqX[i]) << " "
                                             << std::norm(freqZ[i]) << endl;
         ff.close();
 
