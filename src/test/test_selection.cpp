@@ -43,19 +43,6 @@ using namespace json_spirit;
 
 int main(int argc, char** argv)
 {
-    System sys("/media/data/semen/trajectories/grand_challenge/nowater.gro");
-    Selection sel(sys,"name PO4");
-    //sel.write("/media/data/semen/trajectories/grand_challenge/sp.gro");
-    Selection lipids;
-    Bilayer bi;
-    lipids.modify(sys,"resname DOPC DOPS");
-    bi.create(lipids,"name PO4",2.0);
-
-    return 0;
-
-
-    string s("/home/semen/work/Projects/kornelyuk/Sasha/dimer_md/1/dimer_noPBC_1.xtc");
-    //string path("/home/semen/work/Projects/kornelyuk/Sasha/dimer_md/");
     try{
 /*
         //boost::shared_ptr<Mol_file> io = io_factory("topol.tpr",'r');
@@ -93,9 +80,25 @@ int main(int argc, char** argv)
         //string fname("/home/semen/work/Projects/kornelyuk/Sasha/dimer_md/1/dimer_pdb2gmx.gro");
         //string fname("/home/semen/work/Projects/asymmetric_bilayer/prepare_small/with_ions.pdb");
 
-        //string fname = "/media/data/semen/trajectories/RC/new_protocol/C5/after_C4.gro";
-        string fname = "/media/data/semen/trajectories/RC/new_protocol/C5/sp.pdb";
+        string fname = "/media/data/semen/trajectories/RC/new_protocol/C5/after_C4.gro";
+        //string fname = "/media/data/semen/trajectories/RC/new_protocol/C5/sp.pdb";
         System sys(fname);        
+        sys.load("/media/data/semen/trajectories/RC/new_protocol/C5/traj.xtc",0,20);
+        Selection sel(sys);
+        sel.set_frame(0);
+        sel.modify("within 0.3 of resid 527");
+
+        for(int i=0;i<sel.size();++i) cout << sel.Index(i) << " ";
+        cout << endl;
+
+        cout << "------------------------" << endl;
+        sel.set_frame(19);
+        sel.modify("within 0.3 of resid 527");
+
+        for(int i=0;i<sel.size();++i) cout << sel.Index(i) << " ";
+        cout << endl;
+
+
         //Selection sel(sys,"not resname W ION");
         //Bilayer bi(sel,"name PO4",2.0);
 
@@ -105,8 +108,8 @@ int main(int argc, char** argv)
 
 
 
-        Selection sel(sys,"within 0.6 of (resname BCL and name MG)");
-        cout << sel.get_text() << endl;
+        //Selection sel(sys,"within 0.6 of (resname BCL and name MG)");
+        //cout << sel.get_text() << endl;
 
 /*
         Selection sel(sys,"all");

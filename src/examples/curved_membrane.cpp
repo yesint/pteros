@@ -198,6 +198,7 @@ protected:
 
         // We will only work with first midline.size() points!
 
+        /*
         // Output derivatives
         ofstream der(string("/media/data/semen/trajectories/grand_challenge/midlines/deriv_"
                         + boost::lexical_cast<string>(info.absolute_frame)+".dat").c_str());
@@ -209,6 +210,7 @@ protected:
                            << " " << dataZd2[i] << endl;
         }
         der.close();
+        */
 
         // In d1 for X there is a constant introduced by omited slope! Add it.
         for(int i=0;i<midline.size();++i){
@@ -231,7 +233,7 @@ protected:
         inv.close();
         */
 
-        // Write out
+        // Write out midlines and curvature
         int n = 0;
         for(int i=0;i<midline.size();++i){
             out << shift*n << " " << midline[i].transpose() << " " << curvature[i] << endl;
@@ -244,7 +246,7 @@ protected:
                         + boost::lexical_cast<string>(info.absolute_frame)+".dat").c_str());
         ff << "# Box: " << box_dim.transpose() << endl;
         for(int i=1;i<freqZ.size()/2;++i) ff << 1.0/(shift*i/freqZ.size()) << " "
-                                             //<< std::norm(freqX[i]) << " "
+                                            << std::norm(freqX[i]) << " "
                                             << std::norm(freqZ[i]) << endl;
         ff.close();
 

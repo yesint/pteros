@@ -985,6 +985,8 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result){
         dum2.index.resize(res1.size());
         for(int i=0;i<sys->num_atoms();++i) dum1.index[i] = i;
         for(int i=0;i<res1.size();++i) dum2.index[i] = res1[i];
+        dum1.set_frame(frame);
+        dum2.set_frame(frame);
         g.assign_to_grid(dist,dum1,true,periodic);
         g.search_within(dum2,result,true);
 /*
