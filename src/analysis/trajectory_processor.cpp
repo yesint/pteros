@@ -137,7 +137,7 @@ void Trajectory_processor::read_single_trajectory(string& fname){
             // This may safely happen outside the lock
             Mol_file_content c;
             c.trajectory = true;
-            bool good = trj->read(NULL,&data->frame,c);
+            bool good = trj->read(NULL,&data->frame,c);            
 
             // Check if EOF reached in trajectory
             if(!good) break;
@@ -179,16 +179,16 @@ void Trajectory_processor::read_single_trajectory(string& fname){
                 // This is the very first valid frame, set start time
                 saved_first_frame = abs_frame;
                 saved_first_time = data->frame.t;
-            }           
+            }                       
 
             // Fill data container, which will be sent to the queue                        
-            data->frame_info.absolute_time = data->frame.t;;
+            data->frame_info.absolute_time = data->frame.t;
             data->frame_info.absolute_frame = abs_frame;
             data->frame_info.valid_frame = valid_frame;
             data->frame_info.win_size_frames = window_size_frames;
             data->frame_info.win_size_time = window_size_time;
             data->frame_info.first_frame = saved_first_frame;
-            data->frame_info.first_time = saved_first_time;
+            data->frame_info.first_time = saved_first_time;            
 
             // Block mutex and add new frame to the queue            
             {
@@ -199,7 +199,8 @@ void Trajectory_processor::read_single_trajectory(string& fname){
 
                 buffer[valid_frame] = data;
                 // Set access count for this frame to empty set (nobody asked for it yet)
-                frame_access_count[valid_frame] = vector<bool>(consumers.size(),false);
+                frame_access_count[valid_frame] = vector<bool>(consumers.size(),false);               
+
                 // Notify that new frame arrived
                 buffer_cond.notify_all();                
             }
@@ -249,7 +250,7 @@ void Trajectory_processor::start_threads(vector<string>& fnames){
 // Provides frame #fr for the consumer #id
 boost::shared_ptr<Data_container> Trajectory_processor::frame_provider(int fr, int id){
     // Lock mutex
-    boost::mutex::scoped_lock lk(buffer_mutex);    
+    boost::mutex::scoped_lock lk(buffer_mutex);           
 
     // Wait until frame fr appears in the buffer or until stop requested
     while(buffer.count(fr)==0 && !stop_requested){
@@ -407,7 +408,7 @@ void Trajectory_processor::run(){
     skip = trj->get_value<int>("skip",-1);
     // Check for custom start time and dt
     custom_start_time = trj->get_value<float>("custom_start_time",-1);
-    custom_start_time = trj->get_value<float>("custom_dt",-1);
+    custom_dt = trj->get_value<float>("custom_dt",-1);
     if(custom_start_time>=0 && custom_dt==-1) custom_dt = 1;
     if(custom_start_time==-1 && custom_dt>=0) custom_start_time = 0;
 

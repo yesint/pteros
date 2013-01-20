@@ -29,7 +29,7 @@ protected:
     virtual bool process_frame(const Frame_info& info){
         try{
 
-        cout << "Frame " << info.absolute_frame << endl;
+        cout << "Frame " << info.last_time<< endl;
         out.open(string("/media/data/semen/trajectories/grand_challenge/midlines/midline_"
                         + boost::lexical_cast<string>(info.absolute_frame)+".dat").c_str());
 
