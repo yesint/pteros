@@ -80,25 +80,12 @@ int main(int argc, char** argv)
         //string fname("/home/semen/work/Projects/kornelyuk/Sasha/dimer_md/1/dimer_pdb2gmx.gro");
         //string fname("/home/semen/work/Projects/asymmetric_bilayer/prepare_small/with_ions.pdb");
 
-        string fname = "/media/data/semen/trajectories/grand_challenge/nowater.gro";
+        string fname = "/home/semen/work/Projects/kornelyuk/dimer_human/3.2.pdb";
         //string fname = "/media/data/semen/trajectories/RC/new_protocol/C5/sp.pdb";
         System sys(fname);        
-        sys.load("/media/data/semen/trajectories/grand_challenge/nowater.xtc",0,20);
-        Selection sel(sys);
-        sel.set_frame(0);
-        sel.modify("within 0.3 periodic of resid 527");
+        //sys.load("/media/data/semen/trajectories/grand_challenge/nowater.xtc",0,20);
+        Selection sel(sys,"resid 346 and chain A and name ROT");
 
-        for(int i=0;i<sel.size();++i) cout << sel.Index(i) << " ";
-        cout << endl;
-
-        cout << "------------------------" << endl;
-        sel.set_frame(19);
-        sel.modify("within 0.3 of resid 527");
-
-        for(int i=0;i<sel.size();++i) cout << sel.Index(i) << " ";
-        cout << endl;
-
-        cout << sys.Time(3) << " " << sys.Time(4) << endl;
 
 
         //Selection sel(sys,"not resname W ION");

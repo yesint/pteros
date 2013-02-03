@@ -62,6 +62,23 @@ class Atom {
     /// Parameters for non-bond VDW interactions.
     /// Depending on the force field this can be sigma-epsilon, c6-c12, Rmin-epsilon, etc.
     float V, W;
+
+    Atom(){
+        resid = -1;
+        name = "";
+        chain = ' ';
+        resname = "";
+        tag = "";
+        occupancy = 0;
+        beta = 0;
+        resindex = -1;
+        mass = 0;
+        charge = 0;
+        type = -1;
+        type_name = "";
+        V = 0;
+        W = 0;
+    }
 };
 
 }

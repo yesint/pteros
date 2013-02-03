@@ -69,14 +69,24 @@ protected:
         // Read midline
         vector<float> curv;
         vector<Vector2f> midline;
+
+        float tmp;
+
         // Read midline from file
         ifstream ff(string(file_path
                            +"/midline_"
                            +boost::lexical_cast<string>(info.absolute_frame)
                            +".dat").c_str());
+
+        if(!ff.good()){
+            cout << "Error reading file!" << endl;
+            ff.close();
+            return true;
+        }
+
         string line;
         stringstream ss;
-        float x,z,c,tmp;
+        float x,z,c;
         while(getline(ff,line)){
             ss.clear();
             ss.str(line);
@@ -85,6 +95,7 @@ protected:
             curv.push_back(c);
         }
         ff.close();
+
 
         // Cycle over all roh atoms and compute their positions
         int n1=0, n2=0, Nflip=0, non_flip=0;
@@ -164,11 +175,14 @@ protected:
             //cout << "chol #" << i << " " << min_ind << " " << curv[min_ind] << " " << curv.size() << endl;
 
             // Store histograms data
+            /*
             if(min_ind<midline.size()/2){
                 tmp = curv[min_ind];
             } else {
                 tmp = -curv[min_ind];
             }
+            */
+            tmp = abs(curv[min_ind]);
 
             curv_hist_data.push_back(tmp);
             if(trace.back().domain[i] == 1) curv_hist_data1.push_back(tmp);
@@ -195,9 +209,10 @@ protected:
         // Compute mean curvature. Two parts must be accounted with opposite signs
         tmp = 0.0;
         for(int i=0;i<midline.size();++i){
-            (i<midline.size()/2) ? tmp += curv[i] : tmp -= curv[i];
+            //(i<midline.size()/2) ? tmp += curv[i] : tmp -= curv[i];
+            tmp += curv[i]*curv[i];
         }
-        tmp /= float(midline.size());
+        tmp = sqrt(tmp/float(midline.size()));
         trace.back().mean_curvature = tmp;
 
         cout << "Frame " << info.absolute_time << " " << trace.back().print() << endl;

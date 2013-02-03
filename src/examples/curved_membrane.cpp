@@ -29,7 +29,7 @@ protected:
     virtual bool process_frame(const Frame_info& info){
         try{
 
-        cout << "Frame " << info.last_time<< endl;
+        cout << "Frame " << info.absolute_frame<< endl;
         out.open(string("/media/data/semen/trajectories/grand_challenge/midlines/midline_"
                         + boost::lexical_cast<string>(info.absolute_frame)+".dat").c_str());
 
@@ -164,6 +164,14 @@ protected:
             inv << z*shift << " " << v << endl;
         }
         */
+        // Write FFT
+        ofstream ff(string("/media/data/semen/trajectories/grand_challenge/midlines/FFT_"
+                        + boost::lexical_cast<string>(info.absolute_frame)+".dat").c_str());
+        ff << "# Box: " << box_dim.transpose() << endl;
+        for(int i=1;i<freqZ.size()/2;++i) ff << 1.0/(shift*i/freqZ.size()) << " "
+                                            << std::norm(freqX[i]) << " "
+                                            << std::norm(freqZ[i]) << endl;
+        ff.close();
 
         // Filter high frequencies
         for(int i=0;i<freqZ.size();++i){
@@ -198,8 +206,9 @@ protected:
 
         // We will only work with first midline.size() points!
 
-        /*
+
         // Output derivatives
+        cout << "Writing derivatives..." << endl;
         ofstream der(string("/media/data/semen/trajectories/grand_challenge/midlines/deriv_"
                         + boost::lexical_cast<string>(info.absolute_frame)+".dat").c_str());
 
@@ -207,15 +216,20 @@ protected:
             der << shift*i<< " " << dataXd1[i]
                            << " " << dataXd2[i]
                            << " " << dataZd1[i]
-                           << " " << dataZd2[i] << endl;
+                           << " " << dataZd2[i]
+                           //   << " " << (dataXd1[i]*dataZd2[i] - dataZd1[i]*dataXd2[i])/
+                           //                       pow( dataXd1[i]*dataXd1[i] + dataZd1[i]*dataZd1[i] ,3/2)
+                           << endl;
         }
         der.close();
-        */
+
+
 
         // In d1 for X there is a constant introduced by omited slope! Add it.
         for(int i=0;i<midline.size();++i){
-            dataXd1[i] += (box_dim(0)-shift)/(midline.size()-1);
+            dataXd1[i] -= (box_dim(0)-shift)/(midline.size()-1);
         }
+
 
         // Compute curvature
         std::vector<float> curvature(midline.size());
@@ -238,17 +252,7 @@ protected:
         for(int i=0;i<midline.size();++i){
             out << shift*n << " " << midline[i].transpose() << " " << curvature[i] << endl;
             ++n;
-        }
-
-
-        // Write FFT
-        ofstream ff(string("/media/data/semen/trajectories/grand_challenge/midlines/FFT_"
-                        + boost::lexical_cast<string>(info.absolute_frame)+".dat").c_str());
-        ff << "# Box: " << box_dim.transpose() << endl;
-        for(int i=1;i<freqZ.size()/2;++i) ff << 1.0/(shift*i/freqZ.size()) << " "
-                                            << std::norm(freqX[i]) << " "
-                                            << std::norm(freqZ[i]) << endl;
-        ff.close();
+        }        
 
 
         out.close();

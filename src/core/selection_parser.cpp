@@ -879,7 +879,7 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result){
         char ch;
         // Cycle over children
         for(i=0;i<Nchildren;++i){
-            ch = node->get_char_child_value(i);
+            ch = node->get_str_child_value(i)[0];
             for(at=0;at<Natoms;++at)
                 if(sys->atoms[at].chain == ch) result.push_back(at);
         }
