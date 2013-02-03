@@ -1,12 +1,13 @@
-link_directories(${PROJECT_SOURCE_DIR}/lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/analysis")
 
 if(WRAP_PYTHON)    
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DEXTRA_PYTHON_PATH\\(\\)=\\\"${PROJECT_SOURCE_DIR}/lib\\\"")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DEXTRA_PYTHON_PATH\\(\\)=\\\"${CMAKE_BINARY_DIR}/lib\\\"")
     add_executable(python_analysis
         python_analysis_program.cpp
-        task_python.cpp task_python.h
-    )
-    target_link_libraries(python_analysis pteros_analysis pteros_sim pteros xdrfile ${Boost_LIBRARIES})
+        task_python.cpp
+        task_python.h
+    )    
+    target_link_libraries(python_analysis pteros_analysis pteros_sim pteros ${Boost_LIBRARIES})
 endif()
 
 add_library(pteros_analysis
@@ -34,18 +35,17 @@ task_covar_matr.cpp task_covar_matr.h
 bilayer.cpp
 )
 
-set_target_properties(pteros_analysis PROPERTIES 
-ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/lib)
+add_executable(pteros_rmsf
+    rmsf_program.cpp
+)
+target_link_libraries(pteros_rmsf pteros_analysis pteros_sim pteros ${Boost_LIBRARIES})
 
-target_link_libraries(pteros_analysis pteros xdrfile ${Boost_LIBRARIES})
-
-add_executable(pteros_rmsf rmsf_program.cpp)
-target_link_libraries(pteros_rmsf pteros_analysis pteros_sim pteros xdrfile ${Boost_LIBRARIES})
-
-add_executable(pteros_contacts_finder contacts_finder_program.cpp)
-target_link_libraries(pteros_contacts_finder pteros_analysis pteros_sim pteros xdrfile ${Boost_LIBRARIES})
+add_executable(pteros_contacts_finder
+    contacts_finder_program.cpp
+)
+target_link_libraries(pteros_contacts_finder pteros_analysis pteros_sim pteros ${Boost_LIBRARIES})
 
 add_executable(pteros_selection_analysis 
-selection_analysis_program.cpp
+    selection_analysis_program.cpp
 )
-target_link_libraries(pteros_selection_analysis pteros_analysis pteros_sim pteros xdrfile ${Boost_LIBRARIES})
+target_link_libraries(pteros_selection_analysis pteros_analysis pteros_sim pteros ${Boost_LIBRARIES})

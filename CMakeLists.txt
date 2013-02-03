@@ -1,10 +1,9 @@
 cmake_minimum_required(VERSION 2.6)
 project(pteros)
 
-OPTION(DEBUG_MODE "Compile in debug mode" ON)
+SET(CMAKE_BUILD_TYPE Release)
 OPTION(PYTHON_BINDINGS "Build python bindings" ON)
-OPTION(CHAISCRIPT_BINDINGS "Build chaiscript bindings")
-OPTION(VMD_PDB "Use VMD molfile plugin for reading PDB files (if OFF - internal reader is used)")
+OPTION(VMD_PDB "Use VMD molfile plugin for reading PDB files (if OFF - internal reader is used)" ON)
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     #SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -std=gnu++0x")
@@ -21,14 +20,12 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     SET(BOOST_ROOT "c:/install/boost")
 ENDIF()
 
-if(DEBUG_MODE)
-    message("Debug build")
-    SET(CMAKE_BUILD_TYPE Debug)
-else()
+if(CMAKE_BUILD_TYPE STREQUAL Release)
     message("Release build")
-    SET(CMAKE_BUILD_TYPE Release)
     #Sets optmization for Eigen
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse2") 
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse2")
+else()
+    message("Debug build")   
 endif()
 
 if(PYTHON_BINDINGS)
@@ -60,18 +57,17 @@ include_directories(${Boost_INCLUDE_DIRS})
 link_libraries(${Boost_LIBRARIES}) 
 
 include_directories(include)
-link_libraries( xdrfile )
 
-add_subdirectory(src/xdrfile)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
+link_directories("${CMAKE_BINARY_DIR}/lib")
+
+
 add_subdirectory(src/core)
 add_subdirectory(src/test)
 add_subdirectory(src/simulation)
 add_subdirectory(src/analysis)
 add_subdirectory(src/python)
 add_subdirectory(src/examples)
-add_subdirectory(src/molfile_plugins)
-
-if(CHAISCRIPT_BINDINGS)
-    add_subdirectory(src/chaiscript)
-endif()
-
+#add_subdirectory(template)

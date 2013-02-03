@@ -20,7 +20,7 @@
  *
 */
 
-#define VMD_PDB
+//#define VMD_PDB
 
 #ifndef PDB_FILE_H
 #define PDB_FILE_H
