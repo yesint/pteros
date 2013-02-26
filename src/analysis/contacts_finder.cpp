@@ -68,7 +68,7 @@ void Contacts_finder::pre_process(){
     // Set selections
     sel_pairs.clear();
     string sel1, sel2;
-    BOOST_FOREACH(Options_tree* o, options->get_options("selections")){
+    for(Options_tree* o: options->get_options("selections")){
         o->get_option("") >> sel1 >> sel2;
         //sel1 = o->get_value<string>("");
         Selections_pair aux;

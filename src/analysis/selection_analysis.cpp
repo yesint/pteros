@@ -89,7 +89,7 @@ void Selection_analysis::create(Trajectory_processor& proc, Options_tree& opt){
     vector<string> sel_names, sel_texts;        
 
     // Extract all tasks
-    BOOST_FOREACH(Options_tree* t, options->get_options("task")){
+    for(Options_tree* t: options->get_options("task")){
         // Determine type of task        
         string task_name = t->get_value<string>("");
 
@@ -106,7 +106,7 @@ void Selection_analysis::create(Trajectory_processor& proc, Options_tree& opt){
         } else {
             // cycle over all selections
             int k = 0;
-            BOOST_FOREACH(Options_tree* s, options->get_options("selection")){
+            for(Options_tree* s: options->get_options("selection")){
                 // Get name of selection
                 sel_names.push_back( s->get_value<string>("name",boost::lexical_cast<string>(k)) );
                 // Get test of selection

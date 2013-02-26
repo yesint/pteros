@@ -44,15 +44,15 @@ using namespace json_spirit;
 int main(int argc, char** argv)
 {
     try{
-/*
+
         //boost::shared_ptr<Mol_file> io = io_factory("topol.tpr",'r');
-        System sys1("topol.tpr");
+        System sys1("/home/semen/work/Projects/pteros/pteros_build/release/src/test/topol.tpr");
 
         return 1;
 
         System t("/home/semen/work/Projects/pteros/pteros/trunk/src/test/data/2lao.gro");
         t.load("/home/semen/work/Projects/pteros/pteros/trunk/src/test/data/2lao.gro");
-*/
+
 /*
 
         ifstream f("inp.indent");
@@ -79,13 +79,6 @@ int main(int argc, char** argv)
         */
         //string fname("/home/semen/work/Projects/kornelyuk/Sasha/dimer_md/1/dimer_pdb2gmx.gro");
         //string fname("/home/semen/work/Projects/asymmetric_bilayer/prepare_small/with_ions.pdb");
-
-        string fname = "/home/semen/work/Projects/kornelyuk/dimer_human/3.2.pdb";
-        //string fname = "/media/data/semen/trajectories/RC/new_protocol/C5/sp.pdb";
-        System sys(fname);        
-        //sys.load("/media/data/semen/trajectories/grand_challenge/nowater.xtc",0,20);
-        Selection sel(sys,"resid 346 and chain A and name ROT");
-
 
 
         //Selection sel(sys,"not resname W ION");

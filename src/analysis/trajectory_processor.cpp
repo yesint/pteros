@@ -349,7 +349,7 @@ void Trajectory_processor::run(){
     string top_file = ""; // Only one allowed
     string structure_file = "";
     vector<string> traj_files;
-    BOOST_FOREACH(string s, trj->get_values<string>("")){
+    for(string s: trj->get_values<string>("")){
         switch(recognize_format(s)){
         case PDB_FILE:
         case GRO_FILE:

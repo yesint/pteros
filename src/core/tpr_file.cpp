@@ -76,6 +76,8 @@ bool TPR_file::do_read(System *sys, Frame *frame, Mol_file_content what){
 
             natoms = boost::lexical_cast<int>( string(m[1].first,m[1].second) );
             cout << "There are " << natoms << " atoms in topology" << endl;
+
+            int max_type = 0; // The maximal atom type seen
             // Reading atoms
             cout << "Reading m,q,resid,type ..." << endl;
             re.assign("type=\\s*(\\d+),.+m=\\s*(\\S+),.+q=\\s*(\\S+),.+resind=\\s*(\\d+),");
@@ -90,9 +92,14 @@ bool TPR_file::do_read(System *sys, Frame *frame, Mol_file_content what){
                 at.charge = boost::lexical_cast<float>( string(m[3].first,m[3].second) );
                 at.resid = boost::lexical_cast<int>( string(m[4].first,m[4].second) ) + 1;
 
+                if(at.type>max_type) max_type = at.type;
+
                 // Add new atom to the system
                 append_atom_in_system(*sys,at);
             }
+
+            // Now we know how many distinct atom types we have: max_type+1
+            ff_in_system(*sys).nb_interactions.resize(max_type+1,max_type+1);
 
             getline(f,line);
             // Read atom names
@@ -129,7 +136,7 @@ bool TPR_file::do_read(System *sys, Frame *frame, Mol_file_content what){
                 getline(f,line);
                 regex_search(line.c_str(), m, re);
                 int r = boost::lexical_cast<int>( string(m[2].first,m[2].second) );
-                while(atom_in_system(*sys,cur_ind).resid==r){
+                while(atom_in_system(*sys,cur_ind).resid==i){
                     atom_in_system(*sys,cur_ind).resname = string(m[1].first,m[1].second);
                     ++cur_ind;
                 }

@@ -23,7 +23,7 @@ int main(int argc, char** argv){
 
     // Cycle over supplied trajectories
     list<string> traj_list = opt.get_values<string>("traj");
-    BOOST_FOREACH(string ff, traj_list){
+    for(string ff: traj_list){
         // Delete all frames
         sys.frame_delete();
         // Load trajectory

@@ -25,8 +25,7 @@
 
 #include <string>
 #include <vector>
-#define EIGEN_YES_I_KNOW_SPARSE_MODULE_IS_NOT_STABLE_YET
-#include <Eigen/Sparse>
+#include <Eigen/Core>
 #include <boost/function.hpp>
 
 
@@ -165,10 +164,27 @@ struct Force_field {
         If element is 0 it is excluded
         If it is >0 corresponding interaction_func is used
       */
-     Eigen::SparseMatrix<int> nb_interactions;
+     Eigen::MatrixXi nb_interactions;
 };
 
 
 }
+
+/*
+//get type of atom i of molec type j
+int A=mtop->moltype[j].atoms.atom[i].type;
+//get type of atom l of molec type k
+int B=mtop->moltype[k].atoms.atom[l].type;
+t_functype interaction_type=mtop->ffparams.functype[B*atnr+A];
+switch(interaction_type)
+{
+ case F_LJ:
+  float c6=mtop->ffparams.iparams[B*atnr+A].lj.c6;
+  float c12=mtop->ffparams.iparams[B*atnr+A].lj.c12;
+  break;
+ case F_MORSE:
+  ....
+}
+ */
 
 #endif /* FORCE_FIELD_H */
