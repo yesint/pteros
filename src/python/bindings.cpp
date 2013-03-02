@@ -40,10 +40,11 @@ BOOST_PYTHON_MODULE(pteros_py)
 {
     using namespace pteros;
 
-    cout << "Import array called" << endl;
-    import_array();
+    // Required!
+    import_array();    
     boost::python::numeric::array::set_module_and_type("numpy", "ndarray");
-    // Register exception
+
+    // Register exception translator
     register_exception_translator<Pteros_error>(&Pteros_error_translator);
 
     // Bindings for System   

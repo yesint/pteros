@@ -215,10 +215,10 @@ void System::frame_copy(int fr1, int fr2){
 
 // Delete the range of frames. e = -1 is default
 void System::frame_delete(int b, int e){
-    int i;
+    int i;    
 
     if(e==-1) e = num_frames()-1;
-    if(e<b || b<0 || e>num_frames()-1) throw Pteros_error("Invalid frame range for deletion");
+    if(e<b || b<0 || e>num_frames()-1) throw Pteros_error("Invalid frame range for deletion");    
 
     // Get iterators for deletion
     vector<Frame>::iterator b_it, e_it;

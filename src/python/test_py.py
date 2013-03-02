@@ -1,28 +1,62 @@
 import numpy
 from pteros_py import *
-fname = "/home/semen/work/Projects/pteros/svn/pteros/src/test/2lao.pdb"
-s = System(fname)
-print "Number of atoms: "+str(s.num_atoms())
-s.load(fname,0)
-print "Number of frames: "+str(s.num_frames())
-p = s.Box(0)
-print "Box:"
-print p
 
-print "Box Vectors & Angles:"
+print "--------------------------------------------------"
+print "-------------- Testing System --------------------"
+print "--------------------------------------------------"
+
+print "---- Default constructor ----"
+s0 = System("2lao.gro")
+
+print "---- File constructor ----"
+s = System("2lao.gro")
+
+print "---- num_atoms ----"
+print "Number of atoms: "+str(s.num_atoms())
+
+print "---- num_frames ----"
+print "Number of frames: "+str(s.num_frames())
+
+print "---- load ----"
+s.load("2lao.gro")
+print "Number of frames after load: "+str(s.num_frames())
+
+print "---- frame_dup ----"
+s.frame_dup(0)
+print "Number of frames after frame_dup: "+str(s.num_frames())
+
+print "---- frame_copy ----"
+s.frame_copy(0,1)
+
+print "---- frame_delete ----"
+s.frame_delete(1)
+print "Number of frames after frame_delete: "+str(s.num_frames())
+
+print "---- frame_data ----"
+data = s.getFrame_data(0)
+print "frame time: "+str(data.t)
+print "frame box: "+str(data.box)
+print "frame coord (first 5): "+str(data.coord[0:5])
+s.setFrame_data(data,0)
+
+
+print "---- Box Vectors & Angles ----"
 v = numpy.empty([3],dtype='f')
 a = numpy.empty([3],dtype='f')
 s.get_box_vectors_angles(0,v,a)
 print v
 print a
 
-s.Time(1,0.02)
-print s.Time(1)
+print "---- time ----"
+s.setTime(0,3.14)
+print s.getTime(0)
+
+print "-----------------------------------------------------"
+print "-------------- Testing Selection --------------------"
+print "-----------------------------------------------------"
 
 s.frame_dup(0)
-print s.num_frames()
 
-print "--------------------------"
 sel = Selection(s,"name CA")
 print sel.num()
 sel2 = sel
@@ -98,15 +132,15 @@ sel.write("test.gro")
 
 print "Testing inlined accessors:"
 sel.set_frame(0)
-print sel.X(10)
+print sel.getX(10)
 sel.setX(10,0,111)
-print sel.X(10)
+print sel.getX(10)
 
 print sel.Resname(1)
 sel.Resname(1,"TTT")
 print sel.Resname(1)
 
-a = sel.XYZ(4)
+a = sel.getXYZ(4)
 sel.setXYZ(4,a)
-print sel.XYZ(4)
+print sel.getXYZ(4)
 

@@ -150,6 +150,10 @@ PyObject* System_get_closest_image(System* s, PyObject* point, PyObject* target,
     return boost::python::incref(ret);
 }
 
+//-------------------------
+// For Frame
+//-------------------------
+
 boost::python::list Frame_get_coord(Frame* f){
     boost::python::list l;
     for(int i=0;i<f->coord.size();++i){
@@ -170,6 +174,17 @@ void Frame_set_coord(Frame* f, boost::python::list l){
     }
 }
 
+PyObject* Frame_get_box(Frame* f){
+    CREATE_PYARRAY_2D(p,3,3)
+    MAP_EIGEN_TO_PYARRAY(m,Matrix3f,p)
+    m = f->box;
+    return boost::python::incref(p);
+}
+void Frame_set_box(Frame* f, PyObject* arr){
+    MAP_EIGEN_TO_PYARRAY(m,Matrix3f,arr)
+     f->box = m;
+}
+
 
 void make_bindings_System(){
     ///////////////////////////////////////////
@@ -178,8 +193,9 @@ void make_bindings_System(){
     import_array();
 
     class_<Frame>("Frame", init<>())
-        .def("get_coord", &Frame_get_coord)
-        .def("set_coord", &Frame_set_coord)
+        .add_property("coord",&Frame_get_coord,&Frame_set_coord)
+        .def_readwrite("t", &Frame::t)
+        .add_property("box",&Frame_get_box,&Frame_set_box)
     ;
 
     class_<System, boost::noncopyable>("System", init<>())
