@@ -70,7 +70,7 @@ class Trajectory_processor {
         }
 
         /// Do computation
-        void run();
+        virtual void run();
 
         /// Print summary of allowed options
         static void print_help();

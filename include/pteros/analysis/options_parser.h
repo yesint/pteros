@@ -90,6 +90,7 @@ class Options_tree {
 
         /// Read from json
         void from_json(json_spirit::mValue& json);
+        void from_json_string(std::string json_str);
 
         /** Create tree from the command line
             the syntax of nested options is:

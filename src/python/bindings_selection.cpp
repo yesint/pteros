@@ -420,7 +420,8 @@ void make_bindings_Selection(){
         // For coordinate accessors we should use setX instead of just X in Python
         // This is because Python don't respect void in return - all functions
         // with equal number of argumets are considered equivalent thus
-        // "float getX(int,int)" and "void setX(int,float)" become the same function...
+        // "float X(int,int)" and "void X(int,float)" become the same function...
+        // For non-coordinate accessors this is not needed but used to be consistent
         .def("getX",&Selection_getX1)
         .def("getX",&Selection_getX2)
         .def("setX",&Selection_setX1)
@@ -441,41 +442,40 @@ void make_bindings_Selection(){
         .def("setXYZ",&Selection_setXYZ1)
         .def("setXYZ",&Selection_setXYZ2)
 
-        // All the rest could be wrapped normally
-        .def("Type",&Selection_getType)
-        .def("Type",&Selection_setType)
+        .def("getType",&Selection_getType)
+        .def("setType",&Selection_setType)
 
-        .def("Resname",&Selection_getResname)
-        .def("Resname",&Selection_setResname)
+        .def("getResname",&Selection_getResname)
+        .def("setResname",&Selection_setResname)
 
-        .def("Chain",&Selection_getChain)
-        .def("Chain",&Selection_setChain)
+        .def("getChain",&Selection_getChain)
+        .def("setChain",&Selection_setChain)
 
-        .def("Name",&Selection_getName)
-        .def("Name",&Selection_setName)
+        .def("getName",&Selection_getName)
+        .def("setName",&Selection_setName)
 
-        .def("Mass",&Selection_getMass)
-        .def("Mass",&Selection_setMass)
+        .def("getMass",&Selection_getMass)
+        .def("setMass",&Selection_setMass)
 
-        .def("Charge",&Selection_getCharge)
-        .def("Charge",&Selection_setCharge)
+        .def("getCharge",&Selection_getCharge)
+        .def("setCharge",&Selection_setCharge)
 
-        .def("Beta",&Selection_getBeta)
-        .def("Beta",&Selection_setBeta)
+        .def("getBeta",&Selection_getBeta)
+        .def("setBeta",&Selection_setBeta)
 
-        .def("Occupancy",&Selection_getOccupancy)
-        .def("Occupancy",&Selection_setOccupancy)
+        .def("getOccupancy",&Selection_getOccupancy)
+        .def("setOccupancy",&Selection_setOccupancy)
 
-        .def("Resid",&Selection_getResid)
-        .def("Resid",&Selection_setResid)
+        .def("getResid",&Selection_getResid)
+        .def("setResid",&Selection_setResid)
 
-        .def("Index",&Selection_getIndex)
-        .def("Index",&Selection_setIndex)
+        .def("getIndex",&Selection_getIndex)
+        .def("setIndex",&Selection_setIndex)
 
-        .def("Resindex",&Selection_getResindex)
-        .def("Resindex",&Selection_setResindex)
+        .def("getResindex",&Selection_getResindex)
+        .def("setResindex",&Selection_setResindex)
 
-        .def("Tag",&Selection_getTag)
-        .def("Tag",&Selection_setTag)
+        .def("getTag",&Selection_getTag)
+        .def("setTag",&Selection_setTag)
     ;
 }

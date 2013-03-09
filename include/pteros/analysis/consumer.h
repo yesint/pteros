@@ -97,7 +97,7 @@ public:
     Consumer(Trajectory_processor* pr);
 
     /// Main processing method. Called by Trajectory_processor
-    void run();
+    virtual void run();
     System* get_system(){return &system;}
     void set_simulation(boost::shared_ptr<Simulation>& p){
         simulation = p;

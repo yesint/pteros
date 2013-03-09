@@ -200,6 +200,14 @@ void Options_tree::from_json(json_spirit::mValue& json){
     json_to_tree(json,*this);
 }
 
+void Options_tree::from_json_string(string json_str){
+    name = "root";
+    values.clear();
+    json_spirit::mValue m;
+    json_spirit::read_string(json_str,m);
+    json_to_tree(m,*this);
+}
+
 
 void Options_tree::from_command_line(std::vector<std::string>& tokens){
     // If no tokens, just exit

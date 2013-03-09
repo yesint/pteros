@@ -99,6 +99,8 @@ void make_bindings_Options_tree(){
         .def(init<string>() )
         .def("from_command_line",&Options_tree_from_command_line1)
         .def("to_command_line",&Options_tree::to_command_line)
+        .def("to_json_string",&Options_tree::to_json_string)
+        .def("from_json_string",&Options_tree::from_json_string)
         .def("get_value_double",&Options_tree_get_value1_double)
         .def("get_value_double",&Options_tree_get_value2_double)
         .def("get_value_int",&Options_tree_get_value1_int)

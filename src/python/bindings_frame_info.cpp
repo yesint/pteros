@@ -25,19 +25,19 @@
 void make_bindings_Frame_info(){
 
     class_<Frame_info>("Frame_info", init<>())
-        .def_readwrite("absolute_frame",&Frame_info::absolute_frame)
-        .def_readwrite("first_frame",&Frame_info::first_frame)
-        .def_readwrite("first_time",&Frame_info::first_time)
-        .def_readwrite("last_frame",&Frame_info::last_frame)
-        .def_readwrite("last_time",&Frame_info::last_time)
-        .def_readwrite("valid_frame",&Frame_info::valid_frame)
+        .def_readonly("absolute_frame",&Frame_info::absolute_frame)
+        .def_readonly("first_frame",&Frame_info::first_frame)
+        .def_readonly("first_time",&Frame_info::first_time)
+        .def_readonly("last_frame",&Frame_info::last_frame)
+        .def_readonly("last_time",&Frame_info::last_time)
+        .def_readonly("valid_frame",&Frame_info::valid_frame)
 
-        .def_readwrite("win_size_frames",&Frame_info::win_size_frames)
-        .def_readwrite("win_size_time",&Frame_info::win_size_time)
-        .def_readwrite("win_start_time",&Frame_info::win_start_time)
-        .def_readwrite("win_start_frame",&Frame_info::win_start_frame)
-        .def_readwrite("win_last_time",&Frame_info::win_last_time)
-        .def_readwrite("win_last_frame",&Frame_info::win_last_frame)
-        .def_readwrite("win_num",&Frame_info::win_num)
+        .def_readonly("win_size_frames",&Frame_info::win_size_frames)
+        .def_readonly("win_size_time",&Frame_info::win_size_time)
+        .def_readonly("win_start_time",&Frame_info::win_start_time)
+        .def_readonly("win_start_frame",&Frame_info::win_start_frame)
+        .def_readonly("win_last_time",&Frame_info::win_last_time)
+        .def_readonly("win_last_frame",&Frame_info::win_last_frame)
+        .def_readonly("win_num",&Frame_info::win_num)
     ;
 }

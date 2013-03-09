@@ -21,12 +21,46 @@
 */
 
 #include "bindings_trajectory_processor.h"
+#include "trajectory_processor_wrapper.h"
+#include "consumer_wrapper.h"
+
+/*
+ Bindings to Trajectory_processor could not be direct because
+ Python has GIL and can't run the code in several threads as C++ does.
+
+ */
+
+class _callback: public Trajectory_processor_wrapper {
+public:
+    _callback(PyObject* p) {
+        self = p;
+    }
+
+    _callback(PyObject* p, Options_tree& opt): Trajectory_processor_wrapper(opt) {
+        self = p;
+    }
+
+    void pre_process() {
+        call_method<bool>(self, "pre_process");
+    }
+
+    bool process_frame(const Frame_info& info) {
+        return call_method<bool>(self, "process_frame", info);        
+    }
+
+    void post_process() {
+        call_method<bool>(self, "post_process");
+    }
+
+    PyObject* self;
+};
+
 
 void make_bindings_Trajectory_processor(){
 
-    class_<Trajectory_processor, boost::noncopyable>("Trajectory_processor", init<>())
+    class_<Trajectory_processor_wrapper, boost::noncopyable, boost::shared_ptr<_callback> >("Trajectory_processor", init<>())
         .def(init<Options_tree&>() )
-        .def("set_options",&Trajectory_processor::set_options)
-        .def("compute",&Trajectory_processor::run)
+        .def("set_options",&Trajectory_processor_wrapper::set_options)
+        .def("run",&Trajectory_processor_wrapper::run)
     ;
 }

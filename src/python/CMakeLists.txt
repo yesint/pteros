@@ -14,6 +14,12 @@ if(WRAP_PYTHON)
     bindings_frame_info.h
     bindings_trajectory_processor.cpp
     bindings_trajectory_processor.h
+
+    trajectory_processor_wrapper.cpp
+    trajectory_processor_wrapper.h
+
+    consumer_wrapper.cpp
+    consumer_wrapper.h
     )
 
     target_link_libraries(pteros_py pteros pteros_analysis pteros_sim ${Boost_LIBRARIES})
