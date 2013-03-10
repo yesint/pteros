@@ -43,8 +43,6 @@ using namespace pteros;
 
 namespace pteros {
 
-// Aux functions to determine array dimensions
-
 // Some macros
 
 #define MAP_EIGEN_TO_PYARRAY(_matr,_T,_obj_ptr) \

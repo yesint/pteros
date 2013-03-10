@@ -2,7 +2,7 @@ if(WRAP_PYTHON)
 
     add_library(pteros_py SHARED 
     bindings.cpp
-    bindings_util.cpp
+
     bindings_util.h
     bindings_system.cpp
     bindings_system.h

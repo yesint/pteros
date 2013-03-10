@@ -27,9 +27,13 @@
 /*
  Bindings to Trajectory_processor could not be direct because
  Python has GIL and can't run the code in several threads as C++ does.
-
+ Instead we make wrapper over Trajectory_processor, which contains exactly one
+ consumer inside and exposes same pre_process, process_frame and post_process as Consumer
+ This reads file asynchronously, but any other paralellization should be done in python.
  */
 
+// Utility class, which allows overriding pre_process, process_frame and post_process in Python
+// and calling that overriden code from C++
 class _callback: public Trajectory_processor_wrapper {
 public:
     _callback(PyObject* p) {
