@@ -14,9 +14,14 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -DBOOST_THREAD_USE_LIB")
     SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
 
+    # Path to Boost:
     SET(BOOST_ROOT "c:/install/boost")
     SET(BOOST_INCLUDEDIR "C:/install/boost/include/boost-1_53")
-    message(${BOOST_ROOT})
+    link_directories("C:/install/boost/lib")
+
+    # Path to numpy:
+    include_directories("C:/Python27/Lib/site-packages/numpy/core/include")
+    link_directories("C:/Python27/Lib/site-packages/numpy/core/lib")
 ENDIF()
 
 if(CMAKE_BUILD_TYPE STREQUAL Release)

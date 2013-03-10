@@ -1,9 +1,9 @@
 /**
 \page install_win Installing Pteros on Windows
 
-Installing Pteros on Windows is rather tricky task. This is not the fault of the library itself, but rather the general problem of compiling Boost libraries on Windows and overcoming multiple platform-related issues and bugs. Currently only MinGW gcc compiler is tested on Windows. If you want to use MS Visual Studio or other compilers you'll need to sort the things out yourself.
+Installing Pteros on Windows is rather tricky task. This is not the fault of the library itself, but the general problem of using Open Source tools on Windows, which requires overcoming multiple platform-related issues and bugs. Currently only MinGW gcc compiler is tested on Windows. If you want to use MS Visual Studio or other compilers you'll need to sort the things out yourself.
 
-The procedure below was tested on Windows XP 32bit with MinGW GCC compiler version 4.6 and Boost 1.48. There is no guarantee that it will work on other versions. My experience with Windows is rather limited, so any suggestions are appreciated! 
+The procedure below was tested on Windows XP 32bit with MinGW GCC compiler version 4.6 and Boost 1.51. There is no guarantee that it will work on other versions. My experience with Windows is rather limited, so any suggestions and additional testing are appreciated! 
 
 <ol>
 <li>
@@ -17,11 +17,14 @@ C:\MinGW\bin;C:\MinGW\mingw32\bin
 to it. For doing this right-click "My Computer" and go to "Advanced->Environment variables"
 
 <li>
-Install Python. Download Python distribution for Windows from <a href="http://www.python.org/download/releases/">here</a> and install it to default location (tested with wersion 2.7).
+Install Python. Download Python for Windows from <a href="http://www.python.org/download/releases/">here</a> and install it to default location (tested with wersion 2.7). <i>Do not</i> use ActivePython - linking with it doesn't work for some unclear reason!
 
 <li>
-Download latest Boost from here: <a href="http://www.boost.org/users/download/">http://www.boost.org/users/download/</a>.
-Unzip it into separate folder (say, C:\\install\\boost_1_48).
+Install numpy from <a href="http://sourceforge.net/projects/numpy/files/NumPy/1.6.2/numpy-1.6.2-win32-superpack-python2.7.exe/download">here</a>. Here you have to be accurate with the version of numpy, which should match the version of python interpreter. For example numpy 1.7 didn't work for me but 1.6.2 does.
+
+<li>
+Download latest Boost from here: <a href="https://sourceforge.net/projects/numpy/files/NumPy/1.6.2/numpy-1.6.2-win32-superpack-python2.7.exe/download</a>.
+Unzip it into separate folder (say, C:\\install\\boost_1_51).
 <li>
 Open windows console and cd to this directory. Then execute
 
@@ -50,7 +53,7 @@ Update the version and the installation paths if needed to correspond your Pytho
 
 After that execute
 \code
-b2 install --prefix=c:\install\boost --toolchain=mingw
+b2 install --prefix=c:\install\boost --toolchain=mingw link=shared
 \endcode
 This will compile all boost libraries and install them into c:\\install\\boost. This can take a while, especially on slow machines. Just wait until compilation finishes.
 
@@ -58,7 +61,7 @@ This will compile all boost libraries and install them into c:\\install\\boost. 
 Download CMake for Windows from here <a href="http://www.cmake.org/cmake/resources/software.html">http://www.cmake.org/cmake/resources/software.html</a> (use "Win32 installer") and install it. During installation check option "Add CMake to the PATH".
 
 <li>
-Install Git for Windows from <a href="http://code.google.com/p/msysgit/downloads/list?q=full+installer+official+git">here</a>. During the installation check an option to add git to your path (the second one).
+Install Git for Windows from <a href="http://code.google.com/p/msysgit/downloads/list?q=full+installer+official+git">here</a>. During the installation check an option to add Git to your path (the second one).
 
 <li>
 Create a dedicated directory for pteros (say, C:\\install\\pteros) and cd to it from the command prompt.
@@ -73,13 +76,24 @@ git clone -b experimental git://pteros.git.sourceforge.net/gitroot/pteros/pteros
 \endcode
 
 <li>
-Find file CMakeLists.txt in your Pteros folder, open it in the text editor and find the lines
+Find the file CMakeLists.txt in your Pteros folder, open it in the text editor and find the lines
 \code
+# Path to Boost:
 SET(BOOST_ROOT "c:/install/boost")
 SET(BOOST_INCLUDEDIR "C:/install/boost/include/boost-1_53")
+link_directories("C:/install/boost/lib")
 \endcode
 
-Change the pathes to the directory where you installed Boost libraries. Please note that latest boost (1.52 and newer) places header files into funny subdirectories, which CMake can't understand, so you have to specify BOOST_INCLUDEDIR by hand. Say "thank you" to developers of boost and CMake :)
+Change the pathes to the directory where you installed Boost libraries. Please note that latest boost (1.52 and newer) places header files into funny subdirectories, which CMake can't understand, so you have to specify BOOST_INCLUDEDIR by hand.
+
+In the same file find the lines
+\code
+# Path to numpy:
+include_directories("C:/Python27/Lib/site-packages/numpy/core/include")
+link_directories("C:/Python27/Lib/site-packages/numpy/core/lib")
+\endcode
+
+and change the paths to location of numpy in your Python distribution. Again, CMake can't find them on Windows and requires specifying the paths manually.
 
 <li>
 Create a build directory (for example C:\\install\\pteros_build) and cd to it. 
@@ -94,7 +108,7 @@ Execute
 mingw32-make
 \endcode
 
-Ignore multiple warnings about "dllimport attributes" and "different sizes" - they are harmless.
+Ignore multiple warnings about "dllimport attributes", "different sizes" and "already defined attributes" - they are harmless.
 </ol>
 
 */
