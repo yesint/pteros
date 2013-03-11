@@ -1,4 +1,9 @@
 if(WRAP_PYTHON)
+    IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+        SET(LIB_EXT ".pyd") # Force .pyd extension on Windows to ensure correct loading
+    ELSE()
+        SET(LIB_EXT "") # Use default on Linux
+    ENDIF()
 
     add_library(pteros_py SHARED 
     bindings.cpp
@@ -27,9 +32,10 @@ if(WRAP_PYTHON)
     set_target_properties(pteros_py PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
     PREFIX ""
+    SUFFIX "${LIB_EXT}"
     OUTPUT_NAME pteros_py)
 
 else()
-    message("Can't build python bindings!")
+    message("Python bindings disabled!")
 endif()
 

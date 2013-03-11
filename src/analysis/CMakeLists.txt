@@ -1,3 +1,4 @@
+# Put all analysis programs to dedicated directory
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/analysis")
 
 if(WRAP_PYTHON)

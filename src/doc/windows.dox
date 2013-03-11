@@ -1,9 +1,9 @@
 /**
 \page install_win Installing Pteros on Windows
 
-Installing Pteros on Windows is rather tricky task. This is not the fault of the library itself, but the general problem of using Open Source tools on Windows, which requires overcoming multiple platform-related issues and bugs. Currently only MinGW gcc compiler is tested on Windows. If you want to use MS Visual Studio or other compilers you'll need to sort the things out yourself.
+Installing Pteros on Windows is rather tricky task. This is not the fault of Pteros itself, but the general problem of using Open Source tools on Windows, which requires overcoming multiple platform-related issues and bugs. Currently only MinGW gcc compiler is tested on Windows. If you want to use MS Visual Studio or other compilers you'll need to sort the things out yourself.
 
-The procedure below was tested on Windows XP 32bit with MinGW GCC compiler version 4.6 and Boost 1.51. There is no guarantee that it will work on other versions. My experience with Windows is rather limited, so any suggestions and additional testing are appreciated! 
+The procedure below was tested on Windows XP 32bit with MinGW GCC compiler version 4.6, Boost 1.51, Python 2.7 and NumPy 1.6.2. There is no guarantee that it will work with other versions. My experience with Windows is rather limited, so any suggestions and additional testing are appreciated! 
 
 <ol>
 <li>
@@ -12,15 +12,15 @@ During installation check "C++ compiler". Install it to default location (C:\\Mi
 <li>
 Update your PATH variable by appending 
 \code
-C:\MinGW\bin;C:\MinGW\mingw32\bin 
+C:\MinGW\bin; C:\MinGW\mingw32\bin 
 \endcode
-to it. For doing this right-click "My Computer" and go to "Advanced->Environment variables"
+to it. For doing this right-click "My Computer" and go to "Advanced->Environment variables".
 
 <li>
-Install Python. Download Python for Windows from <a href="http://www.python.org/download/releases/">here</a> and install it to default location (tested with wersion 2.7). <i>Do not</i> use ActivePython - linking with it doesn't work for some unclear reason!
+Install Python. Download "official" Python for Windows from <a href="http://www.python.org/download/releases/">here</a> and install it to default location (tested with wersion 2.7). <i>Do not</i> use ActivePython - linking with it doesn't work for some unclear reason.
 
 <li>
-Install numpy from <a href="http://sourceforge.net/projects/numpy/files/NumPy/1.6.2/numpy-1.6.2-win32-superpack-python2.7.exe/download">here</a>. Here you have to be accurate with the version of numpy, which should match the version of python interpreter. For example numpy 1.7 didn't work for me but 1.6.2 does.
+Install numpy from <a href="https://sourceforge.net/projects/numpy/files/NumPy/">here</a>. Make sure to download version 1.6.2 for Windows and for Python 2.7 (numpy-1.6.2-win32-superpack-python2.7.exe). Note that new numpy 1.7 didn't work for me but 1.6.2 does.
 
 <li>
 Download latest Boost from here: <a href="https://sourceforge.net/projects/numpy/files/NumPy/1.6.2/numpy-1.6.2-win32-superpack-python2.7.exe/download</a>.

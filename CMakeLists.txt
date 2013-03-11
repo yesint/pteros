@@ -14,6 +14,10 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -DBOOST_THREAD_USE_LIB")
     SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
 
+    ##########################################################
+    # Cnange the paths here if you are compiling on Windows! #
+    ##########################################################
+
     # Path to Boost:
     SET(BOOST_ROOT "c:/install/boost")
     SET(BOOST_INCLUDEDIR "C:/install/boost/include/boost-1_53")
