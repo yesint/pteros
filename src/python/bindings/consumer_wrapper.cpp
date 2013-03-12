@@ -24,7 +24,7 @@
 #include "trajectory_processor_wrapper.h"
 
 void Consumer_wrapper::pre_process(){
-    try {
+    try {        
         dynamic_cast<Trajectory_processor_wrapper*>(proc)->pre_process();
     } catch (error_already_set& e){
         PyErr_Print();
@@ -40,9 +40,9 @@ bool Consumer_wrapper::process_frame(const Frame_info& info){
     }
 }
 
-void Consumer_wrapper::post_process(){
-    try {
-        dynamic_cast<Trajectory_processor_wrapper*>(proc)->post_process();
+void Consumer_wrapper::post_process(const Frame_info& info){
+    try {        
+        dynamic_cast<Trajectory_processor_wrapper*>(proc)->post_process(info);
     } catch (error_already_set& e){
         PyErr_Print();
     }

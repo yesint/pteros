@@ -200,6 +200,7 @@ void make_bindings_System(){
 
     class_<System, boost::noncopyable>("System", init<>())
         .def(init<std::string>() )
+        .def(init<System>() )
         .def("num_atoms", &System::num_atoms)
         .def("num_frames", &System::num_frames)
         .def("load", &System::load, load_overloads())

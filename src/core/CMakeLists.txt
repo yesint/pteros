@@ -65,3 +65,9 @@ ${PROJECT_SOURCE_DIR}/src/core/molfile_plugins/pdbplugin.c
 ${PROJECT_SOURCE_DIR}/src/core/molfile_plugins/fastio.h
 ${PROJECT_SOURCE_DIR}/src/core/molfile_plugins/dcdplugin.c
 )
+
+#Installation
+install(TARGETS pteros
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+)

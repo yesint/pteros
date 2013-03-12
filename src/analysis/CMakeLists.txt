@@ -52,3 +52,10 @@ add_executable(pteros_selection_analysis
     selection_analysis_program.cpp
 )
 target_link_libraries(pteros_selection_analysis pteros_analysis pteros_sim pteros ${Boost_LIBRARIES})
+
+#Installation
+install(TARGETS pteros_analysis pteros_rmsf pteros_contacts_finder pteros_selection_analysis
+    RUNTIME DESTINATION bin/analysis
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+)

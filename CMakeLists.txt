@@ -78,5 +78,9 @@ add_subdirectory(src/test)
 add_subdirectory(src/simulation)
 add_subdirectory(src/analysis)
 add_subdirectory(src/python)
+add_subdirectory(src/python/bindings)
 add_subdirectory(src/examples)
 #add_subdirectory(template)
+
+# Install headers
+install(DIRECTORY include DESTINATION .)

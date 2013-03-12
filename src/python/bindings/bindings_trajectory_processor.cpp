@@ -44,16 +44,16 @@ public:
         self = p;
     }
 
-    void pre_process() {
-        call_method<bool>(self, "pre_process");
+    void pre_process() {        
+        call_method<void>(self, "pre_process");
     }
 
     bool process_frame(const Frame_info& info) {
         return call_method<bool>(self, "process_frame", info);        
     }
 
-    void post_process() {
-        call_method<bool>(self, "post_process");
+    void post_process(const Frame_info& info) {
+        call_method<void>(self, "post_process", info);
     }
 
     PyObject* self;
@@ -66,5 +66,11 @@ void make_bindings_Trajectory_processor(){
         .def(init<Options_tree&>() )
         .def("set_options",&Trajectory_processor_wrapper::set_options)
         .def("run",&Trajectory_processor_wrapper::run)
+        .def("get_system",&Trajectory_processor_wrapper::get_system,return_value_policy<reference_existing_object>())
+    ;
+
+    // Exposed only to be created in the script and bound to trajectory processor
+    // Can't inherit or execute any Python code
+    class_<Consumer>("Compiled_task",init<Trajectory_processor*>())
     ;
 }

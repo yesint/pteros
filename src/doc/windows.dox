@@ -49,7 +49,7 @@ After that line add the following text:
 using python : 2.7 : "C:/Python27" : "C:/Python27/include" : "C:/Python27/libs" ; 
 \endcode
 
-Update the version and the installation paths if needed to correspond your Python installation.
+Change the version and the installation paths if needed to correspond your Python installation.
 
 After that execute
 \code

@@ -32,3 +32,7 @@ Trajectory_processor_wrapper::Trajectory_processor_wrapper(): Trajectory_process
 Trajectory_processor_wrapper::Trajectory_processor_wrapper(Options_tree& opt): Trajectory_processor(opt){
     initialize();
 }
+
+System* Trajectory_processor_wrapper::get_system(){
+    return cons_p->get_system();
+}

@@ -38,7 +38,7 @@ struct Task_base: public Consumer {
       @arg proc Trajectory_processor, which will be bound to this task
       @arg opt Options, which are passed to this task and could be interpreted inside
       @arg set_texts Selection strings of all selections, which are used by this task
-      @arg sel_name Symbolic names of all selections
+      @arg sel_names Symbolic names of all selections
       */
     Task_base(Trajectory_processor* proc, Options_tree* opt);
     void create(std::vector<std::string>& sel_texts,
