@@ -662,7 +662,7 @@ void Contacts_finder::save(ostream& out, bool human_readable){
     result["is_energy"] = true;//(simulation!=NULL);
 
     // Add info for trajectories
-    result["job_info"] = options->to_json();
+    result["job_info"] = options->to_json_string();
 
     write_stream(mValue(result),out,human_readable);
 }

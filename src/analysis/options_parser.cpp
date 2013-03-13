@@ -24,7 +24,43 @@
 #include "pteros/analysis/options_parser.h"
 #include <fstream>
 
+#include "json_spirit/json_spirit_writer_template.h"
+#include "json_spirit/json_spirit_reader_template.h"
+
+
 using namespace std;
+
+template<class T>
+bool add_to_json_array(json_spirit::mArray& arr, Option_value& o){
+    T* ptr = boost::get<T>(&o);
+    if(ptr){
+        arr.push_back(*ptr);
+        return true;
+    } else
+        return false;
+}
+
+template<class T>
+bool add_to_command_line(std::string& cmd, Option_value& o){
+    T* ptr = boost::get<T>(&o);
+    if(ptr){
+        cmd += " " + boost::lexical_cast<string>(*ptr);
+        return true;
+    } else
+        return false;
+}
+
+template<class T>
+bool add_to_indented(std::string& str, Option_value& o, int level){
+    T* ptr = boost::get<T>(&o);
+    if(ptr){
+        str += string(level,' ') + boost::lexical_cast<string>(*ptr) + '\n';
+        return true;
+    } else
+        return false;
+}
+
+
 
 bool is_object(Option_value& o){
     Options_tree* ptr = boost::get<Options_tree>(&o);
@@ -123,21 +159,16 @@ void Options_tree::find_key(std::string& key,
     }        
 }
 
-string Options_tree::to_json_string(){
-    json_spirit::mValue val = to_json();
-    return json_spirit::write_string(val,true);
-}
-
-json_spirit::mValue Options_tree::to_json(){
+json_spirit::mValue to_json(Options_tree* tree){
     using namespace json_spirit;
 
     mArray vals;
-    for(Option_value& o: values){
+    for(Option_value& o: *(tree->get_values_ptr()) ){
         {// Try to get nested Options_tree
             Options_tree* ptr = boost::get<Options_tree>(&o);
             if(ptr){
                 mObject obj;
-                obj[ptr->name] = ptr->to_json();
+                obj[ptr->get_name()] = to_json(ptr);
                 vals.push_back(obj);
                 continue;
             }
@@ -157,7 +188,14 @@ json_spirit::mValue Options_tree::to_json(){
     return mValue(vals);
 }
 
-void Options_tree::json_to_tree(json_spirit::mValue& json, Options_tree& tree){
+
+string Options_tree::to_json_string(){
+    json_spirit::mValue val = to_json(this);
+    return json_spirit::write_string(val,true);
+}
+
+
+void json_to_tree(json_spirit::mValue& json, Options_tree& tree){
     using namespace json_spirit;
 
     if(json.type() == obj_type){
@@ -169,7 +207,7 @@ void Options_tree::json_to_tree(json_spirit::mValue& json, Options_tree& tree){
             // Recurse for value
             json_to_tree(e.second,t);
             // Add this node as child
-            tree.values.push_back(t);
+            tree.get_values_ptr()->push_back(t);
         }
     } else if(json.type() == array_type){
         // If this is array simply recurse for each element
@@ -177,16 +215,18 @@ void Options_tree::json_to_tree(json_spirit::mValue& json, Options_tree& tree){
             json_to_tree(el,tree);
         }
     } else if(json.type() == int_type){
-        tree.values.push_back(json.get_int());
+        tree.get_values_ptr()->push_back(json.get_int());
     } else if(json.type() == real_type){
-        tree.values.push_back(json.get_real());
+        tree.get_values_ptr()->push_back(json.get_real());
     } else if(json.type() == str_type){
-        tree.values.push_back(json.get_str());
+        tree.get_values_ptr()->push_back(json.get_str());
     } else if(json.type() == bool_type){
-        tree.values.push_back(json.get_bool());
+        tree.get_values_ptr()->push_back(json.get_bool());
     }
 }
 
+
+/*
 Options_tree::Options_tree(json_spirit::mValue& json){
     // Read json
     name = "root";
@@ -194,10 +234,11 @@ Options_tree::Options_tree(json_spirit::mValue& json){
     json_to_tree(json,*this);
 }
 
-void Options_tree::from_json(json_spirit::mValue& json){
-    name = "root";
-    values.clear();
-    json_to_tree(json,*this);
+*/
+void from_json(json_spirit::mValue& json, Options_tree* tree){
+    tree->set_name("root");
+    tree->get_values_ptr()->clear();
+    json_to_tree(json,*tree);
 }
 
 void Options_tree::from_json_string(string json_str){
@@ -227,7 +268,7 @@ void Options_tree::from_command_line(std::vector<std::string>& tokens){
             stringstream s(tokens[1]);
             json_spirit::read_stream(s,v);
         }
-        from_json(v);
+        from_json(v,this);
         return;
     }
 
@@ -569,3 +610,4 @@ Options_tree& Options_tree::operator>>(double& val){
     value_iter++;
     return *this;
 }
+

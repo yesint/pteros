@@ -28,9 +28,6 @@
 #include "pteros/core/mol_file.h"
 #include <string>
 
-#include "json_spirit/json_spirit_reader_template.h"
-#include "json_spirit/json_spirit_writer_template.h"
-
 #include <vector>
 #include <boost/tokenizer.hpp>
 #include <boost/algorithm/string.hpp>
@@ -39,7 +36,6 @@
 
 using namespace std;
 using namespace pteros;
-using namespace json_spirit;
 
 int main(int argc, char** argv)
 {

@@ -32,8 +32,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
 #include <pteros/core/pteros_error.h>
-#include <json_spirit/json_spirit_writer_template.h>
-#include <json_spirit/json_spirit_reader_template.h>
+#include <boost/variant.hpp>
 
 class Options_tree;
 
@@ -47,7 +46,7 @@ typedef boost::variant<
     > Option_value;
 
 
-class Options_tree {
+class Options_tree {    
     public:
         Options_tree(){
             value_iter = values.begin();
@@ -56,9 +55,7 @@ class Options_tree {
         Options_tree(std::string s){
             name = s;
             value_iter = values.begin();
-        }
-        /// Construct from json value
-        Options_tree(json_spirit::mValue& json);
+        }        
 
         /// Get all values of specified type from given key
         template<class T>
@@ -84,12 +81,10 @@ class Options_tree {
         /// Get all options with given key
         std::list<Options_tree*> get_options(std::string key);
 
-        /// Convert to json
-        json_spirit::mValue to_json();
+        /// Convert to json        
         std::string to_json_string();
 
-        /// Read from json
-        void from_json(json_spirit::mValue& json);
+        /// Read from json        
         void from_json_string(std::string json_str);
 
         /** Create tree from the command line
@@ -118,6 +113,18 @@ class Options_tree {
         Options_tree& operator>>(int& val);
         Options_tree& operator>>(double& val);
 
+        std::list<Option_value>* get_values_ptr(){
+            return &values;
+        }
+
+        std::string get_name(){
+            return name;
+        }
+
+        void set_name(std::string str){
+            name = str;
+        }
+
     protected:
 
         std::string name; //Name of option
@@ -128,9 +135,8 @@ class Options_tree {
         // Find single options
         Options_tree* get_single_option(std::string& key);
 
-        // Recursively transforms json to Options_tree
-        void json_to_tree(json_spirit::mValue& json, Options_tree& tree);
-        // Itartor of values for >> operator
+
+        // Iterator of values for >> operator
         std::list<Option_value>::iterator value_iter;
 };
 
@@ -221,35 +227,6 @@ list<T> Options_tree::get_values(std::string key){
     return res;
 }
 
-template<class T>
-bool add_to_json_array(json_spirit::mArray& arr, Option_value& o){
-    T* ptr = boost::get<T>(&o);
-    if(ptr){
-        arr.push_back(*ptr);
-        return true;
-    } else
-        return false;
-}
-
-template<class T>
-bool add_to_command_line(std::string& cmd, Option_value& o){
-    T* ptr = boost::get<T>(&o);
-    if(ptr){
-        cmd += " " + boost::lexical_cast<string>(*ptr);
-        return true;
-    } else
-        return false;
-}
-
-template<class T>
-bool add_to_indented(std::string& str, Option_value& o, int level){
-    T* ptr = boost::get<T>(&o);
-    if(ptr){
-        str += string(level,' ') + boost::lexical_cast<string>(*ptr) + '\n';
-        return true;
-    } else
-        return false;
-}
 
 
 template <class T>
