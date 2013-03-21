@@ -23,7 +23,7 @@
 #ifndef BINDINGS_SYSTEM_H
 #define BINDINGS_SYSTEM_H
 
-#include "bindings_util.h"
+#include "pteros/python/bindings_util.h"
 
 void make_bindings_System();
 

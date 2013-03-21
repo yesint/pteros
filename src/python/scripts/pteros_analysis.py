@@ -1,6 +1,11 @@
-from pteros_py import *
-import pkgutil, sys, copy
-import 	pteros_analysis_plugins
+import sys
+
+sys.path.append("..")
+
+from pteros import *
+import pkgutil, copy
+
+import pteros_analysis_plugins
 
 print "+--------------------------------+"
 print "+ This is pteros_analysis script +"
@@ -65,6 +70,9 @@ class Processor(Trajectory_processor):
 
 # Create instance of processor
 proc = Processor(opt)
+# We need a container to keep all compiled tasks, otherwise they will call destructors
+# and cause crash
+compiled_list = []
 
 # All pure python tasks are run sequencially on each frame	
 # Try to load needed modules and connect the consumers
@@ -86,10 +94,17 @@ for task in requested_tasks:
 		# This is compiled plugin
 		print "\t* Loaded compiled plugin '%s'" % task
 
+		# Now work with tasks		
+		for tsk in task_list:
+			if tsk == task:
+				# create an independent instance of Task from that module
+				obj = module.Task(proc,opt)
+				compiled_list.append(obj) # Store it to prevent call of destructor!
+
 
 for m in proc.task_list:
 	print m
 
 
-t = Compiled_task(proc)
+#t = Compiled_task(proc)
 proc.run()

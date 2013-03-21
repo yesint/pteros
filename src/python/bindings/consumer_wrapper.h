@@ -23,7 +23,7 @@
 #ifndef CONSUMER_WRAPPER_H
 #define CONSUMER_WRAPPER_H
 
-#include "bindings_util.h"
+#include "pteros/python/bindings_util.h"
 
 class Consumer_wrapper: public Consumer {
 public:

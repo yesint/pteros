@@ -57,20 +57,21 @@ public:
     }
 
     PyObject* self;
+
 };
 
 
 void make_bindings_Trajectory_processor(){
 
-    class_<Trajectory_processor_wrapper, boost::noncopyable, boost::shared_ptr<_callback> >("Trajectory_processor", init<>())
+    class_<Trajectory_processor, boost::noncopyable>("Trajectory_processor_base", init<>())
+    ;
+
+    class_<Trajectory_processor_wrapper, boost::noncopyable, boost::shared_ptr<_callback> , bases<Trajectory_processor> >("Trajectory_processor", init<>())
         .def(init<Options_tree&>() )
         .def("set_options",&Trajectory_processor_wrapper::set_options)
+
         .def("run",&Trajectory_processor_wrapper::run)
         .def("get_system",&Trajectory_processor_wrapper::get_system,return_value_policy<reference_existing_object>())
     ;
 
-    // Exposed only to be created in the script and bound to trajectory processor
-    // Can't inherit or execute any Python code
-    class_<Consumer>("Compiled_task",init<Trajectory_processor*>())
-    ;
 }

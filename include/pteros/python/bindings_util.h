@@ -24,7 +24,6 @@
 #define BINDINGS_UTIL_H
 
 #include "pteros/core/pteros_error.h"
-#include "pteros/core/selection.h"
 #include "pteros/analysis/trajectory_processor.h"
 
 #include <boost/python.hpp>

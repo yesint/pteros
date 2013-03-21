@@ -20,23 +20,24 @@
  *
 */
 
-#include "bindings_util.h"
+#include "pteros/python/bindings_util.h"
 #include "bindings_system.h"
 #include "bindings_selection.h"
 #include "bindings_options_tree.h"
 #include "bindings_frame_info.h"
 #include "bindings_trajectory_processor.h"
 
+/**********************
+  Create python module
+***********************/
+
 // Translates Pteros_error to Python exception
 void Pteros_error_translator(const pteros::Pteros_error& e) {
   PyErr_SetString(PyExc_UserWarning, const_cast<pteros::Pteros_error&>(e).what().c_str());
 }
 
-/**********************
-  Create python module
-***********************/
 
-BOOST_PYTHON_MODULE(pteros_py)
+BOOST_PYTHON_MODULE(pteros)
 {
     using namespace pteros;
 

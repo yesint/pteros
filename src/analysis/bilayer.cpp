@@ -107,10 +107,10 @@ Bilayer_point_info Bilayer::point_info(Eigen::Vector3f &point){
 
     ret.center = (ret.proj1+ret.proj2)/2.0;
     ret.normal = (ret.proj2-ret.proj1).normalized();
-    ret.thickness = (ret.proj2-ret.proj1).norm();
-    ret.center_dist = (ret.center-point).norm();
-    ret.surf_dist1 = (ret.proj1-point).norm();
-    ret.surf_dist2 = (ret.proj2-point).norm();
+    ret.thickness = bilayer_ptr->get_system()->distance(ret.proj2,ret.proj1,bilayer_ptr->get_frame(),true);
+    ret.center_dist = bilayer_ptr->get_system()->distance(ret.center,point,bilayer_ptr->get_frame(),true);
+    ret.surf_dist1 = bilayer_ptr->get_system()->distance(ret.proj1,point,bilayer_ptr->get_frame(),true);
+    ret.surf_dist2 = bilayer_ptr->get_system()->distance(ret.proj2,point,bilayer_ptr->get_frame(),true);
     ret.monolayer = ret.surf_dist1<ret.surf_dist2 ? 1 : 2;
 
     return ret;

@@ -8,7 +8,9 @@ if(WRAP_PYTHON)
     add_library(pteros_py SHARED 
     bindings.cpp
 
-    bindings_util.h
+    ${PROJECT_SOURCE_DIR}/include/pteros/python/bindings_util.h
+    ${PROJECT_SOURCE_DIR}/include/pteros/python/compiled_plugin_base.h
+    ${PROJECT_SOURCE_DIR}/include/pteros/python/compiled_plugin.h
     bindings_system.cpp
     bindings_system.h
     bindings_selection.cpp
@@ -27,7 +29,7 @@ if(WRAP_PYTHON)
     consumer_wrapper.h
     )
 
-    target_link_libraries(pteros_py pteros pteros_analysis pteros_sim ${Boost_LIBRARIES})
+    target_link_libraries(pteros_py pteros pteros_analysis pteros_sim ${Boost_LIBRARIES} ${PYTHON_LIBRARIES})
 
     set_target_properties(pteros_py PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/python"

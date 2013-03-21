@@ -23,8 +23,11 @@
 #ifndef TRAJECTORY_PROCESSOR_WRAPPER_H
 #define TRAJECTORY_PROCESSOR_WRAPPER_H
 
-#include "bindings_util.h"
+#include "pteros/python/bindings_util.h"
+#include "pteros/analysis/trajectory_processor.h"
 #include "consumer_wrapper.h"
+
+namespace pteros {
 
 class Trajectory_processor_wrapper: public Trajectory_processor {
 public:
@@ -38,10 +41,12 @@ public:
     virtual bool process_frame(const Frame_info& info) = 0;
     virtual void post_process(const Frame_info& info) = 0;
 
-    System* get_system();
+    System* get_system();   
 
 private:
     boost::shared_ptr<Consumer_wrapper> cons_p;
 };
+
+}
 
 #endif

@@ -1,4 +1,4 @@
-from pteros_py import *
+from pteros import *
 
 class Task:
 	def pre_process(self):

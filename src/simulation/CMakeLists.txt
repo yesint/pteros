@@ -1,4 +1,4 @@
-add_library(pteros_sim 
+add_library(pteros_sim SHARED
 simulation.cpp 
 gromacs_ff.cpp 
 ${PROJECT_SOURCE_DIR}/include/pteros/simulation/simulation.h

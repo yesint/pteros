@@ -5,6 +5,9 @@ project(pteros)
 OPTION(PYTHON_BINDINGS "Build python bindings" ON)
 OPTION(VMD_PDB "Use VMD molfile plugin for reading PDB files (if OFF - internal reader is used)" ON)
 
+# Will use shared Boost libraries
+set(Boost_USE_STATIC_LIBS OFF)
+
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -std=c++0x")
     SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
@@ -79,8 +82,27 @@ add_subdirectory(src/simulation)
 add_subdirectory(src/analysis)
 add_subdirectory(src/python)
 add_subdirectory(src/python/bindings)
+add_subdirectory(src/python/compiled_analysis_plugins)
 add_subdirectory(src/examples)
 #add_subdirectory(template)
 
 # Install headers
 install(DIRECTORY include DESTINATION .)
+
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    message("------------------------------")
+    message("IMPORTANT!")
+    message("In order to be able to link with Pteros and to use Pteros Python modules")
+    message("you have to add the following line to your .bashrc file:")
+    message("export LD_LIBRARY_PATH=\"\$LD_LIBRARY_PATH:${CMAKE_INSTALL_PREFIX}/lib\"")
+    message("------------------------------")
+ENDIF()
+
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    message("------------------------------")
+    message("IMPORTANT!")
+    message("In order to be able to link with Pteros and to use Pteros Python modules")
+    message("you have to add the following directory to your PATH:")
+    message("${CMAKE_INSTALL_PREFIX}/lib")
+    message("------------------------------")
+ENDIF()

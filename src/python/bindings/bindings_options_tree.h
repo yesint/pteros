@@ -23,7 +23,7 @@
 #ifndef BINDINGS_OPTIONS_TREE_H
 #define BINDINGS_OPTIONS_TREE_H
 
-#include "bindings_util.h"
+#include "pteros/python/bindings_util.h"
 
 void make_bindings_Options_tree();
 

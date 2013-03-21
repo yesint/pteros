@@ -13,7 +13,7 @@ if(WRAP_PYTHON)
     target_link_libraries(python_analysis pteros_analysis pteros_sim pteros ${Boost_LIBRARIES} ${PYTHON_LIBRARIES})
 endif()
 
-add_library(pteros_analysis
+add_library(pteros_analysis SHARED
 trajectory_processor.cpp
 options_parser.cpp
 rmsf.cpp

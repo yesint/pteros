@@ -41,6 +41,17 @@ int main(int argc, char** argv)
 {
     try{
 
+        Options_tree opt;
+        opt.from_command_line("--trajectory[ /media/data/semen/trajectories/grand_challenge/nowater.gro /media/data/semen/trajectories/grand_challenge/nowater.xtc --first_frame 0 --last_frame 10 ]");
+        Trajectory_processor pr(opt);
+
+        Consumer c1(&pr);
+        Consumer c2(&pr);
+        Consumer c3(&pr);
+
+        pr.run();
+return 0;
+
         //boost::shared_ptr<Mol_file> io = io_factory("topol.tpr",'r');
         System sys1("/home/semen/work/Projects/pteros/pteros_build/release/src/test/topol.tpr");
 
