@@ -432,11 +432,14 @@ std::vector<float> Selection::get_mass() const {
 }
 
 float Selection::get_box_volume(){
+    /*
     if( system->traj[frame].box(0,1) || system->traj[frame].box(0,2)
             || system->traj[frame].box(1,0) || system->traj[frame].box(1,2)
             || system->traj[frame].box(2,0) || system->traj[frame].box(2,1)
             ) throw Pteros_error("Can't compute volume for trclinic boxes so far.");
     return system->traj[frame].box(0,0) * system->traj[frame].box(1,1) * system->traj[frame].box(2,2);
+    */
+    return system->Box(frame).col(1).cross( system->Box(frame).col(2) ).dot( system->Box(frame).col(0) );
 }
 
 vector<int> Selection::get_unique_resid() const{

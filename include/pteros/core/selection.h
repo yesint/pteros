@@ -244,8 +244,7 @@ class Selection {
     /// Sets beta of all selected atoms to the same given value.
     void set_beta(float data);
 
-    /// Returns the volume of rectangular box for current frame.
-    /// Currently does not work for triclinic boxes.
+    /// Returns the volume of the periodic box for current frame.
     float get_box_volume();
     /// @}
 
