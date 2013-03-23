@@ -26,7 +26,7 @@
 #include <iostream>
 #include <string>
 #include <set>
-#include "pteros/pteros_core.h"
+#include "pteros/pteros.h"
 #include "pteros/analysis/trajectory_processor.h"
 #include "pteros/analysis/options_parser.h"
 #include "pteros/core/grid_search.h"

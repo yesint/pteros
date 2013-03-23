@@ -73,21 +73,25 @@ PyObject* Selection_get_average3(Selection* s){
 }
 
 
-PyObject* Selection_get_mass(Selection* s){
-    CREATE_PYARRAY_1D(p,s->size())
-    MAP_EIGEN_TO_PYARRAY(data,VectorXf,p)
-    data = s->get_mass();
-    return boost::python::incref(p);
+boost::python::list Selection_get_mass(Selection* s){
+    boost::python::list l;
+    vector<float> r = s->get_mass();
+    for(int i=0;i<r.size();++i) l.append(r[i]);
+    return l;
 }
 
-void Selection_set_mass1(Selection* s, PyObject* data){
-    MAP_EIGEN_TO_PYARRAY(m,VectorXf,data)
-    s->set_mass(m);
+void Selection_set_mass1(Selection* s, boost::python::list& data){
+    int n = len(data);
+    vector<float> r;
+    r.resize(n);
+    for(int i=0;i<r.size();++i) r[i] = extract<float>(data[i]);
+    s->set_mass(r);
 }
 
 void Selection_set_mass2(Selection* s, float data){
     s->set_mass(data);
 }
+
 
 PyObject* Selection_get_traj3(Selection* s, int ind, int b, int e){
     CREATE_PYARRAY_2D(p,3,s->get_system()->num_frames())

@@ -422,8 +422,8 @@ vector<int> Selection::get_resindex() const {
     return res;
 }
 
-VectorXf Selection::get_mass() const {
-    VectorXf res;
+std::vector<float> Selection::get_mass() const {
+    vector<float> res;
     int i,n;
     n = index.size();
     res.resize(n);
@@ -459,7 +459,7 @@ vector<int> Selection::get_unique_resindex() const {
     return res;
 }
 
-void Selection::set_mass(const Eigen::VectorXf& m){
+void Selection::set_mass(const std::vector<float> m){
     int i,n;
     n = index.size();
     if(m.size()!=n){
@@ -468,7 +468,7 @@ void Selection::set_mass(const Eigen::VectorXf& m){
           << " for selection of size " << n;
         throw e;
     }
-    for(i=0; i<n; ++i) Mass(i) = m(i);
+    for(i=0; i<n; ++i) Mass(i) = m[i];
 }
 
 void Selection::set_mass(float data){

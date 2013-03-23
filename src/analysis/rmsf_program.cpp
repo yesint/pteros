@@ -21,7 +21,7 @@
 */
 
 #include "pteros/analysis/rmsf.h"
-#include "pteros/pteros_core.h"
+#include "pteros/pteros.h"
 
 using namespace std;
 using namespace pteros;
