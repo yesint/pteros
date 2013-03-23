@@ -1221,3 +1221,16 @@ void Selection::inertia(Eigen::Vector3f &moments, Eigen::Matrix3f &axes, bool pe
     axes = solver.eigenvectors();
     moments = solver.eigenvalues();
 }
+
+float Selection::gyration(bool periodic){
+    int n = size();
+    int i;
+    float d, a = 0.0, b = 0.0;
+    Vector3f c = center(true,periodic);
+    for(i=0;i<n;++i){
+        d = system->distance(XYZ(i),c,frame,periodic);
+        a += Mass(i)*d*d;
+        b += Mass(i);
+    }
+    return sqrt(a/b);
+}
