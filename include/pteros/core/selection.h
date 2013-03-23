@@ -366,6 +366,8 @@ class Selection {
     /// of atoms connected by distances less than d
     void split_by_connectivity(float d, std::vector<Selection>& res);
 
+    void inertia(Eigen::Vector3f& moments, Eigen::Matrix3f& axes, bool periodic = false);
+
     /** @name Inlined utility functions.
     *   Used to access the properties of
     *   particular atom in selection. The ind passed to these functions is

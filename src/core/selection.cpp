@@ -1178,3 +1178,46 @@ void Selection::split_by_connectivity(float d, std::vector<Selection> &res){
         // No more atoms to search, the group is ready
     }
 }
+
+void Selection::inertia(Eigen::Vector3f &moments, Eigen::Matrix3f &axes, bool periodic){
+    int n = size();
+    int i;
+    // Compute the central tensor of inertia. Place it into axes
+    axes.fill(0.0);
+
+    Vector3f c = center(true,periodic);
+    cout << "cent: " << c.transpose() << endl;
+    Vector3f p,d;
+
+    if(periodic){
+        for(i=0;i<n;++i){
+            p = system->get_closest_image(XYZ(i),c,frame);
+            d = p-c;
+            axes(0,0) += Mass(i)*( d(1)*d(1) + d(2)*d(2) );
+            axes(1,1) += Mass(i)*( d(0)*d(0) + d(2)*d(2) );
+            axes(2,2) += Mass(i)*( d(0)*d(0) + d(1)*d(1) );
+            axes(0,1) -= Mass(i)*d(0)*d(1);
+            axes(0,2) -= Mass(i)*d(0)*d(2);
+            axes(1,2) -= Mass(i)*d(1)*d(2);
+        }
+    } else {
+        for(i=0;i<n;++i){
+            d = XYZ(i)-c;
+            axes(0,0) += Mass(i)*( d(1)*d(1) + d(2)*d(2) );
+            axes(1,1) += Mass(i)*( d(0)*d(0) + d(2)*d(2) );
+            axes(2,2) += Mass(i)*( d(0)*d(0) + d(1)*d(1) );
+            axes(0,1) -= Mass(i)*d(0)*d(1);
+            axes(0,2) -= Mass(i)*d(0)*d(2);
+            axes(1,2) -= Mass(i)*d(1)*d(2);
+        }
+    }
+    axes(1,0) = axes(0,1);
+    axes(2,0) = axes(0,2);
+    axes(2,1) = axes(1,2);
+
+    // Now diagonalize inertia tensor
+    Eigen::SelfAdjointEigenSolver<Matrix3f> solver(axes);
+    // put output values
+    axes = solver.eigenvectors();
+    moments = solver.eigenvalues();
+}
