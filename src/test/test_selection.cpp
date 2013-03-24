@@ -46,11 +46,23 @@ int main(int argc, char** argv)
 
         //return 1;
 
-        System t("/home/semen/work/Projects/pteros/pteros/trunk/src/test/data/2lao.gro");
-        t.load("/home/semen/work/Projects/pteros/pteros/trunk/src/test/data/2lao.gro");
+        System t("/home/semen/work/Projects/pteros/pteros_git/src/test/data/2lao.gro");
+        //t.load("/home/semen/work/Projects/pteros/pteros_git/src/test/data/2lao.gro");
 
         Selection s(t,"all");
+
+        Vector3f ref = s.XYZ(10000);
+        for(int i=0;i<s.size();++i){
+            s.XYZ(i) = t.get_closest_image(s.XYZ(i),ref,0);
+        }
+        s.write("/home/semen/work/Projects/pteros/pteros_git/src/test/data/2lao-tr.gro");
+
         cout << s.get_box_volume() << endl;
+        Vector3f moments;
+        Matrix3f axes;
+        s.inertia(moments,axes);
+        cout << moments << endl;
+        cout << axes << endl;
 
 /*
 

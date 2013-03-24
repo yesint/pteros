@@ -40,13 +40,16 @@ void System_setBox(System* s, PyObject* arr, int fr){
      s->Box(fr) = m;
 }
 
-void System_get_box_vectors_angles(System* s, int fr, PyObject* vectors, PyObject* angles){
-    MAP_EIGEN_TO_PYARRAY(v,Vector3f,vectors)
-    MAP_EIGEN_TO_PYARRAY(a,Vector3f,angles)
-    Vector3f vv,aa;
-    s->get_box_vectors_angles(fr,vv,aa);
-    v = vv;
-    a = aa;
+boost::python::tuple System_get_box_vectors_angles(System* s, int fr){
+    Vector3f vectors, angles;
+    s->get_box_vectors_angles(fr,vectors,angles);
+    CREATE_PYARRAY_1D(v,3)
+    CREATE_PYARRAY_1D(a,3)
+    MAP_EIGEN_TO_PYARRAY(_v,Vector3f,v)
+    MAP_EIGEN_TO_PYARRAY(_a,Vector3f,a)
+    _v = vectors;
+    _a = angles;
+    return boost::python::make_tuple(boost::python::handle<>(v),boost::python::handle<>(a));
 }
 
 float System_getTime(System* s, int fr){
@@ -216,6 +219,7 @@ void make_bindings_System(){
         .def("is_box_triclinic", &System::is_box_triclinic)
         .def("getTime", &System_getTime)
         .def("setTime", &System_setTime)
+        // Returns tuple of (vectors,angles)
         .def("get_box_vectors_angles",&System_get_box_vectors_angles)        
         .def("getXYZ", &System_getXYZ)
         .def("setXYZ", &System_setXYZ)

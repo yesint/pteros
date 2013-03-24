@@ -69,15 +69,6 @@ namespace pteros {
         _ptr_obj = PyArray_SimpleNew(2, _dims, PyArray_FLOAT); \
     }
 
-#define CREATE_PYARRAY_2D_FROM_DATA(_ptr_obj, _dim1, _dim2, _data_ptr) \
-    PyObject* _ptr_obj; \
-    { \
-        npy_intp _dims[2]; \
-        _dims[1] = _dim1; \
-        _dims[0] = _dim2; \
-        _ptr_obj = PyArray_SimpleNewFromData(2, _dims, PyArray_FLOAT, (void*)_data_ptr); \
-    }
-
 } // End of namespace Pteros
 
 #endif

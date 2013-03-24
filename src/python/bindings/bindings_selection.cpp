@@ -310,6 +310,24 @@ float Selection_rmsd2(Selection* s, int fr1, int fr2){
 }
 
 
+boost::python::tuple Selection_inertia1(Selection* s, bool periodic){
+    Vector3f moments;
+    Matrix3f axes;
+    s->inertia(moments,axes,periodic);
+    CREATE_PYARRAY_1D(m,3)
+    CREATE_PYARRAY_2D(a,3,3)
+    MAP_EIGEN_TO_PYARRAY(_m,Vector3f,m)
+    MAP_EIGEN_TO_PYARRAY(_a,Matrix3f,a)
+    _m = moments;
+    _a = axes;
+    return boost::python::make_tuple(boost::python::handle<>(m),boost::python::handle<>(a));
+}
+
+boost::python::tuple Selection_inertia2(Selection* s){
+    return Selection_inertia1(s,false);
+}
+
+
 // Macros to wrap an inline accessor function
 #define WRAP_ACCESSOR_FR(_out_type, _func) \
     _out_type Selection_get##_func##1(Selection* s, int arg){ return s->_func(arg); } \
@@ -420,6 +438,10 @@ void make_bindings_Selection(){
         .def("fit_trajectory",&Selection::fit_trajectory,fit_trajectory_overloads())
         .def("apply_transform",&Selection_apply_transform)
         .def("write",&Selection::write,write_overloads())
+
+        // inertia return a tuple of (moments,axes)
+        .def("inertia",&Selection_inertia1)
+        .def("inertia",&Selection_inertia2)
 
         // For coordinate accessors we should use setX instead of just X in Python
         // This is because Python don't respect void in return - all functions

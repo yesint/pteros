@@ -1185,8 +1185,7 @@ void Selection::inertia(Eigen::Vector3f &moments, Eigen::Matrix3f &axes, bool pe
     // Compute the central tensor of inertia. Place it into axes
     axes.fill(0.0);
 
-    Vector3f c = center(true,periodic);
-    cout << "cent: " << c.transpose() << endl;
+    Vector3f c = center(true,periodic);    
     Vector3f p,d;
 
     if(periodic){
