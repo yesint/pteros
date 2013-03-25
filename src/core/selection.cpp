@@ -1103,13 +1103,11 @@ void Selection::notify_slot(System_notification code, int b, int e){
     }
 }
 
+/*
 void Selection::remove_overlap(Eigen::Vector3f &dir, const Selection &clash_sel, float cut_off){
     throw Pteros_error("remove_overlap is not implemented yet!");
 }
-
-void Selection::orient_principal(){
-    throw Pteros_error("orient_principal is not implemented yet!");
-}
+*/
 
 void Selection::enable_signals(){
     connection.disconnect();
@@ -1152,7 +1150,7 @@ void Selection::split_by_connectivity(float d, std::vector<Selection> &res){
         if(i==mask.size()) break; // All connectivity groups are already found
         // Start new group
         ++ngr;        
-        Selection s(*get_system());
+        Selection s(*system);
         res.push_back(s);
         res.back().sel_text = "index";
         // Atoms to search
@@ -1306,4 +1304,9 @@ Eigen::Affine3f Selection::principal_transform(bool is_periodic){
     rot.translation().fill(0.0);
     // Add translation part to transform. Note reverse order of translations! This is important.
     return Translation3f(cm) * rot * Translation3f(-cm) ;
+}
+
+void Selection::principal_orient(bool is_periodic){
+    Affine3f tr = principal_transform(is_periodic);
+    apply_transform(tr);
 }

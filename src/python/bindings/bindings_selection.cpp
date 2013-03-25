@@ -28,6 +28,7 @@
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(fit_trajectory_overloads, fit_trajectory, 0, 3)
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(write_overloads, write, 1, 3)
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(get_average_overloads, get_average, 0, 2)
+BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(principal_orient_overloads, principal_orient, 0, 1)
 
 void Selection_modify1(Selection* s, System& sys, string str){
     s->modify(sys,str);
@@ -162,6 +163,17 @@ PyObject* fit_transform_py(Selection& sel1, Selection& sel2){
     MAP_EIGEN_TO_PYARRAY(m,Matrix4f,p)
     m = fit_transform(sel1,sel2).matrix();
     return boost::python::incref(p);
+}
+
+PyObject* Selection_principal_transform_py1(Selection* sel, bool periodic){
+    CREATE_PYARRAY_2D(p,4,4)
+    MAP_EIGEN_TO_PYARRAY(m,Matrix4f,p)
+    m = sel->principal_transform(periodic).matrix();
+    return boost::python::incref(p);
+}
+
+PyObject* Selection_principal_transform_py2(Selection* sel){
+    return Selection_principal_transform_py1(sel,false);
 }
 
 
@@ -443,6 +455,9 @@ void make_bindings_Selection(){
         .def("inertia",&Selection_inertia1)
         .def("inertia",&Selection_inertia2)
 
+        .def("principal_transform",&Selection_principal_transform_py1)
+        .def("principal_transform",&Selection_principal_transform_py2)
+        .def("principal_orient",&Selection::principal_orient,principal_orient_overloads())
         // For coordinate accessors we should use setX instead of just X in Python
         // This is because Python don't respect void in return - all functions
         // with equal number of argumets are considered equivalent thus

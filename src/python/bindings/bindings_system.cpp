@@ -235,5 +235,6 @@ void make_bindings_System(){
         .def("distance", &System_distance4)
         .def("wrap_to_box", &System_wrap_to_box)
         .def("get_closest_image", &System_get_closest_image)
+        .def("wrap_all", &System::wrap_all)
     ;
 }

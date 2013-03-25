@@ -297,7 +297,7 @@ class Selection {
     void unwrap();
 
     /** Unwraps selection to make it whole (without jumps over periodic box boundary).
-     * based on preserving all covalent bonds. The maximal bond length is given by d.
+     * based on preserving all bonds. The maximal bond length is given by d.
      */
     void unwrap_bonds(float d = 0.2);
 
@@ -306,6 +306,14 @@ class Selection {
      * any dimension you will get funny results if is_periodic is set to true.
      */
     Eigen::Affine3f principal_transform(bool is_periodic = false);
+
+    /** Orient molecule by its principal axes.
+     * The same as
+     *
+     * Eigen::Affine3f tr = sel.principal_transform();
+     * sel.apply_transform(tr);
+     */
+    void principal_orient(bool is_periodic = false);
 
     /// @}
 
@@ -369,11 +377,12 @@ class Selection {
     /// Creates multiple copies of selection in the parent system and
     /// distributes them in a grid
     void distribute(Eigen::Vector3i& ncopies, Eigen::Vector3f& shift);
+
+    /*
     /// Moves selection along given vector until it becomes free of sterical clashes
     /// with clash_sel within cut-off
     void remove_overlap(Eigen::Vector3f& dir, const Selection& clash_sel, float cut_off = 0.2);
-    /// Orients selection by principal axes
-    void orient_principal();
+    */
 
     /// @}
 
