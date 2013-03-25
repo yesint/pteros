@@ -21,6 +21,8 @@ if(WRAP_PYTHON)
     bindings_frame_info.h
     bindings_trajectory_processor.cpp
     bindings_trajectory_processor.h
+    bindings_atom.cpp
+    bindings_atom.h
 
     trajectory_processor_wrapper.cpp
     trajectory_processor_wrapper.h

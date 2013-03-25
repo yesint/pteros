@@ -26,6 +26,7 @@
 #include "bindings_options_tree.h"
 #include "bindings_frame_info.h"
 #include "bindings_trajectory_processor.h"
+#include "bindings_atom.h"
 
 /**********************
   Create python module
@@ -62,6 +63,9 @@ BOOST_PYTHON_MODULE(pteros)
 
     // Bindings for Trajectory_processor
     make_bindings_Trajectory_processor();
+
+    // Bindings for atom
+    make_bindings_Atom();
 
 }
 
