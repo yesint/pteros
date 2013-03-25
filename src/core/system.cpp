@@ -419,18 +419,21 @@ void System::wrap_to_box(int frame, Eigen::Vector3f& point) const {
     wrap_coord(point,box_dim);
 }
 
-Vector3f System::get_closest_image(Eigen::Vector3f &point, Eigen::Vector3f &target, int fr) const {
+Vector3f System::get_closest_image(Eigen::Vector3f &point, Eigen::Vector3f &target, int fr, bool do_wrapping) const {
     if(traj[fr].box.array().abs().sum()>0){ // If box is not set, it will be zero
         // Get box dimension
         Vector3f box_dim = traj[fr].box.colwise().norm();
         // Wrap point and target
         Vector3f p = point, t = target;
-        wrap_coord(p,box_dim);
-        wrap_coord(t,box_dim);
+        if(do_wrapping){
+            wrap_coord(p,box_dim);
+            wrap_coord(t,box_dim);
+        }
 
         Vector3f v = (p-t).array();
-        for(int i=0;i<3;++i)
-            if(abs(v(i))>0.5*box_dim(i)){
+        //cout << v(0) <<  " -- " << 0.5*box_dim(0) << endl;
+        for(int i=0;i<3;++i)            
+            if(abs(v(i))>0.5*box_dim(i)){                
                 // Need to translate this dimension
                 v(i)>0 ? p(i)-=box_dim(i) : p(i)+=box_dim(i);
             }
@@ -438,5 +441,11 @@ Vector3f System::get_closest_image(Eigen::Vector3f &point, Eigen::Vector3f &targ
         return p;
     } else {
         return point;
+    }
+}
+
+void System::wrap_all(int fr){
+    for(int i=0;i<num_atoms();++i){
+        wrap_to_box(fr,XYZ(i,fr));
     }
 }

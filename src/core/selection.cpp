@@ -1233,3 +1233,77 @@ float Selection::gyration(bool periodic){
     }
     return sqrt(a/b);
 }
+
+void Selection::wrap(){
+    for(int i=0;i<size();++i){
+        system->wrap_to_box(frame,XYZ(i));
+    }
+}
+
+void Selection::unwrap(){
+    Vector3f c = center(true,true);
+    for(int i=0;i<size();++i){
+        XYZ(i) = system->get_closest_image(XYZ(i),c,frame);
+    }
+}
+
+void Selection::unwrap_bonds(float d){
+    // Find all connectivity pairs for given cut-off
+    vector<Vector2i> pairs;
+    Grid_searcher(d,*this,pairs,false,true);
+    // Form a connectivity structure in the form con[i]->1,2,5...
+    vector<vector<int> > con(size());
+    for(int i=0; i<pairs.size(); ++i){
+        if(pairs[i](0) < pairs[i](1)){
+            con[pairs[i](0)].push_back(pairs[i](1));
+        } else {
+            con[pairs[i](1)].push_back(pairs[i](0));
+        }
+        //con[pairs[i](1)].push_back(pairs[i](0));
+    }
+
+    // Do all wrapping before
+    wrap();
+
+    for(int ref = 0; ref<size(); ++ref){
+        // Unwrap all atoms bound to ref to position near ref
+        for(int i=0; i<con[ref].size(); ++i){
+            // We don't do wrapping here (passing false) since this will bring atoms back!
+            // We intentially want atoms to be unwrapped
+            XYZ(con[ref][i]) = system->get_closest_image(XYZ(con[ref][i]),XYZ(ref),frame,false);
+        }
+
+    }
+}
+
+Eigen::Affine3f Selection::principal_transform(bool is_periodic){
+    Affine3f rot;
+    Vector3f cm = center(true,is_periodic);
+    translate(-cm);
+
+    Matrix3f m;
+    // Compute principal axes
+    Vector3f moments;
+    Matrix3f axes;
+    inertia(moments,axes,is_periodic);
+    // Normalize axes
+    for(int i=0;i<3;++i) axes.col(i).normalize();
+    // Now orient
+    // Step 1. Rotate around Z to move projection of axes(0) to X
+    m = AngleAxisf(std::atan2(axes.col(0)(0),axes.col(0)(1)), Vector3f::UnitZ());
+    // Step 2. Rotate to superimpose col(0) with X
+    m = m* AngleAxisf(std::asin(axes.col(0)(2)), Vector3f::UnitY());
+    // Step 3. Apply obtained transform to col(1). This gives new position of col(1)
+    // And then bring col(1) to Y
+    m = m* AngleAxisf(std::acos( (m*axes.col(1))(1) ), Vector3f::UnitX());
+
+    rot.linear() = m;
+
+    // Bring center back
+    translate(cm);
+
+    //Clear translation part. This is important!
+    rot.translation().fill(0.0);
+    // Add translation part to transform. Note reverse order of translations! This is important.
+    return Translation3f(cm) * rot * Translation3f(-cm) ;
+}

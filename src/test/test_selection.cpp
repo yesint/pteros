@@ -51,18 +51,41 @@ int main(int argc, char** argv)
 
         Selection s(t,"all");
 
+
+        /*
         Vector3f ref = s.XYZ(10000);
         for(int i=0;i<s.size();++i){
             s.XYZ(i) = t.get_closest_image(s.XYZ(i),ref,0);
         }
         s.write("/home/semen/work/Projects/pteros/pteros_git/src/test/data/2lao-tr.gro");
+        */
 
+        /*
         cout << s.get_box_volume() << endl;
         Vector3f moments;
         Matrix3f axes;
         s.inertia(moments,axes);
         cout << moments << endl;
         cout << axes << endl;
+        */
+
+        //Affine3f tr = s.principal_transform(false);
+        //s.apply_transform(tr);
+        //s.write("/home/semen/work/Projects/pteros/pteros_git/src/test/data/2lao-tr.gro");
+
+        //cout << s.center(true,true) << endl;
+        //s.wrap();
+        //s.unwrap();
+        //s.write("/home/semen/work/Projects/pteros/pteros_git/src/test/data/2lao-wr.gro");
+        s.wrap();
+        s.write("/home/semen/work/Projects/pteros/pteros_git/src/test/data/2lao-wr.gro");
+        s.unwrap_bonds(0.2);
+        s.write("/home/semen/work/Projects/pteros/pteros_git/src/test/data/2lao-bwr.gro");
+
+        s.wrap();
+        s.unwrap();
+        s.write("/home/semen/work/Projects/pteros/pteros_git/src/test/data/2lao-uwr.gro");
+
 
 /*
 

@@ -251,8 +251,12 @@ class Selection {
     /// @name Inquery functions
     /// @{
 
-    /// Get the center of selection.
-    /// @param mass_weighted Use mass-weighting
+    /** Get the center of selection.
+    * @param mass_weighted Use mass-weighting
+    * @param periodic Account for periodic boundary conditions.
+    * Please note that if the size of selection is larger than 1/2 of the box size in
+    * any dimension you will get incorrect results if periodic is set to true.
+    */
     Eigen::Vector3f center(bool mass_weighted = false, bool periodic = false);
     /// Get minimal and maximal coordinates in selection
     void minmax(Eigen::Vector3f& min, Eigen::Vector3f& max);
@@ -281,6 +285,28 @@ class Selection {
     void rotate(const Eigen::Matrix3f& m);
     /// Rotation by given angles around X, Y and Z with given pivot
     void rotate(const Eigen::Vector3f& angles, const Eigen::Vector3f& pivot);
+
+    /// Wraps selection to the periodic box
+    void wrap();
+
+    /** Unwraps selection to make it whole if possible (without jumps over periodic box boundary).
+     * The periodic center of mass is used as an anchor point.
+     * Please note that if the size of selection is larger than 1/2 of the box size in
+     * any dimension unwrap() will not work as expected and will not make selection "compact"!
+    */
+    void unwrap();
+
+    /** Unwraps selection to make it whole (without jumps over periodic box boundary).
+     * based on preserving all covalent bonds. The maximal bond length is given by d.
+     */
+    void unwrap_bonds(float d = 0.2);
+
+    /** Get transform for orienting selection by principal axes.
+     * Please note that if the size of selection is larger than 1/2 of the box size in
+     * any dimension you will get funny results if is_periodic is set to true.
+     */
+    Eigen::Affine3f principal_transform(bool is_periodic = false);
+
     /// @}
 
     /// @name Fitting and RMSD functions

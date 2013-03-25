@@ -184,8 +184,16 @@ public:
     void wrap_to_box(int frame, Eigen::Vector3f& point) const;
 
     /// Finds a periodic image of point, which is closest in space to target and returns it
-    Eigen::Vector3f get_closest_image(Eigen::Vector3f& point, Eigen::Vector3f& target, int fr) const;
+    /// This method wraps both point and targer to periodic box internally (this is usually what you want).
+    /// If this is not needed set do_wrapping to false, but in this case make sure
+    /// that wrapping is done manually before! Other wise results would be incorrect.
+    Eigen::Vector3f get_closest_image(Eigen::Vector3f& point,
+                                      Eigen::Vector3f& target,
+                                      int fr,
+                                      bool do_wrapping = true) const;
 
+    /// Wrap all system to the periodic box for given frame
+    void wrap_all(int fr);
 
 protected:
 
