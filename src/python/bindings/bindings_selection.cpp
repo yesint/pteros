@@ -295,6 +295,27 @@ void Selection_set_name2(Selection* s, string& data){
     s->set_name(data);
 }
 
+boost::python::list Selection_get_resname(Selection* s){
+    boost::python::list l;
+    vector<string> r;
+    r = s->get_resname();
+    for(int i=0;i<r.size();++i) l.append(r[i].c_str());
+    return l;
+}
+
+void Selection_set_resname1(Selection* s, boost::python::list& data){
+    int n = len(data);
+    vector<string> r;
+    r.resize(n);
+    for(int i=0;i<r.size();++i) r[i] = extract<string>(data[i]);
+    s->set_resname(r);
+}
+
+void Selection_set_resname2(Selection* s, string& data){
+    s->set_resname(data);
+}
+
+
 PyObject* Selection_center1(Selection* s, bool w){
     CREATE_PYARRAY_1D(p,3)
     MAP_EIGEN_TO_PYARRAY(data,Vector3f,p)
@@ -416,6 +437,10 @@ void make_bindings_Selection(){
         .def("get_name",&Selection_get_name)
         .def("set_name",&Selection_set_name1)
         .def("set_name",&Selection_set_name2)
+
+        .def("get_resname",&Selection_get_resname)
+        .def("set_resname",&Selection_set_resname1)
+        .def("set_resname",&Selection_set_resname2)
 
         .def("get_xyz",&Selection_get_xyz)
         .def("set_xyz",&Selection_set_xyz)
