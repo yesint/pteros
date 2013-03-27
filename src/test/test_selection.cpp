@@ -86,6 +86,12 @@ int main(int argc, char** argv)
         s.unwrap();
         s.write("/home/semen/work/Projects/pteros/pteros_git/src/test/data/2lao-uwr.gro");
 
+        Selection sel(t,"resname 'A..'");
+        for(auto c: sel.get_resname()){
+            cout << c << " ";
+        }
+        cout << endl;
+
 
 /*
 

@@ -10,6 +10,7 @@
 #include <Eigen/Core>
 #include <cctype>
 #include <boost/algorithm/string.hpp>
+#include <boost/regex.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/foreach.hpp>
 #include <boost/variant.hpp>
@@ -78,7 +79,8 @@ char* tok_names[] = {
     "TOK_VECTOR",
     "TOK_PLANE",
 
-    "TOK_PRECOMPUTED"
+    "TOK_PRECOMPUTED",
+    "TOK_REGEX"
 };
 
 
@@ -247,12 +249,21 @@ AstNode_ptr recognize(string s){
             node->children.push_back( lexical_cast<int>(str));
             node->code = TOK_INT;
         } catch(boost::bad_lexical_cast) {
+            // Try to convert token to float
             try {
                 node->children.push_back( lexical_cast<float>(str) );
                 node->code = TOK_FLOAT;
             } catch(boost::bad_lexical_cast) {
+                // ok, save it as a string
                 node->children.push_back(str);
-                node->code = TOK_STR;
+                // Check if this is a regex
+                if( boost::algorithm::all(str,boost::algorithm::is_alnum()) ){
+                    // Plane string
+                    node->code = TOK_STR;
+                } else {
+                    // Regex
+                    node->code = TOK_REGEX;
+                }
             }
         }
     }
@@ -286,6 +297,17 @@ void Selection_parser::tokenize(const string& s){
         if(!isspace(s[cur])){
             // If b<0 then start new token here, otherwise continue previous one
             if(b<0) b = cur;
+
+            // See if we have "" or '' escaped sequence - it's possibly a regex
+            if(s[cur]=='"' || s[cur]=='\''){
+                end_token(s,b,cur-1);
+                char delim = s[cur];
+                cur += 1;
+                b += 1;
+                while(s[cur]!=delim) cur += 1;
+                end_token(s,b,cur-1);
+                cur += 1;
+            }
 
             // See if this is one of single "punctuation" symbols
             // they can only come alone, so they are separate tokens
@@ -392,7 +414,8 @@ struct Grammar {
     // if not, it is returned as is
     // Used to add children to nodes without creating excessive sub-nodes with data
     ast_element simplify(AstNode_ptr& node){
-        if(node->code == TOK_INT || node->code == TOK_FLOAT || node->code == TOK_STR){
+        if(node->code == TOK_INT || node->code == TOK_FLOAT
+                || node->code == TOK_STR || node->code == TOK_REGEX){
             return node->children[0];
         } else {
             return node;
@@ -590,7 +613,7 @@ struct Grammar {
 
             AstNode_ptr str;
             // Read list of STR tokens
-            while( expect(TOK_STR,str) ){
+            while( expect(TOK_STR,str) || expect(TOK_REGEX,str) ){
                 res->children.push_back( str );
             }
             if(res->children.size()==0) ok = false;
@@ -711,6 +734,7 @@ void Selection_parser::do_optimization(AstNode_ptr& node){
     // Skip for trivial nodes
     if(node->code == TOK_VOID
         || node->code == TOK_STR
+        || node->code == TOK_REGEX
         || node->code == TOK_FLOAT
         || node->code == TOK_INT
        ) return;
@@ -843,8 +867,20 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result){
 
         for(i=0;i<Nchildren;++i){
             str = node->get_str_child_value(i);
-            for(at=0;at<Natoms;++at)
-                if(sys->atoms[at].name == str) result.push_back(at);
+            if(boost::get<AstNode_ptr>(node->children[i])->code == TOK_STR){
+                // For normal strings
+                for(at=0;at<Natoms;++at)
+                    if(sys->atoms[at].name == str) result.push_back(at);
+            } else if(boost::get<AstNode_ptr>(node->children[i])->code == TOK_REGEX){
+                // For regex
+                boost::cmatch what;
+                boost::regex reg(str);
+                for(at=0;at<Natoms;++at){
+                    if(boost::regex_match(sys->atoms[at].name.c_str(),what,reg)){
+                         result.push_back(at);
+                    }
+                }
+            }
         }
 
         return;
@@ -856,8 +892,20 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result){
         // Cycle over children
         for(i=0;i<Nchildren;++i){
             str = node->get_str_child_value(i);
-            for(at=0;at<Natoms;++at)
-                if(sys->atoms[at].resname == str) result.push_back(at);
+            if(boost::get<AstNode_ptr>(node->children[i])->code == TOK_STR){
+                // For normal strings
+                for(at=0;at<Natoms;++at)
+                    if(sys->atoms[at].resname == str) result.push_back(at);
+            } else if(boost::get<AstNode_ptr>(node->children[i])->code == TOK_REGEX){
+                // For regex
+                boost::cmatch what;
+                boost::regex reg(str);
+                for(at=0;at<Natoms;++at){
+                    if(boost::regex_match(sys->atoms[at].resname.c_str(),what,reg)){
+                         result.push_back(at);
+                    }
+                }
+            }
         }
         return;
     }
@@ -868,8 +916,20 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result){
         // Cycle over children
         for(i=0;i<Nchildren;++i){
             str = node->get_str_child_value(i);
-            for(at=0;at<Natoms;++at)
-                if(sys->atoms[at].tag == str) result.push_back(at);
+            if(boost::get<AstNode_ptr>(node->children[i])->code == TOK_STR){
+                // For normal strings
+                for(at=0;at<Natoms;++at)
+                    if(sys->atoms[at].tag == str) result.push_back(at);
+            } else if(boost::get<AstNode_ptr>(node->children[i])->code == TOK_REGEX){
+                // For regex
+                boost::cmatch what;
+                boost::regex reg(str);
+                for(at=0;at<Natoms;++at){
+                    if(boost::regex_match(sys->atoms[at].tag.c_str(),what,reg)){
+                         result.push_back(at);
+                    }
+                }
+            }
         }
         return;
     }

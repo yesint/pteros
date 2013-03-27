@@ -91,7 +91,8 @@ enum Codes {
     TOK_VECTOR,
     TOK_PLANE,
 
-    TOK_PRECOMPUTED
+    TOK_PRECOMPUTED,
+    TOK_REGEX
 };
 
 struct AstNode; // Forward declaration

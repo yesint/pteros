@@ -43,23 +43,7 @@
 #include <Eigen/Geometry>
 #include <Eigen/Dense>
 
-namespace pteros {
-
-/// Macro definitions for selections. Each macro is expanded during
-/// evaluation of selection.
-static const char* macro[] = {
-    "backbone", "(name C CA O N)",
-    "acidic", "(resname ASP GLU)",
-    "cyclic", "(resname HIS PHE PRO TRP TYR)",
-    "aromatic", "(resname HIS PHE TRP TYR)",
-    "basic", "(resname ARG HIS LYS HSP)",
-    "buried", "(resname ALA LEU VAL ILE PHE CYS MET TRP)",
-    "charged", "(resname ARG HIS LYS HSP ASP GLU)",
-    "hydrophobic", "(resname ALA LEU VAL ILE PRO PHE MET TRP)"
-};
-/// Number of macro definitions
-static const int Nmacro = 8;
-}
+#include "selection_macro.h"
 
 using namespace std;
 using namespace pteros;
@@ -508,6 +492,35 @@ void Selection::set_name(string& data){
     int i,n;
     n = index.size();
     for(i=0; i<n; ++i) system->atoms[index[i]].name = data;
+}
+
+vector<string> Selection::get_resname() const {
+    vector<string> res;
+    int i,n;
+    n = index.size();
+    res.resize(n);
+    for(i=0; i<n; ++i) res[i] = system->atoms[index[i]].resname;
+    return res;
+}
+
+
+void Selection::set_resname(const vector<string>& data){
+    int i,n;
+    n = index.size();
+    // Sanity check
+    if(data.size()!=n){
+        Pteros_error e;
+        e << "Invalid data size "<< data.size()
+          << " for selection of size " << n;
+        throw e;
+    }
+    for(i=0; i<n; ++i) system->atoms[index[i]].resname = data[i];
+}
+
+void Selection::set_resname(string& data){
+    int i,n;
+    n = index.size();
+    for(i=0; i<n; ++i) system->atoms[index[i]].resname = data;
 }
 
 

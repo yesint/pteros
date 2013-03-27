@@ -216,6 +216,15 @@ class Selection {
     void set_name(const std::vector<std::string>& data);
     /// Sets atom names of all selected atoms to the same given value.
     void set_name(std::string& data);
+
+    /// Get vector of all resnames in selection
+    std::vector<std::string> get_resname() const;
+    /// Set resnames in selection from supplied vector.
+    /// Its size must be the save as the size of selection.
+    void set_resname(const std::vector<std::string>& data);
+    /// Sets resnames of all selected atoms to the same given value.
+    void set_resname(std::string& data);
+
     /// Get coordinates of all atoms in this selection for current frame
     Eigen::MatrixXf get_xyz() const;
     void get_xyz(Eigen::MatrixXf& res) const;
@@ -226,7 +235,7 @@ class Selection {
     /// Get masses of all atoms in selection
     std::vector<float> get_mass() const;
     /// Set atom masses in selection to the values from supplied vector.
-    /// Its size must be the save as the size of selection.    
+    /// Its size must be the save as the size of selection.
     void set_mass(const std::vector<float> m);
     /// Sets masses of all selected atoms to the same given value.
     void set_mass(float data);

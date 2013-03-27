@@ -17,6 +17,7 @@ ${PROJECT_SOURCE_DIR}/include/pteros/core/force_field.h
 ${PROJECT_SOURCE_DIR}/include/pteros/core/system.h
 system.cpp
 ${PROJECT_SOURCE_DIR}/include/pteros/core/selection.h
+selection_macro.h
 selection.cpp  
 ${PROJECT_SOURCE_DIR}/include/pteros/core/selection_parser.h
 selection_parser.cpp

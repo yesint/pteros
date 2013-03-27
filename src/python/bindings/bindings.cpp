@@ -32,11 +32,22 @@
   Create python module
 ***********************/
 
+/*
+  About bindings:
+  If we write boost.python converters then one excessive copy operation
+  is required in all functions, which return Eigen objects.
+  Converters can not be written in other way. In principle this is not a big deal since our
+  largest Eigen object is Matrix4f. However, we still need manual wrappers for some methods
+  because converters can't handle non-const reference params. Also because of ambiquity
+  of int and bool some methods with optional args become broken and also require
+  wrappers. std::vector is also not converted, etc.
+  Thus we don't use converters and wrap all Eigen and other non-trivial stuff manually.
+ */
+
 // Translates Pteros_error to Python exception
 void Pteros_error_translator(const pteros::Pteros_error& e) {
   PyErr_SetString(PyExc_UserWarning, const_cast<pteros::Pteros_error&>(e).what().c_str());
 }
-
 
 BOOST_PYTHON_MODULE(pteros)
 {

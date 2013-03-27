@@ -29,6 +29,7 @@ BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(fit_trajectory_overloads, fit_trajectory,
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(write_overloads, write, 1, 3)
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(get_average_overloads, get_average, 0, 2)
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(principal_orient_overloads, principal_orient, 0, 1)
+BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(unwrap_bonds_overloads, unwrap_bonds, 0, 1)
 
 void Selection_modify1(Selection* s, System& sys, string str){
     s->modify(sys,str);
@@ -368,10 +369,9 @@ WRAP_ACCESSOR(int,Index)
 WRAP_ACCESSOR(std::string,Tag)
 WRAP_ACCESSOR(int,Resindex)
 
-
 void make_bindings_Selection(){
 
-    import_array();
+    import_array();    
 
     def("rmsd",&rmsd_py);
     def("fit",&fit_py);
@@ -458,6 +458,11 @@ void make_bindings_Selection(){
         .def("principal_transform",&Selection_principal_transform_py1)
         .def("principal_transform",&Selection_principal_transform_py2)
         .def("principal_orient",&Selection::principal_orient,principal_orient_overloads())
+
+        .def("wrap",&Selection::wrap)
+        .def("unwrap",&Selection::unwrap)
+        .def("unwrap_bonds",&Selection::unwrap_bonds,unwrap_bonds_overloads())
+
         // For coordinate accessors we should use setX instead of just X in Python
         // This is because Python don't respect void in return - all functions
         // with equal number of argumets are considered equivalent thus
