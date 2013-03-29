@@ -12,13 +12,13 @@ struct Compiled_plugin_base: public Consumer {
         options = opt;
     }
 
+    /// Unique textual label for this plugin instance
+    /// Set by driver program
+    std::string label;
+
 protected:
     /// Options for this particular plugin instance
     Options_tree* options;
-
-    /// Unique prefix for output files for this plugin issue
-    /// Set by driver program
-    std::string prefix;
 };
 
 }

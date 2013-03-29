@@ -15,6 +15,7 @@ BOOST_PYTHON_MODULE(_name) \
     boost::python::numeric::array::set_module_and_type("numpy", "ndarray"); \
     register_exception_translator<Pteros_error>(&Pteros_error_translator); \
     class_<_name>("Task", init<Trajectory_processor*,Options_tree*>()) \
+    .def_readwrite("label",&_name::label) \
     ; \
 }
 

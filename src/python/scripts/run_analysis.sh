@@ -7,5 +7,6 @@ python pteros_analysis.py \
 ] \
 --task center \
 --task center \
---task sample1 \
---task sample2 \
+--task [sample1 --val 1]\
+--task [sample2 --val 2]\
+--task [user_script --plugin_file script1.py --val 42]

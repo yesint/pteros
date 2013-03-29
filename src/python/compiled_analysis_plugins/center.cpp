@@ -10,7 +10,8 @@ protected:
     }
 
     bool process_frame(const Frame_info &info){
-        cout << "In compiled_center process_frame " << info.valid_frame << endl;
+        cout << "In compiled_center process_frame " << info.valid_frame << " label=" << label << endl;
+        return true;
     }
 
     void post_process(const Frame_info &info){
