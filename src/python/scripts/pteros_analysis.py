@@ -19,12 +19,12 @@ def available_plugins():
 
 # Now look for tasks in the command line
 
-cmd = " ".join(sys.argv[1:])
+#cmd = " ".join(sys.argv[1:])
 #print "\nProvided command line: '%s'" % cmd
 
 opt = Options_tree()
-opt.from_command_line(cmd)
-#print opt.to_json_string()
+opt.from_command_line(sys.argv)
+print opt.to_json_string()
 
 requested_tasks = []
 task_list = []
@@ -66,6 +66,8 @@ class Processor(Trajectory_processor):
 	def process_frame(self,info):
 		for i in range(0,len(self.task_list)):
 			if self.active_tasks[i] == 1:
+				# We need to update frame 0 of each task with the current value
+				self.task_list[i].system.setFrame_data( self.get_system().getFrame_data(0), 0)
 				ret = self.task_list[i].process_frame(info)
 				if ret == False:
 					self.active_tasks[i] = 0

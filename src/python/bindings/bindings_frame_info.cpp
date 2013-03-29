@@ -26,6 +26,7 @@ void make_bindings_Frame_info(){
 
     class_<Frame_info>("Frame_info", init<>())
         .def_readonly("absolute_frame",&Frame_info::absolute_frame)
+        .def_readonly("absolute_time",&Frame_info::absolute_time)
         .def_readonly("first_frame",&Frame_info::first_frame)
         .def_readonly("first_time",&Frame_info::first_time)
         .def_readonly("last_frame",&Frame_info::last_frame)

@@ -9,7 +9,9 @@
 - \ref manip
 - \ref transforms
 - \ref rmsd
+- \ref bindings
 - \ref hi_level
+- \ref analysis_plugins
 
 \section getting_started 	Getting started
 
@@ -281,9 +283,12 @@ Selection(sys,"all").apply_transform(trans);
 // The perevious line shows how to create a temporary selection "on the fly".
 \endcode
 
+\section bindings Python bindings
+TODO
+
 \section hi_level High-level facilities
 
-Although System and Selection classes already provide quite high-level tools fot building custom analysis programs, Pteros contains even more advanced facilities for rapid implementation of complex analysis algorithms. When you build your custom analysis program, it is usually painful to implement the following things:
+Although System and Selection classes already provide quite high-level tools for building custom analysis programs, Pteros contains even more advanced facilities for rapid implementation of complex analysis algorithms. When you build your custom analysis program, it is usually painful to implement the following things:
 - Read only specified range of frames from trajectory based on time or frame number.
 - Read the trajectory, stored by pieces in several files.
 - Read very large trajectory, which doen't fit into the memory frame by frame.
@@ -320,7 +325,7 @@ protected:
 }
 \endcode
 
-All logic of our analysis should be implemented in three virtual methods: pre_process, process_frame and post_process. The names are self-explanational. Let's implement them:
+All logic of our analysis should be implemented in three virtual methods: pre_process(), process_frame() and post_process(). The names are self-explanatory. Let's implement them:
 
 \code
 virtual void pre_process(){
@@ -411,12 +416,17 @@ int main(int argc, char* argv[]){
 	// Create Trajectory processor;
 	Trajectory_processor proc;
 	
+	// Container for our tasks
+	vector<shared_ptr<Our_task> > tasks;
+	
 	// Get all options named "selection" and cycle over them
 	BOOST_FOREACH(Options_tree* opt, options->get_options("selection")){
 		// Get selection text as a string from current option
 		string sel_text = o->get_value<string>("");
 		// Create task
 		shared_ptr<Our_task> task(&proc, sel_text);
+		tasks.push_back(task); 
+		// Without this task will go out of scope, get destructed and cause a crash!
 	}
 	
 	// Run processor!
@@ -425,4 +435,117 @@ int main(int argc, char* argv[]){
 \endcode
 
 In fact we only need three lines to process our additional options. The usage of boost::foreach and boost::shared_ptr libraries allows to simplify the code considerably, but it is not necessary.
+
+\section analysis_plugins Very-high-level facilities
+
+Pteros provides even higher level facilities for developing custom trajectory analysis algorithms - the analysis plugins. The analysis plugin is a class with very simple interface derived from Consumer, which runs in parallel during reading the trajectory. In contrast to Consumer analysis plugins are loaded and executed by dedicated driver program, so you don't need to bother with initialization of Trajectory_processor, passing parameters and other 'housholding' code. The most exciting thing about analysis plugins is that they could be written either in C++ or pure Python using almost identical API and intergrated seamlessly. 
+
+C++ tasks run at <i> the same speed </i> as manually written programs, which use Trajectory_processor and Consumer without any run-time overhead. The driver script only connects the consumers from Python side and after that no Python code is evaluated at all.
+
+Python tasks are, of course, limited by the speed of Python interpreter but they are extremely easy to write and to modify. In general pure Python tasks, which mostly call compiled Pteros methods are also very fast.
+
+In the python/scripts directory of your pteros installation you can find pteros_analysis.py Python script, which is the driver for analysis plugins. All plugins (both C++ and Python) are stored in python/pteros_analysis_plugins directory. Any shared library (*.so) or python file (*.py), which appear there is treated as a plugin and could be loaded by the driver.
+
+The driver script is called like this:
+\code
+python pteros_analysis.py \
+--trajectory[ \
+ structure-file.pdb \
+ some-trajectory.xtc \
+ --first_frame 0 --last_frame 100 \
+] \
+--task [center --selection "name CA" --mass_weighted true] \
+--task [sample1 --val 1] \
+--task [sample2 --val 2] \
+--task [user_script --plugin_file script1.py --val 42]
+\endcode
+
+The driver loads specified structure file and reads provided trajectory frame by frame in the given range of frames.
+On each frame all specified tasks are called. Compiled C++ tasks are executed in separate threads completely in parallel. All Python tasks are executed in one dedicated thread. Thus all Python tasks run in parallel with C++ tasks but sequentially in respect to each other (this is a limitation of Python multithreading model). In practice you'll unlikely run many time consuming Python tasks so this is not a serious performance limitation.
+
+Passing the parameter --plugin_file to any task allows loading plugins from any non-standard location.
+
+You are free to run multiple instances of the same task with different parameters
+\code
+--task [center --selection "name CA" --mass_weighted true] \
+--task [center --selection "name CB CC" --mass_weighted false] \
+\endcode
+
+all of them will be executed separately.
+
+\subsection pure_python Writing pure Python analysis plugin
+
+Let's write simple pure Python analysis plugin, which computes centers of mass of selection. Put the following code into the file example_plugin.py and place it into the directory python/pteros_analysis_plugins
+\code
+from pteros import *
+
+class Task:		
+	def pre_process(self):
+		sel_text = self.options.get_value_string("selection")
+		self.sel = Selection(self.system, sel_text )
+		self.use_mass = self.options.get_value_bool("mass_weighted",False)
+		print "Working on selection '%s'" % self.sel.get_text()
+		print "There are %i atoms in selection" % self.sel.size()
+		
+	def post_process(self,info):
+		print "Finished!"
+		
+	def process_frame(self,info):
+		print "Frame ", info.absolute_frame, " time ", info.absolute_time
+		print "Selection center: ", self.sel.center(self.use_mass)
+		return True # Returning True means allow continuing with the next frame		
+\endcode
+
+Any Python plugin should define a class Task with three methods: pre_process(), post_process() and process_frame(). The signatures of the methods are evident from the code. Such class gets 'magic' variables system,  label and options. The system variable is a reference to the underlying system object, while label is a textual label of the format "TaksName_idN", where TaskName is the name of analysis plugin and N is the unique number of the task. Label is handy when you need to get a unique name of the output file, which will never clash with the output of other tasks. 
+
+The variable options contains the options tree, which corresponds to this particular task. We extract the options selection and mass_weighted using it.
+
+The rest of the code is self-explanatory.
+
+\subsection compiled Writing compiled analysis plugin
+
+Let us implement the same plugin in C++. It will look almost the same and has very small syntactic overhead:
+
+\code
+#include "pteros/python/compiled_plugin.h"
+
+class center: public Compiled_plugin_base {
+public:
+    center(Trajectory_processor* pr, Options_tree* opt): Compiled_plugin_base(pr,opt) {
+    }
+protected:
+    void pre_process(){
+        string sel_text = options->get_value<string>("selection");
+        use_mass = options->get_value<bool>("mass_weighted",false);
+        sel.modify(system,sel_text);
+        cout << "Working on selection " << sel.get_text() << endl;
+        cout << "There are " << sel.size() << " atoms in selection" << endl;
+    }
+
+    bool process_frame(const Frame_info &info){
+        cout << "Frame " << info.absolute_frame << " time " << info.absolute_time << endl;
+        cout << "Selection center: " << sel.center(use_mass).transpose() << endl;
+        return true;
+    }
+
+    void post_process(const Frame_info &info){
+        cout << "Finished" << endl;
+    }
+private:
+    Selection sel;
+    bool use_mass;
+};
+
+CREATE_COMPILED_PLUGIN(center)
+\endcode
+
+We inherit a class from Compiled_plugin_base and override the same methods pre_process(), post_process() and process_frame(). In C++ we need to put an explicit constructor, which will initialize the base class. The name of our class becomes the name of plugin.
+The rest of the code is almost 1-to-1 translation of the Python example given above.
+
+The crucial point is the macro CREATE_COMPILED_PLUGIN(center), which does all the magic for us. Behind the scene is creates the code for compiled Python extension module. After compilation and linking into the shared library we get center.so file, which is loaded by the driver program at the same way as our pure Python plugin.
+
+The simplest way to build and install your plugin is using the template CMake project located at template_plugin directory of the Pteros source tree.
 */
+
+
+

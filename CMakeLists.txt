@@ -9,13 +9,13 @@ OPTION(VMD_PDB "Use VMD molfile plugin for reading PDB files (if OFF - internal 
 set(Boost_USE_STATIC_LIBS OFF)
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -std=c++0x")
-    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -std=c++0x -s")
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC -s")
 ENDIF()
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -DBOOST_THREAD_USE_LIB")
-    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -DBOOST_THREAD_USE_LIB -s")
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -s")
 
     ##########################################################
     # Cnange the paths here if you are compiling on Windows! #
@@ -93,8 +93,9 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     message("------------------------------")
     message("IMPORTANT!")
     message("In order to be able to link with Pteros and to use Pteros Python modules")
-    message("you have to add the following line to your .bashrc file:")
+    message("you have to add the following lines to your .bashrc file:")
     message("export LD_LIBRARY_PATH=\"\$LD_LIBRARY_PATH:${CMAKE_INSTALL_PREFIX}/lib\"")
+    message("export PYTHONPATH=\"\$PYTHONPATH:${CMAKE_INSTALL_PREFIX}/python\"")
     message("------------------------------")
 ENDIF()
 

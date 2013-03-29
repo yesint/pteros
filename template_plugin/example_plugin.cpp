@@ -1,8 +1,8 @@
 #include "pteros/python/compiled_plugin.h"
 
-class center: public Compiled_plugin_base {
+class example_plugin: public Compiled_plugin_base {
 public:
-    center(Trajectory_processor* pr, Options_tree* opt): Compiled_plugin_base(pr,opt) {
+    example_plugin(Trajectory_processor* pr, Options_tree* opt): Compiled_plugin_base(pr,opt) {
     }
 protected:
     void pre_process(){
@@ -27,4 +27,4 @@ private:
     bool use_mass;
 };
 
-CREATE_COMPILED_PLUGIN(center)
+CREATE_COMPILED_PLUGIN(example_plugin)

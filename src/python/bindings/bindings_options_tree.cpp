@@ -24,8 +24,14 @@
 
 // For options tree
 
-void Options_tree_from_command_line1(Options_tree* o,string s){
-    o->from_command_line(s);
+void Options_tree_from_command_line1(Options_tree* o, boost::python::list& data){
+    int n = len(data);
+    char* cmd[n];
+    for(int i=0;i<n;++i){
+        string s = boost::python::extract<string>(data[i]);
+        cmd[i] = strdup(s.c_str());
+    }
+    o->from_command_line(n,cmd);
 }
 
 
@@ -36,6 +42,15 @@ int Options_tree_get_value1_int(Options_tree* o, string key){
 int Options_tree_get_value2_int(Options_tree* o, string key, int def){
     return o->get_value<int>(key,def);
 }
+
+int Options_tree_get_value1_bool(Options_tree* o, string key){
+    return o->get_value<bool>(key);
+}
+
+int Options_tree_get_value2_bool(Options_tree* o, string key, int def){
+    return o->get_value<bool>(key,def);
+}
+
 
 double Options_tree_get_value1_double(Options_tree* o, string key){
     return o->get_value<double>(key);
@@ -105,6 +120,8 @@ void make_bindings_Options_tree(){
         .def("get_value_double",&Options_tree_get_value2_double)
         .def("get_value_int",&Options_tree_get_value1_int)
         .def("get_value_int",&Options_tree_get_value2_int)
+        .def("get_value_bool",&Options_tree_get_value1_bool)
+        .def("get_value_bool",&Options_tree_get_value2_bool)
         .def("get_value_string",&Options_tree_get_value1_string)
         .def("get_value_string",&Options_tree_get_value2_string)
         .def("get_values_double",&Options_tree_get_values_double)

@@ -85,10 +85,11 @@ The prerequisites for compilation of Pteros are the following:
 - <a href="http://www.boost.org/">boost</a> 1.48 or higher.
 - Python 2.5 of higher (for python bindings only).
 - Git client for getting the source code.
+- <a href="www.doxygen.org">Doxygen</a> (only if you want to build documentation yourself)
 
 If you are using Debian or Ubuntu it should be enough to run the following command in the terminal as root to install all dependencies:
 \code
-apt-get install g++ cmake cmake-curses-gui libboost-all-dev python-dev python-numpy git
+apt-get install g++ cmake cmake-curses-gui libboost-all-dev python-dev python-numpy git doxygen
 \endcode
 
 Installation of dependencies on Windows is described here \ref install_win.
@@ -104,13 +105,29 @@ You can also get the latest development branch (named "experimental"), which is 
 \code
 git clone -b experimental git://pteros.git.sourceforge.net/gitroot/pteros/pteros
 \endcode
- 
-Go to the pteros directory and build the library with these commands:
+
+Create a build directory (for example 'pteros_build'). Go to this directory and issue the following commands:
 
 \code
-cmake .
+cmake <path to Pteros source directory> -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=<where to install Pteros>
 make
+make install
 \endcode
+
+The 'make install' command may require root access if you are installing into the system-wide location.
+
+The first cmake command will print something like this:
+\code
+------------------------------
+IMPORTANT!
+In order to be able to link with Pteros and to use Pteros Python modules
+you have to add the following lines to your .bashrc file:
+export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:<path to Pteros>/lib"
+export PYTHONPATH="$PYTHONPATH:<path to Pteros>/python"
+------------------------------
+\endcode
+
+Copy suggested lines and add them to your .bashrc file (it is assumed that bash shell is used. If it is not the case use the syntax of your actual shell instead).
 
 You may have to edit CMakeLists.txt file to set correct paths for the libraries. The most common problem is the non-standard location of the Boost libraries or too old version of Boost. Pteros <b>will not compile</b> with old versions of C++ compiler, which do not support C++11 standard!
 

@@ -31,7 +31,7 @@ void Consumer_wrapper::pre_process(){
     }
 }
 
-bool Consumer_wrapper::process_frame(const Frame_info& info){
+bool Consumer_wrapper::process_frame(const Frame_info& info){    
     try {
         return dynamic_cast<Trajectory_processor_wrapper*>(proc)->process_frame(info);
     } catch (error_already_set& e){

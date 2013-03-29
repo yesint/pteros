@@ -1,9 +1,17 @@
 from pteros import *
 
-class Task:
+class Task:		
 	def pre_process(self):
-		print "pre_process in sample1"
+		sel_text = self.options.get_value_string("selection")
+		self.sel = Selection(self.system, sel_text )
+		self.use_mass = self.options.get_value_bool("mass_weighted",False)
+		print "Working on selection '%s'" % self.sel.get_text()
+		print "There are %i atoms in selection" % self.sel.size()
+		
 	def post_process(self,info):
-		print "post_process in sample1"
+		print "Finished!"
+		
 	def process_frame(self,info):
-		print "process_frame in sample1. Frame: ", info.valid_frame, " val=", self.options.get_value_int("val"),"label=",self.label
+		print "Frame ", info.absolute_frame, " time ", info.absolute_time
+		print "Selection center: ", self.sel.center(self.use_mass)
+		return True # Returning True means allow continuing with the next frame		
