@@ -32,6 +32,8 @@ void Options_tree_from_command_line1(Options_tree* o, boost::python::list& data)
         cmd[i] = strdup(s.c_str());
     }
     o->from_command_line(n,cmd);
+    // Free allocated memory
+    for(int i=0;i<n;++i) free(cmd[i]);
 }
 
 
