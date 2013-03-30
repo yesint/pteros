@@ -24,6 +24,7 @@
 
 void Trajectory_processor_wrapper::initialize(){
     cons_p = boost::shared_ptr<Consumer_wrapper>(new Consumer_wrapper(this));
+    cons_p->set_proxy(true);
 }
 
 Trajectory_processor_wrapper::Trajectory_processor_wrapper(): Trajectory_processor(){
@@ -35,4 +36,8 @@ Trajectory_processor_wrapper::Trajectory_processor_wrapper(Options_tree& opt): T
 
 System* Trajectory_processor_wrapper::get_system(){
     return cons_p->get_system();
+}
+
+Frame *Trajectory_processor_wrapper::get_frame_ptr(){
+    return cons_p->get_frame_ptr();
 }

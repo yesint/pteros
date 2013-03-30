@@ -30,7 +30,9 @@ using namespace pteros;
 
 Consumer::Consumer(Trajectory_processor* pr){    
     proc = pr;
-    proc->add_consumer(this); // Add this consumer to trajectory processor
+    proc->add_consumer(this); // Add this consumer to trajectory processor    
+    is_proxy = false;
+    proxy_frame_ptr = NULL;
 }
 
 void Consumer::run(){
@@ -49,8 +51,8 @@ void Consumer::run(){
     int i = 0;
     // Main loop
     for(;;){
-        // Obtain data from the master thread        
-        data = proc->frame_provider(i,id);        
+        // Obtain data from the master thread
+        data = proc->frame_provider(i,id);
 
         if(data->stop){
             // if we requested to stop, put last saved time into data
@@ -69,8 +71,14 @@ void Consumer::run(){
         // Process window info
         process_frame_info(data->frame_info);
 
-        // Load new coordinates into frame 0 of the local System
-        system.Frame_data(0) = data->frame;
+        // If the proxy flag is set this consumer is working as a proxy object
+        // and will pass data further, so we don't need a local copy here
+        if(is_proxy){
+            proxy_frame_ptr = &data->frame;
+        } else {
+            // Load new coordinates into frame 0 of the local System
+            system.Frame_data(0) = data->frame;
+        }
 
         // Call technical processing for each frame
         before_each_frame();
@@ -81,7 +89,7 @@ void Consumer::run(){
 
         ++i;
     } // End of main loop!
-    // Notify master thread that we don't need data any more    
+    // Notify master thread that we don't need data any more
     proc->consumer_finished(id);
     // Close last window. If there is a single window, it will be closed as well.
     window_finished(data->frame_info);

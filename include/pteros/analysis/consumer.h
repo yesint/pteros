@@ -106,6 +106,14 @@ public:
     //Simulation* get_simulation(){return &simulation;}
     void set_id(int i){id = i;}
 
+    void set_proxy(bool pr){
+        is_proxy = pr;
+    }
+
+    Frame* get_frame_ptr(){
+        return proxy_frame_ptr;
+    }
+
 protected:
     /// This method is called before any processing starts and could be used
     /// to prepare anything for processing.
@@ -140,6 +148,9 @@ protected:
     float saved_time; //Save last processed timestamp
     int saved_abs_frame;
     int saved_valid_frame;
+
+    bool is_proxy;
+    Frame* proxy_frame_ptr;
 };
 
 }

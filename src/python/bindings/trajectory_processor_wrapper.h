@@ -42,6 +42,8 @@ public:
     virtual void post_process(const Frame_info& info) = 0;
 
     System* get_system();   
+    // Gets pointer to internal frame obtained from reader
+    Frame* get_frame_ptr();
 
 private:
     boost::shared_ptr<Consumer_wrapper> cons_p;

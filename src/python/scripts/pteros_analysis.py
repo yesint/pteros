@@ -32,12 +32,13 @@ task_list = []
 unique_names = set()
 for task in opt.get_options("task"):
 	name = task.get_value_string("")
+	task_list.append(task)
 	if name not in unique_names:
 		unique_names.add(name)
 		requested_tasks.append(task)
-		task_list.append(task)
+	
 
-for task in requested_tasks:
+for task in task_list:
 	f = task.get_value_string("plugin_file","")
 	if f:
 		s = "from file '%s'" % f
@@ -66,8 +67,9 @@ class Processor(Trajectory_processor):
 	def process_frame(self,info):
 		for i in range(0,len(self.task_list)):
 			if self.active_tasks[i] == 1:
-				# We need to update frame 0 of each task with the current value
-				self.task_list[i].system.setFrame_data( self.get_system().getFrame_data(0), 0)
+				# We need to update frame 0 of each task with the current value				
+				self.task_list[i].system.setFrame_data( self.get_frame_ptr() , 0)
+				#self.task_list[i].system.setFrame_data( self.get_system().getFrame_data(0), 0)
 				ret = self.task_list[i].process_frame(info)
 				if ret == False:
 					self.active_tasks[i] = 0
@@ -109,14 +111,16 @@ for task in requested_tasks:
 		print "\t* Loaded pure Python plugin '%s'" % task_name
 		
 		# Now work with tasks		
-		for tsk in task_list:
-			if tsk == task:
+		for tsk in task_list:		
+			tsk_name = tsk.get_value_string("")
+			if tsk_name == task_name:
 				# create an independent instance of Task from that module
 				obj = module.Task()
 				# Pass options to this task. For this create an options member in instance
 				obj.options = task
 				# Give this task a unique textual label
-				obj.label = task_name + "_id" + str(task_num);				 
+				obj.label = task_name + "_id" + str(task_num);	
+				print ">>>>",obj.label			 
 				# Add methods to the list of processor
 				proc.task_list.append( obj )
 				task_num+=1
@@ -126,11 +130,13 @@ for task in requested_tasks:
 
 		# Now work with tasks		
 		for tsk in task_list:
-			if tsk == task:
+			tsk_name = tsk.get_value_string("")
+			if tsk_name == task_name:
 				# create an independent instance of Task from that module
 				obj = module.Task(proc,task)
 				# Give this task a unique textual label
 				obj.label = task_name + "_id" + str(task_num);				 
+				print ">>>>",obj.label			 
 				compiled_list.append(obj) # Store it to prevent call of destructor!
 				task_num+=1
 
