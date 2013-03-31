@@ -22,6 +22,9 @@
 
 #include "bindings_atom.h"
 
+using namespace boost::python;
+using namespace pteros;
+
 void make_bindings_Atom(){
 
     class_<Atom>("Atom", init<>())

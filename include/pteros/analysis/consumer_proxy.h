@@ -20,32 +20,30 @@
  *
 */
 
-#ifndef TASK_ALIGN_PARTS_H
-#define TASK_ALIGN_PARTS_H
 
-#include "pteros/analysis/selection_analysis.h"
-#include "pteros/core/mol_file.h"
+#ifndef CONSUMER_PROXY_H
+#define CONSUMER_PROXY_H
+
+#include "pteros/analysis/consumer_base.h"
 
 namespace pteros {
 
-struct Task_align_parts: public Task_base {
-private:
-    std::string out_fname;
-    boost::shared_ptr<Mol_file> trj;
+/** Proxy consumer for python bindings
+  */
+class Consumer_proxy: public Consumer_base {
 public:
-    Task_align_parts(Trajectory_processor* engine, Options_tree* opt);
+    Consumer_proxy(Trajectory_processor* pr): Consumer_base(pr){
+        proxy_frame_ptr = NULL;
+    }
 
-    string task_name(){ return "align_parts"; }
-    int selections_required(){ return -1; }
+    Frame* get_frame_ptr(){
+        return proxy_frame_ptr;
+    }
 
 protected:
-    virtual void pre_process();
-    virtual bool process_frame(const Frame_info& info);
-    virtual void post_process(const Frame_info& info);
+    Frame* proxy_frame_ptr;
 
-    Selection all;
-    //virtual void window_started_slot(const Trajectory_processor_info& info);
-    //virtual void window_finished_slot(const Trajectory_processor_info& info);
+    virtual void process_frame_data(Frame& data);
 };
 
 }

@@ -21,6 +21,11 @@
 */
 
 #include "bindings_system.h"
+#include "pteros/core/system.h"
+
+using namespace pteros;
+using namespace Eigen;
+using namespace boost::python;
 
 /**********************
   Wrappers for System

@@ -1,5 +1,7 @@
 #include "pteros/python/compiled_plugin.h"
 
+using namespace pteros;
+
 class center: public Compiled_plugin_base {
 public:
     center(Trajectory_processor* pr, Options_tree* opt): Compiled_plugin_base(pr,opt) {

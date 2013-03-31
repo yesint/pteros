@@ -52,6 +52,8 @@ void Pteros_error_translator(const pteros::Pteros_error& e) {
 BOOST_PYTHON_MODULE(pteros)
 {
     using namespace pteros;
+    using namespace boost::python;
+    using namespace boost::python::numeric;
 
     // Required!
     import_array();    

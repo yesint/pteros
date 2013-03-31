@@ -22,6 +22,10 @@
 
 #include "bindings_options_tree.h"
 
+using namespace pteros;
+using namespace Eigen;
+using namespace boost::python;
+
 // For options tree
 
 void Options_tree_from_command_line1(Options_tree* o, boost::python::list& data){

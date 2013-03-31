@@ -1,4 +1,5 @@
 #include "pteros/analysis/trajectory_processor.h"
+#include "pteros/analysis/consumer.h"
 #include <fstream>
 
 using namespace std;

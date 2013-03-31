@@ -233,7 +233,7 @@ void Trajectory_processor::start_threads(vector<string>& fnames){
 
     // Create consumer threads
     for(int i=0; i<consumers.size(); ++i){
-        consumer_threads.create_thread( boost::bind(&Consumer::run,consumers[i]) );
+        consumer_threads.create_thread( boost::bind(&Consumer_base::run,consumers[i]) );
     }
 
     // Read supplied trajectories one by one
@@ -424,7 +424,7 @@ void Trajectory_processor::run(){
     cout << "Trajectory processing finished!" << endl;
 }
 
-void Trajectory_processor::add_consumer(Consumer *p){
+void Trajectory_processor::add_consumer(Consumer_base *p){
     consumers.push_back(p);
     consumers.back()->set_id(consumers.size()-1);
 }

@@ -22,6 +22,9 @@
 
 #include "bindings_frame_info.h"
 
+using namespace boost::python;
+using namespace pteros;
+
 void make_bindings_Frame_info(){
 
     class_<Frame_info>("Frame_info", init<>())

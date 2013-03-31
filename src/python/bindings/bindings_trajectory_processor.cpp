@@ -24,6 +24,8 @@
 #include "trajectory_processor_wrapper.h"
 #include "consumer_wrapper.h"
 
+using namespace pteros;
+using namespace boost::python;
 /*
  Bindings to Trajectory_processor could not be direct because
  Python has GIL and can't run the code in several threads as C++ does.

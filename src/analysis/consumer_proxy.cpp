@@ -20,35 +20,11 @@
  *
 */
 
-#ifndef TASK_INTERACTION_ENERGY_H
-#define TASK_INTERACTION_ENERGY_H
 
-#include "pteros/analysis/selection_analysis.h"
+#include "pteros/analysis/consumer_proxy.h"
 
-namespace pteros {
+using namespace pteros;
 
-struct Task_interaction_energy: public Task_base {
-    std::vector<Energy_components> data;
-    Energy_components mean;
-    float cutoff;
-    // Grid searcher
-    Grid_searcher searcher;
-    bool is_periodic;
-    std::vector<Eigen::Vector2i> bon;
-
-    Task_interaction_energy(Trajectory_processor* engine, Options_tree* opt);
-
-    string task_name(){ return "interaction_energy"; }
-    int selections_required(){ return 2; }
-
-    virtual void pre_process();
-    virtual bool process_frame(const Frame_info& info);
-    virtual void post_process(const Frame_info& info);
-
-protected:
-    bool is_self_energy;
-};
-
+void Consumer_proxy::process_frame_data(Frame &data){
+    proxy_frame_ptr = &data;
 }
-
-#endif

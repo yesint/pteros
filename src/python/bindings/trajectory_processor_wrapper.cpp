@@ -22,9 +22,10 @@
 
 #include "trajectory_processor_wrapper.h"
 
+using namespace pteros;
+
 void Trajectory_processor_wrapper::initialize(){
-    cons_p = boost::shared_ptr<Consumer_wrapper>(new Consumer_wrapper(this));
-    cons_p->set_proxy(true);
+    cons_p = boost::shared_ptr<Consumer_wrapper>(new Consumer_wrapper(this));    
 }
 
 Trajectory_processor_wrapper::Trajectory_processor_wrapper(): Trajectory_processor(){

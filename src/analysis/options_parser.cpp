@@ -29,6 +29,7 @@
 
 
 using namespace std;
+using namespace pteros;
 
 template<class T>
 bool add_to_json_array(json_spirit::mArray& arr, Option_value& o){

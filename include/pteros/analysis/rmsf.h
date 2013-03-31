@@ -25,7 +25,7 @@
 #define RMSF_H
 
 #include "pteros/analysis/trajectory_processor.h"
-//#include "pteros/simulation/simulation.h"
+#include "pteros/analysis/consumer.h"
 
 namespace pteros {
 

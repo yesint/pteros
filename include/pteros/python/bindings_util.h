@@ -33,21 +33,14 @@
 
 #include <iostream>
 
-using namespace std;
-using namespace boost;
-using namespace boost::python;
-using namespace boost::python::numeric;
-using namespace Eigen;
-using namespace pteros;
-
 namespace pteros {
 
 // Some macros
 
 #define MAP_EIGEN_TO_PYARRAY(_matr,_T,_obj_ptr) \
-    if(!PyArray_Check(_obj_ptr)) throw Pteros_error("NumPy array expected!"); \
-    if(PyArray_TYPE(_obj_ptr)!=PyArray_FLOAT) throw Pteros_error("float NumPy array expected!"); \
-    Map<_T> _matr((float*) PyArray_DATA(_obj_ptr), \
+    if(!PyArray_Check(_obj_ptr)) throw pteros::Pteros_error("NumPy array expected!"); \
+    if(PyArray_TYPE(_obj_ptr)!=PyArray_FLOAT) throw pteros::Pteros_error("float NumPy array expected!"); \
+    Eigen::Map<_T> _matr((float*) PyArray_DATA(_obj_ptr), \
             (PyArray_DIM((PyArrayObject*)_obj_ptr,0)==PyArray_Size(_obj_ptr)) ? PyArray_DIM((PyArrayObject*)_obj_ptr,0) : PyArray_DIM((PyArrayObject*)_obj_ptr,1), \
             (PyArray_DIM((PyArrayObject*)_obj_ptr,0)==PyArray_Size(_obj_ptr)) ? 1 : PyArray_DIM((PyArrayObject*)_obj_ptr,0) );
 

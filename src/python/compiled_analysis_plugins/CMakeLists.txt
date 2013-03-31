@@ -6,26 +6,24 @@ if(WRAP_PYTHON)
         SET(LIB_EXT ".so") # Use default on Linux
     ENDIF()
     
+    link_libraries(pteros pteros_analysis pteros_sim ${Boost_LIBRARIES} ${PYTHON_LIBRARIES})
+
     # Compiled plugins:
-    
-    add_library(plugin_center SHARED 
-    center.cpp
-    )
-    target_link_libraries(plugin_center pteros pteros_analysis pteros_sim ${Boost_LIBRARIES} ${PYTHON_LIBRARIES})
+    SET(PLUGINS center box rmsd interaction_energy covar_matr distance_matr)
 
+    foreach(plugin ${PLUGINS})
+        add_library(plugin_${plugin} SHARED ${plugin}.cpp)
+        set_target_properties(plugin_${plugin}
+        PROPERTIES
+        LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/python/pteros_analysis_plugins"
+        PREFIX "" SUFFIX "${LIB_EXT}"
+        OUTPUT_NAME ${plugin} )
+        #Installation
+        install(TARGETS plugin_${plugin}
+            LIBRARY DESTINATION python/pteros_analysis_plugins
+            ARCHIVE DESTINATION python/pteros_analysis_plugins
+        )
+    endforeach()
 
-    set_target_properties(plugin_center
-    PROPERTIES
-    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/python/pteros_analysis_plugins"
-    PREFIX ""
-    SUFFIX "${LIB_EXT}"
-    OUTPUT_NAME center
-    )
-
-    #Installation
-    install(TARGETS plugin_center
-        LIBRARY DESTINATION python/pteros_analysis_plugins
-        ARCHIVE DESTINATION python/pteros_analysis_plugins
-    )
 
 endif()

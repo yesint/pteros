@@ -34,6 +34,8 @@
 #include <pteros/core/pteros_error.h>
 #include <boost/variant.hpp>
 
+namespace pteros {
+
 class Options_tree;
 
 /// Single node
@@ -246,5 +248,5 @@ Options_tree& Options_tree::operator>>(T& val){
 }
 
 
-
+}
 #endif

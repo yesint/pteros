@@ -23,6 +23,9 @@
 #include "consumer_wrapper.h"
 #include "trajectory_processor_wrapper.h"
 
+using namespace pteros;
+using namespace boost::python;
+
 void Consumer_wrapper::pre_process(){
     try {        
         dynamic_cast<Trajectory_processor_wrapper*>(proc)->pre_process();
