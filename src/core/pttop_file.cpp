@@ -20,22 +20,28 @@
  *
 */
 
-#include "pteros/core/format_recognition.h"
+#include "pttop_file.h"
 #include "pteros/core/pteros_error.h"
 
-namespace pteros {
+using namespace std;
+using namespace pteros;
+using namespace Eigen;
 
-FILE_FORMATS recognize_format(std::string& fname){
-    std::string ftype = fname.substr(ftype.find_last_of(".") + 1);
-    if(ftype==".xtc") return XTC_FILE;
-    else if(ftype==".trr") return TRR_FILE;
-    else if(ftype==".pdb") return PDB_FILE;
-    else if(ftype==".gro") return GRO_FILE;
-    else if(ftype==".top") return TOP_FILE;
-    else if(ftype==".dcd") return DCD_FILE;
-    else if(ftype==".tpr") return TPR_FILE;
-    else if(ftype==".pttop") return PTTOP_FILE;
-    else throw Pteros_error("File extension "+ftype+ " not recognized!");
+
+PTTOP_file::PTTOP_file(string fname, char mode): Mol_file(fname, mode)
+{    
+    file_name = fname;
+    open_mode = mode;
 }
+
+PTTOP_file::~PTTOP_file(){
+}
+
+bool PTTOP_file::do_read(System *sys, Frame *frame, Mol_file_content what){
+    if(open_mode=='r'){
+
+    } else {
+        throw Pteros_error("PTTOP files could not be written from Pteros!");
+    }
 
 }

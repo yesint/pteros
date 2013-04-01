@@ -20,22 +20,40 @@
  *
 */
 
-#include "pteros/core/format_recognition.h"
+#ifndef PTTOP_FILE_H
+#define PTTOP_FILE_H
+
+#include <string>
+#include <fstream>
+#include "pteros/core/mol_file.h"
 #include "pteros/core/pteros_error.h"
 
 namespace pteros {
 
-FILE_FORMATS recognize_format(std::string& fname){
-    std::string ftype = fname.substr(ftype.find_last_of(".") + 1);
-    if(ftype==".xtc") return XTC_FILE;
-    else if(ftype==".trr") return TRR_FILE;
-    else if(ftype==".pdb") return PDB_FILE;
-    else if(ftype==".gro") return GRO_FILE;
-    else if(ftype==".top") return TOP_FILE;
-    else if(ftype==".dcd") return DCD_FILE;
-    else if(ftype==".tpr") return TPR_FILE;
-    else if(ftype==".pttop") return PTTOP_FILE;
-    else throw Pteros_error("File extension "+ftype+ " not recognized!");
-}
+
+class PTTOP_file: public Mol_file {
+public:
+
+    PTTOP_file(std::string fname, char mode);
+    ~PTTOP_file();
+
+    virtual Mol_file_content get_content_type(){
+        Mol_file_content c;
+        c.topology = true;
+        return c;
+    }
+
+protected:    
+
+    virtual void do_write(Selection &sel, Mol_file_content what){
+        throw Pteros_error("PTTOP files could be produced by the dedicated script only!");
+    }
+
+    virtual bool do_read(System *sys, Frame *frame, Mol_file_content what);
+
+    std::string file_name;
+    char open_mode;
+};
 
 }
+#endif /* MOL_FILE_H */

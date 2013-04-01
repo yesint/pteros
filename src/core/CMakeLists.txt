@@ -48,6 +48,9 @@ xtc_file.h
 xtc_file.cpp
 tpr_file.h
 tpr_file.cpp
+pttop_file.h
+pttop_file.cpp
+
 # xdrfile
 ${PROJECT_SOURCE_DIR}/src/core/xdrfile/xdrfile.c
 ${PROJECT_SOURCE_DIR}/src/core/xdrfile/xdrfile_trr.c
