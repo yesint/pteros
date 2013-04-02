@@ -26,7 +26,7 @@
 namespace pteros {
 
 FILE_FORMATS recognize_format(std::string& fname){
-    std::string ftype = fname.substr(fname.length()-4);
+    std::string ftype = fname.substr(ftype.find_last_of(".") + 1);
     if(ftype==".xtc") return XTC_FILE;
     else if(ftype==".trr") return TRR_FILE;
     else if(ftype==".pdb") return PDB_FILE;
@@ -34,6 +34,7 @@ FILE_FORMATS recognize_format(std::string& fname){
     else if(ftype==".top") return TOP_FILE;
     else if(ftype==".dcd") return DCD_FILE;
     else if(ftype==".tpr") return TPR_FILE;
+    else if(ftype==".pttop") return PTTOP_FILE;
     else throw Pteros_error("File extension "+ftype+ " not recognized!");
 }
 

@@ -32,7 +32,7 @@
 #include <fstream>
 
 #include "pteros/analysis/options_parser.h"
-#include "pteros/analysis/consumer.h"
+#include "pteros/analysis/consumer_base.h"
 #include "pteros/simulation/simulation.h"
 #include <boost/algorithm/string.hpp>
 #include <boost/thread.hpp>
@@ -51,7 +51,7 @@ namespace pteros {
 typedef boost::shared_ptr<Frame> Frame_ptr;
 
 class Trajectory_processor {
-    friend class Consumer;
+    friend class Consumer_base;
     public:
 
         /// Default constructor
@@ -70,7 +70,7 @@ class Trajectory_processor {
         }
 
         /// Do computation
-        void run();
+        virtual void run();
 
         /// Print summary of allowed options
         static void print_help();
@@ -123,12 +123,12 @@ class Trajectory_processor {
         float saved_first_time;
         bool check_time_range(int fr, float t);
 
-        std::vector<Consumer*> consumers;
+        std::vector<Consumer_base*> consumers;
         std::vector<bool> alive_consumers;
 
         void consumer_finished(int id);
         boost::shared_ptr<Data_container> frame_provider(int fr, int id);
-        void add_consumer(Consumer* p);
+        void add_consumer(Consumer_base* p);
         void start_threads(std::vector<std::string>& fnames);
 
         /// Reader parameters

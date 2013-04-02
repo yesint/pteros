@@ -23,6 +23,7 @@
 #include "pteros/core/pdb_cryst.h"
 #include <ctype.h>
 #include <cstdio>
+#include <Eigen/Geometry> // For M_PI constant
 
 #define epbcSCREW 1111
 #define XX 0

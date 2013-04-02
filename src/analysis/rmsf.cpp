@@ -148,9 +148,13 @@ void RMSF::window_finished(const Frame_info &info){
         double av = 0.0, ma = 0.0;
         for(int r=0; r<gr.residue_sel.size(); ++r){
             resind = gr.residue_sel[r].Resindex(0);
+
+            vector<float> tmp = gr.residue_sel[r].get_mass();
+            Eigen::Map<Eigen::VectorXf> mm(tmp.data(),tmp.size());
+
             double v = ( gr.rmsf[info.win_num][resind].array() *
-                         gr.residue_sel[r].get_mass().array().cast<double>() ).sum();
-            double m = gr.residue_sel[r].get_mass().sum();
+                         mm.array().cast<double>() ).sum();
+            double m = mm.sum();
             gr.per_res_rmsf[info.win_num][resind] = v/m;
             av += v;
             ma += m;

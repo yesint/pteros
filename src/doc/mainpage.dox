@@ -44,8 +44,8 @@ Pteros contains bindings for Python language, but these bindings are not the maj
 
 \section features	Features
 
-- Reading/writing several popular molecular data formats (currently PDB, GRO, XTC and TRR are supported).
-- Very powerful and simple syntax for selecting groups of atoms similar to one used in VMD.
+- Reading/writing several popular molecular data formats (PDB, GRO, XTC, TRR, DCD).
+- Very powerful and simple syntax for selecting groups of atoms similar to one used in VMD, but more powerfull.
 - Selections can be manipulated in many different ways and various properties could be queried.
 - RMSD fitting and alignment.
 - Elastic network model calculations.
@@ -57,56 +57,79 @@ Pteros contains bindings for Python language, but these bindings are not the maj
 - Easy to use. API is very simple and intuitive.
 - Easy to extend. Pteros is writen in 100% standard high-level C++.
 - Oriented to reserachers and students, not to programming gurus. The code is well structured and well documented.
+- Bindings for Python language and dedicated driver program, which simplifies writing Python scripts for asynchronous trajectory analysis.
 
 \section status		Development status
-Pteros is currently close to what could be called a stable release. The librray is quite stable and usable, but API is still subject to small changes, error reporting is still incomplete and many features are not implemented yet. You are wellcome to participate in pteros development - there are a lot of things to do!
+Pteros is currently very close to what could be called a stable release. The librray is quite stable and usable, but API (especially in the part of Python bindings) is still subject to small changes, error reporting is still incomplete and many features are not implemented yet. You are wellcome to participate in pteros development - there are a lot of things to do!
 
 In its final form Pteros will consist of the following components:
-- Core library. <i> Already usable and stable, approximately 80% complete. </i>
-- Analysis framework. <i> Stable and usable, approximately 80% complete </i>
-- Python bindings for the core libarary. <i> 60% complete. Usable, but still somewhat ugly. </i>
-- 3D molecular visualizer based on OpenGL. <i> Planned. </i>
-- Stand-alone GUI molecular viewer and analysis application a-la <a href="http://www.ks.uiuc.edu/Research/vmd/">VMD</a>. <i> Very early design concept. </i>
+- Core library. <i> Already usable and stable. </i>
+- Analysis framework. <i> Stable and usable, expanding continuously </i>
+- Python bindings. <i> Usable, but evolving and not 100% complete </i>
+- Interface for <a href="http://www.ks.uiuc.edu/Research/vmd/">VMD</a> for easy visualization. <i> Planned. </i>
 
 \section install 	Installation and linking with pteros
 
 \subsection port 	Portability
-Pteros is being developed on Linux with gcc compiler. New versions are tested periodically on Windows under MinGW gcc compiler (see \ref install_win). Other compilers and operating systems are not tested because we have no other systems in possession. Design decisions are made with portability to Windows and MacOS in mind. Other systems are not considered. The code itself should be 100% portable providing that the dependencies are available for your system, but expect platform-dependent quirks and issues, which are common to all complex C++ programs, not only to Pteros.
+Pteros is being developed on Linux with gcc and clang compilers. New versions are tested periodically on Windows under MinGW gcc compiler (see \ref install_win). Other compilers and operating systems are not tested because we have no other systems in possession. Design decisions are made with portability to Windows and MacOS in mind. Other systems are not considered. The code itself should be 100% portable providing that the dependencies are available for your system, but expect platform-dependent quirks and issues, which are common to all complex C++ programs, not only to Pteros.
 
-If you managed to compile Pteros on MacOS, please share your experience because we have no Mac machines to do any testing.
+If you managed to compile Pteros on MacOS, please share your experience because we have no Mac machines to perform the tests.
 
 
 \subsection depend 	Dependencies 
 The prerequisites for compilation of Pteros are the following:
 
-- Standard-conforming C and C++ compilers (tested with gcc).
+- Standard-conforming C compiler.
+- C++ compiler with C++11 support (tested with gcc>=4.7, clang>=3.1).
 - <a href="http://www.cmake.org/">cmake</a> build system.
-- <a href="http://www.boost.org/">boost</a> 1.42 or higher.
+- <a href="http://www.boost.org/">boost</a> 1.48 or higher.
 - Python 2.5 of higher (for python bindings only).
-- Subversion client for getting latest source code.
+- Git client for getting the source code.
+- <a href="www.doxygen.org">Doxygen</a> (only if you want to build documentation yourself)
 
 If you are using Debian or Ubuntu it should be enough to run the following command in the terminal as root to install all dependencies:
 \code
-apt-get install g++ cmake cmake-curses-gui libboost-all-dev python-dev python-numpy subversion
+apt-get install g++ cmake cmake-curses-gui libboost-all-dev python-dev python-numpy git doxygen
 \endcode
 
 Installation of dependencies on Windows is described here \ref install_win.
 
 \subsection build	Building Pteros
-It is highly recommended to get the latest source code could from the SVN repository:
+It is <b>highly recommended</b> to get the latest source code could from the Git repository! If you want the stable branch use the following command:
 \code
-svn co https://pteros.svn.sourceforge.net/svnroot/pteros/trunk pteros
+git clone git://pteros.git.sourceforge.net/gitroot/pteros/pteros
 \endcode
-This will create a directory named "pteros" in you current working directory and will download the latest stable branch of Pteros source code into it. Discrete releases, published on the <a href="http://www.sourceforge.net/pteros">Pteros home page</a> are usually out of date because of fast code changes and their usage is discouraged. 
+This will create a directory named "pteros" in you current working directory and will download the latest stable branch of Pteros source code into it. Discrete releases, published on the <a href="http://www.sourceforge.net/pteros">Pteros home page</a> are out of date because of fast code changes and their usage is <b>strongly discouraged</b>!
 
-Go to the pteros directory and build the library with these commands:
+You can also get the latest development branch (named "experimental"), which is the bleading-age of Pteros development but may contain some bugs and unstable features:
+\code
+git clone -b experimental git://pteros.git.sourceforge.net/gitroot/pteros/pteros
+\endcode
+
+Create a build directory (for example 'pteros_build'). Go to this directory and issue the following commands:
 
 \code
-cmake .
+cmake <path to Pteros source directory> -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=<where to install Pteros>
 make
+make install
 \endcode
 
-You may have to edit CMakeLists.txt file to set correct paths for the libraries. The most common problem is the non-standard location of the Boost libraries or too old version of Boost. Pteros is known not to compile with old versions of gcc, but gcc>1.4.3 should work without problems.
+The 'make install' command may require root access if you are installing into the system-wide location.
+
+The first cmake command will print something like this:
+\code
+------------------------------
+IMPORTANT!
+In order to be able to link with Pteros and to use Pteros Python modules
+you have to add the following lines to your .bashrc file:
+export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:<path to Pteros>/lib"
+export PYTHONPATH="$PYTHONPATH:<path to Pteros>/python"
+------------------------------
+\endcode
+
+Copy suggested lines and add them to your .bashrc file (it is assumed that bash shell is used. If it is not the case use the syntax of your actual shell instead).
+
+You may have to edit CMakeLists.txt file to set correct paths for the libraries. The most common problem is the non-standard location of the Boost libraries or too old version of Boost. Pteros <b>will not compile</b> with old versions of C++ compiler, which do not support C++11 standard!
 
 
 \subsection linking 	Linking with Pteros
@@ -125,7 +148,7 @@ SET(PTEROS_LIB_PATH "<your path>/pteros/lib")
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -msse2") 
 SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC") 
 SET(CMAKE_BUILD_TYPE Release)
-find_package(Boost 1.42.0 REQUIRED thread)
+find_package(Boost 1.48.0 REQUIRED thread)
 include_directories(${PTEROS_INCLUDE_PATH} ${Boost_INCLUDE_DIRS})
 link_directories(${PTEROS_LIB_PATH})
 link_libraries(pteros pteros_analysis pteros_sim xdrfile ${Boost_LIBRARIES})
@@ -134,7 +157,7 @@ link_libraries(pteros pteros_analysis pteros_sim xdrfile ${Boost_LIBRARIES})
 add_executable(example_executable main.cpp)
 \endcode
 
-Pteros uses the <a href="http://www.gromacs.org/Developer_Zone/Programming_Guide/XTC_Library">xdrfile</a> library from <a href="http://www.gromacs.org/">GROMACS</a> internally. The source of the xdrfile is included into the source tree of Pteros, so you don't need to install it separately. However, you have to link to xdrfile if you plan you use XTC or TRR files.
+Pteros uses the <a href="http://www.gromacs.org/Developer_Zone/Programming_Guide/XTC_Library">xdrfile</a> library from <a href="http://www.gromacs.org/">GROMACS</a> internally. The source of the xdrfile is included into the source tree of Pteros, so you don't need to install it separately.
 
 Pteros relies on highly optimized vector/matrix library <a href="http://eigen.tuxfamily.org/index.php?title=Main_Page">Eigen</a>.
 Eigen is also included into the source tree and the headers are added automatically if you include Pteros headers.
@@ -146,7 +169,7 @@ In order to develop you own programs with Pteros you need to know C++ reasonably
 - Classes and ingeritance
 - STL containers
 
-In addition you should be familiar with Eigen vector/matrix library. Fortunately, it has an excelent documentation (...). 
+In addition you should be familiar with Eigen vector/matrix library. Fortunately, it has <a href="http://eigen.tuxfamily.org/dox/">an excelent documentation</a>. 
 
 In order to modify internals of Pteros you should also be familiar with some Boost libraries, namely Boost.thread, Boost.bind, Boost.signals2, Boost.multiarray, etc.
 

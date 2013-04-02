@@ -204,7 +204,8 @@ class Selection {
     void set_resid(const std::vector<int>& data);
     /// Sets resid of all selected atoms to the same given value.
     void set_resid(int data);
-    /// Get vector of all resindexes in selection
+    /// Get vector of all resindexes in selection. Resindexes are unique
+    /// regardless the number of the chains.
     std::vector<int> get_resindex() const;
     /// Get vector of unique resindexes's in selection
     std::vector<int> get_unique_resindex() const;
@@ -215,7 +216,16 @@ class Selection {
     void set_name(const std::vector<std::string>& data);
     /// Sets atom names of all selected atoms to the same given value.
     void set_name(std::string& data);
-    /// Get coordinates of this selection for current frame
+
+    /// Get vector of all resnames in selection
+    std::vector<std::string> get_resname() const;
+    /// Set resnames in selection from supplied vector.
+    /// Its size must be the save as the size of selection.
+    void set_resname(const std::vector<std::string>& data);
+    /// Sets resnames of all selected atoms to the same given value.
+    void set_resname(std::string& data);
+
+    /// Get coordinates of all atoms in this selection for current frame
     Eigen::MatrixXf get_xyz() const;
     void get_xyz(Eigen::MatrixXf& res) const;
     /// Set coordinates of this selection for current frame
@@ -223,10 +233,10 @@ class Selection {
     /// Computes average structure over the range of frames
     Eigen::MatrixXf get_average(int b=0, int e=-1) const;
     /// Get masses of all atoms in selection
-    Eigen::VectorXf get_mass() const;
+    std::vector<float> get_mass() const;
     /// Set atom masses in selection to the values from supplied vector.
     /// Its size must be the save as the size of selection.
-    void set_mass(const Eigen::VectorXf& m);
+    void set_mass(const std::vector<float> m);
     /// Sets masses of all selected atoms to the same given value.
     void set_mass(float data);
     /** Extracts X,Y,Z for given atom index for specified range of frames
@@ -243,16 +253,19 @@ class Selection {
     /// Sets beta of all selected atoms to the same given value.
     void set_beta(float data);
 
-    /// Returns the volume of rectangular box for current frame.
-    /// Currently does not work for triclinic boxes.
+    /// Returns the volume of the periodic box for current frame.
     float get_box_volume();
     /// @}
 
     /// @name Inquery functions
     /// @{
 
-    /// Get the center of selection.
-    /// @param mass_weighted Use mass-weighting
+    /** Get the center of selection.
+    * @param mass_weighted Use mass-weighting
+    * @param periodic Account for periodic boundary conditions.
+    * Please note that if the size of selection is larger than 1/2 of the box size in
+    * any dimension you will get incorrect results if periodic is set to true.
+    */
     Eigen::Vector3f center(bool mass_weighted = false, bool periodic = false);
     /// Get minimal and maximal coordinates in selection
     void minmax(Eigen::Vector3f& min, Eigen::Vector3f& max);
@@ -281,6 +294,36 @@ class Selection {
     void rotate(const Eigen::Matrix3f& m);
     /// Rotation by given angles around X, Y and Z with given pivot
     void rotate(const Eigen::Vector3f& angles, const Eigen::Vector3f& pivot);
+
+    /// Wraps selection to the periodic box
+    void wrap();
+
+    /** Unwraps selection to make it whole if possible (without jumps over periodic box boundary).
+     * The periodic center of mass is used as an anchor point.
+     * Please note that if the size of selection is larger than 1/2 of the box size in
+     * any dimension unwrap() will not work as expected and will not make selection "compact"!
+    */
+    void unwrap();
+
+    /** Unwraps selection to make it whole (without jumps over periodic box boundary).
+     * based on preserving all bonds. The maximal bond length is given by d.
+     */
+    void unwrap_bonds(float d = 0.2);
+
+    /** Get transform for orienting selection by principal axes.
+     * Please note that if the size of selection is larger than 1/2 of the box size in
+     * any dimension you will get funny results if is_periodic is set to true.
+     */
+    Eigen::Affine3f principal_transform(bool is_periodic = false);
+
+    /** Orient molecule by its principal axes.
+     * The same as
+     *
+     * Eigen::Affine3f tr = sel.principal_transform();
+     * sel.apply_transform(tr);
+     */
+    void principal_orient(bool is_periodic = false);
+
     /// @}
 
     /// @name Fitting and RMSD functions
@@ -343,11 +386,12 @@ class Selection {
     /// Creates multiple copies of selection in the parent system and
     /// distributes them in a grid
     void distribute(Eigen::Vector3i& ncopies, Eigen::Vector3f& shift);
+
+    /*
     /// Moves selection along given vector until it becomes free of sterical clashes
     /// with clash_sel within cut-off
     void remove_overlap(Eigen::Vector3f& dir, const Selection& clash_sel, float cut_off = 0.2);
-    /// Orients selection by principal axes
-    void orient_principal();
+    */
 
     /// @}
 
@@ -361,7 +405,16 @@ class Selection {
     bool signals_enabled();
     /// @}
 
+    /// Split current selection into several selections according to
+    /// the interatomic distances. Each resulting selection is a group
+    /// of atoms connected by distances less than d
     void split_by_connectivity(float d, std::vector<Selection>& res);
+
+    /// Computes the central momens of inertia and principal axes of inertia
+    void inertia(Eigen::Vector3f& moments, Eigen::Matrix3f& axes, bool periodic = false);
+
+    /// Computes radius of gyration for selection
+    float gyration(bool periodic = false);
 
     /** @name Inlined utility functions.
     *   Used to access the properties of
@@ -482,29 +535,29 @@ class Selection {
     /// @}
 
 protected:
-    /// Row text of selection. Should not be modified directly.
+    // Row text of selection
     std::string sel_text;
-    /// Used with << operator
+    // Used with << operator
     std::ostringstream ss;
-    /// Indexes of atoms in selection
+    // Indexes of atoms in selection
     std::vector<int> index;
-    /// Pointer to target system
+    // Pointer to target system
     System* system;
 
-    /// Stores current frame
+    // Stores current frame
     int frame;
 
-    /// Holds an instance of selection parser
+    // Holds an instance of selection parser
     boost::shared_ptr<Selection_parser> parser;
     void allocate_parser();
 
-    /// Private functions for creating selection
+    // Private functions for creating selection
     void create_internal(System& sys, std::string& str);
     void create_internal(System& sys, int ind1, int ind2);
-    /// Private function for deleting selection
+    // Private function for deleting selection
     void delete_internal();    
 
-    /// Notification responder and connection object
+    // Notification responder and connection object
     boost::signals2::connection connection;
     void notify_slot(System_notification code, int b, int e);
 };

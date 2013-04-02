@@ -20,16 +20,13 @@
  *
 */
 
-#include "pteros/pteros_core.h"
+#include "pteros/pteros.h"
 #include "pteros/core/grid_search.h"
 #include "pteros/analysis/trajectory_processor.h"
 #include "pteros/analysis/rmsf.h"
 #include "pteros/analysis/bilayer.h"
 #include "pteros/core/mol_file.h"
 #include <string>
-
-#include "json_spirit/json_spirit_reader_template.h"
-#include "json_spirit/json_spirit_writer_template.h"
 
 #include <vector>
 #include <boost/tokenizer.hpp>
@@ -39,7 +36,6 @@
 
 using namespace std;
 using namespace pteros;
-using namespace json_spirit;
 
 
 int main(int argc, char** argv)
@@ -47,12 +43,56 @@ int main(int argc, char** argv)
     try{
 
         //boost::shared_ptr<Mol_file> io = io_factory("topol.tpr",'r');
-        System sys1("/home/semen/work/Projects/pteros/pteros_build/release/src/test/topol.tpr");
+        //System sys1("/home/semen/work/Projects/pteros/pteros_build/release/src/test/topol.tpr");
 
-        return 1;
+        //return 1;
 
-        System t("/home/semen/work/Projects/pteros/pteros/trunk/src/test/data/2lao.gro");
-        t.load("/home/semen/work/Projects/pteros/pteros/trunk/src/test/data/2lao.gro");
+        System t("/home/semen/work/Projects/pteros/pteros_git/src/test/data/2lao.gro");
+        //t.load("/home/semen/work/Projects/pteros/pteros_git/src/test/data/2lao.gro");
+
+        Selection s(t,"all");
+
+
+        /*
+        Vector3f ref = s.XYZ(10000);
+        for(int i=0;i<s.size();++i){
+            s.XYZ(i) = t.get_closest_image(s.XYZ(i),ref,0);
+        }
+        s.write("/home/semen/work/Projects/pteros/pteros_git/src/test/data/2lao-tr.gro");
+        */
+
+        /*
+        cout << s.get_box_volume() << endl;
+        Vector3f moments;
+        Matrix3f axes;
+        s.inertia(moments,axes);
+        cout << moments << endl;
+        cout << axes << endl;
+        */
+
+        //Affine3f tr = s.principal_transform(false);
+        //s.apply_transform(tr);
+        //s.write("/home/semen/work/Projects/pteros/pteros_git/src/test/data/2lao-tr.gro");
+
+        //cout << s.center(true,true) << endl;
+        //s.wrap();
+        //s.unwrap();
+        //s.write("/home/semen/work/Projects/pteros/pteros_git/src/test/data/2lao-wr.gro");
+        s.wrap();
+        s.write("/home/semen/work/Projects/pteros/pteros_git/src/test/data/2lao-wr.gro");
+        s.unwrap_bonds(0.2);
+        s.write("/home/semen/work/Projects/pteros/pteros_git/src/test/data/2lao-bwr.gro");
+
+        s.wrap();
+        s.unwrap();
+        s.write("/home/semen/work/Projects/pteros/pteros_git/src/test/data/2lao-uwr.gro");
+
+        Selection sel(t,"resname 'A..'");
+        for(auto c: sel.get_resname()){
+            cout << c << " ";
+        }
+        cout << endl;
+
 
 /*
 

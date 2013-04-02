@@ -8,7 +8,8 @@ include_directories(${PROJECT_SOURCE_DIR}/src/core/xdrfile)
 include_directories(${PROJECT_SOURCE_DIR}/src/core/molfile_plugins)
 
 # Main pteros library
-add_library(pteros 
+add_library(pteros SHARED
+${PROJECT_SOURCE_DIR}/include/pteros/pteros.h
 ${PROJECT_SOURCE_DIR}/include/pteros/core/pteros_error.h
 ${PROJECT_SOURCE_DIR}/include/pteros/core/atom.h
 ${PROJECT_SOURCE_DIR}/include/pteros/core/force_field.h
@@ -16,6 +17,7 @@ ${PROJECT_SOURCE_DIR}/include/pteros/core/force_field.h
 ${PROJECT_SOURCE_DIR}/include/pteros/core/system.h
 system.cpp
 ${PROJECT_SOURCE_DIR}/include/pteros/core/selection.h
+selection_macro.h
 selection.cpp  
 ${PROJECT_SOURCE_DIR}/include/pteros/core/selection_parser.h
 selection_parser.cpp
@@ -46,6 +48,9 @@ xtc_file.h
 xtc_file.cpp
 tpr_file.h
 tpr_file.cpp
+pttop_file.h
+pttop_file.cpp
+
 # xdrfile
 ${PROJECT_SOURCE_DIR}/src/core/xdrfile/xdrfile.c
 ${PROJECT_SOURCE_DIR}/src/core/xdrfile/xdrfile_trr.c
@@ -64,4 +69,10 @@ ${PROJECT_SOURCE_DIR}/src/core/molfile_plugins/readpdb.h
 ${PROJECT_SOURCE_DIR}/src/core/molfile_plugins/pdbplugin.c
 ${PROJECT_SOURCE_DIR}/src/core/molfile_plugins/fastio.h
 ${PROJECT_SOURCE_DIR}/src/core/molfile_plugins/dcdplugin.c
+)
+
+#Installation
+install(TARGETS pteros
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
 )

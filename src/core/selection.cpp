@@ -43,23 +43,7 @@
 #include <Eigen/Geometry>
 #include <Eigen/Dense>
 
-namespace pteros {
-
-/// Macro definitions for selections. Each macro is expanded during
-/// evaluation of selection.
-static const char* macro[] = {
-    "backbone", "(name C CA O N)",
-    "acidic", "(resname ASP GLU)",
-    "cyclic", "(resname HIS PHE PRO TRP TYR)",
-    "aromatic", "(resname HIS PHE TRP TYR)",
-    "basic", "(resname ARG HIS LYS HSP)",
-    "buried", "(resname ALA LEU VAL ILE PHE CYS MET TRP)",
-    "charged", "(resname ARG HIS LYS HSP ASP GLU)",
-    "hydrophobic", "(resname ALA LEU VAL ILE PRO PHE MET TRP)"
-};
-/// Number of macro definitions
-static const int Nmacro = 8;
-}
+#include "selection_macro.h"
 
 using namespace std;
 using namespace pteros;
@@ -422,8 +406,8 @@ vector<int> Selection::get_resindex() const {
     return res;
 }
 
-VectorXf Selection::get_mass() const {
-    VectorXf res;
+std::vector<float> Selection::get_mass() const {
+    vector<float> res;
     int i,n;
     n = index.size();
     res.resize(n);
@@ -432,11 +416,14 @@ VectorXf Selection::get_mass() const {
 }
 
 float Selection::get_box_volume(){
+    /*
     if( system->traj[frame].box(0,1) || system->traj[frame].box(0,2)
             || system->traj[frame].box(1,0) || system->traj[frame].box(1,2)
             || system->traj[frame].box(2,0) || system->traj[frame].box(2,1)
             ) throw Pteros_error("Can't compute volume for trclinic boxes so far.");
     return system->traj[frame].box(0,0) * system->traj[frame].box(1,1) * system->traj[frame].box(2,2);
+    */
+    return system->Box(frame).col(1).cross( system->Box(frame).col(2) ).dot( system->Box(frame).col(0) );
 }
 
 vector<int> Selection::get_unique_resid() const{
@@ -459,7 +446,7 @@ vector<int> Selection::get_unique_resindex() const {
     return res;
 }
 
-void Selection::set_mass(const Eigen::VectorXf& m){
+void Selection::set_mass(const std::vector<float> m){
     int i,n;
     n = index.size();
     if(m.size()!=n){
@@ -468,7 +455,7 @@ void Selection::set_mass(const Eigen::VectorXf& m){
           << " for selection of size " << n;
         throw e;
     }
-    for(i=0; i<n; ++i) Mass(i) = m(i);
+    for(i=0; i<n; ++i) Mass(i) = m[i];
 }
 
 void Selection::set_mass(float data){
@@ -505,6 +492,35 @@ void Selection::set_name(string& data){
     int i,n;
     n = index.size();
     for(i=0; i<n; ++i) system->atoms[index[i]].name = data;
+}
+
+vector<string> Selection::get_resname() const {
+    vector<string> res;
+    int i,n;
+    n = index.size();
+    res.resize(n);
+    for(i=0; i<n; ++i) res[i] = system->atoms[index[i]].resname;
+    return res;
+}
+
+
+void Selection::set_resname(const vector<string>& data){
+    int i,n;
+    n = index.size();
+    // Sanity check
+    if(data.size()!=n){
+        Pteros_error e;
+        e << "Invalid data size "<< data.size()
+          << " for selection of size " << n;
+        throw e;
+    }
+    for(i=0; i<n; ++i) system->atoms[index[i]].resname = data[i];
+}
+
+void Selection::set_resname(string& data){
+    int i,n;
+    n = index.size();
+    for(i=0; i<n; ++i) system->atoms[index[i]].resname = data;
 }
 
 
@@ -1100,13 +1116,11 @@ void Selection::notify_slot(System_notification code, int b, int e){
     }
 }
 
+/*
 void Selection::remove_overlap(Eigen::Vector3f &dir, const Selection &clash_sel, float cut_off){
     throw Pteros_error("remove_overlap is not implemented yet!");
 }
-
-void Selection::orient_principal(){
-    throw Pteros_error("orient_principal is not implemented yet!");
-}
+*/
 
 void Selection::enable_signals(){
     connection.disconnect();
@@ -1149,7 +1163,7 @@ void Selection::split_by_connectivity(float d, std::vector<Selection> &res){
         if(i==mask.size()) break; // All connectivity groups are already found
         // Start new group
         ++ngr;        
-        Selection s(*get_system());
+        Selection s(*system);
         res.push_back(s);
         res.back().sel_text = "index";
         // Atoms to search
@@ -1174,4 +1188,138 @@ void Selection::split_by_connectivity(float d, std::vector<Selection> &res){
         }
         // No more atoms to search, the group is ready
     }
+}
+
+void Selection::inertia(Eigen::Vector3f &moments, Eigen::Matrix3f &axes, bool periodic){
+    int n = size();
+    int i;
+    // Compute the central tensor of inertia. Place it into axes
+    axes.fill(0.0);
+
+    Vector3f c = center(true,periodic);    
+    Vector3f p,d;
+
+    if(periodic){
+        for(i=0;i<n;++i){
+            p = system->get_closest_image(XYZ(i),c,frame);
+            d = p-c;
+            axes(0,0) += Mass(i)*( d(1)*d(1) + d(2)*d(2) );
+            axes(1,1) += Mass(i)*( d(0)*d(0) + d(2)*d(2) );
+            axes(2,2) += Mass(i)*( d(0)*d(0) + d(1)*d(1) );
+            axes(0,1) -= Mass(i)*d(0)*d(1);
+            axes(0,2) -= Mass(i)*d(0)*d(2);
+            axes(1,2) -= Mass(i)*d(1)*d(2);
+        }
+    } else {
+        for(i=0;i<n;++i){
+            d = XYZ(i)-c;
+            axes(0,0) += Mass(i)*( d(1)*d(1) + d(2)*d(2) );
+            axes(1,1) += Mass(i)*( d(0)*d(0) + d(2)*d(2) );
+            axes(2,2) += Mass(i)*( d(0)*d(0) + d(1)*d(1) );
+            axes(0,1) -= Mass(i)*d(0)*d(1);
+            axes(0,2) -= Mass(i)*d(0)*d(2);
+            axes(1,2) -= Mass(i)*d(1)*d(2);
+        }
+    }
+    axes(1,0) = axes(0,1);
+    axes(2,0) = axes(0,2);
+    axes(2,1) = axes(1,2);
+
+    // Now diagonalize inertia tensor
+    Eigen::SelfAdjointEigenSolver<Matrix3f> solver(axes);
+    // put output values
+    axes = solver.eigenvectors();
+    moments = solver.eigenvalues();
+}
+
+float Selection::gyration(bool periodic){
+    int n = size();
+    int i;
+    float d, a = 0.0, b = 0.0;
+    Vector3f c = center(true,periodic);
+    for(i=0;i<n;++i){
+        d = system->distance(XYZ(i),c,frame,periodic);
+        a += Mass(i)*d*d;
+        b += Mass(i);
+    }
+    return sqrt(a/b);
+}
+
+void Selection::wrap(){
+    for(int i=0;i<size();++i){
+        system->wrap_to_box(frame,XYZ(i));
+    }
+}
+
+void Selection::unwrap(){
+    Vector3f c = center(true,true);
+    for(int i=0;i<size();++i){
+        XYZ(i) = system->get_closest_image(XYZ(i),c,frame);
+    }
+}
+
+void Selection::unwrap_bonds(float d){
+    // Find all connectivity pairs for given cut-off
+    vector<Vector2i> pairs;
+    Grid_searcher(d,*this,pairs,false,true);
+    // Form a connectivity structure in the form con[i]->1,2,5...
+    vector<vector<int> > con(size());
+    for(int i=0; i<pairs.size(); ++i){
+        if(pairs[i](0) < pairs[i](1)){
+            con[pairs[i](0)].push_back(pairs[i](1));
+        } else {
+            con[pairs[i](1)].push_back(pairs[i](0));
+        }
+        //con[pairs[i](1)].push_back(pairs[i](0));
+    }
+
+    // Do all wrapping before
+    wrap();
+
+    for(int ref = 0; ref<size(); ++ref){
+        // Unwrap all atoms bound to ref to position near ref
+        for(int i=0; i<con[ref].size(); ++i){
+            // We don't do wrapping here (passing false) since this will bring atoms back!
+            // We intentially want atoms to be unwrapped
+            XYZ(con[ref][i]) = system->get_closest_image(XYZ(con[ref][i]),XYZ(ref),frame,false);
+        }
+
+    }
+}
+
+Eigen::Affine3f Selection::principal_transform(bool is_periodic){
+    Affine3f rot;
+    Vector3f cm = center(true,is_periodic);
+    translate(-cm);
+
+    Matrix3f m;
+    // Compute principal axes
+    Vector3f moments;
+    Matrix3f axes;
+    inertia(moments,axes,is_periodic);
+    // Normalize axes
+    for(int i=0;i<3;++i) axes.col(i).normalize();
+    // Now orient
+    // Step 1. Rotate around Z to move projection of axes(0) to X
+    m = AngleAxisf(std::atan2(axes.col(0)(0),axes.col(0)(1)), Vector3f::UnitZ());
+    // Step 2. Rotate to superimpose col(0) with X
+    m = m* AngleAxisf(std::asin(axes.col(0)(2)), Vector3f::UnitY());
+    // Step 3. Apply obtained transform to col(1). This gives new position of col(1)
+    // And then bring col(1) to Y
+    m = m* AngleAxisf(std::acos( (m*axes.col(1))(1) ), Vector3f::UnitX());
+
+    rot.linear() = m;
+
+    // Bring center back
+    translate(cm);
+
+    //Clear translation part. This is important!
+    rot.translation().fill(0.0);
+    // Add translation part to transform. Note reverse order of translations! This is important.
+    return Translation3f(cm) * rot * Translation3f(-cm) ;
+}
+
+void Selection::principal_orient(bool is_periodic){
+    Affine3f tr = principal_transform(is_periodic);
+    apply_transform(tr);
 }

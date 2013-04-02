@@ -30,6 +30,7 @@
 #include "trr_file.h"
 #include "xtc_file.h"
 #include "tpr_file.h"
+#include "pttop_file.h"
 
 using namespace std;
 using namespace pteros;
@@ -134,5 +135,7 @@ boost::shared_ptr<Mol_file> pteros::io_factory(string fname, char open_mode){
         return boost::shared_ptr<Mol_file>(new XTC_file(fname,open_mode));
     case TPR_FILE:
         return boost::shared_ptr<Mol_file>(new TPR_file(fname,open_mode));
+    case PTTOP_FILE:
+        return boost::shared_ptr<Mol_file>(new PTTOP_file(fname,open_mode));
     }
 }
