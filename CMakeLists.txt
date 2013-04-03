@@ -9,8 +9,8 @@ OPTION(VMD_PDB "Use VMD molfile plugin for reading PDB files (if OFF - internal 
 set(Boost_USE_STATIC_LIBS OFF)
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -std=c++0x -s")
-    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC -s")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -std=c++0x ")
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC ")
 ENDIF()
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")

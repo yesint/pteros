@@ -47,7 +47,8 @@ int main(int argc, char** argv)
 
         //return 1;
 
-        System t("/home/semen/work/Projects/pteros/pteros_git/src/test/data/2lao.gro");
+        //System t("/home/semen/work/Projects/pteros/pteros_git/src/test/data/2lao.gro");
+        System t("/home/semen/work/Projects/pteros/pteros_git/src/python/scripts/topol.tpr.pttop");
         //t.load("/home/semen/work/Projects/pteros/pteros_git/src/test/data/2lao.gro");
 
         Selection s(t,"all");
@@ -77,21 +78,6 @@ int main(int argc, char** argv)
         //cout << s.center(true,true) << endl;
         //s.wrap();
         //s.unwrap();
-        //s.write("/home/semen/work/Projects/pteros/pteros_git/src/test/data/2lao-wr.gro");
-        s.wrap();
-        s.write("/home/semen/work/Projects/pteros/pteros_git/src/test/data/2lao-wr.gro");
-        s.unwrap_bonds(0.2);
-        s.write("/home/semen/work/Projects/pteros/pteros_git/src/test/data/2lao-bwr.gro");
-
-        s.wrap();
-        s.unwrap();
-        s.write("/home/semen/work/Projects/pteros/pteros_git/src/test/data/2lao-uwr.gro");
-
-        Selection sel(t,"resname 'A..'");
-        for(auto c: sel.get_resname()){
-            cout << c << " ";
-        }
-        cout << endl;
 
 
 /*

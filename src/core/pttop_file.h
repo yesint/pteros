@@ -40,6 +40,8 @@ public:
     virtual Mol_file_content get_content_type(){
         Mol_file_content c;
         c.topology = true;
+        c.structure= true;
+        c.coordinates= true;
         return c;
     }
 
