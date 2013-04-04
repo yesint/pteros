@@ -246,7 +246,7 @@ class Selection {
     Eigen::MatrixXf get_traj(int ind, int b=0, int e=-1) const;
 
     /// Get beta
-    std::vector<float> get_beta();
+    std::vector<float> get_beta() const;
     /// Set beta in selection to the values from supplied vector.
     /// Its size must be the save as the size of selection.
     void set_beta(std::vector<float>& data);
@@ -254,7 +254,7 @@ class Selection {
     void set_beta(float data);
 
     /// Returns the volume of the periodic box for current frame.
-    float get_box_volume();
+    float get_box_volume() const;
     /// @}
 
     /// @name Inquery functions
@@ -365,6 +365,17 @@ class Selection {
     void apply_transform(Eigen::Affine3f& t);
     /// @}
 
+
+    /// @name Energy functions
+    /// @{
+
+    /// Self-energy of selection
+    Energy_components non_bond_energy() const;
+    /// Non-bond energy between two selections
+    friend Energy_components non_bond_energy(Selection& sel1, Selection& sel2, int fr);
+
+    /// @}
+
     /// @name File IO
     /// @{
 
@@ -402,7 +413,7 @@ class Selection {
     /// Disable automatic signalling from system
     void disable_signals();
     /// Returns signalling state of selection
-    bool signals_enabled();
+    bool signals_enabled() const;
     /// @}
 
     /// Split current selection into several selections according to

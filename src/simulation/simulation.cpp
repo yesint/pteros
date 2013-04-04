@@ -32,14 +32,6 @@ using namespace std;
 using namespace pteros;
 using namespace Eigen;
 
-string Energy_components::to_str(){
-    return    boost::lexical_cast<string>(total) + " "
-            + boost::lexical_cast<string>(lj_sr) + " "
-            + boost::lexical_cast<string>(lj_14) + " "
-            + boost::lexical_cast<string>(q_sr) + " "
-            + boost::lexical_cast<string>(q_14);
-}
-
 
 Simulation::Simulation(){
     //setup_ok = false; // Not complete yet

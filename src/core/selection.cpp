@@ -415,7 +415,7 @@ std::vector<float> Selection::get_mass() const {
     return res;
 }
 
-float Selection::get_box_volume(){
+float Selection::get_box_volume() const {
     /*
     if( system->traj[frame].box(0,1) || system->traj[frame].box(0,2)
             || system->traj[frame].box(1,0) || system->traj[frame].box(1,2)
@@ -568,7 +568,7 @@ void Selection::set_xyz(const MatrixXf& coord){
     for(int i=0; i<n; ++i) XYZ(i) = coord.col(i);
 }
 
-vector<float> Selection::get_beta(){
+vector<float> Selection::get_beta() const{
     vector<float> res;
     int i,n;
     n = index.size();
@@ -772,7 +772,7 @@ float Selection::rmsd(int fr1, int fr2){
 }
 
 //RMSD between current and other frame
-float Selection::rmsd(int fr){
+float Selection::rmsd(int fr) {
     if(fr<0 || fr>=system->num_frames()){
         Pteros_error e;
         e << "RMSD requested for frame" << fr
@@ -793,8 +793,38 @@ void Selection::apply_transform(Affine3f& t){
     }
 }
 
+Energy_components Selection::non_bond_energy() const
+{
+    Energy_components e;
+    int i,j,n;
+    n = size();
+    for(i=0; i<n-1; ++i)
+        for(j=i+1; j<n; ++j)
+            system->add_non_bond_energy(e,i,j,frame,true);
+    return e;
+}
+
 
 namespace pteros {
+
+// Non-bond energy between two selections
+Energy_components non_bond_energy(Selection& sel1, Selection& sel2, int fr){
+    // Check if both selections are from the same system
+    if(sel1.get_system()!=sel2.get_system())
+        throw Pteros_error("Can't compute non-bond energy between selections from different systems!");
+
+    int n1 = sel1.size();
+    int n2 = sel2.size();
+    int i,j;
+
+    Energy_components e;
+
+    for(i=0;i<n1;++i)
+        for(j=0;i<n2;++j)
+            sel1.get_system()->add_non_bond_energy(e,i,j,fr,true);
+
+    return e;
+}
 
 // RMSD between two selections (specified frames)
 float rmsd(Selection& sel1, int fr1, Selection& sel2, int fr2){
@@ -989,7 +1019,7 @@ void Selection::minmax(Vector3f& min, Vector3f& max){
 // IO functions
 //###############################################
 
-void Selection::write(string fname, int b, int e){
+void Selection::write(string fname, int b, int e) {
     if(b<-1 || b>=get_system()->num_frames()) throw Pteros_error("Invalid first frame for writing!");
     if(e<-1 || e>=get_system()->num_frames()) throw Pteros_error("Invalid last frame for writing!");
     if(e<b) throw Pteros_error("Invalid frame range for writing!");
@@ -1131,7 +1161,7 @@ void Selection::disable_signals(){
     connection.disconnect();
 }
 
-bool Selection::signals_enabled(){
+bool Selection::signals_enabled() const {
     return connection.connected();
 }
 
@@ -1232,7 +1262,7 @@ void Selection::inertia(Eigen::Vector3f &moments, Eigen::Matrix3f &axes, bool pe
     moments = solver.eigenvalues();
 }
 
-float Selection::gyration(bool periodic){
+float Selection::gyration(bool periodic) {
     int n = size();
     int i;
     float d, a = 0.0, b = 0.0;

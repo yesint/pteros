@@ -239,12 +239,12 @@ void System::frame_delete(int b, int e){
     notify_signal(FRAMES_DELETED,b,e);
 }
 
-void System::get_box_vectors_angles(int fr, Vector3f& vectors, Vector3f& angles){
+void System::get_box_vectors_angles(int fr, Vector3f& vectors, Vector3f& angles) const {
     // Call Gromacs function from pdb_cryst
     box_to_vectors_angles(traj[fr].box, vectors, angles);
 }
 
-bool System::is_box_triclinic(){
+bool System::is_box_triclinic() const{
     return (traj[0].box(0,1) || traj[0].box(0,2)
             || traj[0].box(1,0) || traj[0].box(1,2)
             || traj[0].box(2,0) || traj[0].box(2,1) );
@@ -447,5 +447,67 @@ Vector3f System::get_closest_image(Eigen::Vector3f &point, Eigen::Vector3f &targ
 void System::wrap_all(int fr){
     for(int i=0;i<num_atoms();++i){
         wrap_to_box(fr,XYZ(i,fr));
+    }
+}
+
+inline float LJ_en_kernel(float sig, float eps, float r){
+    float tmp = sig/r;
+    tmp = tmp*tmp; // This gets (s/r)^2
+    tmp = tmp*tmp*tmp; // This gets (s/r)^6
+    return 4.0*eps*(tmp*tmp-tmp);
+}
+
+#define ONE_4PI_EPS0      138.935456
+
+inline float Coulomb_en_kernel(float q1, float q2, float r){
+    return ONE_4PI_EPS0*q1*q2/r;
+}
+
+string Energy_components::to_str(){
+    return    boost::lexical_cast<string>(total) + " "
+            + boost::lexical_cast<string>(lj_sr) + " "
+            + boost::lexical_cast<string>(lj_14) + " "
+            + boost::lexical_cast<string>(q_sr) + " "
+            + boost::lexical_cast<string>(q_14);
+}
+
+void System::add_non_bond_energy(Energy_components &e, int a1, int a2, int frame, bool is_periodic)
+{
+    // First check if this pair is not in exclusions
+    if( force_field.exclusions[a1].count(a2) == 0 ){
+        // Required at1 < at2
+        int at1,at2;
+        if(a1<a2){
+            at1 = a1;
+            at2 = a2;
+        } else {
+            at1 = a2;
+            at2 = a1;
+        }
+
+        int N = force_field.LJ14_interactions.size();
+        float r = distance(XYZ(at1,frame),XYZ(at2,frame),frame,is_periodic);
+        // Check if this is 1-4 pair
+        auto it = force_field.LJ14_pairs.find(at1*N+at2);
+        if( it == force_field.LJ14_pairs.end() ){
+            // Normal, not 1-4
+            e.lj_sr += LJ_en_kernel(force_field.LJ_C6(atoms[at1].type,atoms[at2].type),
+                                   force_field.LJ_C12(atoms[at1].type,atoms[at2].type),
+                                   r);
+            e.q_sr += Coulomb_en_kernel(atoms[at1].charge,
+                                       atoms[at2].charge,
+                                       r);
+            e.total += e.lj_sr + e.q_sr;
+        } else {
+            // 1-4
+            e.lj_14 += LJ_en_kernel(force_field.LJ14_interactions[it->second](0),
+                                   force_field.LJ14_interactions[it->second](1),
+                                   r);
+            e.q_14 += Coulomb_en_kernel(atoms[at1].charge,
+                                       atoms[at2].charge,
+                                       r)
+                    * force_field.fudgeQQ;
+            e.total += e.lj_14 + e.q_14;
+        }
     }
 }

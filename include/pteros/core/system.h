@@ -34,6 +34,32 @@
 
 namespace pteros {
 
+
+/// Components of the non-bond energy
+struct Energy_components {
+    /// Total energy
+    float total;
+    /// Lenard-Jones energy of 1-4 pairs
+    float lj_14;
+    /// Coloumb energy of 1-4 pairs
+    float q_14;
+    /// Short-range Lenard-Jones energy (within cut-off)
+    float lj_sr;
+    /// Short-range Coloumb energy (within cut-off)
+    float q_sr;
+
+    Energy_components(){
+        total = 0.0;
+        lj_14 = 0.0;
+        q_14 = 0.0;
+        lj_sr = 0.0;
+        q_sr = 0.0;
+    }
+    /// Writes all energy components to string in the following order:
+    /// total, lj_sr, lj_14, q_sr, q_14
+    std::string to_str();
+};
+
 // Notification signals
 enum System_notification {TOPOLOGY_CHANGED,
                           SYSTEM_CLEARED,
@@ -122,12 +148,7 @@ public:
     void clear(bool delete_selections = false);
     /// Updates all associated selection if the system changes somehow
     /// Also sets frame of all selections to zero.
-    void update_selections();
-
-    /** Recompute bonds for the whole system.
-    *   This operation may be slow for large systems.
-    */
-    void compute_bonds();
+    void update_selections();   
 
     /// Read/write access for periodic box for given frame
     inline Eigen::Matrix3f& Box(int fr){
@@ -145,10 +166,10 @@ public:
     }
 
     /// Returns true if the box is triclinic and false if it is rectangular
-    bool is_box_triclinic();
+    bool is_box_triclinic() const;
 
     /// Get periodic box in a,b,c,alpha,beta,gamma representation for given frame
-    void get_box_vectors_angles(int fr, Eigen::Vector3f& vectors, Eigen::Vector3f& angles);
+    void get_box_vectors_angles(int fr, Eigen::Vector3f& vectors, Eigen::Vector3f& angles) const;
 
     /// Signal passed to associated selections when they have to react to changes in the system
     /// First parameter is type of notification
@@ -194,6 +215,11 @@ public:
 
     /// Wrap all system to the periodic box for given frame
     void wrap_all(int fr);
+
+    /// Compute non-bond energy between two atoms
+    /// The result is ADDED to e
+    /// Intended mainly to be called from other functions, which take care of initializing e
+    void add_non_bond_energy(Energy_components& e, int a1, int a2, int frame, bool is_periodic = true);
 
 protected:
 

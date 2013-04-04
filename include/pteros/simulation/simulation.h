@@ -45,30 +45,6 @@ public:
     }
 };
 
-/// Components of the non-bond energy
-struct Energy_components {
-    /// Total energy
-    float total;
-    /// Lenard-Jones energy of 1-4 pairs
-    float lj_14;
-    /// Coloumb energy of 1-4 pairs
-    float q_14;
-    /// Short-range Lenard-Jones energy (within cut-off)
-    float lj_sr;
-    /// Short-range Coloumb energy (within cut-off)
-    float q_sr;
-
-    Energy_components(){
-        total = 0.0;
-        lj_14 = 0.0;
-        q_14 = 0.0;
-        lj_sr = 0.0;
-        q_sr = 0.0;
-    }
-    /// Writes all energy components to string in the following order:
-    /// total, lj_sr, lj_14, q_sr, q_14
-    std::string to_str();
-};
 
 /// @brief Simulation class. This class is HIGHLY EXPERIMENTAL!
 ///
