@@ -804,7 +804,6 @@ Energy_components Selection::non_bond_energy() const
     return e;
 }
 
-
 namespace pteros {
 
 // Non-bond energy between two selections
@@ -1206,7 +1205,7 @@ void Selection::split_by_connectivity(float d, std::vector<Selection> &res) {
             k = to_search.front();
             to_search.pop();
             res.back().index.push_back(_Index(k)); // add it to current selection
-            res.back().sel_text += " "+boost::lexical_cast<string>(Index(k));
+            res.back().sel_text += " "+boost::lexical_cast<string>(_Index(k));
             // See all atoms connected to k
             for(int j=0; j<con[k].size(); ++j){
                 // if atom is not used, add it to search

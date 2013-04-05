@@ -36,6 +36,7 @@
 
 using namespace std;
 using namespace pteros;
+using namespace Eigen;
 
 
 int main(int argc, char** argv)
@@ -52,7 +53,13 @@ int main(int argc, char** argv)
         //t.load("/home/semen/work/Projects/pteros/pteros_git/src/test/data/2lao.gro");
 
         Selection s(t,"all");
-
+        vector<Vector2i> l;
+        l.push_back(Vector2i(0,1));
+        l.push_back(Vector2i(0,2));
+        Energy_components e = t.non_bond_energy(l,0);
+        cout << e.to_str() << endl;
+        e = s.non_bond_energy();
+        cout << e.to_str() << endl;
 
         /*
         Vector3f ref = s.XYZ(10000);

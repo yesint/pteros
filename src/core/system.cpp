@@ -485,29 +485,48 @@ void System::add_non_bond_energy(Energy_components &e, int a1, int a2, int frame
             at2 = a1;
         }
 
+        float e1,e2;
+
         int N = force_field.LJ14_interactions.size();
         float r = distance(XYZ(at1,frame),XYZ(at2,frame),frame,is_periodic);
         // Check if this is 1-4 pair
         auto it = force_field.LJ14_pairs.find(at1*N+at2);
         if( it == force_field.LJ14_pairs.end() ){
             // Normal, not 1-4
-            e.lj_sr += LJ_en_kernel(force_field.LJ_C6(atoms[at1].type,atoms[at2].type),
+            e1 = LJ_en_kernel(force_field.LJ_C6(atoms[at1].type,atoms[at2].type),
                                    force_field.LJ_C12(atoms[at1].type,atoms[at2].type),
                                    r);
-            e.q_sr += Coulomb_en_kernel(atoms[at1].charge,
+            e2 = Coulomb_en_kernel(atoms[at1].charge,
                                        atoms[at2].charge,
                                        r);
-            e.total += e.lj_sr + e.q_sr;
+            e.lj_sr += e1;
+            e.q_sr += e2;
+            e.total += (e1 + e2);
         } else {
             // 1-4
-            e.lj_14 += LJ_en_kernel(force_field.LJ14_interactions[it->second](0),
+            e1 = LJ_en_kernel(force_field.LJ14_interactions[it->second](0),
                                    force_field.LJ14_interactions[it->second](1),
                                    r);
-            e.q_14 += Coulomb_en_kernel(atoms[at1].charge,
+            e2 = Coulomb_en_kernel(atoms[at1].charge,
                                        atoms[at2].charge,
                                        r)
                     * force_field.fudgeQQ;
-            e.total += e.lj_14 + e.q_14;
+
+            e.lj_14 = e1;
+            e.q_14 = e2;
+            e.total += (e1 + e2);
         }
     }
+}
+
+Energy_components System::non_bond_energy(const std::vector<Eigen::Vector2i> &nlist, int fr)
+{
+    Energy_components e;
+    int n = nlist.size();
+
+    for(int i=0;i<n;++i){
+        add_non_bond_energy(e,nlist[i](0),nlist[i](1),fr,true);
+    }
+
+    return e;
 }

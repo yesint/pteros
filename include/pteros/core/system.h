@@ -78,6 +78,11 @@ struct Frame {
     Eigen::Matrix3f box;
     /// Timestamp
     float t;
+
+    Frame(){
+        box.fill(0.0);
+        t = 0.0;
+    }
 };
 
 //Forward declarations
@@ -220,6 +225,8 @@ public:
     /// The result is ADDED to e
     /// Intended mainly to be called from other functions, which take care of initializing e
     void add_non_bond_energy(Energy_components& e, int a1, int a2, int frame, bool is_periodic = true);
+    /// Non-bond energy for given pair list
+    Energy_components non_bond_energy(const std::vector<Eigen::Vector2i>& nlist, int fr);
 
 protected:
 

@@ -372,7 +372,7 @@ class Selection {
     /// Self-energy of selection
     Energy_components non_bond_energy() const;
     /// Non-bond energy between two selections
-    friend Energy_components non_bond_energy(Selection& sel1, Selection& sel2, int fr);
+    friend Energy_components non_bond_energy(Selection& sel1, Selection& sel2, int fr);    
 
     /// @}
 
