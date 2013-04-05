@@ -603,7 +603,7 @@ vector<Vector2i> Selection::compute_bonds(){
 ////////////////////////////////////////////
 
 // Center of geometry
-Vector3f Selection::center(bool mass_weighted, bool periodic){
+Vector3f Selection::center(bool mass_weighted, bool periodic) const {
     Vector3f res;
     int i;
     int n = index.size();
@@ -616,13 +616,13 @@ Vector3f Selection::center(bool mass_weighted, bool periodic){
         if(mass_weighted){
             float m = 0.0;
             for(i=0; i<n; ++i){
-                res += XYZ(i)*Mass(i);
-                m += Mass(i);
+                res += _XYZ(i)*_Mass(i);
+                m += _Mass(i);
             }
             return res/m;
         } else {
             for(i=0; i<n; ++i)
-                res += XYZ(i);
+                res += _XYZ(i);
 
             return res/n;
         }
@@ -630,17 +630,17 @@ Vector3f Selection::center(bool mass_weighted, bool periodic){
         // Periodic center
         // We will find closest periodic images of all points
         // using first point as a reference
-        Vector3f ref_point = XYZ(0);
+        Vector3f ref_point = _XYZ(0);
         if(mass_weighted){
             float m = 0.0;
             for(i=0; i<n; ++i){
-                res += system->get_closest_image(XYZ(i),ref_point,frame) * Mass(i);
-                m += Mass(i);
+                res += system->get_closest_image(_XYZ(i),ref_point,frame) * _Mass(i);
+                m += _Mass(i);
             }
             return res/m;
         } else {
             for(i=0; i<n; ++i)
-                res += system->get_closest_image(XYZ(i),ref_point,frame);
+                res += system->get_closest_image(_XYZ(i),ref_point,frame);
 
             return res/n;
         }
@@ -1000,14 +1000,14 @@ void Selection::fit(int fr1, int fr2){
     apply_transform(t);
 }
 
-void Selection::minmax(Vector3f& min, Vector3f& max){
+void Selection::minmax(Vector3f& min, Vector3f& max) const {
     int i,n,j;
     Vector3f xyz;
     n = index.size();
     min.fill(1e10);
     max.fill(-1e10);
     for(i=0; i<n; ++i){
-        xyz = XYZ(i);
+        xyz = _XYZ(i);
         for(j=0; j<3; ++j){
             if(xyz(j)<min(j)) min(j) = xyz(j);
             if(xyz(j)>max(j)) max(j) = xyz(j);
@@ -1165,7 +1165,7 @@ bool Selection::signals_enabled() const {
     return connection.connected();
 }
 
-void Selection::split_by_connectivity(float d, std::vector<Selection> &res){
+void Selection::split_by_connectivity(float d, std::vector<Selection> &res) {
     cout << "Splitting by connectivity..." << endl;
     int i,j,k;
     // Clear result
@@ -1205,7 +1205,7 @@ void Selection::split_by_connectivity(float d, std::vector<Selection> &res){
         while(!to_search.empty()){
             k = to_search.front();
             to_search.pop();
-            res.back().index.push_back(Index(k)); // add it to current selection
+            res.back().index.push_back(_Index(k)); // add it to current selection
             res.back().sel_text += " "+boost::lexical_cast<string>(Index(k));
             // See all atoms connected to k
             for(int j=0; j<con[k].size(); ++j){
@@ -1220,7 +1220,7 @@ void Selection::split_by_connectivity(float d, std::vector<Selection> &res){
     }
 }
 
-void Selection::inertia(Eigen::Vector3f &moments, Eigen::Matrix3f &axes, bool periodic){
+void Selection::inertia(Eigen::Vector3f &moments, Eigen::Matrix3f &axes, bool periodic) const{
     int n = size();
     int i;
     // Compute the central tensor of inertia. Place it into axes
@@ -1231,24 +1231,24 @@ void Selection::inertia(Eigen::Vector3f &moments, Eigen::Matrix3f &axes, bool pe
 
     if(periodic){
         for(i=0;i<n;++i){
-            p = system->get_closest_image(XYZ(i),c,frame);
+            p = system->get_closest_image(_XYZ(i),c,frame);
             d = p-c;
-            axes(0,0) += Mass(i)*( d(1)*d(1) + d(2)*d(2) );
-            axes(1,1) += Mass(i)*( d(0)*d(0) + d(2)*d(2) );
-            axes(2,2) += Mass(i)*( d(0)*d(0) + d(1)*d(1) );
-            axes(0,1) -= Mass(i)*d(0)*d(1);
-            axes(0,2) -= Mass(i)*d(0)*d(2);
-            axes(1,2) -= Mass(i)*d(1)*d(2);
+            axes(0,0) += _Mass(i)*( d(1)*d(1) + d(2)*d(2) );
+            axes(1,1) += _Mass(i)*( d(0)*d(0) + d(2)*d(2) );
+            axes(2,2) += _Mass(i)*( d(0)*d(0) + d(1)*d(1) );
+            axes(0,1) -= _Mass(i)*d(0)*d(1);
+            axes(0,2) -= _Mass(i)*d(0)*d(2);
+            axes(1,2) -= _Mass(i)*d(1)*d(2);
         }
     } else {
         for(i=0;i<n;++i){
-            d = XYZ(i)-c;
-            axes(0,0) += Mass(i)*( d(1)*d(1) + d(2)*d(2) );
-            axes(1,1) += Mass(i)*( d(0)*d(0) + d(2)*d(2) );
-            axes(2,2) += Mass(i)*( d(0)*d(0) + d(1)*d(1) );
-            axes(0,1) -= Mass(i)*d(0)*d(1);
-            axes(0,2) -= Mass(i)*d(0)*d(2);
-            axes(1,2) -= Mass(i)*d(1)*d(2);
+            d = _XYZ(i)-c;
+            axes(0,0) += _Mass(i)*( d(1)*d(1) + d(2)*d(2) );
+            axes(1,1) += _Mass(i)*( d(0)*d(0) + d(2)*d(2) );
+            axes(2,2) += _Mass(i)*( d(0)*d(0) + d(1)*d(1) );
+            axes(0,1) -= _Mass(i)*d(0)*d(1);
+            axes(0,2) -= _Mass(i)*d(0)*d(2);
+            axes(1,2) -= _Mass(i)*d(1)*d(2);
         }
     }
     axes(1,0) = axes(0,1);
@@ -1262,15 +1262,15 @@ void Selection::inertia(Eigen::Vector3f &moments, Eigen::Matrix3f &axes, bool pe
     moments = solver.eigenvalues();
 }
 
-float Selection::gyration(bool periodic) {
+float Selection::gyration(bool periodic) const {
     int n = size();
     int i;
     float d, a = 0.0, b = 0.0;
     Vector3f c = center(true,periodic);
     for(i=0;i<n;++i){
-        d = system->distance(XYZ(i),c,frame,periodic);
-        a += Mass(i)*d*d;
-        b += Mass(i);
+        d = system->distance(_XYZ(i),c,frame,periodic);
+        a += _Mass(i)*d*d;
+        b += _Mass(i);
     }
     return sqrt(a/b);
 }

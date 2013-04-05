@@ -266,9 +266,9 @@ class Selection {
     * Please note that if the size of selection is larger than 1/2 of the box size in
     * any dimension you will get incorrect results if periodic is set to true.
     */
-    Eigen::Vector3f center(bool mass_weighted = false, bool periodic = false);
+    Eigen::Vector3f center(bool mass_weighted = false, bool periodic = false) const;
     /// Get minimal and maximal coordinates in selection
-    void minmax(Eigen::Vector3f& min, Eigen::Vector3f& max);
+    void minmax(Eigen::Vector3f& min, Eigen::Vector3f& max) const;
     /// @}
 
     /// @name Geometry transformation functions
@@ -422,10 +422,10 @@ class Selection {
     void split_by_connectivity(float d, std::vector<Selection>& res);
 
     /// Computes the central momens of inertia and principal axes of inertia
-    void inertia(Eigen::Vector3f& moments, Eigen::Matrix3f& axes, bool periodic = false);
+    void inertia(Eigen::Vector3f& moments, Eigen::Matrix3f& axes, bool periodic = false) const;
 
     /// Computes radius of gyration for selection
-    float gyration(bool periodic = false);
+    float gyration(bool periodic = false) const;
 
     /** @name Inlined utility functions.
     *   Used to access the properties of
@@ -571,6 +571,20 @@ protected:
     // Notification responder and connection object
     boost::signals2::connection connection;
     void notify_slot(System_notification code, int b, int e);
+
+    // Here we define read-only accessors for coordinate and mass
+    // This is needed because public XYZ() accessor is not const
+    // and thus can't be used in const methods
+    inline float& _X(int ind) const { return system->traj[frame].coord[index[ind]](0); }
+    inline float& _X(int ind, int fr) const { return system->traj[fr].coord[index[ind]](0); }
+    inline float& _Y(int ind) const { return system->traj[frame].coord[index[ind]](1); }
+    inline float& _Y(int ind, int fr) const { return system->traj[fr].coord[index[ind]](1); }
+    inline float& _Z(int ind) const { return system->traj[frame].coord[index[ind]](2); }
+    inline float& _Z(int ind, int fr) const { return system->traj[fr].coord[index[ind]](2); }
+    inline Eigen::Vector3f& _XYZ(int ind) const { return system->traj[frame].coord[index[ind]]; }
+    inline Eigen::Vector3f& _XYZ(int ind, int fr) const { return system->traj[fr].coord[index[ind]]; }
+    inline float& _Mass(int ind) const { return system->atoms[index[ind]].mass; }
+    inline int _Index(int ind) const { return index[ind]; }
 };
 
 
