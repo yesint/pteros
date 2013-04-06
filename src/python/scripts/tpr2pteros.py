@@ -1,12 +1,25 @@
+#!/bin/python
+
 import re
 import sys
-import numpy
+import re
+import os
 from subprocess import call
+
+print "*** This is tpr2pteros.py script ***"
 
 class Atom:
 	pass
 
-print sys.argv[1]
+# Check if we have pttop file already
+if os.path.isfile(sys.argv[1]+".pttop"):
+	# Check modification time of pttop and tpr and decide if need to proceed
+	tpr_time = os.path.getmtime(sys.argv[1])
+	pttop_time = os.path.getmtime(sys.argv[1]+".pttop")
+	if(tpr_time < pttop_time):
+		print "PTTOP file '%s' is up to date. Exiting." % (sys.argv[1]+".pttop")
+		sys.exit()
+
 # Run gmxdump
 print "Calling gmxdump on tpr file '%s'..." % sys.argv[1]
 call("gmxdump -sys -s %s > _tpr_dump" % sys.argv[1], shell=True)
@@ -21,6 +34,7 @@ LJ = []
 LJ14 = []
 LJ14_pairs = []
 fudgeQQ = 0.0
+box = []
 
 while True:
 	line = f.readline()
@@ -164,11 +178,22 @@ while True:
 			if m.group(2) == "LJ14":
 				LJ14_pairs.append( (int(m.group(3)), int(m.group(4)), int(m.group(1))) )
 			
+	
+	if re.search("box \(",line):
+		# Periodic box
+		for i in range(0,3):
+			line = f.readline()
+			m = re.search("\{\s*(\S+),\s*(\S+),\s*(\S+)\}",line)
+			box.append( float(m.group(1)) )
+			box.append( float(m.group(2)) )
+			box.append( float(m.group(3)) )
+			
+
 	if re.search("^x \(\d+x\d+\)",line):
 		# Coordinates
 		for i in range(0,len(atoms)):
 			line = f.readline()
-			m = re.search("\{\s*(\S+),\s*(\S+),\s*(\S+)\}",line)		
+			m = re.search("\{\s*(\S+),\s*(\S+),\s*(\S+)\}",line)
 			x = float(m.group(1))
 			y = float(m.group(2))
 			z = float(m.group(3))
@@ -186,6 +211,14 @@ i = 0
 for	at in atoms:
 	f.write("%i %s %s %i %i %i %s %e %e %e %e %e\n" % (i,at.name, at.typename, at.type, at.resid, at.resind, at.resname, at.mass, at.charge, at.coord[0], at.coord[1], at.coord[2]) )
 	i += 1
+	
+f.write("# Periodic box\n")	
+n = 0
+for i in range(0,3):
+	for j in range(0,3):
+		f.write("%e " % box[n])		
+		n += 1
+	f.write("\n")
 
 f.write("# number of charge groups\n")
 f.write("%s\n" % len(cg))
@@ -238,3 +271,6 @@ for	e in LJ14_pairs:
 	f.write("%i\t%i\t%i\n" % (e[0],e[1], table[e[2]]))
 
 f.close()
+
+# Remove temporary file
+os.remove("_tpr_dump")

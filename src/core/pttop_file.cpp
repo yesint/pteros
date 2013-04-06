@@ -51,12 +51,12 @@ bool PTTOP_file::do_read(System *sys, Frame *frame, Mol_file_content what){
 
         // Number of atoms
         int natoms;
-        getline(f,line); // Coment
+        getline(f,line); // Comment
         getline(f,line); // Value
         ss.clear(); ss.str(line);
         ss >> natoms;
         frame->coord.resize(natoms);
-        getline(f,line); // Coment                        
+        getline(f,line); // Comment
         // Read atoms
         for(int i=0;i<natoms;++i){
             Atom at;
@@ -72,6 +72,16 @@ bool PTTOP_file::do_read(System *sys, Frame *frame, Mol_file_content what){
             }
         }
         cout << "\tRead " << natoms << " atoms" << endl;
+
+        // Box
+        getline(f,line); // Comment
+        for(int i=0; i<3; ++i){
+            getline(f,line);
+            ss.clear(); ss.str(line);
+            if(what.coordinates){
+                ss >> frame->box(i,0) >> frame->box(i,1) >> frame->box(i,2);
+            }
+        }
 
         // All the rest should be read only if topology is requested
         if(!what.topology) return true;

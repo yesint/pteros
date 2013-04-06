@@ -49,7 +49,7 @@ int main(int argc, char** argv)
         //return 1;
 
         //System t("/home/semen/work/Projects/pteros/pteros_git/src/test/data/2lao.gro");
-        System t("/home/semen/work/Projects/pteros/pteros_git/src/python/scripts/topol.tpr.pttop");
+        System t("/home/semen/work/Projects/pteros/pteros_git/src/python/scripts/topol.tpr");
         //t.load("/home/semen/work/Projects/pteros/pteros_git/src/test/data/2lao.gro");
 
         Selection s(t,"all");
