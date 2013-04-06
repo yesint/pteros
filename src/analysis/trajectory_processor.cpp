@@ -356,7 +356,7 @@ void Trajectory_processor::run(){
             if(structure_file!="") throw Pteros_error("Only one structure file is allowed!");
             structure_file = s;
             break;
-        case TOP_FILE:
+        case PTTOP_FILE:
             if(top_file!="") throw Pteros_error("Only one topology file is allowed!");
             top_file = s;
             break;
@@ -368,30 +368,30 @@ void Trajectory_processor::run(){
         }
     }
 
-    // Now read everything in sequence
+    // Now read everything in sequence      
 
-    // Read structure file
-    if(structure_file=="") throw Pteros_error("Structure file is required!");
-    // We will read this file into the system of first supplied consumer
+    // We will read into the system of first supplied consumer
     // and then copy that system to all other consumers
     System* sys1 = consumers[0]->get_system();
     sys1->clear();
-    sys1->load(structure_file);
+
+    if(structure_file!="" && top_file==""){
+        // we have only structure but no topology
+        sys1->load(structure_file);
+    } else if(structure_file=="" && top_file!=""){
+        // we have only topology but no structure
+        sys1->load(top_file); // coordinates and stucture from top!
+    } else if(structure_file!="" && top_file!=""){
+        // we have both topology and structure
+        sys1->load(structure_file);
+        sys1->load(top_file); // No coordinates and stucture from top!
+    } else {
+        Pteros_error("Structure AND/OR topology file is required!");
+    }
 
     cout << "Copying system data to consumers..." << endl;
     for(int i=1; i<consumers.size(); ++i)
         *(consumers[i]->get_system()) = *sys1;
-
-    // Read topology if provided
-    if(top_file!=""){
-        simulation = boost::shared_ptr<Simulation>(new Simulation);
-        // Load data into simulation using system from first consumer
-        simulation->create(*(consumers[0]->get_system()),top_file);
-        // Copy pointer to all consumers
-        for(int i=0; i<consumers.size(); ++i){
-            consumers[i]->set_simulation(simulation);
-        }
-    }
 
     // Now read trajectories
     if(traj_files.empty()) throw Pteros_error("At least one trajectory file is required!");

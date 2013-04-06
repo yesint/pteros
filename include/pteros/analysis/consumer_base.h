@@ -25,7 +25,6 @@
 #define CONSUMER_BASE_H
 
 #include "pteros/core/system.h"
-#include "pteros/simulation/simulation.h"
 #include "pteros/analysis/frame_info.h"
 
 namespace pteros {
@@ -60,11 +59,7 @@ public:
 
     /// Main processing method. Called by Trajectory_processor
     void run();
-    System* get_system(){return &system;}
-    void set_simulation(boost::shared_ptr<Simulation>& p){
-        simulation = p;
-    }
-
+    System* get_system(){return &system;}    
     void set_id(int i){id = i;}
 
 protected:    
@@ -82,9 +77,7 @@ protected:
     /// Pointer to trajectory processor
     Trajectory_processor* proc;
     /// local system (stored in consumer itself)
-    System system;
-    /// Pointer to simulation (shared by all consumers)
-    boost::shared_ptr<Simulation> simulation;
+    System system;    
     /// Index of consumer
     int id;
     /// Window counter

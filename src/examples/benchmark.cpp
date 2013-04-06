@@ -1,5 +1,6 @@
 #include "pteros/analysis/trajectory_processor.h"
 #include "pteros/analysis/consumer.h"
+#include "pteros/core/grid_search.h"
 
 using namespace std;
 using namespace pteros;

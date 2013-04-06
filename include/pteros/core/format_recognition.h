@@ -27,7 +27,7 @@
 namespace pteros {
 
 /// List of supported file formats identified by extension
-enum FILE_FORMATS {PDB_FILE, GRO_FILE, TRR_FILE, XTC_FILE, DCD_FILE, TOP_FILE, TPR_FILE, PTTOP_FILE};
+enum FILE_FORMATS {PDB_FILE, GRO_FILE, TRR_FILE, XTC_FILE, DCD_FILE, PTTOP_FILE};
 
 /// Takes file name and returns code of the file format.
 /// Throws error if format is not recognized

@@ -55,12 +55,14 @@ System::System(const System& other){
     clear(true);
     atoms = other.atoms;
     traj = other.traj;
+    force_field = other.force_field;
 }
 
 System& System::operator=(System other){
     clear(true);
     atoms = other.atoms;
     traj = other.traj;
+    force_field = other.force_field;
     return *this;
 }
 
@@ -68,6 +70,7 @@ System& System::operator=(System other){
 void System::clear(bool delete_selections){
     atoms.clear();
     traj.clear();
+    force_field.clear();
     if(delete_selections) notify_signal(SYSTEM_CLEARED,0,0);
 }
 
@@ -450,11 +453,16 @@ void System::wrap_all(int fr){
     }
 }
 
-inline float LJ_en_kernel(float sig, float eps, float r){
-    float tmp = sig/r;
+inline float LJ_en_kernel(float C6, float C12, float r){
+    /*float tmp = sig/r;
     tmp = tmp*tmp; // This gets (s/r)^2
     tmp = tmp*tmp*tmp; // This gets (s/r)^6
     return 4.0*eps*(tmp*tmp-tmp);
+    */
+    float tmp = 1/r;
+    tmp = tmp*tmp; // (1/r)^2
+    tmp = tmp*tmp*tmp; // (1/r)^6
+    return C12*tmp*tmp-C6*tmp;
 }
 
 #define ONE_4PI_EPS0      138.935456

@@ -78,7 +78,6 @@ link_directories("${CMAKE_BINARY_DIR}/lib")
 
 add_subdirectory(src/core)
 add_subdirectory(src/test)
-add_subdirectory(src/simulation)
 add_subdirectory(src/analysis)
 add_subdirectory(src/python)
 add_subdirectory(src/python/bindings)

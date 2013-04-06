@@ -228,6 +228,10 @@ public:
     /// Non-bond energy for given pair list
     Energy_components non_bond_energy(const std::vector<Eigen::Vector2i>& nlist, int fr);
 
+    bool force_field_ready(){
+        return force_field.ready;
+    }
+
 protected:
 
     /// Holds all atom attributes except the coordinates

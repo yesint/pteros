@@ -7,8 +7,6 @@
 
 #include "python/compiled_plugin.h"
 
-#include "simulation/simulation.h"
-
 #include "analysis/trajectory_processor.h"
 #include "analysis/consumer.h"
 #include "analysis/options_parser.h"

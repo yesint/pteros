@@ -147,11 +147,10 @@ bool Contacts_finder::process_frame(const Frame_info &info){
 
     bool is_energy = true;
 
-    if(simulation)
+    if(system.force_field_ready())
         is_energy = true;
     else
         is_energy = false;
-
 
     // Cycle over all selection pairs
     for(i=0; i<sel_pairs.size(); ++i){
@@ -208,8 +207,12 @@ bool Contacts_finder::process_frame(const Frame_info &info){
             // Compute energy of this pair if requested
             float at_pair_energy;
             if(is_energy){
-                Frame* fp = &system.Frame_data(sel_pairs[0].sel1.get_frame());
-                at_pair_energy = simulation->non_bond_energy(at_pair.first,at_pair.second,*fp).total;
+                //Frame* fp = &system.Frame_data(sel_pairs[0].sel1.get_frame());
+                //at_pair_energy = simulation->non_bond_energy(at_pair.first,at_pair.second,*fp).total;
+                Energy_components e;
+                system.add_non_bond_energy(e,at_pair.first, at_pair.second,
+                                           sel_pairs[0].sel1.get_frame(),true);
+                at_pair_energy = e.total;
             } else
                 at_pair_energy = 0.0;
             total_energy += at_pair_energy;

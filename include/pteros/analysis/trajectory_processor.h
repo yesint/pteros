@@ -33,7 +33,6 @@
 
 #include "pteros/analysis/options_parser.h"
 #include "pteros/analysis/consumer_base.h"
-#include "pteros/simulation/simulation.h"
 #include <boost/algorithm/string.hpp>
 #include <boost/thread.hpp>
 #include <boost/thread/mutex.hpp>
@@ -96,8 +95,6 @@ class Trajectory_processor {
                     ...
         */
         Options_tree* options;
-        /// Simulation object, which is global for all consumers
-        boost::shared_ptr<Simulation> simulation;
 
         // Sets default options
         void init();           

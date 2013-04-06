@@ -75,19 +75,34 @@ while True:
 		nres = int(m.group(1))
 		print "Number of residues: %s" % nres
 		# Read residue names
+		last = 0
 		for i in range(0,nres):
+			if i % 1000 ==0:
+				print i
 			line = f.readline()			
 			m = re.search("name=\"(\S+)\",.+nr=(\d+)",line)
 			resname = m.group(1)
-			resid = m.group(2)
+			resid = int(m.group(2))
 			# assign to atoms
-			for at in atoms:
-				if at.resind==i:
-					at.resid = int(resid)
-					at.resname = resname
+			for ind in range(last,len(atoms)):
+				#print i,atoms[ind].resind
+				if atoms[ind].resind==i:
+					atoms[ind].resid = resid
+					atoms[ind].resname = resname					
+				else:
+					#print "--------"
+					last = ind
+					break
+					
+			#for at in atoms:
+			#	if at.resind==i:
+			#		at.resid = int(resid)
+			#		at.resname = resname
+
 		continue
 			
 	if re.search("cgs:",line):
+		print "Reading charge groups..."
 		# Charge groups
 		line = f.readline()
 		m = re.search("(\d+)",line)
@@ -99,6 +114,7 @@ while True:
 			cg.append( (int(m.group(1)),int(m.group(2))) )
 
 	if re.search("excls:",line):
+		print "Reading exclusions..."
 		# Exclusions
 		line = f.readline()
 		m = re.search("(\d+)",line)
@@ -119,6 +135,7 @@ while True:
 			excl.append( [int(x) for x in l if x!=''] )
 			
 	if re.search("idef",line):
+		print "Reading interactions..."
 		# Interaction definitions
 		line = f.readline()
 		m = re.search("(\d+)",line)
@@ -155,6 +172,8 @@ while True:
 		for i in range(0,ntypes-atnr*atnr):
 			line = f.readline()
 			m = re.search("functype\[(.+)\]=(\S+),\s*\S+=\s*(\S+),\s*\S+=\s*(\S+),",line)			
+			if not m:
+				continue
 			n = int(m.group(1))
 			if m.group(2) == "LJ14":
 				c6 = float(m.group(3))
@@ -190,6 +209,7 @@ while True:
 			
 
 	if re.search("^x \(\d+x\d+\)",line):
+		print "Reading coordinates..."
 		# Coordinates
 		for i in range(0,len(atoms)):
 			line = f.readline()

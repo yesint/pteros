@@ -44,6 +44,22 @@ struct Force_field {
     std::vector<Eigen::Vector2f> LJ14_interactions; // [C6,C12]
     std::unordered_map<int,int> LJ14_pairs; // (a*LJ14_interactions.size()+b) --> LJ14_interaction
     float fudgeQQ; // 1-3 charge scaling factor
+    bool ready;
+
+    Force_field(){
+        ready = false;
+    }
+
+    void clear(){
+        charge_groups.clear();
+        exclusions.clear();
+        LJ_C6.fill(0.0);
+        LJ_C12.fill(0.0);
+        LJ14_interactions.clear();
+        LJ14_pairs.clear();
+        fudgeQQ = 0.0;
+        ready = false;
+    }
 };
 
 

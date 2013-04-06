@@ -22,6 +22,7 @@
 
 #include "pteros/python/compiled_plugin.h"
 #include <fstream>
+#include "pteros/core/grid_search.h"
 
 using namespace std;
 using namespace pteros;

@@ -193,6 +193,8 @@ bool PTTOP_file::do_read(System *sys, Frame *frame, Mol_file_content what){
         }
         cout << "\tRead " << nLJ14pairs << " LJ-14 atom pairs" << endl;
 
+        ff_in_system(*sys).ready = true; // ff is ready to use
+
         return true;
 
     } else {

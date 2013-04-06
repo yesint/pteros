@@ -49,17 +49,16 @@ int main(int argc, char** argv)
         //return 1;
 
         //System t("/home/semen/work/Projects/pteros/pteros_git/src/test/data/2lao.gro");
-        System t("/home/semen/work/Projects/pteros/pteros_git/src/python/scripts/topol.tpr");
-        //t.load("/home/semen/work/Projects/pteros/pteros_git/src/test/data/2lao.gro");
+        System t("/media/data/semen/trajectories/test/topol.tpr.pttop");
+        t.load("/media/data/semen/trajectories/test/traj.trr");
 
-        Selection s(t,"all");
-        vector<Vector2i> l;
-        l.push_back(Vector2i(0,1));
-        l.push_back(Vector2i(0,2));
-        Energy_components e = t.non_bond_energy(l,0);
-        cout << e.to_str() << endl;
-        e = s.non_bond_energy();
-        cout << e.to_str() << endl;
+        ofstream f("out.dat");
+        for(int fr=1;fr<t.num_frames();++fr){
+            Energy_components e;
+            t.add_non_bond_energy(e,0,1,fr,true);
+            f << fr << "  " << e.to_str() << endl;
+        }
+        f.close();
 
         /*
         Vector3f ref = s.XYZ(10000);

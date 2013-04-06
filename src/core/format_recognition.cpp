@@ -30,10 +30,8 @@ FILE_FORMATS recognize_format(std::string& fname){
     if(ftype=="xtc") return XTC_FILE;
     else if(ftype=="trr") return TRR_FILE;
     else if(ftype=="pdb") return PDB_FILE;
-    else if(ftype=="gro") return GRO_FILE;
-    else if(ftype=="top") return TOP_FILE;
-    else if(ftype=="dcd") return DCD_FILE;
-    //else if(ftype=="tpr") return TPR_FILE;
+    else if(ftype=="gro") return GRO_FILE;    
+    else if(ftype=="dcd") return DCD_FILE;    
     else if(ftype=="pttop") return PTTOP_FILE;
     else throw Pteros_error("File extension "+ftype+ " not recognized!");
 }

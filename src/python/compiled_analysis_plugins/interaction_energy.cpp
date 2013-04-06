@@ -22,6 +22,7 @@
 
 #include "pteros/python/compiled_plugin.h"
 #include <fstream>
+#include "pteros/core/grid_search.h"
 
 using namespace std;
 using namespace pteros;
@@ -56,27 +57,21 @@ protected:
         (sel1==sel2) ? is_self_energy = true : is_self_energy = false;
 
         // Get contacts
+        /*
         bon.clear();
         if(!is_self_energy)
             Grid_searcher(cutoff,sel1,sel2,bon,true,is_periodic);
         else
-            Grid_searcher(cutoff,sel1,bon,true,is_periodic);
+            Grid_searcher(cutoff,sel1,bon,true,is_periodic);             
 
-        cout << "(1)" << endl;
-        // Get energy
-        Energy_components e = simulation->non_bond_energy(bon, sel1.get_system()->Frame_data(sel1.get_frame()));
-        cout << "(2)" << endl;
-    /*
-        cout << sel[0].get_text() << endl;
-        cout << sel[1].get_text() << endl;
-        Selection sel(system,"all");
-        sel.set_frame(0);
-        if(bon.size()){
-            cout << info.absolute_frame << " " << bon.size() << endl;
-            //cout << "***" << sel.XYZ(bon[0](0)).transpose() <<  " " << sel.XYZ(bon[0](1)).transpose() << endl;
-            //cout << "***" << e.total << endl;
+        Energy_components e = system.non_bond_energy(bon, sel1.get_frame());
+        */
+        Energy_components e;
+        for(int i=0;i<sel1.size(); ++i){
+            for(int j=0;j<sel2.size(); ++j){
+                system.add_non_bond_energy(e,sel1.Index(i),sel1.Index(j),0,true);
+            }
         }
-    */
 
         data.push_back(e);
         mean.lj_14 += e.lj_14;

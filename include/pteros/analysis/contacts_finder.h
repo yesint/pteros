@@ -30,7 +30,6 @@
 #include "pteros/analysis/trajectory_processor.h"
 #include "pteros/analysis/options_parser.h"
 #include "pteros/core/grid_search.h"
-#include "pteros/simulation/simulation.h"
 
 namespace pteros {
 
