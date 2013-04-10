@@ -6,7 +6,7 @@
  *                    ******************
  *                 molecular modeling library
  *
- * Copyright (c) 2009, Semen Yesylevskyy
+ * Copyright (c) 2009-2013, Semen Yesylevskyy
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of Artistic License:
@@ -38,8 +38,6 @@ void make_bindings_Atom(){
         .def_readwrite("resindex",&Atom::resindex)
         .def_readwrite("mass",&Atom::mass)
         .def_readwrite("type",&Atom::type)
-        .def_readwrite("type_name",&Atom::type_name)
-        .def_readwrite("V",&Atom::V)
-        .def_readwrite("W",&Atom::W)
+        .def_readwrite("type_name",&Atom::type_name)        
     ;
 }

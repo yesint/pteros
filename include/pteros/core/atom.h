@@ -32,6 +32,8 @@ namespace pteros {
 */
 class Atom {
   public:
+    /// @name General fields
+    /// @{
     /// Residue ID (unique only inside given chain)
     int  resid;
     /// Atom name (CA, O, N, etc.)
@@ -50,7 +52,10 @@ class Atom {
     /// For multi-chain proteins this marks each residue in unique way
     /// regardless of the chain
     int  resindex;
+    /// @}
 
+    /// @name Force-field related fields
+    /// @{
     /// Atom mass
     float mass;
     /// Atom charge
@@ -59,9 +64,7 @@ class Atom {
     int type;
     /// Atom type name - textual representation of the atom type
     std::string type_name;
-    /// Parameters for non-bond VDW interactions.
-    /// Depending on the force field this can be sigma-epsilon, c6-c12, Rmin-epsilon, etc.
-    float V, W;
+    /// @}
 
     Atom(){
         resid = -1;
@@ -75,9 +78,7 @@ class Atom {
         mass = 0;
         charge = 0;
         type = -1;
-        type_name = "";
-        V = 0;
-        W = 0;
+        type_name = "";        
     }
 };
 

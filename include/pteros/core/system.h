@@ -225,9 +225,9 @@ public:
     /// The result is ADDED to e
     /// Intended mainly to be called from other functions, which take care of initializing e
     void add_non_bond_energy(Energy_components& e, int a1, int a2, int frame, bool is_periodic = true);
-    /// Non-bond energy for given pair list
+    /// Non-bond energy for given list of atom pairs
     Energy_components non_bond_energy(const std::vector<Eigen::Vector2i>& nlist, int fr);
-
+    /// Returns true if the force field is set up properly and is able to compute energies
     bool force_field_ready(){
         return force_field.ready;
     }

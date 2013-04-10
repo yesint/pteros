@@ -6,7 +6,7 @@
  *                    ******************
  *                 molecular modeling library
  *
- * Copyright (c) 2009, Semen Yesylevskyy
+ * Copyright (c) 2009-2013, Semen Yesylevskyy
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of Artistic License:
@@ -454,11 +454,6 @@ void System::wrap_all(int fr){
 }
 
 inline float LJ_en_kernel(float C6, float C12, float r){
-    /*float tmp = sig/r;
-    tmp = tmp*tmp; // This gets (s/r)^2
-    tmp = tmp*tmp*tmp; // This gets (s/r)^6
-    return 4.0*eps*(tmp*tmp-tmp);
-    */
     float tmp = 1/r;
     tmp = tmp*tmp; // (1/r)^2
     tmp = tmp*tmp*tmp; // (1/r)^6
