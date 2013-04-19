@@ -33,7 +33,6 @@
 #include "pteros/core/format_recognition.h"
 
 #include "pteros/core/mol_file.h"
-#include <boost/lexical_cast.hpp>
 
 using namespace std;
 using namespace pteros;
@@ -77,9 +76,9 @@ void System::clear(bool delete_selections){
 void System::check_num_atoms_in_last_frame(){
     if(Frame_data(num_frames()-1).coord.size()!=num_atoms())
         throw Pteros_error("File contains "
-                           +boost::lexical_cast<string>(Frame_data(num_frames()-1).coord.size())
+                           +to_string(Frame_data(num_frames()-1).coord.size())
                            +" atoms while the system has "
-                           +boost::lexical_cast<string>(num_atoms())
+                           +to_string(num_atoms())
                            );
 }
 
@@ -467,11 +466,11 @@ inline float Coulomb_en_kernel(float q1, float q2, float r){
 }
 
 string Energy_components::to_str(){
-    return    boost::lexical_cast<string>(total) + " "
-            + boost::lexical_cast<string>(lj_sr) + " "
-            + boost::lexical_cast<string>(lj_14) + " "
-            + boost::lexical_cast<string>(q_sr) + " "
-            + boost::lexical_cast<string>(q_14);
+    return    std::to_string(total) + " "
+            + std::to_string(lj_sr) + " "
+            + std::to_string(lj_14) + " "
+            + std::to_string(q_sr) + " "
+            + std::to_string(q_14);
 }
 
 void System::add_non_bond_energy(Energy_components &e, int a1, int a2, int frame, bool is_periodic)

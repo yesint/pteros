@@ -25,7 +25,6 @@
 #include "pteros/core/pteros_error.h"
 #include <boost/bind.hpp>
 #include <boost/tokenizer.hpp>
-#include <boost/lexical_cast.hpp>
 #include "pteros/analysis/options_parser.h"
 #include "pteros/core/format_recognition.h"
 #include "pteros/core/mol_file.h"

@@ -16,10 +16,10 @@ struct Chol_data {
     vector<float> center_dist; // Distance from center for each chol    
 
     string print(){
-        return boost::lexical_cast<string>(t) + " "
-                + boost::lexical_cast<string>(n1) + " "
-                + boost::lexical_cast<string>(n2) + " "
-                + boost::lexical_cast<string>(flip_time) + " "
+        return boost::to_string(t) + " "
+                + boost::to_string(n1) + " "
+                + boost::to_string(n2) + " "
+                + boost::to_string(flip_time) + " "
                 ;
     }
 };

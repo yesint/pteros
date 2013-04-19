@@ -30,7 +30,6 @@
 #include <stack>
 #include <boost/tokenizer.hpp>
 #include <boost/algorithm/string.hpp>
-#include <boost/lexical_cast.hpp>
 #include <pteros/core/pteros_error.h>
 #include <boost/variant.hpp>
 

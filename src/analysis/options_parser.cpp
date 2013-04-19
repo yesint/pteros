@@ -26,6 +26,7 @@
 
 #include "json_spirit/json_spirit_writer_template.h"
 #include "json_spirit/json_spirit_reader_template.h"
+#include <boost/lexical_cast.hpp>
 
 
 using namespace std;
@@ -55,7 +56,7 @@ template<class T>
 bool add_to_indented(std::string& str, Option_value& o, int level){
     T* ptr = boost::get<T>(&o);
     if(ptr){
-        str += string(level,' ') + boost::lexical_cast<string>(*ptr) + '\n';
+        str += string(level,' ') + to_string(*ptr) + '\n';
         return true;
     } else
         return false;

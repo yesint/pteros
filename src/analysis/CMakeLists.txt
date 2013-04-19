@@ -9,6 +9,8 @@ contacts_finder.cpp
 consumer_base.cpp
 consumer.cpp
 consumer_proxy.cpp
+${PROJECT_SOURCE_DIR}/include/pteros/analysis/message_channel.h
+
 ${PROJECT_SOURCE_DIR}/include/pteros/analysis/trajectory_processor.h
 ${PROJECT_SOURCE_DIR}/include/pteros/analysis/options_parser.h
 ${PROJECT_SOURCE_DIR}/include/pteros/analysis/rmsf.h
@@ -19,6 +21,7 @@ ${PROJECT_SOURCE_DIR}/include/pteros/analysis/consumer_proxy.h
 ${PROJECT_SOURCE_DIR}/include/pteros/analysis/bilayer.h
 
 bilayer.cpp
+
 )
 
 add_executable(pteros_rmsf

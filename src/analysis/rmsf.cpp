@@ -22,8 +22,6 @@
 
 
 #include "pteros/analysis/rmsf.h"
-#include "boost/lexical_cast.hpp"
-//#include "pteros/core/grid_search.h"
 
 using namespace pteros;
 
@@ -70,7 +68,7 @@ void RMSF::pre_process(){
         string sel = o->get_value<string>("");
         gr.sel.modify(system,sel);
         // Set name if given
-        gr.name = o->get_value<string>("name",boost::lexical_cast<string>(k));
+        gr.name = o->get_value<string>("name",to_string(k));
 
         groups.push_back(gr);
         cout << "Added selection '" << sel << "' with name '" << gr.name << "'" << endl;
@@ -256,7 +254,7 @@ void RMSF::save_results(){
         f.close();
         /*
         // Per-residue time variance
-        f.open(("per_residue_variance_"+boost::lexical_cast<string>(i)+".dat").c_str());
+        f.open(("per_residue_variance_"+boost::to_string(i)+".dat").c_str());
         for(int j=0; j<gr.residue_sel.size(); ++j){
             f << j << " " << gr.variance(j) << endl;
         }

@@ -5,6 +5,14 @@ link_directories(${PROJECT_SOURCE_DIR}/lib)
 target_link_libraries(pteros_test
     pteros pteros_analysis pteros_sim ${Boost_LIBRARIES} ${PYTHON_LIBRARIES})
 
+add_executable(threads_test test_threads.cpp)
+
+# Link with pteros libs
+link_directories(${PROJECT_SOURCE_DIR}/lib)
+target_link_libraries(threads_test
+    pteros pteros_analysis pteros_sim ${Boost_LIBRARIES} ${PYTHON_LIBRARIES})
+
+
 # Only need parent pteros include dir
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
@@ -13,5 +21,9 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 
 #Installation
 install(TARGETS pteros_test
+    RUNTIME DESTINATION bin/test
+)
+
+install(TARGETS threads_test
     RUNTIME DESTINATION bin/test
 )

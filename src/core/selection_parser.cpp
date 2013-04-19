@@ -246,12 +246,12 @@ AstNode_ptr recognize(string s){
     } else {
         // Try to convert token to int
         try {
-            node->children.push_back( lexical_cast<int>(str));
+            node->children.push_back( boost::lexical_cast<int>(str));
             node->code = TOK_INT;
         } catch(boost::bad_lexical_cast) {
             // Try to convert token to float
             try {
-                node->children.push_back( lexical_cast<float>(str) );
+                node->children.push_back( boost::lexical_cast<float>(str) );
                 node->code = TOK_FLOAT;
             } catch(boost::bad_lexical_cast) {
                 // ok, save it as a string
@@ -691,7 +691,7 @@ void Selection_parser::create_ast(string& sel_str){
     tokenize(sel_str);
     Grammar gr(this);
     int pos = gr.run(tree);
-    if(pos!=tokens.size()) throw Pteros_error("Error near token #"+lexical_cast<string>(pos));
+    if(pos!=tokens.size()) throw Pteros_error("Error near token #"+to_string(pos));
     // Now we can free tokens array. This will kill all unused nodes
     tokens.clear();
 
