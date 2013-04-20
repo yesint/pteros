@@ -29,27 +29,27 @@ using namespace std;
 using namespace pteros;
 using namespace Eigen;
 
-/*
+
 Message_channel<std::string> ch;
 
 void body1(){
-    cout << "I'm thread " << std::this_thread::get_id() << endl;
+    cout << "I'm thread " << boost::this_thread::get_id() << endl;
     for(int i=0;i<20;++i){
         cout << "Sending: Hi from thread! Iter: "+boost::to_string(i) << endl;
         ch.send("Hi from thread! Iter: "+boost::to_string(i));
     }
     ch.send_stop();
 }
-*/
+
 
 int main(int argc, char** argv)
 {
     try{
         Options_tree opt;
         opt.from_command_line(argc,argv);
-        /*
-        std::thread worker(body1);
-        std::this_thread::sleep_for(std::chrono::seconds(2));
+
+        boost::thread worker(&body1);
+        boost::this_thread::sleep_for(boost::chrono::seconds(2));
         System t("/home/semen/work/Projects/pteros/pteros_git/src/test/data/2lao.gro");
         //System t("/media/data/semen/trajectories/test/topol.tpr.pttop");
         //t.load("/media/data/semen/trajectories/test/traj.trr");
@@ -65,7 +65,7 @@ int main(int argc, char** argv)
         }
 
         worker.join();
-        */
+
 
         //System t("/home/semen/work/Projects/pteros/pteros_git/src/test/data/2lao.gro");
 
