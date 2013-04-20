@@ -31,7 +31,7 @@
 #include "pteros/core/grid_search.h"
 #include "pteros/core/pdb_cryst.h"
 #include "pteros/core/format_recognition.h"
-
+#include <boost/lexical_cast.hpp>
 #include "pteros/core/mol_file.h"
 
 using namespace std;
@@ -76,9 +76,9 @@ void System::clear(bool delete_selections){
 void System::check_num_atoms_in_last_frame(){
     if(Frame_data(num_frames()-1).coord.size()!=num_atoms())
         throw Pteros_error("File contains "
-                           +to_string(Frame_data(num_frames()-1).coord.size())
+                           +boost::lexical_cast<string>(Frame_data(num_frames()-1).coord.size())
                            +" atoms while the system has "
-                           +to_string(num_atoms())
+                           +boost::lexical_cast<string>(num_atoms())
                            );
 }
 
@@ -466,11 +466,11 @@ inline float Coulomb_en_kernel(float q1, float q2, float r){
 }
 
 string Energy_components::to_str(){
-    return    std::to_string(total) + " "
-            + std::to_string(lj_sr) + " "
-            + std::to_string(lj_14) + " "
-            + std::to_string(q_sr) + " "
-            + std::to_string(q_14);
+    return    boost::lexical_cast<string>(total) + " "
+            + boost::lexical_cast<string>(lj_sr) + " "
+            + boost::lexical_cast<string>(lj_14) + " "
+            + boost::lexical_cast<string>(q_sr) + " "
+            + boost::lexical_cast<string>(q_14);
 }
 
 void System::add_non_bond_energy(Energy_components &e, int a1, int a2, int frame, bool is_periodic)
@@ -492,7 +492,7 @@ void System::add_non_bond_energy(Energy_components &e, int a1, int a2, int frame
         int N = force_field.LJ14_interactions.size();
         float r = distance(XYZ(at1,frame),XYZ(at2,frame),frame,is_periodic);
         // Check if this is 1-4 pair
-        auto it = force_field.LJ14_pairs.find(at1*N+at2);
+        boost::unordered_map<int,int>::iterator it = force_field.LJ14_pairs.find(at1*N+at2);
         if( it == force_field.LJ14_pairs.end() ){
             // Normal, not 1-4
             e1 = LJ_en_kernel(force_field.LJ_C6(atoms[at1].type,atoms[at2].type),

@@ -31,7 +31,7 @@ if(WRAP_PYTHON)
     consumer_wrapper.h
     )
 
-    target_link_libraries(pteros_py pteros pteros_analysis pteros_sim ${Boost_LIBRARIES} ${PYTHON_LIBRARIES})
+    target_link_libraries(pteros_py pteros pteros_analysis ${Boost_LIBRARIES} ${PYTHON_LIBRARIES})
 
     set_target_properties(pteros_py PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/python"

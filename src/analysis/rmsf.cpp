@@ -22,6 +22,8 @@
 
 
 #include "pteros/analysis/rmsf.h"
+#include <boost/foreach.hpp>
+#include <boost/lexical_cast.hpp>
 
 using namespace pteros;
 
@@ -63,12 +65,12 @@ RMSF::~RMSF()
 void RMSF::pre_process(){
     // Add selections
     int k = 0;
-    for(Options_tree* o: options->get_options("selection")){
+    BOOST_FOREACH(Options_tree* o, options->get_options("selection")){
         rmsf_group gr;
         string sel = o->get_value<string>("");
         gr.sel.modify(system,sel);
         // Set name if given
-        gr.name = o->get_value<string>("name",to_string(k));
+        gr.name = o->get_value<string>("name",boost::lexical_cast<string>(k));
 
         groups.push_back(gr);
         cout << "Added selection '" << sel << "' with name '" << gr.name << "'" << endl;
@@ -91,7 +93,7 @@ void RMSF::pre_process(){
     */
 
     // For each selection create residue selections and start first window
-    for(rmsf_group& gr: groups){
+    BOOST_FOREACH(rmsf_group& gr, groups){
         gr.rmsf.clear();
         gr.sel.each_residue(gr.residue_sel);
 
@@ -132,7 +134,7 @@ void RMSF::window_started(const Frame_info &info){
 
 void RMSF::window_finished(const Frame_info &info){
 
-    for(rmsf_group& gr: groups){
+    BOOST_FOREACH(rmsf_group& gr, groups){
 
         int resind;
         // Normilize rmsf for each atom
@@ -180,7 +182,7 @@ bool RMSF::process_frame(const Frame_info &info){
     Eigen::Affine3f t;
 
     // For each group
-    for(rmsf_group& gr: groups){
+    BOOST_FOREACH(rmsf_group& gr, groups){
         // Update selection
         gr.sel.set_frame(0);
 
@@ -231,7 +233,7 @@ void RMSF::save_results(){
     string prefix = options->get_value<string>("output_prefix","");
 
     int i = 0;
-    for(rmsf_group& gr: groups){
+    BOOST_FOREACH(rmsf_group& gr, groups){
         vector<int> resinds = gr.sel.get_unique_resindex();
         int resind;
 
@@ -254,7 +256,7 @@ void RMSF::save_results(){
         f.close();
         /*
         // Per-residue time variance
-        f.open(("per_residue_variance_"+boost::to_string(i)+".dat").c_str());
+        f.open(("per_residue_variance_"+boost::boost::lexical_cast<string>(i)+".dat").c_str());
         for(int j=0; j<gr.residue_sel.size(); ++j){
             f << j << " " << gr.variance(j) << endl;
         }

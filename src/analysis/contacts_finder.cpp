@@ -24,6 +24,7 @@
 #include "boost/bind.hpp"
 #include <sstream>
 #include "boost/format.hpp"
+#include "boost/foreach.hpp"
 
 #include "json_spirit/json_spirit_reader_template.h"
 #include "json_spirit/json_spirit_writer_template.h"
@@ -68,7 +69,7 @@ void Contacts_finder::pre_process(){
     // Set selections
     sel_pairs.clear();
     string sel1, sel2;
-    for(Options_tree* o: options->get_options("selections")){
+    BOOST_FOREACH(Options_tree* o, options->get_options("selections")){
         o->get_option("") >> sel1 >> sel2;
         //sel1 = o->get_value<string>("");
         Selections_pair aux;

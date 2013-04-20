@@ -88,6 +88,27 @@ void Consumer_base::run(){
     post_process(data->frame_info);
 }
 
+void Consumer_base::run_in_thread(boost::shared_ptr<Message_channel<boost::shared_ptr<Data_container> > > chan){
+    boost::shared_ptr<Data_container> data;
+
+    while(chan->recieve(data)){
+        consume_frame(data);
+    }
+
+    // If we are here than dispatcher thread sent a stop to the queue
+    // Consume all remaining frames
+    while(!chan->empty()){
+        chan->recieve(data);
+        consume_frame(data);
+    }
+}
+
+void Consumer_base::consume_frame(boost::shared_ptr<Data_container> &data){
+    process_frame_info(data->frame_info);
+    process_frame_data(data->frame);
+    process_frame(data->frame_info);
+}
+
 void Consumer_base::pre_process(){
 }
 

@@ -29,7 +29,7 @@
 #include <queue>
 #include <boost/algorithm/string.hpp> // String algorithms
 #include <boost/foreach.hpp>
-
+#include <boost/lexical_cast.hpp>
 #include "pteros/core/atom.h"
 #include "pteros/core/selection.h"
 #include "pteros/core/system.h"
@@ -88,7 +88,7 @@ void Selection::create_internal(System& sys, string& str){
 // Aux function, which creates selection
 void Selection::create_internal(System& sys, int ind1, int ind2){
     // Set selection string
-    sel_text = "index "+to_string(ind1)+"-"+to_string(ind2);
+    sel_text = "index "+boost::lexical_cast<string>(ind1)+"-"+boost::lexical_cast<string>(ind2);
 
     // Add selection to sys and save self-pointer
     system = &sys;
@@ -159,9 +159,9 @@ void Selection::append(int ind){
     if(ind<0 || ind>=system->num_atoms()) throw Pteros_error("Appended index is out of bonds!");
     index.push_back(ind);
     if(sel_text!="")
-        sel_text = "("+sel_text+") or index " + to_string(ind);
+        sel_text = "("+sel_text+") or index " + boost::lexical_cast<string>(ind);
     else
-        sel_text = "index " + to_string(ind);
+        sel_text = "index " + boost::lexical_cast<string>(ind);
 }
 
 // Free memory used by selection.
@@ -207,7 +207,7 @@ void Selection::modify(int ind1, int ind2){
     if(system==NULL) Pteros_error("Selection does not belong to the system!");
     parser.reset();
     // re-create selection
-    sel_text = "index "+to_string(ind1)+"-"+to_string(ind2);
+    sel_text = "index "+boost::lexical_cast<string>(ind1)+"-"+boost::lexical_cast<string>(ind2);
     // By default points to frame 0
     frame = 0;
     // Populate selection directly
@@ -224,7 +224,7 @@ void Selection::modify(std::vector<int> &ind){
     // Create text and populate selection
     for(int i=0; i<ind.size(); ++i){
         index.push_back(ind[i]);
-        sel_text += " " + to_string(ind[i]);
+        sel_text += " " + boost::lexical_cast<string>(ind[i]);
     }
 }
 
@@ -237,7 +237,7 @@ void Selection::modify(std::vector<int>::iterator it1, std::vector<int>::iterato
     // Create text and populate selection
     while(it1!=it2){
         index.push_back(*it1);
-        sel_text += " " + to_string(*it1);
+        sel_text += " " + boost::lexical_cast<string>(*it1);
         it1++;
     }
 }
@@ -1204,7 +1204,7 @@ void Selection::split_by_connectivity(float d, std::vector<Selection> &res) {
             k = to_search.front();
             to_search.pop();
             res.back().index.push_back(_Index(k)); // add it to current selection
-            res.back().sel_text += " "+to_string(_Index(k));
+            res.back().sel_text += " "+boost::lexical_cast<string>(_Index(k));
             // See all atoms connected to k
             for(int j=0; j<con[k].size(); ++j){
                 // if atom is not used, add it to search

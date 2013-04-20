@@ -26,6 +26,7 @@
 
 #include "pteros/core/system.h"
 #include "pteros/analysis/frame_info.h"
+#include "pteros/analysis/message_channel.h"
 
 namespace pteros {
 
@@ -61,6 +62,9 @@ public:
     void run();
     System* get_system(){return &system;}    
     void set_id(int i){id = i;}
+
+    void run_in_thread(boost::shared_ptr<Message_channel<boost::shared_ptr<Data_container> > > chan);
+    void consume_frame(boost::shared_ptr<Data_container>& data);
 
 protected:    
     /// Called immediately before first frame is passed

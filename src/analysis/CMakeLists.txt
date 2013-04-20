@@ -27,12 +27,12 @@ bilayer.cpp
 add_executable(pteros_rmsf
     rmsf_program.cpp
 )
-target_link_libraries(pteros_rmsf pteros_analysis pteros_sim pteros ${Boost_LIBRARIES})
+target_link_libraries(pteros_rmsf pteros_analysis pteros ${Boost_LIBRARIES})
 
 add_executable(pteros_contacts_finder
     contacts_finder_program.cpp
 )
-target_link_libraries(pteros_contacts_finder pteros_analysis pteros_sim pteros ${Boost_LIBRARIES})
+target_link_libraries(pteros_contacts_finder pteros_analysis pteros ${Boost_LIBRARIES})
 
 #Installation
 install(TARGETS pteros_analysis pteros_rmsf pteros_contacts_finder

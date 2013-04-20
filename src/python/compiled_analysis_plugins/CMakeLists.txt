@@ -6,7 +6,7 @@ if(WRAP_PYTHON)
         SET(LIB_EXT ".so") # Use default on Linux
     ENDIF()
     
-    link_libraries(pteros pteros_analysis pteros_sim ${Boost_LIBRARIES} ${PYTHON_LIBRARIES})
+    link_libraries(pteros pteros_analysis ${Boost_LIBRARIES} ${PYTHON_LIBRARIES})
 
     # Compiled plugins:
     SET(PLUGINS center box rmsd interaction_energy covar_matr distance_matr)

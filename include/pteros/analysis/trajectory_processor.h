@@ -38,6 +38,8 @@
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition.hpp>
 
+#include "pteros/analysis/message_channel.h"
+
 namespace pteros {
 
 /** The base class for trajectory processing
@@ -48,6 +50,7 @@ namespace pteros {
 */
 
 typedef boost::shared_ptr<Frame> Frame_ptr;
+typedef Message_channel<boost::shared_ptr<Data_container> > Data_channel;
 
 class Trajectory_processor {
     friend class Consumer_base;
@@ -70,6 +73,8 @@ class Trajectory_processor {
 
         /// Do computation
         virtual void run();
+
+        void run2();
 
         /// Print summary of allowed options
         static void print_help();
@@ -119,6 +124,8 @@ class Trajectory_processor {
         int saved_first_frame;
         float saved_first_time;
         bool check_time_range(int fr, float t);
+        bool is_frame_valid(int fr, float t);
+        bool is_end_of_interval(int fr, float t);
 
         std::vector<Consumer_base*> consumers;
         std::vector<bool> alive_consumers;
@@ -136,7 +143,13 @@ class Trajectory_processor {
         float window_size_time;
         float custom_start_time;
         float custom_dt;
+
         void fill_window_info(Frame_info& info);
+
+        Data_channel channel;
+
+        void reader_thread_body();
+        std::vector<std::string> traj_files;
 };
 
 }

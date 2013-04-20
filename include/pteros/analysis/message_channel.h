@@ -24,7 +24,7 @@
 #ifndef MESSAGE_CHANNEL_H
 #define MESSAGE_CHANNEL_H
 
-#include <thread>
+#include <boost/thread.hpp>
 #include <queue>
 
 template<class T>
@@ -40,19 +40,25 @@ public:
         stop_requested = false;
     }
 
+    void set_buffer_size(int sz){
+        boost::mutex::scoped_lock lock(mutex);
+        buffer_size = sz;
+        cond.notify_all();
+    }
+
     void send_stop(){
-        std::lock_guard<std::mutex> lock(mutex);
+        boost::mutex::scoped_lock lock(mutex);
         stop_requested = true;
         cond.notify_all();
     }
 
     bool empty(){
-        std::lock_guard<std::mutex> lock(mutex);
+        boost::mutex::scoped_lock lock(mutex);
         return queue.empty();
     }
 
     void send(T const& data){
-        std::unique_lock<std::mutex> lock(mutex);
+        boost::mutex::scoped_lock lock(mutex);
         // Wait until buffer will clear a bit or until stop is requested
         while(queue.size()>=buffer_size && !stop_requested){
             cond.wait(lock);
@@ -65,7 +71,7 @@ public:
     }
 
     bool recieve(T& popped_value){
-        std::unique_lock<std::mutex> lock(mutex);
+        boost::mutex::scoped_lock lock(mutex);
         // Wait until something appears in the queue or until stop requested
         while(queue.empty() && !stop_requested){
             cond.wait(lock);
@@ -81,8 +87,8 @@ public:
 
 private:
     int buffer_size;
-    std::condition_variable cond;
-    std::mutex mutex;
+    boost::condition_variable cond;
+    boost::mutex mutex;
     std::queue<T> queue;
     bool stop_requested;
 };

@@ -1,6 +1,7 @@
 #include "pteros/analysis/trajectory_processor.h"
 #include "pteros/analysis/consumer.h"
 #include "pteros/analysis/bilayer.h"
+#include <boost/lexical_cast.hpp>
 
 using namespace std;
 using namespace pteros;
@@ -16,10 +17,10 @@ struct Chol_data {
     vector<float> center_dist; // Distance from center for each chol    
 
     string print(){
-        return boost::to_string(t) + " "
-                + boost::to_string(n1) + " "
-                + boost::to_string(n2) + " "
-                + boost::to_string(flip_time) + " "
+        return boost::lexical_cast<string>(t) + " "
+                + boost::lexical_cast<string>(n1) + " "
+                + boost::lexical_cast<string>(n2) + " "
+                + boost::lexical_cast<string>(flip_time) + " "
                 ;
     }
 };

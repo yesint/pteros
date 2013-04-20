@@ -25,13 +25,11 @@
 #define OPTIONS_PARSER_H
 
 #include <string>
-#include <map>
 #include <list>
-#include <stack>
-#include <boost/tokenizer.hpp>
-#include <boost/algorithm/string.hpp>
+#include <vector>
 #include <pteros/core/pteros_error.h>
 #include <boost/variant.hpp>
+#include <boost/foreach.hpp>
 
 namespace pteros {
 
@@ -156,7 +154,7 @@ T Options_tree::get_value(std::string key){
     T* ptr = NULL;
     T* cur;
     int k = 0;
-    for(Option_value& val : v.front()->values){
+    BOOST_FOREACH(Option_value& val, v.front()->values){
          cur = boost::get<T>(&val);
         if(cur){
             ++k;
@@ -181,7 +179,7 @@ T Options_tree::get_value(std::string key, T def_val){
     T* ptr = NULL;
     T* cur;
     int k = 0;
-    for(Option_value& val: v.front()->values){
+    BOOST_FOREACH(Option_value& val, v.front()->values){
         cur = boost::get<T>(&val);
         if(cur){
             ++k;
@@ -221,7 +219,7 @@ list<T> Options_tree::get_values(std::string key){
     if(v.size()>1) throw pteros::Pteros_error("More then one Options_tree matches!");
     // Return all values, which are of type T
     T* ptr;
-    for(Option_value& val: v.front()->values){
+    BOOST_FOREACH(Option_value& val, v.front()->values){
         ptr = boost::get<T>(&val);
         if(ptr) res.push_back(*ptr);
     }

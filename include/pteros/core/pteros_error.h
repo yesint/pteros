@@ -33,22 +33,22 @@ using namespace std;
 
 /// Represents an error in the Pteros code. Used for all Pteros-related exceptions.
 class Pteros_error {
-  public:
+public:
 
-  	Pteros_error(const Pteros_error& p){
-  		text.str(p.text.str());
-	}
+    Pteros_error(const Pteros_error& p){
+        text.str(p.text.str());
+    }
 
-	Pteros_error(){
-		text.str("");
-	}
+    Pteros_error(){
+        text.str("");
+    }
 
-        /// Constructs an exception object with text message
-        Pteros_error(string s){
-		text.str(s);
-	}
+    /// Constructs an exception object with text message
+    Pteros_error(string s){
+        text.str(s);
+    }
 
-        /** Operator << allows constructing error strings on the fly
+    /** Operator << allows constructing error strings on the fly
          like this:
             \code throw Pteros_error("Wrong number ") << 5
                     << " should be between "
@@ -57,14 +57,14 @@ class Pteros_error {
         */
     template<class T>
     Pteros_error& operator<<(T data){
-    	text << data; //Collect data
-		return *this;
+        text << data; //Collect data
+        return *this;
     };
 
     /// Print error message
     void print(){
-    	cout << endl << "PTEROS terminated due to the following error:"
-    	     << endl << text.str() << endl;
+        cout << endl << "PTEROS terminated due to the following error:"
+             << endl << text.str() << endl;
     }
 
     /// Return error message as string
@@ -72,7 +72,7 @@ class Pteros_error {
         return text.str();
     }
 
-  private:
+private:
     std::stringstream text;
 };
 

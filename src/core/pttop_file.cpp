@@ -44,7 +44,7 @@ bool PTTOP_file::do_read(System *sys, Frame *frame, Mol_file_content what){
         int dum;
         float val;
 
-        ifstream f(file_name);
+        ifstream f(file_name.c_str());
         if(!f) throw Pteros_error("Can't open PTTOP file '"+file_name+"'' for reading");
 
         cout << "Reading Pteros topology file '"<< file_name << "'..." << endl;
@@ -189,7 +189,7 @@ bool PTTOP_file::do_read(System *sys, Frame *frame, Mol_file_content what){
             ss.clear(); ss.str(line);
             int a,b,n;
             ss >> a >> b >> n;
-            ff_in_system(*sys).LJ14_pairs.insert( {a*nLJ14types+b,n} );
+            ff_in_system(*sys).LJ14_pairs.insert( make_pair(a*nLJ14types+b,n) );
         }
         cout << "\tRead " << nLJ14pairs << " LJ-14 atom pairs" << endl;
 

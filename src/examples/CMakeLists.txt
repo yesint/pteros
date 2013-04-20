@@ -1,6 +1,6 @@
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/examples")
 
-link_libraries(pteros pteros_analysis pteros_sim ${Boost_LIBRARIES})
+link_libraries(pteros pteros_analysis ${Boost_LIBRARIES})
 
 add_executable(parallel_processing parallel_processing.cpp)
 add_executable(benchmark benchmark.cpp)

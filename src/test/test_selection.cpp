@@ -32,7 +32,6 @@
 #include <boost/tokenizer.hpp>
 #include <boost/algorithm/string.hpp>
 
-#include <boost/program_options.hpp>
 
 using namespace std;
 using namespace pteros;
@@ -42,6 +41,8 @@ using namespace Eigen;
 int main(int argc, char** argv)
 {
     try{
+        Options_tree opt;
+        opt.from_command_line(argc,argv);
 
         //boost::shared_ptr<Mol_file> io = io_factory("topol.tpr",'r');
         //System sys1("/home/semen/work/Projects/pteros/pteros_build/release/src/test/topol.tpr");

@@ -691,7 +691,7 @@ void Selection_parser::create_ast(string& sel_str){
     tokenize(sel_str);
     Grammar gr(this);
     int pos = gr.run(tree);
-    if(pos!=tokens.size()) throw Pteros_error("Error near token #"+to_string(pos));
+    if(pos!=tokens.size()) throw Pteros_error("Error near token #"+boost::lexical_cast<string>(pos));
     // Now we can free tokens array. This will kill all unused nodes
     tokens.clear();
 
