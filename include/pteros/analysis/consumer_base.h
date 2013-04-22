@@ -55,16 +55,14 @@ class Trajectory_processor;
   When Consumer is created it is registered in Trajectory_processor automatically.
   */
 class Consumer_base {
+    friend class Trajectory_processor;
 public:
     Consumer_base(Trajectory_processor* pr);
 
     /// Main processing method. Called by Trajectory_processor
     void run();
     System* get_system(){return &system;}    
-    void set_id(int i){id = i;}
-
-    void run_in_thread(boost::shared_ptr<Message_channel<boost::shared_ptr<Data_container> > > chan);
-    void consume_frame(boost::shared_ptr<Data_container>& data);
+    void set_id(int i){id = i;}   
 
 protected:    
     /// Called immediately before first frame is passed
@@ -78,10 +76,13 @@ protected:
     /// Called when current procesing window ends
     virtual void window_finished(const Frame_info& info);
 
+    /// local system (stored in consumer itself)
+    System system;
     /// Pointer to trajectory processor
     Trajectory_processor* proc;
-    /// local system (stored in consumer itself)
-    System system;    
+
+private:
+
     /// Index of consumer
     int id;
     /// Window counter
@@ -95,6 +96,9 @@ protected:
     float saved_time; //Save last processed timestamp
     int saved_abs_frame;
     int saved_valid_frame;    
+
+    void run_in_thread(boost::shared_ptr<Message_channel<boost::shared_ptr<Data_container> > > chan);
+    void consume_frame(boost::shared_ptr<Data_container>& data);
 };
 
 }

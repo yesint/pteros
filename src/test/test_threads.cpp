@@ -43,23 +43,38 @@ void body1(){
 }
 
 class Cons1: public Consumer {
-
 public:
     Cons1(Trajectory_processor* pr): Consumer(pr){}
 protected:
     virtual void pre_process(){
-
+        cout << "(1) PRE " << endl;
     }
-
     virtual void post_process(const Frame_info& info){
-
+        cout << "(1) POST " << info.absolute_frame << endl;
     }
-
     virtual bool process_frame(const Frame_info& info){
-        cout << "In frame " << info.absolute_frame << endl;
+        cout << "(1) In frame " << info.absolute_frame << endl;
         return true;
     }
 };
+
+class Cons2: public Consumer {
+public:
+    Cons2(Trajectory_processor* pr): Consumer(pr){}
+protected:
+    virtual void pre_process(){
+        cout << "(2) PRE " << endl;
+    }
+    virtual void post_process(const Frame_info& info){
+        cout << "(2) POST " << info.absolute_frame << endl;
+    }
+    virtual bool process_frame(const Frame_info& info){
+        cout << "(2) In frame " << info.absolute_frame << endl;
+        boost::this_thread::sleep_for(boost::chrono::seconds(1));
+        return true;
+    }
+};
+
 
 int main(int argc, char** argv)
 {
@@ -97,6 +112,7 @@ int main(int argc, char** argv)
         opt.from_command_line(argc,argv);
         Trajectory_processor proc(opt);
         Cons1 c1(&proc);
+        //Cons2 c2(&proc);
         proc.run2();
     } catch(Pteros_error e){ e.print(); }
 

@@ -89,6 +89,9 @@ void Consumer_base::run(){
 }
 
 void Consumer_base::run_in_thread(boost::shared_ptr<Message_channel<boost::shared_ptr<Data_container> > > chan){
+    // Call user pre-process
+    pre_process();
+
     boost::shared_ptr<Data_container> data;
 
     while(chan->recieve(data)){
@@ -101,6 +104,9 @@ void Consumer_base::run_in_thread(boost::shared_ptr<Message_channel<boost::share
         chan->recieve(data);
         consume_frame(data);
     }
+
+    // Call user post-process
+    post_process(data->frame_info);
 }
 
 void Consumer_base::consume_frame(boost::shared_ptr<Data_container> &data){

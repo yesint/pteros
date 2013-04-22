@@ -562,7 +562,9 @@ void Trajectory_processor::run2(){
     typedef boost::shared_ptr<Data_channel> Data_channel_ptr;
 
     // Set buffer size
-    channel.set_buffer_size( options->get_value<int>("buffer_size",10) );
+    int buf_size = options->get_value<int>("buffer_size",10);
+    cout << "Using frame buffers of size " << buf_size << endl;
+    channel.set_buffer_size(buf_size);
 
     // Start reader thread
     boost::thread reader_thread( boost::bind(&Trajectory_processor::reader_thread_body,this) );
@@ -575,6 +577,9 @@ void Trajectory_processor::run2(){
         for(int i=0; i<consumers.size(); ++i){
             // Create channel
             worker_channels.push_back(Data_channel_ptr(new Data_channel));
+            // Set buffer size for this consumer
+            worker_channels.back()->set_buffer_size(buf_size);
+            // Spawn thread
             worker_threads.create_thread(
                         boost::bind(&Consumer_base::run_in_thread,
                                               consumers[i],
@@ -606,6 +611,9 @@ void Trajectory_processor::run2(){
         }
     } else {
         // There is only one consumer, no need for multiple threads
+        // Run pre-process
+        consumers[0]->pre_process();
+
         boost::shared_ptr<Data_container> data;
         while(channel.recieve(data)){
             consumers[0]->consume_frame(data);
@@ -614,6 +622,8 @@ void Trajectory_processor::run2(){
             channel.recieve(data);
             consumers[0]->consume_frame(data);
         }
+        // Run post-process with last supplied data
+        consumers[0]->post_process(data->frame_info);
     }
 
     reader_thread.join();
@@ -694,8 +704,7 @@ void Trajectory_processor::reader_thread_body(){
                 data->frame_info.first_time = saved_first_time;
 
                 // Send frame to the queue
-                channel.send(data);
-                cout << "Sent" << endl;
+                channel.send(data);                
             } // Over frames
 
             cout << "==> reading done" << endl;

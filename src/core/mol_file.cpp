@@ -43,7 +43,7 @@ Mol_file::~Mol_file(){
 
 bool Mol_file::read(System *sys, Frame *frame, Mol_file_content what){
     sanity_check_read(sys,frame,what);
-    do_read(sys,frame,what);
+    return do_read(sys,frame,what);
 }
 
 void Mol_file::write(Selection &sel, Mol_file_content what){
