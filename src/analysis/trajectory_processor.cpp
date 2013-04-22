@@ -559,6 +559,7 @@ void Trajectory_processor::run2(){
     //-----------------------------------------
     // Actual processing starts here
     //-----------------------------------------
+    typedef boost::shared_ptr<Data_channel> Data_channel_ptr;
 
     // Set buffer size
     channel.set_buffer_size( options->get_value<int>("buffer_size",10) );
@@ -567,13 +568,13 @@ void Trajectory_processor::run2(){
     boost::thread reader_thread( boost::bind(&Trajectory_processor::reader_thread_body,this) );
 
     boost::thread_group worker_threads;
-    vector<boost::shared_ptr<Data_channel> > worker_channels;
+    vector<Data_channel_ptr> worker_channels;
 
     if(consumers.size() > 1){
         // More than 1 consumer, start all of them in separate threads
         for(int i=0; i<consumers.size(); ++i){
             // Create channel
-            worker_channels.push_back(boost::shared_ptr<Data_channel>(new Data_channel));
+            worker_channels.push_back(Data_channel_ptr(new Data_channel));
             worker_threads.create_thread(
                         boost::bind(&Consumer_base::run_in_thread,
                                               consumers[i],
@@ -585,7 +586,7 @@ void Trajectory_processor::run2(){
         // Now recieve frames from the queue until reader sends stop
         boost::shared_ptr<Data_container> data;
         while(channel.recieve(data)){
-            BOOST_FOREACH(boost::shared_ptr<Data_channel> &ch, worker_channels){
+            BOOST_FOREACH(Data_channel_ptr &ch, worker_channels){
                 ch->send(data);
             }
         }
@@ -594,17 +595,17 @@ void Trajectory_processor::run2(){
         // Consume all remaining frame
         while(!channel.empty()){
             channel.recieve(data);
-            BOOST_FOREACH(boost::shared_ptr<Data_channel> &ch, worker_channels){
+            BOOST_FOREACH(Data_channel_ptr &ch, worker_channels){
                 ch->send(data);
             }
         }
 
         // No more new frames, send stop to all consumers
-        BOOST_FOREACH(boost::shared_ptr<Data_channel> &ch, worker_channels){
+        BOOST_FOREACH(Data_channel_ptr &ch, worker_channels){
             ch->send_stop();
         }
     } else {
-        // There is only one consumer, no need to dispatch frames
+        // There is only one consumer, no need for multiple threads
         boost::shared_ptr<Data_container> data;
         while(channel.recieve(data)){
             consumers[0]->consume_frame(data);
@@ -694,6 +695,7 @@ void Trajectory_processor::reader_thread_body(){
 
                 // Send frame to the queue
                 channel.send(data);
+                cout << "Sent" << endl;
             } // Over frames
 
             cout << "==> reading done" << endl;
@@ -702,6 +704,9 @@ void Trajectory_processor::reader_thread_body(){
             if(finished) break;
 
         } // Over trajectories
+        // Send stop at the end
+        channel.send_stop();
+
     } catch(Pteros_error e) {
         // Send stop if exception raised
         channel.send_stop();

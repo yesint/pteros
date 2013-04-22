@@ -22,7 +22,8 @@
 
 #include "pteros/analysis/trajectory_processor.h"
 #include <string>
-//#include "pteros/analysis/message_channel.h"
+#include "pteros/analysis/message_channel.h"
+#include "pteros/analysis/consumer.h"
 
 
 using namespace std;
@@ -41,9 +42,28 @@ void body1(){
     ch.send_stop();
 }
 
+class Cons1: public Consumer {
+
+public:
+    Cons1(Trajectory_processor* pr): Consumer(pr){}
+protected:
+    virtual void pre_process(){
+
+    }
+
+    virtual void post_process(const Frame_info& info){
+
+    }
+
+    virtual bool process_frame(const Frame_info& info){
+        cout << "In frame " << info.absolute_frame << endl;
+        return true;
+    }
+};
 
 int main(int argc, char** argv)
 {
+    /*
     try{
         Options_tree opt;
         opt.from_command_line(argc,argv);
@@ -69,6 +89,15 @@ int main(int argc, char** argv)
 
         //System t("/home/semen/work/Projects/pteros/pteros_git/src/test/data/2lao.gro");
 
+    } catch(Pteros_error e){ e.print(); }
+    */
+
+    try{
+        Options_tree opt;
+        opt.from_command_line(argc,argv);
+        Trajectory_processor proc(opt);
+        Cons1 c1(&proc);
+        proc.run2();
     } catch(Pteros_error e){ e.print(); }
 
 }
