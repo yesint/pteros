@@ -43,7 +43,7 @@ protected:
         bi.create(bilayer,marker_sel_text,2.0);        
     }
 
-    virtual bool process_frame(const Frame_info& info){
+    virtual void process_frame(const Frame_info& info){
         bilayer.set_frame(0);
 
         Chol_data dum;
@@ -128,8 +128,6 @@ protected:
         trace.back().n2 = n2;
 
         cout << "Frame " << info.absolute_frame << " " << trace.back().print() << endl;
-
-        return true;
     }
 
     virtual void post_process(const Frame_info& info){

@@ -50,12 +50,12 @@ protected:
     }
 
 
-    virtual bool process_frame(const Frame_info& info){
+    virtual void process_frame(const Frame_info& info){
         int i,j,k,n,w,ind;
 
         if(info.valid_frame==0){
             water.get_xyz(last_pos);
-            return true;
+            return;
         }
 
         // Assign waters to grid
@@ -76,8 +76,7 @@ protected:
                     }
                 }
 
-        water.get_xyz(last_pos);
-        return true;
+        water.get_xyz(last_pos);        
     }
 
 

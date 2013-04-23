@@ -57,10 +57,9 @@ class Trajectory_processor {
     public:
 
         /// Default constructor
-        Trajectory_processor(){ init(); }
+        Trajectory_processor(){ }
         /// Constructor with system
-        Trajectory_processor(Options_tree& opt){
-            init();
+        Trajectory_processor(Options_tree& opt){            
             options = &opt;
         }
         /// Destructor
@@ -101,39 +100,22 @@ class Trajectory_processor {
         */
         Options_tree* options;
 
-        // Sets default options
-        void init();           
 
         int log_interval;
-
-        /// Async reading stuff
-        boost::thread reading_thread; //reading thread itself
-        boost::thread_group consumer_threads; // Consumer threads
-        int max_buffer_size; // Maximal buffer size
-        // Frame buffer. Contains shared pointers to data containers!
-        std::map<int,boost::shared_ptr<Data_container> > buffer;
-        boost::mutex buffer_mutex; // Buffer mutex
-        boost::condition buffer_cond;
-        bool stop_requested;        
-        std::map<int,std::vector<bool> > frame_access_count; // Who accessed this frame?
-
-        void read_single_trajectory(std::string& fname);
-        int abs_frame; // Absolte frame index
+/*
+int abs_frame; // Absolte frame index
         int valid_frame; // Valid frame index
         // Saved first frame and time
         int saved_first_frame;
         float saved_first_time;
-        bool check_time_range(int fr, float t);
+        */
+
         bool is_frame_valid(int fr, float t);
         bool is_end_of_interval(int fr, float t);
 
         std::vector<Consumer_base*> consumers;
-        std::vector<bool> alive_consumers;
 
-        void consumer_finished(int id);
-        boost::shared_ptr<Data_container> frame_provider(int fr, int id);
-        void add_consumer(Consumer_base* p);
-        void start_threads(std::vector<std::string>& fnames);
+        void add_consumer(Consumer_base* p);        
 
         /// Reader parameters
         int first_frame, last_frame;
@@ -143,8 +125,6 @@ class Trajectory_processor {
         float window_size_time;
         float custom_start_time;
         float custom_dt;
-
-        void fill_window_info(Frame_info& info);
 
         Data_channel channel;
 

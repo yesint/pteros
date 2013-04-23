@@ -67,7 +67,7 @@ protected:
         }
     }
 
-    bool process_frame(const Frame_info &info){
+    void process_frame(const Frame_info &info){
 
         // Do accumulation
         int i,j;
@@ -98,7 +98,6 @@ protected:
                 }
             }
         }
-        return true;
     }
 
     void post_process(const Frame_info &info){

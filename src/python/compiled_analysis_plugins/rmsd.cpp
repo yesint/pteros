@@ -36,7 +36,7 @@ protected:
         sel.modify(system, options->get_value<string>("selection") );
     }
 
-    bool process_frame(const pteros::Frame_info &info){
+    void process_frame(const pteros::Frame_info &info){
         // Fitting breaks the system, but we have local copy, nobody cares. Cool :)
         // Set reference frame
         if(info.valid_frame==0){
@@ -48,8 +48,6 @@ protected:
         float v = sel.rmsd(0,1);
         data.push_back(v);
         mean += v;
-
-        return true;
     }
 
     void post_process(const pteros::Frame_info &info){

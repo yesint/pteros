@@ -51,7 +51,7 @@ protected:
         }
     }
 
-    bool process_frame(const Frame_info &info){
+    void process_frame(const Frame_info &info){
 
         // See if we have self-energy
         (sel1==sel2) ? is_self_energy = true : is_self_energy = false;
@@ -79,8 +79,6 @@ protected:
         mean.q_14 += e.q_14;
         mean.q_sr += e.q_sr;
         mean.total += e.total;
-
-        return true;
     }
 
     void post_process(const Frame_info& info){

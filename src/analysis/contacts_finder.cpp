@@ -128,7 +128,7 @@ void Contacts_finder::pre_process(){
     //searcher.create(dist,system,true,is_periodic);
 }
 
-bool Contacts_finder::process_frame(const Frame_info &info){
+void Contacts_finder::process_frame(const Frame_info &info){
 
     int i,j,n;
     Index_pair at_pair,res_pair;
@@ -325,8 +325,7 @@ bool Contacts_finder::process_frame(const Frame_info &info){
         sel_pairs[i].energy.push_back(total_energy);
         sel_pairs[i].mean_energy += total_energy;//e.total;
 
-    }
-    return true;
+    }    
 }
 
 void Contacts_finder::post_process(const Frame_info &info){

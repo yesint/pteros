@@ -45,7 +45,7 @@ protected:
         mean.resize(3,N); mean.fill(0.0);
     }
 
-    bool process_frame(const Frame_info &info){
+    void process_frame(const Frame_info &info){
         // Align if requested
         if(do_align) sel.fit(0,1);
 
@@ -57,8 +57,6 @@ protected:
                 matr.block<3,3>(3*i,3*j) += sel.XYZ(i) * sel.XYZ(j).transpose();
             }
         }
-
-        return true;
     }
 
     void post_process(const Frame_info &info){

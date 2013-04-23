@@ -25,6 +25,7 @@
 #define MESSAGE_CHANNEL_H
 
 #include <boost/thread.hpp>
+#include <boost/function.hpp>
 #include <queue>
 
 template<class T>
@@ -57,17 +58,18 @@ public:
         return queue.empty();
     }
 
-    void send(T const& data){
+    bool send(T const& data){
         boost::mutex::scoped_lock lock(mutex);
         // Wait until buffer will clear a bit or until stop is requested
         while(queue.size()>=buffer_size && !stop_requested){
             cond.wait(lock);
         }
         // If stop requested just do nothing
-        if(stop_requested) return;
+        if(stop_requested) return false;
 
         queue.push(data);
         cond.notify_all();
+        return true;
     }
 
     bool recieve(T& popped_value){
@@ -83,6 +85,17 @@ public:
         queue.pop();
         cond.notify_all();
         return true;
+    }
+
+    void recieve_each(const boost::function<void(T&)>& callback){
+        T data;
+        while(recieve(data)){
+            callback(data);
+        }
+        while(!empty()){
+            recieve(data);
+            callback(data);
+        }
     }
 
 private:

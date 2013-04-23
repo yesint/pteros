@@ -33,60 +33,6 @@ Consumer_base::Consumer_base(Trajectory_processor* pr){
     proc->add_consumer(this); // Add this consumer to trajectory processor        
 }
 
-void Consumer_base::run(){
-    // Some info before running
-    cout << "Consumer " << id << " works on system with " << system.num_atoms() << " atoms" << endl;
-    // Allocate data container
-    boost::shared_ptr<Data_container> data;    
-    // Call user pre-processing code
-    pre_process();
-    // Process frames
-    saved_time = -1.0;
-    saved_abs_frame = -1;
-    saved_valid_frame = -1;
-    int i = 0;
-    // Main loop
-    for(;;){
-        // Obtain data from the master thread
-        data = proc->frame_provider(i,id);
-
-        if(data->stop){
-            // if we requested to stop, put last saved time into data
-            // because this info is absent
-            data->frame_info.absolute_time = saved_time;
-            data->frame_info.valid_frame = saved_valid_frame;
-            data->frame_info.absolute_frame = saved_abs_frame;
-            // exit from main loop
-            break;
-        }
-
-        saved_time = data->frame_info.absolute_time;
-        saved_valid_frame = data->frame_info.valid_frame;
-        saved_abs_frame = data->frame_info.absolute_frame;
-
-        // Process window info
-        process_frame_info(data->frame_info);
-
-        // Here we process frame data, which arrived. Should defined in derived classes
-        process_frame_data(data->frame);
-
-        // Call user processing function
-        bool ok = process_frame(data->frame_info);
-        // If false returned, exit from main loop
-        if(!ok) break;
-
-        ++i;
-    } // End of main loop!
-    // Notify master thread that we don't need data any more
-    proc->consumer_finished(id);
-    // Close last window. If there is a single window, it will be closed as well.
-    window_finished(data->frame_info);
-    // Set final time and frame for post-processor
-    data->frame_info.last_frame = data->frame_info.absolute_frame;
-    data->frame_info.last_time = data->frame_info.absolute_time;
-    // Call post-processing code (info from the last processed frame is passed)
-    post_process(data->frame_info);
-}
 
 void Consumer_base::run_in_thread(boost::shared_ptr<Message_channel<boost::shared_ptr<Data_container> > > chan){
     // Call user pre-process
@@ -110,7 +56,7 @@ void Consumer_base::run_in_thread(boost::shared_ptr<Message_channel<boost::share
 }
 
 void Consumer_base::consume_frame(boost::shared_ptr<Data_container> &data){
-    process_frame_info(data->frame_info);
+    process_window_info(data->frame_info);
     process_frame_data(data->frame);
     process_frame(data->frame_info);
 }
@@ -118,8 +64,8 @@ void Consumer_base::consume_frame(boost::shared_ptr<Data_container> &data){
 void Consumer_base::pre_process(){
 }
 
-bool Consumer_base::process_frame(const Frame_info& info){
-    return true;
+void Consumer_base::process_frame(const Frame_info& info){
+
 }
 
 void Consumer_base::post_process(const Frame_info& info){
@@ -133,7 +79,7 @@ void Consumer_base::window_finished(const Frame_info& info){
 }
 
 
-void Consumer_base::process_frame_info(Frame_info& info){
+void Consumer_base::process_window_info(Frame_info& info){
     if(info.valid_frame==0){
         // This is the start of the very first window
         win_num = 0; // Set counter

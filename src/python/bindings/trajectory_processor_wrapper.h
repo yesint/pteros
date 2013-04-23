@@ -38,7 +38,7 @@ public:
     ~Trajectory_processor_wrapper(){}    
 
     virtual void pre_process() = 0;
-    virtual bool process_frame(const Frame_info& info) = 0;
+    virtual void process_frame(const Frame_info& info) = 0;
     virtual void post_process(const Frame_info& info) = 0;
 
     System* get_system();   

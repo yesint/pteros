@@ -19,12 +19,11 @@ protected:
         sel2.modify(system,sel2_text);
     }
 
-    virtual bool process_frame(const Frame_info& info){
+    virtual void process_frame(const Frame_info& info){
         vector<Eigen::Vector2i> contacts;
         Grid_searcher(dist,sel1,sel2,contacts);
         float en = system.non_bond_energy(contacts,0).total;
-        cout << "Energy for time" << info.absolute_time << " is " << en << endl;
-        return true;
+        cout << "Energy for time" << info.absolute_time << " is " << en << endl;     
     }
 
     // Variables, which are specific for our analysis

@@ -35,13 +35,7 @@ struct Data_container {
     /// Frame itself
     Frame frame;
     /// Frame information
-    Frame_info frame_info;
-    /// Stop flag. If it is true, than no frame is passed,
-    /// but the end of processing is asked instead
-    bool stop;
-    Data_container(){
-        stop = false;
-    }
+    Frame_info frame_info;    
 };
 
 // Forward declaration
@@ -59,8 +53,6 @@ class Consumer_base {
 public:
     Consumer_base(Trajectory_processor* pr);
 
-    /// Main processing method. Called by Trajectory_processor
-    void run();
     System* get_system(){return &system;}    
     void set_id(int i){id = i;}   
 
@@ -70,7 +62,7 @@ protected:
     /// Called immediately after last frame is processed
     virtual void post_process(const Frame_info& info);
     /// Called each time new frame arrives. This frame is stored in system.traj[0]
-    virtual bool process_frame(const Frame_info& info);
+    virtual void process_frame(const Frame_info& info);
     /// Called when new procesing window starts
     virtual void window_started(const Frame_info& info);
     /// Called when current procesing window ends
@@ -88,7 +80,7 @@ private:
     /// Window counter
     int win_num;
 
-    void process_frame_info(Frame_info& info);
+    void process_window_info(Frame_info& info);
 
     // Should be defined in derived classes
     virtual void process_frame_data(Frame& data) = 0;

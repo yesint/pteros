@@ -15,15 +15,14 @@ protected:
         sel.modify(system, "all");
     }
 
-    virtual bool process_frame(const Frame_info& info){
+    virtual void process_frame(const Frame_info& info){
         if(info.valid_frame==0){
             system.frame_dup(0);
         }
 
         Eigen::Affine3f t = sel.fit_transform(0,1);
         sel.apply_transform(t);
-        cout << "RMSD of frame " << info.valid_frame << " " << sel.rmsd(0,1) << endl;
-        return true;
+        cout << "RMSD of frame " << info.valid_frame << " " << sel.rmsd(0,1) << endl;        
     }
 
     Selection sel;
@@ -40,13 +39,12 @@ protected:
         sel2.modify(system, "resid 102 to 200");
     }
 
-    virtual bool process_frame(const Frame_info& info){
+    virtual void process_frame(const Frame_info& info){
         vector<Eigen::Vector2i> bon;
         bon.clear();
         Grid_searcher(0.5,sel1,sel2,bon,true);
 
-        cout << "frame " << info.valid_frame << " bonds: " << bon.size() << endl;
-        return true;
+        cout << "frame " << info.valid_frame << " bonds: " << bon.size() << endl;        
     }
 
     Selection sel1, sel2;
@@ -63,13 +61,12 @@ protected:
 
     }
 
-    virtual bool process_frame(const Frame_info& info){
+    virtual void process_frame(const Frame_info& info){
         vector<Selection> sel;
         Selection all(system,"all");
         all.each_residue(sel);
 
-        cout << "frame " << info.valid_frame << endl;
-        return true;
+        cout << "frame " << info.valid_frame << endl;        
     }
 
 

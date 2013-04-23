@@ -99,7 +99,7 @@ class Contacts_finder: public Consumer {
         //------------------------------------
         /// Slots, which are going to be connected with the signals
         /// of trajectory processor
-        bool process_frame(const Frame_info& info);
+        void process_frame(const Frame_info& info);
         void pre_process();
         void post_process(const Frame_info& info);
         //------------------------------------

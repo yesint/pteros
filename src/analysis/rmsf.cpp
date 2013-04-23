@@ -167,7 +167,7 @@ void RMSF::window_finished(const Frame_info &info){
 }
 
 
-bool RMSF::process_frame(const Frame_info &info){
+void RMSF::process_frame(const Frame_info &info){
 
     //cout << "::: " << fr << " " << info.last_frame << " " << time_stamp << endl;
 
@@ -219,8 +219,7 @@ bool RMSF::process_frame(const Frame_info &info){
         }
         */
 
-    }
-    return true;
+    }    
 }
 
 void RMSF::post_process(const Frame_info &info){

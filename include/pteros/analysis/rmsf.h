@@ -82,7 +82,7 @@ private:
     //------------------------------------
     /// Slots, which are going to be connected with the signals
     /// of trajectory processor
-    virtual bool process_frame(const Frame_info& info);
+    virtual void process_frame(const Frame_info& info);
     virtual void pre_process();
     virtual void post_process(const Frame_info& info);
     virtual void window_started(const Frame_info& info);

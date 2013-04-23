@@ -52,9 +52,8 @@ protected:
     virtual void post_process(const Frame_info& info){
         cout << "(1) POST " << info.absolute_frame << endl;
     }
-    virtual bool process_frame(const Frame_info& info){
-        cout << "(1) In frame " << info.absolute_frame << endl;
-        return true;
+    virtual void process_frame(const Frame_info& info){
+        cout << "(1) In frame " << info.absolute_frame << endl;        
     }
 };
 
@@ -68,10 +67,9 @@ protected:
     virtual void post_process(const Frame_info& info){
         cout << "(2) POST " << info.absolute_frame << endl;
     }
-    virtual bool process_frame(const Frame_info& info){
+    virtual void process_frame(const Frame_info& info){
         cout << "(2) In frame " << info.absolute_frame << endl;
         boost::this_thread::sleep_for(boost::chrono::seconds(1));
-        return true;
     }
 };
 
@@ -113,7 +111,7 @@ int main(int argc, char** argv)
         Trajectory_processor proc(opt);
         Cons1 c1(&proc);
         //Cons2 c2(&proc);
-        proc.run2();
+        proc.run();
     } catch(Pteros_error e){ e.print(); }
 
 }
