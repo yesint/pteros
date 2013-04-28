@@ -51,7 +51,7 @@ public:
     }
 
     void process_frame(const Frame_info& info) {
-        call_method<bool>(self, "process_frame", info);
+        call_method<void>(self, "process_frame", info);
     }
 
     void post_process(const Frame_info& info) {

@@ -14,4 +14,3 @@ class Task:
 	def process_frame(self,info):
 		print "Frame ", info.absolute_frame, " time ", info.absolute_time
 		print "Selection center: ", self.sel.center(self.use_mass)
-		return True # Returning True means allow continuing with the next frame		
