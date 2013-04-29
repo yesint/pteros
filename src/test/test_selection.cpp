@@ -62,7 +62,7 @@ public:
 private:
     std::string name;
     std::string description;
-    std::vector<> values;
+    //std::vector<> values;
     std::vector<Options_scheme> sub_options;
 };
 
