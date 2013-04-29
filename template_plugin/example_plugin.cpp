@@ -13,10 +13,9 @@ protected:
         cout << "There are " << sel.size() << " atoms in selection" << endl;
     }
 
-    bool process_frame(const Frame_info &info){
+    void process_frame(const Frame_info &info){
         cout << "Frame " << info.absolute_frame << " time " << info.absolute_time << endl;
-        cout << "Selection center: " << sel.center(use_mass).transpose() << endl;
-        return true;
+        cout << "Selection center: " << sel.center(use_mass).transpose() << endl;        
     }
 
     void post_process(const Frame_info &info){

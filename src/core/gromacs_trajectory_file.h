@@ -65,12 +65,12 @@ class Gromacs_trajectory_file: public Mol_file {
 
         virtual void open(std::string fname, char openmode);
 
-        virtual int read_num_atoms(char* fname, int* num){}
+        virtual int read_num_atoms(char* fname, int* num) = 0;
         virtual int read_record(XDRFILE *xd, int natoms, int *step,
-                                float *time, matrix box,rvec *x){}
+                                float *time, matrix box,rvec *x) = 0;
         virtual int write_record(XDRFILE *xd,
                       int natoms,int step,float time,
-                      matrix box,rvec *x){}
+                      matrix box,rvec *x) = 0;
 
         /// Reads next frame into internal storage. Returns false if failed or EOF reached.
         virtual bool do_read(System *sys, Frame *frame, Mol_file_content what);

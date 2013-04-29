@@ -40,7 +40,7 @@ Trajectory_processor::~Trajectory_processor(){
 void Trajectory_processor::print_help(){
     cout << "Note about nested options:\n"
             "--------------------------\n"
-            "Nested options could be used by putting arguments of the parent options\n"
+            "Nested options could be used by putting arguments of the parent option\n"
             "into square brackets like this:\n"
             "--parent [ arg1 arg2 --nested1 nested_arg1 nested_arg2 ]"
 
@@ -54,28 +54,24 @@ void Trajectory_processor::print_help(){
             "Options for trajectory processing:\n"
             "----------------------------------\n"
             "--trajectory filename1 filename2 ... <sub-options>:\n"
-            "\tRequired. Group of files, which include:\n"
-            "\t* structure file (PDB or GRO, required),\n"
-            "\t* topology file (preprocessed Gromacs TOP, optional)\n"
+            "\tRequired. Group of files, which includes:\n"
+            "\t* structure file (PDB or GRO),\n"
+            "\t* topology file PTTOP (converted from Gromacs .tpr by tpr2pteros.py)\n"
             "\t* one or more trajectory files (TRR or XTC, required).\n"
             "\tFiles may appear in any order, but trajectory files will be processed\n"
             "\tin the order of their appearance.\n"
-            "\tThis option could be given several times.\n"
+
             "\tThe following sub-options may appear inside --trajectory:\n\n"
 
-            "\t--range [frame_range|time_range] begin end:\n"
-            "\t\tOptional. Part of trajectory to process expressed in either frames or time in ps.\n"
+            "\t--first_frame: first frame to read\n"
+            "\t--last_frame: last frame to read\n"
+            "\t--first_time: first time step to read, ps\n"
+            "\t--last_time: last time step to read, ps\n"
 
             "\t--window [frame_window|time_window] sz:\n"
             "\t\tprocess by windows of size sz determined by frame of by time in ps.\n"
 
-            "\t--name str:\n"
-            "\t\tOptional. Used in the names of output files.\n"
-
             "\n"
-
-            "--async [true|false]\n"
-            "\tOptional. Asynchronous reading of trajectory frames. True by default.\n"
 
             "--log_interval n\n"
             "\tOptional. Print logging info each n frames.\n"
