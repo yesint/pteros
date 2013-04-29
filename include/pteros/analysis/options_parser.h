@@ -33,7 +33,8 @@
 
 namespace pteros {
 
-class Options_tree;
+
+class Options_tree; //forward
 
 /// Single node
 typedef boost::variant<
@@ -245,5 +246,11 @@ Options_tree& Options_tree::operator>>(T& val){
 }
 
 
-}
+
+
+//-------------------------------------------------------------
+
+
+
+} // namespace
 #endif

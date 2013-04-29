@@ -10,8 +10,8 @@ project(pteros_template_program)
 ## You have to set the variables below:      ##
 ###############################################
 
-SET(PTEROS_INCLUDE_PATH "/home/semen/work/Projects/pteros/pteros_git/include")
-SET(PTEROS_LIB_PATH "/home/semen/work/Projects/pteros/pteros_git_build/experimental/release/lib")
+SET(PTEROS_INCLUDE_PATH "/home/semen/programs/pteros/include")
+SET(PTEROS_LIB_PATH "/home/semen/programs/pteros/lib")
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     ##################################################
@@ -37,10 +37,10 @@ ENDIF()
 
 SET(CMAKE_BUILD_TYPE Release)
 
-find_package(Boost 1.42.0 REQUIRED thread regex)
+find_package(Boost 1.42.0 REQUIRED thread)
 
 include_directories(${PTEROS_INCLUDE_PATH} ${Boost_INCLUDE_DIRS})
 link_directories(${PTEROS_LIB_PATH})
-link_libraries(pteros pteros_analysis pteros_sim ${Boost_LIBRARIES})
+link_libraries(pteros pteros_analysis ${Boost_LIBRARIES})
 
 add_subdirectory(src)

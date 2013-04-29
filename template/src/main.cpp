@@ -1,4 +1,6 @@
-#include "pteros/pteros_core.h"
+#include "pteros/core/selection.h"
+#include "pteros/core/pteros_error.h"
+#include <iostream>
 
 using namespace std;
 using namespace pteros;

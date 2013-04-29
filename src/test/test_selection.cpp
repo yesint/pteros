@@ -32,15 +32,55 @@
 #include <boost/tokenizer.hpp>
 #include <boost/algorithm/string.hpp>
 
+//-----------------------------------------
+
+/*
+ Options_scheme s;
+s.option("trajectory","description",
+            multi<string>() +
+            !single<int>() +
+            !option("first_frame","descr", single<int>() ) +
+            !option("last_frame","descr", single<int>() ) +
+            !option("first_time","descr", single<float>() ) +
+            !option("last_time","descr", single<float>() ) +
+        )
+ */
+
+class Options_scheme {
+public:
+    Options_scheme& option(std::string name, std::string descr, Options_scheme o = Options_scheme()){
+        sub_options.push_back(Options_scheme());
+        sub_options.back().name = name;
+        sub_options.back().description = descr;
+    }
+
+    template<class T>
+    Options_scheme& single();
+
+    template<class T>
+    Options_scheme& multi(int num = -1);
+private:
+    std::string name;
+    std::string description;
+    std::vector<> values;
+    std::vector<Options_scheme> sub_options;
+};
+
+//-----------------------------------------
 
 using namespace std;
 using namespace pteros;
 using namespace Eigen;
 
 
+
+
 int main(int argc, char** argv)
 {
     try{
+
+
+
         Options_tree opt;
         opt.from_command_line(argc,argv);
 
