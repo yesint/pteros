@@ -28,11 +28,10 @@
 
 namespace pteros {
 
-/** Implementation of th Gaussian Network Model (GNM) protein model.
+/** Implementation of the Gaussian Network Model (GNM) protein model.
   */
 class GNM {
-    public:
-        int N;
+    public:        
         Eigen::MatrixXf eigenvectors;
         Eigen::VectorXf eigenvalues;
         Eigen::MatrixXf c,p;
@@ -45,6 +44,8 @@ class GNM {
         void compute_p_matrix();
         void write_c_matrix(std::string fname);
         void write_p_matrix(std::string fname);
+private:
+        int N;
 };
 
 }

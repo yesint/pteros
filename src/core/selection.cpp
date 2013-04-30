@@ -1144,12 +1144,6 @@ void Selection::notify_slot(System_notification code, int b, int e){
     }
 }
 
-/*
-void Selection::remove_overlap(Eigen::Vector3f &dir, const Selection &clash_sel, float cut_off){
-    throw Pteros_error("remove_overlap is not implemented yet!");
-}
-*/
-
 void Selection::enable_signals(){
     connection.disconnect();
     connection = system->notify_signal.connect( boost::bind(&Selection::notify_slot,this,_1,_2,_3) );

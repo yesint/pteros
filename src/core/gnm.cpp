@@ -36,7 +36,7 @@ void GNM::compute(Selection& sel, float cutoff){
 
     cout << "Running GNM..."<<endl;
 
-    N = sel.num();
+    N = sel.size();
     eigenvalues.resize(N-1);
     eigenvectors.resize(N,N-1);
 
@@ -47,8 +47,8 @@ void GNM::compute(Selection& sel, float cutoff){
     kirk.fill(0.0);
     // Compute off-diagonal elements
     for(i=0;i<N-1;++i)
-        for(j=i+1;j<N;++j){
-            d = sqrt((sel.XYZ(i)-sel.XYZ(j)).array().pow(2).sum());
+        for(j=i+1;j<N;++j){            
+            d = (sel.XYZ(i)-sel.XYZ(j)).norm();
             if(d<=cutoff){
                 kirk(i,j)= -1.0;
                 kirk(j,i)= -1.0;
@@ -58,16 +58,6 @@ void GNM::compute(Selection& sel, float cutoff){
 
     // Compute diagonal elements
     for(i=0;i<N;++i) kirk(i,i) = -kirk.col(i).sum();
-
-    /*
-    ofstream f("kirk.dat");
-    for(i=0;i<N;++i){
-        for(j=0;j<N;++j)
-            f << kirk(i,j) << " ";
-        f << endl;
-    }
-    f.close();
-    */
 
     cout << "Computing eigenvectors...";
     time1 = clock();

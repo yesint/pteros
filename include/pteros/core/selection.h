@@ -156,8 +156,6 @@ class Selection {
 
     /// Get the size of selection
     int size() const {return index.size();}
-    /// Get the size of selection. The same as size().
-    int num() const {return index.size();}
 
     /** Clears selection and frees memory, but do not delete it.
     *   Selection remains registered in parent system, but is cleared from any data.
@@ -284,7 +282,7 @@ class Selection {
     /// @param axis Axis of rotation 0=X, 1=Y, 2=Z
     /// @param angle Rotation angle in radians
     /// @param pivot Rotation around this pivot
-    void rotate(int axis, float angle, const Eigen::Vector3f& pivot); //Around given axis relative to pivot
+    void rotate(int axis, float angle, const Eigen::Vector3f& pivot);
     /// Rotate around given vector relative to given pivot
     /// @param direction Rotate around this vector
     /// @param angle Rotation angle in radians
@@ -392,18 +390,11 @@ class Selection {
     /// Duplicate current selection in the parent system
     /// Resulting selection is born without signalling because it is intended for building purposes only
     void atoms_dup(Selection* res_sel = NULL);
-    /// Deletes current selection from parent system
+    /// Delete all atoms of current selection from the parent system
     void atoms_delete();
     /// Creates multiple copies of selection in the parent system and
     /// distributes them in a grid
     void distribute(Eigen::Vector3i& ncopies, Eigen::Vector3f& shift);
-
-    /*
-    /// Moves selection along given vector until it becomes free of sterical clashes
-    /// with clash_sel within cut-off
-    void remove_overlap(Eigen::Vector3f& dir, const Selection& clash_sel, float cut_off = 0.2);
-    */
-
     /// @}
 
     /// @name Signals handling

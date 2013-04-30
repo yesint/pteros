@@ -410,7 +410,6 @@ void make_bindings_Selection(){
         .def(init<const Selection&>() )
         .def(init<System&,int,int>() )
         .def("size",&Selection::size)
-        .def("num",&Selection::num)
 
         .def("modify", Selection_modify1)
         .def("modify", Selection_modify2)
