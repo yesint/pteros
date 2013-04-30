@@ -122,10 +122,6 @@ void Contacts_finder::pre_process(){
         dist = maxd + vdw_gap;
         cout << "\tLargest distance is " << maxd << " search cut-off is " << dist << endl;
     }
-
-    // Set up searcher
-    //cout << endl << "Setting up grid searcher..." << endl;
-    //searcher.create(dist,system,true,is_periodic);
 }
 
 void Contacts_finder::process_frame(const Frame_info &info){

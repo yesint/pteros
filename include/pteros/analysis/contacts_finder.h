@@ -85,7 +85,7 @@ class Contacts_finder: public Consumer {
         void create(Trajectory_processor& proc, Options_tree& opt);
 
         /// Prints pretty human-readable summary to the stream
-        void print_info(std::ostream& out);
+        //void print_info(std::ostream& out);
         /// Saves results in JSON format to the stream
         void save(std::ostream& out, bool human_readable=true);
         /// Writes statisticts per frame (number of contacts, etc.)
