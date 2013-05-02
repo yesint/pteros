@@ -776,10 +776,26 @@ void Selection_parser::do_optimization(AstNode_ptr& node){
         cout << "Node set to precomputed " << endl;
 #endif
     } else {
+        // Node is not pure
+
 #ifdef _DEBUG_PARSER
         cout << "Node " << node->decode() << " is NOT pure" << endl;
 #endif
     }
+
+    // Optimize AND operations - coord-dependent operand
+    // should go second to benefit from subspace optimization
+    if(node->code == TOK_AND){
+        try{
+            if( boost::get<AstNode_ptr>(node->children[0])->is_coordinate_dependent()
+                    &&
+                !boost::get<AstNode_ptr>(node->children[1])->is_coordinate_dependent()
+            ){
+                boost::get<AstNode_ptr>(node->children[0]).swap( boost::get<AstNode_ptr>(node->children[1]) );
+             }
+        } catch (boost::bad_get) {}
+    }
+
 
     // Go deeper
     for(int i=0;i<node->children.size();++i)
@@ -1047,6 +1063,8 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
         } catch(boost::bad_get){
             dist = node->get_int_child_value(0);
         }
+
+        //cout << "subspace size: " << subspace->size() << endl;
 
         // Evaluate enclosed expression
         eval_node(boost::get<AstNode_ptr>(node->children[1]), res1, subspace);
