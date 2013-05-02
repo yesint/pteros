@@ -1,7 +1,25 @@
-#include <boost/algorithm/string.hpp>
-#include <algorithm>
+/*
+ *
+ *                This source code is part of
+ *                    ******************
+ *                    ***   Pteros   ***
+ *                    ******************
+ *                 molecular modeling library
+ *
+ * Copyright (c) 2009-2013, Semen Yesylevskyy
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of Artistic License:
+ *
+ * Please note, that Artistic License is slightly more restrictive
+ * then GPL license in terms of distributing the modified versions
+ * of this software (they should be approved first).
+ * Read http://www.opensource.org/licenses/artistic-license-2.0.php
+ * for details. Such license fits scientific software better then
+ * GPL because it prevents the distribution of bugged derivatives.
+ *
+*/
 
-//#include "pteros/core/selection_grammar2.h"
 #include "pteros/core/selection_parser.h"
 #include "pteros/core/system.h"
 #include "pteros/core/selection.h"
@@ -9,6 +27,7 @@
 #include "pteros/core/grid_search.h"
 #include <Eigen/Core>
 #include <cctype>
+#include <algorithm>
 #include <boost/algorithm/string.hpp>
 #include <boost/regex.hpp>
 #include <boost/lexical_cast.hpp>
@@ -748,7 +767,7 @@ void Selection_parser::do_optimization(AstNode_ptr& node){
         // Set node type to precomputed        
 
         vector<int> res;
-        eval_node(node,res);
+        eval_node(node,res,NULL);
         node->precomputed = res;
         node->children.clear();
         node->code = TOK_PRECOMPUTED;
@@ -792,7 +811,7 @@ void Selection_parser::apply(System* system, long fr, vector<int>& result){
     }
 
     // Eval root node
-    eval_node(tree,result);
+    eval_node(tree,result,NULL);
 
 #ifdef _DEBUG_PARSER
     int n = 0;
@@ -802,7 +821,7 @@ void Selection_parser::apply(System* system, long fr, vector<int>& result){
 #endif    
 }
 
-void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result){
+void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<int>* subspace){
     int i,at,j,k,n;
 
     // Clear any garbage passed in result
@@ -817,8 +836,7 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result){
     case  TOK_NOT: {
         // Logical NOT
         vector<int> res1;
-
-        eval_node(boost::get<AstNode_ptr>(node->children[0]), res1);
+        eval_node(boost::get<AstNode_ptr>(node->children[0]), res1, subspace);
         // Sort
         std::sort(res1.begin(),res1.end());
         // res1 is sorted, so we can speed up negation a bit by filling only the "gaps"
@@ -834,8 +852,8 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result){
         // Logical OR
         vector<int> res1, res2; // Aux vectors
 
-        eval_node(boost::get<AstNode_ptr>(node->children[0]), res1);
-        eval_node(boost::get<AstNode_ptr>(node->children[1]), res2);
+        eval_node(boost::get<AstNode_ptr>(node->children[0]), res1, subspace);
+        eval_node(boost::get<AstNode_ptr>(node->children[1]), res2, subspace);
 
         // Sort
         std::sort(res1.begin(),res1.end());
@@ -849,8 +867,9 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result){
         // Logical AND
         vector<int> res1, res2; // Aux vectors
 
-        eval_node(boost::get<AstNode_ptr>(node->children[0]), res1);
-        eval_node(boost::get<AstNode_ptr>(node->children[1]), res2);
+        eval_node(boost::get<AstNode_ptr>(node->children[0]), res1, subspace);
+        // First operand sets a subspace for the second
+        eval_node(boost::get<AstNode_ptr>(node->children[1]), res2, &res1);
 
         // Sort
         std::sort(res1.begin(),res1.end());
@@ -1030,7 +1049,7 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result){
         }
 
         // Evaluate enclosed expression
-        eval_node(boost::get<AstNode_ptr>(node->children[1]), res1);
+        eval_node(boost::get<AstNode_ptr>(node->children[1]), res1, subspace);
 
         bool periodic = false;
         // If we have children[2] then dimensions or/and periodicity are set
@@ -1041,10 +1060,19 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result){
         // Do searching
         Grid_searcher g;
         Selection dum1(*sys),dum2(*sys);
-        dum1.index.resize(sys->num_atoms());
+
+        if(!subspace){
+            dum1.index.resize(sys->num_atoms());
+            for(int i=0;i<sys->num_atoms();++i) dum1.index[i] = i;
+        } else {
+            // We are limited by subspace
+            dum1.index = *subspace;
+        }
+
+        // dum2 is filled from res1
         dum2.index.resize(res1.size());
-        for(int i=0;i<sys->num_atoms();++i) dum1.index[i] = i;
         for(int i=0;i<res1.size();++i) dum2.index[i] = res1[i];
+
         dum1.set_frame(frame);
         dum2.set_frame(frame);
         g.assign_to_grid(dist,dum1,true,periodic);
@@ -1063,7 +1091,7 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result){
     case  TOK_BY: {
         vector<int> res1;
         // Evaluate enclosed expression
-        eval_node(boost::get<AstNode_ptr>(node->children[0]), res1);
+        eval_node(boost::get<AstNode_ptr>(node->children[0]), res1, subspace);
         // Select by residue. This respects chain!
         int Nsel = res1.size();
         for(i=0;i<Nsel;++i) //over found atoms
@@ -1138,7 +1166,17 @@ float Selection_parser::eval_numeric(AstNode_ptr& node, int at){
     if(node->code == TOK_INT){
         return boost::get<int>(node->children[0]);
     } else if(node->code == TOK_FLOAT){
-        return boost::get<float>(node->children[0]);
+        return boost::get<float>(node->children[0]);        
+    } else if(node->code == TOK_X){
+        return sys->traj[frame].coord[at](0);
+    } else if(node->code == TOK_Y){
+        return sys->traj[frame].coord[at](1);
+    } else if(node->code == TOK_Z){
+        return sys->traj[frame].coord[at](2);
+    } else if(node->code == TOK_BETA){
+        return sys->atoms[at].beta;
+    } else if(node->code == TOK_OCC){
+        return sys->atoms[at].occupancy;
     } else if(node->code == TOK_UNARY_MINUS){
         return -eval_numeric(boost::get<AstNode_ptr>(node->children[0]),frame);
     } else if(node->code == TOK_PLUS){
@@ -1211,16 +1249,5 @@ float Selection_parser::eval_numeric(AstNode_ptr& node, int at){
 
         // Return distance between atom and v
         return sys->distance(atom, v, frame, pbc);
-
-    } else if(node->code == TOK_X){
-        return sys->traj[frame].coord[at](0);
-    } else if(node->code == TOK_Y){
-        return sys->traj[frame].coord[at](1);
-    } else if(node->code == TOK_Z){
-        return sys->traj[frame].coord[at](2);
-    } else if(node->code == TOK_BETA){
-        return sys->atoms[at].beta;
-    } else if(node->code == TOK_OCC){
-        return sys->atoms[at].occupancy;
     }
 }

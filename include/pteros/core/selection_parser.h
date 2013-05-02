@@ -176,11 +176,11 @@ private:
     int Natoms;
     int frame;
 
-    void eval_node(AstNode_ptr& node, std::vector<int>& result);
+    void eval_node(AstNode_ptr& node, std::vector<int>& result, std::vector<int>* subspace);
     float eval_numeric(AstNode_ptr& node, int at);
     void do_optimization(AstNode_ptr& node);
 
-    bool is_optimized;
+    bool is_optimized;        
 };
 
 }

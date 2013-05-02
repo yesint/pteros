@@ -89,10 +89,15 @@ int main(int argc, char** argv)
 
         //return 1;
 
-        //System t("/home/semen/work/Projects/pteros/pteros_git/src/test/data/2lao.gro");
-        System t("/media/data/semen/trajectories/test/topol.tpr.pttop");
-        t.load("/media/data/semen/trajectories/test/traj.trr");
+        System t("/home/semen/work/Projects/pteros/pteros_git/src/test/data/2lao.gro");
+        //System t("/media/data/semen/trajectories/test/topol.tpr.pttop");
+        //t.load("/media/data/semen/trajectories/test/traj.trr");
+        //Selection s0(t,"name CA");
+        //for(int i=0;i<s0.size();++i) cout << s0.XYZ(i).transpose() << endl;
+        Selection s(t,"(within 0.2 of name CB) and name CA");
+        cout << s.size() << endl;
 
+        /*
         ofstream f("out.dat");
         for(int fr=1;fr<t.num_frames();++fr){
             Energy_components e;
@@ -100,6 +105,7 @@ int main(int argc, char** argv)
             f << fr << "  " << e.to_str() << endl;
         }
         f.close();
+        */
 
         /*
         Vector3f ref = s.XYZ(10000);
