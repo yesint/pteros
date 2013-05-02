@@ -333,6 +333,9 @@ void Grid_searcher::create_grid(Grid_t& grid,Selection& sel){
     if(!is_periodic){
         // Get the minmax of selection
         sel.minmax(min,max);
+        // Add a "halo: of size cutoff
+        min.array() -= cutoff;
+        max.array() += cutoff;
     } else {
         // Get current box
         Matrix3f box = sel.get_system()->Box(sel.get_frame());
