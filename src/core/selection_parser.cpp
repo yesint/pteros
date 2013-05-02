@@ -1132,46 +1132,101 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
         return;          
 
     // Math logical nodes
+    // All of them benefit from subspace optimization
     case  TOK_EQ:
-        for(at=0;at<Natoms;++at) // over all atoms
-            if(eval_numeric(boost::get<AstNode_ptr>(node->children[0]),at) ==
-               eval_numeric(boost::get<AstNode_ptr>(node->children[1]),at)
-              ) result.push_back(at);
+        if(!subspace){
+            for(at=0;at<Natoms;++at) // over all atoms
+                if(eval_numeric(boost::get<AstNode_ptr>(node->children[0]),at) ==
+                   eval_numeric(boost::get<AstNode_ptr>(node->children[1]),at)
+                  ) result.push_back(at);
+        } else {
+            for(int i=0;i<subspace->size();++i){ // over subspace
+                at = (*subspace)[i];
+                if(eval_numeric(boost::get<AstNode_ptr>(node->children[0]),at) ==
+                   eval_numeric(boost::get<AstNode_ptr>(node->children[1]),at)
+                  ) result.push_back(at);
+            }
+        }
         return;
 
     case  TOK_NEQ:
-        for(at=0;at<Natoms;++at) // over all atoms
-            if(eval_numeric(boost::get<AstNode_ptr>(node->children[0]),at) !=
-               eval_numeric(boost::get<AstNode_ptr>(node->children[1]),at)
-              ) result.push_back(at);
+        if(!subspace){
+            for(at=0;at<Natoms;++at) // over all atoms
+                if(eval_numeric(boost::get<AstNode_ptr>(node->children[0]),at) !=
+                   eval_numeric(boost::get<AstNode_ptr>(node->children[1]),at)
+                  ) result.push_back(at);
+        } else {
+            for(int i=0;i<subspace->size();++i){ // over subspace
+                at = (*subspace)[i];
+                if(eval_numeric(boost::get<AstNode_ptr>(node->children[0]),at) !=
+                   eval_numeric(boost::get<AstNode_ptr>(node->children[1]),at)
+                  ) result.push_back(at);
+            }
+        }
         return;
 
     case  TOK_LT:
-        for(at=0;at<Natoms;++at) // over all atoms
-            if(eval_numeric(boost::get<AstNode_ptr>(node->children[0]),at) <
-               eval_numeric(boost::get<AstNode_ptr>(node->children[1]),at)
-              ) result.push_back(at);
+        if(!subspace){
+            for(at=0;at<Natoms;++at) // over all atoms
+                if(eval_numeric(boost::get<AstNode_ptr>(node->children[0]),at) <
+                   eval_numeric(boost::get<AstNode_ptr>(node->children[1]),at)
+                  ) result.push_back(at);
+        } else {
+            for(int i=0;i<subspace->size();++i){ // over subspace
+                at = (*subspace)[i];
+                if(eval_numeric(boost::get<AstNode_ptr>(node->children[0]),at) <
+                   eval_numeric(boost::get<AstNode_ptr>(node->children[1]),at)
+                  ) result.push_back(at);
+            }
+        }
         return;
 
     case  TOK_GT:
-        for(at=0;at<Natoms;++at) // over all atoms
-            if(eval_numeric(boost::get<AstNode_ptr>(node->children[0]),at) >
-               eval_numeric(boost::get<AstNode_ptr>(node->children[1]),at)
-              ) result.push_back(at);
+        if(!subspace){
+            for(at=0;at<Natoms;++at) // over all atoms
+                if(eval_numeric(boost::get<AstNode_ptr>(node->children[0]),at) >
+                   eval_numeric(boost::get<AstNode_ptr>(node->children[1]),at)
+                  ) result.push_back(at);
+        } else {
+            for(int i=0;i<subspace->size();++i){ // over subspace
+                at = (*subspace)[i];
+                if(eval_numeric(boost::get<AstNode_ptr>(node->children[0]),at) >
+                   eval_numeric(boost::get<AstNode_ptr>(node->children[1]),at)
+                  ) result.push_back(at);
+            }
+        }
         return;
 
     case  TOK_LEQ:
-        for(at=0;at<Natoms;++at) // over all atoms
-            if(eval_numeric(boost::get<AstNode_ptr>(node->children[0]),at) <=
-               eval_numeric(boost::get<AstNode_ptr>(node->children[1]),at)
-              ) result.push_back(at);
+        if(!subspace){
+            for(at=0;at<Natoms;++at) // over all atoms
+                if(eval_numeric(boost::get<AstNode_ptr>(node->children[0]),at) <=
+                   eval_numeric(boost::get<AstNode_ptr>(node->children[1]),at)
+                  ) result.push_back(at);
+        } else {
+            for(int i=0;i<subspace->size();++i){ // over subspace
+                at = (*subspace)[i];
+                if(eval_numeric(boost::get<AstNode_ptr>(node->children[0]),at) <=
+                   eval_numeric(boost::get<AstNode_ptr>(node->children[1]),at)
+                  ) result.push_back(at);
+            }
+        }
         return;
 
     case  TOK_GEQ:
-        for(at=0;at<Natoms;++at) // over all atoms
-            if(eval_numeric(boost::get<AstNode_ptr>(node->children[0]),at) >=
-               eval_numeric(boost::get<AstNode_ptr>(node->children[1]),at)
-              ) result.push_back(at);
+        if(!subspace){
+            for(at=0;at<Natoms;++at) // over all atoms
+                if(eval_numeric(boost::get<AstNode_ptr>(node->children[0]),at) >=
+                   eval_numeric(boost::get<AstNode_ptr>(node->children[1]),at)
+                  ) result.push_back(at);
+        } else {
+            for(int i=0;i<subspace->size();++i){ // over subspace
+                at = (*subspace)[i];
+                if(eval_numeric(boost::get<AstNode_ptr>(node->children[0]),at) >=
+                   eval_numeric(boost::get<AstNode_ptr>(node->children[1]),at)
+                  ) result.push_back(at);
+            }
+        }
         return;
 
     }   
