@@ -163,7 +163,9 @@ float AstNode::get_float_or_int_child_value(int i){
 }
 
 bool AstNode::is_coordinate_dependent(){
-    if(code == TOK_X || code == TOK_Y || code == TOK_Z || code == TOK_WITHIN){
+    if(code == TOK_X || code == TOK_Y || code == TOK_Z || code == TOK_WITHIN
+            || code == TOK_POINT || code == TOK_PLANE || code == TOK_VECTOR
+      ){
         return true;
     } else {
         return false;
@@ -727,30 +729,7 @@ void Selection_parser::create_ast(string& sel_str){
 
 void Selection_parser::do_optimization(AstNode_ptr& node){
 
-/*
-    // If this is a math node and both operands are numbers, simplify it
-    if( (node->code == TOK_PLUS || node->code == TOK_MINUS)
-        || (node->code == TOK_MULT || node->code == TOK_DIV) )
-     {
-        AstNode_ptr c1 = boost::get<AstNode_ptr>(node->children[0]);
-        AstNode_ptr c2 = boost::get<AstNode_ptr>(node->children[1]);
-
-        if(   (c1->code == TOK_INT || c1->code == TOK_FLOAT)
-           && (c2->code == TOK_INT || c2->code == TOK_FLOAT)) {
-            float val = eval_numeric(node, 0);
-            node->children.clear();
-            node->code = TOK_FLOAT;
-            node->children.push_back(val);
-#ifdef _DEBUG_PARSER
-            cout << "Numeric node pre-evaluated to " << val << endl;
-#endif
-            // Start from root again to re-evaluate since the tree has changed
-            do_optimization(tree);
-            return;
-        }
-    }
-*/
-    // Skip for trivial nodes
+    // Skip optimization for trivial leaf nodes
     if(node->code == TOK_VOID
         || node->code == TOK_STR
         || node->code == TOK_REGEX
@@ -775,23 +754,21 @@ void Selection_parser::do_optimization(AstNode_ptr& node){
 #ifdef _DEBUG_PARSER
         cout << "Node set to precomputed " << endl;
 #endif
-    } else {
-        // Node is not pure
-
-#ifdef _DEBUG_PARSER
-        cout << "Node " << node->decode() << " is NOT pure" << endl;
-#endif
     }
 
     // Optimize AND operations - coord-dependent operand
     // should go second to benefit from subspace optimization
     if(node->code == TOK_AND){
-        try{
-            if( boost::get<AstNode_ptr>(node->children[0])->is_coordinate_dependent()
-                    &&
-                !boost::get<AstNode_ptr>(node->children[1])->is_coordinate_dependent()
-            ){
-                boost::get<AstNode_ptr>(node->children[0]).swap( boost::get<AstNode_ptr>(node->children[1]) );
+        try{            
+            if(   !is_node_pure(boost::get<AstNode_ptr>(node->children[0]))
+               && is_node_pure(boost::get<AstNode_ptr>(node->children[1]))
+               ){
+#ifdef _DEBUG_PARSER
+                cout << "Node " << node->decode() << " swapped" << endl;
+#endif
+
+                //p1.swap(p2);
+                boost::get<AstNode_ptr>(node->children[0]).swap(boost::get<AstNode_ptr>(node->children[1]));
              }
         } catch (boost::bad_get) {}
     }
@@ -818,6 +795,10 @@ void Selection_parser::apply(System* system, long fr, vector<int>& result){
     // For coordinate-dependent selections perform optimization
     // to precompute all pure not-coordinate-depenednt nodes
     if(has_coord && !is_optimized){
+#ifdef _DEBUG_PARSER
+        cout << "Tree before optimizaton:" << endl;
+        tree->dump(0);
+#endif
         do_optimization(tree);
         is_optimized = true;
 #ifdef _DEBUG_PARSER
@@ -845,7 +826,16 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
 
     switch(node->code){
     case  TOK_PRECOMPUTED: {
-        result = node->precomputed;
+        if(!subspace){
+            result = node->precomputed;
+        } else {
+            // If this node is under subspace we only need to return those
+            // atoms, which are in that subspace. Otherwise we can extend
+            // the subspace but we don't want this. Thus return intersection:
+            std::set_intersection(subspace->begin(),subspace->end(),
+                                  node->precomputed.begin(),node->precomputed.end(),
+                                  back_inserter(result));
+        }
         return;
     }
 
@@ -884,8 +874,9 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
         vector<int> res1, res2; // Aux vectors
 
         eval_node(boost::get<AstNode_ptr>(node->children[0]), res1, subspace);
-        // First operand sets a subspace for the second
+        // First operand sets a subspace for the second!
         eval_node(boost::get<AstNode_ptr>(node->children[1]), res2, &res1);
+        //eval_node(boost::get<AstNode_ptr>(node->children[1]), res2, subspace);
 
         // Sort
         std::sort(res1.begin(),res1.end());
@@ -894,6 +885,9 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
         std::set_intersection(res1.begin(),res1.end(),res2.begin(),res2.end(),back_inserter(result));
         return;
     }
+
+    // Coord-independent selections are evaluated only once thus
+    // no need to bother with subspace optimizations
 
     case  TOK_NAME: {
         int Nchildren = node->children.size(); // Get number of children
@@ -1064,10 +1058,16 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
             dist = node->get_int_child_value(0);
         }
 
-        //cout << "subspace size: " << subspace->size() << endl;
-
+#ifdef _DEBUG_PARSER
+        if(subspace)
+            cout << "subspace size: " << subspace->size() << endl;
+        else
+            cout << "full subspace!" << endl;
+#endif
         // Evaluate enclosed expression
-        eval_node(boost::get<AstNode_ptr>(node->children[1]), res1, subspace);
+        // Enclosed expression is independent on any subspace!
+        // Otherwise the results would be incorrect
+        eval_node(boost::get<AstNode_ptr>(node->children[1]), res1, NULL);
 
         bool periodic = false;
         // If we have children[2] then dimensions or/and periodicity are set
@@ -1106,13 +1106,14 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
         return;
     }
 
-    case  TOK_BY: {
+    case  TOK_BY: {        
         vector<int> res1;
         // Evaluate enclosed expression
         eval_node(boost::get<AstNode_ptr>(node->children[0]), res1, subspace);
         // Select by residue. This respects chain!
         int Nsel = res1.size();
         for(i=0;i<Nsel;++i) //over found atoms
+            // Do not respect subspace here because residues should remain whole!
             for(at=0;at<Natoms;++at) // over all atoms
                 if(sys->atoms[res1[i]].resid == sys->atoms[at].resid &&
                    sys->atoms[res1[i]].chain == sys->atoms[at].chain
