@@ -33,6 +33,7 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/foreach.hpp>
 #include <boost/variant.hpp>
+#include <boost/unordered_set.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 //  Functions for creating actual selection from AST
@@ -1108,22 +1109,24 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
 
     case  TOK_BY: {        
         vector<int> res1;
-        // Evaluate enclosed expression
+        // Evaluate enclosed expression, ok to pass subspace
         eval_node(boost::get<AstNode_ptr>(node->children[0]), res1, subspace);
-        // Select by residue. This respects chain!
         int Nsel = res1.size();
-        for(i=0;i<Nsel;++i) //over found atoms
-            // Do not respect subspace here because residues should remain whole!
-            for(at=0;at<Natoms;++at) // over all atoms
-                if(sys->atoms[res1[i]].resid == sys->atoms[at].resid &&
-                   sys->atoms[res1[i]].chain == sys->atoms[at].chain
-                ) result.push_back(at);
-        // Now sort result
-        std::sort(result.begin(), result.end());
-        // Remove duplicates
-        vector<int>::iterator it = std::unique(result.begin(), result.end());
-        // Get rid of the tail with garbage
-        result.resize( it - result.begin() );
+        // Select by residue. This respects chain!
+        // First make a set of resids we need to search
+        boost::unordered_set<int> resind;
+        for(i=0;i<Nsel;++i){ //over found atoms
+            resind.insert(sys->atoms[res1[i]].resindex);
+        }
+
+        // Now cycle over all atoms in the system (not a subset!)
+        for(at=0;at<Natoms;++at){ // over all atoms
+            if(resind.count(sys->atoms[at].resindex)){
+                // This resind is needed
+                result.push_back(at);
+            }
+        }
+        // Now result is sorted by default here and there are no duplicates
         return;
     }
 
