@@ -94,7 +94,7 @@ int main(int argc, char** argv)
         //t.load("/media/data/semen/trajectories/test/traj.trr");
         //Selection s0(t,"name CA");
         //for(int i=0;i<s0.size();++i) cout << s0.XYZ(i).transpose() << endl;
-        Selection s(t,"(within 0.2 of name CB) and name CA");
+        Selection s(t,"distance point 0 0 0 > 5 and by residue name CA");
         cout << s.size() << endl;
 
         /*
