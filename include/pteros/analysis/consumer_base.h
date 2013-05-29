@@ -73,6 +73,18 @@ protected:
     /// Pointer to trajectory processor
     Trajectory_processor* proc;
 
+    /// Handler functions which call user callbacks
+    /// Could be overriden to take additional actions
+    /// These handlers are called by Trajectory_processor
+    virtual void pre_process_handler(){
+
+        pre_process();
+    }
+    virtual void post_process_handler(const Frame_info& info){ post_process(info); }
+    virtual void process_frame_handler(const Frame_info& info){ process_frame(info); }
+    virtual void window_started_handler(const Frame_info& info){ window_started(info); }
+    virtual void window_finished_handler(const Frame_info& info){ window_finished(info); }
+
 private:
 
     /// Index of consumer

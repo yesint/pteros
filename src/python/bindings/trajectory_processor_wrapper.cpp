@@ -25,14 +25,17 @@
 using namespace pteros;
 
 void Trajectory_processor_wrapper::initialize(){
-    cons_p = boost::shared_ptr<Consumer_wrapper>(new Consumer_wrapper(this));    
+    if(cons_p.use_count()==0){
+        cout << "INIT" << endl;
+        cons_p = boost::shared_ptr<Consumer_wrapper>(new Consumer_wrapper(this));
+    }
 }
 
 Trajectory_processor_wrapper::Trajectory_processor_wrapper(): Trajectory_processor(){
-    initialize();
+    //initialize();
 }
 Trajectory_processor_wrapper::Trajectory_processor_wrapper(Options_tree& opt): Trajectory_processor(opt){
-    initialize();
+    //initialize();
 }
 
 System* Trajectory_processor_wrapper::get_system(){

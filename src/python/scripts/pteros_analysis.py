@@ -110,6 +110,9 @@ for task in requested_tasks:
 		# This is pure Python plugin
 		print "\t* Loaded pure Python plugin '%s'" % task_name
 		
+		# Create internal consumer for python tasks
+		proc.initialize();
+		
 		# Now work with tasks		
 		for tsk in task_list:		
 			tsk_name = tsk.get_value_string("")

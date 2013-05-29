@@ -7,7 +7,7 @@ public:
     center(Trajectory_processor* pr, Options_tree* opt): Compiled_plugin_base(pr,opt) {
     }
 protected:
-    void pre_process(){
+    void pre_process(){                
         string sel_text = options->get_value<string>("selection");
         use_mass = options->get_value<bool>("mass_weighted",false);
         sel.modify(system,sel_text);

@@ -270,7 +270,12 @@ void Trajectory_processor::run(){
     } else {
         // There is only one consumer, no need for multiple threads
         // Run pre-process
-        consumers[0]->pre_process();
+
+        //!! Important !!
+        // Try block here does not catch exceptions inside pre_process
+        // because this could be called from externally loaded compiled plugin!
+        // errors should be catched in the Consumer itself!
+        consumers[0]->pre_process_handler();
 
         boost::shared_ptr<Data_container> data;
         while(channel.recieve(data)){
@@ -281,7 +286,7 @@ void Trajectory_processor::run(){
             consumers[0]->consume_frame(data);
         }
         // Run post-process with last supplied data
-        consumers[0]->post_process(data->frame_info);
+        consumers[0]->post_process_handler(data->frame_info);
     }
 
     // Join all threads
