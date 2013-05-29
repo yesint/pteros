@@ -1,5 +1,7 @@
+#!/usr/bin/python
+
 from pteros import *
-import sys, pkgutil, copy
+import sys, pkgutil, copy, os, imp
 
 import pteros_analysis_plugins
 
@@ -24,12 +26,14 @@ def available_plugins():
 
 opt = Options_tree()
 opt.from_command_line(sys.argv)
-print opt.to_json_string()
+
+#print opt.to_json_string()
 
 requested_tasks = []
 task_list = []
 
 unique_names = set()
+# Process all task options
 for task in opt.get_options("task"):
 	name = task.get_value_string("")
 	task_list.append(task)
@@ -41,7 +45,7 @@ for task in opt.get_options("task"):
 for task in task_list:
 	f = task.get_value_string("plugin_file","")
 	if f:
-		s = "from file '%s'" % f
+		s = "from custom plugin_file '%s'" % f
 	else:
 		s = ""
 	print "\t* Requested task '%s' %s" % (task.get_value_string(""),s)
@@ -91,7 +95,14 @@ for task in requested_tasks:
 	plugin_file = task.get_value_string("plugin_file","")
 	
 	if plugin_file:
-		module = __import__(plugin_file[:-2], fromlist="dummy")	
+		# Get full path
+		full = os.path.abspath(plugin_file)
+		# extract module name
+		(mod_name,ext) = os.path.splitext(os.path.basename(full))
+		# Append module search path
+		sys.path.append(os.path.dirname(full))
+		print "\t  Using custom plugin_file '%s'" % full
+		module = __import__(mod_name, fromlist="dummy")
 	else:
 		module = __import__(pteros_analysis_plugins.__name__ + "." + task_name, fromlist="dummy")
 					
@@ -109,7 +120,7 @@ for task in requested_tasks:
 				obj.options = task
 				# Give this task a unique textual label
 				obj.label = task_name + "_id" + str(task_num);	
-				print ">>>>",obj.label			 
+				print "\t\t Created plugin instance '%s'" % obj.label			 
 				# Add methods to the list of processor
 				proc.task_list.append( obj )
 				task_num+=1
@@ -125,14 +136,16 @@ for task in requested_tasks:
 				obj = module.Task(proc,task)
 				# Give this task a unique textual label
 				obj.label = task_name + "_id" + str(task_num);				 
-				print ">>>>",obj.label			 
+				print "\t\t Created plugin instance '%s'" % obj.label			 
 				compiled_list.append(obj) # Store it to prevent call of destructor!
 				task_num+=1
 
 
-for m in proc.task_list:
-	print m
+#for m in proc.task_list:
+#	print m
 
 
-#t = Compiled_task(proc)
+print "+--------------------------------+"
+print "+ Trajectory processor starts... +"
+print "+--------------------------------+"
 proc.run()
