@@ -63,7 +63,7 @@ find_package(PythonLibs)
 
 include_directories(${PTEROS_INCLUDE_PATH} ${Boost_INCLUDE_DIRS} ${PYTHON_INCLUDE_PATH})
 link_directories(${PTEROS_LIB_PATH})
-link_libraries(pteros pteros_analysis pteros_sim ${Boost_LIBRARIES} ${PYTHON_LIBRARIES})
+link_libraries(pteros pteros_analysis ${Boost_LIBRARIES} ${PYTHON_LIBRARIES})
 
 
 add_library(plugin SHARED 

@@ -1,5 +1,8 @@
 #include "pteros/python/compiled_plugin.h"
 
+using namespace std;
+using namespace pteros;
+
 class example_plugin: public Compiled_plugin_base {
 public:
     example_plugin(Trajectory_processor* pr, Options_tree* opt): Compiled_plugin_base(pr,opt) {
