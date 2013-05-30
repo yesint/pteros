@@ -19,10 +19,7 @@ def available_plugins():
 		#print "Imported", module
 #---------------------------------    
 
-# Now look for tasks in the command line
-
-#cmd = " ".join(sys.argv[1:])
-#print "\nProvided command line: '%s'" % cmd
+# Parse command line
 
 opt = Options_tree()
 opt.from_command_line(sys.argv)
