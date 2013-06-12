@@ -3,24 +3,30 @@
 ## for Pteros compiled analysis plugin       ##
 ###############################################
 cmake_minimum_required(VERSION 2.6)
-project(example_analysis_plugin)
+project(pteros_analysis_plugin)
 
 ###############################################
 ## You have to set the variables below:      ##
 ###############################################
 
-SET(PTEROS_PATH "/home/semen/programs/pteros/")
+# Name of your plugin. This becomes the name of Python module!
 SET(PLUGIN_NAME "example_plugin")
+
+# The list of source files for this plugin
+SET(PLUGIN_FILES "plugin_main.cpp")
+
+# Path to your Pteros installation
+SET(PTEROS_PATH "/home/semen/programs/pteros/")
+
 
 # If you put Pteros include and lib directories elsewhere specify them here explicitly
 SET(PTEROS_INCLUDE_PATH "${PTEROS_PATH}/include")
 SET(PTEROS_LIB_PATH "${PTEROS_PATH}/lib")
-SET(CMAKE_INSTALL_PREFIX ${PTEROS_PATH})
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    #############################################################
-    ## On Windows put the path to boost and python libs here:  ##
-    #############################################################
+    ##################################################################
+    ## On Windows put the full path to boost and python libs here:  ##
+    ##################################################################
 
     # Path to Boost:
     SET(BOOST_ROOT "c:/install/boost")
@@ -34,8 +40,12 @@ ENDIF()
 
 
 #############################################################################
-## !!! Do not modify anything below unless you know CMake well enough !!!  ##
+## !!! Do not modify anything below unless you know what are you doing !!! ##
 #############################################################################
+
+SET(CMAKE_INSTALL_PREFIX ${PTEROS_PATH})
+
+add_definitions(-DPLUGIN_NAME=${PLUGIN_NAME})
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     SET(LIB_EXT ".pyd") # Force .pyd extension on Windows to ensure correct loading
@@ -57,7 +67,7 @@ SET(CMAKE_BUILD_TYPE Release)
 # Will use shared Boost libraries
 set(Boost_USE_STATIC_LIBS OFF)
 
-find_package(Boost 1.46.0 REQUIRED thread regex python)
+find_package(Boost 1.46.0 REQUIRED thread python)
 find_package(PythonInterp)
 find_package(PythonLibs)
 
@@ -66,9 +76,7 @@ link_directories(${PTEROS_LIB_PATH})
 link_libraries(pteros pteros_analysis ${Boost_LIBRARIES} ${PYTHON_LIBRARIES})
 
 
-add_library(plugin SHARED 
-    "${PLUGIN_NAME}.cpp"
-)
+add_library(plugin SHARED ${PLUGIN_FILES})
 
 set_target_properties(plugin
 PROPERTIES

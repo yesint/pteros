@@ -3,9 +3,10 @@
 using namespace std;
 using namespace pteros;
 
-class example_plugin: public Compiled_plugin_base {
+
+class PLUGIN_NAME: public Compiled_plugin_base {
 public:
-    example_plugin(Trajectory_processor* pr, Options_tree* opt): Compiled_plugin_base(pr,opt) {
+    PLUGIN_NAME(Trajectory_processor* pr, Options_tree* opt): Compiled_plugin_base(pr,opt) {
     }
 protected:
     void pre_process(){
@@ -29,4 +30,4 @@ private:
     bool use_mass;
 };
 
-CREATE_COMPILED_PLUGIN(example_plugin)
+CREATE_COMPILED_PLUGIN(PLUGIN_NAME)
