@@ -20,8 +20,6 @@
  *
 */
 
-/** Search for bonds in given selection */
-
 #include "pteros/core/grid_search.h"
 #include "pteros/core/selection.h"
 #include <vector>
