@@ -1029,9 +1029,7 @@ void Selection::write(string fname, int b, int e) {
     boost::shared_ptr<Mol_file> f = io_factory(fname,'w');
 
     if(!f->get_content_type().structure && e!=b){
-        cout << "Warning: will write only frame #" << get_frame()
-             << ", not the range "<<b<<":"<<e<< endl;
-        b = e = get_frame();
+        throw Pteros_error("Can't write the range of frames to structure file!");
     }
 
     cout << "Writing to file '" << fname << "'..." << endl;
