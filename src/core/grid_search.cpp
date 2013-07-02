@@ -290,15 +290,17 @@ void Grid_searcher::set_grid_size(const Vector3f& min, const Vector3f& max, int 
     */
 
     NgridX = floor(pow(Natoms*(max(0)-min(0))*(max(0)-min(0))/
-                ((max(1)-min(1))*(max(2)-min(2))), 1.0/3.0));
+                ((max(1)-min(1))*(max(2)-min(2))), 1.0/3.0)) / 3;
     NgridY = floor(pow(Natoms*(max(1)-min(1))*(max(1)-min(1))/
-                ((max(0)-min(0))*(max(2)-min(2))), 1.0/3.0));
+                ((max(0)-min(0))*(max(2)-min(2))), 1.0/3.0)) / 3;
     NgridZ = floor(pow(Natoms*(max(2)-min(2))*(max(2)-min(2))/
-                ((max(0)-min(0))*(max(1)-min(1))), 1.0/3.0));    
+                ((max(0)-min(0))*(max(1)-min(1))), 1.0/3.0)) / 3;
+
+    // Coeff 3 is chosen empirically
 
     if(NgridX==0) NgridX = 1;
     if(NgridY==0) NgridY = 1;
-    if(NgridZ==0) NgridZ = 1;
+    if(NgridZ==0) NgridZ = 1;    
 
     // Grid vectors:
     dX = (max(0)-min(0))/NgridX;
@@ -309,15 +311,18 @@ void Grid_searcher::set_grid_size(const Vector3f& min, const Vector3f& max, int 
     if(dX<cutoff){
         NgridX = floor((max(0)-min(0))/cutoff);
         dX = (max(0)-min(0))/NgridX;
+
     }
     if(dY<cutoff){
         NgridY = floor((max(1)-min(1))/cutoff);
-        dY = (max(1)-min(1))/NgridY;
+        dY = (max(1)-min(1))/NgridY;        
     }
     if(dZ<cutoff){
         NgridZ = floor((max(2)-min(2))/cutoff);
-        dZ = (max(2)-min(2))/NgridZ;
+        dZ = (max(2)-min(2))/NgridZ;       
     }
+
+    //cout << "]]]]]]]]] " << NgridX << " " << NgridY << " " << NgridZ << endl;
 }
 
 void Grid_searcher::make_inv_matr(const Matrix3f& box){
