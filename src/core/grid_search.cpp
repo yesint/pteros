@@ -203,7 +203,9 @@ void Grid_searcher::search_within(Selection &target, std::vector<int> &bon, bool
         for(j=0;j<NgridY;++j){
             for(k=0;k<NgridZ;++k){
                 // Get number of atoms in current grid2 cell
-                N2 = grid2[i][j][k].size();                                
+                N2 = grid2[i][j][k].size();
+                // If no atoms than just skip this cell
+                if(N2==0) continue;
                 // Get neighbour list
                 get_nlist(i,j,k);
                 // Add central cell to the list                
@@ -221,8 +223,8 @@ void Grid_searcher::search_within(Selection &target, std::vector<int> &bon, bool
                     // Get number of atoms in neighbour grid1 cell
                     N1 = grid1[m1][m2][m3].size();
                     // Skip empty pairs
-                    if(N1*N2==0) continue;
-                    //cout << N1 << " " << N2 << endl;
+                    if(N1==0) continue;
+
                     // Cycle over N2 and N1                    
                     for(n2=0;n2<N2;++n2){
                         coor1 = target.XYZ(grid2[i][j][k][n2]);
