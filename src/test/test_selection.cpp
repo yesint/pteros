@@ -32,70 +32,83 @@
 #include <boost/tokenizer.hpp>
 #include <boost/algorithm/string.hpp>
 
-//-----------------------------------------
-
-/*
- Options_scheme s;
-s.option("trajectory","description",
-            multi<string>() +
-            !single<int>() +
-            !option("first_frame","descr", single<int>() ) +
-            !option("last_frame","descr", single<int>() ) +
-            !option("first_time","descr", single<float>() ) +
-            !option("last_time","descr", single<float>() ) +
-        )
- */
-
-class Options_scheme {
-public:
-    Options_scheme& option(std::string name, std::string descr, Options_scheme o = Options_scheme()){
-        sub_options.push_back(Options_scheme());
-        sub_options.back().name = name;
-        sub_options.back().description = descr;
-    }
-
-    template<class T>
-    Options_scheme& single();
-
-    template<class T>
-    Options_scheme& multi(int num = -1);
-private:
-    std::string name;
-    std::string description;
-    //std::vector<> values;
-    std::vector<Options_scheme> sub_options;
-};
-
-//-----------------------------------------
-
 using namespace std;
 using namespace pteros;
 using namespace Eigen;
-
-
 
 
 int main(int argc, char** argv)
 {
     try{
 
+        System t("/media/data/semen/trajectories/RC/simulation_C/after_lip_equil.pdb");
+        vector<Eigen::Vector2i> bon;
+        clock_t t1,t2;
+        float cutoff;
+
+        // Test 1
+        cout << "within <cutoff> of resname BCL" << endl;
+        cutoff = 0.2;
+        while(cutoff<=2.1){
+            t1 = clock();
+            for(int i=0;i<100;++i){
+                Selection(t,"within "+boost::lexical_cast<string>(cutoff)+" of resname BCL");
+            }
+            t2 = clock();
+            cout << cutoff << ": " << (float)(t2-t1)/float(CLOCKS_PER_SEC) << endl;
+            cutoff += 0.2;
+        }
+
+        return 1;
+
+        // Test 2
+        cout << "resname SOL and within <cutoff> of resname SOL" << endl;
+        cutoff = 0.2;
+        while(cutoff<=2.1){
+            t1 = clock();
+            for(int i=0;i<100;++i){
+                Selection(t,"resname SOL and within "+boost::lexical_cast<string>(cutoff)+" of resname SOL");
+            }
+            t2 = clock();
+            cout << cutoff << ": " << (float)(t2-t1)/float(CLOCKS_PER_SEC) << endl;
+            cutoff += 0.2;
+        }
+
+        // Test 3
+        cout << "name OW and within <cutoff> of resname ALA" << endl;
+        cutoff = 0.2;
+        while(cutoff<=2.1){
+            t1 = clock();
+            for(int i=0;i<100;++i){
+                Selection(t,"name OW and within "+boost::lexical_cast<string>(cutoff)+" of resname ALA");
+            }
+            t2 = clock();
+            cout << cutoff << ": " << (float)(t2-t1)/float(CLOCKS_PER_SEC) << endl;
+            cutoff += 0.2;
+        }
+
+        // Test 4 - creation of coord-independent selections
+        cout << "resid <i> and name CA" << endl;
+        cutoff = 0.2;
+            t1 = clock();
+            for(int i=0;i<500;++i){
+                Selection(t,"resid "+boost::lexical_cast<string>(i)+" and name CA");
+            }
+            t2 = clock();
+            cout << ": " << (float)(t2-t1)/float(CLOCKS_PER_SEC) << endl;
 
 
-        Options_tree opt;
-        opt.from_command_line(argc,argv);
+        // Test 5 - creation of coord-independent selections by residue
+        cout << "by residue resid <i> and name CA" << endl;
+        cutoff = 0.2;
+            t1 = clock();
+            for(int i=0;i<500;++i){
+                Selection(t,"by residue resid "+boost::lexical_cast<string>(i)+" and name CA");
+            }
+            t2 = clock();
+            cout << ": " << (float)(t2-t1)/float(CLOCKS_PER_SEC) << endl;
 
-        //boost::shared_ptr<Mol_file> io = io_factory("topol.tpr",'r');
-        //System sys1("/home/semen/work/Projects/pteros/pteros_build/release/src/test/topol.tpr");
 
-        //return 1;
-
-        System t("/home/semen/work/Projects/pteros/pteros_git/src/test/data/2lao.gro");
-        //System t("/media/data/semen/trajectories/test/topol.tpr.pttop");
-        //t.load("/media/data/semen/trajectories/test/traj.trr");
-        //Selection s0(t,"name CA");
-        //for(int i=0;i<s0.size();++i) cout << s0.XYZ(i).transpose() << endl;
-        Selection s(t,"distance point 0 0 0 > 5 and by residue name CA");
-        cout << s.size() << endl;
 
         /*
         ofstream f("out.dat");

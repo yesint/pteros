@@ -119,6 +119,17 @@ namespace pteros {
             void search_within(Selection& target,
                                std::vector<int>& bon,
                                bool include_self=true);
+
+            /// Constuctor for very fast immediate search of atoms from src,
+            /// which are within given distance from the atoms of target.
+            /// Used in internal parsing of within selections.
+            Grid_searcher(  float d,
+                            Selection& src,
+                            Selection& target,
+                            std::vector<int>& bon,
+                            bool include_self=true,
+                            bool absolute_index = false,
+                            bool periodic = false);
             /// @}
 
             /// @name Assigning the atoms from given selection to the custom periodic grid
