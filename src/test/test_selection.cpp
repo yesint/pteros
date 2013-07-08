@@ -40,6 +40,8 @@ using namespace Eigen;
 int main(int argc, char** argv)
 {
     try{
+        System t0("/home/semen/work/Projects/pteros/pteros_git_build/experimental/release/bin/topol.tpr.pttop");
+        return 1;
 
         System t("/media/data/semen/trajectories/RC/simulation_C/after_lip_equil.pdb");
         vector<Eigen::Vector2i> bon;

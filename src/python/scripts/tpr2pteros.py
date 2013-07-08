@@ -33,6 +33,7 @@ excl = []
 LJ = []
 LJ14 = []
 LJ14_pairs = []
+bonded_pairs = []
 fudgeQQ = 0.0
 box = []
 
@@ -185,7 +186,7 @@ while True:
 		m = re.search("=\s*(.+)",line)
 		fudgeQQ = float(m.group(1))
 		
-	if re.search("LJ-14",line):
+	if re.search("LJ-14:",line):
 		# Read LJ14 pairs
 		line = f.readline()
 		line = f.readline()
@@ -196,7 +197,44 @@ while True:
 				break
 			if m.group(2) == "LJ14":
 				LJ14_pairs.append( (int(m.group(3)), int(m.group(4)), int(m.group(1))) )
-			
+	
+	# Read all bonded information
+	if re.search("Bond:",line):
+		# Read constraines
+		line = f.readline()
+		line = f.readline()
+		while True:
+			line = f.readline()
+			m = re.search("type=(\d+)\s*\((\S+)\)\s+(\d+)\s+(\d+)",line)
+			if not m:
+				break
+			if m.group(2) == "BONDS":
+				bonded_pairs.append( (int(m.group(3)), int(m.group(4))) )
+	
+	if re.search("Constraint:",line):
+		# Read constraines
+		line = f.readline()
+		line = f.readline()
+		while True:
+			line = f.readline()
+			m = re.search("type=(\d+)\s*\((\S+)\)\s+(\d+)\s+(\d+)",line)
+			if not m:
+				break
+			if m.group(2) == "CONSTR":
+				bonded_pairs.append( (int(m.group(3)), int(m.group(4))) )
+	
+	if re.search("Settle:",line):
+		# Read settles for water and convert them to bonds	
+		line = f.readline()
+		line = f.readline()
+		while True:
+			line = f.readline()
+			m = re.search("type=(\d+)\s*\((\S+)\)\s+(\d+)\s+(\d+)\s+(\d+)",line)
+			if not m:
+				break
+			if m.group(2) == "SETTLE":
+				bonded_pairs.append( (int(m.group(3)), int(m.group(4))) )
+				bonded_pairs.append( (int(m.group(3)), int(m.group(5))) )	
 	
 	if re.search("box \(",line):
 		# Periodic box
@@ -231,6 +269,12 @@ i = 0
 for	at in atoms:
 	f.write("%i %s %s %i %i %i %s %e %e %e %e %e\n" % (i,at.name, at.typename, at.type, at.resid, at.resind, at.resname, at.mass, at.charge, at.coord[0], at.coord[1], at.coord[2]) )
 	i += 1
+
+f.write("# number of bonds\n")
+f.write("%i\n" % len(bonded_pairs))
+f.write("# bonds (atom1,atom2)\n")
+for b in bonded_pairs:
+	f.write("%i %i\n" % (b[0],b[1]))
 	
 f.write("# Periodic box\n")	
 n = 0
@@ -292,5 +336,6 @@ for	e in LJ14_pairs:
 
 f.close()
 
-# Remove temporary file
-os.remove("_tpr_dump")
+# Remove temporary file if not asked to keep it
+if not sys.argv[2]=="keep":
+	os.remove("_tpr_dump")
