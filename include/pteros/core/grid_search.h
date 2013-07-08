@@ -56,9 +56,13 @@ namespace pteros {
     vector<int> atoms;
     Selection all(system,"all");
     Selection res_of_interest(system,"resid 100");
+
     Grid_searcher g;
     g.assign_to_grid(0.2, all, true, true);
     g.search_within(res_of_interest, atoms);
+
+    // The same using constructor with immediate searching:
+    Grid_searcher(0.2, all, res_of_interest, atoms, false, true, true);
     \endcode
     - Sorting the atoms from given selection into the cells of
     3D grid with given dimensions. Useful for producing volumetric datasets or
@@ -71,7 +75,7 @@ namespace pteros {
     for(i=0;i<NX;++i)
         for(j=0;j<NY;++j)
             for(k=0;k<NZ;++k)
-                cout << g.cell_of_custom_grid(i,j,k) << endl;
+                cout << g.cell_of_custom_grid(i,j,k).size() << endl;
     \endcode
     */
 

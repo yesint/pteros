@@ -322,7 +322,7 @@ Grid_searcher::Grid_searcher(float d,
             if(max(i)==min(i)) return;
         }
 
-        /*
+/*
         int num1 = 0, num2 = 0;
         Vector3f coor1;
 
@@ -333,7 +333,7 @@ Grid_searcher::Grid_searcher(float d,
         }
 
         for(i=0; i<target.size(); ++i){
-            coor1 = src.XYZ(i);
+            coor1 = target.XYZ(i);
             if(   min(0)<coor1(0) && min(1)<coor1(1) && min(2)<coor1(2)
                && max(0)>coor1(0) && max(1)>coor1(1) && max(2)>coor1(2) ) ++num2;
         }
@@ -341,7 +341,8 @@ Grid_searcher::Grid_searcher(float d,
         // See which selection have more atoms
         effective_num = std::max(num1,num2);
         //cout << effective_num << " " << src.size() << " " << target.size() << endl;
-        */
+*/
+
     } else {
         // Set dimensions of the current unit cell
         min.fill(0.0);
@@ -353,8 +354,8 @@ Grid_searcher::Grid_searcher(float d,
         }
     }
 
-    set_grid_size(min,max, src.size()+target.size());
-    //set_grid_size(min,max, effective_num);
+    //set_grid_size(min,max, src.size()+target.size());
+    set_grid_size(min,max, effective_num);
 
     // Allocate both grids
     grid1.resize( boost::extents[NgridX][NgridY][NgridZ] );
@@ -618,8 +619,9 @@ void Grid_searcher::populate_grid(Grid_t& grid, Selection& sel){
     // Clear grid
     for(i=0;i<NgridX;++i)
         for(j=0;j<NgridY;++j)
-            for(k=0;k<NgridZ;++k)
-                grid[i][j][k].clear();
+            for(k=0;k<NgridZ;++k){
+                grid[i][j][k].clear();                
+            }
 
     // Assigning atoms to grid
     Vector3f coor;
