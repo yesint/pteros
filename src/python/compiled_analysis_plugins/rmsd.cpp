@@ -28,12 +28,27 @@ using namespace std;
 class rmsd: public pteros::Compiled_plugin_base {
 public:
     rmsd(pteros::Trajectory_processor* pr, pteros::Options_tree* opt): Compiled_plugin_base(pr,opt) {}
+
+    string help(){
+        return  "Purpose:\n"
+                "\tComputes RMSD of each frame for given selection.\n"
+                "\tThe first loaded frame is used as a reference.\n"
+                "\tSelection should be coordinate-independent.\n"
+                "Output:\n"
+                "\tFile <label>.dat containing the following columns:\n"
+                "\ttime RMSD\n"
+                "\tAlso reports mean RMSD in the file header.\n"
+                "Options:\n"
+                "\t--selection <string>\n"
+                "\t\tSelection text";
+    }
+
 protected:
 
     void pre_process(){
         mean = 0.0;
         data.clear();
-        sel.modify(system, options->get_value<string>("selection") );
+        sel.modify(system, options->get_value<string>("selection") );       
     }
 
     void process_frame(const pteros::Frame_info &info){
@@ -60,7 +75,7 @@ protected:
         ofstream f(fname.c_str());
         f << "# RMSD of selection [" << sel.get_text() << "]" << endl;
         f << "# Mean: " << mean << endl;
-        f << "# time X Y Z:" << endl;
+        f << "# time RMSD:" << endl;
         for(int i=0; i<data.size(); ++i){
             f << i*dt << " " << data[i] << endl;
         }

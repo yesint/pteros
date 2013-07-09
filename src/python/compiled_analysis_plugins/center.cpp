@@ -19,7 +19,7 @@ public:
                 "\t--selection <string>\n"
                 "\t\tSelection text\n"
                 "\t--mass_weighted <true|false>, default: false\n"
-                "\t\tCompute center of mass (true) or geometric center (false)\n";
+                "\t\tCompute center of mass (true) or geometric center (false)";
     }
 
 protected:

@@ -52,7 +52,7 @@ if opt.count_options("help")>0:
     package = pteros_analysis_plugins
     for importer, modname, ispkg in pkgutil.iter_modules(package.__path__):
         module = __import__(pteros_analysis_plugins.__name__ + "." +modname, fromlist="dummy")
-        print "\n[ %s ]\n" % modname
+        print "\n[ %s ]" % modname
         if module.__file__.split('.')[-1][0:2] == "py":
             obj = module.Task()
             print "Type:\n\tPure python plugin"
