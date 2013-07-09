@@ -16,6 +16,10 @@ struct Compiled_plugin_base: public Consumer {
     /// Set by driver program
     std::string label;
 
+    virtual string help(){
+        return "\n\tThis plugin does not define any help information.\n\tDig into the sources. Good luck :)";
+    }
+
 protected:
     /// Options for this particular plugin instance
     Options_tree* options;

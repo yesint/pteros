@@ -28,6 +28,17 @@ using namespace pteros;
 class box: public Compiled_plugin_base {
 public:
     box(Trajectory_processor* pr, Options_tree* opt): Compiled_plugin_base(pr,opt) {}
+
+    string help(){
+        return  "Purpose:\n"
+                "\tComputes box vectors and box volume for each frame\n"
+                "Output:\n"
+                "\tFile <label>.dat containing the following columns:\n"
+                "\ttime box_a box_b box_c box_volume\n"
+                "Options:\n"
+                "\tNone";
+    }
+
 protected:
     void pre_process(){
         data.clear();
@@ -52,7 +63,7 @@ protected:
             f << i*dt << " " << data[i].transpose() << " " << volume[i] << endl;
         }
         f.close();
-    }
+    }    
 
 private:
     vector<Eigen::Vector3f> data;

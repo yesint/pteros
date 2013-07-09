@@ -39,7 +39,7 @@ public:
 protected:
     virtual void pre_process();
     virtual void process_frame(const Frame_info& info);
-    virtual void post_process(const Frame_info &info);
+    virtual void post_process(const Frame_info &info);    
 };
 
 }

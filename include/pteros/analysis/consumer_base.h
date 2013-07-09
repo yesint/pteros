@@ -20,13 +20,14 @@
  *
 */
 
-
 #ifndef CONSUMER_BASE_H
 #define CONSUMER_BASE_H
 
 #include "pteros/core/system.h"
 #include "pteros/analysis/frame_info.h"
 #include "pteros/analysis/message_channel.h"
+
+#include <fstream>
 
 namespace pteros {
 
@@ -50,8 +51,8 @@ class Trajectory_processor;
   */
 class Consumer_base {
     friend class Trajectory_processor;
-public:
-    Consumer_base(Trajectory_processor* pr);
+public:        
+    Consumer_base(Trajectory_processor* pr);    
 
     System* get_system(){return &system;}    
     void set_id(int i){id = i;}   

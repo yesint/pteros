@@ -5,26 +5,67 @@ import sys, pkgutil, copy, os, imp
 
 import pteros_analysis_plugins
 
+#--------------------------------------
+# Create processor class
+class Processor(Trajectory_processor):
+        def __init__(self,opt):
+                Trajectory_processor.__init__(self,opt)
+                # Init data
+                self.task_list = []
+
+        def pre_process(self):
+                for task in self.task_list:
+                        # We need to give each task a copy of system
+                        task.system = System(self.get_system())
+                        # Run pre_process for each task
+                        task.pre_process()
+
+        def process_frame(self,info):
+                for i in range(0,len(self.task_list)):
+                        # We need to update frame 0 of each task with the current value
+                        self.task_list[i].system.setFrame_data( self.get_frame_ptr() , 0)
+                        self.task_list[i].process_frame(info)
+
+        def post_process(self,info):
+                for task in self.task_list:
+                        task.post_process(info)
+#--------------------------------------
+
 print "+--------------------------------+"
 print "+ This is pteros_analysis script +"
 print "+--------------------------------+"
-
-#---------------------------------
-def available_plugins():
-	print "\nAvailable plugins:\n"
-	package = pteros_analysis_plugins
-	for importer, modname, ispkg in pkgutil.iter_modules(package.__path__):   
-		#module = __import__(modname, fromlist="dummy")
-		print "\t%s" % modname
-		#print "Imported", module
-#---------------------------------    
 
 # Parse command line
 
 opt = Options_tree()
 opt.from_command_line(sys.argv)
 
-#print opt.to_json_string()
+# Display help info
+if opt.count_options("help")>0:
+    # Create instance of processor
+    proc = Processor(opt)
+
+    print "----------------------"
+    print "+ Available plugins: +"
+    print "----------------------"
+
+    package = pteros_analysis_plugins
+    for importer, modname, ispkg in pkgutil.iter_modules(package.__path__):
+        module = __import__(pteros_analysis_plugins.__name__ + "." +modname, fromlist="dummy")
+        print "\n[ %s ]\n" % modname
+        if module.__file__.split('.')[-1][0:2] == "py":
+            obj = module.Task()
+            print "Type:\n\tPure python plugin"
+        else:
+            obj = module.Task(proc,opt)
+            print "Type:\n\tCompiled plugin"
+
+        print "File:\n\t%s" % module.__file__
+
+        if hasattr(obj.__class__, "help"):
+            print obj.help()
+    sys.exit(0)
+
 
 requested_tasks = []
 task_list = []
@@ -47,32 +88,6 @@ for task in task_list:
 		s = ""
 	print "\t* Requested task '%s' %s" % (task.get_value_string(""),s)
 	
-#--------------------------------------
-# Create processor class
-class Processor(Trajectory_processor):
-	def __init__(self,opt):
-		Trajectory_processor.__init__(self,opt)
-		# Init data
-		self.task_list = []
-
-	def pre_process(self):		
-		for task in self.task_list:			
-			# We need to give each task a copy of system
-			task.system = System(self.get_system())
-			# Run pre_process for each task
-			task.pre_process()
-			
-	def process_frame(self,info):
-		for i in range(0,len(self.task_list)):
-			# We need to update frame 0 of each task with the current value				
-			self.task_list[i].system.setFrame_data( self.get_frame_ptr() , 0)
-			self.task_list[i].process_frame(info)
-			
-	def post_process(self,info):
-		for task in self.task_list:				
-			task.post_process(info)
-#--------------------------------------
-
 # Create instance of processor
 proc = Processor(opt)
 # We need a container to keep all compiled tasks, otherwise they will call destructors
