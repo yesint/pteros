@@ -76,6 +76,7 @@ void make_bindings_Trajectory_processor(){
         .def("get_system",&Trajectory_processor_wrapper::get_system,return_value_policy<reference_existing_object>())
         .def("get_frame_ptr",&Trajectory_processor_wrapper::get_frame_ptr,return_value_policy<reference_existing_object>())
         .def("initialize",&Trajectory_processor_wrapper::initialize)
+        .def("help",&Trajectory_processor_wrapper::help)
     ;
 
 }

@@ -37,50 +37,59 @@ using namespace std;
 Trajectory_processor::~Trajectory_processor(){
 }
 
-void Trajectory_processor::print_help(){
-    cout << "Note about nested options:\n"
-            "--------------------------\n"
-            "Nested options could be used by putting arguments of the parent option\n"
-            "into square brackets like this:\n"
-            "--parent [ arg1 arg2 --nested1 nested_arg1 nested_arg2 ]"
-
-            "General options:\n"
-            "----------------\n"
-            "--help:\n\tPrint this help message\n"
-
-            "--json filename:\n\tRead options from specified JSON file.\n"
+string Trajectory_processor::help(){
+    return  "Trajectory processing options:\n"
+            "General usage:\n"
+            "\t--trajectory[ filename1 filename2 ... <processing options>]\n"
+            "Files:\n"
+            "\t* Exactly one structure file (PDB or GRO)\n"
+            "\t  If not specified, topology PTTOP file must be given instead.\n"
+            "\t* Topology PTTOP file (converted from Gromacs .tpr by tpr2pteros.py)\n"
+            "\t  If structure file is also present only topology is read from this file.\n"
+            "\t  If structure file is not present the coordinates are also read.\n"
+            "\t* One or more trajectory files (TRR, XTC of DCD).\n"
             "\n"
-
-            "Options for trajectory processing:\n"
-            "----------------------------------\n"
-            "--trajectory filename1 filename2 ... <sub-options>:\n"
-            "\tRequired. Group of files, which includes:\n"
-            "\t* structure file (PDB or GRO),\n"
-            "\t* topology file PTTOP (converted from Gromacs .tpr by tpr2pteros.py)\n"
-            "\t* one or more trajectory files (TRR or XTC, required).\n"
             "\tFiles may appear in any order, but trajectory files will be processed\n"
-            "\tin the order of their appearance.\n"
+            "\tin the order of their appearance.\n\n"
 
-            "\tThe following sub-options may appear inside --trajectory:\n\n"
+            "Processing options:\n"
+            "\t--first_frame <fr>\n"
+            "\t\tfirst frame to read, default: 0\n"
 
-            "\t--first_frame: first frame to read\n"
-            "\t--last_frame: last frame to read\n"
-            "\t--first_time: first time step to read, ps\n"
-            "\t--last_time: last time step to read, ps\n"
+            "\t--last_frame <fr>\n"
+            "\t\tlast frame to read, default: -1 (up to the end)\n"
 
-            "\t--window [frame_window|time_window] sz:\n"
-            "\t\tprocess by windows of size sz determined by frame of by time in ps.\n"
+            "\t--first_time <t>\n"
+            "\t\tfirst time step to read, ps, default: 0.0\n"
 
-            "\n"
+            "\t--last_time <t>\n"
+            "\t\tlast time step to read, ps, default: -1 (up to the end)\n"
 
-            "--log_interval n\n"
-            "\tOptional. Print logging info each n frames.\n"
+            "\t--window_size_frames <sz>\n"
+            "\t\tProcess by windows of size sz frames, default: -1 (no windows)\n"
 
-            "--dump_input file\n"
-            "\tOptional. Dumps input in JSON format to specified file.\n"
+            "\t--window_size_time <t>\n"
+            "\t\tProcess by windows of size t in time in ps, default: -1 (no windows)\n"
 
-            "\n"
-         << endl;
+            "\t--skip <n>\n"
+            "\t\tProcess only each n'th frame, default: -1 (process each frame)\n"
+
+            "\t--custom_start_time <t>\n"
+            "\t\tUse t as a starting, default: -1 (use value from first trajectory frame)\n"
+            "\t\tUseful if trajectory does not contain time stamps\n"
+            "\t\tor if the starting time is incorrect.\n"
+            "\t\tIf set and custom_dt is not given sets custom_dt to 1.0!\n"
+
+            "\t--custom_dt <t>\n"
+            "\t\tUsed as a time step, default: -1 (use value from trajectory)\n"
+            "\t\tUseful if trajectory does not contain time stamps.\n"
+            "\t\tIf set and custom_start_time is not given sets custom_start_time to 0.0!\n"
+
+            "\t--log_interval n\n"
+            "\t\tPrints logging information each n frames, default -1 (no logging)\n"
+
+            "\t--dump_input filename\n"
+            "\t\tDumps input in JSON format to specified file\n";
 }
 
 bool Trajectory_processor::is_frame_valid(int fr, float t){

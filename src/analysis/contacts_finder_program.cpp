@@ -45,15 +45,17 @@ int main(int argc, char* argv[]){
             "--log_interval 100 ");
 */
 
-        // Show help
+
+        cout << "Creating trajectory processor..." << endl;
+        Trajectory_processor processor(options);
+
+        // Show help if asked
         if(options.count_options("help") || argc==1){
-            Trajectory_processor::print_help();
+            cout << processor.help() << endl;
             Contacts_finder::print_help();
             return 0;
         }
 
-        cout << "Creating trajectory processor..." << endl;
-        Trajectory_processor processor(options);
         cout << "Creating contacts finder..." << endl;
         boost::shared_ptr<Contacts_finder> finder(new Contacts_finder(processor,options));
 

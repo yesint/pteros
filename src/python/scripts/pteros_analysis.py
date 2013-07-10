@@ -30,13 +30,50 @@ class Processor(Trajectory_processor):
                 for task in self.task_list:
                         task.post_process(info)
 #--------------------------------------
+def detailed_help(module):
+    if module.__file__.split('.')[-1][0:2] == "py":
+        obj = module.Task()
+        s = "Type:\n\tPure python plugin\n"
+    else:
+        obj = module.Task(proc,opt)
+        s = "Type:\n\tCompiled plugin\n"
+
+    s += "File:\n\t%s" % module.__file__
+
+    if hasattr(obj.__class__, "help"):
+        print obj.help()
+    print s;
+#--------------------------------------
+def general_help():
+    print """
+    Usage:
+        pteros_analysis.py --trajectory[<options>] --task[name1 <options>] --task[name2 <options>] ...
+
+        --help
+            Display usage message
+        --help traj
+            Help for trajectory processing options
+        --help plugins
+            List available analysis plugins
+        --help <plugin name>
+            Detailed help for particular analysis plugin
+        --help all
+            Detailed help for all analysis plugins and trajectory processing options
+    """
+#--------------------------------------
 
 print "+--------------------------------+"
 print "+ This is pteros_analysis script +"
 print "+--------------------------------+"
 
-# Parse command line
+# Check if we have at least one command-line argument
+if len(sys.argv)==1:
+    # Show usage message
+    general_help()
+    sys.exit(0)
 
+
+# Parse command line
 opt = Options_tree()
 opt.from_command_line(sys.argv)
 
@@ -45,25 +82,43 @@ if opt.count_options("help")>0:
     # Create instance of processor
     proc = Processor(opt)
 
-    print "----------------------"
-    print "+ Available plugins: +"
-    print "----------------------"
-
-    package = pteros_analysis_plugins
-    for importer, modname, ispkg in pkgutil.iter_modules(package.__path__):
-        module = __import__(pteros_analysis_plugins.__name__ + "." +modname, fromlist="dummy")
-        print "\n[ %s ]" % modname
-        if module.__file__.split('.')[-1][0:2] == "py":
-            obj = module.Task()
-            print "Type:\n\tPure python plugin"
+    # Check if we are asked for help for single plugin
+    plugin = opt.get_value_string("help","")
+    if plugin == "":
+        general_help()
+    elif plugin == "traj":
+        # Show trajectory processor options
+        print proc.help()
+    elif plugin != "all" and plugin != "plugins":
+        # Load one specific plugin
+        module = __import__(pteros_analysis_plugins.__name__ + "." +plugin, fromlist="dummy")
+        print "\n[ %s ]" % plugin
+        detailed_help(module)
+    else:
+        # Load all plugins
+        # Check if asked for detailed help for each of them
+        if plugin=="all":
+            detailed = True
+            general_help()
+            print proc.help()
         else:
-            obj = module.Task(proc,opt)
-            print "Type:\n\tCompiled plugin"
+            detailed = False
 
-        print "File:\n\t%s" % module.__file__
+        print "----------------------"
+        print "+ Available plugins: +"
+        print "----------------------"
 
-        if hasattr(obj.__class__, "help"):
-            print obj.help()
+        package = pteros_analysis_plugins
+        for importer, modname, ispkg in pkgutil.iter_modules(package.__path__):
+            module = __import__(pteros_analysis_plugins.__name__ + "." +modname, fromlist="dummy")
+            print "[ %s ]" % modname
+            if detailed:
+                detailed_help(module)
+                print "------------------------"
+        if not detailed:
+            print "For detailed help for particular plugin use --help <plugin_name>"
+            print "For detailed help for all available plugins use --help all"
+
     sys.exit(0)
 
 
