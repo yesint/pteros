@@ -130,12 +130,14 @@ void Grid_searcher::search_within(Vector3f &coor, vector<int> &bon){
     // Determine cell, which given point belongs to
     int n1,n2,n3,i,m1,m2,m3;
 
+    cout << "**** " << NgridX << " " << NgridY << " " << NgridZ << endl;
+
     bon.clear();
 
     // Get coordinates in triclinic basis if needed
     if(is_periodic && is_triclinic) coor = inv_basis_matr*coor;
 
-    // Assign to grid
+    // Assign point to grid
     n1 = floor((NgridX-1)*(coor(0)-min(0))/(max(0)-min(0)));
     n2 = floor((NgridY-1)*(coor(1)-min(1))/(max(1)-min(1)));
     n3 = floor((NgridZ-1)*(coor(2)-min(2))/(max(2)-min(2)));
@@ -871,6 +873,42 @@ void Grid_searcher::get_nlist(int i,int j,int k){
     if(NgridY==1) spanY = 0;
     if(NgridZ==1) spanZ = 0;
 
+    // If number of cells is small some funny cases may appear when
+    // wrapped cells in periodic variant overlap with non-wrapped from other side
+    // In this case we just need to include all cells along this dimension manually
+    if(spanX*2+1 > NgridX){
+        for(c1=0; c1<NgridX; ++c1){
+            coor(0) = c1;
+            coor(1) = j;
+            coor(2) = k;
+            if(coor(0) == i) continue;
+            nlist.push_back(coor); // Add cell
+        }
+        spanX = 0; // Suppress dimension - it added manually
+    }
+
+    if(spanY*2+1 > NgridY){
+        for(c1=0; c1<NgridY; ++c1){
+            coor(0) = i;
+            coor(1) = c1;
+            coor(2) = k;
+            if(coor(1) == j) continue;
+            nlist.push_back(coor); // Add cell
+        }
+        spanY = 0; // Suppress dimension - it added manually
+    }
+
+    if(spanZ*2+1 > NgridZ){
+        for(c1=0; c1<NgridZ; ++c1){
+            coor(0) = i;
+            coor(1) = j;
+            coor(2) = c1;
+            if(coor(2) == k) continue;
+            nlist.push_back(coor); // Add cell
+        }
+        spanZ = 0; // Suppress dimension - it added manually
+    }
+
     //cout << "Spans " << spanX << " " << spanY << " " << spanZ << endl;
 
     if(is_periodic)
@@ -894,6 +932,7 @@ void Grid_searcher::get_nlist(int i,int j,int k){
                         coor(1)>=0 ? coor(1) %= NgridY : coor(1) = NgridY + coor(1)%NgridY;
                     while(coor(2)>=NgridZ || coor(2)<0)
                         coor(2)>=0 ? coor(2) %= NgridZ : coor(2) = NgridZ + coor(2)%NgridZ;
+
 
                     //cout << "wrapped " << coor.transpose() << endl;
                     // This may be a corner cell, which is not included in fact,
