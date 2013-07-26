@@ -294,19 +294,19 @@ class Selection {
     void rotate(const Eigen::Vector3f& angles, const Eigen::Vector3f& pivot);
 
     /// Wraps selection to the periodic box
-    void wrap();
+    void wrap(const Eigen::Vector3i& dims = Eigen::Vector3i::Ones());
 
     /** Unwraps selection to make it whole if possible (without jumps over periodic box boundary).
      * The periodic center of mass is used as an anchor point.
      * Please note that if the size of selection is larger than 1/2 of the box size in
      * any dimension unwrap() will not work as expected and will not make selection "compact"!
     */
-    void unwrap();
+    void unwrap(const Eigen::Vector3i& dims = Eigen::Vector3i::Ones());
 
     /** Unwraps selection to make it whole (without jumps over periodic box boundary).
      * based on preserving all bonds. The maximal bond length is given by d.
      */
-    void unwrap_bonds(float d = 0.2);
+    void unwrap_bonds(float d = 0.2, const Eigen::Vector3i& dims = Eigen::Vector3i::Ones());
 
     /** Get transform for orienting selection by principal axes.
      * Please note that if the size of selection is larger than 1/2 of the box size in

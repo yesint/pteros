@@ -130,8 +130,6 @@ void Grid_searcher::search_within(Vector3f &coor, vector<int> &bon){
     // Determine cell, which given point belongs to
     int n1,n2,n3,i,m1,m2,m3;
 
-    cout << "**** " << NgridX << " " << NgridY << " " << NgridZ << endl;
-
     bon.clear();
 
     // Get coordinates in triclinic basis if needed
@@ -860,7 +858,7 @@ void Grid_searcher::get_nlist(int i,int j,int k){
     int c1,c2,c3;
     float x,y,z;
 
-    nlist.clear();
+    nlist.clear();    
 
     // Determine how many cells the cutoff span in directions X, Y and Z
     int spanX = ceil(cutoff/dX);
@@ -873,46 +871,49 @@ void Grid_searcher::get_nlist(int i,int j,int k){
     if(NgridY==1) spanY = 0;
     if(NgridZ==1) spanZ = 0;
 
-    // If number of cells is small some funny cases may appear when
-    // wrapped cells in periodic variant overlap with non-wrapped from other side
-    // In this case we just need to include all cells along this dimension manually
-    if(spanX*2+1 > NgridX){
-        for(c1=0; c1<NgridX; ++c1){
-            coor(0) = c1;
-            coor(1) = j;
-            coor(2) = k;
-            if(coor(0) == i) continue;
-            nlist.push_back(coor); // Add cell
-        }
-        spanX = 0; // Suppress dimension - it added manually
-    }
-
-    if(spanY*2+1 > NgridY){
-        for(c1=0; c1<NgridY; ++c1){
-            coor(0) = i;
-            coor(1) = c1;
-            coor(2) = k;
-            if(coor(1) == j) continue;
-            nlist.push_back(coor); // Add cell
-        }
-        spanY = 0; // Suppress dimension - it added manually
-    }
-
-    if(spanZ*2+1 > NgridZ){
-        for(c1=0; c1<NgridZ; ++c1){
-            coor(0) = i;
-            coor(1) = j;
-            coor(2) = c1;
-            if(coor(2) == k) continue;
-            nlist.push_back(coor); // Add cell
-        }
-        spanZ = 0; // Suppress dimension - it added manually
-    }
-
     //cout << "Spans " << spanX << " " << spanY << " " << spanZ << endl;
 
-    if(is_periodic)
-        // Periodic variant
+    if(is_periodic){
+        // If number of cells is small some funny cases may appear when
+        // wrapped cells in periodic variant overlap with each other from other side.
+        // This leads to double appearance of the same cell in the list.
+        // In this case we just need to include all cells along this dimension manually
+
+        if(spanX*2+1 > NgridX){
+            coor(1) = j;
+            coor(2) = k;
+            for(c1=0; c1<NgridX; ++c1){
+                if(c1 == i) continue;
+                coor(0) = c1;
+                nlist.push_back(coor); // Add cell
+            }
+            spanX = 0; // Suppress dimension - it added manually
+        }
+
+        if(spanY*2+1 > NgridY){
+            coor(0) = i;
+            coor(2) = k;
+            for(c1=0; c1<NgridY; ++c1){
+                if(c1 == j) continue;
+                coor(1) = c1;
+                nlist.push_back(coor); // Add cell
+            }
+            spanY = 0; // Suppress dimension - it added manually
+        }
+
+        if(spanZ*2+1 > NgridZ){
+            coor(0) = i;
+            coor(1) = j;
+            for(c1=0; c1<NgridZ; ++c1){
+                if(c1 == k) continue;
+                coor(2) = c1;
+                nlist.push_back(coor); // Add cell
+            }
+            spanZ = 0; // Suppress dimension - it added manually
+        }
+
+
+        // Periodic variant of filling
         for(c1=-spanX;c1<=spanX;++c1)
             for(c2=-spanY;c2<=spanY;++c2)
                 for(c3=-spanZ;c3<=spanZ;++c3){
@@ -921,9 +922,7 @@ void Grid_searcher::get_nlist(int i,int j,int k){
                     coor(2) = k+c3;                                       
 
                     //Exclude central cell
-                    if(coor(0) == i && coor(1) == j && coor(2) == k ) continue;
-
-                    //cout << "row " << coor.transpose() << endl;
+                    if(coor(0) == i && coor(1) == j && coor(2) == k ) continue;                    
 
                     // Periodic variant: wrap cells around
                     while(coor(0)>=NgridX || coor(0)<0)
@@ -933,13 +932,9 @@ void Grid_searcher::get_nlist(int i,int j,int k){
                     while(coor(2)>=NgridZ || coor(2)<0)
                         coor(2)>=0 ? coor(2) %= NgridZ : coor(2) = NgridZ + coor(2)%NgridZ;
 
-
-                    //cout << "wrapped " << coor.transpose() << endl;
-                    // This may be a corner cell, which is not included in fact,
-                    // but currently we ignore this
                     nlist.push_back(coor); // Add cell
                 }
-    else
+    } else {
         // Non-periodic variant
         for(c1=-spanX;c1<=spanX;++c1)
             for(c2=-spanY;c2<=spanY;++c2)
@@ -953,10 +948,10 @@ void Grid_searcher::get_nlist(int i,int j,int k){
                         coor(0)>=NgridX || coor(1)>=NgridY || coor(2)>=NgridZ) continue;
 
                     if(coor(0) == i && coor(1) == j && coor(2) == k ) continue; //Exclude central cell
-                    // This may be a corner cell, which is not included in fact,
-                    // but currently we ignore this
+
                     nlist.push_back(coor); // Add cell
                 }
+    }
 }
 
 

@@ -202,12 +202,19 @@ public:
 
     /// Get distance between two atoms for given frame. Respect PBC if needed.
     float distance(int i, int j, int fr, bool is_periodic = false) const;
+
     /// Get distance between two arbitrary points for given frame. Respect PBC if needed.
     float distance(const Eigen::Vector3f& p1, const Eigen::Vector3f& p2, int fr,
                    bool is_periodic = false) const;
 
+    /// Get periodic distance between two arbitrary points for given frame.
+    /// Periodicity is done only for given set of dimensions (dims)
+    float distance(const Eigen::Vector3f& p1, const Eigen::Vector3f& p2, int fr,
+                   const Eigen::Vector3i& dims) const;
+
     /// Wraps coordinates of point to the peridoc box of specified frame
-    void wrap_to_box(int frame, Eigen::Vector3f& point) const;
+    void wrap_to_box(int frame, Eigen::Vector3f& point,
+                     const Eigen::Vector3i& dims_to_wrap = Eigen::Vector3i::Ones()) const;
 
     /// Finds a periodic image of point, which is closest in space to target and returns it
     /// This method wraps both point and targer to periodic box internally (this is usually what you want).
@@ -216,10 +223,11 @@ public:
     Eigen::Vector3f get_closest_image(Eigen::Vector3f& point,
                                       Eigen::Vector3f& target,
                                       int fr,
-                                      bool do_wrapping = true) const;
+                                      bool do_wrapping = true,
+                                      const Eigen::Vector3i& dims_to_wrap = Eigen::Vector3i::Ones()) const;
 
     /// Wrap all system to the periodic box for given frame
-    void wrap_all(int fr);
+    void wrap_all(int fr, const Eigen::Vector3i& dims_to_wrap = Eigen::Vector3i::Ones());
 
     /// Compute non-bond energy between two atoms
     /// The result is ADDED to e
