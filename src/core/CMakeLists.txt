@@ -2,10 +2,20 @@ IF(VMD_PDB)
      SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DVMD_PDB")
 ENDIF()
 
+if(POWERSASA)
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSE_POWERSASA")
+    SET(SASA_FILES "${PROJECT_SOURCE_DIR}/src/core/sasa/power_diagram.h" "${PROJECT_SOURCE_DIR}/src/core/sasa/power_sasa.h")
+    message("POWERSASA code is used! \n This implies severe license restrictions! \n Read the comment in src/core/sasa/power_sasa.h carefully. \n If you don't agree with this license please use flag -DPOWERSASA=\"OFF\" !")
+else()
+    SET(SASA_FILES "")
+endif()
+
 # Headers of xdrfile are stored together with sources
 include_directories(${PROJECT_SOURCE_DIR}/src/core/xdrfile)
 # The same is for molfile plugins
 include_directories(${PROJECT_SOURCE_DIR}/src/core/molfile_plugins)
+# The same is for POWERSASA
+include_directories(${PROJECT_SOURCE_DIR}/src/core/sasa)
 
 # Main pteros library
 add_library(pteros SHARED
@@ -67,6 +77,9 @@ ${PROJECT_SOURCE_DIR}/src/core/molfile_plugins/readpdb.h
 ${PROJECT_SOURCE_DIR}/src/core/molfile_plugins/pdbplugin.c
 ${PROJECT_SOURCE_DIR}/src/core/molfile_plugins/fastio.h
 ${PROJECT_SOURCE_DIR}/src/core/molfile_plugins/dcdplugin.c
+
+#SASA
+${SASA_FILES}
 )
 
 #Installation

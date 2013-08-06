@@ -38,6 +38,7 @@
 #include "pteros/core/mol_file.h"
 #include "pteros/core/pdb_cryst.h"
 #include "pteros/core/format_recognition.h"
+#include "power_sasa.h"
 
 #include <Eigen/Geometry>
 #include <Eigen/Dense>
@@ -1375,3 +1376,43 @@ void Selection::principal_orient(bool is_periodic){
     Affine3f tr = principal_transform(is_periodic);
     apply_transform(tr);
 }
+
+#ifdef USE_POWERSASA
+float Selection::sasa(float probe_r)
+{
+    return sasa(probe_r,NULL,NULL,NULL);
+}
+
+float Selection::sasa(float probe_r, float *total_volume, vector<float> *area_per_atom, vector<float> *volume_per_atom)
+{
+    // First obtain the VDW radii of all atoms in selection and add probe radius to them
+    vector<float> radii(size());
+    for(int i=0; i<size(); ++i) radii[i] = VDW(i) + probe_r;
+
+    bool do_v = total_volume ? true : false;
+    bool do_a_per_atom = area_per_atom ? true : false;
+    bool do_v_per_atom = volume_per_atom ? true : false;
+
+    // Call POWERSASA
+    POWERSASA::PowerSasa<float,Eigen::Vector3f> ps(system->traj[frame].coord, radii, 1, 0, do_v || do_v_per_atom, 0);
+    ps.calc_sasa_all();
+
+    float v,surf;
+
+    if(do_v || do_v_per_atom){
+        for(int i = 0; i < size(); ++i){
+            v = ps.getVol()[i];
+            if(do_v_per_atom) (*volume_per_atom)[i] = v;
+            if(do_v) *total_volume += v;
+        }
+    }
+
+    for(int i = 0; i < size(); ++i){
+        v = ps.getSasa()[i];
+        if(do_a_per_atom) (*area_per_atom)[i] = v;
+        surf += v;
+    }
+
+    return surf;
+}
+#endif

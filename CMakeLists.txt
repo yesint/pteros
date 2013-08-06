@@ -4,6 +4,7 @@ project(pteros)
 #SET(CMAKE_BUILD_TYPE Release)
 OPTION(PYTHON_BINDINGS "Build python bindings" ON)
 OPTION(VMD_PDB "Use VMD molfile plugin for reading PDB files (if OFF - internal reader is used)" ON)
+OPTION(POWERSASA "Use POWERSASA code. This implies severe license restrictions! \n Read the comment in src/core/sasa/power_sasa.h carefully before enabling this option!" OFF)
 
 # Will use shared Boost libraries
 set(Boost_USE_STATIC_LIBS OFF)
@@ -57,7 +58,6 @@ if(PYTHON_BINDINGS)
     endif()
 endif()
 
-
 find_package(Boost 1.46.0)
 if(Boost_MINOR_VERSION LESS 49)
     find_package(Boost REQUIRED thread regex)
@@ -83,7 +83,7 @@ add_subdirectory(src/python)
 add_subdirectory(src/python/bindings)
 add_subdirectory(src/python/compiled_analysis_plugins)
 add_subdirectory(src/examples)
-#add_subdirectory(template)
+add_subdirectory(src/core/sasa)
 
 # Install headers
 install(DIRECTORY include DESTINATION .)

@@ -137,7 +137,17 @@ If you want to compile with alternative compiler (for example Clang), add the co
 -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
 \endcode
 
+\subsection sasa Enabling SASA code
 
+Pteros can perform the Solvent Accesible Surface Area (SASA) computatations using POWERSASA code developed in the Karlsruhe Institute of Technology. POWERSASA is licensed by specific and rather restrictive "Academic/Non-Profit SASA software license agreement".
+See the comment in the file src/core/sasa/power_sasa.h for details.
+This license is NOT Open Source and imply many restrictions!
+Please read it carefully. If you agree with this license and performed all required steps
+than use the following flag when invoking cmake: 
+\code
+-DPOWERSASA="ON"
+\endcode
+By default this code is NOT compiled. Pteros dosn't support SASA computations without it.
 
 \subsection linking 	Linking with Pteros
 
