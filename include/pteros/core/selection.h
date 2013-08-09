@@ -252,7 +252,7 @@ class Selection {
     void set_beta(float data);
 
     /// Returns the volume of the periodic box for current frame.
-    float get_box_volume() const;
+    float get_box_volume() const;         
     /// @}
 
     /// @name Inquery functions
@@ -294,19 +294,19 @@ class Selection {
     void rotate(const Eigen::Vector3f& angles, const Eigen::Vector3f& pivot);
 
     /// Wraps selection to the periodic box
-    void wrap();
+    void wrap(const Eigen::Vector3i& dims = Eigen::Vector3i::Ones());
 
     /** Unwraps selection to make it whole if possible (without jumps over periodic box boundary).
      * The periodic center of mass is used as an anchor point.
      * Please note that if the size of selection is larger than 1/2 of the box size in
      * any dimension unwrap() will not work as expected and will not make selection "compact"!
     */
-    void unwrap();
+    void unwrap(const Eigen::Vector3i& dims = Eigen::Vector3i::Ones());
 
     /** Unwraps selection to make it whole (without jumps over periodic box boundary).
      * based on preserving all bonds. The maximal bond length is given by d.
      */
-    void unwrap_bonds(float d = 0.2);
+    void unwrap_bonds(float d = 0.2, const Eigen::Vector3i& dims = Eigen::Vector3i::Ones());
 
     /** Get transform for orienting selection by principal axes.
      * Please note that if the size of selection is larger than 1/2 of the box size in
@@ -322,6 +322,15 @@ class Selection {
      */
     void principal_orient(bool is_periodic = false);
 
+#ifdef USE_POWERSASA
+    /// Get the SASA. Easy way - only returns SASA area of selection
+    float sasa(float probe_r = 0.14);
+
+    /// Get the SASA. Detailed way - returns area and computes volume and per-atom values
+    float sasa(float probe_r = 0.14, float* total_volume = NULL,
+               std::vector<float>* area_per_atom = NULL,
+               std::vector<float>* volume_per_atom = NULL);
+#endif
     /// @}
 
     /// @name Fitting and RMSD functions
@@ -532,6 +541,19 @@ class Selection {
     /// Extracts resindex
     inline int& Resindex(int ind){
         return system->atoms[index[ind]].resindex;
+    }
+
+    /// Computes VDW radius. Read only.
+    inline float VDW(int ind){
+        switch(system->atoms[index[ind]].name[0]){
+            case 'H': return  0.1;
+            case 'C': return  0.17;
+            case 'N': return  0.1625;
+            case 'O': return  0.149; //mean value used
+            case 'S': return  0.1782;
+            case 'P': return  0.1871;
+            default:  return  0.17;
+        }
     }
 
     /// @}

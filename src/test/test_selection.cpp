@@ -40,6 +40,46 @@ using namespace Eigen;
 int main(int argc, char** argv)
 {
     try{
+        System sys("/media/data/semen/trajectories/asymmetric_bicelle/no_restr/last.pdb");
+        Bilayer_point_info info;
+
+        Vector3f p1(13.9699997, 0.3000000, 6.4099998);
+        Vector3f p2(15.2800003, 0.0200000, 16.6800003);
+
+        Selection head_markers(sys,"name PO4");
+
+        head_markers.unwrap_bonds(1.5, Vector3i(1,0,1));
+
+        //point_in_membrane(p2,head_markers,5.0);
+        float score;
+
+        // Grid_searcher can't handle periodicity restricted to certain dimensions, so
+        // for non-periodic dimensions we just increase the box size 2 times to prevent periodic effects
+        Vector3i pbc_dims(0,1,0);
+
+        for(int i=0; i<3; ++i){
+            if(pbc_dims(i)==0) sys.Box(0).col(i).array() *= 2;
+        }
+
+        for(int i=0; i<head_markers.size(); ++i){
+            score = point_in_membrane(head_markers.XYZ(i), head_markers, 5.5, pbc_dims);
+            head_markers.Beta(i) = score*10;
+            cout << i << " " << score << endl;
+        }
+
+        head_markers.write("score.pdb");
+
+// Middle: 139.699997, 3.000000, 64.099998
+// Edge    152.800003, 0.200000, 166.800003
+
+
+
+    } catch(Pteros_error e){ e.print(); }
+
+    return 0;
+    //---------------------------------------
+
+    try{
         System t0("/home/semen/work/Projects/pteros/pteros_git_build/experimental/release/bin/topol.tpr.pttop");
         return 1;
 

@@ -202,12 +202,19 @@ public:
 
     /// Get distance between two atoms for given frame. Respect PBC if needed.
     float distance(int i, int j, int fr, bool is_periodic = false) const;
+
     /// Get distance between two arbitrary points for given frame. Respect PBC if needed.
     float distance(const Eigen::Vector3f& p1, const Eigen::Vector3f& p2, int fr,
                    bool is_periodic = false) const;
 
+    /// Get periodic distance between two arbitrary points for given frame.
+    /// Periodicity is done only for given set of dimensions (dims)
+    float distance(const Eigen::Vector3f& p1, const Eigen::Vector3f& p2, int fr,
+                   const Eigen::Vector3i& dims) const;
+
     /// Wraps coordinates of point to the peridoc box of specified frame
-    void wrap_to_box(int frame, Eigen::Vector3f& point) const;
+    void wrap_to_box(int frame, Eigen::Vector3f& point,
+                     const Eigen::Vector3i& dims_to_wrap = Eigen::Vector3i::Ones()) const;
 
     /// Finds a periodic image of point, which is closest in space to target and returns it
     /// This method wraps both point and targer to periodic box internally (this is usually what you want).
@@ -216,20 +223,32 @@ public:
     Eigen::Vector3f get_closest_image(Eigen::Vector3f& point,
                                       Eigen::Vector3f& target,
                                       int fr,
-                                      bool do_wrapping = true) const;
+                                      bool do_wrapping = true,
+                                      const Eigen::Vector3i& dims_to_wrap = Eigen::Vector3i::Ones()) const;
 
     /// Wrap all system to the periodic box for given frame
-    void wrap_all(int fr);
+    void wrap_all(int fr, const Eigen::Vector3i& dims_to_wrap = Eigen::Vector3i::Ones());
 
     /// Compute non-bond energy between two atoms
     /// The result is ADDED to e
     /// Intended mainly to be called from other functions, which take care of initializing e
     void add_non_bond_energy(Energy_components& e, int a1, int a2, int frame, bool is_periodic = true);
+
     /// Non-bond energy for given list of atom pairs
     Energy_components non_bond_energy(const std::vector<Eigen::Vector2i>& nlist, int fr);
+
     /// Returns true if the force field is set up properly and is able to compute energies
     bool force_field_ready(){
         return force_field.ready;
+    }
+
+    /// Returns pointer to internal Force_field object for direct manipulation
+    /// or NULL if force field is not ready
+    Force_field* get_force_field(){
+        if(force_field.ready)
+            return &force_field;
+        else
+            return NULL;
     }
 
 protected:

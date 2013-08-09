@@ -382,13 +382,16 @@ void System::append(const System &sys){
     update_selections();
 }
 
-inline void wrap_coord(Vector3f& point, const Vector3f& box_dim){
+inline void wrap_coord(Vector3f& point, const Vector3f& box_dim,
+                       const Vector3i dims_to_wrap = Vector3i::Ones()){
     int i;
     float intp,fracp;
     for(i=0;i<3;++i){
-        fracp = std::modf(point(i)/box_dim(i),&intp);
-        if(fracp<0) fracp = fracp+1;
-        point(i) = box_dim(i)*fracp;
+        if(dims_to_wrap(i)!=0){
+            fracp = std::modf(point(i)/box_dim(i),&intp);
+            if(fracp<0) fracp = fracp+1;
+            point(i) = box_dim(i)*fracp;
+        }
     }
 }
 
@@ -409,33 +412,46 @@ float System::distance(const Eigen::Vector3f &p1, const Eigen::Vector3f &p2, int
     }
 }
 
+float System::distance(const Vector3f& p1, const Vector3f& p2, int fr, const Vector3i& dims) const {
+    // Get box dimension
+    Vector3f box_dim = traj[fr].box.colwise().norm();
+    Vector3f pp1 = p1, pp2 = p2;
+    wrap_coord(pp1,box_dim,dims);
+    wrap_coord(pp2,box_dim,dims);
+    // For each dimension measure periodic distance
+    Vector3f v = (pp2-pp1).array().abs();
+    for(int i=0;i<3;++i)
+        if(dims(i) && v(i)>0.5*box_dim(i)) v(i) = box_dim(i)-v(i);
+    return v.norm();
+}
+
 float System::distance(int i, int j, int fr, bool is_periodic) const {
     return distance(traj[fr].coord[i], traj[fr].coord[j], fr, is_periodic);
 }
 
-void System::wrap_to_box(int frame, Eigen::Vector3f& point) const {
+void System::wrap_to_box(int frame, Eigen::Vector3f& point, const Eigen::Vector3i &dims_to_wrap) const {
     int i;
     float intp,fracp;
     // Get box vectors norms
     Vector3f box_dim = traj[frame].box.colwise().norm();
-    wrap_coord(point,box_dim);
+    wrap_coord(point,box_dim, dims_to_wrap);
 }
 
-Vector3f System::get_closest_image(Eigen::Vector3f &point, Eigen::Vector3f &target, int fr, bool do_wrapping) const {
+Vector3f System::get_closest_image(Eigen::Vector3f &point, Eigen::Vector3f &target, int fr, bool do_wrapping, const Vector3i& dims_to_wrap) const {
     if(traj[fr].box.array().abs().sum()>0){ // If box is not set, it will be zero
         // Get box dimension
         Vector3f box_dim = traj[fr].box.colwise().norm();
         // Wrap point and target
         Vector3f p = point, t = target;
         if(do_wrapping){
-            wrap_coord(p,box_dim);
-            wrap_coord(t,box_dim);
+            wrap_coord(p,box_dim,dims_to_wrap);
+            wrap_coord(t,box_dim,dims_to_wrap);
         }
 
         Vector3f v = (p-t).array();
         //cout << v(0) <<  " -- " << 0.5*box_dim(0) << endl;
         for(int i=0;i<3;++i)            
-            if(abs(v(i))>0.5*box_dim(i)){                
+            if(dims_to_wrap(i) && abs(v(i))>0.5*box_dim(i)){
                 // Need to translate this dimension
                 v(i)>0 ? p(i)-=box_dim(i) : p(i)+=box_dim(i);
             }
@@ -446,9 +462,9 @@ Vector3f System::get_closest_image(Eigen::Vector3f &point, Eigen::Vector3f &targ
     }
 }
 
-void System::wrap_all(int fr){
+void System::wrap_all(int fr, const Vector3i& dims_to_wrap){
     for(int i=0;i<num_atoms();++i){
-        wrap_to_box(fr,XYZ(i,fr));
+        wrap_to_box(fr,XYZ(i,fr),dims_to_wrap);
     }
 }
 
