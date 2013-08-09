@@ -128,7 +128,8 @@ void RMSF::pre_process(){
     do_rmsd = options->get_value<bool>("do_rmsd",false);
 }
 
-void RMSF::window_started(const Frame_info &info){
+void RMSF::window_started(const Frame_info &info){            
+    if(system.num_frames()==1) return; // In case this is the very beginning
     system.frame_copy(0,1);
 }
 
@@ -164,20 +165,27 @@ void RMSF::window_finished(const Frame_info &info){
         // Add new window to rmsf
         gr.add_window();
     }
+
+    cout << "Window " << info.win_num << " done!" << endl;
 }
 
 
 void RMSF::process_frame(const Frame_info &info){
 
-    //cout << "::: " << fr << " " << info.last_frame << " " << time_stamp << endl;
-
     // Very first frame should be used as first reference
     if(info.last_frame==info.first_frame){
         cout << "Setting first trajectory frame as initial reference..." << endl;
+        if(system.num_frames()==1){
+            system.frame_dup(0);
+        }
+
+        cout << system.num_atoms() << endl;
+        cout << system.num_frames() << endl;
+
         system.frame_copy(0,1);
     }
 
-    all.set_frame(0);
+    all.set_frame(0);    
 
     Eigen::Affine3f t;
 
@@ -194,9 +202,12 @@ void RMSF::process_frame(const Frame_info &info){
         if(do_rmsd) gr.rmsd.push_back( gr.sel.rmsd(0,1) );
 
         // Cycle for all residues
-        for(int r=0; r<gr.residue_sel.size(); ++r){
+        //cout << ">>" << gr.residue_sel.size() << " " << info.win_num << endl;
+        for(int r=0; r<gr.residue_sel.size(); ++r){            
             // For all atoms in selection compute difference with reference
             int resind = gr.residue_sel[r].Resindex(0);
+
+            //cout << r << " " << resind << endl;
             // For each atom in residue r (resid)
             for(int i=0; i<gr.residue_sel[r].size(); ++i){
                 gr.rmsf[info.win_num][resind](i) += ( gr.residue_sel[r].XYZ(i,0) -

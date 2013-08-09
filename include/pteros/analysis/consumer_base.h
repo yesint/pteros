@@ -92,6 +92,8 @@ private:
     int id;
     /// Window counter
     int win_num;
+    float win_start_time;
+    int win_start_frame;
 
     void process_window_info(Frame_info& info);
 

@@ -83,6 +83,8 @@ void Consumer_base::process_window_info(Frame_info& info){
     if(info.valid_frame==0){
         // This is the start of the very first window
         win_num = 0; // Set counter
+        win_start_time = info.absolute_time;;
+        win_start_frame = info.valid_frame;;
         info.win_num = 0;
         info.win_start_frame = info.valid_frame;
         info.win_start_time = info.absolute_time;
@@ -93,26 +95,37 @@ void Consumer_base::process_window_info(Frame_info& info){
     } else {
         // Check the end of window
         if(
-            (info.win_size_frames>=0 && info.valid_frame-info.win_start_frame>=info.win_size_frames)
+            (info.win_size_frames>=0 && info.valid_frame-win_start_frame>=info.win_size_frames)
             ||
-            (info.win_size_time>=0 && info.absolute_time-info.win_start_time>=info.win_size_time)
-        ){
+            (info.win_size_time>=0 && info.absolute_time-win_start_time>=info.win_size_time)
+        ){                        
+            info.win_last_frame = info.valid_frame;
+            info.win_last_time = info.absolute_time;
+
             // Previous window finished! Call function for processing.
             // It will see old win_start_time and win_num as needed.
+            info.win_num = win_num;
+            info.win_start_frame = win_start_frame;
+            info.win_start_time = win_start_time;
             window_finished_handler(info);
             // Start new window
             ++win_num;
-            info.win_num = win_num;
-            info.win_start_frame = info.valid_frame;
-            info.win_start_time = info.absolute_time;
-            info.win_last_frame = info.valid_frame;
-            info.win_last_time = info.absolute_time;
+            // Update window start time
+            win_start_frame = info.valid_frame;
+            win_start_time = info.absolute_time;
+
             // Call function for processing
+            info.win_num = win_num;
+            info.win_start_frame = win_start_frame;
+            info.win_start_time = win_start_time;
             window_started_handler(info);
         } else {
             // Window if not finished yet. Just update last_time
+            info.win_num = win_num;
+            info.win_start_frame = win_start_frame;
+            info.win_start_time = win_start_time;
             info.win_last_frame = info.valid_frame;
-            info.win_last_time = info.absolute_time;
+            info.win_last_time = info.absolute_time;            
         }
     }
 }

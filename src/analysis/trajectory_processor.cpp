@@ -68,8 +68,11 @@ void Trajectory_processor::print_help(){
             "\t--first_time: first time step to read, ps\n"
             "\t--last_time: last time step to read, ps\n"
 
-            "\t--window [frame_window|time_window] sz:\n"
-            "\t\tprocess by windows of size sz determined by frame of by time in ps.\n"
+            "\t--window_size_frames sz:\n"
+            "\t\tprocess by windows of size sz determined by frame.\n"
+
+            "\t--window_size_time t:\n"
+            "\t\tprocess by windows of size t determined by time.\n"
 
             "\n"
 
@@ -371,6 +374,9 @@ void Trajectory_processor::reader_thread_body(){
                 data->frame_info.first_time = saved_first_time;
                 data->frame_info.last_frame = abs_frame;
                 data->frame_info.last_time = data->frame.t;
+
+                // There is no data about window starts and ends here!
+                // This information is managed by the Consumer!
 
                 // Send frame to the queue
                 channel.send(data);                
