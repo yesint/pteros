@@ -98,13 +98,13 @@ Installation of dependencies on Windows is described here \ref install_win.
 \subsection build	Building Pteros
 Get the latest source code could from the Git repository. If you want the stable branch use the following command:
 \code
-git clone git://pteros.git.sourceforge.net/gitroot/pteros/pteros
+git clone git://git.code.sf.net/p/pteros/code pteros-code
 \endcode
 This will create a directory named "pteros" in you current working directory and will download the latest stable branch of Pteros source code into it.
 
 You can also get the latest development branch (named "experimental"), which is the bleading-age of Pteros development but may contain some bugs and unstable features:
 \code
-git clone -b experimental git://pteros.git.sourceforge.net/gitroot/pteros/pteros
+git clone -b experimental git://git.code.sf.net/p/pteros/code pteros-code
 \endcode
 
 Create a build directory (for example 'pteros_build'). Go to this directory and issue the following commands:
