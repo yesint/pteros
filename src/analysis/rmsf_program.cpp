@@ -50,15 +50,17 @@ int main(int argc, char** argv){
 "--async true "
 "--do_rmsd true"
             );
-*/
-        // Show help
+*/        
+
+        Trajectory_processor processor(options);
+
+        // Show help if asked
         if(options.count_options("help") || argc==1){
-            Trajectory_processor::print_help();
+            cout << processor.help() << endl;
             RMSF::print_help();
             return 0;
         }
 
-        Trajectory_processor processor(options);
         boost::shared_ptr<RMSF> engine(new RMSF(processor,options));
 
 /*

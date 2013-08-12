@@ -18,9 +18,9 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 
 #Installation
 install(TARGETS pteros_test
-    RUNTIME DESTINATION bin/test
+    RUNTIME DESTINATION bin
 )
 
 install(TARGETS threads_test
-    RUNTIME DESTINATION bin/test
+    RUNTIME DESTINATION bin
 )

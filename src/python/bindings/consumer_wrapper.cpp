@@ -30,7 +30,9 @@ void Consumer_wrapper::pre_process(){
     try {        
         dynamic_cast<Trajectory_processor_wrapper*>(proc)->pre_process();
     } catch (error_already_set& e){
+        cout << endl << "(ERROR) In plugin method: '" << BOOST_CURRENT_FUNCTION << "'" << endl;
         PyErr_Print();
+        exit(1);
     }
 }
 
@@ -38,7 +40,10 @@ void Consumer_wrapper::process_frame(const Frame_info& info){
     try {
         dynamic_cast<Trajectory_processor_wrapper*>(proc)->process_frame(info);
     } catch (error_already_set& e){
+        cout << endl << "(ERROR) In plugin method: '" << BOOST_CURRENT_FUNCTION << "'" << endl;
+        cout << "(ERROR) Occured on frame " << info.valid_frame << endl;
         PyErr_Print();        
+        exit(1);
     }
 }
 
@@ -46,7 +51,9 @@ void Consumer_wrapper::post_process(const Frame_info& info){
     try {        
         dynamic_cast<Trajectory_processor_wrapper*>(proc)->post_process(info);
     } catch (error_already_set& e){
+        cout << endl << "(ERROR) In plugin method: '" << BOOST_CURRENT_FUNCTION << "'" << endl;
         PyErr_Print();
+        exit(1);
     }
 }
 

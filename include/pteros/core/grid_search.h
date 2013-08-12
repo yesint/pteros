@@ -33,13 +33,60 @@ namespace pteros {
 
     typedef boost::multi_array<std::vector<int>,3> Grid_t;
 
-    /** Implements grid search algorithm for finding atoms, located within
-      certain distance from their centers.
-      Returns pairs of "contacting" atoms
-       as a plain list of index pairs
+    /** @brief Implements grid search algorithm
+    Grid_searcher class subdivides the volume of the system into number of
+    cells and computes which atoms appear in each cell. After that the pairs of
+    atoms, which reside within the given cut-off distance from each other
+    could be computed rapidly. Grid search method is much faster than simple brute
+    force search.
+    Grid_searcher class could be used in three different scenarios:
+
+    - Search for atoms, which are located within the cutoff
+    inside given selection or between two given selections. Typical usage:
+    \code
+    vector<Vector2i> bonds;
+    Grid_searcher(0.2, sel, bonds, true);
+    Grid_searcher(0.2, sel1, sel2, bonds, true);
+    \endcode
+    - Search for atoms, which are located within the given distance from some
+    arbitrary point in space or from any atom of the given selection.
+    This scenario is also used internally when processing "within" keywords of selection syntax.
+    Typical usage:
+    \code
+    vector<int> atoms;
+    Selection all(system,"all");
+    Selection res_of_interest(system,"resid 100");
+
+    Grid_searcher g;
+    g.assign_to_grid(0.2, all, true, true);
+    g.search_within(res_of_interest, atoms);
+
+    // The same using constructor with immediate searching:
+    Grid_searcher(0.2, all, res_of_interest, atoms, false, true, true);
+    \endcode
+    - Sorting the atoms from given selection into the cells of
+    3D grid with given dimensions. Useful for producing volumetric datasets or
+    various 3D histrograms (for examples density or the residence time maps).
+    Typical usage:
+    \code
+    Grid_searcher g;
+    g.create_custom_grid(NX,NY,NZ);
+    g.fill_custom_grid(sel,true);
+    for(i=0;i<NX;++i)
+        for(j=0;j<NY;++j)
+            for(k=0;k<NZ;++k)
+                cout << g.cell_of_custom_grid(i,j,k).size() << endl;
+    \endcode
     */
+
     class Grid_searcher {
         public:
+            /// Default constructor
+            Grid_searcher();
+
+            /// @name Search for atoms located within the cutoff distance from each other
+            /// @{
+
             /// Constructor for instant searching inside a selection
             Grid_searcher(float d, Selection& sel,
                             std::vector<Eigen::Vector2i>& bon,                            
@@ -53,9 +100,10 @@ namespace pteros {
                             bool absolute_index = false,
                             bool periodic = false,
                             std::vector<float>* dist_vec = NULL);
+            /// @}
 
-            /// Default constructor
-            Grid_searcher();
+            /// @name Search for atoms within the given distance from point or selection
+            /// @{
 
             /// Assign atoms from given selection to grid
             /// Pointer to this selection is stored internally
@@ -63,22 +111,44 @@ namespace pteros {
                                 bool absolute_index = false,
                                 bool periodic = false);
 
-            void create_custom_grid(int nX, int nY, int nZ);
-            void fill_custom_grid(Selection sel,
-                                  bool absolute_index = false);
-            std::vector<int>& cell_of_custom_grid(int x, int y, int z);
-
-            /// Search contacts within distance from given point in space
+            /// Search atoms within given distance from point in space
             /// Existing grid set in assign_to_grid() is used
-            /// Returns the list of atoms in contact with given point
+            /// Returns the list of atoms in the vicinity of given point
             void search_within(Eigen::Vector3f& coor,
                               std::vector<int>& bon);
 
-            /// Search within some distance from target selection
-            /// sel must be the same as used in assign_to_grid() to give meaningful results
+            /// Search atoms within given distance from target selection
+            /// target must be the subset of selectionm which was used in assign_to_grid()
+            /// to give meaningful results
             void search_within(Selection& target,
                                std::vector<int>& bon,
                                bool include_self=true);
+
+            /// Constuctor for very fast immediate search of atoms from src,
+            /// which are within given distance from the atoms of target.
+            /// Used in internal parsing of within selections.
+            Grid_searcher(  float d,
+                            Selection& src,
+                            Selection& target,
+                            std::vector<int>& bon,
+                            bool include_self=true,
+                            bool absolute_index = false,
+                            bool periodic = false);
+            /// @}
+
+            /// @name Assigning the atoms from given selection to the custom periodic grid
+            /// @{
+
+            /// Creates custom periodic grid with given dimensions
+            void create_custom_grid(int nX, int nY, int nZ);
+            /// Populate custom grid created by create_custom_grid() from given selection
+            void fill_custom_grid(Selection sel,
+                                  bool absolute_index = false);
+            /// Read/write acces to the cells of custom grid
+            std::vector<int>& cell_of_custom_grid(int x, int y, int z);
+
+            /// @}
+
 
         protected:
             // Create one grid from single selection
@@ -143,28 +213,6 @@ namespace pteros {
                                 Selection& sel2,
                                 std::vector<Eigen::Vector2i>& bonds,
                                 std::vector<float>* dist_vec);
-
-            /*
-            // Coordinate accessors
-            // Could be overloaded to provede access to coordinates
-            // stored not in the system itself but somewhere
-            // Passed selection is used to extract absolute index in any case.
-            inline virtual float getX(const int i, Selection& sel){
-                return sel.X(i);
-            }
-
-            inline virtual float getY(const int i, Selection& sel){
-                return sel.Y(i);
-            }
-
-            inline virtual float getZ(const int i, Selection& sel){
-                return sel.Z(i);
-            }
-
-            inline virtual Eigen::Vector3f getXYZ(const int i, Selection& sel){
-                return sel.XYZ(i);
-            }
-            */
     };
 
 }

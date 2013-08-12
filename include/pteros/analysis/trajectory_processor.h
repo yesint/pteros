@@ -75,8 +75,8 @@ class Trajectory_processor {
 
         void run2();
 
-        /// Print summary of allowed options
-        static void print_help();
+        /// Print summary of allowed options    
+        std::string help();
 
     protected:
         /// Tree of options

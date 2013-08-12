@@ -65,6 +65,10 @@ struct Force_field {
     boost::unordered_map<int,int> LJ14_pairs;
     /// Scaling factor of 1-4 Coulomb interactions
     float fudgeQQ;
+
+    /// Topology-related infromation
+    std::vector<Eigen::Vector2i> bonds;
+
     /// Is the force field properly set up?
     bool ready;
 

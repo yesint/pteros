@@ -73,6 +73,21 @@ bool PTTOP_file::do_read(System *sys, Frame *frame, Mol_file_content what){
         }
         cout << "\tRead " << natoms << " atoms" << endl;
 
+        // Bonds
+        int nbonds;
+        getline(f,line); // Comment
+        getline(f,line); // Value
+        ss.clear(); ss.str(line);
+        ss >> nbonds;
+        ff_in_system(*sys).bonds.resize(nbonds);
+        getline(f,line); // Comment
+        for(int i=0;i<nbonds;++i){
+            getline(f,line);
+            ss.clear(); ss.str(line);
+            ss >> ff_in_system(*sys).bonds[i](0) >> ff_in_system(*sys).bonds[i](1);
+        }
+        cout << "\tRead " << nbonds << " bonds" << endl;
+
         // Box
         getline(f,line); // Comment
         for(int i=0; i<3; ++i){

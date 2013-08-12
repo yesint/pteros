@@ -26,12 +26,12 @@ Pteros library <i>is</i> for you if:
 - You want to run several "heavy" analysis tasks in parallel.
 - You are not satisfied by the speed and memory consumption of the scripting languages embedded into popular molecular analysis programs, such as PyMol or VMD.
 - You know C++ or don't mind learning this rather hard, but very powerful language.
+- You want to write analysis code in Python using the power of optimized C++ Pteros backend (also good for "throw-away" one-time analysis scripts).
 
 Pteros is <i>not</i> for you if:
 
-- Your goal is to write a "throw-away" one-time analysis script, which takes only few minutes to complete. Using Pteros is an overkill in this case.
 - Your task requires extensive usage of molecular visualizer. Pteros doesn't have one currently.
-- You have no programming skills at all, or you don't want to learn C++.
+- You have no programming skills at all, or you don't want to learn C++ or Python.
 
 \section motivation 	Motivation
 
@@ -40,7 +40,7 @@ molecular modeling which satisfies my needs. Existing libraries are either too c
 
 There are several molecular modeling programs, which could be controlled by the scripting languages. Such scripting is often used to perform non-standard analysis tasks. This is perfectly acceptable if the execution time is not an issue, however any computationally intensive algorithm will run ridiculously slow in the scripting language like Python or TCL. Pteros is designed as a replacement of such scripting extentions to existing molecular modeling software. With Pteros one can easily write very fast compiled programs in C++ using the same high-level concepts, which are provided by the scripting extentions.
 
-Pteros contains bindings for Python language, but these bindings are not the major focus of its development. They come handy when one need small throw-away program, but all computationally intensive tasks are supposed to be done in C++.
+Pteros contains bindings for Python language, but these bindings are not the major focus of its development. They come handy when one need small throw-away program or in prototyping the algorithms, but all computationally intensive tasks are supposed to be done in C++.
 
 \section features	Features
 
@@ -75,16 +75,17 @@ Pteros is being developed on Linux with gcc and clang compilers. New versions ar
 
 If you managed to compile Pteros on MacOS, please share your experience because we have no Mac machines to perform the tests.
 
+Intel ICC compiles Pteros on Linux, but gives poor performance. Compiling with Intel MKL works, but gives broken Python bindings. Any help in these issues is appreciated!
+
 
 \subsection depend 	Dependencies 
 The prerequisites for compilation of Pteros are the following:
 
-- Standard-conforming C compiler.
-- C++ compiler with C++11 support (tested with gcc>=4.7, clang>=3.1).
+- Standard-conforming C and C++ compileres (tested with gcc>=4.7, clang>=3.1).
 - <a href="http://www.cmake.org/">cmake</a> build system.
 - <a href="http://www.boost.org/">boost</a> 1.48 or higher.
-- Python 2.5 of higher (for python bindings only).
-- Git client for getting the source code.
+- Python 2.5 of higher.
+- <a href="http://git-scm.com/">Git</a> client for getting the source code.
 - <a href="www.doxygen.org">Doxygen</a> (only if you want to build documentation yourself)
 
 If you are using Debian or Ubuntu it should be enough to run the following command in the terminal as root to install all dependencies:
@@ -95,11 +96,11 @@ apt-get install g++ cmake cmake-curses-gui libboost-all-dev python-dev python-nu
 Installation of dependencies on Windows is described here \ref install_win.
 
 \subsection build	Building Pteros
-It is <b>highly recommended</b> to get the latest source code could from the Git repository! If you want the stable branch use the following command:
+Get the latest source code could from the Git repository. If you want the stable branch use the following command:
 \code
 git clone git://pteros.git.sourceforge.net/gitroot/pteros/pteros
 \endcode
-This will create a directory named "pteros" in you current working directory and will download the latest stable branch of Pteros source code into it. Discrete releases, published on the <a href="http://www.sourceforge.net/pteros">Pteros home page</a> are out of date because of fast code changes and their usage is <b>strongly discouraged</b>!
+This will create a directory named "pteros" in you current working directory and will download the latest stable branch of Pteros source code into it.
 
 You can also get the latest development branch (named "experimental"), which is the bleading-age of Pteros development but may contain some bugs and unstable features:
 \code
@@ -129,8 +130,24 @@ export PYTHONPATH="$PYTHONPATH:<path to Pteros>/python"
 
 Copy suggested lines and add them to your .bashrc file (it is assumed that bash shell is used. If it is not the case use the syntax of your actual shell instead).
 
-You may have to edit CMakeLists.txt file to set correct paths for the libraries. The most common problem is the non-standard location of the Boost libraries or too old version of Boost. Pteros <b>will not compile</b> with old versions of C++ compiler, which do not support C++11 standard!
+You may have to edit CMakeLists.txt file to set correct paths for the libraries. The most common problem is the non-standard location of the Boost libraries or too old version of Boost.
 
+If you want to compile with alternative compiler (for example Clang), add the collowing flags to cmake invocation:
+\code
+-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
+\endcode
+
+\subsection sasa Enabling SASA code
+
+Pteros can perform the Solvent Accesible Surface Area (SASA) computatations using POWERSASA code developed in the Karlsruhe Institute of Technology. POWERSASA is licensed by specific and rather restrictive "Academic/Non-Profit SASA software license agreement".
+See the comment in the file src/core/sasa/power_sasa.h for details.
+This license is NOT Open Source and imply many restrictions!
+Please read it carefully. If you agree with this license and performed all required steps
+than use the following flag when invoking cmake: 
+\code
+-DPOWERSASA="ON"
+\endcode
+By default this code is NOT compiled. Pteros dosn't support SASA computations without it.
 
 \subsection linking 	Linking with Pteros
 
@@ -171,7 +188,7 @@ In order to develop you own programs with Pteros you need to know C++ reasonably
 
 In addition you should be familiar with Eigen vector/matrix library. Fortunately, it has <a href="http://eigen.tuxfamily.org/dox/">an excelent documentation</a>. 
 
-In order to modify internals of Pteros you should also be familiar with some Boost libraries, namely Boost.thread, Boost.bind, Boost.signals2, Boost.multiarray, etc.
+In order to modify internals of Pteros you should also be familiar with some Boost libraries, namely Boost.thread, Boost.bind, Boost.signals2, Boost.multiarray and Boost.python.
 
 \section bench Benchmarks
 

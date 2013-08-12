@@ -1076,8 +1076,7 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
             periodic = node->get_bool_child_value(2);
         }
 
-        // Do searching
-        Grid_searcher g;
+        // Do searching        
         Selection dum1(*sys),dum2(*sys);
 
         if(!subspace){
@@ -1094,8 +1093,11 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
 
         dum1.set_frame(frame);
         dum2.set_frame(frame);
-        g.assign_to_grid(dist,dum1,true,periodic);
-        g.search_within(dum2,result,true);
+
+        //g.assign_to_grid(dist,dum1,true,periodic);
+        //g.search_within(dum2,result,true);
+
+        Grid_searcher(dist,dum1,dum2,result,true,true,periodic);
 /*
         // Now sort result
         std::sort(result.begin(), result.end());

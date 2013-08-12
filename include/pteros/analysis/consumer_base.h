@@ -20,13 +20,14 @@
  *
 */
 
-
 #ifndef CONSUMER_BASE_H
 #define CONSUMER_BASE_H
 
 #include "pteros/core/system.h"
 #include "pteros/analysis/frame_info.h"
 #include "pteros/analysis/message_channel.h"
+
+#include <fstream>
 
 namespace pteros {
 
@@ -50,8 +51,8 @@ class Trajectory_processor;
   */
 class Consumer_base {
     friend class Trajectory_processor;
-public:
-    Consumer_base(Trajectory_processor* pr);
+public:        
+    Consumer_base(Trajectory_processor* pr);    
 
     System* get_system(){return &system;}    
     void set_id(int i){id = i;}   
@@ -72,6 +73,18 @@ protected:
     System system;
     /// Pointer to trajectory processor
     Trajectory_processor* proc;
+
+    /// Handler functions which call user callbacks
+    /// Could be overriden to take additional actions
+    /// These handlers are called by Trajectory_processor
+    virtual void pre_process_handler(){
+
+        pre_process();
+    }
+    virtual void post_process_handler(const Frame_info& info){ post_process(info); }
+    virtual void process_frame_handler(const Frame_info& info){ process_frame(info); }
+    virtual void window_started_handler(const Frame_info& info){ window_started(info); }
+    virtual void window_finished_handler(const Frame_info& info){ window_finished(info); }
 
 private:
 

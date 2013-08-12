@@ -32,70 +32,125 @@
 #include <boost/tokenizer.hpp>
 #include <boost/algorithm/string.hpp>
 
-//-----------------------------------------
-
-/*
- Options_scheme s;
-s.option("trajectory","description",
-            multi<string>() +
-            !single<int>() +
-            !option("first_frame","descr", single<int>() ) +
-            !option("last_frame","descr", single<int>() ) +
-            !option("first_time","descr", single<float>() ) +
-            !option("last_time","descr", single<float>() ) +
-        )
- */
-
-class Options_scheme {
-public:
-    Options_scheme& option(std::string name, std::string descr, Options_scheme o = Options_scheme()){
-        sub_options.push_back(Options_scheme());
-        sub_options.back().name = name;
-        sub_options.back().description = descr;
-    }
-
-    template<class T>
-    Options_scheme& single();
-
-    template<class T>
-    Options_scheme& multi(int num = -1);
-private:
-    std::string name;
-    std::string description;
-    //std::vector<> values;
-    std::vector<Options_scheme> sub_options;
-};
-
-//-----------------------------------------
-
 using namespace std;
 using namespace pteros;
 using namespace Eigen;
 
 
-
-
 int main(int argc, char** argv)
 {
     try{
+        System sys("/media/data/semen/trajectories/asymmetric_bicelle/no_restr/last.pdb");
+        Bilayer_point_info info;
+
+        Vector3f p1(13.9699997, 0.3000000, 6.4099998);
+        Vector3f p2(15.2800003, 0.0200000, 16.6800003);
+
+        Selection head_markers(sys,"name PO4");
+
+        head_markers.unwrap_bonds(1.5, Vector3i(1,0,1));
+
+        //point_in_membrane(p2,head_markers,5.0);
+        float score;
+
+        // Grid_searcher can't handle periodicity restricted to certain dimensions, so
+        // for non-periodic dimensions we just increase the box size 2 times to prevent periodic effects
+        Vector3i pbc_dims(0,1,0);
+
+        for(int i=0; i<3; ++i){
+            if(pbc_dims(i)==0) sys.Box(0).col(i).array() *= 2;
+        }
+
+        for(int i=0; i<head_markers.size(); ++i){
+            score = point_in_membrane(head_markers.XYZ(i), head_markers, 5.5, pbc_dims);
+            head_markers.Beta(i) = score*10;
+            cout << i << " " << score << endl;
+        }
+
+        head_markers.write("score.pdb");
+
+// Middle: 139.699997, 3.000000, 64.099998
+// Edge    152.800003, 0.200000, 166.800003
 
 
 
-        Options_tree opt;
-        opt.from_command_line(argc,argv);
+    } catch(Pteros_error e){ e.print(); }
 
-        //boost::shared_ptr<Mol_file> io = io_factory("topol.tpr",'r');
-        //System sys1("/home/semen/work/Projects/pteros/pteros_build/release/src/test/topol.tpr");
+    return 0;
+    //---------------------------------------
 
-        //return 1;
+    try{
+        System t0("/home/semen/work/Projects/pteros/pteros_git_build/experimental/release/bin/topol.tpr.pttop");
+        return 1;
 
-        System t("/home/semen/work/Projects/pteros/pteros_git/src/test/data/2lao.gro");
-        //System t("/media/data/semen/trajectories/test/topol.tpr.pttop");
-        //t.load("/media/data/semen/trajectories/test/traj.trr");
-        //Selection s0(t,"name CA");
-        //for(int i=0;i<s0.size();++i) cout << s0.XYZ(i).transpose() << endl;
-        Selection s(t,"distance point 0 0 0 > 5 and by residue name CA");
-        cout << s.size() << endl;
+        System t("/media/data/semen/trajectories/RC/simulation_C/after_lip_equil.pdb");
+        vector<Eigen::Vector2i> bon;
+        clock_t t1,t2;
+        float cutoff;
+
+        // Test 1
+        cout << "within <cutoff> of resname BCL" << endl;
+        cutoff = 0.2;
+        while(cutoff<=2.1){
+            t1 = clock();
+            for(int i=0;i<100;++i){
+                Selection(t,"within "+boost::lexical_cast<string>(cutoff)+" of resname BCL");
+            }
+            t2 = clock();
+            cout << cutoff << ": " << (float)(t2-t1)/float(CLOCKS_PER_SEC) << endl;
+            cutoff += 0.2;
+        }
+
+        return 1;
+
+        // Test 2
+        cout << "resname SOL and within <cutoff> of resname SOL" << endl;
+        cutoff = 0.2;
+        while(cutoff<=2.1){
+            t1 = clock();
+            for(int i=0;i<100;++i){
+                Selection(t,"resname SOL and within "+boost::lexical_cast<string>(cutoff)+" of resname SOL");
+            }
+            t2 = clock();
+            cout << cutoff << ": " << (float)(t2-t1)/float(CLOCKS_PER_SEC) << endl;
+            cutoff += 0.2;
+        }
+
+        // Test 3
+        cout << "name OW and within <cutoff> of resname ALA" << endl;
+        cutoff = 0.2;
+        while(cutoff<=2.1){
+            t1 = clock();
+            for(int i=0;i<100;++i){
+                Selection(t,"name OW and within "+boost::lexical_cast<string>(cutoff)+" of resname ALA");
+            }
+            t2 = clock();
+            cout << cutoff << ": " << (float)(t2-t1)/float(CLOCKS_PER_SEC) << endl;
+            cutoff += 0.2;
+        }
+
+        // Test 4 - creation of coord-independent selections
+        cout << "resid <i> and name CA" << endl;
+        cutoff = 0.2;
+            t1 = clock();
+            for(int i=0;i<500;++i){
+                Selection(t,"resid "+boost::lexical_cast<string>(i)+" and name CA");
+            }
+            t2 = clock();
+            cout << ": " << (float)(t2-t1)/float(CLOCKS_PER_SEC) << endl;
+
+
+        // Test 5 - creation of coord-independent selections by residue
+        cout << "by residue resid <i> and name CA" << endl;
+        cutoff = 0.2;
+            t1 = clock();
+            for(int i=0;i<500;++i){
+                Selection(t,"by residue resid "+boost::lexical_cast<string>(i)+" and name CA");
+            }
+            t2 = clock();
+            cout << ": " << (float)(t2-t1)/float(CLOCKS_PER_SEC) << endl;
+
+
 
         /*
         ofstream f("out.dat");

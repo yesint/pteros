@@ -36,7 +36,7 @@ Consumer_base::Consumer_base(Trajectory_processor* pr){
 
 void Consumer_base::run_in_thread(boost::shared_ptr<Message_channel<boost::shared_ptr<Data_container> > > chan){
     // Call user pre-process
-    pre_process();
+    pre_process_handler();
 
     boost::shared_ptr<Data_container> data;
 
@@ -52,13 +52,13 @@ void Consumer_base::run_in_thread(boost::shared_ptr<Message_channel<boost::share
     }
 
     // Call user post-process
-    post_process(data->frame_info);
+    post_process_handler(data->frame_info);
 }
 
 void Consumer_base::consume_frame(boost::shared_ptr<Data_container> &data){
     process_window_info(data->frame_info);
     process_frame_data(data->frame);
-    process_frame(data->frame_info);
+    process_frame_handler(data->frame_info);
 }
 
 void Consumer_base::pre_process(){
@@ -89,7 +89,7 @@ void Consumer_base::process_window_info(Frame_info& info){
         info.win_last_frame = info.valid_frame;
         info.win_last_time = info.absolute_time;
         // Call function for processing
-        window_started(info);
+        window_started_handler(info);
     } else {
         // Check the end of window
         if(
@@ -99,7 +99,7 @@ void Consumer_base::process_window_info(Frame_info& info){
         ){
             // Previous window finished! Call function for processing.
             // It will see old win_start_time and win_num as needed.
-            window_finished(info);
+            window_finished_handler(info);
             // Start new window
             ++win_num;
             info.win_num = win_num;
@@ -108,7 +108,7 @@ void Consumer_base::process_window_info(Frame_info& info){
             info.win_last_frame = info.valid_frame;
             info.win_last_time = info.absolute_time;
             // Call function for processing
-            window_started(info);
+            window_started_handler(info);
         } else {
             // Window if not finished yet. Just update last_time
             info.win_last_frame = info.valid_frame;
