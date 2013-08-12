@@ -59,25 +59,17 @@ string Trajectory_processor::help(){
             "\t--last_frame <fr>\n"
             "\t\tlast frame to read, default: -1 (up to the end)\n"
 
-<<<<<<< HEAD
+            "\t--first_time <t>\n"
+            "\t\tfirst time step to read, ps, default: 0.0\n"
+
+            "\t--last_time <t>\n"
+            "\t\tlast time step to read, ps, default: -1 (up to the end)\n"
+
             "\t--window_size_frames sz:\n"
             "\t\tprocess by windows of size sz determined by frame.\n"
 
             "\t--window_size_time t:\n"
             "\t\tprocess by windows of size t determined by time.\n"
-=======
-            "\t--first_time <t>\n"
-            "\t\tfirst time step to read, ps, default: 0.0\n"
->>>>>>> c09397df99ee52502a26e514be322c11e00fb046
-
-            "\t--last_time <t>\n"
-            "\t\tlast time step to read, ps, default: -1 (up to the end)\n"
-
-            "\t--window_size_frames <sz>\n"
-            "\t\tProcess by windows of size sz frames, default: -1 (no windows)\n"
-
-            "\t--window_size_time <t>\n"
-            "\t\tProcess by windows of size t in time in ps, default: -1 (no windows)\n"
 
             "\t--skip <n>\n"
             "\t\tProcess only each n'th frame, default: -1 (process each frame)\n"
