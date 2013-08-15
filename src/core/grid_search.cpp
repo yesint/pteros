@@ -497,12 +497,12 @@ void Grid_searcher::set_grid_size(const Vector3f& min, const Vector3f& max, int 
     */
 
 
-    NgridX = floor(pow(Natoms*(max(0)-min(0))*(max(0)-min(0))/
-                ((max(1)-min(1))*(max(2)-min(2))), 1.0/3.0)) ;
-    NgridY = floor(pow(Natoms*(max(1)-min(1))*(max(1)-min(1))/
-                ((max(0)-min(0))*(max(2)-min(2))), 1.0/3.0)) ;
-    NgridZ = floor(pow(Natoms*(max(2)-min(2))*(max(2)-min(2))/
-                ((max(0)-min(0))*(max(1)-min(1))), 1.0/3.0)) ;
+    NgridX = floor(std::pow(Natoms*(max(0)-min(0))*(max(0)-min(0))/
+                ((max(1)-min(1))*(max(2)-min(2))), float(1.0/3.0))) ;
+    NgridY = floor(std::pow(Natoms*(max(1)-min(1))*(max(1)-min(1))/
+                ((max(0)-min(0))*(max(2)-min(2))), float(1.0/3.0))) ;
+    NgridZ = floor(std::pow(Natoms*(max(2)-min(2))*(max(2)-min(2))/
+                ((max(0)-min(0))*(max(1)-min(1))), float(1.0/3.0))) ;
 
     //NgridX = NgridY = NgridZ = pow(Natoms,1.0/3.0);
 
