@@ -138,6 +138,7 @@ Selection::Selection(System& sys, int ind1, int ind2){
 Selection::~Selection(){
     // Delete parser if it is persistent
     parser.reset();
+    connection.disconnect();
     // All the rest will be destroyed automatically
 }
 
@@ -259,9 +260,11 @@ Selection& Selection::operator=(Selection sel){
 
     // Add to new parent
     system = sel.system;
-    // Connect this selection to notifier
-    connection.disconnect();
-    connection = system->notify_signal.connect( boost::bind(&Selection::notify_slot,this,_1,_2,_3) );
+    // Connect this selection to notifier if needed
+    if(sel.signals_enabled()){
+        connection.disconnect();
+        connection = system->notify_signal.connect( boost::bind(&Selection::notify_slot,this,_1,_2,_3) );
+    }
 
     if(sel.parser){
         allocate_parser();
@@ -293,8 +296,10 @@ Selection::Selection(const Selection& sel){
     // Add to new parent
     system = sel.system;
     // Connect this selection to notifier
-    connection.disconnect();
-    connection = system->notify_signal.connect( boost::bind(&Selection::notify_slot,this,_1,_2,_3) );
+    if(sel.signals_enabled()){
+        connection.disconnect();
+        connection = system->notify_signal.connect( boost::bind(&Selection::notify_slot,this,_1,_2,_3) );
+    }
 
     // If parser in sel is persistent, allocate it
     if(sel.parser){
@@ -1119,6 +1124,7 @@ void Selection::distribute(Eigen::Vector3i &ncopies, Eigen::Vector3f &shift){
 }
 
 void Selection::notify_slot(System_notification code, int b, int e){
+    cout << "*** " << system << " " << get_text() << endl;
     // Process notifications from the system
     switch(code){
     case TOPOLOGY_CHANGED:

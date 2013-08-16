@@ -212,7 +212,7 @@ void System::frame_copy(int fr1, int fr2){
     	throw Pteros_error("Invalid frame for copying!");
     traj[fr2] = traj[fr1];
     // Coordinate-dependent selections, which point to fr2 should be updated
-    //notify_signal(COORDINATES_CHANGED,fr2,fr2);
+    notify_signal(COORDINATES_CHANGED,fr2,fr2);
 }
 
 // Delete the range of frames. e = -1 is default

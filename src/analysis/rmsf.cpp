@@ -171,17 +171,12 @@ void RMSF::window_finished(const Frame_info &info){
 
 
 void RMSF::process_frame(const Frame_info &info){
-
     // Very first frame should be used as first reference
     if(info.last_frame==info.first_frame){
         cout << "Setting first trajectory frame as initial reference..." << endl;
         if(system.num_frames()==1){
             system.frame_dup(0);
-        }
-
-        cout << system.num_atoms() << endl;
-        cout << system.num_frames() << endl;
-
+        }        
         system.frame_copy(0,1);
     }
 
