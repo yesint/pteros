@@ -74,7 +74,7 @@ int main(int argc, char** argv)
 
 
 
-    } catch(Pteros_error e){ e.print(); }
+    } catch(const Pteros_error& e){ e.print(); }
 
     return 0;
     //---------------------------------------
@@ -567,7 +567,7 @@ int main(int argc, char** argv)
         all.write("aligned.xtc");
 */
 
-    } catch(Pteros_error e){ e.print(); }
+    } catch(const Pteros_error& e){ e.print(); }
 
 }
 

@@ -75,7 +75,7 @@ int main(int argc, char** argv){
     }
     f.close();
 
-    } catch(Pteros_error e){
+    } catch(const Pteros_error& e){
         e.print();
     }
 }

@@ -62,13 +62,13 @@ public:
     };
 
     /// Print error message
-    void print(){
+    void print() const {
         cout << endl << "PTEROS terminated due to the following error:"
              << endl << text.str() << endl;
     }
 
     /// Return error message as string
-    std::string what(){
+    std::string what() const {
         return text.str();
     }
 

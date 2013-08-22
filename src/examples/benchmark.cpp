@@ -148,7 +148,7 @@ int main(int argc, char** argv){
 
     engine.run();
 
-    } catch(Pteros_error e){
+    } catch(const Pteros_error& e){
         cout << e.what() << endl;
     }
 

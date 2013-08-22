@@ -118,25 +118,25 @@ void System_atoms_add2(System* s, boost::python::list& atm, boost::python::list&
 }
 
 float System_distance1(System* s, int i, int j, int fr, bool is_periodic){
-    s->distance(i,j,fr,is_periodic);
+    return s->distance(i,j,fr,is_periodic);
 }
 
 float System_distance2(System* s, int i, int j, int fr){
-    s->distance(i,j,fr,false);
+    return s->distance(i,j,fr,false);
 }
 
 float System_distance3(System* s, PyObject* p1, PyObject* p2, int fr, bool is_periodic){
     if(PyArray_Check(p1)){
         MAP_EIGEN_TO_PYARRAY(_p1,Vector3f,p1)
         MAP_EIGEN_TO_PYARRAY(_p2,Vector3f,p2)
-        s->distance(_p1,_p2,fr,is_periodic);
+        return s->distance(_p1,_p2,fr,is_periodic);
     } else {
-        System_distance1(s,extract<int>(p1),extract<int>(p2),fr,is_periodic);
+        return System_distance1(s,extract<int>(p1),extract<int>(p2),fr,is_periodic);
     }
 }
 
 float System_distance4(System* s, PyObject* p1, PyObject* p2, int fr){
-    System_distance3(s,p1,p2,fr,false);
+    return System_distance3(s,p1,p2,fr,false);
 }
 
 void System_wrap_to_box(System* s, int frame, PyObject* point){

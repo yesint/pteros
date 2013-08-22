@@ -84,7 +84,7 @@ int main(int argc, char** argv){
 
         engine->save_results();
 
-    } catch(Pteros_error e){
+    } catch(const Pteros_error& e){
         cerr << "ERROR! " << e.what() << endl;        
     }
 }

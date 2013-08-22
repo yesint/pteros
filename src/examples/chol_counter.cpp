@@ -173,7 +173,7 @@ int main(int argc, char** argv){
         Trajectory_processor proc(options);
         Chol_counter counter(&proc,&options);
         proc.run();
-    } catch(Pteros_error e){
+    } catch(const Pteros_error& e){
         e.print();
     }
 }

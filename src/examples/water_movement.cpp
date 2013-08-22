@@ -133,7 +133,7 @@ int main(int argc, char** argv){
         proc.run();
 
 
-    } catch(Pteros_error e){
+    } catch(const Pteros_error& e){
         e.print();
     }
 }

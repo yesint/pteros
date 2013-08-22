@@ -28,7 +28,7 @@ protected:
     virtual void pre_process_handler(){
         try {
             pre_process();
-        } catch(Pteros_error e){
+        } catch(const Pteros_error& e){
             cout << endl << "(ERROR) Compiled plugin method: '" << BOOST_CURRENT_FUNCTION << "'" << endl;
             cout << "(ERROR) in plugin instance: " << label << endl;
             e.print();
@@ -39,7 +39,7 @@ protected:
     virtual void post_process_handler(const Frame_info &info){
         try {
             post_process(info);
-        } catch(Pteros_error e){
+        } catch(const Pteros_error& e){
             cout << endl << "(ERROR) Compiled plugin method: '" << BOOST_CURRENT_FUNCTION << "'" << endl;
             cout << "(ERROR) in plugin instance: " << label << endl;
             e.print();
@@ -50,7 +50,7 @@ protected:
     virtual void process_frame_handler(const Frame_info &info){
         try {
             process_frame(info);
-        } catch(Pteros_error e){
+        } catch(const Pteros_error& e){
             cout << endl << "(ERROR) Compiled plugin method: '" << BOOST_CURRENT_FUNCTION << "'" << endl;
             cout << "(ERROR) Occured on frame " << info.valid_frame << endl;
             cout << "(ERROR) in plugin instance: " << label << endl;
@@ -62,7 +62,7 @@ protected:
     virtual void window_started_handler(const Frame_info &info){
         try {
             window_started(info);
-        } catch(Pteros_error e){
+        } catch(const Pteros_error& e){
             cout << endl << "(ERROR) Compiled plugin method: '" << BOOST_CURRENT_FUNCTION << "'" << endl;
             cout << "(ERROR) Occured on frame " << info.valid_frame << endl;
             cout << "(ERROR) in plugin instance: " << label << endl;
@@ -75,7 +75,7 @@ protected:
     virtual void window_finished_handler(const Frame_info &info){
         try {
             window_finished(info);
-        } catch(Pteros_error e){
+        } catch(const Pteros_error& e){
             cout << endl << "(ERROR) Compiled plugin method: '" << BOOST_CURRENT_FUNCTION << "'" << endl;
             cout << "(ERROR) Occured on frame " << info.valid_frame << endl;
             cout << "(ERROR) in plugin instance: " << label << endl;
