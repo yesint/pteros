@@ -40,6 +40,12 @@ using namespace Eigen;
 int main(int argc, char** argv)
 {
     try{
+        System s1("/home/semen/install/dssp-2.1.0/2lao.pdb");
+        Selection all(s1,"all");
+        all.dssp();
+
+        return 0;
+
         System sys("/media/data/semen/trajectories/asymmetric_bicelle/no_restr/last.pdb");
         Bilayer_point_info info;
 

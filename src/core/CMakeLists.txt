@@ -6,6 +6,7 @@ if(POWERSASA)
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSE_POWERSASA")
     SET(SASA_FILES "${PROJECT_SOURCE_DIR}/src/core/sasa/power_diagram.h" "${PROJECT_SOURCE_DIR}/src/core/sasa/power_sasa.h")
     message("POWERSASA code is used! \n This implies severe license restrictions! \n Read the comment in src/core/sasa/power_sasa.h carefully. \n If you don't agree with this license please use flag -DPOWERSASA=\"OFF\" !")
+    include_directories(${PROJECT_SOURCE_DIR}/src/core/sasa)
 else()
     SET(SASA_FILES "")
 endif()
@@ -15,7 +16,7 @@ include_directories(${PROJECT_SOURCE_DIR}/src/core/xdrfile)
 # The same is for molfile plugins
 include_directories(${PROJECT_SOURCE_DIR}/src/core/molfile_plugins)
 # The same is for POWERSASA
-include_directories(${PROJECT_SOURCE_DIR}/src/core/sasa)
+include_directories(${PROJECT_SOURCE_DIR}/src/core/dssp)
 
 # Main pteros library
 add_library(pteros SHARED
@@ -80,6 +81,24 @@ ${PROJECT_SOURCE_DIR}/src/core/molfile_plugins/dcdplugin.c
 
 #SASA
 ${SASA_FILES}
+
+#DSSP
+${PROJECT_SOURCE_DIR}/src/core/dssp/pteros_dssp_wrapper.cpp
+${PROJECT_SOURCE_DIR}/src/core/dssp/pteros_dssp_wrapper.h
+${PROJECT_SOURCE_DIR}/src/core/dssp/buffer.h
+${PROJECT_SOURCE_DIR}/src/core/dssp/align-2d.h
+${PROJECT_SOURCE_DIR}/src/core/dssp/matrix.h
+${PROJECT_SOURCE_DIR}/src/core/dssp/dssp.h
+${PROJECT_SOURCE_DIR}/src/core/dssp/mas.h
+${PROJECT_SOURCE_DIR}/src/core/dssp/primitives-3d.h
+${PROJECT_SOURCE_DIR}/src/core/dssp/structure.h
+${PROJECT_SOURCE_DIR}/src/core/dssp/utils.h
+${PROJECT_SOURCE_DIR}/src/core/dssp/dssp.cpp
+${PROJECT_SOURCE_DIR}/src/core/dssp/mas.cpp
+${PROJECT_SOURCE_DIR}/src/core/dssp/primitives-3d.cpp
+${PROJECT_SOURCE_DIR}/src/core/dssp/structure.cpp
+${PROJECT_SOURCE_DIR}/src/core/dssp/utils.cpp
+
 )
 
 #Installation

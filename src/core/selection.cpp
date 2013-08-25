@@ -44,6 +44,8 @@
 #include <Eigen/Dense>
 
 #include "selection_macro.h"
+// DSSP
+#include "pteros_dssp_wrapper.h"
 
 using namespace std;
 using namespace pteros;
@@ -430,6 +432,10 @@ float Selection::get_box_volume() const {
     return system->traj[frame].box(0,0) * system->traj[frame].box(1,1) * system->traj[frame].box(2,2);
     */
     return system->Box(frame).col(1).cross( system->Box(frame).col(2) ).dot( system->Box(frame).col(0) );
+}
+
+void Selection::dssp(){
+    dssp_wrapper(*this);
 }
 
 vector<int> Selection::get_unique_resid() const{
