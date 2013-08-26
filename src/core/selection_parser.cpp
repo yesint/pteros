@@ -811,6 +811,9 @@ void Selection_parser::apply(System* system, long fr, vector<int>& result){
     // Eval root node
     eval_node(tree,result,NULL);
 
+    // Sort result to always get ordered selection index
+    sort(result.begin(),result.end());
+
 #ifdef _DEBUG_PARSER
     int n = 0;
     for(int i=0;i<result.size();++i)
