@@ -27,6 +27,7 @@ namespace pteros {
 /// Macro definitions for selections. Each macro is expanded during
 /// evaluation of selection.
 static const char* macro[] = {
+    "protein", "(resname ALA CYS ASP GLU PHE GLY HIS ILE LYS LEU MET ASN PRO GLN ARG SER THR VAL TRP TYR)",
     "backbone", "(name C CA O N)",
     "acidic", "(resname ASP GLU)",
     "cyclic", "(resname HIS PHE PRO TRP TYR)",
@@ -34,10 +35,11 @@ static const char* macro[] = {
     "basic", "(resname ARG HIS LYS HSP)",
     "buried", "(resname ALA LEU VAL ILE PHE CYS MET TRP)",
     "charged", "(resname ARG HIS LYS HSP ASP GLU)",
-    "hydrophobic", "(resname ALA LEU VAL ILE PRO PHE MET TRP)"
+    "hydrophobic", "(resname ALA LEU VAL ILE PRO PHE MET TRP)",
+    "water", "(resname HOH SOL)"
 };
 /// Number of macro definitions
-static const int Nmacro = 8;
+static const int Nmacro = 10;
 
 } // end of namespace pteros
 
