@@ -44,8 +44,6 @@
 #include <Eigen/Dense>
 
 #include "selection_macro.h"
-// DSSP
-#include "pteros_dssp_wrapper.h"
 
 using namespace std;
 using namespace pteros;
@@ -432,10 +430,6 @@ float Selection::get_box_volume() const {
     return system->traj[frame].box(0,0) * system->traj[frame].box(1,1) * system->traj[frame].box(2,2);
     */
     return system->Box(frame).col(1).cross( system->Box(frame).col(2) ).dot( system->Box(frame).col(0) );
-}
-
-void Selection::dssp(){
-    dssp_wrapper(*this);
 }
 
 vector<int> Selection::get_unique_resid() const{
@@ -1043,7 +1037,7 @@ void Selection::write(string fname, int b, int e) {
 
     if(!f->get_content_type().structure && e!=b){
         throw Pteros_error("Can't write the range of frames to structure file!");
-    }
+    }    
 
     cout << "Writing to file '" << fname << "'..." << endl;
     for(int fr=b;fr<=e;++fr){

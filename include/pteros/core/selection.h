@@ -252,9 +252,7 @@ class Selection {
     void set_beta(float data);
 
     /// Returns the volume of the periodic box for current frame.
-    float get_box_volume() const;         
-
-    void dssp();
+    float get_box_volume() const;             
     /// @}
 
     /// @name Inquery functions

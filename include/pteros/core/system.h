@@ -165,6 +165,24 @@ public:
     	return traj[fr].t;
     }
 
+    /// Determines secondary structure with DSSP algorithm and write detailed report to file
+    void dssp(std::string fname);
+
+    /**
+     * @brief Determines secondary structure with DSSP algorithm and return it as a code string
+     * @return Code string
+     * The code is the same as in DSSP:
+        alphahelix:	'H'
+        betabridge:	'B'
+        strand:		'E'
+        helix_3:	'G'
+        helix_5:	'I'
+        turn:		'T'
+        bend:		'S'
+        loop:		' '
+     */
+    std::string dssp();
+
     /// Read/Write access for given coordinate of given frame
     inline Eigen::Vector3f& XYZ(int ind, int fr){
         return traj[fr].coord[ind];

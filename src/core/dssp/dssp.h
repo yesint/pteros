@@ -15,3 +15,6 @@ std::string ResidueToDSSPLine(const MResidue& residue);
 
 // Write a complete DSSP file for a protein
 void WriteDSSP(MProtein& protein, std::ostream& os);
+
+//!! Form a code string
+std::string make_DSSP_string(MProtein& protein);

@@ -60,9 +60,14 @@ endif()
 
 find_package(Boost 1.46.0)
 if(Boost_MINOR_VERSION LESS 49)
-    find_package(Boost REQUIRED thread regex date_time)
+    find_package(Boost REQUIRED thread regex)
 else()
-    find_package(Boost REQUIRED thread regex system date_time)
+    find_package(Boost REQUIRED thread regex system)
+endif()
+
+# In debug build we also need boost.date_time to link correctly. I have no idea why...
+if(CMAKE_BUILD_TYPE STREQUAL Debug)
+    find_package(Boost REQUIRED date_time)
 endif()
 
 include_directories(${Boost_INCLUDE_DIRS})

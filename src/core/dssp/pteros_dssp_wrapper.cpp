@@ -10,14 +10,21 @@
 #include "structure.h"
 #include "pteros_dssp_wrapper.h"
 
-int VERBOSE = 1;
+int VERBOSE = 0;
 
 namespace pteros {
 
-void dssp_wrapper(pteros::Selection& sel){
+void dssp_wrapper(pteros::Selection& sel, std::ostream& io){
     MProtein a(sel);
     a.CalculateSecondaryStructure();
-    WriteDSSP(a, std::cout);
+    WriteDSSP(a, io);
+}
+
+std::string dssp_string(pteros::Selection& sel){
+    MProtein a(sel);
+    a.CalculateSecondaryStructure();
+    // Now form an output string
+    return make_DSSP_string(a);
 }
 
 }

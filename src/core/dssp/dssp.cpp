@@ -155,7 +155,9 @@ void WriteDSSP(MProtein& protein, ostream& os)
 
 	os << boost::format("%5.5d%3.3d%3.3d%3.3d%3.3d TOTAL NUMBER OF RESIDUES, NUMBER OF CHAINS, NUMBER OF SS-BRIDGES(TOTAL,INTRACHAIN,INTERCHAIN) %|127t|%c") %
    		nrOfResidues % nrOfChains % nrOfSSBridges % nrOfIntraChainSSBridges % (nrOfSSBridges - nrOfIntraChainSSBridges) % '.' << endl;
-   	os << kHeaderLine % (boost::format("%8.1f   ACCESSIBLE SURFACE OF PROTEIN (ANGSTROM**2)") % accessibleSurface) % '.' << endl;
+
+    //!!!! Surface is not computed in Pteros, so always 0
+    os << kHeaderLine % (boost::format("%8.1f   ACCESSIBLE SURFACE OF PROTEIN (ANGSTROM**2)") % accessibleSurface) % '.' << endl;
 
 	// hydrogenbond summary
 	
@@ -236,4 +238,38 @@ void WriteDSSP(MProtein& protein, ostream& os)
 		os << ResidueToDSSPLine(*residue) << endl;
 		last = residue;
 	}
+}
+
+std::string make_DSSP_string(MProtein& protein){
+    string out;
+
+    vector<const MResidue*> residues;
+
+    foreach (const MChain* chain, protein.GetChains())
+    {
+        foreach (const MResidue* residue, chain->GetResidues())
+            residues.push_back(residue);
+    }
+
+    // keep residues sorted by residue number as assigned during reading the PDB file
+    sort(residues.begin(), residues.end(), boost::bind(&MResidue::GetNumber, _1) < boost::bind(&MResidue::GetNumber, _2));
+
+    foreach (const MResidue* residue, residues)
+    {
+        char ss;
+        switch (residue->GetSecondaryStructure())
+        {
+            case alphahelix:	ss = 'H'; break;
+            case betabridge:	ss = 'B'; break;
+            case strand:		ss = 'E'; break;
+            case helix_3:		ss = 'G'; break;
+            case helix_5:		ss = 'I'; break;
+            case turn:			ss = 'T'; break;
+            case bend:			ss = 'S'; break;
+            case loop:			ss = ' '; break;
+        }
+
+        out += ss;
+    }
+    return out;
 }

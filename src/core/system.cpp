@@ -33,6 +33,9 @@
 #include "pteros/core/format_recognition.h"
 #include <boost/lexical_cast.hpp>
 #include "pteros/core/mol_file.h"
+// DSSP
+#include "pteros_dssp_wrapper.h"
+
 
 using namespace std;
 using namespace pteros;
@@ -547,4 +550,16 @@ Energy_components System::non_bond_energy(const std::vector<Eigen::Vector2i> &nl
     }
 
     return e;
+}
+
+void System::dssp(string fname){
+    ofstream f(fname.c_str());
+    Selection sel(*this,"all");
+    dssp_wrapper(sel,f);
+    f.close();
+}
+
+string System::dssp(){
+    Selection sel(*this,"all");
+    return dssp_string(sel);
 }

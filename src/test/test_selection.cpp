@@ -41,8 +41,12 @@ int main(int argc, char** argv)
 {
     try{
         System s1("/home/semen/install/dssp-2.1.0/2lao.pdb");
-        Selection all(s1,"all");
-        all.dssp();
+        Selection all(s1,"resname ALA CYS ASP GLU PHE GLY HIS ILE LYS LEU MET ASN PRO GLN ARG SER THR VAL TRP TYR");
+        //Selection all(s1,"resname ALA");
+        all.write("prot.pdb");
+        s1.dssp("dssp_out.dat");
+        cout << "Code string:" << endl;
+        cout << s1.dssp() << endl;
 
         return 0;
 

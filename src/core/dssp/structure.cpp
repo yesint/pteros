@@ -1614,13 +1614,14 @@ void MProtein::CalculateSecondaryStructure(bool inPreferPiHelices)
 	if (VERBOSE)
 		cerr << "using " << residues.size() << " residues" << endl;
 
-	boost::thread t(boost::bind(&MProtein::CalculateAccessibilities, this, boost::ref(residues)));
+    // Disabled costly area calculation
+    // boost::thread t(boost::bind(&MProtein::CalculateAccessibilities, this, boost::ref(residues)));
 
 	CalculateHBondEnergies(residues);
 	CalculateBetaSheets(residues);
 	CalculateAlphaHelices(residues, inPreferPiHelices);
 
-	t.join();
+    // t.join();
 }
 
 void MProtein::CalculateHBondEnergies(const std::vector<MResidue*>& inResidues)
