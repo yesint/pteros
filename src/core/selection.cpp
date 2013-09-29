@@ -38,7 +38,9 @@
 #include "pteros/core/mol_file.h"
 #include "pteros/core/pdb_cryst.h"
 #include "pteros/core/format_recognition.h"
+#ifdef USE_POWERSASA
 #include "power_sasa.h"
+#endif
 
 #include <Eigen/Geometry>
 #include <Eigen/Dense>
@@ -225,6 +227,7 @@ void Selection::modify(std::vector<int> &ind){
     frame = 0;
     sel_text = "index";
     // Create text and populate selection
+    index.clear();
     for(int i=0; i<ind.size(); ++i){
         index.push_back(ind[i]);
         sel_text += " " + boost::lexical_cast<string>(ind[i]);
@@ -238,6 +241,7 @@ void Selection::modify(std::vector<int>::iterator it1, std::vector<int>::iterato
     frame = 0;
     sel_text = "index";
     // Create text and populate selection
+    index.clear();
     while(it1!=it2){
         index.push_back(*it1);
         sel_text += " " + boost::lexical_cast<string>(*it1);

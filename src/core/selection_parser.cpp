@@ -735,7 +735,7 @@ void Selection_parser::do_optimization(AstNode_ptr& node){
         || node->code == TOK_STR
         || node->code == TOK_REGEX
         || node->code == TOK_FLOAT
-        || node->code == TOK_INT
+        || node->code == TOK_INT        
        ) return;
 
     // Now check if this node does not contain coord-dependent children
@@ -743,18 +743,36 @@ void Selection_parser::do_optimization(AstNode_ptr& node){
 #ifdef _DEBUG_PARSER
         cout << "Node " << node->decode() << " is pure" << endl;
 #endif
-        // Node is pure, so clear all its children and keep precomputed index
-        // Set node type to precomputed        
+        // Unary minus nodes require special treatment
+        if(node->code == TOK_UNARY_MINUS){
+            // If the child of unary minus node is a number than apply minus to it and store
+            // otherwise keep it as is
+            Codes c = boost::get<AstNode_ptr>(node->children[0])->code;
+            if(c == TOK_INT){
+                int val = node->get_int_child_value(0);
+                node->children.clear();
+                node->children.push_back(-val);
+                node->code = TOK_INT;
+            } else if(c == TOK_FLOAT){
+                float val = node->get_float_child_value(0);
+                node->children.clear();
+                node->children.push_back(-val);
+                node->code = TOK_FLOAT;
+            }
+        } else {
+            // Node is pure, so clear all its children and keep precomputed index
+            // Set node type to precomputed
 
-        vector<int> res;
-        eval_node(node,res,NULL);
-        node->precomputed = res;
-        node->children.clear();
-        node->code = TOK_PRECOMPUTED;
+            vector<int> res;
+            eval_node(node,res,NULL);
+            node->precomputed = res;
+            node->children.clear();
+            node->code = TOK_PRECOMPUTED;
 
-#ifdef _DEBUG_PARSER
-        cout << "Node set to precomputed " << endl;
-#endif
+    #ifdef _DEBUG_PARSER
+            cout << "Node set to precomputed " << endl;
+    #endif
+        }
     }
 
     // Optimize AND operations - coord-dependent operand
@@ -1299,7 +1317,7 @@ float Selection_parser::eval_numeric(AstNode_ptr& node, int at){
         Eigen::Vector3f dir;
         dir(0) = eval_numeric(boost::get<AstNode_ptr>(node->children[3]),frame);
         dir(1) = eval_numeric(boost::get<AstNode_ptr>(node->children[4]),frame);
-        dir(2) = eval_numeric(boost::get<AstNode_ptr>(node->children[5]),frame);
+        dir(2) = eval_numeric(boost::get<AstNode_ptr>(node->children[5]),frame);        
 
         Eigen::Vector3f atom = sys->traj[frame].coord[at];
 
