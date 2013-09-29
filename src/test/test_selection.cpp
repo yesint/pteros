@@ -24,7 +24,7 @@
 #include "pteros/core/grid_search.h"
 #include "pteros/analysis/trajectory_processor.h"
 #include "pteros/analysis/rmsf.h"
-#include "pteros/analysis/bilayer.h"
+#include "pteros/analysis/lipid_assembly.h"
 #include "pteros/core/mol_file.h"
 #include <string>
 
@@ -40,6 +40,7 @@ using namespace Eigen;
 int main(int argc, char** argv)
 {
     try{
+        /*
         System s1("/home/semen/install/dssp-2.1.0/2lao.pdb");
         Selection all(s1,"resname ALA CYS ASP GLU PHE GLY HIS ILE LYS LEU MET ASN PRO GLN ARG SER THR VAL TRP TYR");
         //Selection all(s1,"resname ALA");
@@ -49,35 +50,19 @@ int main(int argc, char** argv)
         cout << s1.dssp() << endl;
 
         return 0;
+        */
+
 
         System sys("/media/data/semen/trajectories/asymmetric_bicelle/no_restr/last.pdb");
-        Bilayer_point_info info;
 
-        Vector3f p1(13.9699997, 0.3000000, 6.4099998);
-        Vector3f p2(15.2800003, 0.0200000, 16.6800003);
+        //sys.Box(0).col(0) *= 2;
+        //sys.Box(0).col(2) *= 2;
+        Lipid_assembly a;
+        Selection lip(sys,"resname DOPC DOPS");
+        //lip.unwrap_bonds(1.5);
+        a.create(lip,"name PO4",2.0);
 
-        Selection head_markers(sys,"name PO4");
 
-        head_markers.unwrap_bonds(1.5, Vector3i(1,0,1));
-
-        //point_in_membrane(p2,head_markers,5.0);
-        float score;
-
-        // Grid_searcher can't handle periodicity restricted to certain dimensions, so
-        // for non-periodic dimensions we just increase the box size 2 times to prevent periodic effects
-        Vector3i pbc_dims(0,1,0);
-
-        for(int i=0; i<3; ++i){
-            if(pbc_dims(i)==0) sys.Box(0).col(i).array() *= 2;
-        }
-
-        for(int i=0; i<head_markers.size(); ++i){
-            score = point_in_membrane(head_markers.XYZ(i), head_markers, 5.5, pbc_dims);
-            head_markers.Beta(i) = score*10;
-            cout << i << " " << score << endl;
-        }
-
-        head_markers.write("score.pdb");
 
 // Middle: 139.699997, 3.000000, 64.099998
 // Edge    152.800003, 0.200000, 166.800003

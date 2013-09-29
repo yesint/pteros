@@ -64,9 +64,10 @@ protected:
     int spot_size;
 };
 
+/*
 float point_in_membrane(Eigen::Vector3f& point, Selection& head_markers, float d,
                         const Eigen::Vector3i& pbc_dims = Eigen::Vector3i::Ones());
-
+*/
 }
 
 #endif

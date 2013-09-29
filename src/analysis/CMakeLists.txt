@@ -18,9 +18,12 @@ ${PROJECT_SOURCE_DIR}/include/pteros/analysis/contacts_finder.h
 ${PROJECT_SOURCE_DIR}/include/pteros/analysis/consumer_base.h
 ${PROJECT_SOURCE_DIR}/include/pteros/analysis/consumer.h
 ${PROJECT_SOURCE_DIR}/include/pteros/analysis/consumer_proxy.h
-${PROJECT_SOURCE_DIR}/include/pteros/analysis/bilayer.h
 
+${PROJECT_SOURCE_DIR}/include/pteros/analysis/bilayer.h
 bilayer.cpp
+
+${PROJECT_SOURCE_DIR}/include/pteros/analysis/lipid_assembly.h
+lipid_assembly.cpp
 
 )
 
