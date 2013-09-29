@@ -5,6 +5,7 @@
                  Molecular Modeling Library
 
 Copyright (c) 2009-2013, Semen Yesylevskyy
+Contact e-mail: yesint4@yahoo.com
 
 This program is free software. You can redistribute and
 modify it under the terms of Artistic License 2.0 (http://opensource.org/licenses/Artistic-2.0)
@@ -26,9 +27,13 @@ The following parts of this software are written by other people and are distrib
 
 * src/core/xdrfile - GNU LGPL 3 license (http://www.gnu.org/licenses/lgpl.html)
 
+* src/core/dssp - Boost License (http://www.boost.org/LICENSE_1_0.txt)
+
 * src/core/sasa - Academic/Non-Profit SASA software license agreement. 
 		  See comment in the file src/core/sasa/power_sasa.h for details.
 		  This license is NOT Open Source and imply many restrictions!
 		  Please read it carefully. If you agree with this license and performed all required steps
 		  than use the following flag when invoking cmake: -DPOWERSASA="ON"
 		  By default this code is NOT compiled. Pteros dosn't support SASA computations without it.
+
+
