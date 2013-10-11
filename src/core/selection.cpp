@@ -1177,11 +1177,15 @@ void Selection::split_by_connectivity(float d, std::vector<Selection> &res) {
     Grid_searcher(d,*this,pairs,false,true);
 
     // Form a connectivity structure in the form con[i]->1,2,5...
-    vector<vector<int> > con(pairs.size());
+    vector<vector<int> > con(this->size());
     for(i=0; i<pairs.size(); ++i){
         con[pairs[i](0)].push_back(pairs[i](1));
         con[pairs[i](1)].push_back(pairs[i](0));
     }
+
+    // If no connectivity just exit
+    if(con.size()==0) return;
+
     // Mask of already used atoms in sel
     VectorXi mask(size());
     mask.fill(0);
