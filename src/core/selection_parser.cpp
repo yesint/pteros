@@ -190,7 +190,7 @@ AstNode_ptr recognize(string s){
     } else if(s=="*"){
         node->code = TOK_MULT;
     } else if(s=="/"){
-        node->code = TOK_DIV;
+        node->code = TOK_DIV;    
     } else if(s== "-"){
         node->code = TOK_MINUS;
     } else if(s== "("){
@@ -329,6 +329,12 @@ void Selection_parser::tokenize(const string& s){
                 while(s[cur]!=delim) cur += 1;
                 end_token(s,b,cur-1);
                 cur += 1;
+            }
+
+            // Avoid recognition of - in scientific notation like 4.5e-5
+            if( (s[cur]=='e' || s[cur]=='E') && at(s,cur+1)=='-' && isdigit(at(s,cur-1)) ){
+                cur += 2;
+                continue;
             }
 
             // See if this is one of single "punctuation" symbols
