@@ -1168,7 +1168,7 @@ bool Selection::signals_enabled() const {
 }
 
 void Selection::split_by_connectivity(float d, std::vector<Selection> &res) {
-    cout << "Splitting by connectivity..." << endl;
+    //cout << "Splitting by connectivity..." << endl;
     int i,j,k;
     // Clear result
     res.clear();

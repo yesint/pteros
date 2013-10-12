@@ -34,9 +34,12 @@ class Lipid_assembly {
 public:
     Lipid_assembly(){};
     Lipid_assembly(Selection& sel, std::string head_marker_atom, float d = 2.0);
-    void create(Selection& sel, std::string head_marker_atom, float d = 2.0);    
+    void create(Selection& sel, std::string head_marker_atom, float d = 2.0, float bilayer_cutoff = 0.15);
 protected:    
     Selection* source_ptr;
+    std::vector<Eigen::Vector3f> surface_normals;
+    std::vector<float> surface_mean_angle;
+    std::vector<float> surface_curvature;
 };
 
 /*
