@@ -27,6 +27,7 @@
 #include "bindings_frame_info.h"
 #include "bindings_trajectory_processor.h"
 #include "bindings_atom.h"
+#include "bindings_grid_search.h"
 
 /**********************
   Create python module
@@ -79,6 +80,9 @@ BOOST_PYTHON_MODULE(pteros)
 
     // Bindings for atom
     make_bindings_Atom();
+
+    // Bindings for grid search
+    make_bindings_grid_search();
 
 }
 
