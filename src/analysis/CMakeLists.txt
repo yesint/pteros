@@ -1,6 +1,8 @@
 # Put all analysis programs to dedicated directory
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/analysis")
 
+set_source_files_properties(lipid_assembly.cpp PROPERTIES COMPILE_FLAGS -std=c++0x)
+
 add_library(pteros_analysis SHARED
 trajectory_processor.cpp
 options_parser.cpp
