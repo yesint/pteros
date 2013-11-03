@@ -27,6 +27,7 @@
 #include <boost/unordered_map.hpp>
 #include <Eigen/Dense>
 #include <fstream>
+#include <stack>
 
 using namespace std;
 using namespace pteros;
@@ -56,20 +57,73 @@ void Lipid_assembly::create(Selection &sel, std::string head_marker_atom, float 
     }
 
     // Now cycle over connectivity map    
-    Vector3f moments;
-    Matrix3f axes;
-    int atom;
-    Selection local(*sys);          
+    //Vector3f moments;
+    //Matrix3f axes;
+    int atom;    
 
-    surface_normals.resize(markers.size());
-    surface_mean_angle.resize(markers.size());
-    surface_curvature.resize(markers.size());
+    vector<Selection> locals;
+    vector<Vector3f> moments(markers.size());
+    vector<Matrix3f> axes(markers.size());
 
     ofstream vis_dirs("vis_local_dirs.tcl");
 
+    vector<Vector3f> surface_normals(markers.size());
+
+    // Since orientation of the normal is chaotic in general we need two passes.
+    // We compute all unoriented normals first, orient them in second pass and then
+    // compute everything elese with oriented normals
     for(int i=0;i<markers.size();++i){
         cout << "(>>) " << i << endl;
         // Selection for all neighbours including itself
+        locals.push_back(Selection(*sys));
+        for(int j=0; j<conn[i].size(); ++j){
+            locals[i].append(markers.Index(conn[i][j]));
+        }
+        locals[i].append(markers.Index(i)); // append atom itself
+
+        // Compute the inertia axes
+        locals[i].inertia(moments[i],axes[i],true);
+        // axes.col(2) is a local normal
+        surface_normals[i] = axes[i].col(2).normalized();
+    }
+
+
+    // Orienting normals
+    vector<int> oriented(markers.size());
+    for(int i=0;i<markers.size();++i) oriented[i] = 0;
+    oriented[0] = 1;
+    stack<int> todo;
+    todo.push(0);
+
+    while(!todo.empty()){
+        // Take central oriented point from stack
+        int i = todo.top();
+        todo.pop();
+
+        for(int j=0; j<conn[i].size(); ++j){
+            if(oriented[conn[i][j]]>0) continue;
+            // Angle between conn[i][j] and i
+            float a = acos(surface_normals[i].dot(surface_normals[conn[i][j]])/(surface_normals[i].norm() * surface_normals[conn[i][j]].norm()));
+
+            if(a>M_PI_2){ // Need to flip conn[i][j]
+                surface_normals[conn[i][j]] = -surface_normals[conn[i][j]];
+                oriented[conn[i][j]] = 2; // 2 means was flipped!
+            } else {
+                oriented[conn[i][j]] = 1; // 1 means not flipped but visited
+            }
+            // add to todo list as a oriented central point
+            todo.push(conn[i][j]);
+        }
+    }
+
+    for(int i=0;i<markers.size();++i) cout << oriented[i];
+    cout << endl;
+
+    // Second pass with oriented normals
+    for(int i=0;i<markers.size();++i){
+        cout << "(>>) " << i << endl;
+        // Selection for all neighbours including itself
+        /*
         local.clear();
         for(int j=0; j<conn[i].size(); ++j){
             local.append(markers.Index(conn[i][j]));
@@ -77,23 +131,27 @@ void Lipid_assembly::create(Selection &sel, std::string head_marker_atom, float 
         local.append(markers.Index(i)); // append atom itself
 
         // Compute the inertia axes        
-        local.inertia(moments,axes,true);        
-        // axes.col(2) is a local normal
-        surface_normals[i] = axes.col(2);
+        local.inertia(moments,axes,true);
+        */
+
+        // If flipped flag is set reverse whole local coordinate system
+        if(oriented[i]==2) axes[i].col(2) = -axes[i].col(2).eval();
+
+        Vector3f surface_normal = -axes[i].col(2).normalized();
 
         // Now fit a quadric surface to local points
 
         // First compute transformation matrix to local basis of inertia axes
         Matrix3f tr,tr_inv;
-        tr.col(0) = axes.col(0).normalized();
-        tr.col(1) = axes.col(1).normalized();
-        tr.col(2) = axes.col(2).normalized();
+        tr.col(0) = axes[i].col(0).normalized();
+        tr.col(1) = axes[i].col(1).normalized();
+        tr.col(2) = axes[i].col(2).normalized();
         tr_inv = tr.inverse();
 
         // Create array of local points in local basis
-        MatrixXf coord(3,local.size());
-        for(int j=0; j<local.size(); ++j){
-            Vector3f p = sys->get_closest_image(local.XYZ(j),markers.XYZ(i),0,false);
+        MatrixXf coord(3,locals[i].size());
+        for(int j=0; j<locals[i].size(); ++j){
+            Vector3f p = sys->get_closest_image(locals[i].XYZ(j),markers.XYZ(i),0,false);
             coord.col(j) = tr_inv*(p-markers.XYZ(i));
         }
 
@@ -120,12 +178,12 @@ void Lipid_assembly::create(Selection &sel, std::string head_marker_atom, float 
         for(int r=0;r<6;++r){ //rows
             for(int c=0;c<6;++c){ //columns
                 m(r,c) = 0.0;
-                for(int j=0;j<local.size();++j){
+                for(int j=0;j<locals[i].size();++j){
                     m(r,c) += coef[r](j)*coef[c](j);
                 }
             }
             // Now rhs
-            for(int j=0;j<local.size();++j){
+            for(int j=0;j<locals[i].size();++j){
                 rhs(r) += coef[r](j)*coord.col(j)(2);
             }
         }
@@ -135,12 +193,12 @@ void Lipid_assembly::create(Selection &sel, std::string head_marker_atom, float 
 
         // Compute RMS of fitting
         float rms = 0.0;
-        for(int j=0;j<local.size();++j){
+        for(int j=0;j<locals[i].size();++j){
             float fit = 0.0;
             for(int r=0;r<6;++r) fit += coef[r](j)*res[r];
             rms += pow(coord.col(j)(2)-fit,2);
         }
-        cout << "RMS: " << sqrt(rms/float(local.size())) << endl;
+        cout << "RMS: " << sqrt(rms/float(locals[i].size())) << endl;
 
         /* Now compute the curvatures
 
@@ -210,8 +268,18 @@ void Lipid_assembly::create(Selection &sel, std::string head_marker_atom, float 
         lab_dirs.col(1).normalize();
         lab_dirs = (tr*lab_dirs).eval(); // Go back to lab system
 
-
         princ_coef = solver.eigenvalues();
+
+        // If curvatures are negative the order of eugenvalues becomes inverted to what is needed
+        // Thus order by absolute value
+        int k1,k2;
+        if(abs(princ_coef(0))<abs(princ_coef(1))){
+            k2 = 0; k1 = 1;
+        } else {
+            k2 = 1; k1 = 0;
+        }
+
+        // Now k1 is along the largest curvature, k2 along the smallest
 
         cout << "gauss: " << gaussian_curvature << " mean: " << mean_curvature << endl;
         cout << "Principal curvatures: " << princ_coef.transpose() << endl;
@@ -219,18 +287,18 @@ void Lipid_assembly::create(Selection &sel, std::string head_marker_atom, float 
 
         vis_dirs << "draw color red" << endl;
         vis_dirs << "draw cylinder \"" << markers.XYZ(i).transpose()*10.0 << "\" ";
-        vis_dirs << "\"" << (markers.XYZ(i)+lab_dirs.col(0)).transpose()*10.0 << "\" radius 0.5" << endl;
+        vis_dirs << "\"" << (markers.XYZ(i)+lab_dirs.col(k1)).transpose()*10.0 << "\" radius 0.5" << endl;
 
         vis_dirs << "draw color blue" << endl;
         vis_dirs << "draw cylinder \"" << markers.XYZ(i).transpose()*10.0 << "\" ";
-        vis_dirs << "\"" << (markers.XYZ(i)+lab_dirs.col(1)).transpose()*10.0 << "\" radius 0.5" << endl;
+        vis_dirs << "\"" << (markers.XYZ(i)+lab_dirs.col(k2)).transpose()*10.0 << "\" radius 0.5" << endl;
 
         vis_dirs << "draw color green" << endl;
         vis_dirs << "draw cylinder \"" << markers.XYZ(i).transpose()*10.0 << "\" ";
-        vis_dirs << "\"" << (markers.XYZ(i)+surface_normals[i]).transpose()*10.0 << "\" radius 0.5" << endl;
+        vis_dirs << "\"" << (markers.XYZ(i)+surface_normal).transpose()*10.0 << "\" radius 0.5" << endl;
 
 
-        markers.Occupancy(i) = abs(mean_curvature*100);
+        markers.Occupancy(i) = mean_curvature*100;
     }
 
     markers.write("colored.pdb");
