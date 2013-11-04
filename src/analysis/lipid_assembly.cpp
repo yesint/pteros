@@ -28,6 +28,7 @@
 #include <Eigen/Dense>
 #include <fstream>
 #include <stack>
+#include <sstream>
 
 using namespace std;
 using namespace pteros;
@@ -35,6 +36,20 @@ using namespace Eigen;
 
 Lipid_assembly::Lipid_assembly(Selection &sel, std::string head_marker_atom, float d){
     create(sel,head_marker_atom,d);
+}
+
+string tcl_arrow(const Vector3f& p1, const Vector3f& p2, float r, string color){
+    stringstream ss;
+    Vector3f p = (p2-p1)*0.8+p1;
+    ss << "draw color " << color << endl;
+
+    ss << "draw cylinder \"" << p1.transpose()*10.0 << "\" ";
+    ss << "\"" << p.transpose()*10.0 << "\" radius " << r << endl;
+
+    ss << "draw cone \"" << p.transpose()*10.0 << "\" ";
+    ss << "\"" << p2.transpose()*10.0 << "\" radius " << r*3.0 << endl;
+
+    return ss.str();
 }
 
 void Lipid_assembly::create(Selection &sel, std::string head_marker_atom, float d, float bilayer_cutoff){
@@ -45,8 +60,8 @@ void Lipid_assembly::create(Selection &sel, std::string head_marker_atom, float 
     Selection markers(*sys,"("+sel.get_text()+") and "+head_marker_atom);    
     int N = markers.size();
 
-    // Find connctivity of marker atoms
-    vector<Vector2i> bon;
+    // Find connectivity of marker atoms
+    vector<Vector2i> bon;    
     Grid_searcher(d,markers,bon,false,true);
 
     // Convert the list of bonds to convenient form
@@ -73,7 +88,7 @@ void Lipid_assembly::create(Selection &sel, std::string head_marker_atom, float 
     // We compute all unoriented normals first, orient them in second pass and then
     // compute everything elese with oriented normals
     for(int i=0;i<markers.size();++i){
-        cout << "(>>) " << i << endl;
+        //cout << "(>>) " << i << endl;
         // Selection for all neighbours including itself
         locals.push_back(Selection(*sys));
         for(int j=0; j<conn[i].size(); ++j){
@@ -122,19 +137,8 @@ void Lipid_assembly::create(Selection &sel, std::string head_marker_atom, float 
     // Second pass with oriented normals
     for(int i=0;i<markers.size();++i){
         cout << "(>>) " << i << endl;
-        // Selection for all neighbours including itself
-        /*
-        local.clear();
-        for(int j=0; j<conn[i].size(); ++j){
-            local.append(markers.Index(conn[i][j]));
-        }
-        local.append(markers.Index(i)); // append atom itself
 
-        // Compute the inertia axes        
-        local.inertia(moments,axes,true);
-        */
-
-        // If flipped flag is set reverse whole local coordinate system
+        // If flipped flag is set reverse normal
         if(oriented[i]==2) axes[i].col(2) = -axes[i].col(2).eval();
 
         Vector3f surface_normal = -axes[i].col(2).normalized();
@@ -260,6 +264,7 @@ void Lipid_assembly::create(Selection &sel, std::string head_marker_atom, float 
         F2(1,0)=M_; F2(1,1)=N_;
 
         Eigen::SelfAdjointEigenSolver<Matrix2f> solver(F1.inverse()*F2);
+
         // We need to go back to lab coordinates for directions
         Matrix<float,3,2> lab_dirs;
         lab_dirs.block<2,2>(0,0) = solver.eigenvectors();
@@ -285,18 +290,9 @@ void Lipid_assembly::create(Selection &sel, std::string head_marker_atom, float 
         cout << "Principal curvatures: " << princ_coef.transpose() << endl;
         cout << "Principal directions:\n" << lab_dirs.transpose() << endl;
 
-        vis_dirs << "draw color red" << endl;
-        vis_dirs << "draw cylinder \"" << markers.XYZ(i).transpose()*10.0 << "\" ";
-        vis_dirs << "\"" << (markers.XYZ(i)+lab_dirs.col(k1)).transpose()*10.0 << "\" radius 0.5" << endl;
-
-        vis_dirs << "draw color blue" << endl;
-        vis_dirs << "draw cylinder \"" << markers.XYZ(i).transpose()*10.0 << "\" ";
-        vis_dirs << "\"" << (markers.XYZ(i)+lab_dirs.col(k2)).transpose()*10.0 << "\" radius 0.5" << endl;
-
-        vis_dirs << "draw color green" << endl;
-        vis_dirs << "draw cylinder \"" << markers.XYZ(i).transpose()*10.0 << "\" ";
-        vis_dirs << "\"" << (markers.XYZ(i)+surface_normal).transpose()*10.0 << "\" radius 0.5" << endl;
-
+        vis_dirs << tcl_arrow(markers.XYZ(i),markers.XYZ(i)+lab_dirs.col(k1),0.5,"red");
+        vis_dirs << tcl_arrow(markers.XYZ(i),markers.XYZ(i)+lab_dirs.col(k2),0.5,"blue");
+        vis_dirs << tcl_arrow(markers.XYZ(i),markers.XYZ(i)+surface_normal,0.5,"green");
 
         markers.Occupancy(i) = mean_curvature*100;
     }
@@ -304,40 +300,5 @@ void Lipid_assembly::create(Selection &sel, std::string head_marker_atom, float 
     markers.write("colored.pdb");
 
     vis_dirs.close();
-
-/*
-    // Compute mean angle between the normals of local
-    float a,ang;
-    float c,curv;
-    for(int i=0;i<markers.size();++i){
-        //cout << "(**) " << i << endl;
-        ang = 0;
-        curv = 0;
-        for(int j=0; j<conn[i].size(); ++j){
-            // Angle between conn[i][j] and i
-            a = acos(surface_normals[i].dot(surface_normals[conn[i][j]])/(surface_normals[i].norm() * surface_normals[conn[i][j]].norm()));
-            if(a>M_PI_2) a = M_PI-a;
-            ang += a;
-
-            c = 2.0*sin(a) / sys->distance(markers.XYZ(i),markers.XYZ(conn[i][j]),0,true);
-            curv += c;
-
-        }
-        if(conn[i].size()>0){
-            ang /= conn[i].size();
-            curv /= conn[i].size();
-        }
-
-        markers.Occupancy(i) = curv;
-
-        surface_curvature[i] = curv;
-        surface_mean_angle[i] = ang;
-    }
-
-    // All markers with occupancy < cutoff correspond to bilayer part
-    // Obtain monolayers
-    Selection bi(*sys,"occupancy < " + boost::lexical_cast<string>(bilayer_cutoff));
-    markers.write("colored.pdb");
-    */
 }
 

@@ -181,6 +181,8 @@ namespace pteros {
             // Pointer to selection used in within searching
             Selection* p_sel;
 
+            // Current box vectors
+            Eigen::Matrix3f box;
             // Basis conversion stuff for triclinic boxes
             Eigen::Matrix3f inv_basis_matr;
             // Current periodic box sizes

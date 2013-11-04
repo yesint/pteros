@@ -249,10 +249,10 @@ void System::get_box_vectors_angles(int fr, Vector3f& vectors, Vector3f& angles)
     box_to_vectors_angles(traj[fr].box, vectors, angles);
 }
 
-bool System::is_box_triclinic() const{
-    return (traj[0].box(0,1) || traj[0].box(0,2)
-            || traj[0].box(1,0) || traj[0].box(1,2)
-            || traj[0].box(2,0) || traj[0].box(2,1) );
+bool System::is_box_triclinic(int fr) const{
+    return (traj[fr].box(0,1) || traj[fr].box(0,2)
+            || traj[fr].box(1,0) || traj[fr].box(1,2)
+            || traj[fr].box(2,0) || traj[fr].box(2,1) );
 }
 
 void System::frame_append(const Frame& fr){
@@ -385,30 +385,61 @@ void System::append(const System &sys){
     update_selections();
 }
 
-inline void wrap_coord(Vector3f& point, const Vector3f& box_dim,
+inline void wrap_coord(Vector3f& point, const Matrix3f& box,
                        const Vector3i dims_to_wrap = Vector3i::Ones()){
+    Matrix3f b;
+    b.col(0) = box.col(0).normalized();
+    b.col(1) = box.col(1).normalized();
+    b.col(2) = box.col(2).normalized();
+
     int i;
     float intp,fracp;
+    // Get scalar projections onto box basis vectors
+    Vector3f prj;    
+    Vector3f box_dim = box.colwise().norm();
+
+    prj = b.inverse()*point;
+
     for(i=0;i<3;++i){
         if(dims_to_wrap(i)!=0){
-            fracp = std::modf(point(i)/box_dim(i),&intp);
+            fracp = std::modf(prj(i)/box_dim(i),&intp);
             if(fracp<0) fracp = fracp+1;
-            point(i) = box_dim(i)*fracp;
+            prj(i) = box_dim(i)*fracp;
         }
-    }
+    }   
+
+    // Get back to lab coordinates
+    point = b*prj;
 }
 
 float System::distance(const Eigen::Vector3f &p1, const Eigen::Vector3f &p2, int fr, bool is_periodic) const {
     if(is_periodic && traj[fr].box.array().abs().sum()>0){ // If box is not set, it will be zero
         // Get box dimension
-        Vector3f box_dim = traj[fr].box.colwise().norm();
+        const Matrix3f& box = traj[fr].box;
         Vector3f pp1 = p1, pp2 = p2;
-        wrap_coord(pp1,box_dim);
-        wrap_coord(pp2,box_dim);
+
+        wrap_coord(pp1,box);
+        wrap_coord(pp2,box);
+
+        Vector3f box_dim = box.colwise().norm();
+
         // For each dimension measure periodic distance
         Vector3f v = (pp2-pp1).array().abs();
-        for(int i=0;i<3;++i)
-            if(v(i)>0.5*box_dim(i)) v(i) = box_dim(i)-v(i);
+
+        Matrix3f b;
+        b.col(0) = box.col(0).normalized();
+        b.col(1) = box.col(1).normalized();
+        b.col(2) = box.col(2).normalized();
+
+        Vector3f prj = b.inverse()*v;;
+
+        // Now see if these projections > 0.5 of box size
+        for(int i=0;i<3;++i){
+            if(prj(i)>0.5*box_dim(i))
+                prj(i) = box_dim(i)-prj(i);
+        }
+        // Now convert prj back to lab basis
+        v = b*prj;
         return v.norm();
     } else {
         return (p2-p1).norm();
@@ -417,14 +448,31 @@ float System::distance(const Eigen::Vector3f &p1, const Eigen::Vector3f &p2, int
 
 float System::distance(const Vector3f& p1, const Vector3f& p2, int fr, const Vector3i& dims) const {
     // Get box dimension
-    Vector3f box_dim = traj[fr].box.colwise().norm();
+    const Matrix3f& box = traj[fr].box;
     Vector3f pp1 = p1, pp2 = p2;
-    wrap_coord(pp1,box_dim,dims);
-    wrap_coord(pp2,box_dim,dims);
+
+    wrap_coord(pp1,box,dims);
+    wrap_coord(pp2,box,dims);
+
+    Vector3f box_dim = box.colwise().norm();
+
     // For each dimension measure periodic distance
     Vector3f v = (pp2-pp1).array().abs();
-    for(int i=0;i<3;++i)
-        if(dims(i) && v(i)>0.5*box_dim(i)) v(i) = box_dim(i)-v(i);
+
+    Matrix3f b;
+    b.col(0) = box.col(0).normalized();
+    b.col(1) = box.col(1).normalized();
+    b.col(2) = box.col(2).normalized();
+
+    Vector3f prj = b.inverse()*v;
+
+    // Now see if these projections > 0.5 of box size
+    for(int i=0;i<3;++i){
+        if(dims(i) && prj(i)>0.5*box_dim(i))
+            prj(i) = box_dim(i)-prj(i);
+    }
+    // Now convert prj back to lab basis
+    v = b*prj;
     return v.norm();
 }
 
@@ -432,33 +480,44 @@ float System::distance(int i, int j, int fr, bool is_periodic) const {
     return distance(traj[fr].coord[i], traj[fr].coord[j], fr, is_periodic);
 }
 
-void System::wrap_to_box(int frame, Eigen::Vector3f& point, const Eigen::Vector3i &dims_to_wrap) const {
-    int i;
-    float intp,fracp;
-    // Get box vectors norms
-    Vector3f box_dim = traj[frame].box.colwise().norm();
-    wrap_coord(point,box_dim, dims_to_wrap);
+void System::wrap_to_box(int frame, Eigen::Vector3f& point, const Eigen::Vector3i &dims_to_wrap) const {    
+    wrap_coord(point, traj[frame].box, dims_to_wrap);
 }
 
 Vector3f System::get_closest_image(Eigen::Vector3f &point, Eigen::Vector3f &target, int fr, bool do_wrapping, const Vector3i& dims_to_wrap) const {
-    if(traj[fr].box.array().abs().sum()>0){ // If box is not set, it will be zero
-        // Get box dimension
-        Vector3f box_dim = traj[fr].box.colwise().norm();
+    bool ok = false;
+
+    const Matrix3f& box = traj[fr].box;
+
+    if(box.array().abs().sum()>0){ // If box is not set, it will be zero
         // Wrap point and target
         Vector3f p = point, t = target;
         if(do_wrapping){
-            wrap_coord(p,box_dim,dims_to_wrap);
-            wrap_coord(t,box_dim,dims_to_wrap);
+            wrap_coord(p, box, dims_to_wrap);
+            wrap_coord(t, box, dims_to_wrap);
         }
 
+        Vector3f box_dim = box.colwise().norm();
+
         Vector3f v = (p-t).array();
-        //cout << v(0) <<  " -- " << 0.5*box_dim(0) << endl;
+
+        Matrix3f b;
+        b.col(0) = box.col(0).normalized();
+        b.col(1) = box.col(1).normalized();
+        b.col(2) = box.col(2).normalized();
+
+        Vector3f prj_d, prj_p;
+        prj_d = b.inverse()*v;
+        prj_p = b.inverse()*p;
+
         for(int i=0;i<3;++i)            
-            if(dims_to_wrap(i) && abs(v(i))>0.5*box_dim(i)){
-                // Need to translate this dimension
-                v(i)>0 ? p(i)-=box_dim(i) : p(i)+=box_dim(i);
+            if(dims_to_wrap(i) && abs(prj_d(i))>0.5*box_dim(i)){
+                // Need to translate along this dimension
+                ok = true;
+                prj_d(i)>0 ? prj_p(i)-=box_dim(i) : prj_p(i)+=box_dim(i);
             }
 
+        p = b * prj_p;
         return p;
     } else {
         return point;

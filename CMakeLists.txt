@@ -43,7 +43,7 @@ endif()
 if(PYTHON_BINDINGS)
     find_package(PythonInterp)
     find_package(PythonLibs)
-    find_package(Boost 1.46.0 REQUIRED python)
+    find_package(Boost 1.48.0 REQUIRED python)
     if(Boost_FOUND AND PYTHONINTERP_FOUND AND PYTHONLIBS_FOUND)
         SET(WRAP_PYTHON 1) # Compile python wrappers
         #For conditional compile
@@ -58,17 +58,20 @@ if(PYTHON_BINDINGS)
     endif()
 endif()
 
-find_package(Boost 1.46.0)
+find_package(Boost 1.48.0)
 if(Boost_MINOR_VERSION LESS 49)
-    find_package(Boost REQUIRED thread regex)
+    find_package(Boost REQUIRED thread regex date_time)
 else()
-    find_package(Boost REQUIRED thread regex system)
+    find_package(Boost REQUIRED thread regex system date_time)
 endif()
 
 # In debug build we also need boost.date_time to link correctly. I have no idea why...
 if(CMAKE_BUILD_TYPE STREQUAL Debug)
     find_package(Boost REQUIRED date_time)
 endif()
+
+message("${Boost_INCLUDE_DIRS}")
+message( "${Boost_LIBRARIES}" )
 
 include_directories(${Boost_INCLUDE_DIRS})
 link_libraries(${Boost_LIBRARIES})

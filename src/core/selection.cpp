@@ -1298,6 +1298,7 @@ void Selection::unwrap_bonds(float d, const Eigen::Vector3i &dims){
     // Find all connectivity pairs for given cut-off
     vector<Vector2i> pairs;
     Grid_searcher(d,*this,pairs,false,true);
+
     // Form a connectivity structure in the form con[i]->1,2,5...
     vector<vector<int> > con(size());
     for(int i=0; i<pairs.size(); ++i){
@@ -1305,7 +1306,7 @@ void Selection::unwrap_bonds(float d, const Eigen::Vector3i &dims){
         con[pairs[i](1)].push_back(pairs[i](0));
     }
 
-    // Do all wrapping before
+    // Do all wrapping before    
     wrap();
 
     // Mask of moved atoms
@@ -1330,11 +1331,11 @@ void Selection::unwrap_bonds(float d, const Eigen::Vector3i &dims){
                 // We only move atoms, which were not yet moved
                 if(moved(con[cur][i])==0){
                     // We don't do wrapping here (passing false) since this will bring atoms back!
-                    // We intentially want atoms to be unwrapped
-                    XYZ(con[cur][i]) = system->get_closest_image(XYZ(con[cur][i]),XYZ(cur),frame,false,dims);
+                    // We intentially want atoms to be unwrapped                    
+                    XYZ(con[cur][i]) = system->get_closest_image(XYZ(con[cur][i]),XYZ(cur),frame,false,dims);                    
                     // Add moved atom to centers queue
                     todo.push(con[cur][i]);
-                    ++Nmoved;
+                    ++Nmoved;                    
                 }
             }
         }
@@ -1342,16 +1343,16 @@ void Selection::unwrap_bonds(float d, const Eigen::Vector3i &dims){
         if(Nmoved<size()){
             // Find next not moved and add to the queue
             int i=0;
-            while(moved[i]==1) ++i;
+            while(moved(i)==1){
+                ++i;
+                if(i>=size()) throw Pteros_error("Wrong connectivity?");
+            }
             todo.push(i);
         } else {
             break; // Done
         }
 
     }
-
-
-
 }
 
 Eigen::Affine3f Selection::principal_transform(bool is_periodic){

@@ -189,7 +189,7 @@ public:
     }
 
     /// Returns true if the box is triclinic and false if it is rectangular
-    bool is_box_triclinic() const;
+    bool is_box_triclinic(int fr) const;
 
     /// Get periodic box in a,b,c,alpha,beta,gamma representation for given frame
     void get_box_vectors_angles(int fr, Eigen::Vector3f& vectors, Eigen::Vector3f& angles) const;

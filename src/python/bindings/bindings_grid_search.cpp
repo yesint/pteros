@@ -23,6 +23,7 @@
 #include "bindings_grid_search.h"
 #include "pteros/core/grid_search.h"
 #include <boost/python/make_constructor.hpp>
+#include <boost/python/slice.hpp>
 
 using namespace boost::python;
 using namespace pteros;

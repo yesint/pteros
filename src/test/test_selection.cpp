@@ -55,17 +55,23 @@ int main(int argc, char** argv)
 
         System sys("/media/data/semen/trajectories/asymmetric_bicelle/no_restr/last.pdb");
         //System sys("/media/data/semen/trajectories/grand_challenge/dump.gro");
+        //System sys("/home/semen/work/Projects/pteros/pteros-git-build/release/bin/dppc_vesicle.gro");
+        //System sys("/home/semen/work/Projects/pteros/pteros-git-build/release/bin/dpc-vesicle.gro");
+        //System sys("/home/semen/work/Projects/pteros/pteros-git-build/release/bin/pope_vesicle.gro");
 
-        //sys.Box(0).col(0) *= 2;
-        //sys.Box(0).col(2) *= 2;
         Lipid_assembly a;
         Selection lip(sys,"resname DOPC DOPS");
-        //lip.unwrap_bonds(1.5);
+        //Selection lip(sys,"resname DPPC");
 
         Selection(sys,"name PO4").unwrap_bonds(1.5,Vector3i(1,0,1));
-        //all.write("wrapped.pdb");
+        cout << "Unwrapping done" << endl;
+
+
+        Selection(sys,"name PO4").write("wrapped.pdb");
+
         sys.Box(0).col(0) *= 2.0;
         sys.Box(0).col(2) *= 2.0;
+
         Selection(sys,"name PO4").set_mass(1); // CG atoms may have no mass assigned
         a.create(lip,"name PO4",3.5);
 
