@@ -28,6 +28,7 @@
 #include <string>
 #include <vector>
 #include <Eigen/Core>
+#include <Eigen/Dense>
 #include <boost/signals2.hpp>
 #include "pteros/core/atom.h"
 #include "pteros/core/force_field.h"

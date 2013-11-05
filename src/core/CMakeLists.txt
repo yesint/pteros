@@ -67,6 +67,8 @@ ${PROJECT_SOURCE_DIR}/include/pteros/core/pdb_cryst.h
 pdb_cryst.cpp
 ${PROJECT_SOURCE_DIR}/include/pteros/core/format_recognition.h
 format_recognition.cpp
+${PROJECT_SOURCE_DIR}/include/pteros/core/periodic_box.h
+periodic_box.cpp
 # IO
 ${PROJECT_SOURCE_DIR}/include/pteros/core/mol_file.h
 mol_file.cpp
