@@ -90,13 +90,15 @@ bool PTTOP_file::do_read(System *sys, Frame *frame, Mol_file_content what){
 
         // Box
         getline(f,line); // Comment
+        Matrix3f b;
         for(int i=0; i<3; ++i){
             getline(f,line);
             ss.clear(); ss.str(line);
             if(what.coordinates){
-                ss >> frame->box(i,0) >> frame->box(i,1) >> frame->box(i,2);
+                ss >> b(i,0) >> b(i,1) >> b(i,2);
             }
         }
+        frame->box.modify(b);
 
         // All the rest should be read only if topology is requested
         if(!what.topology) return true;

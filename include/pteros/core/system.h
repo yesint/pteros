@@ -32,6 +32,7 @@
 #include <boost/signals2.hpp>
 #include "pteros/core/atom.h"
 #include "pteros/core/force_field.h"
+#include "pteros/core/periodic_box.h"
 
 namespace pteros {
 
@@ -75,13 +76,12 @@ enum System_notification {TOPOLOGY_CHANGED,
 struct Frame {
     /// Coordinates of atoms
     std::vector<Eigen::Vector3f> coord;
-    /// Periodic box vectors (saved as column-vectors)
-    Eigen::Matrix3f box;
+    /// Periodic box
+    Periodic_box box;
     /// Timestamp
     float t;
 
-    Frame(){
-        box.fill(0.0);
+    Frame(){        
         t = 0.0;
     }
 };
@@ -157,7 +157,7 @@ public:
     void update_selections();   
 
     /// Read/write access for periodic box for given frame
-    inline Eigen::Matrix3f& Box(int fr){
+    inline Periodic_box& Box(int fr){
         return traj[fr].box;
     }
 
@@ -189,12 +189,6 @@ public:
         return traj[fr].coord[ind];
     }
 
-    /// Returns true if the box is triclinic and false if it is rectangular
-    bool is_box_triclinic(int fr) const;
-
-    /// Get periodic box in a,b,c,alpha,beta,gamma representation for given frame
-    void get_box_vectors_angles(int fr, Eigen::Vector3f& vectors, Eigen::Vector3f& angles) const;
-
     /// Signal passed to associated selections when they have to react to changes in the system
     /// First parameter is type of notification
     /// Params 2 and 3 indicate the range of frames, which are affected by the change
@@ -219,31 +213,8 @@ public:
     /// Append other system to this one
     void append(const System& sys);
 
-    /// Get distance between two atoms for given frame. Respect PBC if needed.
-    float distance(int i, int j, int fr, bool is_periodic = false) const;
-
-    /// Get distance between two arbitrary points for given frame. Respect PBC if needed.
-    float distance(const Eigen::Vector3f& p1, const Eigen::Vector3f& p2, int fr,
-                   bool is_periodic = false) const;
-
-    /// Get periodic distance between two arbitrary points for given frame.
-    /// Periodicity is done only for given set of dimensions (dims)
-    float distance(const Eigen::Vector3f& p1, const Eigen::Vector3f& p2, int fr,
-                   const Eigen::Vector3i& dims) const;
-
-    /// Wraps coordinates of point to the peridoc box of specified frame
-    void wrap_to_box(int frame, Eigen::Vector3f& point,
-                     const Eigen::Vector3i& dims_to_wrap = Eigen::Vector3i::Ones()) const;
-
-    /// Finds a periodic image of point, which is closest in space to target and returns it
-    /// This method wraps both point and targer to periodic box internally (this is usually what you want).
-    /// If this is not needed set do_wrapping to false, but in this case make sure
-    /// that wrapping is done manually before! Otherwise results would be incorrect.
-    Eigen::Vector3f get_closest_image(Eigen::Vector3f& point,
-                                      Eigen::Vector3f& target,
-                                      int fr,
-                                      bool do_wrapping = true,
-                                      const Eigen::Vector3i& dims_to_wrap = Eigen::Vector3i::Ones()) const;
+    /// Get periodic distance between two atoms for given frame.
+    float distance(int i, int j, int fr, bool is_periodic = true, const Eigen::Vector3i& dims = Eigen::Vector3i::Ones()) const;
 
     /// Wrap all system to the periodic box for given frame
     void wrap_all(int fr, const Eigen::Vector3i& dims_to_wrap = Eigen::Vector3i::Ones());

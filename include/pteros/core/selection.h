@@ -249,10 +249,7 @@ class Selection {
     /// Its size must be the save as the size of selection.
     void set_beta(std::vector<float>& data);
     /// Sets beta of all selected atoms to the same given value.
-    void set_beta(float data);
-
-    /// Returns the volume of the periodic box for current frame.
-    float get_box_volume() const;             
+    void set_beta(float data);    
     /// @}
 
     /// @name Inquery functions

@@ -61,23 +61,24 @@ void Bilayer::create(Selection &sel, std::string head_marker_atom, float d){
 bool dist_sorter(int a ,int b, vector<float>& d){ return d[a]<d[b]; }
 
 Bilayer_point_info Bilayer::point_info(Eigen::Vector3f &point){    
+
+    int fr = bilayer_ptr->get_frame();
+
     // Wrap point
     //ilayer_ptr->get_system()->wrap_to_box(bilayer_ptr->get_frame(),point);
     // Get periodic distances to all markers in both monolayers
     int i;
     vector<float> dist1(surf[0].size()), dist2(surf[1].size());
-    vector<int> aux1(surf[0].size()), aux2(surf[1].size());
+    vector<int> aux1(surf[0].size()), aux2(surf[1].size());    
 
     for(i=0;i<surf[0].size();++i){
         aux1[i] = i;
-        dist1[i] = bilayer_ptr->get_system()
-                ->distance(point,surf[0].XYZ(i),bilayer_ptr->get_frame(),true);
+        dist1[i] = bilayer_ptr->get_system()->Box(fr).distance(point,surf[0].XYZ(i));
     }
 
     for(i=0;i<surf[1].size();++i){
         aux2[i] = i;
-        dist2[i] = bilayer_ptr->get_system()
-                ->distance(point,surf[1].XYZ(i),bilayer_ptr->get_frame(),true);
+        dist2[i] = bilayer_ptr->get_system()->Box(fr).distance(point,surf[1].XYZ(i));
     }
 
     // Sort distances
@@ -101,15 +102,15 @@ Bilayer_point_info Bilayer::point_info(Eigen::Vector3f &point){
     ret.proj1 = ret.spot1_ptr->center(true,true);
     ret.proj2 = ret.spot2_ptr->center(true,true);
     // We use get_closest_image to bring projections close to the point according to pbc
-    ret.proj1 = bilayer_ptr->get_system()->get_closest_image(ret.proj1,point,bilayer_ptr->get_frame());
-    ret.proj2 = bilayer_ptr->get_system()->get_closest_image(ret.proj2,point,bilayer_ptr->get_frame());
+    ret.proj1 = bilayer_ptr->get_system()->Box(fr).get_closest_image(ret.proj1,point);
+    ret.proj2 = bilayer_ptr->get_system()->Box(fr).get_closest_image(ret.proj2,point);
 
     ret.center = (ret.proj1+ret.proj2)/2.0;
     ret.normal = (ret.proj2-ret.proj1).normalized();
-    ret.thickness = bilayer_ptr->get_system()->distance(ret.proj2,ret.proj1,bilayer_ptr->get_frame(),true);
-    ret.center_dist = bilayer_ptr->get_system()->distance(ret.center,point,bilayer_ptr->get_frame(),true);
-    ret.surf_dist1 = bilayer_ptr->get_system()->distance(ret.proj1,point,bilayer_ptr->get_frame(),true);
-    ret.surf_dist2 = bilayer_ptr->get_system()->distance(ret.proj2,point,bilayer_ptr->get_frame(),true);
+    ret.thickness = bilayer_ptr->get_system()->Box(fr).distance(ret.proj2,ret.proj1);
+    ret.center_dist = bilayer_ptr->get_system()->Box(fr).distance(ret.center,point);
+    ret.surf_dist1 = bilayer_ptr->get_system()->Box(fr).distance(ret.proj1,point);
+    ret.surf_dist2 = bilayer_ptr->get_system()->Box(fr).distance(ret.proj2,point);
     ret.monolayer = ret.surf_dist1<ret.surf_dist2 ? 1 : 2;
 
     return ret;

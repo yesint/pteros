@@ -93,8 +93,14 @@ float Periodic_box::distance(const Eigen::Vector3f &point1, const Eigen::Vector3
     }
 }
 
+float Periodic_box::volume(){
+    return _box.col(1).cross( _box.col(2) ).dot( _box.col(0) );
+}
+
 void Periodic_box::wrap_point(Eigen::Vector3f &point, const Eigen::Vector3i &dims_to_wrap) const
 {
+    if(is_triclinic()) point = (_to_box*point).eval();
+
     int i;
     float intp,fracp;
     for(i=0;i<3;++i){
@@ -104,6 +110,8 @@ void Periodic_box::wrap_point(Eigen::Vector3f &point, const Eigen::Vector3i &dim
             point(i) = _extents(i)*fracp;
         }
     }
+
+    if(is_triclinic()) point = (_to_lab*point).eval();
 }
 
 Eigen::Vector3f Periodic_box::get_closest_image(const Eigen::Vector3f &point, const Eigen::Vector3f &target, bool do_wrapping, const Eigen::Vector3i &dims_to_wrap) const

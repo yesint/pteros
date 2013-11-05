@@ -181,21 +181,12 @@ namespace pteros {
             // Pointer to selection used in within searching
             Selection* p_sel;
 
-            // Current box vectors
-            Eigen::Matrix3f box;
-            // Basis conversion stuff for triclinic boxes
-            Eigen::Matrix3f inv_basis_matr;
-            // Current periodic box sizes
-            Eigen::Vector3f box_dim;
-            void make_inv_matr(const Eigen::Matrix3f& box);
+            // Current periodic box
+            Periodic_box box;
 
             // If true absolute index rather then selection index is returned in the bond list
             bool abs_index;
-            bool is_periodic;
-            bool is_triclinic;
-
-            // Periodic distance between two points
-            inline float periodic_distance(const Eigen::Vector3f& p1, const Eigen::Vector3f& p2);
+            bool is_periodic;            
 
             void set_grid_size(const Eigen::Vector3f& min, const Eigen::Vector3f& max, int Natoms);
 

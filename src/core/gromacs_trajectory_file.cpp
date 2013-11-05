@@ -108,9 +108,11 @@ bool Gromacs_trajectory_file::do_read(System *sys, Frame *frame, Mol_file_conten
             // Everything is Ok
             ++fr;
             // Get box
+            Eigen::Matrix3f b;
             for(int i=0;i<3;++i)
                 for(int j=0;j<3;++j)
-                    frame->box(i,j) = box[i][j];
+                    b(i,j) = box[i][j];
+            frame->box.modify(b);
         }
     } else {
         return false; // End of file
@@ -145,7 +147,7 @@ void Gromacs_trajectory_file::do_write(Selection &sel, Mol_file_content what){
     // Set box
     for(int i=0;i<3;++i)
         for(int j=0;j<3;++j)
-            box[i][j] = sel.get_system()->Box(sel.get_frame())(i,j);
+            box[i][j] = sel.get_system()->Box(sel.get_frame()).get_box()(i,j);
 
 
     // Write

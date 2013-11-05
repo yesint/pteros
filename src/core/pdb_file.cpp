@@ -23,7 +23,6 @@
 #include "pdb_file.h"
 #include "molfile_plugin.h"
 #include "pteros/core/pteros_error.h"
-#include "pteros/core/pdb_cryst.h"
 #include <iomanip>
 
 using namespace std;

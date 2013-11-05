@@ -36,7 +36,6 @@
 #include "pteros/core/pteros_error.h"
 #include "pteros/core/grid_search.h"
 #include "pteros/core/mol_file.h"
-#include "pteros/core/pdb_cryst.h"
 #include "pteros/core/format_recognition.h"
 #ifdef USE_POWERSASA
 #include "power_sasa.h"
@@ -425,17 +424,6 @@ std::vector<float> Selection::get_mass() const {
     return res;
 }
 
-float Selection::get_box_volume() const {
-    /*
-    if( system->traj[frame].box(0,1) || system->traj[frame].box(0,2)
-            || system->traj[frame].box(1,0) || system->traj[frame].box(1,2)
-            || system->traj[frame].box(2,0) || system->traj[frame].box(2,1)
-            ) throw Pteros_error("Can't compute volume for trclinic boxes so far.");
-    return system->traj[frame].box(0,0) * system->traj[frame].box(1,1) * system->traj[frame].box(2,2);
-    */
-    return system->Box(frame).col(1).cross( system->Box(frame).col(2) ).dot( system->Box(frame).col(0) );
-}
-
 vector<int> Selection::get_unique_resid() const{
     vector<int> tmp,res;
     int i,n;
@@ -644,13 +632,13 @@ Vector3f Selection::center(bool mass_weighted, bool periodic) const {
         if(mass_weighted){
             float m = 0.0;
             for(i=0; i<n; ++i){
-                res += system->get_closest_image(_XYZ(i),ref_point,frame) * _Mass(i);
+                res += system->Box(frame).get_closest_image(_XYZ(i),ref_point) * _Mass(i);
                 m += _Mass(i);
             }
             return res/m;
         } else {
             for(i=0; i<n; ++i)
-                res += system->get_closest_image(_XYZ(i),ref_point,frame);
+                res += system->Box(frame).get_closest_image(_XYZ(i),ref_point);
 
             return res/n;
         }
@@ -1237,7 +1225,7 @@ void Selection::inertia(Eigen::Vector3f &moments, Eigen::Matrix3f &axes, bool pe
 
     if(periodic){
         for(i=0;i<n;++i){
-            p = system->get_closest_image(_XYZ(i),c,frame);
+            p = system->Box(frame).get_closest_image(_XYZ(i),c);
             d = p-c;
             axes(0,0) += _Mass(i)*( d(1)*d(1) + d(2)*d(2) );
             axes(1,1) += _Mass(i)*( d(0)*d(0) + d(2)*d(2) );
@@ -1274,7 +1262,11 @@ float Selection::gyration(bool periodic) const {
     float d, a = 0.0, b = 0.0;
     Vector3f c = center(true,periodic);
     for(i=0;i<n;++i){
-        d = system->distance(_XYZ(i),c,frame,periodic);
+        if(periodic){
+            d = system->Box(frame).distance(_XYZ(i),c);
+        } else {
+            d = (_XYZ(i)-c).norm();
+        }
         a += _Mass(i)*d*d;
         b += _Mass(i);
     }
@@ -1283,14 +1275,14 @@ float Selection::gyration(bool periodic) const {
 
 void Selection::wrap(const Eigen::Vector3i &dims){
     for(int i=0;i<size();++i){
-        system->wrap_to_box(frame,XYZ(i),dims);
+        system->Box(frame).wrap_point(XYZ(i),dims);
     }
 }
 
 void Selection::unwrap(const Eigen::Vector3i &dims){
     Vector3f c = center(true,true);
     for(int i=0;i<size();++i){
-        XYZ(i) = system->get_closest_image(XYZ(i),c,frame, true, dims);
+        XYZ(i) = system->Box(frame).get_closest_image(XYZ(i),c,true,dims);
     }
 }
 
@@ -1308,6 +1300,7 @@ void Selection::unwrap_bonds(float d, const Eigen::Vector3i &dims){
 
     // Do all wrapping before    
     wrap();
+    write("0.pdb");
 
     // Mask of moved atoms
     VectorXi moved(size());
@@ -1332,7 +1325,14 @@ void Selection::unwrap_bonds(float d, const Eigen::Vector3i &dims){
                 if(moved(con[cur][i])==0){
                     // We don't do wrapping here (passing false) since this will bring atoms back!
                     // We intentially want atoms to be unwrapped                    
-                    XYZ(con[cur][i]) = system->get_closest_image(XYZ(con[cur][i]),XYZ(cur),frame,false,dims);                    
+                    //Vector3f v = XYZ(con[cur][i]);
+                    XYZ(con[cur][i]) = system->Box(frame).get_closest_image(XYZ(con[cur][i]),XYZ(cur),false,dims);
+                    /*
+                    if((v-XYZ(con[cur][i])).norm()>1e-7){
+                        cout << "(0) " << v.transpose() << endl;
+                        cout << "(1) " << XYZ(con[cur][i]).transpose() << endl << endl;
+                    }
+                    */
                     // Add moved atom to centers queue
                     todo.push(con[cur][i]);
                     ++Nmoved;                    

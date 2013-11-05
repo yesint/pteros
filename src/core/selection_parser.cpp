@@ -1311,7 +1311,11 @@ float Selection_parser::eval_numeric(AstNode_ptr& node, int at){
         if(node->children.size()==4)
             pbc = node->get_bool_child_value(3);
         // Return distance
-        return sys->distance(p, sys->traj[frame].coord[at] ,frame,pbc);
+        if(pbc){
+            return sys->Box(frame).distance(p, sys->traj[frame].coord[at]);
+        } else {
+            return (p - sys->traj[frame].coord[at]).norm();
+        }
 
     } else if(node->code == TOK_VECTOR || node->code == TOK_PLANE ){
         // Extract point
@@ -1354,6 +1358,10 @@ float Selection_parser::eval_numeric(AstNode_ptr& node, int at){
         */
 
         // Return distance between atom and v
-        return sys->distance(atom, v, frame, pbc);
+        if(pbc){
+            return sys->Box(frame).distance(atom, v);
+        } else {
+            return (atom-v).norm();
+        }
     }
 }

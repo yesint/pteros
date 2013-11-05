@@ -22,7 +22,7 @@ protected:
         // Get size of the cell
         float cell_size = options->get_value<double>("cell_size");
         // Get extents of the box
-        Vector3f box_dim = system.Box(0).colwise().norm();
+        Vector3f box_dim = system.Box(0).extents();
 
 
         NgridX = floor(box_dim(0)/cell_size);
@@ -71,7 +71,7 @@ protected:
                         // For current water get delta of prev and cur coorfinates
                         // And add it to result grid
 
-                        grid[i][j][k] += pow( system.distance(water.XYZ(ind),last_pos.col(ind),0,true) ,2);
+                        grid[i][j][k] += pow( system.Box(0).distance(water.XYZ(ind),last_pos.col(ind)) ,2);
                         //grid[i][j][k] += 1;
                     }
                 }

@@ -37,24 +37,12 @@ BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(frame_delete_overloads, frame_delete, 0, 
 PyObject* System_getBox(System* s, int fr){        
     CREATE_PYARRAY_2D(p,3,3)
     MAP_EIGEN_TO_PYARRAY(m,Matrix3f,p)    
-    m = s->Box(fr);
+    m = s->Box(fr).get_box();
     return boost::python::incref(p);
 }
 void System_setBox(System* s, PyObject* arr, int fr){
     MAP_EIGEN_TO_PYARRAY(m,Matrix3f,arr)
-     s->Box(fr) = m;
-}
-
-boost::python::tuple System_get_box_vectors_angles(System* s, int fr){
-    Vector3f vectors, angles;
-    s->get_box_vectors_angles(fr,vectors,angles);
-    CREATE_PYARRAY_1D(v,3)
-    CREATE_PYARRAY_1D(a,3)
-    MAP_EIGEN_TO_PYARRAY(_v,Vector3f,v)
-    MAP_EIGEN_TO_PYARRAY(_a,Vector3f,a)
-    _v = vectors;
-    _a = angles;
-    return boost::python::make_tuple(boost::python::handle<>(v),boost::python::handle<>(a));
+     s->Box(fr).modify(m);
 }
 
 float System_getTime(System* s, int fr){
@@ -117,35 +105,19 @@ void System_atoms_add2(System* s, boost::python::list& atm, boost::python::list&
     System_atoms_add1(s,atm,crd,NULL);
 }
 
-float System_distance1(System* s, int i, int j, int fr, bool is_periodic){
-    return s->distance(i,j,fr,is_periodic);
-}
-
-float System_distance2(System* s, int i, int j, int fr){
-    return s->distance(i,j,fr,false);
-}
-
+/*
 float System_distance3(System* s, PyObject* p1, PyObject* p2, int fr, bool is_periodic){
     if(PyArray_Check(p1)){
         MAP_EIGEN_TO_PYARRAY(_p1,Vector3f,p1)
         MAP_EIGEN_TO_PYARRAY(_p2,Vector3f,p2)
-        return s->distance(_p1,_p2,fr,is_periodic);
+        return s->Box(fr).distance(_p1,_p2);
     } else {
         return System_distance1(s,extract<int>(p1),extract<int>(p2),fr,is_periodic);
     }
 }
+*/
 
-float System_distance4(System* s, PyObject* p1, PyObject* p2, int fr){
-    return System_distance3(s,p1,p2,fr,false);
-}
-
-void System_wrap_to_box(System* s, int frame, PyObject* point){
-    MAP_EIGEN_TO_PYARRAY(p,Vector3f,point)
-    Vector3f pp;
-    s->wrap_to_box(frame,pp);
-    p = pp;
-}
-
+/*
 PyObject* System_get_closest_image(System* s, PyObject* point, PyObject* target, int fr){
     MAP_EIGEN_TO_PYARRAY(p,Vector3f,point)
     MAP_EIGEN_TO_PYARRAY(t,Vector3f,target)
@@ -157,6 +129,7 @@ PyObject* System_get_closest_image(System* s, PyObject* point, PyObject* target,
     r = s->get_closest_image(pp,tt,fr);
     return boost::python::incref(ret);
 }
+*/
 
 //-------------------------
 // For Frame
@@ -185,12 +158,12 @@ void Frame_set_coord(Frame* f, boost::python::list l){
 PyObject* Frame_get_box(Frame* f){
     CREATE_PYARRAY_2D(p,3,3)
     MAP_EIGEN_TO_PYARRAY(m,Matrix3f,p)
-    m = f->box;
+    m = f->box.get_box();
     return boost::python::incref(p);
 }
 void Frame_set_box(Frame* f, PyObject* arr){
     MAP_EIGEN_TO_PYARRAY(m,Matrix3f,arr)
-     f->box = m;
+     f->box.modify(m);
 }
 
 
@@ -222,12 +195,10 @@ void make_bindings_System(){
         .def("setFrame_data", &System_setFrame_data)
         .def("update_selections", &System::update_selections)
         .def("getBox", &System_getBox)
-        .def("setBox", &System_setBox)
-        .def("is_box_triclinic", &System::is_box_triclinic)
+        .def("setBox", &System_setBox)        
         .def("getTime", &System_getTime)
         .def("setTime", &System_setTime)
-        // Returns tuple of (vectors,angles)
-        .def("get_box_vectors_angles",&System_get_box_vectors_angles)        
+        // Returns tuple of (vectors,angles)        
         .def("getXYZ", &System_getXYZ)
         .def("setXYZ", &System_setXYZ)
         .def("frame_append", &System::frame_append)
@@ -235,13 +206,7 @@ void make_bindings_System(){
         .def("atoms_dup", &System_atoms_dup1)
         .def("atoms_dup", &System_atoms_dup2)
         .def("atoms_add", &System_atoms_add1)
-        .def("atoms_add", &System_atoms_add2)
-        .def("distance", &System_distance1)
-        .def("distance", &System_distance2)
-        .def("distance", &System_distance3)
-        .def("distance", &System_distance4)
-        .def("wrap_to_box", &System_wrap_to_box)
-        .def("get_closest_image", &System_get_closest_image)
+        .def("atoms_add", &System_atoms_add2)             
         .def("wrap_all", &System::wrap_all)
     ;
 }

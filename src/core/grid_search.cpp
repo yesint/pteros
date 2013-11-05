@@ -54,12 +54,6 @@ void overlap_1d(float a1, float a2, float b1, float b2, float& res1, float& res2
     }
 }
 
-bool is_box_triclinic(const Matrix3f& box) {
-    return (   box(0,1) || box(0,2)
-            || box(1,0) || box(1,2)
-            || box(2,0) || box(2,1) );
-}
-
 
 Grid_searcher::Grid_searcher(float d, Selection& sel,
                             std::vector<Eigen::Vector2i>& bon,
@@ -68,7 +62,8 @@ Grid_searcher::Grid_searcher(float d, Selection& sel,
                             std::vector<float>* dist_vec){
     cutoff = d;
     is_periodic = periodic;    
-    abs_index = absolute_index;    
+    abs_index = absolute_index;
+    box = sel.get_system()->Box(sel.get_frame());
 
     create_grid(grid1,sel);
     populate_grid(grid1,sel);
@@ -83,6 +78,7 @@ Grid_searcher::Grid_searcher(float d, Selection& sel1, Selection& sel2,
     cutoff = d;
     is_periodic = periodic;    
     abs_index = absolute_index;
+    box = sel1.get_system()->Box(sel1.get_frame());
 
     create_grid2(sel1,sel2);
     populate_grid(grid1,sel1);
@@ -100,6 +96,8 @@ void Grid_searcher::assign_to_grid(float d, Selection& sel,
     cutoff = d;
     is_periodic = periodic;
     abs_index = absolute_index;
+    box = sel.get_system()->Box(sel.get_frame());
+
     create_grid(grid1,sel);
     populate_grid(grid1,sel);
     // Remember pointer to this selection
@@ -115,22 +113,23 @@ void Grid_searcher::create_custom_grid(int nX, int nY, int nZ){
 }
 
 void Grid_searcher::fill_custom_grid(Selection sel, bool absolute_index){
-    if(is_box_triclinic(sel.get_system()->Box(sel.get_frame()))){
+
+    box = sel.get_system()->Box(sel.get_frame());
+
+    if(box.is_triclinic()){
         throw Pteros_error("Custom grids are not implemented for triclinic boxes");
     };
 
-    Vector3f box_dim = sel.get_system()->Box(sel.get_frame()).colwise().norm();
     min.fill(0.0);
-    max = box_dim;
+    max = box.extents();
     // Grid vectors:
     dX = (max(0)-min(0))/NgridX;
     dY = (max(1)-min(1))/NgridX;
     dZ = (max(2)-min(2))/NgridX;
 
     is_periodic = true;
-    abs_index = absolute_index;    
+    abs_index = absolute_index;
 
-    is_triclinic = false;
     populate_grid(grid1,sel);
 }
 
@@ -145,7 +144,7 @@ void Grid_searcher::search_within(Vector3f &coor, vector<int> &bon){
     bon.clear();
 
     // Get coordinates in triclinic basis if needed
-    if(is_periodic && is_triclinic) coor = inv_basis_matr*coor;
+    if(is_periodic && box.is_triclinic()) coor = box.to_box(coor);
 
     // Assign point to grid
     n1 = floor((NgridX-1)*(coor(0)-min(0))/(max(0)-min(0)));
@@ -182,7 +181,7 @@ void Grid_searcher::search_within(Vector3f &coor, vector<int> &bon){
             if(!is_periodic)
                 d = (p_sel->XYZ(grid1[m1][m2][m3][c]) - coor).norm();
             else
-                d = periodic_distance(p_sel->XYZ(grid1[m1][m2][m3][c]),coor);
+                d = box.distance(p_sel->XYZ(grid1[m1][m2][m3][c]),coor);
 
             if(d<=cutoff){
                 if(abs_index){
@@ -249,7 +248,7 @@ void Grid_searcher::search_within(Selection &target, std::vector<int> &bon, bool
                             if(!is_periodic)
                                 d = (coor2 - coor1).norm();
                             else
-                                d = periodic_distance(coor2,coor1);
+                                d = box.distance(coor2,coor1);
 
                             if(d<=cutoff){
                                 if(abs_index){
@@ -306,6 +305,8 @@ Grid_searcher::Grid_searcher(float d,
     is_periodic = periodic;
     abs_index = absolute_index;
 
+    box = src.get_system()->Box(src.get_frame());
+
     //------------
     // Grid creation part
     //------------
@@ -325,7 +326,7 @@ Grid_searcher::Grid_searcher(float d,
     int effective_num = src.size() + target.size();
 
     // Get current box
-    box = src.get_system()->Box(src.get_frame());
+    box = src.get_system()->Box(src.get_frame()).get_box();
     if(!is_periodic){
         // Find true bounding box
         for(i=0;i<3;++i){
@@ -358,10 +359,7 @@ Grid_searcher::Grid_searcher(float d,
     } else {
         // Set dimensions of the current unit cell
         min.fill(0.0);
-        max = box_dim = box.colwise().norm(); //Also sets box dimensions
-
-        // Compute basis conversion matrix if needed
-        make_inv_matr(box);
+        max = box.extents(); //Also sets box dimensions
     }
 
     //set_grid_size(min,max, src.size()+target.size());
@@ -446,7 +444,7 @@ Grid_searcher::Grid_searcher(float d,
                             if(!is_periodic)
                                 d = (pre.col(n2) - coor1).norm();
                             else
-                                d = periodic_distance(pre.col(n2), coor1);
+                                d = box.distance(pre.col(n2), coor1);
 
                             if(d<=cutoff){
                                 if(abs_index){
@@ -546,13 +544,6 @@ void Grid_searcher::set_grid_size(const Vector3f& min, const Vector3f& max, int 
     //cout << "]]]]]]]]] " << NgridX << " " << NgridY << " " << NgridZ << endl;
 }
 
-void Grid_searcher::make_inv_matr(const Matrix3f& box){
-    inv_basis_matr.col(0) = box.col(0).normalized();
-    inv_basis_matr.col(1) = box.col(1).normalized();
-    inv_basis_matr.col(2) = box.col(2).normalized();
-    inv_basis_matr = inv_basis_matr.inverse().eval();
-}
-
 void Grid_searcher::create_grid(Grid_t& grid,Selection& sel){
     if(!is_periodic){
         // Get the minmax of selection
@@ -560,15 +551,10 @@ void Grid_searcher::create_grid(Grid_t& grid,Selection& sel){
         // Add a "halo: of size cutoff
         min.array() -= cutoff;
         max.array() += cutoff;
-    } else {
-        // Get current box and store it
-        box = sel.get_system()->Box(sel.get_frame());
-        is_triclinic = is_box_triclinic(box);
+    } else {        
         // Set dimensions of the current unit cell
         min.fill(0.0);
-        max = box_dim = box.colwise().norm(); //Also sets box dimensions
-        // Also compute basis conversion matrix        
-        make_inv_matr(box);
+        max = box.extents(); //Also sets box dimensions
     }
 
     set_grid_size(min,max, sel.size());
@@ -592,10 +578,6 @@ void Grid_searcher::create_grid2(Selection& sel1, Selection& sel2){
     min2.array() -= cutoff;
     max2.array() += cutoff;
 
-    // Get current box and store it
-    box = sel1.get_system()->Box(sel1.get_frame());
-    is_triclinic = is_box_triclinic(box);
-
     if(!is_periodic)
         // Find true bounding box
         for(i=0;i<3;++i){
@@ -606,10 +588,7 @@ void Grid_searcher::create_grid2(Selection& sel1, Selection& sel2){
     else {
         // Set dimensions of the current unit cell
         min.fill(0.0);
-        max = box_dim = box.colwise().norm(); //Also sets box dimensions
-
-        // Compute basis conversion matrix if needed
-        make_inv_matr(box);
+        max = box.extents(); //Also sets box dimensions
     }
 
     set_grid_size(min,max, sel1.size()+sel2.size());
@@ -657,7 +636,7 @@ void Grid_searcher::populate_grid(Grid_t& grid, Selection& sel){
             // Get coordinates of atom
             coor = sel.XYZ(i);
             // Get coordinates in triclinic basis if needed
-            if(is_triclinic) coor = inv_basis_matr*coor;
+            if(box.is_triclinic()) coor = box.to_box(coor);
             // Assign to non-periodic grid first
             n1 = floor((NgridX-0)*(coor(0)-min(0))/(max(0)-min(0)));
             n2 = floor((NgridY-0)*(coor(1)-min(1))/(max(1)-min(1)));
@@ -775,23 +754,6 @@ void Grid_searcher::do_search(Selection& sel1, Selection& sel2, std::vector<Eige
     //cout << "Searcher has: " << bonds.size() << " pairs" << endl;
 }
 
-// Get periodic distance between two points for current box_dim
-float Grid_searcher::periodic_distance(const Vector3f& p1, const Vector3f& p2){
-    // For each dimension measure periodic distance
-    Vector3f v = (p2-p1).array().abs();
-    // Now we get scalar projections of v onto box basis vectors
-    Vector3f prj = inv_basis_matr*v;
-
-    // Now see if these projections > 0.5 of box size
-    for(int i=0;i<3;++i){
-        if(prj(i)>0.5*box_dim(i))
-            prj(i) = box_dim(i)-prj(i);
-    }
-    // Now convert prj back to lab basis
-    v = inv_basis_matr.inverse()*prj;
-    return v.norm();
-}
-
 // Search in central cell inside 1 selection
 void Grid_searcher::get_central_1(int i1, int j1, int k1, Selection& sel,
                                     std::vector<Eigen::Vector2i>& bonds,
@@ -813,7 +775,7 @@ void Grid_searcher::get_central_1(int i1, int j1, int k1, Selection& sel,
                      sel.XYZ(grid1[i1][j1][k1][c2])).norm();
             else
                 // Get periodic distance
-                d = periodic_distance(sel.XYZ(grid1[i1][j1][k1][c1]),
+                d = box.distance(sel.XYZ(grid1[i1][j1][k1][c1]),
                                       sel.XYZ(grid1[i1][j1][k1][c2]));
 
             if(d<=cutoff){
@@ -851,7 +813,7 @@ void Grid_searcher::get_side_1(int i1,int j1,int k1, int i2,int j2,int k2, Selec
                 d = (sel.XYZ(grid1[i1][j1][k1][c1]) -
                      sel.XYZ(grid1[i2][j2][k2][c2])).norm();
             else
-                d = periodic_distance(sel.XYZ(grid1[i1][j1][k1][c1]),
+                d = box.distance(sel.XYZ(grid1[i1][j1][k1][c1]),
                                       sel.XYZ(grid1[i2][j2][k2][c2]));
 
             if(d<=cutoff){
@@ -989,8 +951,8 @@ void Grid_searcher::get_central_2(int i1,int j1,int k1, Selection& sel1, Selecti
             if(!is_periodic)
                 d = (sel1.XYZ(grid1[i1][j1][k1][c1]) - sel2.XYZ(grid2[i1][j1][k1][c2])).norm();
             else
-                d = periodic_distance(sel1.XYZ(grid1[i1][j1][k1][c1]),
-                                      sel2.XYZ(grid2[i1][j1][k1][c2]));
+                d = box.distance(sel1.XYZ(grid1[i1][j1][k1][c1]),
+                                 sel2.XYZ(grid2[i1][j1][k1][c2]));
 
             if(d<=cutoff){
                 if(abs_index){
@@ -1026,8 +988,8 @@ void Grid_searcher::get_side_2(int i1,int j1,int k1, int i2,int j2,int k2,
                 if(!is_periodic)
                     d = (sel1.XYZ(grid1[i1][j1][k1][c1]) - sel2.XYZ(grid2[i2][j2][k2][c2])).norm();
                 else {
-                    d = periodic_distance(sel1.XYZ(grid1[i1][j1][k1][c1]),
-                                          sel2.XYZ(grid2[i2][j2][k2][c2]));
+                    d = box.distance(sel1.XYZ(grid1[i1][j1][k1][c1]),
+                                     sel2.XYZ(grid2[i2][j2][k2][c2]));
                 }
 
                 if(d<=cutoff){
@@ -1054,8 +1016,8 @@ void Grid_searcher::get_side_2(int i1,int j1,int k1, int i2,int j2,int k2,
                 if(!is_periodic)
                     d = (sel2.XYZ(grid2[i1][j1][k1][c1]) - sel1.XYZ(grid1[i2][j2][k2][c2])).norm();
                 else {
-                    d = periodic_distance(sel2.XYZ(grid2[i1][j1][k1][c1]),
-                                          sel1.XYZ(grid1[i2][j2][k2][c2]));
+                    d = box.distance(sel2.XYZ(grid2[i1][j1][k1][c1]),
+                                     sel1.XYZ(grid1[i2][j2][k2][c2]));
                 }
 
                 if(d<=cutoff){

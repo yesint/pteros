@@ -22,7 +22,6 @@
 
 #include "vmd_molfile_plugin_wrapper.h"
 #include "pteros/core/pteros_error.h"
-#include "pteros/core/pdb_cryst.h"
 #include <Eigen/Core>
 
 // General molfile_plugin includes
@@ -207,7 +206,9 @@ bool VMD_molfile_plugin_wrapper::do_read(System *sys, Frame *frame, Mol_file_con
 
 
         // Convert box to our format
-        box_from_vmd_rep(ts.A,ts.B,ts.C,ts.alpha,ts.beta,ts.gamma,frame->box);
+        Matrix3f b;
+        box_from_vmd_rep(ts.A,ts.B,ts.C,ts.alpha,ts.beta,ts.gamma,b);
+        frame->box.modify(b);
 
         frame->t = ts.physical_time;
 
@@ -268,7 +269,7 @@ void VMD_molfile_plugin_wrapper::do_write(Selection &sel, Mol_file_content what)
         }
         ts.coords = &buffer.front();
         Eigen::Vector3f v,a;
-        box_to_vectors_angles(sel.get_system()->Box(sel.get_frame()),v,a);
+        sel.get_system()->Box(sel.get_frame()).to_vectors_angles(v,a);
         ts.A = v(0)*10.0;
         ts.B = v(1)*10.0;
         ts.C = v(2)*10.0;

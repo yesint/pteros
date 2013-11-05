@@ -30,6 +30,11 @@ namespace pteros {
 
 class Periodic_box {
 public:
+    Periodic_box(){
+        _is_periodic = false;
+        _is_triclinic = false;
+        _box.fill(0.0);
+    }
     Periodic_box(const Eigen::Matrix3f& box);
     void modify(const Eigen::Matrix3f& box);
 
@@ -55,6 +60,10 @@ public:
     void wrap_point(Eigen::Vector3f& point,
                     const Eigen::Vector3i& dims_to_wrap = Eigen::Vector3i::Ones()) const;
 
+    /// Finds a periodic image of point, which is closest in space to target and returns it
+    /// This method wraps both point and targer to periodic box internally (this is usually what you want).
+    /// If this is not needed set do_wrapping to false, but in this case make sure
+    /// that wrapping is done manually before! Otherwise results would be incorrect.
     Eigen::Vector3f get_closest_image(const Eigen::Vector3f& point,
                                       const Eigen::Vector3f& target,
                                       bool do_wrapping = true,

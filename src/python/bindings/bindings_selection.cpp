@@ -460,9 +460,7 @@ void make_bindings_Selection(){
 
         .def("get_traj",&Selection_get_traj3)
         .def("get_traj",&Selection_get_traj2)
-        .def("get_traj",&Selection_get_traj1)
-
-        .def("get_box_volume",&Selection::get_box_volume)
+        .def("get_traj",&Selection_get_traj1)        
 
         .def("center",&Selection_center1)
         .def("center",&Selection_center0)

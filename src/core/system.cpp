@@ -29,7 +29,6 @@
 #include "pteros/core/selection.h"
 #include "pteros/core/pteros_error.h"
 #include "pteros/core/grid_search.h"
-#include "pteros/core/pdb_cryst.h"
 #include "pteros/core/format_recognition.h"
 #include <boost/lexical_cast.hpp>
 #include "pteros/core/mol_file.h"
@@ -244,17 +243,6 @@ void System::frame_delete(int b, int e){
     notify_signal(FRAMES_DELETED,b,e);
 }
 
-void System::get_box_vectors_angles(int fr, Vector3f& vectors, Vector3f& angles) const {
-    // Call Gromacs function from pdb_cryst
-    box_to_vectors_angles(traj[fr].box, vectors, angles);
-}
-
-bool System::is_box_triclinic(int fr) const{
-    return (traj[fr].box(0,1) || traj[fr].box(0,2)
-            || traj[fr].box(1,0) || traj[fr].box(1,2)
-            || traj[fr].box(2,0) || traj[fr].box(2,1) );
-}
-
 void System::frame_append(const Frame& fr){
     traj.push_back(fr);
 }
@@ -412,121 +400,17 @@ inline void wrap_coord(Vector3f& point, const Matrix3f& box,
     point = b*prj;
 }
 
-float System::distance(const Eigen::Vector3f &p1, const Eigen::Vector3f &p2, int fr, bool is_periodic) const {
-    if(is_periodic && traj[fr].box.array().abs().sum()>0){ // If box is not set, it will be zero
-        // Get box dimension
-        const Matrix3f& box = traj[fr].box;
-        Vector3f pp1 = p1, pp2 = p2;
-
-        wrap_coord(pp1,box);
-        wrap_coord(pp2,box);
-
-        Vector3f box_dim = box.colwise().norm();
-
-        // For each dimension measure periodic distance
-        Vector3f v = (pp2-pp1).array().abs();
-
-        Matrix3f b;
-        b.col(0) = box.col(0).normalized();
-        b.col(1) = box.col(1).normalized();
-        b.col(2) = box.col(2).normalized();
-
-        Vector3f prj = b.inverse()*v;;
-
-        // Now see if these projections > 0.5 of box size
-        for(int i=0;i<3;++i){
-            if(prj(i)>0.5*box_dim(i))
-                prj(i) = box_dim(i)-prj(i);
-        }
-        // Now convert prj back to lab basis
-        v = b*prj;
-        return v.norm();
+float System::distance(int i, int j, int fr, bool is_periodic, const Eigen::Vector3i& dims) const {
+    if(is_periodic){
+        return traj[fr].box.distance(traj[fr].coord[i], traj[fr].coord[j], true, dims);
     } else {
-        return (p2-p1).norm();
-    }
-}
-
-float System::distance(const Vector3f& p1, const Vector3f& p2, int fr, const Vector3i& dims) const {
-    // Get box dimension
-    const Matrix3f& box = traj[fr].box;
-    Vector3f pp1 = p1, pp2 = p2;
-
-    wrap_coord(pp1,box,dims);
-    wrap_coord(pp2,box,dims);
-
-    Vector3f box_dim = box.colwise().norm();
-
-    // For each dimension measure periodic distance
-    Vector3f v = (pp2-pp1).array().abs();
-
-    Matrix3f b;
-    b.col(0) = box.col(0).normalized();
-    b.col(1) = box.col(1).normalized();
-    b.col(2) = box.col(2).normalized();
-
-    Vector3f prj = b.inverse()*v;
-
-    // Now see if these projections > 0.5 of box size
-    for(int i=0;i<3;++i){
-        if(dims(i) && prj(i)>0.5*box_dim(i))
-            prj(i) = box_dim(i)-prj(i);
-    }
-    // Now convert prj back to lab basis
-    v = b*prj;
-    return v.norm();
-}
-
-float System::distance(int i, int j, int fr, bool is_periodic) const {
-    return distance(traj[fr].coord[i], traj[fr].coord[j], fr, is_periodic);
-}
-
-void System::wrap_to_box(int frame, Eigen::Vector3f& point, const Eigen::Vector3i &dims_to_wrap) const {    
-    wrap_coord(point, traj[frame].box, dims_to_wrap);
-}
-
-Vector3f System::get_closest_image(Eigen::Vector3f &point, Eigen::Vector3f &target, int fr, bool do_wrapping, const Vector3i& dims_to_wrap) const {
-    bool ok = false;
-
-    const Matrix3f& box = traj[fr].box;
-
-    if(box.array().abs().sum()>0){ // If box is not set, it will be zero
-        // Wrap point and target
-        Vector3f p = point, t = target;
-        if(do_wrapping){
-            wrap_coord(p, box, dims_to_wrap);
-            wrap_coord(t, box, dims_to_wrap);
-        }
-
-        Vector3f box_dim = box.colwise().norm();
-
-        Vector3f v = (p-t).array();
-
-        Matrix3f b;
-        b.col(0) = box.col(0).normalized();
-        b.col(1) = box.col(1).normalized();
-        b.col(2) = box.col(2).normalized();
-
-        Vector3f prj_d, prj_p;
-        prj_d = b.inverse()*v;
-        prj_p = b.inverse()*p;
-
-        for(int i=0;i<3;++i)            
-            if(dims_to_wrap(i) && abs(prj_d(i))>0.5*box_dim(i)){
-                // Need to translate along this dimension
-                ok = true;
-                prj_d(i)>0 ? prj_p(i)-=box_dim(i) : prj_p(i)+=box_dim(i);
-            }
-
-        p = b * prj_p;
-        return p;
-    } else {
-        return point;
+        return (traj[fr].coord[i] - traj[fr].coord[j]).norm();
     }
 }
 
 void System::wrap_all(int fr, const Vector3i& dims_to_wrap){
     for(int i=0;i<num_atoms();++i){
-        wrap_to_box(fr,XYZ(i,fr),dims_to_wrap);
+        traj[fr].box.wrap_point(XYZ(i,fr),dims_to_wrap);
     }
 }
 
@@ -568,7 +452,9 @@ void System::add_non_bond_energy(Energy_components &e, int a1, int a2, int frame
         float e1,e2;
 
         int N = force_field.LJ14_interactions.size();
-        float r = distance(XYZ(at1,frame),XYZ(at2,frame),frame,is_periodic);
+        //float r = distance(XYZ(at1,frame),XYZ(at2,frame),frame,is_periodic);
+        float r = distance(at1,at2,frame);
+
         // Check if this is 1-4 pair
         boost::unordered_map<int,int>::iterator it = force_field.LJ14_pairs.find(at1*N+at2);
         if( it == force_field.LJ14_pairs.end() ){

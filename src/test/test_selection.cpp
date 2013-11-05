@@ -69,8 +69,10 @@ int main(int argc, char** argv)
 
         Selection(sys,"name PO4").write("wrapped.pdb");
 
-        sys.Box(0).col(0) *= 2.0;
-        sys.Box(0).col(2) *= 2.0;
+        Matrix3f b = sys.Box(0).get_box();
+        b.col(0) *= 2.0;
+        b.col(2) *= 2.0;
+        sys.Box(0).modify(b);
 
         Selection(sys,"name PO4").set_mass(1); // CG atoms may have no mass assigned
         a.create(lip,"name PO4",3.5);

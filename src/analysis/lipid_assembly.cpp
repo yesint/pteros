@@ -155,7 +155,7 @@ void Lipid_assembly::create(Selection &sel, std::string head_marker_atom, float 
         // Create array of local points in local basis
         MatrixXf coord(3,locals[i].size());
         for(int j=0; j<locals[i].size(); ++j){
-            Vector3f p = sys->get_closest_image(locals[i].XYZ(j),markers.XYZ(i),0,false);
+            Vector3f p = sys->Box(source_ptr->get_frame()).get_closest_image(locals[i].XYZ(j),markers.XYZ(i));
             coord.col(j) = tr_inv*(p-markers.XYZ(i));
         }
 

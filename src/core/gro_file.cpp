@@ -104,18 +104,20 @@ bool GRO_file::do_read(System *sys, Frame *frame, Mol_file_content what){
         ss.clear();
         ss.str(line);
         //ss >> &x[0], &y[1], &z[2], &x[1], &x[2], &y[0], &y[2], &z[0], &z[1])
-        frame->box.fill(0.0);
-        ss >> frame->box(0,0) >> frame->box(1,1) >> frame->box(2,2);
+        Matrix3f box;
+        ss >> box(0,0) >> box(1,1) >> box(2,2);
         // Try to read nex val. If failed we have rectangular box.
         ss >> v;
         if(ss.good()){
-            frame->box(0,1) = v;
-            ss >> frame->box(0,2) >> frame->box(1,0) >> frame->box(1,2)
-               >> frame->box(2,0) >> frame->box(2,1);
+            box(0,1) = v;
+            ss >> box(0,2) >> box(1,0) >> box(1,2)
+               >> box(2,0) >> box(2,1);
         }
         // Box is in nm in gro files, no need to convert
         // Transpose the box because we want column-vectors (the code above uses row-vectors)
-        frame->box.transposeInPlace();
+        box.transposeInPlace();
+
+        frame->box.modify(box);
     }
 
     return true;
@@ -142,7 +144,7 @@ void GRO_file::do_write(Selection &sel, Mol_file_content what){
     // Write periodic box
     // We store box as column-vectors, while the code below hacked from VMD use row vectors,
     // so, transpose
-    Eigen::Matrix3f b = sel.get_system()->Box(sel.get_frame()).transpose();
+    Eigen::Matrix3f b = sel.get_system()->Box(sel.get_frame()).get_box().transpose();
 
     // We are writing dimensions in nm to be compatible with Gromacs
     f << b(0,0) << " "
