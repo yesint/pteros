@@ -9,7 +9,11 @@ if(WRAP_PYTHON)
     link_libraries(pteros pteros_analysis ${Boost_LIBRARIES} ${PYTHON_LIBRARIES})
 
     # Compiled plugins:
-    SET(PLUGINS center box rmsd interaction_energy covar_matr distance_matr secondary)
+    IF(NO_CPP11)
+        SET(PLUGINS center box rmsd interaction_energy covar_matr distance_matr)
+    ELSE()
+        SET(PLUGINS center box rmsd interaction_energy covar_matr distance_matr secondary)
+    ENDIF()
 
     foreach(plugin ${PLUGINS})
         add_library(plugin_${plugin} SHARED ${plugin}.cpp)

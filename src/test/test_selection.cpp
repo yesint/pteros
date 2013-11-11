@@ -59,6 +59,7 @@ int main(int argc, char** argv)
         //System sys("/home/semen/work/Projects/pteros/pteros-git-build/release/bin/dpc-vesicle.gro");
         //System sys("/home/semen/work/Projects/pteros/pteros-git-build/release/bin/pope_vesicle.gro");
 
+        /*
         Lipid_assembly a;
         Selection lip(sys,"resname DOPC DOPS");
         //Selection lip(sys,"resname DPPC");
@@ -76,7 +77,7 @@ int main(int argc, char** argv)
 
         Selection(sys,"name PO4").set_mass(1); // CG atoms may have no mass assigned
         a.create(lip,"name PO4",3.5);
-
+        */
 
 
 // Middle: 139.699997, 3.000000, 64.099998

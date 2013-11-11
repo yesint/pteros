@@ -167,6 +167,7 @@ public:
     	return traj[fr].t;
     }
 
+#ifndef NO_CPP11
     /// Determines secondary structure with DSSP algorithm and write detailed report to file
     void dssp(std::string fname);
 
@@ -184,6 +185,7 @@ public:
         loop:		' '
      */
     std::string dssp();
+#endif
 
     /// Read/Write access for given coordinate of given frame
     inline Eigen::Vector3f& XYZ(int ind, int fr){

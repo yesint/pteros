@@ -84,6 +84,9 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 link_directories("${CMAKE_BINARY_DIR}/lib")
 
+IF(NO_CPP11)
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNO_CPP11")
+ENDIF()
 
 add_subdirectory(src/core)
 add_subdirectory(src/test)
