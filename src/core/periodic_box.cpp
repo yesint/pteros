@@ -53,14 +53,6 @@ void Periodic_box::modify(const Eigen::Matrix3f &box)
     _is_triclinic = (_box(0,1)||_box(0,2)||_box(1,0)||_box(1,2)||_box(2,0)||_box(2,1));
 }
 
-Eigen::Vector3f Periodic_box::to_box(const Eigen::Vector3f &point) const {
-    return _to_box*point;
-}
-
-Eigen::Vector3f Periodic_box::to_lab(const Eigen::Vector3f &point) const {
-    return _to_lab*point;
-}
-
 float Periodic_box::distance(const Eigen::Vector3f &point1, const Eigen::Vector3f &point2, bool do_wrapping, const Eigen::Vector3i &periodic_dims) const
 {
     if(_is_periodic){

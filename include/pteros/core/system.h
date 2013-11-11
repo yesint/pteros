@@ -103,7 +103,7 @@ class Selection;
 class System {
     /// System and Selection are friends because they are closely integrated.
     friend class Selection;
-    /// Selection_parser must access internal of Selection
+    /// Selection_parser must access internals of Selection
     friend class Selection_parser;
     /// Mol_file needs an access too
     friend class Mol_file;
@@ -154,6 +154,7 @@ public:
     void clear(bool delete_selections = false);
     /// Updates all associated selection if the system changes somehow
     /// Also sets frame of all selections to zero.
+    /// Only works for sekections with enabled signalling!
     void update_selections();   
 
     /// Read/write access for periodic box for given frame
@@ -187,12 +188,7 @@ public:
     /// Read/Write access for given coordinate of given frame
     inline Eigen::Vector3f& XYZ(int ind, int fr){
         return traj[fr].coord[ind];
-    }
-
-    /// Signal passed to associated selections when they have to react to changes in the system
-    /// First parameter is type of notification
-    /// Params 2 and 3 indicate the range of frames, which are affected by the change
-    boost::signals2::signal<void(System_notification,int,int)> notify_signal;
+    }    
 
     /// Adds new frame to trajectory
     void frame_append(const Frame& fr);
@@ -213,7 +209,7 @@ public:
     /// Append other system to this one
     void append(const System& sys);
 
-    /// Get periodic distance between two atoms for given frame.
+    /// Get distance between two atoms for given frame (periodic in given dimensions if needed).
     float distance(int i, int j, int fr, bool is_periodic = true, const Eigen::Vector3i& dims = Eigen::Vector3i::Ones()) const;
 
     /// Wrap all system to the periodic box for given frame
@@ -242,6 +238,10 @@ public:
     }
 
 protected:
+    /// Signal passed to associated selections when they have to react to changes in the system
+    /// First parameter is type of notification
+    /// Params 2 and 3 indicate the range of frames, which are affected by the change
+    boost::signals2::signal<void(System_notification,int,int)> notify_signal;
 
     /// Holds all atom attributes except the coordinates
     std::vector<Atom>  atoms;

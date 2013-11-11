@@ -175,7 +175,7 @@ class Selection {
     /// Get pointer to the system, which owns this selection
     System* get_system() const { return system; }
     /// Get selection text
-    std::string get_text() const { return sel_text; }
+    std::string get_text() const;
     /// Get vector of all indexes in selection
     std::vector<int> get_index() const { return index; }
     /// Get const iterator for begin of index
@@ -264,6 +264,16 @@ class Selection {
     Eigen::Vector3f center(bool mass_weighted = false, bool periodic = false) const;
     /// Get minimal and maximal coordinates in selection
     void minmax(Eigen::Vector3f& min, Eigen::Vector3f& max) const;
+
+#ifdef USE_POWERSASA
+    /// Get the SASA. Easy way - only returns SASA area of selection
+    float sasa(float probe_r = 0.14);
+
+    /// Get the SASA. Detailed way - returns area and computes volume and per-atom values
+    float sasa(float probe_r = 0.14, float* total_volume = NULL,
+               std::vector<float>* area_per_atom = NULL,
+               std::vector<float>* volume_per_atom = NULL);
+#endif
     /// @}
 
     /// @name Geometry transformation functions
@@ -290,7 +300,7 @@ class Selection {
     /// Rotation by given angles around X, Y and Z with given pivot
     void rotate(const Eigen::Vector3f& angles, const Eigen::Vector3f& pivot);
 
-    /// Wraps selection to the periodic box
+    /// Wraps whole selection to the periodic box
     void wrap(const Eigen::Vector3i& dims = Eigen::Vector3i::Ones());
 
     /** Unwraps selection to make it whole if possible (without jumps over periodic box boundary).
@@ -302,6 +312,7 @@ class Selection {
 
     /** Unwraps selection to make it whole (without jumps over periodic box boundary).
      * based on preserving all bonds. The maximal bond length is given by d.
+     * This method works reliably in any case, but is much slower than unwrap()
      */
     void unwrap_bonds(float d = 0.2, const Eigen::Vector3i& dims = Eigen::Vector3i::Ones());
 
@@ -318,16 +329,6 @@ class Selection {
      * sel.apply_transform(tr);
      */
     void principal_orient(bool is_periodic = false);
-
-#ifdef USE_POWERSASA
-    /// Get the SASA. Easy way - only returns SASA area of selection
-    float sasa(float probe_r = 0.14);
-
-    /// Get the SASA. Detailed way - returns area and computes volume and per-atom values
-    float sasa(float probe_r = 0.14, float* total_volume = NULL,
-               std::vector<float>* area_per_atom = NULL,
-               std::vector<float>* volume_per_atom = NULL);
-#endif
     /// @}
 
     /// @name Fitting and RMSD functions

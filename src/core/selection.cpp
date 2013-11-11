@@ -339,6 +339,18 @@ void Selection::set_frame(int fr){
 // Get and set functions
 /////////////////////////
 
+std::string Selection::get_text() const {
+    if(sel_text.size()>0){
+        return sel_text;
+    } else {
+        // If text is empty return dumb indexes
+        stringstream ss;
+        ss << "index ";
+        for(int i=0;i<index.size();++i) ss << index[i] << " ";
+        return ss.str();
+    }
+}
+
 vector<char> Selection::get_chain() const {
     vector<char> res;
     int i,n;

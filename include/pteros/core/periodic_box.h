@@ -28,6 +28,21 @@
 
 namespace pteros {
 
+/** @brief Class encapsulating all operations with arbitrary triclinic periodic boxes
+ This class stores the periodic box itself and also contains pre-computed matrices
+ for converting laboratory coordinates to the coordinates in triclinic basis and vice versa.
+ Extents of the periodic box are also precomputed and stored internally.
+ All data in the class are read-only. The user can set the box by using the constructor
+ or by calling modify(box), than all internal data would be precomputed.
+ Individual components of the box can't be changed. The only way to change is to get the
+ whole box, modify the component and set it back:
+ \code
+ Periodic_box box(some_data);
+ Matrix3f b = box.get_box();
+ b(1,2) *= 2.0; // Modify the box element
+ box.modify(b); // Set new box. This will recompute internal matrices
+ \endcode
+ */
 class Periodic_box {
 public:
     Periodic_box(){
@@ -37,26 +52,36 @@ public:
     }
     Periodic_box(const Eigen::Matrix3f& box);
     void modify(const Eigen::Matrix3f& box);
-
+    /// Get stored periodic box
     Eigen::Matrix3f get_box() const {return _box;}
-
-    Eigen::Vector3f to_box(const Eigen::Vector3f& point) const;
+    /// Convert point from lab coordinates to box coordinates
+    Eigen::Vector3f to_box(const Eigen::Vector3f& point) const { return _to_box*point; }
+    /// Return the transformation matrix from lab coordinates to box coordinates
     const Eigen::Matrix3f& to_box_matrix() const {return _to_box;}
-
-    Eigen::Vector3f to_lab(const Eigen::Vector3f& point) const;
+    /// Convert point from box coordinates to lab coordinates
+    Eigen::Vector3f to_lab(const Eigen::Vector3f& point) const { return _to_lab*point; }
+    /// Return the transformation matrix from box coordinates to lab coordinates
     const Eigen::Matrix3f& to_lab_matrix() const {return _to_lab;}
-
+    /// Return i-th extent of the box
     float extent(int i) const {return _extents(i);}
+    /// Return the vector of box extents
     const Eigen::Vector3f& extents() const {return _extents;}
-
+    /// Is the box triclinic?
     bool is_triclinic() const {return _is_triclinic;}
+    /// Is the box set? If dalse, the system is not periodic
     bool is_periodic() const {return _is_periodic;}
-
+    /// Compute a periodic distance between two points in the box
+    /// Periodicity is only accouted for given set of dimensions
+    /// If you need a non-periodic distance over all dimensions it is more efficient
+    /// to compute it directly as:
+    ///\code
+    /// float dist = (point2-point1).norm();
+    ///\endcode
     float distance(const Eigen::Vector3f& point1,
                    const Eigen::Vector3f& point2,
                    bool do_wrapping = true,
                    const Eigen::Vector3i& periodic_dims = Eigen::Vector3i::Ones()) const;
-
+    /// Wrap point to the box for given set of dimensions
     void wrap_point(Eigen::Vector3f& point,
                     const Eigen::Vector3i& dims_to_wrap = Eigen::Vector3i::Ones()) const;
 
@@ -68,13 +93,13 @@ public:
                                       const Eigen::Vector3f& target,
                                       bool do_wrapping = true,
                                       const Eigen::Vector3i& dims_to_wrap = Eigen::Vector3i::Ones()) const;
-
+    /// Return box volume
     float volume();
-
+    /// Read box from CRYST string in PDB format
     void read_pdb_box(const char *line);
-
+    /// Write box as CRYST string in PDB format
     std::string write_pdb_box() const;
-
+    /// Returns representation of the box as direction vectors and angles
     void to_vectors_angles(Eigen::Vector3f& vectors, Eigen::Vector3f& angles) const;
 
 private:

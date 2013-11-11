@@ -5,6 +5,7 @@ project(pteros)
 OPTION(PYTHON_BINDINGS "Build python bindings" ON)
 OPTION(VMD_PDB "Use VMD molfile plugin for reading PDB files (if OFF - internal reader is used)" ON)
 OPTION(POWERSASA "Use POWERSASA code. This implies severe license restrictions! \n Read the comment in src/core/sasa/power_sasa.h carefully before enabling this option!" OFF)
+OPTION(NO_CPP11 "Old compiler is used. Disable code with all C++11 features" OFF)
 
 # Will use shared Boost libraries
 set(Boost_USE_STATIC_LIBS OFF)

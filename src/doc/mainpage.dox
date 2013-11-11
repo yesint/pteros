@@ -137,6 +137,24 @@ If you want to compile with alternative compiler (for example Clang), add the co
 -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
 \endcode
 
+\subsection test Testing installation
+
+Run the following command:
+\code
+pteros_analysis.py --help all
+\endcode
+
+If you see any error then Pteros can't load plugins or something elese went wrong.
+
+\subsection trouble Troubleshooting
+
+The most common problems during installation arise from bugs in Boost or in the compilers and from the wrong versions of the libraries, which are found by CMake. In general Google is your best friend in solving any problem. If you are stuck write us and attach error messages and the system configuration (versions of all required libraries and compiler).
+
+The list of known problems:
+- clang compiler doesn't work with Boost < 1.52
+- If there are several Boost versions in the system CMake may find the right one for one library (say, Boost.threads) but the wrong one for the other (say, Boost.python), which causes very strange errors. The solution is to include the following flags to CMake invocation: 
+\code -DBoost_NO_SYSTEM_PATHS=ON -DBOOST_ROOT="Correct path to boost" \endcode
+
 \subsection sasa Enabling SASA code
 
 Pteros can perform the Solvent Accesible Surface Area (SASA) computatations using POWERSASA code developed in the Karlsruhe Institute of Technology. POWERSASA is licensed by specific and rather restrictive "Academic/Non-Profit SASA software license agreement".

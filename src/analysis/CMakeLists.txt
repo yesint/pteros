@@ -3,6 +3,15 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/analysis")
 
 set_source_files_properties(lipid_assembly.cpp PROPERTIES COMPILE_FLAGS -std=c++0x)
 
+if(NO_CPP11)
+    SET(LIPID_ASSEMBLY_FILES "")
+else()
+    SET(LIPID_ASSEMBLY_FILES
+    ${PROJECT_SOURCE_DIR}/include/pteros/analysis/lipid_assembly.h
+    lipid_assembly.cpp
+    )
+endif()
+
 add_library(pteros_analysis SHARED
 trajectory_processor.cpp
 options_parser.cpp
@@ -24,9 +33,7 @@ ${PROJECT_SOURCE_DIR}/include/pteros/analysis/consumer_proxy.h
 ${PROJECT_SOURCE_DIR}/include/pteros/analysis/bilayer.h
 bilayer.cpp
 
-${PROJECT_SOURCE_DIR}/include/pteros/analysis/lipid_assembly.h
-lipid_assembly.cpp
-
+${LIPID_ASSEMBLY_FILES}
 )
 
 add_executable(pteros_rmsf
