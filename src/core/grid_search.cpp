@@ -504,17 +504,12 @@ void Grid_searcher::set_grid_size(const Vector3f& min, const Vector3f& max, int 
         This lead to the following:
     */
 
-
-    NgridX = floor(std::pow(Natoms*(max(0)-min(0))*(max(0)-min(0))/
-                ((max(1)-min(1))*(max(2)-min(2))), double(1.0/3.0))) ;
-    NgridY = floor(std::pow(Natoms*(max(1)-min(1))*(max(1)-min(1))/
-                ((max(0)-min(0))*(max(2)-min(2))), double(1.0/3.0))) ;
-    NgridZ = floor(std::pow(Natoms*(max(2)-min(2))*(max(2)-min(2))/
-                ((max(0)-min(0))*(max(1)-min(1))), double(1.0/3.0))) ;
-
-    //NgridX = NgridY = NgridZ = pow(Natoms,1.0/3.0);
-
-    // Coeff 3 is chosen empirically
+    NgridX = floor(std::pow(double(Natoms*(max(0)-min(0))*(max(0)-min(0))/
+                ((max(1)-min(1))*(max(2)-min(2)))), double(1.0/3.0))) ;
+    NgridY = floor(std::pow(double(Natoms*(max(1)-min(1))*(max(1)-min(1))/
+                ((max(0)-min(0))*(max(2)-min(2)))), double(1.0/3.0))) ;
+    NgridZ = floor(std::pow(double(Natoms*(max(2)-min(2))*(max(2)-min(2))/
+                ((max(0)-min(0))*(max(1)-min(1)))), double(1.0/3.0))) ;
 
     if(NgridX==0) NgridX = 1;
     if(NgridY==0) NgridY = 1;
@@ -539,9 +534,6 @@ void Grid_searcher::set_grid_size(const Vector3f& min, const Vector3f& max, int 
         NgridZ = floor((max(2)-min(2))/cutoff);
         dZ = (max(2)-min(2))/NgridZ;
     }
-
-
-    //cout << "]]]]]]]]] " << NgridX << " " << NgridY << " " << NgridZ << endl;
 }
 
 void Grid_searcher::create_grid(Grid_t& grid,Selection& sel){
