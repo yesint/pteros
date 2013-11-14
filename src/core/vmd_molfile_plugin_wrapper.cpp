@@ -207,6 +207,7 @@ bool VMD_molfile_plugin_wrapper::do_read(System *sys, Frame *frame, Mol_file_con
 
         // Convert box to our format
         Matrix3f b;
+        b.fill(0.0);
         box_from_vmd_rep(ts.A,ts.B,ts.C,ts.alpha,ts.beta,ts.gamma,b);
         frame->box.modify(b);
 

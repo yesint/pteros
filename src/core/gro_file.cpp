@@ -105,6 +105,7 @@ bool GRO_file::do_read(System *sys, Frame *frame, Mol_file_content what){
         ss.str(line);
         //ss >> &x[0], &y[1], &z[2], &x[1], &x[2], &y[0], &y[2], &z[0], &z[1])
         Matrix3f box;
+        box.fill(0.0);
         ss >> box(0,0) >> box(1,1) >> box(2,2);
         // Try to read nex val. If failed we have rectangular box.
         ss >> v;
