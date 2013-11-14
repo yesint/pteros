@@ -30,18 +30,33 @@
 
 namespace pteros {
 
+class Local_properties {
+public:
+    // Coordinates of smoothed point
+    Eigen::Vector3f smoothed;
+    Eigen::Vector3f surface_normal;
+    Eigen::Vector2f principal_curvatures;
+    Eigen::Matrix<float,3,2> principal_directions;
+    float gaussian_curvature;
+    float mean_curvature;
+    float fit_rms;
+};
+
 class Lipid_assembly {
 public:
     Lipid_assembly(){};
-    Lipid_assembly(Selection& sel,
-                   std::string head_marker_atom,
-                   std::string tail_end_atoms,
+    Lipid_assembly(System& system,
+                   std::string lipids_sel,
+                   std::string heads_sel,
+                   std::string tails_sel,
                    float d = 2.0);
-    void create(Selection& sel,
-                std::string head_marker_atom,
-                std::string tail_end_atoms,
-                float d = 2.0,
-                float bilayer_cutoff = 0.25);
+    void create(System& system,
+                std::string lipids_sel,
+                std::string heads_sel,
+                std::string tails_sel,
+                float d = 2.0);
+
+    Local_properties get_local_curvature(Selection& surf_spot, Selection& tail_spot);
 protected:    
     Selection* source_ptr;
     std::vector<Eigen::Vector3f> surface_normals;
