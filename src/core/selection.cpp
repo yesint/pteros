@@ -1226,6 +1226,23 @@ void Selection::split_by_connectivity(float d, std::vector<Selection> &res) {
     }
 }
 
+void Selection::split_by_residue(std::vector<Selection> &res)
+{
+    // We split selection into several by resindex
+    res.clear();
+    // Map of resindexes to indexs in selections
+    map<int,vector<int> > m;
+    for(int i=0; i<size(); ++i){
+        m[Resindex(i)].push_back(Index(i));
+    }
+    // Create selections
+    map<int,vector<int> >::iterator it;
+    for(it=m.begin();it!=m.end();it++){
+        res.push_back(Selection(*system));
+        res.back().modify( it->second.begin(), it->second.end() );
+    }
+}
+
 void Selection::inertia(Eigen::Vector3f &moments, Eigen::Matrix3f &axes, bool periodic) const{
     int n = size();
     int i;

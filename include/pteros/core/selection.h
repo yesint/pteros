@@ -419,6 +419,8 @@ class Selection {
     /// of atoms connected by distances less than d
     void split_by_connectivity(float d, std::vector<Selection>& res);
 
+    void split_by_residue(std::vector<Selection>& res);
+
     /// Computes the central momens of inertia and principal axes of inertia
     void inertia(Eigen::Vector3f& moments, Eigen::Matrix3f& axes, bool periodic = false) const;
 
