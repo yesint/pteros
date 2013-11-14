@@ -34,8 +34,8 @@ using namespace std;
 using namespace pteros;
 using namespace Eigen;
 
-Lipid_assembly::Lipid_assembly(Selection &sel, std::string head_marker_atom, float d){
-    create(sel,head_marker_atom,d);
+Lipid_assembly::Lipid_assembly(Selection &sel, std::string head_marker_atom, string tail_end_atoms, float d){
+    create(sel,head_marker_atom,tail_end_atoms,d);
 }
 
 string tcl_arrow(const Vector3f& p1, const Vector3f& p2, float r, string color){
@@ -52,17 +52,32 @@ string tcl_arrow(const Vector3f& p1, const Vector3f& p2, float r, string color){
     return ss.str();
 }
 
-void Lipid_assembly::create(Selection &sel, std::string head_marker_atom, float d, float bilayer_cutoff){
+void Lipid_assembly::create(Selection &sel, std::string head_marker_atom, string tail_end_atoms, float d, float bilayer_cutoff){
     source_ptr = &sel;
     System* sys = sel.get_system();
     //Selection all(*sys,"all");
     // Create selection from marker atoms
     Selection markers(*sys,"("+sel.get_text()+") and "+head_marker_atom);    
-    int N = markers.size();
+    int N = markers.size();      
 
     // Find connectivity of marker atoms
     vector<Vector2i> bon;    
     Grid_searcher(d,markers,bon,false,true);
+
+    // In order not to make selections for the tails on the fly (slow!) we do it here
+    Selection tmp(*sys,tail_end_atoms);
+
+    map<int,int> m; // markers.resindex --> i
+    for(int i=0; i<markers.size();++i){
+        m[markers.Resindex(i)] = i;
+    }
+
+    vector<Selection> tails; // Map from marker index to tails selection
+    for(int i=0; i<markers.size();++i) tails.push_back(Selection(*sys));
+
+    for(int i=0; i<tmp.size();++i){
+        tails[m[tmp.Resindex(i)]].append(tmp.Index(i));
+    }
 
     // Convert the list of bonds to convenient form
     vector<vector<int> > conn(N);
@@ -84,28 +99,41 @@ void Lipid_assembly::create(Selection &sel, std::string head_marker_atom, float 
 
     vector<Vector3f> surface_normals(markers.size());
 
+    // Orienting normals
+    vector<int> oriented(markers.size());
+    for(int i=0;i<markers.size();++i) oriented[i] = 0;
+
     // Since orientation of the normal is chaotic in general we need two passes.
     // We compute all unoriented normals first, orient them in second pass and then
     // compute everything elese with oriented normals
-    for(int i=0;i<markers.size();++i){
-        //cout << "(>>) " << i << endl;
+    for(int i=0;i<markers.size();++i){        
         // Selection for all neighbours including itself
         locals.push_back(Selection(*sys));
         for(int j=0; j<conn[i].size(); ++j){
             locals[i].append(markers.Index(conn[i][j]));
         }
-        locals[i].append(markers.Index(i)); // append atom itself
+        locals[i].append(markers.Index(i)); // append atom itself        
 
-        // Compute the inertia axes
+        // Compute the inertia axes        
         locals[i].inertia(moments[i],axes[i],true);
         // axes.col(2) is a local normal
         surface_normals[i] = axes[i].col(2).normalized();
+
+
+        // Now compute the center of masses of tails ends
+        Vector3f end = sys->Box(source_ptr->get_frame()).get_closest_image(tails[i].center(true,true),markers.XYZ(i));
+        Vector3f lip_vec = end-markers.XYZ(i);
+        // Now an angle between the lipid vector and normal
+        float a = acos(surface_normals[i].dot(lip_vec)/(surface_normals[i].norm() * lip_vec.norm()));
+        if(a>M_PI_2){ // Need to flip normal
+            surface_normals[i] = -surface_normals[i];
+            oriented[i] = 2; // 2 means was flipped!
+        }
+
     }
 
+/*
 
-    // Orienting normals
-    vector<int> oriented(markers.size());
-    for(int i=0;i<markers.size();++i) oriented[i] = 0;
     oriented[0] = 1;
     stack<int> todo;
     todo.push(0);
@@ -133,6 +161,10 @@ void Lipid_assembly::create(Selection &sel, std::string head_marker_atom, float 
 
     for(int i=0;i<markers.size();++i) cout << oriented[i];
     cout << endl;
+*/
+
+    // Coordinates of smoothed points
+    MatrixXf smoothed(3,markers.size());
 
     // Second pass with oriented normals
     for(int i=0;i<markers.size();++i){
@@ -200,7 +232,7 @@ void Lipid_assembly::create(Selection &sel, std::string head_marker_atom, float 
         for(int j=0;j<locals[i].size();++j){
             float fit = 0.0;
             for(int r=0;r<6;++r) fit += coef[r](j)*res[r];
-            rms += pow(coord.col(j)(2)-fit,2);
+            rms += pow(coord.col(j)(2)-fit,2);            
         }
         cout << "RMS: " << sqrt(rms/float(locals[i].size())) << endl;
 
@@ -275,7 +307,13 @@ void Lipid_assembly::create(Selection &sel, std::string head_marker_atom, float 
 
         princ_coef = solver.eigenvalues();
 
-        // If curvatures are negative the order of eugenvalues becomes inverted to what is needed
+        // Get i-th smoothed surface point
+        Vector3f sm; // Local coords
+        sm.fill(0.0);
+        for(int r=0;r<6;++r) sm(2) += coef[r](locals[i].size()-1)*res[r];
+        smoothed.col(i) = tr*sm + markers.XYZ(i);
+
+        // If curvatures are negative the order of eigenvalues becomes inverted to what is needed
         // Thus order by absolute value
         int k1,k2;
         if(abs(princ_coef(0))<abs(princ_coef(1))){
@@ -300,5 +338,11 @@ void Lipid_assembly::create(Selection &sel, std::string head_marker_atom, float 
     markers.write("colored.pdb");
 
     vis_dirs.close();
+
+    // Write smoothed surface
+    sys->frame_dup(markers.get_frame());
+    markers.set_frame(sys->num_frames()-1);
+    markers.set_xyz(smoothed);
+    markers.write("smoothed.pdb");
 }
 
