@@ -1232,12 +1232,16 @@ void Selection::inertia(Eigen::Vector3f &moments, Eigen::Matrix3f &axes, bool pe
     // Compute the central tensor of inertia. Place it into axes
     axes.fill(0.0);
 
-    Vector3f c = center(true,periodic);    
+    Vector3f c = center(true,periodic);
+
     Vector3f p,d;
 
     if(periodic){
         for(i=0;i<n;++i){
-            p = system->Box(frame).get_closest_image(_XYZ(i),c);
+            // 0 point was used as an anchor in periodic center calculation,
+            // so we have to use it as an anchor here as well!
+            p = system->Box(frame).get_closest_image(_XYZ(i),_XYZ(0));
+
             d = p-c;
             axes(0,0) += _Mass(i)*( d(1)*d(1) + d(2)*d(2) );
             axes(1,1) += _Mass(i)*( d(0)*d(0) + d(2)*d(2) );
@@ -1312,7 +1316,7 @@ void Selection::unwrap_bonds(float d, const Eigen::Vector3i &dims){
 
     // Do all wrapping before    
     wrap();
-    write("0.pdb");
+    //write("0.pdb");
 
     // Mask of moved atoms
     VectorXi moved(size());
@@ -1320,17 +1324,18 @@ void Selection::unwrap_bonds(float d, const Eigen::Vector3i &dims){
     int Nmoved = 0;
 
     // Queue of centers to consider
-    queue<int> todo;
+    set<int> todo;
     // Add first atom to the queue
-    todo.push(0);
+    todo.insert(0);
 
     int cur;
     for(;;){
         while(!todo.empty()){
             // Get center from the queue
-            cur = todo.front();
-            todo.pop(); // And pop it from the queue
-            moved[cur] = 1;
+            cur = *(todo.begin());
+            todo.erase(todo.begin()); // And pop it from the queue
+            //cout << "(C)" << cur << " " << todo.size() << endl;
+            moved[cur] = 1; // Mark as moved
             // Unwrap all atoms bound to cur to position near cur
             for(int i=0; i<con[cur].size(); ++i){
                 // We only move atoms, which were not yet moved
@@ -1346,7 +1351,8 @@ void Selection::unwrap_bonds(float d, const Eigen::Vector3i &dims){
                     }
                     */
                     // Add moved atom to centers queue
-                    todo.push(con[cur][i]);
+                    todo.insert(con[cur][i]);
+                    //cout << "   (+) " << con[cur][i] << endl;
                     ++Nmoved;                    
                 }
             }
@@ -1359,7 +1365,7 @@ void Selection::unwrap_bonds(float d, const Eigen::Vector3i &dims){
                 ++i;
                 if(i>=size()) throw Pteros_error("Wrong connectivity?");
             }
-            todo.push(i);
+            todo.insert(i);
         } else {
             break; // Done
         }
