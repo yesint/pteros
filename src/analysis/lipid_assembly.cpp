@@ -34,8 +34,8 @@ using namespace std;
 using namespace pteros;
 using namespace Eigen;
 
-Lipid_assembly::Lipid_assembly(System &system, std::string lipids_sel, string heads_sel, string tails_sel, float d){
-    create(system,lipids_sel,heads_sel,tails_sel,d);
+Lipid_assembly::Lipid_assembly(System &system, std::string lipids_sel, string heads_sel, string tails_sel, float d, int Nsm){
+    create(system,lipids_sel,heads_sel,tails_sel,d, Nsm);
 }
 
 string tcl_arrow(const Vector3f& p1, const Vector3f& p2, float r, string color){
@@ -105,9 +105,11 @@ void fit_quad_surface(const MatrixXf& coord,
     for(int r=0;r<6;++r) smoothed_first_point(2) += coef[r](0)*res[r];
 }
 
-Local_properties Lipid_assembly::get_local_curvature(Selection& surf_spot, Selection& tail_spot){
+float angle_between_vectors(const Ref<const Vector3f>& v1, const Ref<const Vector3f>& v2){
+    return acos(v1.dot(v2)/(v1.norm() * v2.norm()));
+}
 
-    Local_properties prop;
+void get_local_curvature(Selection& surf_spot, Selection* tail_spot, Local_properties& prop){
 
     System* sys = surf_spot.get_system();
     int frame = surf_spot.get_frame();
@@ -119,18 +121,22 @@ Local_properties Lipid_assembly::get_local_curvature(Selection& surf_spot, Selec
     Vector3f moments;
     Matrix3f axes;
     surf_spot.inertia(moments,axes,true);
+
+    // If tails selection is provided orient normals according to it
+    if(tail_spot){
+        // Compute the center of masses of tails ends
+        Vector3f end = sys->Box(frame).get_closest_image(tail_spot->center(true,true),marker_coord);
+        Vector3f lip_vec = marker_coord-end;
+        // Now an angle between the lipid vector and normal
+        float a = angle_between_vectors(axes.col(2).normalized(),lip_vec);
+        //float a = acos(prop.surface_normal.dot(lip_vec)/(prop.surface_normal.norm() * lip_vec.norm()));
+        if(a>M_PI_2){ // Need to flip normal
+            axes.col(2) = -axes.col(2).eval();
+        }
+    }
+
     // axes.col(2) is a local normal
     prop.surface_normal = axes.col(2).normalized();
-
-    // Now compute the center of masses of tails ends
-    Vector3f end = sys->Box(frame).get_closest_image(tail_spot.center(true,true),marker_coord);
-    Vector3f lip_vec = marker_coord-end;
-    // Now an angle between the lipid vector and normal
-    float a = acos(prop.surface_normal.dot(lip_vec)/(prop.surface_normal.norm() * lip_vec.norm()));
-    if(a>M_PI_2){ // Need to flip normal
-        prop.surface_normal = -prop.surface_normal;
-        axes.col(2) = -axes.col(2).eval();
-    }
 
     // Now fit a quadric surface to local points
 
@@ -239,11 +245,10 @@ Local_properties Lipid_assembly::get_local_curvature(Selection& surf_spot, Selec
 
     prop.principal_directions.col(0) = lab_dirs.col(k1);
     prop.principal_directions.col(1) = lab_dirs.col(k2);
-
-    return prop;
 }
 
-void Lipid_assembly::create(System &system, string lipids_sel, std::string heads_sel, string tails_sel, float d){
+
+void Lipid_assembly::create(System &system, string lipids_sel, std::string heads_sel, string tails_sel, float d, int Nsm){
     System* sys = &system;
 
     Selection lipids(*sys,lipids_sel);
@@ -284,8 +289,7 @@ void Lipid_assembly::create(System &system, string lipids_sel, std::string heads
 
     markers.write("before_smooth.pdb");
 
-    // Do several rounds of smoothing
-    int Nsm = 10;
+    // Do several rounds of smoothing    
     for(int sm_iter=0; sm_iter<Nsm; ++sm_iter){
 
         cout << "Smoothing round #" << sm_iter << endl;
@@ -293,7 +297,7 @@ void Lipid_assembly::create(System &system, string lipids_sel, std::string heads
         // We need to re-wrap since centers of masses could be off box
         markers.wrap();
 
-        // Find connectivity of head centers
+        // Find connectivity of markers
         vector<Vector2i> bon;
         Grid_searcher(d,markers,bon,false,true);
 
@@ -313,7 +317,8 @@ void Lipid_assembly::create(System &system, string lipids_sel, std::string heads
             }
             local.set_frame(fr);
 
-            Local_properties prop = get_local_curvature(local,tails[i]);
+            Local_properties prop;
+            get_local_curvature(local,&tails[i],prop);
             smoothed.col(i) = prop.smoothed;
 
             // On last pass whow stats
@@ -341,4 +346,3 @@ void Lipid_assembly::create(System &system, string lipids_sel, std::string heads
     vis_dirs.close();
 
 }
-
