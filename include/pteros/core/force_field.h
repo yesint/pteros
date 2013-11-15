@@ -76,6 +76,31 @@ struct Force_field {
         ready = false;
     }
 
+    /// Copy constructor
+    Force_field(const Force_field& other){
+        charge_groups = other.charge_groups;
+        exclusions = other.exclusions;
+        LJ_C6 = other.LJ_C6;
+        LJ_C12 = other.LJ_C12;
+        LJ14_interactions = other.LJ14_interactions;
+        LJ14_pairs = other.LJ14_pairs;
+        fudgeQQ = other.fudgeQQ;
+        ready = other.ready;
+    }
+
+    /// Assignment operator
+    Force_field& operator=(Force_field other){
+        charge_groups = other.charge_groups;
+        exclusions = other.exclusions;
+        LJ_C6 = other.LJ_C6;
+        LJ_C12 = other.LJ_C12;
+        LJ14_interactions = other.LJ14_interactions;
+        LJ14_pairs = other.LJ14_pairs;
+        fudgeQQ = other.fudgeQQ;
+        ready = other.ready;
+        return *this;
+    }
+
     void clear(){
         charge_groups.clear();
         exclusions.clear();
