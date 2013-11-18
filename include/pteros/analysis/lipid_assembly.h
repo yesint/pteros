@@ -49,14 +49,15 @@ public:
                    std::string lipids_sel,
                    std::string heads_sel,
                    std::string tails_sel,
-                   float d = 2.0);
+                   float d = 2.0,
+                   int Nsm = 1);
     void create(System& system,
                 std::string lipids_sel,
                 std::string heads_sel,
                 std::string tails_sel,
-                float d = 2.0);
+                float d = 2.0,
+                int Nsm = 1);
 
-    Local_properties get_local_curvature(Selection& surf_spot, Selection& tail_spot);
 protected:    
     Selection* source_ptr;
     std::vector<Eigen::Vector3f> surface_normals;
