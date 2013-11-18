@@ -28,18 +28,25 @@
 #include "pteros/core/selection.h"
 #include "pteros/core/grid_search.h"
 
+#include <fstream>
+
 namespace pteros {
 
-class Local_properties {
-public:
-    // Coordinates of smoothed point
-    Eigen::Vector3f smoothed;
+struct Local_curvature {
+    // Coordinates of point
+    Eigen::Vector3f point;
     Eigen::Vector3f surface_normal;
     Eigen::Vector2f principal_curvatures;
     Eigen::Matrix<float,3,2> principal_directions;
     float gaussian_curvature;
     float mean_curvature;
     float fit_rms;
+    float roughness;
+};
+
+struct Lipid_properties {
+    Local_curvature head;
+    Local_curvature tail;
 };
 
 class Lipid_assembly {
@@ -50,19 +57,44 @@ public:
                    std::string heads_sel,
                    std::string tails_sel,
                    float d = 2.0,
-                   int Nsm = 1);
+                   int Nsmooth = 1);
     void create(System& system,
                 std::string lipids_sel,
                 std::string heads_sel,
                 std::string tails_sel,
                 float d = 2.0,
-                int Nsm = 1);
+                int Nsmooth = 1);
 
-protected:    
-    Selection* source_ptr;
-    std::vector<Eigen::Vector3f> surface_normals;
-    std::vector<float> surface_mean_angle;
-    std::vector<float> surface_curvature;
+    void compute(int frame);
+    void write_output();
+
+protected:
+    float dist;
+    int Nsm;
+    // Arrays of lipid properties
+    std::vector<Local_curvature> head_props;
+    std::vector<Local_curvature> tail_props;
+    Selection head_markers;
+    Selection tail_markers;
+    std::vector<Selection> heads;
+    std::vector<Selection> tails;
+    Selection lipids;
+    int extra_frames; // Counter of created extra aux frames
+
+    void create_markers(std::vector<Selection>& lipids, Selection& markers);
+    void get_local_curvature(Selection& surf_spot, Selection* tail_spot, Local_curvature& prop);
+    void compute_surface(Selection& markers,
+                         std::vector<Selection>& tails,
+                         float d, int Nsm,
+                         std::vector<Local_curvature>& props);
+
+    void write_vmd_arrows(Selection& markers,
+                                          const std::vector<Local_curvature>& props,
+                                          std::string fname);
+
+    void write_mean_curvature_as_pdb(Selection& markers,
+                                                     const std::vector<Local_curvature>& props,
+                                                     std::string fname);
 };
 
 /*

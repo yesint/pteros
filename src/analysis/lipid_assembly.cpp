@@ -26,7 +26,6 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/unordered_map.hpp>
 #include <Eigen/Dense>
-#include <fstream>
 #include <stack>
 #include <sstream>
 
@@ -34,8 +33,8 @@ using namespace std;
 using namespace pteros;
 using namespace Eigen;
 
-Lipid_assembly::Lipid_assembly(System &system, std::string lipids_sel, string heads_sel, string tails_sel, float d, int Nsm){
-    create(system,lipids_sel,heads_sel,tails_sel,d, Nsm);
+Lipid_assembly::Lipid_assembly(System &system, std::string lipids_sel, string heads_sel, string tails_sel, float d, int Nsmooth){
+    create(system,lipids_sel,heads_sel,tails_sel,d, Nsmooth);
 }
 
 string tcl_arrow(const Vector3f& p1, const Vector3f& p2, float r, string color){
@@ -109,7 +108,7 @@ float angle_between_vectors(const Ref<const Vector3f>& v1, const Ref<const Vecto
     return acos(v1.dot(v2)/(v1.norm() * v2.norm()));
 }
 
-void get_local_curvature(Selection& surf_spot, Selection* tail_spot, Local_properties& prop){
+void Lipid_assembly::get_local_curvature(Selection& surf_spot, Selection* tail_spot, Local_curvature& prop){
 
     System* sys = surf_spot.get_system();
     int frame = surf_spot.get_frame();
@@ -160,7 +159,7 @@ void get_local_curvature(Selection& surf_spot, Selection* tail_spot, Local_prope
     fit_quad_surface(coord,res,sm,prop.fit_rms);
 
     // Get smoothed surface point in lab coords
-    prop.smoothed = tr*sm + marker_coord;
+    prop.point = tr*sm + marker_coord;
 
     /* Now compute the curvatures
 
@@ -247,49 +246,53 @@ void get_local_curvature(Selection& surf_spot, Selection* tail_spot, Local_prope
     prop.principal_directions.col(1) = lab_dirs.col(k2);
 }
 
-
-void Lipid_assembly::create(System &system, string lipids_sel, std::string heads_sel, string tails_sel, float d, int Nsm){
-    System* sys = &system;
-
-    Selection lipids(*sys,lipids_sel);
-
-    // Select all heads
-    Selection all_heads(*sys,heads_sel);
-    // Sort into individual selections by resindex
-    vector<Selection> heads;
-    all_heads.split_by_residue(heads);
-
-    // Select all tails
-    Selection all_tails(*sys,tails_sel);
-    // Sort into individual selections by resindex
-    vector<Selection> tails;
-    all_tails.split_by_residue(tails);
-
-    // Get periodic centers of masses of all heads
-    MatrixXf head_centers(3,heads.size());
-    for(int i=0;i<heads.size();++i) head_centers.col(i) = heads[i].center(true,true);
+void Lipid_assembly::create_markers(vector<Selection>& lipids,Selection& markers){
+    // Get periodic centers of masses
+    MatrixXf lip_centers(3,lipids.size());
+    for(int i=0;i<lipids.size();++i) lip_centers.col(i) = lipids[i].center(true,true);
 
     // We duplicate the frame and set first head atoms to centers of masses to get a
     // single point per lipid for grid searching
-    sys->frame_dup(0);
-    int fr = sys->num_frames()-1;
-    Selection markers(*sys);
-    for(int i=0;i<heads.size();++i) markers.append( heads[i].Index(0) );
+    lipids[0].get_system()->frame_dup(markers.get_frame());
+    ++extra_frames;
+
+    int fr = lipids[0].get_system()->num_frames()-1;
+    markers.modify(*lipids[0].get_system());
+    for(int i=0;i<lipids.size();++i) markers.append( lipids[i].Index(0) );
     markers.set_frame(fr);
-    for(int i=0;i<heads.size();++i){
-        markers.XYZ(i,fr) = head_centers.col(i);
-        heads[i].set_frame(fr);
-        tails[i].set_frame(fr);
+    for(int i=0;i<lipids.size();++i){
+        markers.XYZ(i,fr) = lip_centers.col(i);
     }
+}
+
+void Lipid_assembly::write_vmd_arrows(Selection& markers, const vector<Local_curvature>& props, string fname){
+    ofstream vis_dirs(fname);
+    for(int i=0;i<markers.size();++i){
+        vis_dirs << tcl_arrow(markers.XYZ(i),markers.XYZ(i)+props[i].principal_directions.col(0),0.5,"red");
+        vis_dirs << tcl_arrow(markers.XYZ(i),markers.XYZ(i)+props[i].principal_directions.col(1),0.5,"blue");
+        vis_dirs << tcl_arrow(markers.XYZ(i),markers.XYZ(i)+props[i].surface_normal,0.5,"green");
+    }
+    vis_dirs.close();
+}
+
+void Lipid_assembly::write_mean_curvature_as_pdb(Selection& markers, const vector<Local_curvature>& props, string fname){
+    for(int i=0;i<markers.size();++i){
+        markers.Occupancy(i) = props[i].mean_curvature*100;
+    }
+    markers.write(fname);
+}
+
+void Lipid_assembly::compute_surface(Selection& markers, vector<Selection>& tails,
+                                     float d, int Nsm,
+                                     vector<Local_curvature>& props){
+    //markers.write("before_smooth.pdb");
+    System* sys = markers.get_system();
+    int fr = markers.get_frame();
 
     // Array of smoothed points
-    MatrixXf smoothed(3,markers.size());
+    MatrixXf smoothed(3, markers.size());
 
-    ofstream vis_dirs("vis_local_dirs.tcl");
-
-    markers.write("before_smooth.pdb");
-
-    // Do several rounds of smoothing    
+    // Do several rounds of smoothing
     for(int sm_iter=0; sm_iter<Nsm; ++sm_iter){
 
         cout << "Smoothing round #" << sm_iter << endl;
@@ -302,7 +305,7 @@ void Lipid_assembly::create(System &system, string lipids_sel, std::string heads
         Grid_searcher(d,markers,bon,false,true);
 
         // Convert the list of bonds to convenient form
-        vector<vector<int> > conn(heads.size());
+        vector<vector<int> > conn(markers.size());
         for(int i=0;i<bon.size();++i){
             conn[bon[i](0)].push_back(bon[i](1));
             conn[bon[i](1)].push_back(bon[i](0));
@@ -317,32 +320,74 @@ void Lipid_assembly::create(System &system, string lipids_sel, std::string heads
             }
             local.set_frame(fr);
 
-            Local_properties prop;
-            get_local_curvature(local,&tails[i],prop);
-            smoothed.col(i) = prop.smoothed;
+            get_local_curvature(local,&tails[i],props[i]);
+            smoothed.col(i) = props[i].point;
 
-            // On last pass whow stats
-            if(sm_iter==Nsm-1){
-                cout << "gauss: " << prop.gaussian_curvature << endl;
-                cout << "mean: " << prop.mean_curvature << endl;
-                cout << "Principal curvatures: " << prop.principal_curvatures.transpose() << endl;
-                cout << "Principal directions:\n" << prop.principal_directions.transpose() << endl;
-                cout << "RMS: " << prop.fit_rms << endl;
-
-                vis_dirs << tcl_arrow(markers.XYZ(i),markers.XYZ(i)+prop.principal_directions.col(0),0.5,"red");
-                vis_dirs << tcl_arrow(markers.XYZ(i),markers.XYZ(i)+prop.principal_directions.col(1),0.5,"blue");
-                vis_dirs << tcl_arrow(markers.XYZ(i),markers.XYZ(i)+prop.surface_normal,0.5,"green");
-
-                markers.Occupancy(i) = prop.mean_curvature*100;
+            // On first pass save roughness
+            if(sm_iter==0){
+                props[i].roughness = props[i].fit_rms;
             }
+
         }
 
         // Reset positions to smoothed values
         markers.set_xyz(smoothed);
 
-        markers.write("smoothed_"+boost::lexical_cast<string>(sm_iter)+".pdb");
+        //markers.write("smoothed_"+boost::lexical_cast<string>(sm_iter)+".pdb");
+    }
+}
+
+
+void Lipid_assembly::create(System &system, string lipids_sel, std::string heads_sel, string tails_sel, float d, int Nsmooth){
+    System* sys = &system;
+
+    dist = d;
+    Nsm = Nsmooth;
+
+    lipids.modify(*sys,lipids_sel);
+
+    // Select all heads
+    Selection all_heads(*sys,heads_sel);       
+    all_heads.split_by_residue(heads);
+
+    // Select all tails
+    Selection all_tails(*sys,tails_sel);  
+    all_tails.split_by_residue(tails);
+
+    head_markers.modify(*sys);
+    tail_markers.modify(*sys);
+
+    head_props.resize(heads.size());
+    tail_props.resize(heads.size());
+
+    extra_frames = 0;
+}
+
+void Lipid_assembly::compute(int frame){
+    // If this is not the first invocation than there are two
+    // extra frames created on last invocation
+    // Delete them:
+    if(extra_frames>0){
+        head_markers.get_system()->frame_delete(head_markers.get_system()->num_frames()-extra_frames);
     }
 
-    vis_dirs.close();
+    lipids.set_frame(frame);
+    for(int i=0;i<heads.size();++i) heads[i].set_frame(frame);
+    for(int i=0;i<heads.size();++i) tails[i].set_frame(frame);
+    head_markers.set_frame(frame);
+    tail_markers.set_frame(frame);
 
+    create_markers(heads,head_markers);
+    compute_surface(head_markers,tails,dist,Nsm,head_props);
+
+    create_markers(tails,tail_markers);
+    compute_surface(tail_markers,heads,dist,Nsm,tail_props);
+}
+
+void Lipid_assembly::write_output(){
+    write_vmd_arrows(head_markers,head_props,"vis_local_dirs_heads.tcl");
+    write_mean_curvature_as_pdb(head_markers,head_props,"heads_smoothed.pdb");
+
+    write_vmd_arrows(tail_markers,tail_props,"vis_local_dirs_tails.tcl");
+    write_mean_curvature_as_pdb(tail_markers,tail_props,"tails_smoothed.pdb");
 }
