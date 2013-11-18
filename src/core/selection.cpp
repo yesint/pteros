@@ -203,7 +203,18 @@ void Selection::modify(string str){
     sel_text = str;
     boost::trim(sel_text);
     index.clear();
-    allocate_parser();       
+    allocate_parser();
+}
+
+void Selection::modify(System &sys)
+{
+    if(system){
+        delete_internal();
+    }
+    // Add selection to sys and save self-pointer
+    system = &sys;
+    frame = 0;
+    parser.reset();
 }
 
 

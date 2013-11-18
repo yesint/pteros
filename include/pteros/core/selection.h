@@ -119,6 +119,8 @@ class Selection {
     */
     void modify(std::string str);
 
+    void modify(System& sys);
+
     /// Modifies both system and selection using the range of indexes.
     /// If with_signal is true System with send signals to selection automatically.
     void modify(System& sys, int ind1, int ind2);
