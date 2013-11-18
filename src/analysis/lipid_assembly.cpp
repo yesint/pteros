@@ -108,7 +108,7 @@ float angle_between_vectors(const Ref<const Vector3f>& v1, const Ref<const Vecto
     return acos(v1.dot(v2)/(v1.norm() * v2.norm()));
 }
 
-void Lipid_assembly::get_local_curvature(Selection& surf_spot, Selection* tail_spot, Local_curvature& prop){
+void Lipid_assembly::get_local_curvature(Selection& surf_spot, Selection* tail_spot, Local_curvature& prop, bool force_flip){
 
     System* sys = surf_spot.get_system();
     int frame = surf_spot.get_frame();
@@ -126,6 +126,10 @@ void Lipid_assembly::get_local_curvature(Selection& surf_spot, Selection* tail_s
         // Compute the center of masses of tails ends
         Vector3f end = sys->Box(frame).get_closest_image(tail_spot->center(true,true),marker_coord);
         Vector3f lip_vec = marker_coord-end;
+
+        // Force reversal is asked for
+        if(force_flip) lip_vec = -lip_vec;
+
         // Now an angle between the lipid vector and normal
         float a = angle_between_vectors(axes.col(2).normalized(),lip_vec);
         //float a = acos(prop.surface_normal.dot(lip_vec)/(prop.surface_normal.norm() * lip_vec.norm()));
@@ -282,9 +286,69 @@ void Lipid_assembly::write_mean_curvature_as_pdb(Selection& markers, const vecto
     markers.write(fname);
 }
 
+Local_curvature Lipid_assembly::weighted_curvature_in_point(Vector3f &point)
+{
+    //cout << "Point: " << point.transpose() << endl;
+
+    System* sys = head_markers.get_system();
+    int fr_h = head_markers.get_frame();
+    int fr_t = tail_markers.get_frame();
+    // Find lipids around this point
+    set<int> m;
+    vector<int> bon_h, bon_t;
+    {
+        Grid_searcher g;
+        g.assign_to_grid(dist,head_markers,false,true);
+        g.search_within(point,bon_h);
+        //cout << "Heads around: " << bon_h.size() << endl;
+    }
+    {
+        Grid_searcher g;
+        g.assign_to_grid(dist,tail_markers,false,true);
+        g.search_within(point,bon_t);
+        //cout << "Tails around: " << bon_t.size() << endl;
+    }
+
+    float sum_dist = 0.0, dist, max_dist = -1.0;
+    VectorXf dist_h(bon_h.size()),dist_t(bon_t.size());
+    Local_curvature curv;
+    curv.point = point;
+
+    for(int n=0; n<bon_h.size(); ++n){
+        dist_h(n) = sys->Box(fr_h).distance(point,head_markers.XYZ(bon_h[n]));
+        if(dist_h(n)>max_dist) max_dist = dist_h(n);
+    }
+
+    for(int n=0; n<bon_t.size(); ++n){
+        dist_t(n) = sys->Box(fr_t).distance(point,tail_markers.XYZ(bon_t[n]));
+        if(dist_t(n)>max_dist) max_dist = dist_t(n);
+    }
+
+
+    for(int n=0; n<bon_h.size(); ++n){
+        // Head of lipid
+        sum_dist += max_dist-dist_h(n);
+        curv.gaussian_curvature += head_props[bon_h[n]].gaussian_curvature * (max_dist-dist_h(n));
+        curv.mean_curvature += head_props[bon_h[n]].mean_curvature * (max_dist-dist_h(n));
+    }
+
+
+    for(int n=0; n<bon_t.size(); ++n){
+        // Tail of lipid
+        sum_dist += max_dist-dist_t(n);
+        curv.gaussian_curvature += tail_props[bon_t[n]].gaussian_curvature * (max_dist-dist_t(n));
+        curv.mean_curvature += tail_props[bon_t[n]].mean_curvature * (max_dist-dist_t(n));
+    }
+
+    curv.gaussian_curvature /= sum_dist;
+    curv.mean_curvature /= sum_dist;
+
+    return curv;
+}
+
 void Lipid_assembly::compute_surface(Selection& markers, vector<Selection>& tails,
                                      float d, int Nsm,
-                                     vector<Local_curvature>& props){
+                                     vector<Local_curvature>& props, bool force_flip){
     //markers.write("before_smooth.pdb");
     System* sys = markers.get_system();
     int fr = markers.get_frame();
@@ -295,7 +359,7 @@ void Lipid_assembly::compute_surface(Selection& markers, vector<Selection>& tail
     // Do several rounds of smoothing
     for(int sm_iter=0; sm_iter<Nsm; ++sm_iter){
 
-        cout << "Smoothing round #" << sm_iter << endl;
+        cout << "\tIteration " << sm_iter << " of " << Nsm-1 << endl;
 
         // We need to re-wrap since centers of masses could be off box
         markers.wrap();
@@ -320,7 +384,7 @@ void Lipid_assembly::compute_surface(Selection& markers, vector<Selection>& tail
             }
             local.set_frame(fr);
 
-            get_local_curvature(local,&tails[i],props[i]);
+            get_local_curvature(local,&tails[i],props[i],force_flip);
             smoothed.col(i) = props[i].point;
 
             // On first pass save roughness
@@ -368,6 +432,7 @@ void Lipid_assembly::compute(int frame){
     // extra frames created on last invocation
     // Delete them:
     if(extra_frames>0){
+        cout << "Deleting " << extra_frames << " old aux frames" << endl;
         head_markers.get_system()->frame_delete(head_markers.get_system()->num_frames()-extra_frames);
     }
 
@@ -377,11 +442,16 @@ void Lipid_assembly::compute(int frame){
     head_markers.set_frame(frame);
     tail_markers.set_frame(frame);
 
+    cout << "Smoothing heads..." << endl;
     create_markers(heads,head_markers);
     compute_surface(head_markers,tails,dist,Nsm,head_props);
 
+    cout << "Smoothing tails..." << endl;
     create_markers(tails,tail_markers);
-    compute_surface(tail_markers,heads,dist,Nsm,tail_props);
+    // Tails surface should have the same normal as corresponding heads
+    // so we need to force reverse of the normals
+    compute_surface(tail_markers,heads,dist,Nsm,tail_props,true);
+
 }
 
 void Lipid_assembly::write_output(){

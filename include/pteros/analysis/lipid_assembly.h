@@ -42,11 +42,16 @@ struct Local_curvature {
     float mean_curvature;
     float fit_rms;
     float roughness;
-};
 
-struct Lipid_properties {
-    Local_curvature head;
-    Local_curvature tail;
+    Local_curvature():
+        point(Eigen::Vector3f::Zero()),
+        surface_normal(Eigen::Vector3f::Zero()),
+        principal_curvatures(Eigen::Vector2f::Zero()),
+        principal_directions(Eigen::Matrix<float,3,2>::Zero()),
+        gaussian_curvature(0.0),
+        mean_curvature(0.0),
+        fit_rms(0.0),
+        roughness(0.0) {}
 };
 
 class Lipid_assembly {
@@ -67,6 +72,11 @@ public:
 
     void compute(int frame);
     void write_output();
+    Local_curvature weighted_curvature_in_point(Eigen::Vector3f &point);
+
+    int num_lipids(){ return heads.size(); }
+    Local_curvature head_curvature(int i){ return head_props[i]; }
+    Local_curvature tail_curvature(int i){ return tail_props[i]; }
 
 protected:
     float dist;
@@ -82,11 +92,14 @@ protected:
     int extra_frames; // Counter of created extra aux frames
 
     void create_markers(std::vector<Selection>& lipids, Selection& markers);
-    void get_local_curvature(Selection& surf_spot, Selection* tail_spot, Local_curvature& prop);
+    void get_local_curvature(Selection& surf_spot, Selection* tail_spot,
+                             Local_curvature& prop,
+                             bool force_flip = false);
     void compute_surface(Selection& markers,
                          std::vector<Selection>& tails,
                          float d, int Nsm,
-                         std::vector<Local_curvature>& props);
+                         std::vector<Local_curvature>& props,
+                         bool force_flip = false);
 
     void write_vmd_arrows(Selection& markers,
                                           const std::vector<Local_curvature>& props,
@@ -97,10 +110,7 @@ protected:
                                                      std::string fname);
 };
 
-/*
-float point_in_membrane(Eigen::Vector3f& point, Selection& head_markers, float d,
-                        const Eigen::Vector3i& pbc_dims = Eigen::Vector3i::Ones());
-*/
+
 }
 
 #endif
