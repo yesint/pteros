@@ -53,31 +53,29 @@ int main(int argc, char** argv)
         */
 
 
-        System sys("/media/data/semen/trajectories/asymmetric_bicelle/no_restr/last.pdb");
-        //System sys("/media/data/semen/trajectories/grand_challenge/dump.gro");
+        //System sys("/media/data/semen/trajectories/asymmetric_bicelle/no_restr/last.pdb");
+        System sys("/media/data/semen/trajectories/grand_challenge/dump.gro");
         //System sys("/home/semen/work/Projects/pteros/pteros-git-build/release/bin/dppc_vesicle.gro");
         //System sys("/home/semen/work/Projects/pteros/pteros-git-build/release/bin/dpc-vesicle.gro");
         //System sys("/home/semen/work/Projects/pteros/pteros-git-build/release/bin/pope_vesicle.gro");
 
-        /*
-        Lipid_assembly a;
-        Selection lip(sys,"resname DOPC DOPS");
-        //Selection lip(sys,"resname DPPC");
-
-        Selection(sys,"name PO4").unwrap_bonds(1.5,Vector3i(1,0,1));
+//        Selection(sys,"resname DOPC DOPS").unwrap_bonds(0.6,Vector3i(1,0,1));
+        //Selection(sys,"resname DPPC").unwrap_bonds(0.6,Vector3i(1,0,1));
         cout << "Unwrapping done" << endl;
+        Selection(sys,"resname DOPC DOPS").write("wrapped.pdb");
 
-
-        Selection(sys,"name PO4").write("wrapped.pdb");
-
+/*
         Matrix3f b = sys.Box(0).get_box();
         b.col(0) *= 2.0;
         b.col(2) *= 2.0;
         sys.Box(0).modify(b);
+*/
+        Selection(sys,"all").set_mass(1); // CG atoms may have no mass assigned
 
-        Selection(sys,"name PO4").set_mass(1); // CG atoms may have no mass assigned
-        a.create(lip,"name PO4",3.5);
-        */
+        Lipid_assembly a;
+        a.create(sys,"resname DOPC DOPS","name PO4 NC3 CNO", "name C5A C5B",2.0);
+        //a.create(sys,"resname DOPC DOPS","name C5A C5B","name PO4",3.5);
+
 
 
 // Middle: 139.699997, 3.000000, 64.099998
