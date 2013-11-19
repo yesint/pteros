@@ -295,49 +295,42 @@ Local_curvature Lipid_assembly::weighted_curvature_in_point(Vector3f &point)
     int fr_t = tail_markers.get_frame();
     // Find lipids around this point
     set<int> m;
-    vector<int> bon_h, bon_t;
-    {
+    vector<int> bon_h;
+
+    float cur_dist = dist;
+    do {
         Grid_searcher g;
-        g.assign_to_grid(dist,head_markers,false,true);
+        g.assign_to_grid(cur_dist,head_markers,false,true);
         g.search_within(point,bon_h);
-        //cout << "Heads around: " << bon_h.size() << endl;
-    }
-    {
-        Grid_searcher g;
-        g.assign_to_grid(dist,tail_markers,false,true);
-        g.search_within(point,bon_t);
-        //cout << "Tails around: " << bon_t.size() << endl;
-    }
+
+        if(bon_h.size()==0){
+            cout << "(WARNING!) no head markers within " << cur_dist << "! Increasing to " << cur_dist*1.5 << endl;
+            cur_dist *= 1.5;
+        }
+    } while(bon_h.size()==0);
 
     float sum_dist = 0.0, dist, max_dist = -1.0;
-    VectorXf dist_h(bon_h.size()),dist_t(bon_t.size());
+    VectorXf dist_h(bon_h.size()),dist_t(bon_h.size());
     Local_curvature curv;
     curv.point = point;
 
     for(int n=0; n<bon_h.size(); ++n){
         dist_h(n) = sys->Box(fr_h).distance(point,head_markers.XYZ(bon_h[n]));
+        dist_t(n) = sys->Box(fr_t).distance(point,tail_markers.XYZ(bon_h[n]));
         if(dist_h(n)>max_dist) max_dist = dist_h(n);
-    }
-
-    for(int n=0; n<bon_t.size(); ++n){
-        dist_t(n) = sys->Box(fr_t).distance(point,tail_markers.XYZ(bon_t[n]));
         if(dist_t(n)>max_dist) max_dist = dist_t(n);
     }
-
 
     for(int n=0; n<bon_h.size(); ++n){
         // Head of lipid
         sum_dist += max_dist-dist_h(n);
         curv.gaussian_curvature += head_props[bon_h[n]].gaussian_curvature * (max_dist-dist_h(n));
         curv.mean_curvature += head_props[bon_h[n]].mean_curvature * (max_dist-dist_h(n));
-    }
 
-
-    for(int n=0; n<bon_t.size(); ++n){
         // Tail of lipid
         sum_dist += max_dist-dist_t(n);
-        curv.gaussian_curvature += tail_props[bon_t[n]].gaussian_curvature * (max_dist-dist_t(n));
-        curv.mean_curvature += tail_props[bon_t[n]].mean_curvature * (max_dist-dist_t(n));
+        curv.gaussian_curvature += tail_props[bon_h[n]].gaussian_curvature * (max_dist-dist_t(n));
+        curv.mean_curvature += tail_props[bon_h[n]].mean_curvature * (max_dist-dist_t(n));
     }
 
     curv.gaussian_curvature /= sum_dist;
