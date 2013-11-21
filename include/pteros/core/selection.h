@@ -107,7 +107,7 @@ class Selection {
     void append(Selection& sel);
 
     /// Append absolute index to selection
-    void append(int ind);
+    void append(int ind, bool preserve_sel_text = true);
 
     /// Modifies both system and string in selection.
     /// If with_signal is true System with send signals to selection automatically
