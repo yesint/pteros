@@ -114,6 +114,8 @@ void Selection::delete_internal(){
     parser.reset();
     // Delete connection
     connection.disconnect();
+
+    sel_text="";
 }
 
 // Main constructor
@@ -158,14 +160,16 @@ void Selection::append(Selection &sel){
     parser.reset();
 }
 
-void Selection::append(int ind){
+void Selection::append(int ind, bool preserve_sel_text){
     if(!system) throw Pteros_error("Can't append to undefined system!");
     if(ind<0 || ind>=system->num_atoms()) throw Pteros_error("Appended index is out of bonds!");
     index.push_back(ind);
-    if(sel_text!="")
-        sel_text = "("+sel_text+") or index " + boost::lexical_cast<string>(ind);
-    else
-        sel_text = "index " + boost::lexical_cast<string>(ind);
+    if(preserve_sel_text){
+        if(sel_text!="")
+            sel_text = "("+sel_text+") or index " + boost::lexical_cast<string>(ind);
+        else
+            sel_text = "index " + boost::lexical_cast<string>(ind);
+    }
 }
 
 // Free memory used by selection.
