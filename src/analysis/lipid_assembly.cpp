@@ -251,22 +251,25 @@ void Lipid_assembly::get_local_curvature(Selection& surf_spot, Selection* tail_s
 }
 
 void Lipid_assembly::create_markers(vector<Selection>& lipids,Selection& markers){
-    // Get periodic centers of masses
+    // Get periodic centers of masses        
     MatrixXf lip_centers(3,lipids.size());
     for(int i=0;i<lipids.size();++i) lip_centers.col(i) = lipids[i].center(true,true);
 
     // We duplicate the frame and set first head atoms to centers of masses to get a
     // single point per lipid for grid searching
     lipids[0].get_system()->frame_dup(markers.get_frame());
-    ++extra_frames;
+    ++extra_frames;   
 
     int fr = lipids[0].get_system()->num_frames()-1;
     markers.modify(*lipids[0].get_system());
-    for(int i=0;i<lipids.size();++i) markers.append( lipids[i].Index(0) );
+
+    for(int i=0;i<lipids.size();++i) markers.append( lipids[i].Index(0), false );
+
     markers.set_frame(fr);
     for(int i=0;i<lipids.size();++i){
         markers.XYZ(i,fr) = lip_centers.col(i);
     }
+
 }
 
 void Lipid_assembly::write_vmd_arrows(Selection& markers, const vector<Local_curvature>& props, string fname){
@@ -286,55 +289,110 @@ void Lipid_assembly::write_mean_curvature_as_pdb(Selection& markers, const vecto
     markers.write(fname);
 }
 
-Local_curvature Lipid_assembly::weighted_curvature_in_point(Vector3f &point)
+Local_curvature Lipid_assembly::weighted_curvature_in_point(Vector3f &point,
+                                                            float cutoff,
+                                                            Selection *spot)
 {
-    //cout << "Point: " << point.transpose() << endl;
+    Local_curvature curv;
+    curv.point = point;
 
     System* sys = head_markers.get_system();
     int fr_h = head_markers.get_frame();
     int fr_t = tail_markers.get_frame();
     // Find lipids around this point
     set<int> m;
-    vector<int> bon_h;
+    vector<int> bon;
 
-    float cur_dist = dist;
+    float cur_dist;
+
+    cur_dist = (cutoff<0) ? dist : cutoff;
+
     do {
         Grid_searcher g;
         g.assign_to_grid(cur_dist,head_markers,false,true);
-        g.search_within(point,bon_h);
+        g.search_within(point,bon);
 
-        if(bon_h.size()==0){
-            cout << "(WARNING!) no head markers within " << cur_dist << "! Increasing to " << cur_dist*1.5 << endl;
+        if(bon.size()==0){
+            //cout << "(WARNING!) no head markers within " << cur_dist << "! Increasing to " << cur_dist*1.5 << endl;
             cur_dist *= 1.5;
         }
-    } while(bon_h.size()==0);
+    } while(bon.size()==0);
 
-    float sum_dist = 0.0, dist, max_dist = -1.0;
-    VectorXf dist_h(bon_h.size()),dist_t(bon_h.size());
-    Local_curvature curv;
-    curv.point = point;
+    // Make spot selection if asked
+    if(spot){
+        spot->modify(*sys);
+        for(int i=0; i<bon.size(); ++i) spot->append(head_markers.Index(bon[i]),false);
+    }
 
-    for(int n=0; n<bon_h.size(); ++n){
-        dist_h(n) = sys->Box(fr_h).distance(point,head_markers.XYZ(bon_h[n]));
-        dist_t(n) = sys->Box(fr_t).distance(point,tail_markers.XYZ(bon_h[n]));
+    // Compare orientations of the normals
+    // First point serves as a reference
+    VectorXi normal_dir(bon.size());
+    normal_dir(0) = 1; // Reference is up
+    float a;
+    int n_up = 1, n_down = 0;
+    for(int n=1; n<bon.size(); ++n){
+        a = angle_between_vectors(head_props[bon[n]].surface_normal, head_props[bon[0]].surface_normal);
+        if(a>M_PI_2){
+            normal_dir(n) = -1; // Opposite to reference
+            ++n_down;
+        } else {
+            normal_dir(n) = 1; // Same as reference
+            ++n_up;
+        }
+    }
+    // If down is more common flip everything
+    if(n_down>n_up) normal_dir = -normal_dir;
+
+    float sum_dist = 0.0, max_dist = -1.0;
+    VectorXf dist_h(bon.size()),dist_t(bon.size());
+
+    for(int n=0; n<bon.size(); ++n){
+        //dist_h(n) = sys->Box(fr_h).distance(point,head_markers.XYZ(bon[n]));
+        //dist_t(n) = sys->Box(fr_t).distance(point,tail_markers.XYZ(bon[n]));
+        dist_h(n) = sys->Box(fr_h).distance(point,head_props[bon[n]].point);
+        dist_t(n) = sys->Box(fr_t).distance(point,tail_props[bon[n]].point);
         if(dist_h(n)>max_dist) max_dist = dist_h(n);
         if(dist_t(n)>max_dist) max_dist = dist_t(n);
     }
 
-    for(int n=0; n<bon_h.size(); ++n){
+    // Distance from the up surface is returned in roughness field!
+
+    for(int n=0; n<bon.size(); ++n){
         // Head of lipid
         sum_dist += max_dist-dist_h(n);
-        curv.gaussian_curvature += head_props[bon_h[n]].gaussian_curvature * (max_dist-dist_h(n));
-        curv.mean_curvature += head_props[bon_h[n]].mean_curvature * (max_dist-dist_h(n));
+        curv.gaussian_curvature += head_props[bon[n]].gaussian_curvature * (max_dist-dist_h(n)) * normal_dir(n);
+        curv.mean_curvature += head_props[bon[n]].mean_curvature * (max_dist-dist_h(n)) * normal_dir(n);
+        curv.surface_normal += head_props[bon[n]].surface_normal * (max_dist-dist_h(n)) * normal_dir(n);
 
         // Tail of lipid
         sum_dist += max_dist-dist_t(n);
-        curv.gaussian_curvature += tail_props[bon_h[n]].gaussian_curvature * (max_dist-dist_t(n));
-        curv.mean_curvature += tail_props[bon_h[n]].mean_curvature * (max_dist-dist_t(n));
+        curv.gaussian_curvature += tail_props[bon[n]].gaussian_curvature * (max_dist-dist_t(n)) * normal_dir(n);
+        curv.mean_curvature += tail_props[bon[n]].mean_curvature * (max_dist-dist_t(n)) * normal_dir(n);
+        curv.surface_normal += tail_props[bon[n]].surface_normal * (max_dist-dist_t(n)) * normal_dir(n);
     }
 
     curv.gaussian_curvature /= sum_dist;
     curv.mean_curvature /= sum_dist;
+    curv.surface_normal = (curv.surface_normal/sum_dist).normalized().eval();
+
+    // Find minimal distance to up point
+    float min_dist = 1e20;
+    int min_ind = -1;
+    for(int n=0; n<bon.size(); ++n){
+        if(normal_dir(n)>0){ // Only count up surface for distance!
+            if(dist_h(n)<min_dist){
+                min_dist = dist_h(n);
+                min_ind = n;
+            }
+        }
+    }
+    // vector from point to corresponding head
+    Vector3f v = head_props[bon[min_ind]].point -
+            sys->Box(fr_h).get_closest_image(point,head_props[bon[min_ind]].point);
+    // Project v onto weighted normal --> distance
+    curv.roughness = v.dot(curv.surface_normal);
+
+    //cout << tcl_arrow(point,point+curv.surface_normal,0.5,"yellow") << endl;
 
     return curv;
 }
@@ -421,12 +479,15 @@ void Lipid_assembly::create(System &system, string lipids_sel, std::string heads
 }
 
 void Lipid_assembly::compute(int frame){
+
+    clock_t t1 = clock();
     // If this is not the first invocation than there are two
     // extra frames created on last invocation
     // Delete them:
     if(extra_frames>0){
         cout << "Deleting " << extra_frames << " old aux frames" << endl;
         head_markers.get_system()->frame_delete(head_markers.get_system()->num_frames()-extra_frames);
+        extra_frames = 0;
     }
 
     lipids.set_frame(frame);
@@ -443,8 +504,10 @@ void Lipid_assembly::compute(int frame){
     create_markers(tails,tail_markers);
     // Tails surface should have the same normal as corresponding heads
     // so we need to force reverse of the normals
-    compute_surface(tail_markers,heads,dist,Nsm,tail_props,true);
+    compute_surface(tail_markers,heads,dist,Nsm,tail_props,true);    
 
+    clock_t t2 = clock();
+    cout << "Computation time: " << (t2-t1)/(float)CLOCKS_PER_SEC << endl;
 }
 
 void Lipid_assembly::write_output(){

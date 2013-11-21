@@ -72,11 +72,18 @@ public:
 
     void compute(int frame);
     void write_output();
-    Local_curvature weighted_curvature_in_point(Eigen::Vector3f &point);
+
+    /// Distance from the up surface is returned in roughness field!
+    Local_curvature weighted_curvature_in_point(Eigen::Vector3f &point,
+                                                float cutoff=-1.0,
+                                                Selection* spot = NULL);
 
     int num_lipids(){ return heads.size(); }
     Local_curvature head_curvature(int i){ return head_props[i]; }
     Local_curvature tail_curvature(int i){ return tail_props[i]; }
+
+    Selection* get_head_markers_selection(){ return &head_markers; }
+    Selection* get_tail_markers_selection(){ return &tail_markers; }
 
 protected:
     float dist;
