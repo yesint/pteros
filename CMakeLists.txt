@@ -84,13 +84,18 @@ IF(NO_CPP11)
 ENDIF()
 
 add_subdirectory(src/core)
-add_subdirectory(src/test)
 add_subdirectory(src/analysis)
 add_subdirectory(src/python)
 add_subdirectory(src/python/bindings)
 add_subdirectory(src/python/compiled_analysis_plugins)
 add_subdirectory(src/examples)
 add_subdirectory(src/core/sasa)
+
+if(NO_CPP11)
+    message("Test program is disabled in NO_CPP11 mode")
+else()
+    add_subdirectory(src/test)
+endif()
 
 # Install headers
 install(DIRECTORY include DESTINATION .)
