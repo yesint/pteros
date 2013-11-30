@@ -24,7 +24,6 @@
 #include "pteros/core/grid_search.h"
 #include "pteros/analysis/trajectory_processor.h"
 #include "pteros/analysis/rmsf.h"
-#include "pteros/analysis/lipid_assembly.h"
 #include "pteros/core/mol_file.h"
 #include <string>
 
@@ -69,14 +68,14 @@ int main(int argc, char** argv)
         b.col(0) *= 2.0;
         b.col(2) *= 2.0;
         sys.Box(0).modify(b);
-*/
+
         Selection(sys,"all").set_mass(1); // CG atoms may have no mass assigned
 
         Lipid_assembly a;
         a.create(sys,"resname DOPC DOPS","name PO4 NC3 CNO", "name C5A C5B",2.0);
         //a.create(sys,"resname DOPC DOPS","name C5A C5B","name PO4",3.5);
 
-
+*/
 
 // Middle: 139.699997, 3.000000, 64.099998
 // Edge    152.800003, 0.200000, 166.800003
