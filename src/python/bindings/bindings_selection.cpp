@@ -349,6 +349,18 @@ float Selection_rmsd2(Selection* s, int fr1, int fr2){
     return s->rmsd(fr1,fr2);
 }
 
+void Selection_append1(Selection* s, Selection& sel){
+    s->append(sel);
+}
+
+void Selection_append2(Selection* s, int i){
+    s->append(i);
+}
+
+void Selection_append3(Selection* s, int i, bool with_text){
+    s->append(i,with_text);
+}
+
 
 boost::python::tuple Selection_inertia1(Selection* s, bool periodic){
     Vector3f moments;
@@ -551,5 +563,9 @@ void make_bindings_Selection(){
 
         .def("getTag",&Selection_getTag)
         .def("setTag",&Selection_setTag)
+
+        .def("append",&Selection_append1)
+        .def("append",&Selection_append2)
+        .def("append",&Selection_append3)
     ;
 }
