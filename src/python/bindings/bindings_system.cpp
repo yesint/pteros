@@ -306,8 +306,6 @@ void make_bindings_System(){
         .add_property("coord",&Frame_get_coord,&Frame_set_coord)
         .def_readwrite("t", &Frame::t)
         .add_property("box",&Frame_get_box,&Frame_set_box)
-        // Add pickling support to enable multiprocessing
-        .enable_pickling()
     ;
 
     class_<Periodic_box>("Periodic_box", init<>())
