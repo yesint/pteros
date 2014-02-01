@@ -28,6 +28,7 @@ BOOST_PYTHON_MODULE(_name) \
 #else //STANDALONE_PLUGINS
 
 // Make a stand-alone executable from this plugin
+
 #include "pteros/core/pteros_error.h"
 #include "pteros/python/compiled_plugin_base.h"
 
@@ -42,11 +43,35 @@ int main(int argc, char** argv){\
         Trajectory_processor engine(options);\
         _name task(&engine,&options);\
         task.label = #_name;\
+        cout << "-------------------------------------------------------------" << endl;\
+        cout << "  This is stand-alone Pteros analysis plugin " #_name << endl;\
+        cout << "-------------------------------------------------------------" << endl;\
+        if(options.count_options("trajectory")==0 && options.count_options("help")==0){\
+            cout << "Usage:" << endl;\
+            cout << "\tpteros_" #_name " --trajectory[<traj options>] <task options>" << endl;\
+            cout << "\n\tFor specific task options use '--help task'" << endl;\
+            cout << "\tFor trajectory processing options use '--help traj'" << endl;\
+            cout << "\tFor all available options use '--help all' or just '--help'" << endl;\
+            return 1;\
+        }\
+        if(options.count_options("help")>0){\
+            string help = options.get_value<string>("help","");\
+            if(help=="traj"){\
+                cout << engine.help() << endl;\
+            } else if(help=="task"){\
+                cout << task.help() << endl;\
+            } else {\
+                cout << task.help() << endl;\
+                cout << engine.help() << endl;\
+            }\
+            return 1;\
+        }\
         engine.run();\
     } catch(const Pteros_error& e) {\
         cout << e.what() << endl;\
     }\
 }
+
 
 #endif //STANDALONE_PLUGINS
 
