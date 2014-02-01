@@ -1,3 +1,25 @@
+/*
+ *
+ *                This source code is part of
+ *                    ******************
+ *                    ***   Pteros   ***
+ *                    ******************
+ *                 molecular modeling library
+ *
+ * Copyright (c) 2009-2013, Semen Yesylevskyy
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of Artistic License:
+ *
+ * Please note, that Artistic License is slightly more restrictive
+ * then GPL license in terms of distributing the modified versions
+ * of this software (they should be approved first).
+ * Read http://www.opensource.org/licenses/artistic-license-2.0.php
+ * for details. Such license fits scientific software better then
+ * GPL because it prevents the distribution of bugged derivatives.
+ *
+*/
+
 #ifndef COMPILED_PLUGIN_H
 #define COMPILED_PLUGIN_H
 
@@ -44,7 +66,7 @@ int main(int argc, char** argv){\
         _name task(&engine,&options);\
         task.label = #_name;\
         cout << "-------------------------------------------------------------" << endl;\
-        cout << "  This is stand-alone Pteros analysis plugin " #_name << endl;\
+        cout << "  This is stand-alone Pteros analysis plugin '" #_name "'" << endl;\
         cout << "-------------------------------------------------------------" << endl;\
         if(options.count_options("trajectory")==0 && options.count_options("help")==0){\
             cout << "Usage:" << endl;\

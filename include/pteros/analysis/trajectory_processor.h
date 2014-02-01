@@ -43,7 +43,7 @@
 namespace pteros {
 
 /** The base class for trajectory processing
-*   It provides facilities for loading large trajectories by chunks
+*   It provides facilities for loading large trajectories by frames
 *   and to analyze each frame by user-defined function.
 *   The range of processing could be given
 *   by frame number or by physical time.
@@ -73,8 +73,6 @@ class Trajectory_processor {
         /// Do computation
         virtual void run();
 
-        void run2();
-
         /// Print summary of allowed options    
         std::string help();
 
@@ -100,15 +98,7 @@ class Trajectory_processor {
         */
         Options_tree* options;
 
-
         int log_interval;
-/*
-int abs_frame; // Absolte frame index
-        int valid_frame; // Valid frame index
-        // Saved first frame and time
-        int saved_first_frame;
-        float saved_first_time;
-        */
 
         bool is_frame_valid(int fr, float t);
         bool is_end_of_interval(int fr, float t);
