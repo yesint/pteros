@@ -1142,8 +1142,7 @@ void Selection::distribute(Eigen::Vector3i &ncopies, Eigen::Vector3f &shift){
     }
 }
 
-void Selection::notify_slot(System_notification code, int b, int e){
-    cout << "*** " << system << " " << get_text() << endl;
+void Selection::notify_slot(System_notification code, int b, int e){    
     // Process notifications from the system
     switch(code){
     case TOPOLOGY_CHANGED:
