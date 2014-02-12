@@ -360,7 +360,7 @@ class Selection {
     void fit_trajectory(int ref_frame=0, int b=0, int e=-1);
 
     /// Returns fitting transformation for two given selections of the same size
-    friend Eigen::Affine3f fit_transform(Selection&, Selection&);    
+    friend Eigen::Affine3f fit_transform(Selection& sel1, Selection& sel2);
 
     /// Returns fit transformation between frames fr1 and fr2
     Eigen::Affine3f fit_transform(int fr1, int fr2);
