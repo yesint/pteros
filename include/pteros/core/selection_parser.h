@@ -6,7 +6,7 @@
  *                    ******************
  *                 molecular modeling library
  *
- * Copyright (c) 2009-2013, Semen Yesylevskyy
+ * Copyright (c) 2009-2014, Semen Yesylevskyy
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of Artistic License:
@@ -154,11 +154,14 @@ public:
     /// Destructor
     virtual ~Selection_parser();
     /// Generates AST from selection string
-    void create_ast(std::string&);
+    void create_ast();
 
     /// Apply ast to the system. Fills the vector passed from
     /// enclosing System with selection indexes.
     void apply(System* system, long fr, std::vector<int>& result);
+
+    /// Selection text
+    std::string sel_text;
 
 private:
     // Tokenizer stuff
