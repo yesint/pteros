@@ -1062,10 +1062,8 @@ void Selection::write(string fname, int b, int e) {
 
 void Selection::each_residue(std::vector<Selection>& sel) const {
     int c,r;
-    Selection tmp(*get_system());    
+    Selection tmp(*system);
     stringstream ss;
-
-    cout << "Making selections for all residues in '" << get_text() << "'..." << endl;
 
     int n = index.size();
 
