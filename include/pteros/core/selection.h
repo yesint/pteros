@@ -107,7 +107,7 @@ class Selection {
     void append(Selection& sel);
 
     /// Append absolute index to selection
-    void append(int ind, bool preserve_sel_text = true);
+    void append(int ind);
 
     /// Modifies both system and string in selection.
     /// If with_signal is true System with send signals to selection automatically
@@ -164,6 +164,12 @@ class Selection {
     *   Subsequent call of modify() may populate it again.
     */
     void clear();
+
+    /// Returnss true if selection was created from text string and false if it was
+    /// constructed 'by hand' by appending indexes or other selections
+    bool text_based(){
+        return sel_text!="";
+    }
 
     /// Selects each residue, which is references by selection.
     /// All selections for residues are placed into supplied vector.
@@ -360,7 +366,7 @@ class Selection {
     void fit_trajectory(int ref_frame=0, int b=0, int e=-1);
 
     /// Returns fitting transformation for two given selections of the same size
-    friend Eigen::Affine3f fit_transform(Selection&, Selection&);    
+    friend Eigen::Affine3f fit_transform(Selection& sel1, Selection& sel2);
 
     /// Returns fit transformation between frames fr1 and fr2
     Eigen::Affine3f fit_transform(int fr1, int fr2);

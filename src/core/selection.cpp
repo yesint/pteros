@@ -54,8 +54,7 @@ void Selection::allocate_parser(){
     // Parse selection here
     // Parser is heavy object, so if selection is not persistent
     // we will delete it after parsing is complete
-    parser.reset();
-    parser = boost::shared_ptr<Selection_parser>(new Selection_parser);
+    parser.reset(new Selection_parser);
     parser->create_ast(sel_text);    
     parser->apply(system, frame, index);
     if(!parser->has_coord){
@@ -89,8 +88,8 @@ void Selection::create_internal(System& sys, string& str){
 
 // Aux function, which creates selection
 void Selection::create_internal(System& sys, int ind1, int ind2){
-    // Set selection string
-    sel_text = "index "+boost::lexical_cast<string>(ind1)+"-"+boost::lexical_cast<string>(ind2);
+    // No selection string
+    sel_text = "";
 
     // Add selection to sys and save self-pointer
     system = &sys;
@@ -127,7 +126,7 @@ Selection::Selection(System& sys, string str){
 Selection::Selection(System& sys){
     // Add selection to sys and save self-pointer
     system = &sys;   
-
+    sel_text = "";
     frame = 0;
     parser.reset();
 }
@@ -156,20 +155,15 @@ void Selection::append(Selection &sel){
     vector<int>::iterator it = unique(index.begin(), index.end());
     index.resize( it - index.begin() );
 
-    sel_text = "("+sel_text+") or ("+sel.sel_text+")";
+    sel_text = "";
     parser.reset();
 }
 
-void Selection::append(int ind, bool preserve_sel_text){
+void Selection::append(int ind){
     if(!system) throw Pteros_error("Can't append to undefined system!");
     if(ind<0 || ind>=system->num_atoms()) throw Pteros_error("Appended index is out of bonds!");
     index.push_back(ind);
-    if(preserve_sel_text){
-        if(sel_text!="")
-            sel_text = "("+sel_text+") or index " + boost::lexical_cast<string>(ind);
-        else
-            sel_text = "index " + boost::lexical_cast<string>(ind);
-    }
+    sel_text = "";
 }
 
 // Free memory used by selection.
@@ -179,6 +173,7 @@ void Selection::clear(){
     index.clear();
     // If parser is present (persistent), delete it
     parser.reset();
+    sel_text = "";
 }
 
 // Modifies both system and text in selection
@@ -210,8 +205,7 @@ void Selection::modify(string str){
     allocate_parser();
 }
 
-void Selection::modify(System &sys)
-{
+void Selection::modify(System &sys){
     if(system){
         delete_internal();
     }
@@ -219,6 +213,7 @@ void Selection::modify(System &sys)
     system = &sys;
     frame = 0;
     parser.reset();
+    sel_text = "";
 }
 
 
@@ -226,7 +221,7 @@ void Selection::modify(int ind1, int ind2){
     if(system==NULL) Pteros_error("Selection does not belong to the system!");
     parser.reset();
     // re-create selection
-    sel_text = "index "+boost::lexical_cast<string>(ind1)+"-"+boost::lexical_cast<string>(ind2);
+    sel_text = "";
     // By default points to frame 0
     frame = 0;
     // Populate selection directly
@@ -239,12 +234,11 @@ void Selection::modify(std::vector<int> &ind){
     parser.reset();
     // By default points to frame 0
     frame = 0;
-    sel_text = "index";
+    sel_text = "";
     // Create text and populate selection
     index.clear();
     for(int i=0; i<ind.size(); ++i){
-        index.push_back(ind[i]);
-        sel_text += " " + boost::lexical_cast<string>(ind[i]);
+        index.push_back(ind[i]);        
     }
 }
 
@@ -253,12 +247,11 @@ void Selection::modify(std::vector<int>::iterator it1, std::vector<int>::iterato
     parser.reset();
     // By default points to frame 0
     frame = 0;
-    sel_text = "index";
+    sel_text = "";
     // Create text and populate selection
     index.clear();
     while(it1!=it2){
-        index.push_back(*it1);
-        sel_text += " " + boost::lexical_cast<string>(*it1);
+        index.push_back(*it1);        
         it1++;
     }
 }
@@ -285,7 +278,8 @@ Selection& Selection::operator=(Selection sel){
     }
 
     if(sel.parser){
-        allocate_parser();
+        parser.reset(new Selection_parser);
+        *parser = *(sel.parser);
     };
 
     return *this;
@@ -321,13 +315,14 @@ Selection::Selection(const Selection& sel){
 
     // If parser in sel is persistent, allocate it
     if(sel.parser){
-        allocate_parser();
+        parser.reset(new Selection_parser);
+        *parser = *(sel.parser);
     }
 }
 
 // Update selection (re-parse selection text)
 void Selection::update(){
-    modify(sel_text);
+    if(sel_text!="") modify(sel_text);
 }
 
 // Re-apply AST tree for coordinate-dependent selections
@@ -337,7 +332,6 @@ void Selection::apply(){
         parser->apply(system, frame, index);
     }
 }
-
 
 void Selection::set_frame(int fr){
     if(fr>=0 && fr < system->traj.size()){
