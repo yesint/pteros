@@ -6,7 +6,7 @@
  *                    ******************
  *                 molecular modeling library
  *
- * Copyright (c) 2009-2014, Semen Yesylevskyy
+ * Copyright (c) 2009-2013, Semen Yesylevskyy
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of Artistic License:
@@ -54,13 +54,6 @@ int main(int argc, char** argv)
 
         //System sys("/media/data/semen/trajectories/asymmetric_bicelle/no_restr/last.pdb");
         System sys("/media/data/semen/trajectories/grand_challenge/dump.gro");
-
-        Selection sel1(sys,"name ROH");
-        Selection sel2;
-        sel2 = sel1;
-        cout << sel1.size() << " " << sel2.size() << endl;
-        cout << sel1.get_text() << endl;
-        cout << sel2.get_text() << endl;
         //System sys("/home/semen/work/Projects/pteros/pteros-git-build/release/bin/dppc_vesicle.gro");
         //System sys("/home/semen/work/Projects/pteros/pteros-git-build/release/bin/dpc-vesicle.gro");
         //System sys("/home/semen/work/Projects/pteros/pteros-git-build/release/bin/pope_vesicle.gro");

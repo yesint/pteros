@@ -6,7 +6,7 @@
  *                    ******************
  *                 molecular modeling library
  *
- * Copyright (c) 2009-2014, Semen Yesylevskyy
+ * Copyright (c) 2009-2013, Semen Yesylevskyy
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of Artistic License:
@@ -107,7 +107,7 @@ class Selection {
     void append(Selection& sel);
 
     /// Append absolute index to selection
-    void append(int ind);
+    void append(int ind, bool preserve_sel_text = true);
 
     /// Modifies both system and string in selection.
     /// If with_signal is true System with send signals to selection automatically
@@ -561,6 +561,10 @@ class Selection {
     /// @}
 
 protected:
+    // Row text of selection
+    std::string sel_text;
+    // Used with << operator
+    std::ostringstream ss;
     // Indexes of atoms in selection
     std::vector<int> index;
     // Pointer to target system
@@ -571,7 +575,7 @@ protected:
 
     // Holds an instance of selection parser
     boost::shared_ptr<Selection_parser> parser;
-    void allocate_parser(std::string &sel_text);
+    void allocate_parser();
 
     // Private functions for creating selection
     void create_internal(System& sys, std::string& str);

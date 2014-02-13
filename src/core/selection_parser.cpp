@@ -6,7 +6,7 @@
  *                    ******************
  *                 molecular modeling library
  *
- * Copyright (c) 2009-2014, Semen Yesylevskyy
+ * Copyright (c) 2009-2013, Semen Yesylevskyy
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of Artistic License:
@@ -712,11 +712,11 @@ bool is_node_pure(AstNode_ptr& node){
     return true;
 }
 
-void Selection_parser::create_ast(){
+void Selection_parser::create_ast(string& sel_str){
 #ifdef _DEBUG_PARSER
 	cout << "Going to create AST from: " << sel_str <<endl;
 #endif
-    tokenize(sel_text);
+    tokenize(sel_str);
     Grammar gr(this);
     int pos = gr.run(tree);
     if(pos!=tokens.size()) throw Pteros_error("Error near token #"+boost::lexical_cast<string>(pos));
