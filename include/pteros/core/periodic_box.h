@@ -45,31 +45,47 @@ namespace pteros {
  */
 class Periodic_box {
 public:
+
+    /// Default constructor
     Periodic_box(){
         _is_periodic = false;
         _is_triclinic = false;
         _box.fill(0.0);
     }
+
+    /// Constructor from other box
     Periodic_box(const Eigen::Matrix3f& box);
+
+    /// Modify the box
     void modify(const Eigen::Matrix3f& box);
+
     /// Get stored periodic box
     Eigen::Matrix3f get_box() const {return _box;}
+
     /// Convert point from lab coordinates to box coordinates
     Eigen::Vector3f to_box(const Eigen::Vector3f& point) const { return _to_box*point; }
+
     /// Return the transformation matrix from lab coordinates to box coordinates
     const Eigen::Matrix3f& to_box_matrix() const {return _to_box;}
+
     /// Convert point from box coordinates to lab coordinates
     Eigen::Vector3f to_lab(const Eigen::Vector3f& point) const { return _to_lab*point; }
+
     /// Return the transformation matrix from box coordinates to lab coordinates
     const Eigen::Matrix3f& to_lab_matrix() const {return _to_lab;}
+
     /// Return i-th extent of the box
     float extent(int i) const {return _extents(i);}
+
     /// Return the vector of box extents
     const Eigen::Vector3f& extents() const {return _extents;}
+
     /// Is the box triclinic?
     bool is_triclinic() const {return _is_triclinic;}
-    /// Is the box set? If dalse, the system is not periodic
+
+    /// Is the box set? If false, the system is not periodic
     bool is_periodic() const {return _is_periodic;}
+
     /// Compute a periodic distance between two points in the box
     /// Periodicity is only accouted for given set of dimensions
     /// If you need a non-periodic distance over all dimensions it is more efficient
@@ -81,24 +97,29 @@ public:
                    const Eigen::Vector3f& point2,
                    bool do_wrapping = true,
                    const Eigen::Vector3i& periodic_dims = Eigen::Vector3i::Ones()) const;
+
     /// Wrap point to the box for given set of dimensions
     void wrap_point(Eigen::Vector3f& point,
                     const Eigen::Vector3i& dims_to_wrap = Eigen::Vector3i::Ones()) const;
 
     /// Finds a periodic image of point, which is closest in space to target and returns it
     /// This method wraps both point and targer to periodic box internally (this is usually what you want).
-    /// If this is not needed set do_wrapping to false, but in this case make sure
+    /// If this is not needed set @param do_wrapping to false, but in this case make sure
     /// that wrapping is done manually before! Otherwise results would be incorrect.
     Eigen::Vector3f get_closest_image(const Eigen::Vector3f& point,
                                       const Eigen::Vector3f& target,
                                       bool do_wrapping = true,
                                       const Eigen::Vector3i& dims_to_wrap = Eigen::Vector3i::Ones()) const;
+
     /// Return box volume
     float volume();
+
     /// Read box from CRYST string in PDB format
     void read_pdb_box(const char *line);
+
     /// Write box as CRYST string in PDB format
     std::string write_pdb_box() const;
+
     /// Returns representation of the box as direction vectors and angles
     void to_vectors_angles(Eigen::Vector3f& vectors, Eigen::Vector3f& angles) const;
 
