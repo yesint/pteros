@@ -52,12 +52,12 @@ class Selection_parser;
 *   Selections are created using the syntax, which is very similar to those used in VMD.
 */
 class Selection {
-  /// System and Selection are friends because they are closely integrated.
+  // System and Selection are friends because they are closely integrated.
   friend class System;
   friend class Selection_parser;
 
   public:
-    /// Ensure correct 16-bytes-alignment for Eigen sse2 optimizations
+    // Ensure correct 16-bytes-alignment for Eigen sse2 optimizations
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -130,6 +130,7 @@ class Selection {
     */
     void modify(std::string str);
 
+    /// Change system for selection (clears selection)
     void modify(System& sys);
 
     /// Modifies both system and selection using the range of indexes.   
@@ -258,6 +259,8 @@ class Selection {
 
     /// Get coordinates of all atoms in this selection for the current frame
     Eigen::MatrixXf get_xyz() const;
+
+    /// Get coordinates of all atoms in this selection for the current frame
     void get_xyz(Eigen::MatrixXf& res) const;
 
     /// Set coordinates of this selection for current frame
@@ -311,13 +314,13 @@ class Selection {
 #endif
 
     /// Computes average structure over the range of frames
-    Eigen::MatrixXf get_average(int b=0, int e=-1) const;
+    Eigen::MatrixXf average_structure(int b=0, int e=-1) const;
 
     /** Extracts X,Y,Z for given atom index for specified range of frames
         (gets trajectory of given atom).
     *   Result is returned as MatrixXf, where i-th column is an XYZ vector for frame i.
     */
-    Eigen::MatrixXf get_traj(int ind, int b=0, int e=-1) const;
+    Eigen::MatrixXf atom_traj(int ind, int b=0, int e=-1) const;
 
     /// Computes the central momens of inertia and principal axes of inertia
     void inertia(Eigen::Vector3f& moments, Eigen::Matrix3f& axes, bool periodic = false) const;

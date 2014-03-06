@@ -62,7 +62,7 @@ struct Energy_components {
     std::string to_str();
 };
 
-// Notification signals
+/// Notification signals
 enum System_notification {TOPOLOGY_CHANGED,
                           SYSTEM_CLEARED,
                           FRAMES_DELETED,
@@ -101,15 +101,19 @@ class Selection;
     not copied.
 */
 class System {
-    /// System and Selection are friends because they are closely integrated.
+    // System and Selection are friends because they are closely integrated.
     friend class Selection;
-    /// Selection_parser must access internals of Selection
+    // Selection_parser must access internals of Selection
     friend class Selection_parser;
-    /// Mol_file needs an access too
+    // Mol_file needs an access too
     friend class Mol_file;
 public:
-    /// Ensure correct 16-bytes-alignment for Eigen vectorization
+    // Ensure correct 16-bytes-alignment for Eigen vectorization
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    /// @name Constructors, operators and modification functions
+    /// @{
 
     /// Default constructor
     System();
@@ -125,37 +129,64 @@ public:
     /// Destructor
     ~System();
 
+    /// Append other system to this one
+    void append(const System& sys);
+    /// @}
+
+
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    /// @name General properties
+    /// @{
+
     /// Returns the number of frames in selection
     inline int num_frames() const { return traj.size(); }
+
     /// Returns the number of atoms in selection
     inline int num_atoms() const { return atoms.size(); }
+    /// @}
+
+
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    /// @name File IO
+    /// @{
 
     /** Read structure, trajectory or topology from file.
     */
     // Skip functionality suggested by Raul Mera
     void load(std::string fname, int b=0, int e=-1, int skip = 0);
+    /// @}
+
+
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    /// @name Operations with frames
+    /// @{
 
     /// Duplicates given frame and adds it to the end of frame vector
     void frame_dup(int);
+
+    /// Adds new frame to trajectory
+    void frame_append(const Frame& fr);
+
     /// Sets frame for all selections associated with this System
     void set_frame(int fr);
+
     /// Copy coordinates from fr1 to fr2
     void frame_copy(int fr1, int fr2);
+
     /** Delete specified range of frames.
-    *   If only b is supplied deletes all frames from b to the end.
-    *   If only e is supplied deletes all frames from 0 to e
+    *   If only @param b is supplied deletes all frames from b to the end.
+    *   If only @param e is supplied deletes all frames from 0 to e
     */
     void frame_delete(int b = 0, int e = -1);
 
     /// Get read/write reference for given frame
-    Frame& Frame_data(int fr);
+    Frame& Frame_data(int fr);       
+    /// @}
+    ///
 
-    /// Clears the system and prepares for loading completely new structure
-    void clear(bool delete_selections = false);
-    /// Updates all associated selection if the system changes somehow
-    /// Also sets frame of all selections to zero.
-    /// Only works for sekections with enabled signalling!
-    void update_selections();   
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    /// @name Inline accessors
+    /// @{
 
     /// Read/write access for periodic box for given frame
     inline Periodic_box& Box(int fr){
@@ -167,7 +198,18 @@ public:
     	return traj[fr].t;
     }
 
+    /// Read/Write access for given coordinate of given frame
+    inline Eigen::Vector3f& XYZ(int ind, int fr){
+        return traj[fr].coord[ind];
+    }
+    /// @}
+
+
 #ifndef NO_CPP11
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    /// @name Secondary structure functions
+    /// @{
+
     /// Determines secondary structure with DSSP algorithm and write detailed report to file
     void dssp(std::string fname);
 
@@ -185,37 +227,42 @@ public:
         loop:		' '
      */
     std::string dssp();
+    /// @}
 #endif
 
-    /// Read/Write access for given coordinate of given frame
-    inline Eigen::Vector3f& XYZ(int ind, int fr){
-        return traj[fr].coord[ind];
-    }    
 
-    /// Adds new frame to trajectory
-    void frame_append(const Frame& fr);
-
-    /// Assign unique resindexes
-    /// This is usually done automatically upon loading a structure from file
-    void assign_resindex();
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    /// @name Manipulating atoms
+    /// @{
 
     /// Adds new atoms, which are duplicates of existing ones by index
     void atoms_dup(const std::vector<int>& ind, Selection* res_sel = NULL);
+
     /// Adds new atoms from supplied vectors of atoms and coordinates
     void atoms_add(const std::vector<Atom>& atm,
                    const std::vector<Eigen::Vector3f>& crd,
                    Selection* res_sel = NULL);
 
+    /// Delete the set of atoms
     void atoms_delete(const std::vector<int>& ind);
+    /// @}
 
-    /// Append other system to this one
-    void append(const System& sys);
+
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    /// @name Periodicity-related functions
+    /// @{
 
     /// Get distance between two atoms for given frame (periodic in given dimensions if needed).
     float distance(int i, int j, int fr, bool is_periodic = true, const Eigen::Vector3i& dims = Eigen::Vector3i::Ones()) const;
 
     /// Wrap all system to the periodic box for given frame
     void wrap_all(int fr, const Eigen::Vector3i& dims_to_wrap = Eigen::Vector3i::Ones());
+    /// @}
+
+
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    /// @name Energy functions
+    /// @{
 
     /// Compute non-bond energy between two atoms
     /// The result is ADDED to e
@@ -224,6 +271,20 @@ public:
 
     /// Non-bond energy for given list of atom pairs
     Energy_components non_bond_energy(const std::vector<Eigen::Vector2i>& nlist, int fr);
+    /// @}
+
+
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    /// @name Utility functions
+    /// @{
+
+    /// Clears the system and prepares for loading completely new structure
+    void clear(bool delete_selections = false);
+
+    /// Updates all associated selection if the system changes somehow
+    /// Also sets frame of all selections to zero.
+    /// Only works for sekections with enabled signalling!
+    void update_selections();
 
     /// Returns true if the force field is set up properly and is able to compute energies
     bool force_field_ready(){
@@ -238,6 +299,12 @@ public:
         else
             return NULL;
     }
+
+    /// Assign unique resindexes
+    /// This is usually done automatically upon loading a structure from file
+    void assign_resindex();
+
+    /// @}
 
 protected:
     /// Signal passed to associated selections when they have to react to changes in the system

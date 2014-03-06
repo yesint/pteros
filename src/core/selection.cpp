@@ -558,7 +558,7 @@ void Selection::get_xyz(MatrixXf& res) const {
 
 
 // Compute average structure
-MatrixXf Selection::get_average(int b, int e) const {
+MatrixXf Selection::average_structure(int b, int e) const {
     MatrixXf res;
     int i,n,fr;
     n = index.size();
@@ -1082,7 +1082,7 @@ void Selection::each_residue(std::vector<Selection>& sel) const {
 }
 
 
-MatrixXf Selection::get_traj(int ind, int b, int e) const {
+MatrixXf Selection::atom_traj(int ind, int b, int e) const {
     if(e==-1) e = system->num_frames()-1;
     // Sanity check
     if(ind<0 || ind>=index.size()) throw Pteros_error("Selection index is out of range!");

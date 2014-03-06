@@ -68,7 +68,7 @@ void Selection_set_xyz(Selection* s, PyObject* data){
 PyObject* Selection_get_average1(Selection* s, int b, int e){
     CREATE_PYARRAY_2D(p,3,s->size())
     MAP_EIGEN_TO_PYARRAY(data,MatrixXf,p)
-    data = s->get_average(b,e);
+    data = s->average_structure(b,e);
     return boost::python::incref(p);
 }
 
@@ -103,7 +103,7 @@ void Selection_set_mass2(Selection* s, float data){
 PyObject* Selection_get_traj3(Selection* s, int ind, int b, int e){
     CREATE_PYARRAY_2D(p,3,s->get_system()->num_frames())
     MAP_EIGEN_TO_PYARRAY(data,MatrixXf,p)
-    data = s->get_traj(ind,b,e);
+    data = s->atom_traj(ind,b,e);
     return boost::python::incref(p);
 }
 
