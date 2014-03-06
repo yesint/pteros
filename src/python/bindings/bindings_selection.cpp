@@ -80,7 +80,6 @@ PyObject* Selection_get_average3(Selection* s){
     return Selection_get_average1(s, 0, -1);
 }
 
-
 boost::python::list Selection_get_mass(Selection* s){
     boost::python::list l;
     vector<float> r = s->get_mass();

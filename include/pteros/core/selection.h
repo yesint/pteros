@@ -60,19 +60,20 @@ class Selection {
     /// Ensure correct 16-bytes-alignment for Eigen sse2 optimizations
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    /// @name Constructors and basic operators
+    /// @{
+
     /** Main constructor.
     *   @param sys System pointed by this selection
-    *   @param str Selection string
-    *   if with_signal is true System with send signals to selection automatically
+    *   @param str Selection string    
     */
     Selection(System& sys, std::string str);
 
-    /** Constructor with delayed parsing.
+    /** Constructor with delayed parsing of selection text.
     *   Associates selection with the system @param sys,
         but does not parse selection.
-    *   Selection text should be passed later by overloaded << operator or by
-    *   calling modify() function.
-    *   if with_signal is true System with send signals to selection automatically
+    *   Selection text should be passed later by calling modify().
     */
     Selection(System& sys);
 
@@ -83,7 +84,9 @@ class Selection {
         instead of selection string.
         It is much faster then parsing corresponding string, but is limited
         to contigous interval of indexes.
-        if with_signal is true System with send signals to selection automatically
+        @param sys System pointed by this selection
+        @param ind1 First index in interval
+        @param ind2 Last index in interval (inclusive!)
      */
     Selection(System& sys, int ind1, int ind2);
 
@@ -93,9 +96,12 @@ class Selection {
     /// Copy constructor
     Selection(const Selection&);
 
-    /// Equality operators
+    /// Equality operator
+    /// Selection are compared by their indexes
     bool operator==(const Selection &other) const;
 
+    /// Inequality operator
+    /// /// Selection are compared by their indexes
     bool operator!=(const Selection &other) const {
         return !(*this == other);
     }
@@ -103,14 +109,19 @@ class Selection {
     /// Destructor
     ~Selection();
 
+    /// @}
+
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    /// @name Modification of existing selection
+    /// @{
+
     /// Append another selection to this one. Acts like logical "OR" between selections.
     void append(Selection& sel);
 
     /// Append absolute index to selection
     void append(int ind);
 
-    /// Modifies both system and string in selection.
-    /// If with_signal is true System with send signals to selection automatically
+    /// Modifies both system and string in selection.    
     void modify(System& sys, std::string str);
 
     /** Modifies selection string in existing selection.
@@ -121,8 +132,7 @@ class Selection {
 
     void modify(System& sys);
 
-    /// Modifies both system and selection using the range of indexes.
-    /// If with_signal is true System with send signals to selection automatically.
+    /// Modifies both system and selection using the range of indexes.   
     void modify(System& sys, int ind1, int ind2);
 
     /// Modifies selection using the range of indexes
@@ -132,7 +142,7 @@ class Selection {
     void modify(std::vector<int>& ind);
 
     /// Modifies selection using pair of iterators to index array
-    void modify(std::vector<int>::iterator it1, std::vector<int>::iterator it2);
+    void modify(std::vector<int>::iterator it1, std::vector<int>::iterator it2);    
 
     /** Recomputes selection without re-parsing selection text.
     *   Only makes sense for coordinate-dependent selections when the coordinates change.
@@ -147,120 +157,136 @@ class Selection {
     */
     void update();
 
-    /// @name Frame functions
-    /// @{
-
-    /// Get current frame selection is pointing to
-    int get_frame() const {return frame;}
-    /// Set current frame for selection
-    void set_frame(int fr);
-    /// @}
-
-    /// Get the size of selection
-    int size() const {return index.size();}
-
     /** Clears selection and frees memory, but do not delete it.
     *   Selection remains registered in parent system, but is cleared from any data.
     *   Subsequent call of modify() may populate it again.
     */
     void clear();
+    /// @}
 
-    /// Returnss true if selection was created from text string and false if it was
-    /// constructed 'by hand' by appending indexes or other selections
-    bool text_based(){
-        return sel_text!="";
+
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    /// @name Iterator access
+    /// @{
+
+    /// Get const iterator for begin of index
+    std::vector<int>::const_iterator index_begin() const { return index.begin(); }
+
+    /// Get const iterator for the end of index
+    std::vector<int>::const_iterator index_end() const { return index.end(); }
+
+    /// Get back_insert_iterator for index
+    std::back_insert_iterator<std::vector<int> > index_back_inserter() {
+        return std::back_inserter(index);
     }
+    /// @}
 
-    /// Selects each residue, which is references by selection.
-    /// All selections for residues are placed into supplied vector.
-    /// Handles multiple chains correctly
-    /// If with_signal is true selections are created with automatic signalling from parent system
-    void each_residue(std::vector<Selection>& sel) const;
 
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     /// @name Get and set functions
     /// @{
 
+    /// Get current frame selection is pointing to
+    int get_frame() const {return frame;}
+
+    /// Set current frame for selection
+    void set_frame(int fr);
+
     /// Get pointer to the system, which owns this selection
     System* get_system() const { return system; }
+
     /// Get selection text
     std::string get_text() const;
+
     /// Get vector of all indexes in selection
-    std::vector<int> get_index() const { return index; }
-    /// Get const iterator for begin of index
-    std::vector<int>::const_iterator index_begin() const { return index.begin(); }
-    /// Get const iterator for the end of index
-    std::vector<int>::const_iterator index_end() const { return index.end(); }
+    std::vector<int> get_index() const { return index; }    
+
     /// Get vector of all chains in selection
     std::vector<char> get_chain() const;
+
     /// Set chains from supplied vector.
     /// Its size must be the save as the size of selection.
     void set_chain(const std::vector<char>& data);
+
     /// Sets chain of all selected atoms to the same given value.
     void set_chain(char data);
+
     /// Get vector of unique chains in selection
     std::vector<char> get_unique_chain() const;
+
     /// Get vector of all resid's in selection
     /// This works correctly inside one chain only!
     /// For multiple chains resid's will overlap.
     std::vector<int> get_resid() const;
+
     /// Get vector of unique resid's in selection
     std::vector<int> get_unique_resid() const;
+
     /// Set resid's in selection from supplied vector.
     /// Its size must be the save as the size of selection.
     void set_resid(const std::vector<int>& data);
+
     /// Sets resid of all selected atoms to the same given value.
     void set_resid(int data);
+
     /// Get vector of all resindexes in selection. Resindexes are unique
     /// regardless the number of the chains.
     std::vector<int> get_resindex() const;
+
     /// Get vector of unique resindexes's in selection
     std::vector<int> get_unique_resindex() const;
+
     /// Get vector of all atom names in selection
     std::vector<std::string> get_name() const;
+
     /// Set atom names in selection from supplied vector.
     /// Its size must be the save as the size of selection.
     void set_name(const std::vector<std::string>& data);
+
     /// Sets atom names of all selected atoms to the same given value.
     void set_name(std::string& data);
 
     /// Get vector of all resnames in selection
     std::vector<std::string> get_resname() const;
+
     /// Set resnames in selection from supplied vector.
     /// Its size must be the save as the size of selection.
     void set_resname(const std::vector<std::string>& data);
+
     /// Sets resnames of all selected atoms to the same given value.
     void set_resname(std::string& data);
 
-    /// Get coordinates of all atoms in this selection for current frame
+    /// Get coordinates of all atoms in this selection for the current frame
     Eigen::MatrixXf get_xyz() const;
     void get_xyz(Eigen::MatrixXf& res) const;
+
     /// Set coordinates of this selection for current frame
-    void set_xyz(const Eigen::MatrixXf& coord);
-    /// Computes average structure over the range of frames
-    Eigen::MatrixXf get_average(int b=0, int e=-1) const;
+    void set_xyz(const Eigen::MatrixXf& coord);        
+
     /// Get masses of all atoms in selection
     std::vector<float> get_mass() const;
+
     /// Set atom masses in selection to the values from supplied vector.
     /// Its size must be the save as the size of selection.
     void set_mass(const std::vector<float> m);
+
     /// Sets masses of all selected atoms to the same given value.
-    void set_mass(float data);
-    /** Extracts X,Y,Z for given atom index for specified range of frames
-        (gets trajectory of given atom).
-    *   Result is returned as MatrixXf, where i-th column is an XYZ vector for frame i.    
-    */
-    Eigen::MatrixXf get_traj(int ind, int b=0, int e=-1) const;
+    void set_mass(float data);        
 
     /// Get beta
     std::vector<float> get_beta() const;
+
     /// Set beta in selection to the values from supplied vector.
     /// Its size must be the save as the size of selection.
     void set_beta(std::vector<float>& data);
+
     /// Sets beta of all selected atoms to the same given value.
     void set_beta(float data);    
     /// @}
 
-    /// @name Inquery functions
+
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    /// @name Computing properties of selection
     /// @{
 
     /** Get the center of selection.
@@ -270,6 +296,7 @@ class Selection {
     * any dimension you will get incorrect results if periodic is set to true.
     */
     Eigen::Vector3f center(bool mass_weighted = false, bool periodic = false) const;
+
     /// Get minimal and maximal coordinates in selection
     void minmax(Eigen::Vector3f& min, Eigen::Vector3f& max) const;
 
@@ -282,29 +309,51 @@ class Selection {
                std::vector<float>* area_per_atom = NULL,
                std::vector<float>* volume_per_atom = NULL);
 #endif
+
+    /// Computes average structure over the range of frames
+    Eigen::MatrixXf get_average(int b=0, int e=-1) const;
+
+    /** Extracts X,Y,Z for given atom index for specified range of frames
+        (gets trajectory of given atom).
+    *   Result is returned as MatrixXf, where i-th column is an XYZ vector for frame i.
+    */
+    Eigen::MatrixXf get_traj(int ind, int b=0, int e=-1) const;
+
+    /// Computes the central momens of inertia and principal axes of inertia
+    void inertia(Eigen::Vector3f& moments, Eigen::Matrix3f& axes, bool periodic = false) const;
+
+    /// Computes radius of gyration for selection
+    float gyration(bool periodic = false) const;
     /// @}
 
+
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     /// @name Geometry transformation functions
     /// @{
 
     /// Translate selection by given vector
     void translate(const Eigen::Vector3f&);
-    /// Rotate around given axis relative to cm
+
+    /// Rotate selection around given axis relative to center of masses
     /// @param axis Axis of rotation 0=X, 1=Y, 2=Z
     /// @param angle Rotation angle in radians
     void rotate(int axis, float angle);
-    /// Rotate around given axis relative to given pivot
+
+    /// Rotate selection around given axis relative to given pivot
     /// @param axis Axis of rotation 0=X, 1=Y, 2=Z
     /// @param angle Rotation angle in radians
     /// @param pivot Rotation around this pivot
     void rotate(int axis, float angle, const Eigen::Vector3f& pivot);
-    /// Rotate around given vector relative to given pivot
+
+    /// Rotate selection around given vector relative to given pivot
     /// @param direction Rotate around this vector
     /// @param angle Rotation angle in radians
     /// @param pivot Rotation around this pivot
     void rotate(const Eigen::Vector3f& direction, float angle, const Eigen::Vector3f& pivot);
+
     /// Rotation with the given 3x3 rotation matrix around point (0,0,0)
     void rotate(const Eigen::Matrix3f& m);
+
     /// Rotation by given angles around X, Y and Z with given pivot
     void rotate(const Eigen::Vector3f& angles, const Eigen::Vector3f& pivot);
 
@@ -332,13 +381,16 @@ class Selection {
 
     /** Orient molecule by its principal axes.
      * The same as
-     *
+     * \code
      * Eigen::Affine3f tr = sel.principal_transform();
      * sel.apply_transform(tr);
+     * \endcode
      */
     void principal_orient(bool is_periodic = false);
     /// @}
 
+
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     /// @name Fitting and RMSD functions
     /// @{
 
@@ -379,6 +431,7 @@ class Selection {
     /// @}
 
 
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     /// @name Energy functions
     /// @{
 
@@ -389,6 +442,8 @@ class Selection {
 
     /// @}
 
+
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     /// @name File IO
     /// @{
 
@@ -400,42 +455,69 @@ class Selection {
     /// @}
 
 
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     /// @name Building functions
     /// @{
+
     /// Duplicate current selection in the parent system
-    /// Resulting selection is born without signalling because it is intended for building purposes only
+    /// @param res_sel Pointer to selection of duplicated atoms
     void atoms_dup(Selection* res_sel = NULL);
+
     /// Delete all atoms of current selection from the parent system
+    /// Current selection becomes invalid after this!
     void atoms_delete();
+
     /// Creates multiple copies of selection in the parent system and
     /// distributes them in a grid
     void distribute(Eigen::Vector3i& ncopies, Eigen::Vector3f& shift);
     /// @}
 
-    /// @name Signals handling
+
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    /// @name Utility functions
     /// @{
+
+    /// Get the size of selection
+    int size() const {return index.size();}
+
+    /// Returnss true if selection was created from text string and false if it was
+    /// constructed 'by hand' by appending indexes or other selections
+    bool text_based(){
+        return sel_text!="";
+    }
+
     /// Enable automatic signalling from system
     void enable_signals();
+
     /// Disable automatic signalling from system
     void disable_signals();
+
     /// Returns signalling state of selection
     bool signals_enabled() const;
     /// @}
+
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    /// @name Splitting selection into parts
+    /// @{
 
     /// Split current selection into several selections according to
     /// the interatomic distances. Each resulting selection is a group
     /// of atoms connected by distances less than d
     void split_by_connectivity(float d, std::vector<Selection>& res);
 
+    /// Split selection by residue index
     void split_by_residue(std::vector<Selection>& res);
 
-    /// Computes the central momens of inertia and principal axes of inertia
-    void inertia(Eigen::Vector3f& moments, Eigen::Matrix3f& axes, bool periodic = false) const;
+    /// Selects each residue, which is referenced by selection.
+    /// All selections for residues are placed into supplied vector.
+    /// Handles multiple chains correctly.
+    /// If with_signal is true selections are created with automatic signalling from parent system.
+    void each_residue(std::vector<Selection>& sel) const;
+    /// @}
 
-    /// Computes radius of gyration for selection
-    float gyration(bool periodic = false) const;
 
-    /** @name Inlined utility functions.
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    /** @name Inlined accessors
     *   Used to access the properties of
     *   particular atom in selection. The ind passed to these functions is
     *   is the selection index, not the global system %index. I.e. passing 10 will
