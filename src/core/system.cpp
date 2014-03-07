@@ -183,13 +183,6 @@ void System::load(string fname, int b, int e, int skip){
     cout << "Stored " << num_stored << " frames. Now " << num_frames() << " frames in the System" << endl;
 }
 
-/*
-void System::compute_bonds(){
-    Selection s(*this,"all");
-    Grid_searcher(0.16,s,bonds);
-}
-*/
-
 // Update all selections
 void System::update_selections(){
     notify_signal(TOPOLOGY_CHANGED,0,0);

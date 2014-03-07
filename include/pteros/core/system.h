@@ -168,6 +168,7 @@ public:
     void frame_append(const Frame& fr);
 
     /// Sets frame for all selections associated with this System
+    /// Only works if signalling is enabled in selections!
     void set_frame(int fr);
 
     /// Copy coordinates from fr1 to fr2
@@ -321,7 +322,8 @@ protected:
     /// Force field parameters
     Force_field force_field;
 
-    /// Supplementary function to check if last added frame contains same number of atoms as topology
+    /// Supplementary function to check if last added frame contains same number
+    /// of atoms as topology
     void check_num_atoms_in_last_frame();
 };
 
