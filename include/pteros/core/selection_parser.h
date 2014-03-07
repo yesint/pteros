@@ -118,8 +118,9 @@ struct AstNode {
     char get_char_child_value(int i);
     float get_float_child_value(int i);
     bool get_bool_child_value(int i);
-    float get_float_or_int_child_value(int i);
+    float get_float_or_int_child_value(int i);    
     std::string get_str_child_value(int i);
+    boost::shared_ptr<AstNode>& get_node_child_value(int i);
 
 
 #ifdef _DEBUG_PARSER

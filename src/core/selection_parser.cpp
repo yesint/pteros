@@ -35,9 +35,9 @@
 #include <boost/variant.hpp>
 #include <boost/unordered_set.hpp>
 
-///////////////////////////////////////////////////////////////////////////////
+//-----------------------------------------------------
 //  Functions for creating actual selection from AST
-///////////////////////////////////////////////////////////////////////////////
+//-----------------------------------------------------
 using namespace std;
 using namespace pteros;
 using namespace boost;
@@ -161,6 +161,10 @@ float AstNode::get_float_or_int_child_value(int i){
         d = get_int_child_value(i);
     }
     return d;
+}
+
+AstNode_ptr& AstNode::get_node_child_value(int i){
+    return boost::get<AstNode_ptr>(children[i]);
 }
 
 bool AstNode::is_coordinate_dependent(){
@@ -886,8 +890,8 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
         // Logical OR
         vector<int> res1, res2; // Aux vectors
 
-        eval_node(boost::get<AstNode_ptr>(node->children[0]), res1, subspace);
-        eval_node(boost::get<AstNode_ptr>(node->children[1]), res2, subspace);
+        eval_node(node->get_node_child_value(0), res1, subspace);
+        eval_node(node->get_node_child_value(1), res2, subspace);
 
         // Sort
         std::sort(res1.begin(),res1.end());
@@ -901,10 +905,9 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
         // Logical AND
         vector<int> res1, res2; // Aux vectors
 
-        eval_node(boost::get<AstNode_ptr>(node->children[0]), res1, subspace);
+        eval_node(node->get_node_child_value(0), res1, subspace);
         // First operand sets a subspace for the second!
-        eval_node(boost::get<AstNode_ptr>(node->children[1]), res2, &res1);
-        //eval_node(boost::get<AstNode_ptr>(node->children[1]), res2, subspace);
+        eval_node(node->get_node_child_value(1), res2, &res1);
 
         // Sort
         std::sort(res1.begin(),res1.end());
@@ -924,11 +927,11 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
 
         for(i=0;i<Nchildren;++i){
             str = node->get_str_child_value(i);
-            if(boost::get<AstNode_ptr>(node->children[i])->code == TOK_STR){
+            if(node->get_node_child_value(i)->code == TOK_STR){
                 // For normal strings
                 for(at=0;at<Natoms;++at)
                     if(sys->atoms[at].name == str) result.push_back(at);
-            } else if(boost::get<AstNode_ptr>(node->children[i])->code == TOK_REGEX){
+            } else if(node->get_node_child_value(i)->code == TOK_REGEX){
                 // For regex
                 boost::cmatch what;
                 boost::regex reg(str);
@@ -948,12 +951,12 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
         string str;
         // Cycle over children
         for(i=0;i<Nchildren;++i){
-            str = node->get_str_child_value(i);
-            if(boost::get<AstNode_ptr>(node->children[i])->code == TOK_STR){
+            str = node->get_str_child_value(i);            
+            if(node->get_node_child_value(i)->code == TOK_STR){
                 // For normal strings
                 for(at=0;at<Natoms;++at)
                     if(sys->atoms[at].resname == str) result.push_back(at);
-            } else if(boost::get<AstNode_ptr>(node->children[i])->code == TOK_REGEX){
+            } else if(node->get_node_child_value(i)->code == TOK_REGEX){
                 // For regex
                 boost::cmatch what;
                 boost::regex reg(str);
@@ -973,11 +976,11 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
         // Cycle over children
         for(i=0;i<Nchildren;++i){
             str = node->get_str_child_value(i);
-            if(boost::get<AstNode_ptr>(node->children[i])->code == TOK_STR){
+            if(node->get_node_child_value(i)->code == TOK_STR){
                 // For normal strings
                 for(at=0;at<Natoms;++at)
                     if(sys->atoms[at].tag == str) result.push_back(at);
-            } else if(boost::get<AstNode_ptr>(node->children[i])->code == TOK_REGEX){
+            } else if(node->get_node_child_value(i)->code == TOK_REGEX){
                 // For regex
                 boost::cmatch what;
                 boost::regex reg(str);
@@ -1015,7 +1018,7 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
                     if(sys->atoms[at].resid == k) result.push_back(at);
             } catch(boost::bad_get) {
                 // Exception thrown, which means that this is a range, not an integer
-                AstNode_ptr range = boost::get<AstNode_ptr>(node->children[i]);
+                AstNode_ptr range = node->get_node_child_value(i);
                 int i1 = range->get_int_child_value(0);
                 int i2 = range->get_int_child_value(1);
                 for(k=i1;k<=i2;++k)
@@ -1039,7 +1042,7 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
                     if(sys->atoms[at].resindex == k) result.push_back(at);
             } catch(boost::bad_get) {
                 // Exception thrown, which means that this is a range, not an integer
-                AstNode_ptr range = boost::get<AstNode_ptr>(node->children[i]);
+                AstNode_ptr range = node->get_node_child_value(i);
                 int i1 = range->get_int_child_value(0);
                 int i2 = range->get_int_child_value(1);
                 for(k=i1;k<=i2;++k)
@@ -1063,7 +1066,7 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
                     result.push_back(k);
             } catch(boost::bad_get) {
                 // Exception thrown, which means that this is a range, not an integer
-                AstNode_ptr range = boost::get<AstNode_ptr>(node->children[i]);
+                AstNode_ptr range = node->get_node_child_value(i);
                 int i1 = range->get_int_child_value(0);
                 int i2 = range->get_int_child_value(1);
                 for(k=i1;k<=i2;++k)
@@ -1075,16 +1078,9 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
         return;
     }
 
-    case  TOK_WITHIN: {
-        vector<int> res1;
-
+    case  TOK_WITHIN: {        
         // Get distance
-        double dist;
-        try {
-            dist = node->get_float_child_value(0);
-        } catch(boost::bad_get){
-            dist = node->get_int_child_value(0);
-        }
+        double dist = node->get_float_or_int_child_value(0);
 
 #ifdef _DEBUG_PARSER
         if(subspace)
@@ -1092,10 +1088,15 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
         else
             cout << "full subspace!" << endl;
 #endif
+        // Create selections for searching
+        Selection dum1(*sys), dum2(*sys);
+
         // Evaluate enclosed expression
         // Enclosed expression is independent on any subspace!
-        // Otherwise the results would be incorrect
-        eval_node(boost::get<AstNode_ptr>(node->children[1]), res1, NULL);
+        // Otherwise the results would be incorrect        
+        // Result is returned directly into the index array of selection dum2
+        // thus no additional copying
+        eval_node(node->get_node_child_value(1), dum2.index, NULL);
 
         bool periodic = false;
         // If we have children[2] then dimensions or/and periodicity are set
@@ -1103,36 +1104,22 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
             periodic = node->get_bool_child_value(2);
         }
 
-        // Do searching        
-        Selection dum1(*sys),dum2(*sys);
-
+        // Prepare selection dum1
         if(!subspace){
+            // We are not limited by subspace
             dum1.index.resize(sys->num_atoms());
             for(int i=0;i<sys->num_atoms();++i) dum1.index[i] = i;
         } else {
             // We are limited by subspace
             dum1.index = *subspace;
-        }
+        }        
 
-        // dum2 is filled from res1
-        dum2.index.resize(res1.size());
-        for(int i=0;i<res1.size();++i) dum2.index[i] = res1[i];
-
+        // Set frame for both selections
         dum1.set_frame(frame);
         dum2.set_frame(frame);
 
-        //g.assign_to_grid(dist,dum1,true,periodic);
-        //g.search_within(dum2,result,true);
-
         Grid_searcher(dist,dum1,dum2,result,true,true,periodic);
-/*
-        // Now sort result
-        std::sort(result.begin(), result.end());
-        // Remove duplicates
-        vector<int>::iterator it = std::unique(result.begin(), result.end());
-        // Get rid of the tail with garbage
-        result.resize( it - result.begin() );
-*/
+
         return;
     }
 
@@ -1263,9 +1250,6 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
         return;
 
     }   
-
-    //if(node->is_coordinate_dependent()==false) node->precomputed = result;
-
 }
 
 float Selection_parser::eval_numeric(AstNode_ptr& node, int at){
@@ -1349,13 +1333,6 @@ float Selection_parser::eval_numeric(AstNode_ptr& node, int at){
         if(node->children.size()==7)
             pbc = node->get_bool_child_value(6);        
 
-        /*
-        if(at==3115){
-            cout << atom.transpose() << endl;
-            cout << v.transpose() << endl;
-            cout << sys->distance(atom, v, frame, pbc) << endl;
-        }
-        */
 
         // Return distance between atom and v
         if(pbc){
