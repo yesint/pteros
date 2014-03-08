@@ -66,7 +66,7 @@ selection_parser.cpp
 ${PROJECT_SOURCE_DIR}/include/pteros/core/gnm.h
 gnm.cpp 
 ${PROJECT_SOURCE_DIR}/include/pteros/core/grid_search.h
-grid_search.cpp 
+grid_search.cpp
 ${PROJECT_SOURCE_DIR}/include/pteros/core/format_recognition.h
 format_recognition.cpp
 ${PROJECT_SOURCE_DIR}/include/pteros/core/periodic_box.h
