@@ -806,9 +806,8 @@ void Selection::apply_transform(Affine3f& t){
     int n = size();
 
     Vector3f v;
-    for(int i=0; i<n; ++i){
-        v = t * XYZ(i);
-        XYZ(i) = v;
+    for(int i=0; i<n; ++i){        
+        XYZ(i) = (t * XYZ(i)).eval();
     }
 }
 
@@ -860,8 +859,8 @@ float rmsd(Selection& sel1, int fr1, Selection& sel2, int fr2){
         Pteros_error e;
         e << "RMSD requested for frames" << fr1 << " and "<<fr2
           << " while the valid ranges are \n"
-          <<"(" << 0<<":"<<sel1.system->num_frames()-1<<") and "
-          <<"(" << 0<<":"<<sel2.system->num_frames()-1<<")";
+          <<"(0:"<<sel1.system->num_frames()-1<<") and "
+          <<"(0:"<<sel2.system->num_frames()-1<<")";
         throw e;
     }
 
