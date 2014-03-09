@@ -248,7 +248,7 @@ void Selection::modify(std::vector<int>::iterator it1, std::vector<int>::iterato
     // By default points to frame 0
     frame = 0;
     sel_text = "";
-    // Create text and populate selection
+    // Populate selection
     index.clear();
     while(it1!=it2){
         index.push_back(*it1);        

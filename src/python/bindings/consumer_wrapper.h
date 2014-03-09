@@ -24,7 +24,7 @@
 #define CONSUMER_WRAPPER_H
 
 #include "pteros/python/bindings_util.h"
-#include "pteros/analysis/consumer_proxy.h"
+#include "consumer_proxy.h"
 
 namespace pteros {
 

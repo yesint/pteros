@@ -732,6 +732,7 @@ void Selection_parser::create_ast(string& sel_str){
     }
     // Now we can free tokens array. This will kill all unused nodes
     tokens.clear();
+    // Also free aux error reporting positions
     token_ends.clear();
 
     if(!is_node_pure(tree)) has_coord = true;

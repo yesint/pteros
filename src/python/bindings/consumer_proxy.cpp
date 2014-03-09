@@ -21,7 +21,7 @@
 */
 
 
-#include "pteros/analysis/consumer_proxy.h"
+#include "consumer_proxy.h"
 #include "pteros/core/pteros_error.h"
 
 using namespace pteros;

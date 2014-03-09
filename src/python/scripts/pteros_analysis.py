@@ -211,10 +211,6 @@ for task in requested_tasks:
 				task_num+=1
 
 
-#for m in proc.task_list:
-#	print m
-
-
 print "+--------------------------------+"
 print "+ Trajectory processor starts... +"
 print "+--------------------------------+"
