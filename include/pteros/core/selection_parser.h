@@ -114,13 +114,13 @@ struct AstNode {
 
     bool is_coordinate_dependent();
     // Returns child elements
-    int get_int_child_value(int i);
-    char get_char_child_value(int i);
-    float get_float_child_value(int i);
-    bool get_bool_child_value(int i);
-    float get_float_or_int_child_value(int i);    
-    std::string get_str_child_value(int i);
-    boost::shared_ptr<AstNode>& get_node_child_value(int i);
+    int child_as_int(int i);
+    char child_as_char(int i);
+    float child_as_float(int i);
+    bool child_as_bool(int i);
+    float child_as_float_or_int(int i);
+    std::string child_as_str(int i);
+    boost::shared_ptr<AstNode>& child_node(int i);
 
 
 #ifdef _DEBUG_PARSER
@@ -159,7 +159,7 @@ public:
 
     /// Apply ast to the system. Fills the vector passed from
     /// enclosing System with selection indexes.
-    void apply(System* system, long fr, std::vector<int>& result);
+    void apply(System* system, std::size_t fr, std::vector<int>& result);
 
 private:
     // Tokenizer stuff
@@ -171,6 +171,9 @@ private:
 
     // Array of tokens
     std::vector<AstNode_ptr> tokens;
+
+    // Indexes of the ends of tokens. Used for error reporting
+    std::vector<int> token_ends;
 
     // AST evaluation stuff
     System* sys;

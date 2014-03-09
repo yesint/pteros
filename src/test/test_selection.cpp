@@ -60,8 +60,10 @@ int main(int argc, char** argv)
 
 //        Selection(sys,"resname DOPC DOPS").unwrap_bonds(0.6,Vector3i(1,0,1));
         //Selection(sys,"resname DPPC").unwrap_bonds(0.6,Vector3i(1,0,1));
-        cout << "Unwrapping done" << endl;
-        Selection(sys,"resname DOPC DOPS").write("wrapped.pdb");
+        //cout << "Unwrapping done" << endl;
+        //Selection(sys,"resname DOPC DOPS").write("wrapped.pdb");
+
+        Selection(sys,"resname DOPC and within 2.4 of by residue namef CA");
 
 /*
         Matrix3f b = sys.Box(0).get_box();
