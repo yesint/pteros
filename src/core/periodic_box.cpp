@@ -33,11 +33,11 @@ using namespace std;
 using namespace pteros;
 using namespace Eigen;
 
-Periodic_box::Periodic_box(const Eigen::Matrix3f& box){
+Periodic_box::Periodic_box(const pteros::Matrix3f_cref &box){
     modify(box);
 }
 
-void Periodic_box::modify(const Eigen::Matrix3f &box)
+void Periodic_box::modify(const Matrix3f_cref &box)
 {
     _box = box;
     _is_periodic = (_box.array().abs().sum()>0) ? true : false;
@@ -53,7 +53,7 @@ void Periodic_box::modify(const Eigen::Matrix3f &box)
     _is_triclinic = (_box(0,1)||_box(0,2)||_box(1,0)||_box(1,2)||_box(2,0)||_box(2,1));
 }
 
-float Periodic_box::distance(const Eigen::Vector3f &point1, const Eigen::Vector3f &point2, bool do_wrapping, const Eigen::Vector3i &periodic_dims) const
+float Periodic_box::distance(const Vector3f_cref &point1, const Vector3f_cref &point2, bool do_wrapping, const Vector3i_cref &periodic_dims) const
 {
     if(_is_periodic){
         Vector3f p1 = point1, p2 = point2;
@@ -89,7 +89,7 @@ float Periodic_box::volume(){
     return _box.col(1).cross( _box.col(2) ).dot( _box.col(0) );
 }
 
-void Periodic_box::wrap_point(Eigen::Vector3f &point, const Eigen::Vector3i &dims_to_wrap) const
+void Periodic_box::wrap_point(Vector3f_ref point, const Vector3i_cref &dims_to_wrap) const
 {
     if(is_triclinic()) point = (_to_box*point).eval();
 
@@ -106,7 +106,7 @@ void Periodic_box::wrap_point(Eigen::Vector3f &point, const Eigen::Vector3i &dim
     if(is_triclinic()) point = (_to_lab*point).eval();
 }
 
-Eigen::Vector3f Periodic_box::get_closest_image(const Eigen::Vector3f &point, const Eigen::Vector3f &target, bool do_wrapping, const Eigen::Vector3i &dims_to_wrap) const
+Eigen::Vector3f Periodic_box::get_closest_image(const Vector3f_cref &point, const Vector3f_cref &target, bool do_wrapping, const Vector3i_cref &dims_to_wrap) const
 {
     if(_is_periodic){
         Vector3f p = point, t = target;
@@ -243,7 +243,7 @@ void Periodic_box::read_pdb_box(const char *line)
 }
 
 // This function works with column-ordered box!
-void Periodic_box::to_vectors_angles(Eigen::Vector3f& vectors, Eigen::Vector3f& angles) const {
+void Periodic_box::to_vectors_angles(Vector3f_ref vectors, Vector3f_ref angles) const {
     //
     Eigen::Matrix3f boxT = _box.transpose();
     if (boxT.row(YY).squaredNorm()*boxT.row(ZZ).squaredNorm()!=0)

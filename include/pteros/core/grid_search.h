@@ -114,7 +114,7 @@ namespace pteros {
             /// Search atoms within given distance from point in space
             /// Existing grid set in assign_to_grid() is used
             /// Returns the list of atoms in the vicinity of given point
-            void search_within(Eigen::Vector3f& coor,
+            void search_within(Vector3f_ref coor,
                               std::vector<int>& bon);
 
             /// Search atoms within given distance from target selection

@@ -245,16 +245,12 @@ void Periodic_box_wrap_point1(Periodic_box* b, PyObject* point, boost::python::l
     Vector3i dims;
     for(int i=0;i<3;++i) dims(i) = extract<int>(dims_to_wrap[i]);
 
-    Vector3f pp = p;
-    b->wrap_point(pp,dims);
-    p = pp;
+    b->wrap_point(p,dims);
 }
 
 void Periodic_box_wrap_point2(Periodic_box* b, PyObject* point){
-    MAP_EIGEN_TO_PYARRAY(p,Vector3f,point)
-    Vector3f pp = p;
-    b->wrap_point(pp);
-    p = pp;
+    MAP_EIGEN_TO_PYARRAY(p,Vector3f,point)    
+    b->wrap_point(p);
 }
 
 PyObject* Periodic_box_get_closest_image1(Periodic_box* b, PyObject* point, PyObject* target,

@@ -53,6 +53,7 @@ include_directories(${PROJECT_SOURCE_DIR}/src/core/dssp)
 # Main pteros library
 add_library(pteros SHARED
 ${PROJECT_SOURCE_DIR}/include/pteros/pteros.h
+${PROJECT_SOURCE_DIR}/include/pteros/core/typedefs.h
 ${PROJECT_SOURCE_DIR}/include/pteros/core/pteros_error.h
 ${PROJECT_SOURCE_DIR}/include/pteros/core/atom.h
 ${PROJECT_SOURCE_DIR}/include/pteros/core/force_field.h

@@ -33,9 +33,9 @@
 #include "pteros/core/atom.h"
 #include "pteros/core/force_field.h"
 #include "pteros/core/periodic_box.h"
+#include "pteros/core/typedefs.h"
 
 namespace pteros {
-
 
 /// Components of the non-bond energy
 struct Energy_components {
@@ -254,10 +254,10 @@ public:
     /// @{
 
     /// Get distance between two atoms for given frame (periodic in given dimensions if needed).
-    float distance(int i, int j, int fr, bool is_periodic = true, const Eigen::Vector3i& dims = Eigen::Vector3i::Ones()) const;
+    float distance(int i, int j, int fr, bool is_periodic = true, const Vector3i_cref& dims = Eigen::Vector3i::Ones()) const;
 
     /// Wrap all system to the periodic box for given frame
-    void wrap_all(int fr, const Eigen::Vector3i& dims_to_wrap = Eigen::Vector3i::Ones());
+    void wrap_all(int fr, const Vector3i_cref& dims_to_wrap = Eigen::Vector3i::Ones());
     /// @}
 
 

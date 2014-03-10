@@ -30,6 +30,7 @@
 #include "pteros/core/selection_parser.h"
 #include "pteros/core/system.h"
 #include <boost/shared_ptr.hpp>
+#include "pteros/core/typedefs.h"
 
 namespace pteros {
 
@@ -261,10 +262,10 @@ class Selection {
     Eigen::MatrixXf get_xyz() const;
 
     /// Get coordinates of all atoms in this selection for the current frame
-    void get_xyz(Eigen::MatrixXf& res) const;
+    void get_xyz(MatrixXf_ref res) const;
 
     /// Set coordinates of this selection for current frame
-    void set_xyz(const Eigen::MatrixXf& coord);        
+    void set_xyz(const MatrixXf_cref& coord);
 
     /// Get masses of all atoms in selection
     std::vector<float> get_mass() const;
@@ -301,7 +302,7 @@ class Selection {
     Eigen::Vector3f center(bool mass_weighted = false, bool periodic = false) const;
 
     /// Get minimal and maximal coordinates in selection
-    void minmax(Eigen::Vector3f& min, Eigen::Vector3f& max) const;
+    void minmax(Vector3f_ref min, Vector3f_ref max) const;
 
 #ifdef USE_POWERSASA
     /// Get the SASA. Easy way - only returns SASA area of selection
@@ -323,7 +324,7 @@ class Selection {
     Eigen::MatrixXf atom_traj(int ind, int b=0, int e=-1) const;
 
     /// Computes the central momens of inertia and principal axes of inertia
-    void inertia(Eigen::Vector3f& moments, Eigen::Matrix3f& axes, bool periodic = false) const;
+    void inertia(Vector3f_ref moments, Matrix3f_ref axes, bool periodic = false) const;
 
     /// Computes radius of gyration for selection
     float gyration(bool periodic = false) const;
@@ -335,7 +336,7 @@ class Selection {
     /// @{
 
     /// Translate selection by given vector
-    void translate(const Eigen::Vector3f&);
+    void translate(const Vector3f_cref&);
 
     /// Rotate selection around given axis relative to center of masses
     /// @param axis Axis of rotation 0=X, 1=Y, 2=Z
@@ -346,35 +347,35 @@ class Selection {
     /// @param axis Axis of rotation 0=X, 1=Y, 2=Z
     /// @param angle Rotation angle in radians
     /// @param pivot Rotation around this pivot
-    void rotate(int axis, float angle, const Eigen::Vector3f& pivot);
+    void rotate(int axis, float angle, const Vector3f_cref& pivot);
 
     /// Rotate selection around given vector relative to given pivot
     /// @param direction Rotate around this vector
     /// @param angle Rotation angle in radians
     /// @param pivot Rotation around this pivot
-    void rotate(const Eigen::Vector3f& direction, float angle, const Eigen::Vector3f& pivot);
+    void rotate(const Vector3f_cref& direction, float angle, const Vector3f_cref& pivot);
 
     /// Rotation with the given 3x3 rotation matrix around point (0,0,0)
-    void rotate(const Eigen::Matrix3f& m);
+    void rotate(const Matrix3f_cref& m);
 
     /// Rotation by given angles around X, Y and Z with given pivot
-    void rotate(const Eigen::Vector3f& angles, const Eigen::Vector3f& pivot);
+    void rotate(const Vector3f_cref& angles, const Vector3f_cref& pivot);
 
     /// Wraps whole selection to the periodic box
-    void wrap(const Eigen::Vector3i& dims = Eigen::Vector3i::Ones());
+    void wrap(const Vector3i_cref& dims = Eigen::Vector3i::Ones());
 
     /** Unwraps selection to make it whole if possible (without jumps over periodic box boundary).
      * The periodic center of mass is used as an anchor point.
      * Please note that if the size of selection is larger than 1/2 of the box size in
      * any dimension unwrap() will not work as expected and will not make selection "compact"!
     */
-    void unwrap(const Eigen::Vector3i& dims = Eigen::Vector3i::Ones());
+    void unwrap(const Vector3i_cref& dims = Eigen::Vector3i::Ones());
 
     /** Unwraps selection to make it whole (without jumps over periodic box boundary).
      * based on preserving all bonds. The maximal bond length is given by d.
      * This method works reliably in any case, but is much slower than unwrap()
      */
-    void unwrap_bonds(float d = 0.2, const Eigen::Vector3i& dims = Eigen::Vector3i::Ones());
+    void unwrap_bonds(float d = 0.2, const Vector3i_cref& dims = Eigen::Vector3i::Ones());
 
     /** Get transform for orienting selection by principal axes.
      * Please note that if the size of selection is larger than 1/2 of the box size in
@@ -472,7 +473,7 @@ class Selection {
 
     /// Creates multiple copies of selection in the parent system and
     /// distributes them in a grid
-    void distribute(Eigen::Vector3i& ncopies, Eigen::Vector3f& shift);
+    void distribute(Vector3i_ref ncopies, Vector3f_ref shift);
     /// @}
 
 

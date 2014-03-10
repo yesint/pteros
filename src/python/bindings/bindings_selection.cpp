@@ -124,11 +124,8 @@ PyObject* Selection_center(Selection* s, bool mass_weighted){
 
 void Selection_minmax(Selection* s, PyObject* min, PyObject* max){
     MAP_EIGEN_TO_PYARRAY(_min,Vector3f,min)
-    MAP_EIGEN_TO_PYARRAY(_max,Vector3f,max)
-    Vector3f _min1,_max1;
-    s->minmax(_min1,_max1);
-    _min = _min1;
-    _max = _max1;
+    MAP_EIGEN_TO_PYARRAY(_max,Vector3f,max)    
+    s->minmax(_min,_max);
 }
 
 void Selection_translate(Selection* s, PyObject* vec){
@@ -356,16 +353,12 @@ void Selection_append2(Selection* s, int i){
     s->append(i);
 }
 
-boost::python::tuple Selection_inertia1(Selection* s, bool periodic){
-    Vector3f moments;
-    Matrix3f axes;
-    s->inertia(moments,axes,periodic);
+boost::python::tuple Selection_inertia1(Selection* s, bool periodic){    
     CREATE_PYARRAY_1D(m,3)
     CREATE_PYARRAY_2D(a,3,3)
     MAP_EIGEN_TO_PYARRAY(_m,Vector3f,m)
-    MAP_EIGEN_TO_PYARRAY(_a,Matrix3f,a)
-    _m = moments;
-    _a = axes;
+    MAP_EIGEN_TO_PYARRAY(_a,Matrix3f,a)    
+    s->inertia(_m,_a,periodic);
     return boost::python::make_tuple(boost::python::handle<>(m),boost::python::handle<>(a));
 }
 

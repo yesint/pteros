@@ -549,7 +549,7 @@ MatrixXf Selection::get_xyz() const {
     return res;
 }
 
-void Selection::get_xyz(MatrixXf& res) const {
+void Selection::get_xyz(MatrixXf_ref res) const {
     int i,n;
     n = index.size();
     res.resize(3,n);
@@ -575,7 +575,7 @@ MatrixXf Selection::average_structure(int b, int e) const {
 }
 
 
-void Selection::set_xyz(const MatrixXf& coord){
+void Selection::set_xyz(const MatrixXf_cref &coord){
     int n = index.size();
     // Sanity check
     if(coord.cols()!=n){
@@ -667,14 +667,14 @@ Vector3f Selection::center(bool mass_weighted, bool periodic) const {
 }
 
 // Plain translation
-void Selection::translate(const Vector3f& v){
+void Selection::translate(const Vector3f_cref &v){
     int i,n = index.size();
     for(i=0; i<n; ++i) XYZ(i) += v;
 }
 
 
 // Rotation with given rotation matrix around 0
-void Selection::rotate(const Matrix3f& m){
+void Selection::rotate(const Matrix3f_cref &m){
     int n = index.size();
     for(int i=0; i<n; ++i){
         XYZ(i) = m * XYZ(i);
@@ -708,7 +708,7 @@ void Selection::rotate(int axis, float angle){
 }
 
 // Sequence of rotations around x,y,z relative to zero
-void Selection::rotate(const Vector3f& angles, const Vector3f& pivot){
+void Selection::rotate(const Vector3f_cref &angles, const Vector3f_cref &pivot){
     int n = index.size();
     Affine3f m( AngleAxisf(angles[0],Vector3f::UnitX()) *
                AngleAxisf(angles[1],Vector3f::UnitY()) *
@@ -725,7 +725,7 @@ void Selection::rotate(const Vector3f& angles, const Vector3f& pivot){
 
 
 // Rotation around specified axis relative to given pivot
-void Selection::rotate(int axis, float angle, const Vector3f& pivot){
+void Selection::rotate(int axis, float angle, const Vector3f_cref &pivot){
     if(axis<0 || axis>2) throw Pteros_error("Invalid rotation axis!");
     int n = index.size();
 
@@ -752,7 +752,7 @@ void Selection::rotate(int axis, float angle, const Vector3f& pivot){
 }
 
 // Rotation around given vector relative to pivot
-void Selection::rotate(const Vector3f& direction, float angle, const Vector3f& pivot){
+void Selection::rotate(const Vector3f_cref &direction, float angle, const Vector3f_cref &pivot){
     int n = index.size();
     float ay,az;
 
@@ -802,7 +802,7 @@ float Selection::rmsd(int fr) {
 }
 
 // Apply transformation
-void Selection::apply_transform(Affine3f& t){
+void Selection::apply_transform(Affine3f &t){
     int n = size();
 
     Vector3f v;
@@ -1017,7 +1017,7 @@ void Selection::fit(int fr1, int fr2){
     apply_transform(t);
 }
 
-void Selection::minmax(Vector3f& min, Vector3f& max) const {
+void Selection::minmax(Vector3f_ref min, Vector3f_ref max) const {
     int i,n,j;
     Vector3f xyz;
     n = index.size();
@@ -1104,7 +1104,7 @@ void Selection::atoms_delete(){
     system->atoms_delete(index);
 }
 
-void Selection::distribute(Eigen::Vector3i &ncopies, Eigen::Vector3f &shift){    
+void Selection::distribute(Vector3i_ref ncopies, Vector3f_ref shift){
     Selection tmp(*system);
     Selection res;
     int b,e;
@@ -1248,7 +1248,7 @@ void Selection::split_by_residue(std::vector<Selection> &res)
     }
 }
 
-void Selection::inertia(Eigen::Vector3f &moments, Eigen::Matrix3f &axes, bool periodic) const{
+void Selection::inertia(Vector3f_ref moments, Matrix3f_ref axes, bool periodic) const{
     int n = size();
     int i;
     // Compute the central tensor of inertia. Place it into axes
@@ -1311,20 +1311,20 @@ float Selection::gyration(bool periodic) const {
     return sqrt(a/b);
 }
 
-void Selection::wrap(const Eigen::Vector3i &dims){
+void Selection::wrap(const Vector3i_cref &dims){
     for(int i=0;i<size();++i){
         system->Box(frame).wrap_point(XYZ(i),dims);
     }
 }
 
-void Selection::unwrap(const Eigen::Vector3i &dims){
+void Selection::unwrap(const Vector3i_cref &dims){
     Vector3f c = center(true,true);
     for(int i=0;i<size();++i){
         XYZ(i) = system->Box(frame).get_closest_image(XYZ(i),c,true,dims);
     }
 }
 
-void Selection::unwrap_bonds(float d, const Eigen::Vector3i &dims){
+void Selection::unwrap_bonds(float d, const Vector3i_cref &dims){
     // Find all connectivity pairs for given cut-off
     vector<Vector2i> pairs;
     Grid_searcher(d,*this,pairs,false,true);

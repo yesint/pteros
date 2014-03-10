@@ -137,7 +137,7 @@ vector<int>& Grid_searcher::cell_of_custom_grid(int x, int y, int z){
     return grid1[x][y][z];
 }
 
-void Grid_searcher::search_within(Vector3f &coor, vector<int> &bon){
+void Grid_searcher::search_within(Vector3f_ref coor, vector<int> &bon){
     // Determine cell, which given point belongs to
     int n1,n2,n3,i,m1,m2,m3;
 
@@ -325,8 +325,8 @@ Grid_searcher::Grid_searcher(float d,
 
     int effective_num = src.size() + target.size();
 
-    // Get current box
-    box = src.get_system()->Box(src.get_frame()).get_box();
+    // Get current box    
+    box = src.get_system()->Box(src.get_frame());
     if(!is_periodic){
         // Find true bounding box
         for(i=0;i<3;++i){
