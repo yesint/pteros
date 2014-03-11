@@ -33,11 +33,11 @@ typedef Eigen::Ref<Eigen::VectorXf> VectorXf_ref;
 typedef Eigen::Ref<Eigen::MatrixXf> MatrixXf_ref;
 typedef Eigen::Ref<Eigen::Vector3i> Vector3i_ref;
 
-typedef Eigen::Ref<const Eigen::Vector3f> Vector3f_cref;
-typedef Eigen::Ref<const Eigen::Matrix3f> Matrix3f_cref;
-typedef Eigen::Ref<const Eigen::VectorXf> VectorXf_cref;
-typedef Eigen::Ref<const Eigen::MatrixXf> MatrixXf_cref;
-typedef Eigen::Ref<const Eigen::Vector3i> Vector3i_cref;
+typedef const Eigen::Ref<const Eigen::Vector3f>& Vector3f_const_ref;
+typedef const Eigen::Ref<const Eigen::Matrix3f>& Matrix3f_const_ref;
+typedef const Eigen::Ref<const Eigen::VectorXf>& VectorXf_const_ref;
+typedef const Eigen::Ref<const Eigen::MatrixXf>& MatrixXf_const_ref;
+typedef const Eigen::Ref<const Eigen::Vector3i>& Vector3i_const_ref;
 
 }
 

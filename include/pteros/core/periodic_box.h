@@ -55,22 +55,22 @@ public:
     }
 
     /// Constructor from other box
-    Periodic_box(const Matrix3f_cref& box);
+    Periodic_box(Matrix3f_const_ref box);
 
     /// Modify the box
-    void modify(const Matrix3f_cref& box);
+    void modify(Matrix3f_const_ref box);
 
     /// Get stored periodic box
     Eigen::Matrix3f get_box() const {return _box;}
 
     /// Convert point from lab coordinates to box coordinates
-    Eigen::Vector3f to_box(const Vector3f_cref& point) const { return _to_box*point; }
+    Eigen::Vector3f to_box(Vector3f_const_ref point) const { return _to_box*point; }
 
     /// Return the transformation matrix from lab coordinates to box coordinates
     const Eigen::Matrix3f& to_box_matrix() const {return _to_box;}
 
     /// Convert point from box coordinates to lab coordinates
-    Eigen::Vector3f to_lab(const Vector3f_cref& point) const { return _to_lab*point; }
+    Eigen::Vector3f to_lab(Vector3f_const_ref point) const { return _to_lab*point; }
 
     /// Return the transformation matrix from box coordinates to lab coordinates
     const Eigen::Matrix3f& to_lab_matrix() const {return _to_lab;}
@@ -94,23 +94,23 @@ public:
     ///\code
     /// float dist = (point2-point1).norm();
     ///\endcode
-    float distance(const Vector3f_cref& point1,
-                   const Vector3f_cref& point2,
+    float distance(Vector3f_const_ref point1,
+                   Vector3f_const_ref point2,
                    bool do_wrapping = true,
-                   const Vector3i_cref& periodic_dims = Eigen::Vector3i::Ones()) const;
+                   Vector3i_const_ref periodic_dims = Eigen::Vector3i::Ones()) const;
 
     /// Wrap point to the box for given set of dimensions
     void wrap_point(Vector3f_ref point,
-                    const Vector3i_cref& dims_to_wrap = Eigen::Vector3i::Ones()) const;
+                    Vector3i_const_ref dims_to_wrap = Eigen::Vector3i::Ones()) const;
 
     /// Finds a periodic image of point, which is closest in space to target and returns it
     /// This method wraps both point and targer to periodic box internally (this is usually what you want).
     /// If this is not needed set @param do_wrapping to false, but in this case make sure
     /// that wrapping is done manually before! Otherwise results would be incorrect.
-    Eigen::Vector3f get_closest_image(const Vector3f_cref& point,
-                                      const Vector3f_cref& target,
+    Eigen::Vector3f get_closest_image(Vector3f_const_ref point,
+                                      Vector3f_const_ref target,
                                       bool do_wrapping = true,
-                                      const Vector3i_cref& dims_to_wrap = Eigen::Vector3i::Ones()) const;
+                                      Vector3i_const_ref dims_to_wrap = Eigen::Vector3i::Ones()) const;
 
     /// Return box volume
     float volume();

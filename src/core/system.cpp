@@ -393,7 +393,7 @@ inline void wrap_coord(Vector3f& point, const Matrix3f& box,
     point = b*prj;
 }
 
-float System::distance(int i, int j, int fr, bool is_periodic, const Vector3i_cref& dims) const {
+float System::distance(int i, int j, int fr, bool is_periodic, Vector3i_const_ref dims) const {
     if(is_periodic){
         return traj[fr].box.distance(traj[fr].coord[i], traj[fr].coord[j], true, dims);
     } else {
@@ -401,7 +401,7 @@ float System::distance(int i, int j, int fr, bool is_periodic, const Vector3i_cr
     }
 }
 
-void System::wrap_all(int fr, const Vector3i_cref &dims_to_wrap){
+void System::wrap_all(int fr, Vector3i_const_ref dims_to_wrap){
     for(int i=0;i<num_atoms();++i){
         traj[fr].box.wrap_point(XYZ(i,fr),dims_to_wrap);
     }

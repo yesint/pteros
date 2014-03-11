@@ -29,9 +29,7 @@
 #include <Eigen/Core>
 #include <vector>
 
-namespace pteros {
-
-    typedef boost::multi_array<std::vector<int>,3> Grid_t;
+namespace pteros {    
 
     /** @brief Implements grid search algorithm
     Grid_searcher class subdivides the volume of the system into number of
@@ -80,7 +78,7 @@ namespace pteros {
     */
 
     class Grid_searcher {
-        public:
+        public:            
             /// Default constructor
             Grid_searcher();
 
@@ -151,6 +149,8 @@ namespace pteros {
 
 
         protected:
+            typedef boost::multi_array<std::vector<int>,3> Grid_t;
+
             // Create one grid from single selection
             void create_grid(Grid_t& grid, Selection& sel);
             // Create two grids from two selections

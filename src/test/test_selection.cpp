@@ -63,7 +63,7 @@ int main(int argc, char** argv)
         //cout << "Unwrapping done" << endl;
         //Selection(sys,"resname DOPC DOPS").write("wrapped.pdb");
 
-        Selection(sys,"resname DOPC and within 2.4 of by residue namef CA");
+        Selection(sys,"resname DOPC");
 
 /*
         Matrix3f b = sys.Box(0).get_box();

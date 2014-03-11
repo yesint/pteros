@@ -7,8 +7,6 @@ if(WRAP_PYTHON)
 
     add_library(pteros_py SHARED 
     bindings.cpp
-    consumer_proxy.h
-    consumer_proxy.cpp
 
     ${PROJECT_SOURCE_DIR}/include/pteros/python/bindings_util.h
     ${PROJECT_SOURCE_DIR}/include/pteros/python/compiled_plugin_base.h

@@ -24,19 +24,29 @@
 #define CONSUMER_WRAPPER_H
 
 #include "pteros/python/bindings_util.h"
-#include "consumer_proxy.h"
 
 namespace pteros {
 
-class Consumer_wrapper: public Consumer_proxy {
+class Consumer_wrapper: public Consumer_base {
 public:
-    Consumer_wrapper(Trajectory_processor* pr): Consumer_proxy(pr){
+    Consumer_wrapper(Trajectory_processor* pr): Consumer_base(pr){
+        proxy_frame_ptr = NULL;
     }
 
     ~Consumer_wrapper(){
     }
 
+    Frame* get_frame_ptr(){
+        return proxy_frame_ptr;
+    }
+
 protected:
+    Frame* proxy_frame_ptr;
+
+    virtual void process_frame_data(Frame& data){
+        proxy_frame_ptr = &data;
+    }
+
     virtual void pre_process();
     virtual void process_frame(const Frame_info& info);
     virtual void post_process(const Frame_info &info);    

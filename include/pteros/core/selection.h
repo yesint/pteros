@@ -265,7 +265,7 @@ class Selection {
     void get_xyz(MatrixXf_ref res) const;
 
     /// Set coordinates of this selection for current frame
-    void set_xyz(const MatrixXf_cref& coord);
+    void set_xyz(MatrixXf_const_ref coord);
 
     /// Get masses of all atoms in selection
     std::vector<float> get_mass() const;
@@ -336,7 +336,7 @@ class Selection {
     /// @{
 
     /// Translate selection by given vector
-    void translate(const Vector3f_cref&);
+    void translate(Vector3f_const_ref v);
 
     /// Rotate selection around given axis relative to center of masses
     /// @param axis Axis of rotation 0=X, 1=Y, 2=Z
@@ -347,35 +347,35 @@ class Selection {
     /// @param axis Axis of rotation 0=X, 1=Y, 2=Z
     /// @param angle Rotation angle in radians
     /// @param pivot Rotation around this pivot
-    void rotate(int axis, float angle, const Vector3f_cref& pivot);
+    void rotate(int axis, float angle, Vector3f_const_ref pivot);
 
     /// Rotate selection around given vector relative to given pivot
     /// @param direction Rotate around this vector
     /// @param angle Rotation angle in radians
     /// @param pivot Rotation around this pivot
-    void rotate(const Vector3f_cref& direction, float angle, const Vector3f_cref& pivot);
+    void rotate(Vector3f_const_ref direction, float angle, Vector3f_const_ref pivot);
 
     /// Rotation with the given 3x3 rotation matrix around point (0,0,0)
-    void rotate(const Matrix3f_cref& m);
+    void rotate(Matrix3f_const_ref m);
 
     /// Rotation by given angles around X, Y and Z with given pivot
-    void rotate(const Vector3f_cref& angles, const Vector3f_cref& pivot);
+    void rotate(Vector3f_const_ref angles, Vector3f_const_ref pivot);
 
     /// Wraps whole selection to the periodic box
-    void wrap(const Vector3i_cref& dims = Eigen::Vector3i::Ones());
+    void wrap(Vector3i_const_ref dims = Eigen::Vector3i::Ones());
 
     /** Unwraps selection to make it whole if possible (without jumps over periodic box boundary).
      * The periodic center of mass is used as an anchor point.
      * Please note that if the size of selection is larger than 1/2 of the box size in
      * any dimension unwrap() will not work as expected and will not make selection "compact"!
     */
-    void unwrap(const Vector3i_cref& dims = Eigen::Vector3i::Ones());
+    void unwrap(Vector3i_const_ref dims = Eigen::Vector3i::Ones());
 
     /** Unwraps selection to make it whole (without jumps over periodic box boundary).
      * based on preserving all bonds. The maximal bond length is given by d.
      * This method works reliably in any case, but is much slower than unwrap()
      */
-    void unwrap_bonds(float d = 0.2, const Vector3i_cref& dims = Eigen::Vector3i::Ones());
+    void unwrap_bonds(float d = 0.2, Vector3i_const_ref dims = Eigen::Vector3i::Ones());
 
     /** Get transform for orienting selection by principal axes.
      * Please note that if the size of selection is larger than 1/2 of the box size in

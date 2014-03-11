@@ -254,10 +254,10 @@ public:
     /// @{
 
     /// Get distance between two atoms for given frame (periodic in given dimensions if needed).
-    float distance(int i, int j, int fr, bool is_periodic = true, const Vector3i_cref& dims = Eigen::Vector3i::Ones()) const;
+    float distance(int i, int j, int fr, bool is_periodic = true, Vector3i_const_ref dims = Eigen::Vector3i::Ones()) const;
 
     /// Wrap all system to the periodic box for given frame
-    void wrap_all(int fr, const Vector3i_cref& dims_to_wrap = Eigen::Vector3i::Ones());
+    void wrap_all(int fr, Vector3i_const_ref dims_to_wrap = Eigen::Vector3i::Ones());
     /// @}
 
 

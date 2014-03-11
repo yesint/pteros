@@ -575,7 +575,7 @@ MatrixXf Selection::average_structure(int b, int e) const {
 }
 
 
-void Selection::set_xyz(const MatrixXf_cref &coord){
+void Selection::set_xyz(pteros::MatrixXf_const_ref coord){
     int n = index.size();
     // Sanity check
     if(coord.cols()!=n){
@@ -667,14 +667,14 @@ Vector3f Selection::center(bool mass_weighted, bool periodic) const {
 }
 
 // Plain translation
-void Selection::translate(const Vector3f_cref &v){
+void Selection::translate(Vector3f_const_ref v){
     int i,n = index.size();
     for(i=0; i<n; ++i) XYZ(i) += v;
 }
 
 
 // Rotation with given rotation matrix around 0
-void Selection::rotate(const Matrix3f_cref &m){
+void Selection::rotate(Matrix3f_const_ref m){
     int n = index.size();
     for(int i=0; i<n; ++i){
         XYZ(i) = m * XYZ(i);
@@ -708,7 +708,7 @@ void Selection::rotate(int axis, float angle){
 }
 
 // Sequence of rotations around x,y,z relative to zero
-void Selection::rotate(const Vector3f_cref &angles, const Vector3f_cref &pivot){
+void Selection::rotate(Vector3f_const_ref angles, Vector3f_const_ref pivot){
     int n = index.size();
     Affine3f m( AngleAxisf(angles[0],Vector3f::UnitX()) *
                AngleAxisf(angles[1],Vector3f::UnitY()) *
@@ -725,7 +725,7 @@ void Selection::rotate(const Vector3f_cref &angles, const Vector3f_cref &pivot){
 
 
 // Rotation around specified axis relative to given pivot
-void Selection::rotate(int axis, float angle, const Vector3f_cref &pivot){
+void Selection::rotate(int axis, float angle, Vector3f_const_ref pivot){
     if(axis<0 || axis>2) throw Pteros_error("Invalid rotation axis!");
     int n = index.size();
 
@@ -752,7 +752,7 @@ void Selection::rotate(int axis, float angle, const Vector3f_cref &pivot){
 }
 
 // Rotation around given vector relative to pivot
-void Selection::rotate(const Vector3f_cref &direction, float angle, const Vector3f_cref &pivot){
+void Selection::rotate(Vector3f_const_ref direction, float angle, Vector3f_const_ref pivot){
     int n = index.size();
     float ay,az;
 
@@ -1311,20 +1311,20 @@ float Selection::gyration(bool periodic) const {
     return sqrt(a/b);
 }
 
-void Selection::wrap(const Vector3i_cref &dims){
+void Selection::wrap(Vector3i_const_ref dims){
     for(int i=0;i<size();++i){
         system->Box(frame).wrap_point(XYZ(i),dims);
     }
 }
 
-void Selection::unwrap(const Vector3i_cref &dims){
+void Selection::unwrap(Vector3i_const_ref dims){
     Vector3f c = center(true,true);
     for(int i=0;i<size();++i){
         XYZ(i) = system->Box(frame).get_closest_image(XYZ(i),c,true,dims);
     }
 }
 
-void Selection::unwrap_bonds(float d, const Vector3i_cref &dims){
+void Selection::unwrap_bonds(float d, Vector3i_const_ref dims){
     // Find all connectivity pairs for given cut-off
     vector<Vector2i> pairs;
     Grid_searcher(d,*this,pairs,false,true);
