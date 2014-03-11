@@ -38,10 +38,6 @@ IF(STANDALONE_PLUGINS)
 
     foreach(plugin ${PLUGINS})
         add_executable(pteros_${plugin} ${plugin}.cpp)
-        #set_target_properties(plugin_${plugin}_exe
-        #PROPERTIES
-        #OUTPUT_NAME ${plugin} )
-        #Installation
         install(TARGETS pteros_${plugin}
             RUNTIME DESTINATION bin/analysis
         )

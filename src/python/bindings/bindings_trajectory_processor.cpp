@@ -65,13 +65,13 @@ public:
 
 void make_bindings_Trajectory_processor(){
 
+    // Need to wrap base class first
     class_<Trajectory_processor, boost::noncopyable>("Trajectory_processor_base", init<>())
     ;
 
     class_<Trajectory_processor_wrapper, boost::noncopyable, boost::shared_ptr<_callback> , bases<Trajectory_processor> >("Trajectory_processor", init<>())
         .def(init<Options_tree&>() )
         .def("set_options",&Trajectory_processor_wrapper::set_options)
-
         .def("run",&Trajectory_processor_wrapper::run)
         .def("get_system",&Trajectory_processor_wrapper::get_system,return_value_policy<reference_existing_object>())
         .def("get_frame_ptr",&Trajectory_processor_wrapper::get_frame_ptr,return_value_policy<reference_existing_object>())

@@ -43,7 +43,5 @@ void make_bindings_Frame_info(){
         .def_readonly("win_last_time",&Frame_info::win_last_time)
         .def_readonly("win_last_frame",&Frame_info::win_last_frame)
         .def_readonly("win_num",&Frame_info::win_num)
-
-        .enable_pickling()
     ;
 }

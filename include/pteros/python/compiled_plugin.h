@@ -83,7 +83,7 @@ int main(int argc, char** argv){\
             } else if(help=="task"){\
                 cout << task.help() << endl;\
             } else {\
-                cout << task.help() << endl;\
+                cout << task.help() << endl << endl;\
                 cout << engine.help() << endl;\
             }\
             return 1;\
