@@ -772,7 +772,7 @@ void Selection::rotate(Vector3f_const_ref direction, float angle, Vector3f_const
 ////////////////////////////////////
 
 // RMSD between two frames
-float Selection::rmsd(int fr1, int fr2){
+float Selection::rmsd(int fr1, int fr2) const{
     int n = index.size();
     float res = 0.0;
 
@@ -785,13 +785,13 @@ float Selection::rmsd(int fr1, int fr2){
     }
 
     for(int i=0; i<n; ++i)
-        res += (XYZ(i,fr1)-XYZ(i,fr2)).squaredNorm();
+        res += (_XYZ(i,fr1)-_XYZ(i,fr2)).squaredNorm();
 
     return sqrt(res/n);
 }
 
 //RMSD between current and other frame
-float Selection::rmsd(int fr) {
+float Selection::rmsd(int fr) const {
     if(fr<0 || fr>=system->num_frames()){
         Pteros_error e;
         e << "RMSD requested for frame" << fr
@@ -825,7 +825,7 @@ Energy_components Selection::non_bond_energy() const
 namespace pteros {
 
 // Non-bond energy between two selections
-Energy_components non_bond_energy(Selection& sel1, Selection& sel2, int fr){
+Energy_components non_bond_energy(const Selection& sel1, const Selection& sel2, int fr){
     // Check if both selections are from the same system
     if(sel1.get_system()!=sel2.get_system())
         throw Pteros_error("Can't compute non-bond energy between selections from different systems!");
@@ -844,7 +844,7 @@ Energy_components non_bond_energy(Selection& sel1, Selection& sel2, int fr){
 }
 
 // RMSD between two selections (specified frames)
-float rmsd(Selection& sel1, int fr1, Selection& sel2, int fr2){
+float rmsd(const Selection& sel1, int fr1, const Selection& sel2, int fr2){
     int n1 = sel1.index.size();
     int n2 = sel2.index.size();
     float res = 0.0;
@@ -865,18 +865,18 @@ float rmsd(Selection& sel1, int fr1, Selection& sel2, int fr2){
     }
 
     for(int i=0; i<n1; ++i)
-        res += (sel1.XYZ(i,fr1)-sel2.XYZ(i,fr2)).squaredNorm();
+        res += (sel1._XYZ(i,fr1)-sel2._XYZ(i,fr2)).squaredNorm();
 
     return sqrt(res/n1);
 }
 
 // RMSD between two selections (current frames)
-float rmsd(Selection& sel1, Selection& sel2){
+float rmsd(const Selection& sel1, const Selection& sel2){
     return rmsd(sel1,sel1.get_frame(),sel2,sel2.get_frame());
 }
 
 // Fitting transformation
-Affine3f fit_transform(Selection& sel1, Selection& sel2){
+Affine3f fit_transform(const Selection& sel1, const Selection& sel2){
     int n1 = sel1.size();
     int n2 = sel2.size();
 
@@ -893,8 +893,8 @@ Affine3f fit_transform(Selection& sel1, Selection& sel2){
     // Bring centers to zero
     cm1 = sel1.center(true);
     cm2 = sel2.center(true);
-    sel1.translate(-cm1);
-    sel2.translate(-cm2);
+    const_cast<Selection&>(sel1).translate(-cm1);
+    const_cast<Selection&>(sel2).translate(-cm2);
 
     // The code below is hacked from GROMACS 3.3.3
     // Used to compute the rotation matrix
@@ -914,7 +914,7 @@ Affine3f fit_transform(Selection& sel1, Selection& sel2){
     //Calculate the matrix U
     u.fill(0.0);
     for(i=0;i<N;++i) // Over atoms in selection
-        u += sel1.XYZ(i)*sel2.XYZ(i).transpose()*sel1.Mass(i);
+        u += sel1._XYZ(i)*sel2._XYZ(i).transpose()*sel1._Mass(i);
 
     //Construct omega
     for(r=0; r<6; r++){
@@ -956,8 +956,8 @@ Affine3f fit_transform(Selection& sel1, Selection& sel2){
             rot.linear()(c,r) = vk(0,r)*vh(0,c) + vk(1,r)*vh(1,c) + vk(2,r)*vh(2,c);
 
     // Bring centers back
-    sel1.translate(cm1);
-    sel2.translate(cm2);
+    const_cast<Selection&>(sel1).translate(cm1);
+    const_cast<Selection&>(sel2).translate(cm2);
 
     //Clear translation part. This is important!
     rot.translation().fill(0.0);
@@ -966,7 +966,7 @@ Affine3f fit_transform(Selection& sel1, Selection& sel2){
 }
 
 // Fit two selection directly
-void fit(Selection& sel1, Selection& sel2){
+void fit(Selection& sel1, const Selection& sel2){
     Affine3f t = pteros::fit_transform(sel1,sel2);
     sel1.apply_transform(t);
 }
@@ -998,17 +998,17 @@ void Selection::fit_trajectory(int ref_frame, int b, int e){
 
 
 // Fitting transformation between two frames of the same selection
-Affine3f Selection::fit_transform(int fr1, int fr2){
+Affine3f Selection::fit_transform(int fr1, int fr2) const {
     // Save current frame
     int cur_frame = get_frame();
-    set_frame(fr1); // this points to fr1
+    const_cast<Selection*>(this)->set_frame(fr1); // this points to fr1
     // Create aux selection
     Selection s2(*this);
     s2.set_frame(fr2); // Points to fr2
     // Call fit_transform
     Affine3f t = pteros::fit_transform(*this,s2);
     // Restore frame
-    set_frame(cur_frame);
+    const_cast<Selection*>(this)->set_frame(cur_frame);
     return t;
 }
 
@@ -1040,10 +1040,10 @@ void Selection::write(string fname, int b, int e) {
     if(b<-1 || b>=get_system()->num_frames()) throw Pteros_error("Invalid first frame for writing!");
     if(e<-1 || e>=get_system()->num_frames()) throw Pteros_error("Invalid last frame for writing!");
     if(e<b) throw Pteros_error("Invalid frame range for writing!");
-    // -1 is special
+    // -1 is special meaning current frame
     if(b==-1) b=get_frame();
     if(e==-1) e=get_frame();
-    cout << "Asked to write frames "<<b<<":"<<e<< endl;
+    cout << "Writing the range of frames "<<b<<":"<<e<< endl;
 
     boost::shared_ptr<Mol_file> f = io_factory(fname,'w');
 
@@ -1056,7 +1056,6 @@ void Selection::write(string fname, int b, int e) {
         set_frame(fr);
         f->write(*this,f->get_content_type());
     }
-
 }
 
 void Selection::each_residue(std::vector<Selection>& sel) const {
@@ -1104,7 +1103,7 @@ void Selection::atoms_delete(){
     system->atoms_delete(index);
 }
 
-void Selection::distribute(Vector3i_ref ncopies, Vector3f_ref shift){
+void Selection::distribute(Vector3i_const_ref ncopies, Vector3f_const_ref shift){
     Selection tmp(*system);
     Selection res;
     int b,e;
@@ -1395,10 +1394,12 @@ void Selection::unwrap_bonds(float d, Vector3i_const_ref dims){
     }
 }
 
-Eigen::Affine3f Selection::principal_transform(bool is_periodic){
+Eigen::Affine3f Selection::principal_transform(bool is_periodic) const {
     Affine3f rot;
     Vector3f cm = center(true,is_periodic);
-    translate(-cm);
+    // We need to const-cast in order to call non-const translate() from const method
+    // It's Ok because we'll translate back later
+    const_cast<Selection*>(this)->translate(-cm);
 
     Matrix3f m;
     // Compute principal axes
@@ -1419,7 +1420,8 @@ Eigen::Affine3f Selection::principal_transform(bool is_periodic){
     rot.linear() = m;
 
     // Bring center back
-    translate(cm);
+    // We need to const-cast in order to call non-const translate() from const method
+    const_cast<Selection*>(this)->translate(cm);
 
     //Clear translation part. This is important!
     rot.translation().fill(0.0);
@@ -1433,12 +1435,13 @@ void Selection::principal_orient(bool is_periodic){
 }
 
 #ifdef USE_POWERSASA
-float Selection::sasa(float probe_r)
+float Selection::sasa(float probe_r) const
 {
     return sasa(probe_r,NULL,NULL,NULL);
 }
 
-float Selection::sasa(float probe_r, float *total_volume, vector<float> *area_per_atom, vector<float> *volume_per_atom)
+float Selection::sasa(float probe_r, float *total_volume,
+                      vector<float> *area_per_atom, vector<float> *volume_per_atom) const
 {
     // First obtain the VDW radii of all atoms in selection and add probe radius to them
     vector<float> radii(size());

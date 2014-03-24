@@ -306,12 +306,12 @@ class Selection {
 
 #ifdef USE_POWERSASA
     /// Get the SASA. Easy way - only returns SASA area of selection
-    float sasa(float probe_r = 0.14);
+    float sasa(float probe_r = 0.14) const;
 
     /// Get the SASA. Detailed way - returns area and computes volume and per-atom values
     float sasa(float probe_r = 0.14, float* total_volume = NULL,
                std::vector<float>* area_per_atom = NULL,
-               std::vector<float>* volume_per_atom = NULL);
+               std::vector<float>* volume_per_atom = NULL) const;
 #endif
 
     /// Computes average structure over the range of frames
@@ -380,8 +380,8 @@ class Selection {
     /** Get transform for orienting selection by principal axes.
      * Please note that if the size of selection is larger than 1/2 of the box size in
      * any dimension you will get funny results if is_periodic is set to true.
-     */
-    Eigen::Affine3f principal_transform(bool is_periodic = false);
+     */    
+    Eigen::Affine3f principal_transform(bool is_periodic = false) const;
 
     /** Orient molecule by its principal axes.
      * The same as
@@ -399,13 +399,13 @@ class Selection {
     /// @{
 
     /// RMSD between current and another frame
-    float rmsd(int fr);
+    float rmsd(int fr) const;
 
     /// RMSD between two frames
-    float rmsd(int fr1, int fr2);
+    float rmsd(int fr1, int fr2) const;
 
     /// RMSD between two selections of the same size
-    friend float rmsd(Selection& sel1, Selection& sel2);
+    friend float rmsd(const Selection& sel1, const Selection& sel2);
 
     /** RMSD between two selections of the same size (for given frames)
     *   @param sel1 First selection
@@ -413,19 +413,19 @@ class Selection {
     *   @param sel2 Second selection
     *   @param fr2 Frame for second selection
     */
-    friend float rmsd(Selection& sel1, int fr1, Selection& sel2, int fr2);
+    friend float rmsd(const Selection& sel1, int fr1, const Selection& sel2, int fr2);
 
-    /// Fit two selection of the same size
-    friend void fit(Selection& sel1, Selection& sel2);
+    /// Fit two selection of the same size. sel1 is modified to be fit to sel2.
+    friend void fit(Selection& sel1, const Selection& sel2);
 
     /// Fit all frames in the trajectory to reference frame
     void fit_trajectory(int ref_frame=0, int b=0, int e=-1);
 
     /// Returns fitting transformation for two given selections of the same size
-    friend Eigen::Affine3f fit_transform(Selection& sel1, Selection& sel2);
+    friend Eigen::Affine3f fit_transform(const Selection& sel1, const Selection& sel2);
 
     /// Returns fit transformation between frames fr1 and fr2
-    Eigen::Affine3f fit_transform(int fr1, int fr2);
+    Eigen::Affine3f fit_transform(int fr1, int fr2) const;
 
     /// Fits frame fr1 to fr2
     void fit(int fr1, int fr2);
@@ -442,7 +442,7 @@ class Selection {
     /// Self-energy of selection
     Energy_components non_bond_energy() const;
     /// Non-bond energy between two selections
-    friend Energy_components non_bond_energy(Selection& sel1, Selection& sel2, int fr);    
+    friend Energy_components non_bond_energy(const Selection& sel1, const Selection& sel2, int fr);
 
     /// @}
 
@@ -455,6 +455,7 @@ class Selection {
     *   Frames from b to e are written.
     *   If b and e are not set they default to current frame
     */
+    // Can't be made const because of internal calls
     void write(std::string fname,int b=-1,int e=-1);
     /// @}
 
@@ -473,7 +474,7 @@ class Selection {
 
     /// Creates multiple copies of selection in the parent system and
     /// distributes them in a grid
-    void distribute(Vector3i_ref ncopies, Vector3f_ref shift);
+    void distribute(Vector3i_const_ref ncopies, Vector3f_const_ref shift);
     /// @}
 
 
@@ -486,7 +487,7 @@ class Selection {
 
     /// Returnss true if selection was created from text string and false if it was
     /// constructed 'by hand' by appending indexes or other selections
-    bool text_based(){
+    bool text_based() const {
         return sel_text!="";
     }
 
@@ -638,7 +639,7 @@ class Selection {
     }
 
     /// Computes VDW radius. Read only.
-    inline float VDW(int ind){
+    inline float VDW(int ind) const {
         switch(system->atoms[index[ind]].name[0]){
             case 'H': return  0.1;
             case 'C': return  0.17;

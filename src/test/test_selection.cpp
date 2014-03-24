@@ -50,6 +50,12 @@ int main(int argc, char** argv)
 
         return 0;
         */
+        vector<int> v;
+        for(int i=0;i<10;++i) v.push_back(i);
+        int pos = 0;
+        v.insert(v.begin()+pos+1,-1);
+        for(int i=0;i<v.size();++i) cout << v[i] << " ";
+        cout << endl;
 
 
         //System sys("/media/data/semen/trajectories/asymmetric_bicelle/no_restr/last.pdb");

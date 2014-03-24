@@ -212,7 +212,7 @@ public:
     /// @{
 
     /// Determines secondary structure with DSSP algorithm and write detailed report to file
-    void dssp(std::string fname);
+    void dssp(std::string fname) const;
 
     /**
      * @brief Determines secondary structure with DSSP algorithm and return it as a code string
@@ -227,7 +227,7 @@ public:
         bend:		'S'
         loop:		' '
      */
-    std::string dssp();
+    std::string dssp() const;
     /// @}
 #endif
 
@@ -268,10 +268,10 @@ public:
     /// Compute non-bond energy between two atoms
     /// The result is ADDED to e
     /// Intended mainly to be called from other functions, which take care of initializing e
-    void add_non_bond_energy(Energy_components& e, int a1, int a2, int frame, bool is_periodic = true);
+    void add_non_bond_energy(Energy_components& e, int a1, int a2, int frame, bool is_periodic = true) const;
 
     /// Non-bond energy for given list of atom pairs
-    Energy_components non_bond_energy(const std::vector<Eigen::Vector2i>& nlist, int fr);
+    Energy_components non_bond_energy(const std::vector<Eigen::Vector2i>& nlist, int fr) const;
     /// @}
 
 

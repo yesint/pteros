@@ -428,7 +428,7 @@ string Energy_components::to_str(){
             + boost::lexical_cast<string>(q_14);
 }
 
-void System::add_non_bond_energy(Energy_components &e, int a1, int a2, int frame, bool is_periodic)
+void System::add_non_bond_energy(Energy_components &e, int a1, int a2, int frame, bool is_periodic) const
 {
     // First check if this pair is not in exclusions
     if( force_field.exclusions[a1].count(a2) == 0 ){
@@ -449,7 +449,7 @@ void System::add_non_bond_energy(Energy_components &e, int a1, int a2, int frame
         float r = distance(at1,at2,frame);
 
         // Check if this is 1-4 pair
-        boost::unordered_map<int,int>::iterator it = force_field.LJ14_pairs.find(at1*N+at2);
+        boost::unordered_map<int,int>::iterator it = const_cast<System&>(*this).force_field.LJ14_pairs.find(at1*N+at2);
         if( it == force_field.LJ14_pairs.end() ){
             // Normal, not 1-4
             e1 = LJ_en_kernel(force_field.LJ_C6(atoms[at1].type,atoms[at2].type),
@@ -478,7 +478,7 @@ void System::add_non_bond_energy(Energy_components &e, int a1, int a2, int frame
     }
 }
 
-Energy_components System::non_bond_energy(const std::vector<Eigen::Vector2i> &nlist, int fr)
+Energy_components System::non_bond_energy(const std::vector<Eigen::Vector2i> &nlist, int fr) const
 {
     Energy_components e;
     int n = nlist.size();
@@ -492,15 +492,15 @@ Energy_components System::non_bond_energy(const std::vector<Eigen::Vector2i> &nl
 
 #ifndef NO_CPP11
 
-void System::dssp(string fname){
+void System::dssp(string fname) const {
     ofstream f(fname.c_str());
-    Selection sel(*this,"all");
+    Selection sel(const_cast<System&>(*this),"all");
     dssp_wrapper(sel,f);
     f.close();
 }
 
-string System::dssp(){
-    Selection sel(*this,"all");
+string System::dssp() const{
+    Selection sel(const_cast<System&>(*this),"all");
     return dssp_string(sel);
 }
 

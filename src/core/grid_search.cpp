@@ -327,6 +327,8 @@ Grid_searcher::Grid_searcher(float d,
 
     // Get current box    
     box = src.get_system()->Box(src.get_frame());
+
+    // Determine bounding box
     if(!is_periodic){
         // Find true bounding box
         for(i=0;i<3;++i){
@@ -334,40 +336,18 @@ Grid_searcher::Grid_searcher(float d,
             // If no overlap just exit
             if(max(i)==min(i)) return;
         }
-
-/*
-        int num1 = 0, num2 = 0;
-        Vector3f coor1;
-
-        for(i=0; i<src.size(); ++i){
-            coor1 = src.XYZ(i);
-            if(   min(0)<coor1(0) && min(1)<coor1(1) && min(2)<coor1(2)
-               && max(0)>coor1(0) && max(1)>coor1(1) && max(2)>coor1(2) ) ++num1;
-        }
-
-        for(i=0; i<target.size(); ++i){
-            coor1 = target.XYZ(i);
-            if(   min(0)<coor1(0) && min(1)<coor1(1) && min(2)<coor1(2)
-               && max(0)>coor1(0) && max(1)>coor1(1) && max(2)>coor1(2) ) ++num2;
-        }
-
-        // See which selection have more atoms
-        effective_num = std::max(num1,num2);
-        //cout << effective_num << " " << src.size() << " " << target.size() << endl;
-*/
-
     } else {
         // Set dimensions of the current unit cell
         min.fill(0.0);
-        max = box.extents(); //Also sets box dimensions
+        max = box.extents();
     }
 
-    //set_grid_size(min,max, src.size()+target.size());
     set_grid_size(min,max, effective_num);
 
     // Allocate both grids
     grid1.resize( boost::extents[NgridX][NgridY][NgridZ] );
     grid2.resize( boost::extents[NgridX][NgridY][NgridZ] );
+
     // Fill grids
     populate_grid(grid1,src);
     populate_grid(grid2,target);
@@ -398,7 +378,6 @@ Grid_searcher::Grid_searcher(float d,
                     pre.col(n2) = target.XYZ(grid2[i][j][k][n2]);
                 }
 
-
                 // Get neighbour list
                 get_nlist(i,j,k);
                 // Add central cell to the list
@@ -412,34 +391,22 @@ Grid_searcher::Grid_searcher(float d,
                     m2 = nlist[c](1);
                     m3 = nlist[c](2);
 
-
-                /*
-                // Cycle over all accessible neighbouring cells
-                for(m1=i-1;m1<=i+1;++m1)
-                for(m2=j-1;m2<=j+1;++m2)
-                for(m3=k-1;m3<=k+1;++m3)
-                {
-                    //Bounds check
-                    if(m1<0 || m2<0 || m3<0 || m1>=NgridX || m2>=NgridY || m3>=NgridZ) continue;
-                */
-
-
                     // Get number of atoms in neighbour grid1 cell
                     N1 = grid1[m1][m2][m3].size();
 
-                    // Skip empty pairs
+                    // Skip empty cells
                     if(N1==0) continue;
 
-                    // Cycle over N2 and N1                    
-                    for(n1=0;n1<N1;++n1){
+                    // Cycle over N1
+                    for(n1=0;n1<N1;++n1){ // Over source atoms
 
                         ind = grid1[m1][m2][m3][n1];
                         // Skip already used source points
                         if(ind<0) continue;
 
-                        coor1 = src.XYZ(ind);
+                        coor1 = src.XYZ(ind); // Coord of source point
 
-                        for(n2=0;n2<N2;++n2){ //over target atoms
+                        for(n2=0;n2<N2;++n2){ //over target atoms of current cell
 
                             if(!is_periodic)
                                 d = (pre.col(n2) - coor1).norm();
@@ -466,15 +433,6 @@ Grid_searcher::Grid_searcher(float d,
             }
         }
     }
-
-    /*
-    // Restore grid1 for possible later searches
-    for(i=0;i<NgridX;++i)
-        for(j=0;j<NgridY;++j)
-            for(k=0;k<NgridZ;++k)
-                for(n1=0;n1<grid1[i][j][k].size();++n1)
-                    grid1[i][j][k][n1] = abs(grid1[i][j][k][n1]);
-    */
 
     if(include_self){
         // Add all target atoms to result
@@ -646,25 +604,6 @@ void Grid_searcher::populate_grid(Grid_t& grid, Selection& sel){
             grid[n1][n2][n3].push_back(i);
         }
     }
-
-    /*
-    // Statistics:
-    int min = 1e20,max = -1e20, cur, zero = 0, tot = 0;
-    for(i=0;i<NgridX;++i)
-        for(j=0;j<NgridY;++j)
-            for(k=0;k<NgridZ;++k){
-                cur = grid[i][j][k].size();
-                if(cur<min) min = cur;
-                if(cur>max) max = cur;
-                if(cur==0) ++zero;
-                tot += cur;
-            }
-    cout << "Number of cells: " << NgridX*NgridY*NgridZ << endl;
-    cout << "Number of effective atoms: " << tot << endl;
-    cout << "Minimal per cell: " << min << endl;
-    cout << "Maximal per cell: " << max << endl;
-    cout << "Number of empty cells: " << zero << endl << endl;
-    */
 }
 
 
