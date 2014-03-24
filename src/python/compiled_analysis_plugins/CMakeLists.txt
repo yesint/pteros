@@ -17,6 +17,7 @@ if(WRAP_PYTHON)
 
     foreach(plugin ${PLUGINS})
         add_library(plugin_${plugin} SHARED ${plugin}.cpp)
+        target_link_libraries(plugin_${plugin} pteros pteros_analysis ${Boost_LIBRARIES} ${PYTHON_LIBRARIES})
         set_target_properties(plugin_${plugin}
         PROPERTIES
         LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/python/pteros_analysis_plugins"

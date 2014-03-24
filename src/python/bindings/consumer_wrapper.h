@@ -23,7 +23,7 @@
 #ifndef CONSUMER_WRAPPER_H
 #define CONSUMER_WRAPPER_H
 
-#include "pteros/python/bindings_util.h"
+#include "pteros/analysis/consumer_base.h"
 
 namespace pteros {
 

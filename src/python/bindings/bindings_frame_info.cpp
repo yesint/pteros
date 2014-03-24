@@ -21,6 +21,7 @@
 */
 
 #include "bindings_frame_info.h"
+#include "pteros/python/bindings_util.h"
 
 using namespace boost::python;
 using namespace pteros;

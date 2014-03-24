@@ -25,6 +25,10 @@ if(WRAP_PYTHON)
     bindings_atom.h
     bindings_grid_search.cpp
     bindings_grid_search.h
+    bindings_periodic_box.cpp
+    bindings_periodic_box.h
+    bindings_frame.cpp
+    bindings_frame.h
 
     trajectory_processor_wrapper.cpp
     trajectory_processor_wrapper.h

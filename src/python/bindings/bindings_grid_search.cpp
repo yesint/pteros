@@ -20,6 +20,7 @@
  *
 */
 
+#include "pteros/python/bindings_util.h"
 #include "bindings_grid_search.h"
 #include "pteros/core/grid_search.h"
 #include <boost/python/make_constructor.hpp>

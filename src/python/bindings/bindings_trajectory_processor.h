@@ -23,8 +23,6 @@
 #ifndef BINDINGS_TRAJECTORY_PROCESSOR_H
 #define BINDINGS_TRAJECTORY_PROCESSOR_H
 
-#include "pteros/python/bindings_util.h"
-
 void make_bindings_Trajectory_processor();
 
 #endif

@@ -28,6 +28,8 @@
 #include "bindings_trajectory_processor.h"
 #include "bindings_atom.h"
 #include "bindings_grid_search.h"
+#include "bindings_frame.h"
+#include "bindings_periodic_box.h"
 
 /**********************
   Create python module
@@ -62,6 +64,12 @@ BOOST_PYTHON_MODULE(pteros)
 
     // Register exception translator
     register_exception_translator<Pteros_error>(&Pteros_error_translator);
+
+    // Bindings for Frame
+    make_bindings_Frame();
+
+    // Bindings for Periodic_box
+    make_bindings_Periodic_box();
 
     // Bindings for System   
     make_bindings_System();

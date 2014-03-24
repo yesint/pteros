@@ -21,6 +21,7 @@
 */
 
 #include "trajectory_processor_wrapper.h"
+#include "pteros/python/bindings_util.h"
 
 using namespace pteros;
 

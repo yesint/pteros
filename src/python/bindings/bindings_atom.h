@@ -23,8 +23,6 @@
 #ifndef BINDINGS_ATOM_H
 #define BINDINGS_ATOM_H
 
-#include "pteros/python/bindings_util.h"
-
 void make_bindings_Atom();
 
 #endif

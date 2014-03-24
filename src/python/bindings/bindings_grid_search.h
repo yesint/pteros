@@ -23,8 +23,6 @@
 #ifndef BINDINGS_GRID_SEARCH_H
 #define BINDINGS_GRID_SEARCH_H
 
-#include "pteros/python/bindings_util.h"
-
 void make_bindings_grid_search();
 
 #endif

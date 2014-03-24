@@ -21,6 +21,7 @@
 */
 
 #include "bindings_options_tree.h"
+#include "pteros/python/bindings_util.h"
 
 using namespace pteros;
 using namespace Eigen;

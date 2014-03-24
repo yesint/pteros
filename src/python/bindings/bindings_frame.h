@@ -20,34 +20,9 @@
  *
 */
 
-#ifndef TRAJECTORY_PROCESSOR_WRAPPER_H
-#define TRAJECTORY_PROCESSOR_WRAPPER_H
+#ifndef BINDINGS_FRAME_H
+#define BINDINGS_FRAME_H
 
-#include "pteros/analysis/trajectory_processor.h"
-#include "consumer_wrapper.h"
-
-namespace pteros {
-
-class Trajectory_processor_wrapper: public Trajectory_processor {
-public:
-    void initialize();
-
-    Trajectory_processor_wrapper();
-    Trajectory_processor_wrapper(Options_tree& opt);
-    ~Trajectory_processor_wrapper(){}    
-
-    virtual void pre_process() = 0;
-    virtual void process_frame(const Frame_info& info) = 0;
-    virtual void post_process(const Frame_info& info) = 0;
-
-    System* get_system();   
-    // Gets pointer to internal frame obtained from reader
-    Frame* get_frame_ptr();
-
-private:
-    boost::shared_ptr<Consumer_wrapper> cons_p;
-};
-
-}
+void make_bindings_Frame();
 
 #endif

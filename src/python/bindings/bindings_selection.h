@@ -23,8 +23,6 @@
 #ifndef BINDINGS_SELECTION_H
 #define BINDINGS_SELECTION_H
 
-#include "pteros/python/bindings_util.h"
-
 void make_bindings_Selection();
 
 #endif

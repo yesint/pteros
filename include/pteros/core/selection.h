@@ -491,14 +491,6 @@ class Selection {
         return sel_text!="";
     }
 
-    /// Enable automatic signalling from system
-    void enable_signals();
-
-    /// Disable automatic signalling from system
-    void disable_signals();
-
-    /// Returns signalling state of selection
-    bool signals_enabled() const;
     /// @}
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -674,11 +666,7 @@ protected:
     void create_internal(System& sys, std::string& str);
     void create_internal(System& sys, int ind1, int ind2);
     // Private function for deleting selection
-    void delete_internal();    
-
-    // Notification responder and connection object
-    boost::signals2::connection connection;
-    void notify_slot(System_notification code, int b, int e);
+    void delete_internal();        
 
     // Here we define read-only accessors for coordinate and mass
     // This is needed because public XYZ() accessor is not const

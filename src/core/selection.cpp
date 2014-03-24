@@ -111,8 +111,6 @@ void Selection::delete_internal(){
     index.clear();
     // If parser is persistent, delete it
     parser.reset();
-    // Delete connection
-    connection.disconnect();
 
     sel_text="";
 }
@@ -140,7 +138,6 @@ Selection::Selection(System& sys, int ind1, int ind2){
 Selection::~Selection(){
     // Delete parser if it is persistent
     parser.reset();
-    connection.disconnect();
     // All the rest will be destroyed automatically
 }
 
@@ -271,11 +268,6 @@ Selection& Selection::operator=(Selection sel){
 
     // Add to new parent
     system = sel.system;
-    // Connect this selection to notifier if needed
-    if(sel.signals_enabled()){
-        connection.disconnect();
-        connection = system->notify_signal.connect( boost::bind(&Selection::notify_slot,this,_1,_2,_3) );
-    }
 
     if(sel.parser){
         parser.reset(new Selection_parser);
@@ -307,11 +299,6 @@ Selection::Selection(const Selection& sel){
     frame = sel.frame;
     // Add to new parent
     system = sel.system;
-    // Connect this selection to notifier
-    if(sel.signals_enabled()){
-        connection.disconnect();
-        connection = system->notify_signal.connect( boost::bind(&Selection::notify_slot,this,_1,_2,_3) );
-    }
 
     // If parser in sel is persistent, allocate it
     if(sel.parser){
@@ -1130,45 +1117,6 @@ void Selection::distribute(Vector3i_const_ref ncopies, Vector3f_const_ref shift)
         tmp.atoms_dup();
         res.translate(Vector3f(0,0,shift(2)*i));
     }
-}
-
-void Selection::notify_slot(System_notification code, int b, int e){    
-    // Process notifications from the system
-    switch(code){
-    case TOPOLOGY_CHANGED:
-        // Dramatic change! Need to update selection and re-parse selection text
-        update();
-        break;
-    case SYSTEM_CLEARED:
-        // Clear selection
-        clear();
-        // Reset frame to 0
-        frame = 0;
-        break;
-    case FRAMES_DELETED:
-        // If we point to one of deleted frames, reset to zero
-        if(frame>=b && frame<=e) frame = 0;
-        break;
-    case COORDINATES_CHANGED:
-        // If we point to one of changed frames re-apply selection
-        if(frame>=b && frame<=e) apply();
-        break;
-    case FRAME_CHANGE_REQUESTED:
-        frame = b;
-    }
-}
-
-void Selection::enable_signals(){
-    connection.disconnect();
-    connection = system->notify_signal.connect( boost::bind(&Selection::notify_slot,this,_1,_2,_3) );
-}
-
-void Selection::disable_signals(){
-    connection.disconnect();
-}
-
-bool Selection::signals_enabled() const {
-    return connection.connected();
 }
 
 void Selection::split_by_connectivity(float d, std::vector<Selection> &res) {

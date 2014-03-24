@@ -62,13 +62,6 @@ struct Energy_components {
     std::string to_str();
 };
 
-/// Notification signals
-enum System_notification {TOPOLOGY_CHANGED,
-                          SYSTEM_CLEARED,
-                          FRAMES_DELETED,
-                          COORDINATES_CHANGED,
-                          FRAME_CHANGE_REQUESTED};
-
 /// Definition of single trajectory frame.
 /// Frames are stored in System class. They represent actual trajectory frames,
 /// which are loaded from MD trajectories.
@@ -166,10 +159,6 @@ public:
 
     /// Adds new frame to trajectory
     void frame_append(const Frame& fr);
-
-    /// Sets frame for all selections associated with this System
-    /// Only works if signalling is enabled in selections!
-    void set_frame(int fr);
 
     /// Copy coordinates from fr1 to fr2
     void frame_copy(int fr1, int fr2);
@@ -282,11 +271,6 @@ public:
     /// Clears the system and prepares for loading completely new structure
     void clear(bool delete_selections = false);
 
-    /// Updates all associated selection if the system changes somehow
-    /// Also sets frame of all selections to zero.
-    /// Only works for sekections with enabled signalling!
-    void update_selections();
-
     /// Returns true if the force field is set up properly and is able to compute energies
     bool force_field_ready(){
         return force_field.ready;
@@ -308,10 +292,6 @@ public:
     /// @}
 
 protected:
-    /// Signal passed to associated selections when they have to react to changes in the system
-    /// First parameter is type of notification
-    /// Params 2 and 3 indicate the range of frames, which are affected by the change
-    boost::signals2::signal<void(System_notification,int,int)> notify_signal;
 
     /// Holds all atom attributes except the coordinates
     std::vector<Atom>  atoms;

@@ -23,8 +23,6 @@
 #ifndef BINDINGS_FRAME_INFO_H
 #define BINDINGS_FRAME_INFO_H
 
-#include "pteros/python/bindings_util.h"
-
 void make_bindings_Frame_info();
 
 #endif

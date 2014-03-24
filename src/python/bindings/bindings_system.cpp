@@ -22,6 +22,7 @@
 
 #include "bindings_system.h"
 #include "pteros/core/system.h"
+#include "pteros/python/bindings_util.h"
 
 using namespace pteros;
 using namespace Eigen;
@@ -101,230 +102,8 @@ void System_atoms_add2(System* s, boost::python::list& atm, boost::python::list&
     System_atoms_add1(s,atm,crd,NULL);
 }
 
-/*
-float System_distance3(System* s, PyObject* p1, PyObject* p2, int fr, bool is_periodic){
-    if(PyArray_Check(p1)){
-        MAP_EIGEN_TO_PYARRAY(_p1,Vector3f,p1)
-        MAP_EIGEN_TO_PYARRAY(_p2,Vector3f,p2)
-        return s->Box(fr).distance(_p1,_p2);
-    } else {
-        return System_distance1(s,extract<int>(p1),extract<int>(p2),fr,is_periodic);
-    }
-}
-*/
-
-/*
-PyObject* System_get_closest_image(System* s, PyObject* point, PyObject* target, int fr){
-    MAP_EIGEN_TO_PYARRAY(p,Vector3f,point)
-    MAP_EIGEN_TO_PYARRAY(t,Vector3f,target)
-    Vector3f pp,tt;
-    pp = p;
-    tt = t;
-    CREATE_PYARRAY_1D(ret,3)
-    MAP_EIGEN_TO_PYARRAY(r,Vector3f,ret)
-    r = s->get_closest_image(pp,tt,fr);
-    return boost::python::incref(ret);
-}
-*/
-
-//-------------------------
-// For Frame
-//-------------------------
-
-boost::python::list Frame_get_coord(Frame* f){
-    boost::python::list l;
-    for(int i=0;i<f->coord.size();++i){
-        CREATE_PYARRAY_1D(p,3)
-        MAP_EIGEN_TO_PYARRAY(v,Vector3f,p)
-        v = f->coord[i];
-        l.append(handle<>(p));
-    }
-    return l;
-}
-
-void Frame_set_coord(Frame* f, boost::python::list l){
-    f->coord.resize(len(l));
-    for(int i=0;i<f->coord.size();++i){
-        boost::python::object o = l[i];
-        MAP_EIGEN_TO_PYARRAY(v,Vector3f,o.ptr())
-        f->coord[i] = v;
-    }
-}
-
-PyObject* Frame_get_box(Frame* f){
-    CREATE_PYARRAY_2D(p,3,3)
-    MAP_EIGEN_TO_PYARRAY(m,Matrix3f,p)
-    m = f->box.get_box();
-    return boost::python::incref(p);
-}
-
-void Frame_set_box(Frame* f, PyObject* arr){
-    MAP_EIGEN_TO_PYARRAY(m,Matrix3f,arr)
-     f->box.modify(m);
-}
-
-void Periodic_box_modify(Periodic_box* b, PyObject* arr){
-    MAP_EIGEN_TO_PYARRAY(m,Matrix3f,arr)
-    b->modify(m);
-}
-
-PyObject* Periodic_box_get_box(Periodic_box* b){
-    CREATE_PYARRAY_2D(p,3,3)
-    MAP_EIGEN_TO_PYARRAY(m,Matrix3f,p)
-    m = b->get_box();
-    return boost::python::incref(p);
-}
-
-PyObject* Periodic_box_to_box(Periodic_box* b, PyObject* point){
-    CREATE_PYARRAY_1D(ret,3)
-    MAP_EIGEN_TO_PYARRAY(v,Vector3f,ret)
-    MAP_EIGEN_TO_PYARRAY(p,Vector3f,point)
-    v = b->to_box(p);
-    return boost::python::incref(ret);
-}
-
-PyObject* Periodic_box_to_lab(Periodic_box* b, PyObject* point){
-    CREATE_PYARRAY_1D(ret,3)
-    MAP_EIGEN_TO_PYARRAY(v,Vector3f,ret)
-    MAP_EIGEN_TO_PYARRAY(p,Vector3f,point)
-    v = b->to_lab(p);
-    return boost::python::incref(ret);
-}
-
-PyObject* Periodic_box_to_box_matrix(Periodic_box* b){
-    CREATE_PYARRAY_2D(ret,3,3)
-    MAP_EIGEN_TO_PYARRAY(m,Matrix3f,ret)
-    m = b->to_box_matrix();
-    return boost::python::incref(ret);
-}
-
-PyObject* Periodic_box_to_lab_matrix(Periodic_box* b){
-    CREATE_PYARRAY_2D(ret,3,3)
-    MAP_EIGEN_TO_PYARRAY(m,Matrix3f,ret)
-    m = b->to_lab_matrix();
-    return boost::python::incref(ret);
-}
-
-PyObject* Periodic_box_extents(Periodic_box* b){
-    CREATE_PYARRAY_1D(ret,3)
-    MAP_EIGEN_TO_PYARRAY(v,Vector3f,ret)
-    v = b->extents();
-    return boost::python::incref(ret);
-}
-
-float Periodic_box_distance1(Periodic_box* b, PyObject* point1, PyObject* point2,
-                             bool do_wrap, boost::python::list periodic_dims){
-    MAP_EIGEN_TO_PYARRAY(p1,Vector3f,point1)
-    MAP_EIGEN_TO_PYARRAY(p2,Vector3f,point2)
-    Vector3i dims;
-    for(int i=0;i<3;++i) dims(i) = extract<int>(periodic_dims[i]);
-
-    float dist = b->distance(p1,p2,do_wrap,dims);
-    return dist;
-}
-
-float Periodic_box_distance2(Periodic_box* b, PyObject* point1, PyObject* point2, bool do_wrap){
-    MAP_EIGEN_TO_PYARRAY(p1,Vector3f,point1)
-    MAP_EIGEN_TO_PYARRAY(p2,Vector3f,point2)
-
-    float dist = b->distance(p1,p2,do_wrap);
-    return dist;
-}
-
-float Periodic_box_distance3(Periodic_box* b, PyObject* point1, PyObject* point2){
-    MAP_EIGEN_TO_PYARRAY(p1,Vector3f,point1)
-    MAP_EIGEN_TO_PYARRAY(p2,Vector3f,point2)
-
-    float dist = b->distance(p1,p2);
-    return dist;
-}
-
-void Periodic_box_wrap_point1(Periodic_box* b, PyObject* point, boost::python::list dims_to_wrap){
-    MAP_EIGEN_TO_PYARRAY(p,Vector3f,point)
-
-    Vector3i dims;
-    for(int i=0;i<3;++i) dims(i) = extract<int>(dims_to_wrap[i]);
-
-    b->wrap_point(p,dims);
-}
-
-void Periodic_box_wrap_point2(Periodic_box* b, PyObject* point){
-    MAP_EIGEN_TO_PYARRAY(p,Vector3f,point)    
-    b->wrap_point(p);
-}
-
-PyObject* Periodic_box_get_closest_image1(Periodic_box* b, PyObject* point, PyObject* target,
-                             bool do_wrap, boost::python::list dims_to_wrap){
-    MAP_EIGEN_TO_PYARRAY(p,Vector3f,point)
-    MAP_EIGEN_TO_PYARRAY(t,Vector3f,target)
-
-    CREATE_PYARRAY_1D(ret,3)
-    MAP_EIGEN_TO_PYARRAY(v,Vector3f,ret)
-
-    Vector3i dims;
-    for(int i=0;i<3;++i) dims(i) = extract<int>(dims_to_wrap[i]);
-
-    v = b->get_closest_image(p,t,do_wrap,dims);
-    return boost::python::incref(ret);
-}
-
-PyObject* Periodic_box_get_closest_image2(Periodic_box* b, PyObject* point, PyObject* target,
-                             bool do_wrap){
-    MAP_EIGEN_TO_PYARRAY(p,Vector3f,point)
-    MAP_EIGEN_TO_PYARRAY(t,Vector3f,target)
-
-    CREATE_PYARRAY_1D(ret,3)
-    MAP_EIGEN_TO_PYARRAY(v,Vector3f,ret)
-
-    v = b->get_closest_image(p,t,do_wrap);
-    return boost::python::incref(ret);
-}
-
-PyObject* Periodic_box_get_closest_image3(Periodic_box* b, PyObject* point, PyObject* target){
-    MAP_EIGEN_TO_PYARRAY(p,Vector3f,point)
-    MAP_EIGEN_TO_PYARRAY(t,Vector3f,target)
-
-    CREATE_PYARRAY_1D(ret,3)
-    MAP_EIGEN_TO_PYARRAY(v,Vector3f,ret)
-
-    v = b->get_closest_image(p,t);
-    return boost::python::incref(ret);
-}
-
-
 void make_bindings_System(){
-    ///////////////////////////////////////////
-    // Bindings for System
-    ///////////////////////////////////////////
     import_array();
-
-    class_<Frame>("Frame", init<>())
-        .add_property("coord",&Frame_get_coord,&Frame_set_coord)
-        .def_readwrite("t", &Frame::t)
-        .add_property("box",&Frame_get_box,&Frame_set_box)
-    ;
-
-    class_<Periodic_box>("Periodic_box", init<>())
-        .def("modify",&Periodic_box_modify)
-        .def("get_box",&Periodic_box_get_box)
-        .def("to_box",&Periodic_box_to_box)
-        .def("to_box_matrix",&Periodic_box_to_box_matrix)
-        .def("to_lab",&Periodic_box_to_lab)
-        .def("to_lab_matrix",&Periodic_box_to_lab_matrix)
-        .def("extent",&Periodic_box::extent)
-        .def("extents",&Periodic_box_extents)
-        .def("is_triclinic",&Periodic_box::is_triclinic)
-        .def("is_periodic",&Periodic_box::is_periodic)
-        .def("distance",&Periodic_box_distance1)
-        .def("distance",&Periodic_box_distance2)
-        .def("distance",&Periodic_box_distance3)
-        .def("wrap_point",&Periodic_box_wrap_point1)
-        .def("wrap_point",&Periodic_box_wrap_point2)
-        .def("get_closest_image",&Periodic_box_get_closest_image1)
-        .def("get_closest_image",&Periodic_box_get_closest_image2)
-        .def("get_closest_image",&Periodic_box_get_closest_image3)
-        .def("is_periodic",&Periodic_box::volume)
-    ;
 
     class_<System, boost::noncopyable>("System", init<>())
         .def(init<std::string>() )
@@ -333,12 +112,10 @@ void make_bindings_System(){
         .def("num_frames", &System::num_frames)
         .def("load", &System::load, load_overloads())
         .def("frame_dup", &System::frame_dup)
-        .def("set_frame", &System::set_frame)
         .def("frame_copy", &System::frame_copy)
         .def("frame_delete", &System::frame_delete, frame_delete_overloads())
         .def("getFrame_data", &System_getFrame_data)
-        .def("setFrame_data", &System_setFrame_data)
-        .def("update_selections", &System::update_selections)
+        .def("setFrame_data", &System_setFrame_data)        
         .def("getBox", &System_getBox,return_value_policy<reference_existing_object>())
         .def("setBox", &System_setBox)        
         .def("getTime", &System_getTime)

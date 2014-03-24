@@ -72,7 +72,6 @@ void System::clear(bool delete_selections){
     atoms.clear();
     traj.clear();
     force_field.clear();
-    if(delete_selections) notify_signal(SYSTEM_CLEARED,0,0);
 }
 
 void System::check_num_atoms_in_last_frame(){
@@ -183,18 +182,8 @@ void System::load(string fname, int b, int e, int skip){
     cout << "Stored " << num_stored << " frames. Now " << num_frames() << " frames in the System" << endl;
 }
 
-// Update all selections
-void System::update_selections(){
-    notify_signal(TOPOLOGY_CHANGED,0,0);
-}
-
 // Destructor of the system class
 System::~System() {}
-
-void System::set_frame(int fr){
-    if(fr<0 || fr>traj.size()) throw Pteros_error("Invalid frame!");
-    notify_signal(FRAME_CHANGE_REQUESTED,fr,0);
-}
 
 void System::frame_dup(int fr){
     if(fr<0 || fr>=traj.size())
@@ -205,9 +194,7 @@ void System::frame_dup(int fr){
 void System::frame_copy(int fr1, int fr2){
     if(fr1<0 || fr1>=traj.size() || fr2<0 || fr2>=traj.size())
     	throw Pteros_error("Invalid frame for copying!");
-    traj[fr2] = traj[fr1];
-    // Coordinate-dependent selections, which point to fr2 should be updated
-    notify_signal(COORDINATES_CHANGED,fr2,fr2);
+    traj[fr2] = traj[fr1];    
 }
 
 // Delete the range of frames. e = -1 is default
@@ -230,10 +217,6 @@ void System::frame_delete(int b, int e){
     // Check if there are some frames left. If not print the warning
     // that all selections are invalid!
     if(traj.size()==0) cout << "All frames are deleted. All selections are now INVALID!";
-
-    // Selections, which point to frames >b now become invalid
-    // Make them point to frame zero
-    notify_signal(FRAMES_DELETED,b,e);
 }
 
 void System::frame_append(const Frame& fr){
@@ -362,8 +345,6 @@ void System::append(const System &sys){
         copy(sys.traj[fr].coord.begin(),sys.traj[fr].coord.end(),back_inserter(traj[fr].coord));
     // Reassign resindex
     assign_resindex();
-    // Update selections
-    update_selections();
 }
 
 inline void wrap_coord(Vector3f& point, const Matrix3f& box,
