@@ -124,14 +124,22 @@ while True:
 		print "There are %s atoms with exclusions" % nexcl
 		for i in range(0,nexcl):
 			line = f.readline()
+			#print line
 			m = re.search("\{(.+)",line) #Select everything starting from {
 			# Split line
 			l = re.split(",\s*|\}",m.groups(1)[0])
 			# Check for continuations
-			if not re.search("\}",line):
+			while not re.search("\}",line):
 				line = f.readline()
-				m = re.search("(.+)\}",line) #Select everything before }
-				l += re.split(",\s*",m.groups(1)[0])
+				#print line
+				# See if we have } in this continuation line
+				if re.search("\}",line):
+				    m = re.search("(.+)\}",line) #Select everything before }
+				    l += re.split(",\s*",m.groups(1)[0])
+				    break
+				else:
+				    m = re.search("(.+),",line) #Select everything before trailing ,
+				    l += re.split(",\s*",m.groups(1)[0])
 			# now transform to numbers
 			excl.append( [int(x) for x in l if x!=''] )
 			
@@ -172,6 +180,8 @@ while True:
 		# For now we only extract LJ14 from here
 		for i in range(0,ntypes-atnr*atnr):
 			line = f.readline()
+			if not re.search("LJ14",line):
+			    continue
 			m = re.search("functype\[(.+)\]=(\S+),\s*\S+=\s*(\S+),\s*\S+=\s*(\S+),",line)			
 			if not m:
 				continue
@@ -180,9 +190,9 @@ while True:
 				c6 = float(m.group(3))
 				c12 = float(m.group(4))
 				LJ14.append( (n,c6,c12) )
-				
-		# Read fudgeQQ:
-		line = f.readline()
+
+	if re.search("fudgeQQ",line):
+		# Read fudgeQQ:		
 		m = re.search("=\s*(.+)",line)
 		fudgeQQ = float(m.group(1))
 		
@@ -337,5 +347,9 @@ for	e in LJ14_pairs:
 f.close()
 
 # Remove temporary file if not asked to keep it
-if not sys.argv[2]=="keep":
-	os.remove("_tpr_dump")
+if len(sys.argv)>2:
+    if not sys.argv[2]=="keep":
+	    os.remove("_tpr_dump")
+else:
+    os.remove("_tpr_dump")
+    
