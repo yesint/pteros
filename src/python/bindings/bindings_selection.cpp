@@ -367,6 +367,20 @@ boost::python::tuple Selection_inertia2(Selection* s){
     return Selection_inertia1(s,false);
 }
 
+void Selection_atoms_dup1(Selection* s, Selection* res_sel){
+    s->atoms_dup(res_sel);
+}
+
+void Selection_atoms_dup2(Selection* s){
+    s->atoms_dup();
+}
+
+void Selection_distribute(Selection* s, boost::python::list& ncopy, PyObject* shift){
+    MAP_EIGEN_TO_PYARRAY(sh,Vector3f,shift)
+    Vector3i nc;
+    for(int i=0;i<3;++i) nc(i) = extract<int>(ncopy[i]);
+    s->distribute(nc,sh);
+}
 
 // Macros to wrap an inline accessor function
 #define WRAP_ACCESSOR_FR(_out_type, _func) \
@@ -410,6 +424,11 @@ void make_bindings_Selection(){
         .def(init<const Selection&>() )
         .def(init<System&,int,int>() )
         .def("size",&Selection::size)
+
+        // Modification of existing selection
+
+        .def("append",&Selection_append1)
+        .def("append",&Selection_append2)
 
         .def("modify", Selection_modify1)
         .def("modify", Selection_modify2)
@@ -479,6 +498,11 @@ void make_bindings_Selection(){
         .def("apply_transform",&Selection_apply_transform)
         .def("write",&Selection::write,write_overloads())
 
+        .def("atoms_dup",&Selection_atoms_dup1)
+        .def("atoms_dup",&Selection_atoms_dup2)
+        .def("atoms_delete",&Selection::atoms_delete)
+        .def("distribute",&Selection_distribute)
+
         // inertia return a tuple of (moments,axes)
         .def("inertia",&Selection_inertia1)
         .def("inertia",&Selection_inertia2)
@@ -490,6 +514,8 @@ void make_bindings_Selection(){
         .def("wrap",&Selection::wrap)
         .def("unwrap",&Selection::unwrap)
         .def("unwrap_bonds",&Selection::unwrap_bonds,unwrap_bonds_overloads())
+
+        .def("text_based",&Selection::text_based)
 
         // For coordinate accessors we should use setX instead of just X in Python
         // This is because Python don't respect void in return - all functions
@@ -550,9 +576,6 @@ void make_bindings_Selection(){
         .def("setResindex",&Selection_setResindex)
 
         .def("getTag",&Selection_getTag)
-        .def("setTag",&Selection_setTag)
-
-        .def("append",&Selection_append1)
-        .def("append",&Selection_append2)
+        .def("setTag",&Selection_setTag)        
     ;
 }
