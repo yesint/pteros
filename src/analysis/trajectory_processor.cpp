@@ -223,6 +223,8 @@ void Trajectory_processor::run(){
     if(first_time>=0 && last_time>=0 && last_time<first_time)
         throw Pteros_error("Last time") << last_time<< " is smaller that first time" << first_time;
 
+    log_interval = trj->get_value<int>("log_interval",-1);
+
     //-----------------------------------------
     // Actual processing starts here
     //-----------------------------------------
