@@ -521,7 +521,7 @@ void make_bindings_Selection(){
 
         .def("text_based",&Selection::text_based)
 
-        .def("non_bond_energy",&Selection::non_bond_energy)
+        //.def("non_bond_energy",&Selection::non_bond_energy)
 
         // For coordinate accessors we should use setX instead of just X in Python
         // This is because Python don't respect void in return - all functions

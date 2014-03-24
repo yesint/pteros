@@ -56,6 +56,7 @@ class Selection {
   // System and Selection are friends because they are closely integrated.
   friend class System;
   friend class Selection_parser;
+  friend class Grid_searcher;
 
   public:
     // Ensure correct 16-bytes-alignment for Eigen sse2 optimizations
@@ -441,8 +442,11 @@ class Selection {
 
     /// Self-energy of selection
     Energy_components non_bond_energy() const;
+    Energy_components non_bond_energy(float cutoff) const;
+
     /// Non-bond energy between two selections
     friend Energy_components non_bond_energy(const Selection& sel1, const Selection& sel2, int fr);
+    friend Energy_components non_bond_energy(float cutoff, const Selection& sel1, const Selection& sel2, int fr);
 
     /// @}
 

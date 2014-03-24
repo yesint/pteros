@@ -86,14 +86,14 @@ namespace pteros {
             /// @{
 
             /// Constructor for instant searching inside a selection
-            Grid_searcher(float d, Selection& sel,
+            Grid_searcher(float d, const Selection& sel,
                             std::vector<Eigen::Vector2i>& bon,                            
                             bool absolute_index = false,
                             bool periodic = false,
                             std::vector<float>* dist_vec = NULL);
 
             /// Constructor for instant searching between two selections
-            Grid_searcher(float d, Selection& sel1, Selection& sel2,
+            Grid_searcher(float d, const Selection& sel1, const Selection& sel2,
                             std::vector<Eigen::Vector2i>& bon,
                             bool absolute_index = false,
                             bool periodic = false,
@@ -105,7 +105,7 @@ namespace pteros {
 
             /// Assign atoms from given selection to grid
             /// Pointer to this selection is stored internally
-            void assign_to_grid(float d, Selection& sel,
+            void assign_to_grid(float d, const Selection& sel,
                                 bool absolute_index = false,
                                 bool periodic = false);
 
@@ -118,7 +118,7 @@ namespace pteros {
             /// Search atoms within given distance from target selection
             /// target must be the subset of selectionm which was used in assign_to_grid()
             /// to give meaningful results
-            void search_within(Selection& target,
+            void search_within(const Selection& target,
                                std::vector<int>& bon,
                                bool include_self=true);
 
@@ -126,8 +126,8 @@ namespace pteros {
             /// which are within given distance from the atoms of target.
             /// Used in internal parsing of within selections.
             Grid_searcher(  float d,
-                            Selection& src,
-                            Selection& target,
+                            const Selection& src,
+                            const Selection& target,
                             std::vector<int>& bon,
                             bool include_self=true,
                             bool absolute_index = false,
@@ -140,7 +140,7 @@ namespace pteros {
             /// Creates custom periodic grid with given dimensions
             void create_custom_grid(int nX, int nY, int nZ);
             /// Populate custom grid created by create_custom_grid() from given selection
-            void fill_custom_grid(Selection sel,
+            void fill_custom_grid(const Selection sel,
                                   bool absolute_index = false);
             /// Read/write acces to the cells of custom grid
             std::vector<int>& cell_of_custom_grid(int x, int y, int z);
@@ -152,17 +152,17 @@ namespace pteros {
             typedef boost::multi_array<std::vector<int>,3> Grid_t;
 
             // Create one grid from single selection
-            void create_grid(Grid_t& grid, Selection& sel);
+            void create_grid(Grid_t& grid, const Selection& sel);
             // Create two grids from two selections
-            void create_grid2(Selection& sel1, Selection& sel2);
+            void create_grid2(const Selection& sel1, const Selection& sel2);
 
-            void populate_grid(Grid_t& grid, Selection& sel);
+            void populate_grid(Grid_t& grid, const Selection& sel);
 
             /// Search function for contacts inside one group
-            void do_search(Selection& sel, std::vector<Eigen::Vector2i>& bon,
+            void do_search(const Selection& sel, std::vector<Eigen::Vector2i>& bon,
                            std::vector<float>* dist_vec);
             /// Search function for contacts between two groups
-            void do_search(Selection& sel1, Selection& sel2, std::vector<Eigen::Vector2i>& bon,
+            void do_search(const Selection& sel1, const Selection& sel2, std::vector<Eigen::Vector2i>& bon,
                            std::vector<float>* dist_vec);
             // Min and max of the bounding box
             Eigen::Vector3f min,max;
@@ -192,18 +192,18 @@ namespace pteros {
 
             void get_nlist(int i,int j,int k);            
 
-            void get_central_1(int i1, int j1, int k1, Selection& sel,
+            void get_central_1(int i1, int j1, int k1, const Selection& sel,
                                 std::vector<Eigen::Vector2i>& bonds,
                                 std::vector<float>* dist_vec);
-            void get_side_1(int i1,int j1,int k1, int i2,int j2,int k2, Selection& sel,
+            void get_side_1(int i1,int j1,int k1, int i2,int j2,int k2, const Selection& sel,
                                 std::vector<Eigen::Vector2i>& bonds,
                                 std::vector<float>* dist_vec);
-            void get_central_2(int i1, int j1, int k1, Selection& sel1, Selection& sel2,
+            void get_central_2(int i1, int j1, int k1, const Selection& sel1, const Selection& sel2,
                                 std::vector<Eigen::Vector2i>& bonds,
                                 std::vector<float>* dist_vec);
             void get_side_2(int i1,int j1,int k1, int i2,int j2,int k2,
-                                Selection& sel1,
-                                Selection& sel2,
+                                const Selection& sel1,
+                                const Selection& sel2,
                                 std::vector<Eigen::Vector2i>& bonds,
                                 std::vector<float>* dist_vec);
     };

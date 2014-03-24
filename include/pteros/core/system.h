@@ -261,6 +261,7 @@ public:
 
     /// Non-bond energy for given list of atom pairs
     Energy_components non_bond_energy(const std::vector<Eigen::Vector2i>& nlist, int fr) const;
+
     /// @}
 
 
