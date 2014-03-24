@@ -805,7 +805,7 @@ Energy_components Selection::non_bond_energy() const
     n = size();
     for(i=0; i<n-1; ++i)
         for(j=i+1; j<n; ++j)
-            system->add_non_bond_energy(e,i,j,frame,true);
+            system->add_non_bond_energy(e,_Index(i),_Index(j),frame,true);
     return e;
 }
 
@@ -824,8 +824,8 @@ Energy_components non_bond_energy(const Selection& sel1, const Selection& sel2, 
     Energy_components e;
 
     for(i=0;i<n1;++i)
-        for(j=0;i<n2;++j)
-            sel1.get_system()->add_non_bond_energy(e,i,j,fr,true);
+        for(j=0;j<n2;++j)
+            sel1.get_system()->add_non_bond_energy(e,sel1._Index(i),sel2._Index(j),fr,true);
 
     return e;
 }

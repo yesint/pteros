@@ -50,16 +50,15 @@ int main(int argc, char** argv)
 
         return 0;
         */
-        vector<int> v;
-        for(int i=0;i<10;++i) v.push_back(i);
-        int pos = 0;
-        v.insert(v.begin()+pos+1,-1);
-        for(int i=0;i<v.size();++i) cout << v[i] << " ";
-        cout << endl;
+
+        System s("/media/data/semen/trajectories/RC/2fs/new_top/topol.tpr.pttop");
+        Selection sel1(s,"resid 305");
+        Selection sel2(s,"resid 306");
+        Energy_components e = non_bond_energy(sel1,sel2,0);
 
 
         //System sys("/media/data/semen/trajectories/asymmetric_bicelle/no_restr/last.pdb");
-        System sys("/media/data/semen/trajectories/grand_challenge/dump.gro");
+        //System sys("/media/data/semen/trajectories/grand_challenge/dump.gro");
         //System sys("/home/semen/work/Projects/pteros/pteros-git-build/release/bin/dppc_vesicle.gro");
         //System sys("/home/semen/work/Projects/pteros/pteros-git-build/release/bin/dpc-vesicle.gro");
         //System sys("/home/semen/work/Projects/pteros/pteros-git-build/release/bin/pope_vesicle.gro");
@@ -69,7 +68,7 @@ int main(int argc, char** argv)
         //cout << "Unwrapping done" << endl;
         //Selection(sys,"resname DOPC DOPS").write("wrapped.pdb");
 
-        Selection(sys,"resname DOPC");
+        //Selection(sys,"resname DOPC");
 
 /*
         Matrix3f b = sys.Box(0).get_box();
