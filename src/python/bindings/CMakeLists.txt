@@ -29,6 +29,8 @@ if(WRAP_PYTHON)
     bindings_periodic_box.h
     bindings_frame.cpp
     bindings_frame.h
+    bindings_energy_components.cpp
+    bindings_energy_components.h
 
     trajectory_processor_wrapper.cpp
     trajectory_processor_wrapper.h

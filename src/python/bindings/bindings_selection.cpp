@@ -335,7 +335,11 @@ float rmsd_py(Selection& sel1, int fr1, Selection& sel2, int fr2){
 }
 
 void fit_py(Selection& sel1, Selection& sel2){
-    fit(sel1,sel2);
+    fit(sel1,sel2);    
+}
+
+Energy_components non_bond_energy_py(const Selection& sel1, const Selection& sel2, int fr){
+    return non_bond_energy(sel1,sel2,fr);
 }
 
 float Selection_rmsd1(Selection* s, int fr){
@@ -411,12 +415,12 @@ WRAP_ACCESSOR(std::string,Tag)
 WRAP_ACCESSOR(int,Resindex)
 
 void make_bindings_Selection(){
-
     import_array();    
 
     def("rmsd",&rmsd_py);
     def("fit",&fit_py);
     def("fit_transform",&fit_transform_py);
+    def("non_bond_energy",&non_bond_energy_py);
 
     class_<Selection>("Selection", init<>())
         .def(init<System&,std::string>() )
@@ -516,6 +520,8 @@ void make_bindings_Selection(){
         .def("unwrap_bonds",&Selection::unwrap_bonds,unwrap_bonds_overloads())
 
         .def("text_based",&Selection::text_based)
+
+        .def("non_bond_energy",&Selection::non_bond_energy)
 
         // For coordinate accessors we should use setX instead of just X in Python
         // This is because Python don't respect void in return - all functions
