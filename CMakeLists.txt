@@ -62,11 +62,6 @@ endif()
 
 find_package(Boost 1.48.0 REQUIRED thread regex system date_time)
 
-# In debug build we also need boost.date_time to link correctly. I have no idea why...
-if(CMAKE_BUILD_TYPE STREQUAL Debug)
-    find_package(Boost REQUIRED date_time)
-endif()
-
 message("${Boost_INCLUDE_DIRS}")
 message( "${Boost_LIBRARIES}" )
 
