@@ -45,10 +45,9 @@ protected:
         volume.clear();
     }
 
-    void process_frame(const Frame_info &info){
-        Eigen::Matrix3f m = system.Box(0).get_box();
-        data.push_back(m.diagonal());
-        volume.push_back(m.diagonal().prod());        
+    void process_frame(const Frame_info &info){        
+        data.push_back(system.Box(0).extents());
+        volume.push_back(system.Box(0).volume());
     }
 
     void post_process(const Frame_info &info){
