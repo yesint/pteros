@@ -260,7 +260,7 @@ public:
     void add_non_bond_energy(Energy_components& e, int a1, int a2, int frame, bool is_periodic = true) const;
 
     /// Non-bond energy for given list of atom pairs
-    Energy_components non_bond_energy(const std::vector<Eigen::Vector2i>& nlist, int fr) const;
+    Energy_components non_bond_energy(const std::vector<Eigen::Vector2i>& nlist, int fr, bool is_periodic=true) const;
 
     /// @}
 

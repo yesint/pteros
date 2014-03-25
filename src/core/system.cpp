@@ -459,13 +459,13 @@ void System::add_non_bond_energy(Energy_components &e, int a1, int a2, int frame
     }
 }
 
-Energy_components System::non_bond_energy(const std::vector<Eigen::Vector2i> &nlist, int fr) const
+Energy_components System::non_bond_energy(const std::vector<Eigen::Vector2i> &nlist, int fr, bool is_periodic) const
 {
     Energy_components e;
     int n = nlist.size();
 
     for(int i=0;i<n;++i){
-        add_non_bond_energy(e,nlist[i](0),nlist[i](1),fr,true);
+        add_non_bond_energy(e,nlist[i](0),nlist[i](1),fr,is_periodic);
     }
 
     return e;

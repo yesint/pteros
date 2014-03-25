@@ -440,13 +440,24 @@ class Selection {
     /// @name Energy functions
     /// @{
 
-    /// Self-energy of selection
-    Energy_components non_bond_energy() const;
-    Energy_components non_bond_energy(float cutoff) const;
+    /// Self-energy of selection. Computed over whole selection without cut-off.
+    /// Very slow for large selections.
+    Energy_components non_bond_energy(bool periodic=true) const;
+    /// Self-energy of selection computed within given interaction cut-off.
+    Energy_components non_bond_energy(float cutoff, bool periodic=true) const;
 
-    /// Non-bond energy between two selections
-    friend Energy_components non_bond_energy(const Selection& sel1, const Selection& sel2, int fr);
-    friend Energy_components non_bond_energy(float cutoff, const Selection& sel1, const Selection& sel2, int fr);
+    /// Non-bond energy between two selections. Computed over whole selections without cut-off.
+    /// Very slow for large selections.
+    friend Energy_components non_bond_energy(const Selection& sel1,
+                                             const Selection& sel2,
+                                             int fr,
+                                             bool periodic=true);
+    /// Non-bond energy between two selections computed within given interaction cut-off.
+    friend Energy_components non_bond_energy(float cutoff,
+                                             const Selection& sel1,
+                                             const Selection& sel2,
+                                             int fr,
+                                             bool periodic=true);
 
     /// @}
 
