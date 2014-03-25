@@ -91,7 +91,7 @@ protected:
         } else {
             sel1.apply();
             sel2.apply();
-            e = non_bond_energy(cutoff,sel1,sel2,0,is_periodic);
+            e = non_bond_energy(sel1,sel2,cutoff,0,is_periodic);
         }
 
         out << info.valid_frame << " " << e.to_str() << endl;

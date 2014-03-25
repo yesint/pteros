@@ -798,64 +798,67 @@ void Selection::apply_transform(Affine3f &t){
     }
 }
 
-Energy_components Selection::non_bond_energy(bool periodic) const
-{
-    Energy_components e;
-    int i,j,n;
-    n = size();
-    for(i=0; i<n-1; ++i)
-        for(j=i+1; j<n; ++j)
-            system->add_non_bond_energy(e,_Index(i),_Index(j),frame,periodic);
-    return e;
-}
-
 Energy_components Selection::non_bond_energy(float cutoff, bool periodic) const
 {
-    // Perform grid search
-    vector<Vector2i> bon;
-    Grid_searcher(cutoff,*this,bon,true,periodic);
-    return system->non_bond_energy(bon,frame, periodic);
+    if(cutoff>0){
+        // Perform grid search
+        vector<Vector2i> bon;
+        Grid_searcher(cutoff,*this,bon,true,periodic);
+        return system->non_bond_energy(bon,frame, periodic);
+    } else {
+        // Compute all-with-all
+        Energy_components e;
+        int i,j,n;
+        n = size();
+        for(i=0; i<n-1; ++i)
+            for(j=i+1; j<n; ++j)
+                system->add_non_bond_energy(e,_Index(i),_Index(j),frame,periodic);
+        return e;
+    }
 }
 
 namespace pteros {
 
-// Non-bond energy between two selections
-Energy_components non_bond_energy(const Selection& sel1, const Selection& sel2, int fr, bool periodic) {
+Energy_components non_bond_energy(const Selection &sel1, const Selection &sel2,
+                                  float cutoff, int fr, bool periodic)
+{
     // Check if both selections are from the same system
     if(sel1.get_system()!=sel2.get_system())
         throw Pteros_error("Can't compute non-bond energy between selections from different systems!");
 
-    int n1 = sel1.size();
-    int n2 = sel2.size();
-    int i,j;
+    if(fr<0) fr = sel1.get_frame();
 
-    Energy_components e;   
+    if(cutoff>0){
+        // Need to set frame fr for both selection to get correct grid search
+        int fr1 = sel1.get_frame();
+        int fr2 = sel2.get_frame();
 
-    for(i=0;i<n1;++i)
-        for(j=0;j<n2;++j)
-            sel1.get_system()->add_non_bond_energy(e,sel1._Index(i),sel2._Index(j),fr,periodic);
+        const_cast<Selection&>(sel1).set_frame(fr);
+        const_cast<Selection&>(sel2).set_frame(fr);
 
-    return e;
-}
+        // Perform grid search
+        vector<Vector2i> bon;
+        Grid_searcher(cutoff,sel1,sel2,bon,true,periodic);
 
-Energy_components non_bond_energy(float cutoff, const Selection &sel1, const Selection &sel2, int fr, bool periodic)
-{
-    // Need to set frame fr for both selection to get correct grid search
-    int fr1 = sel1.get_frame();
-    int fr2 = sel2.get_frame();
+        // Restore frames
+        const_cast<Selection&>(sel1).set_frame(fr1);
+        const_cast<Selection&>(sel2).set_frame(fr2);
 
-    const_cast<Selection&>(sel1).set_frame(fr);
-    const_cast<Selection&>(sel2).set_frame(fr);
+        return sel1.get_system()->non_bond_energy(bon,fr);
+    } else {
+        // Compute for all pairs
+        int n1 = sel1.size();
+        int n2 = sel2.size();
+        int i,j;
 
-    // Perform grid search
-    vector<Vector2i> bon;
-    Grid_searcher(cutoff,sel1,sel2,bon,true,periodic);
+        Energy_components e;
 
-    // Restore frames
-    const_cast<Selection&>(sel1).set_frame(fr1);
-    const_cast<Selection&>(sel2).set_frame(fr2);
+        for(i=0;i<n1;++i)
+            for(j=0;j<n2;++j)
+                sel1.get_system()->add_non_bond_energy(e,sel1._Index(i),sel2._Index(j),fr,periodic);
 
-    return sel1.get_system()->non_bond_energy(bon,fr);
+        return e;
+    }
 }
 
 
