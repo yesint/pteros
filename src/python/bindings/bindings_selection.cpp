@@ -216,16 +216,6 @@ void Selection_setXYZ2(Selection* s, int ind, int fr, PyObject* obj){
     s->XYZ(ind,fr) = data;
 }
 
-void Selection_each_residue(Selection* s, boost::python::list& sel){
-    // First call parent function
-    vector<Selection> l;
-    s->each_residue(l);
-    // Transfer obtained selections to python list    
-    for(int i=0;i<l.size();++i){
-        sel.append( l[i] );
-    }
-}
-
 System* Selection_get_system(Selection* s){
     return s->get_system();
 }
@@ -391,6 +381,32 @@ void Selection_distribute(Selection* s, boost::python::list& ncopy, PyObject* sh
     s->distribute(nc,sh);
 }
 
+boost::python::list Selection_split_by_connectivity(Selection* s, float d){
+    vector<Selection> res;
+    s->split_by_connectivity(d,res);
+    boost::python::list l;
+    for(int i=0;i<res.size();++i) l.append(res[i]);
+    return l;
+}
+
+boost::python::list Selection_split_by_residue(Selection* s){
+    vector<Selection> res;
+    s->split_by_residue(res);
+    boost::python::list l;
+    for(int i=0;i<res.size();++i) l.append(res[i]);
+    return l;
+}
+
+boost::python::list Selection_each_residue(Selection* s){
+    vector<Selection> res;
+    s->each_residue(res);
+    boost::python::list l;
+    for(int i=0;i<res.size();++i) l.append(res[i]);
+    return l;
+}
+
+//-------------------------------------------------------
+
 // Macros to wrap an inline accessor function
 #define WRAP_ACCESSOR_FR(_out_type, _func) \
     _out_type Selection_get##_func##1(Selection* s, int arg){ return s->_func(arg); } \
@@ -450,8 +466,7 @@ void make_bindings_Selection(){
         .def("get_frame",&Selection::get_frame)
         .def("set_frame",&Selection::set_frame)
 
-        .def("clear",&Selection::clear)
-        .def("each_residue",&Selection_each_residue)
+        .def("clear",&Selection::clear)        
 
         .def("get_system",&Selection_get_system,return_value_policy<reference_existing_object>())
         .def("get_text",&Selection::get_text)
@@ -527,6 +542,11 @@ void make_bindings_Selection(){
         .def("text_based",&Selection::text_based)
 
         .def("non_bond_energy",&Selection::non_bond_energy,non_bond_energy_overloads())
+
+        // Splitting functions
+        .def("split_by_connectivity",&Selection_split_by_connectivity)
+        .def("split_by_residue",&Selection_split_by_residue)
+        .def("each_residue",&Selection_each_residue)
 
         // For coordinate accessors we should use setX instead of just X in Python
         // This is because Python don't respect void in return - all functions

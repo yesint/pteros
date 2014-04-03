@@ -517,8 +517,7 @@ class Selection {
 
     /// Selects each residue, which is referenced by selection.
     /// All selections for residues are placed into supplied vector.
-    /// Handles multiple chains correctly.
-    /// If with_signal is true selections are created with automatic signalling from parent system.
+    /// Handles multiple chains correctly.    
     void each_residue(std::vector<Selection>& sel) const;
     /// @}
 
