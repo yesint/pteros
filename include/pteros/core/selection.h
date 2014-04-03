@@ -440,13 +440,19 @@ class Selection {
     /// @name Energy functions
     /// @{
 
-    /// Self-energy of selection
-    Energy_components non_bond_energy() const;
-    Energy_components non_bond_energy(float cutoff) const;
+    /// Self-energy of selection computed within given interaction cut-off.
+    /// If cutoff is 0 or negative computes interaction of all atoms
+    /// (very slow for large selections)
+    Energy_components non_bond_energy(float cutoff=0.25, bool periodic=true) const;
 
-    /// Non-bond energy between two selections
-    friend Energy_components non_bond_energy(const Selection& sel1, const Selection& sel2, int fr);
-    friend Energy_components non_bond_energy(float cutoff, const Selection& sel1, const Selection& sel2, int fr);
+    /// Non-bond energy between two selections computed within given interaction cut-off.
+    /// If cutoff is 0 or negative computes all pairs of atoms (very slow for large selections)
+    /// fr = -1 computes for current frame of selection 1.
+    friend Energy_components non_bond_energy(const Selection& sel1,
+                                             const Selection& sel2,
+                                             float cutoff = 0.25,
+                                             int fr = -1,
+                                             bool periodic = true);
 
     /// @}
 

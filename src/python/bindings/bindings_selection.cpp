@@ -37,6 +37,8 @@ BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(write_overloads, write, 1, 3)
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(get_average_overloads, get_average, 0, 2)
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(principal_orient_overloads, principal_orient, 0, 1)
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(unwrap_bonds_overloads, unwrap_bonds, 0, 1)
+BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(non_bond_energy_overloads, non_bond_energy, 0, 2)
+BOOST_PYTHON_FUNCTION_OVERLOADS(non_bond_energy_overloads_free, non_bond_energy_py, 2, 5)
 
 void Selection_modify1(Selection* s, System& sys, string str){
     s->modify(sys,str);
@@ -123,10 +125,13 @@ PyObject* Selection_center(Selection* s, bool mass_weighted){
     return boost::python::incref(p);
 }
 
-void Selection_minmax(Selection* s, PyObject* min, PyObject* max){
+boost::python::tuple Selection_minmax(Selection* s){
+    CREATE_PYARRAY_1D(min,3)
+    CREATE_PYARRAY_1D(max,3)
     MAP_EIGEN_TO_PYARRAY(_min,Vector3f,min)
     MAP_EIGEN_TO_PYARRAY(_max,Vector3f,max)    
     s->minmax(_min,_max);
+    return boost::python::make_tuple(handle<>(min),handle<>(max));
 }
 
 void Selection_translate(Selection* s, PyObject* vec){
@@ -216,8 +221,7 @@ void Selection_each_residue(Selection* s, boost::python::list& sel){
     // First call parent function
     vector<Selection> l;
     s->each_residue(l);
-    // Transfer obtained selections to python list
-    boost::python::object obj;
+    // Transfer obtained selections to python list    
     for(int i=0;i<l.size();++i){
         sel.append( l[i] );
     }
@@ -234,9 +238,8 @@ boost::python::list Selection_get_index(Selection* s){
 }
 
 boost::python::list Selection_get_chain(Selection* s){
-    boost::python::list l;
-    vector<char> r = s->get_chain();
-    for(int i=0;i<r.size();++i) l.append(r[i]);
+    boost::python::list l;    
+    for(int i=0;i<s->size();++i) l.append(s->Chain(i));
     return l;
 }
 
@@ -260,9 +263,8 @@ boost::python::list Selection_get_unique_chain(Selection* s){
 }
 
 boost::python::list Selection_get_resid(Selection* s){
-    boost::python::list l;
-    vector<int> r = s->get_resid();
-    for(int i=0;i<r.size();++i) l.append(r[i]);
+    boost::python::list l;    
+    for(int i=0;i<s->size();++i) l.append(s->Resid(i));
     return l;
 }
 
@@ -280,9 +282,8 @@ void Selection_set_resid2(Selection* s, char data){
 
 boost::python::list Selection_get_name(Selection* s){
     boost::python::list l;
-    vector<string> r;
-    r = s->get_name();
-    for(int i=0;i<r.size();++i) l.append(r[i].c_str());
+    vector<string> r;    
+    for(int i=0;i<r.size();++i) l.append(s->Name(i).c_str());
     return l;
 }
 
@@ -300,9 +301,8 @@ void Selection_set_name2(Selection* s, string& data){
 
 boost::python::list Selection_get_resname(Selection* s){
     boost::python::list l;
-    vector<string> r;
-    r = s->get_resname();
-    for(int i=0;i<r.size();++i) l.append(r[i].c_str());
+    vector<string> r;    
+    for(int i=0;i<r.size();++i) l.append(s->Resname(i).c_str());
     return l;
 }
 
@@ -338,8 +338,12 @@ void fit_py(Selection& sel1, Selection& sel2){
     fit(sel1,sel2);    
 }
 
-Energy_components non_bond_energy_py(const Selection& sel1, const Selection& sel2, int fr){
-    return non_bond_energy(sel1,sel2,fr);
+Energy_components non_bond_energy_py(const Selection& sel1,
+                                     const Selection& sel2,
+                                     float cutoff = 0.25,
+                                     int fr = -1,
+                                     bool periodic = true){
+    return non_bond_energy(sel1,sel2,cutoff,fr,periodic);
 }
 
 float Selection_rmsd1(Selection* s, int fr){
@@ -364,7 +368,7 @@ boost::python::tuple Selection_inertia1(Selection* s, bool periodic){
     MAP_EIGEN_TO_PYARRAY(_m,Vector3f,m)
     MAP_EIGEN_TO_PYARRAY(_a,Matrix3f,a)    
     s->inertia(_m,_a,periodic);
-    return boost::python::make_tuple(boost::python::handle<>(m),boost::python::handle<>(a));
+    return boost::python::make_tuple(handle<>(m),handle<>(a));
 }
 
 boost::python::tuple Selection_inertia2(Selection* s){
@@ -420,7 +424,7 @@ void make_bindings_Selection(){
     def("rmsd",&rmsd_py);
     def("fit",&fit_py);
     def("fit_transform",&fit_transform_py);
-    def("non_bond_energy",&non_bond_energy_py);
+    def("non_bond_energy",&non_bond_energy_py,non_bond_energy_overloads_free());
 
     class_<Selection>("Selection", init<>())
         .def(init<System&,std::string>() )
@@ -521,7 +525,7 @@ void make_bindings_Selection(){
 
         .def("text_based",&Selection::text_based)
 
-        //.def("non_bond_energy",&Selection::non_bond_energy)
+        .def("non_bond_energy",&Selection::non_bond_energy,non_bond_energy_overloads())
 
         // For coordinate accessors we should use setX instead of just X in Python
         // This is because Python don't respect void in return - all functions
