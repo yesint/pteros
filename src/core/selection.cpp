@@ -86,7 +86,7 @@ void Selection::create_internal(System& sys, string& str){
     allocate_parser();
 
     // Show warning if empty selection is created
-    if(size()==0) cout << "(WARNING) Selection '" << sel_str
+    if(size()==0) cout << "(WARNING) Selection '" << sel_text
                        << "' is empty!\n\t\tAny call of its methods will crash your program!" << endl;
 }
 
@@ -108,7 +108,7 @@ void Selection::create_internal(System& sys, int ind1, int ind2){
     for(int i=ind1; i<=ind2; ++i) index.push_back(i);
 
     // Show warning if empty selection is created
-    if(size()==0) cout << "(WARNING) Selection '" << sel_str
+    if(size()==0) cout << "(WARNING) Selection '" << ind1 << ":" << ind2
                        << "' is empty!\n\t\tAny call of its methods will crash your program!" << endl;
 }
 

@@ -38,7 +38,6 @@ BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(get_average_overloads, get_average, 0, 2)
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(principal_orient_overloads, principal_orient, 0, 1)
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(unwrap_bonds_overloads, unwrap_bonds, 0, 1)
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(non_bond_energy_overloads, non_bond_energy, 0, 2)
-BOOST_PYTHON_FUNCTION_OVERLOADS(non_bond_energy_overloads_free, non_bond_energy_py, 2, 5)
 
 void Selection_modify1(Selection* s, System& sys, string str){
     s->modify(sys,str);
@@ -345,6 +344,8 @@ Energy_components non_bond_energy_py(const Selection& sel1,
                                      bool periodic = true){
     return non_bond_energy(sel1,sel2,cutoff,fr,periodic);
 }
+
+BOOST_PYTHON_FUNCTION_OVERLOADS(non_bond_energy_overloads_free, non_bond_energy_py, 2, 5)
 
 float Selection_rmsd1(Selection* s, int fr){
     return s->rmsd(fr);
