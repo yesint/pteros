@@ -689,6 +689,7 @@ protected:
     inline Eigen::Vector3f& _XYZ(int ind, int fr) const { return system->traj[fr].coord[index[ind]]; }
     inline float& _Mass(int ind) const { return system->atoms[index[ind]].mass; }
     inline int _Index(int ind) const { return index[ind]; }
+    inline pteros::Atom& _Atom(int ind) const { return system->atoms[index[ind]]; }
 };
 
 

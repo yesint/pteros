@@ -123,6 +123,10 @@ public:
 
     /// Append other system to this one
     void append(const System& sys);
+
+    /// Append atoms from selection to this system
+    void append(const Selection& sel);
+
     /// @}
 
 
@@ -238,7 +242,7 @@ public:
     /// Adds new atoms from supplied vectors of atoms and coordinates
     void atoms_add(const std::vector<Atom>& atm,
                    const std::vector<Eigen::Vector3f>& crd,
-                   Selection* res_sel = NULL);
+                   Selection* res_sel = NULL);    
 
     /// Delete the set of atoms
     void atoms_delete(const std::vector<int>& ind);
