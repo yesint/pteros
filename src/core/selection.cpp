@@ -167,8 +167,13 @@ void Selection::append(Selection &sel){
 void Selection::append(int ind){
     if(!system) throw Pteros_error("Can't append to undefined system!");
     if(ind<0 || ind>=system->num_atoms()) throw Pteros_error("Appended index is out of bonds!");
-    index.push_back(ind);
+
+    if(find(index.begin(),index.end(),ind)!=index.end()){
+        index.push_back(ind);
+    }
+
     sel_text = "";
+    parser.reset();
 }
 
 // Free memory used by selection.
