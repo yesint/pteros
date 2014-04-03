@@ -84,6 +84,10 @@ void Selection::create_internal(System& sys, string& str){
     frame = 0;
 
     allocate_parser();
+
+    // Show warning if empty selection is created
+    if(size()==0) cout << "(WARNING) Selection '" << sel_str
+                       << "' is empty!\n\t\tAny call of its methods will crash your program!" << endl;
 }
 
 // Aux function, which creates selection
@@ -102,6 +106,10 @@ void Selection::create_internal(System& sys, int ind1, int ind2){
     // Populate selection directly
     index.clear();
     for(int i=ind1; i<=ind2; ++i) index.push_back(i);
+
+    // Show warning if empty selection is created
+    if(size()==0) cout << "(WARNING) Selection '" << sel_str
+                       << "' is empty!\n\t\tAny call of its methods will crash your program!" << endl;
 }
 
 
