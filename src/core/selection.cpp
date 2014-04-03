@@ -315,7 +315,7 @@ Selection::Selection(const Selection& sel){
     }
 }
 
-// Update selection (re-parse selection text)
+// Update selection (re-parse selection text if it exists)
 void Selection::update(){
     if(sel_text!="") modify(sel_text);
 }
@@ -329,14 +329,16 @@ void Selection::apply(){
 }
 
 void Selection::set_frame(int fr){
-    if(fr>=0 && fr < system->traj.size()){
-        frame = fr;
-        // If parser is persistent, do quick update
-        // This will only work for coordinate-dependent selections
-        apply();
-    } else {
-        throw Pteros_error("Invalid frame to set!");
+    if(fr<0 || fr >= system->num_frames()){
+        Pteros_error e;
+        e << "Invalid frame " << fr << " to set! Valid range is 0:" << system->num_frames();
+        throw e;
     }
+
+    frame = fr;
+    // If parser is persistent, do quick update
+    // This will only work for coordinate-dependent selections
+    apply();
 }
 
 /////////////////////////
@@ -560,7 +562,9 @@ MatrixXf Selection::average_structure(int b, int e) const {
     res.resize(3,n);
     res.fill(0.0);
     if(e==-1) e = system->num_frames()-1;
-    if(e<b || b<0 || e>system->num_frames()-1 || e<0) throw Pteros_error("Invalid frame range!");
+    if(e<b || b<0 || e>system->num_frames()-1 || e<0){
+        throw Pteros_error("Invalid frame range for average structure!");
+    }
     cout << "Computing avreage structure from frames: "<<b<<":"<<e<<endl;
     for(fr=b;fr<=e;++fr){
         for(i=0; i<n; ++i) res.col(i) = system->traj[fr].coord[index[i]];
@@ -594,6 +598,13 @@ vector<float> Selection::get_beta() const{
 void Selection::set_beta(std::vector<float>& data){
     int i,n;
     n = index.size();
+    // Sanity check
+    if(data.size()!=n){
+        Pteros_error e;
+        e << "Invalid data size "<< data.size()
+          << " for selection of size " << n;
+        throw e;
+    }
     for(i=0; i<n; ++i) system->atoms[index[i]].beta = data[i];
 }
 
@@ -775,7 +786,7 @@ float Selection::rmsd(int fr1, int fr2) const{
             fr2<0 || fr2>=system->num_frames()){
         Pteros_error e;
         e << "RMSD requested for frames" << fr1 << " and "<<fr2
-          << " while the valid range is (" << 0<<":"<<system->num_frames()-1<<")";
+          << " while the valid range is " << 0<<":"<<system->num_frames()-1;
         throw e;
     }
 
@@ -790,7 +801,7 @@ float Selection::rmsd(int fr) const {
     if(fr<0 || fr>=system->num_frames()){
         Pteros_error e;
         e << "RMSD requested for frame" << fr
-          << " while the valid range is (" << 0<<":"<<system->num_frames()-1<<")";
+          << " while the valid range is " << 0<<":"<<system->num_frames()-1;
         throw e;
     }
     return rmsd(frame,fr);
@@ -886,8 +897,8 @@ float rmsd(const Selection& sel1, int fr1, const Selection& sel2, int fr2){
         Pteros_error e;
         e << "RMSD requested for frames" << fr1 << " and "<<fr2
           << " while the valid ranges are \n"
-          <<"(0:"<<sel1.system->num_frames()-1<<") and "
-          <<"(0:"<<sel2.system->num_frames()-1<<")";
+          <<"0:"<<sel1.system->num_frames()-1<<" and "
+          <<"0:"<<sel2.system->num_frames()-1;
         throw e;
     }
 

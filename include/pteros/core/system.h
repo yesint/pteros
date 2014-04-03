@@ -29,7 +29,6 @@
 #include <vector>
 #include <Eigen/Core>
 #include <Eigen/Dense>
-#include <boost/signals2.hpp>
 #include "pteros/core/atom.h"
 #include "pteros/core/force_field.h"
 #include "pteros/core/periodic_box.h"
@@ -167,10 +166,7 @@ public:
     *   If only @param b is supplied deletes all frames from b to the end.
     *   If only @param e is supplied deletes all frames from 0 to e
     */
-    void frame_delete(int b = 0, int e = -1);
-
-    /// Get read/write reference for given frame
-    Frame& Frame_data(int fr);       
+    void frame_delete(int b = 0, int e = -1);    
     /// @}
     ///
 
@@ -192,6 +188,17 @@ public:
     inline Eigen::Vector3f& XYZ(int ind, int fr){
         return traj[fr].coord[ind];
     }
+
+    /// Read/Write access for given atom
+    inline Atom& Atom_data(int ind) {
+        return atoms[ind];
+    }
+
+    /// Get read/write reference for given frame
+    inline Frame& Frame_data(int fr){
+        return traj[fr];
+    }
+
     /// @}
 
 
@@ -270,7 +277,7 @@ public:
     /// @{
 
     /// Clears the system and prepares for loading completely new structure
-    void clear(bool delete_selections = false);
+    void clear();
 
     /// Returns true if the force field is set up properly and is able to compute energies
     bool force_field_ready(){
@@ -289,6 +296,10 @@ public:
     /// Assign unique resindexes
     /// This is usually done automatically upon loading a structure from file
     void assign_resindex();
+
+    /// Sorts atoms by resindex arranging atoms with the same resindexes
+    /// into contigous pieces. Could be called after atom additions or duplications.
+    void sort_by_resindex();
 
     /// @}
 

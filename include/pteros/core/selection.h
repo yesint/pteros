@@ -26,7 +26,6 @@
 #include <string>
 #include <Eigen/Core>
 #include <Eigen/Geometry>
-#include <boost/signals2.hpp>
 #include "pteros/core/selection_parser.h"
 #include "pteros/core/system.h"
 #include <boost/shared_ptr.hpp>

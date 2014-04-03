@@ -24,7 +24,6 @@
 #include <fstream>
 #include <sstream>
 #include <iomanip>
-#include <list>
 #include "pteros/core/system.h"
 #include "pteros/core/selection.h"
 #include "pteros/core/pteros_error.h"
@@ -32,6 +31,7 @@
 #include "pteros/core/format_recognition.h"
 #include <boost/lexical_cast.hpp>
 #include "pteros/core/mol_file.h"
+#include <boost/bind.hpp>
 // DSSP
 #include "pteros_dssp_wrapper.h"
 
@@ -46,21 +46,20 @@ System::System() {
 }
 
 // Construnt system from file
-System::System(string fname) {
-    //read_structure(fname);
+System::System(string fname) {    
     clear();
     load(fname);
 }
 
 System::System(const System& other){
-    clear(true);
+    clear();
     atoms = other.atoms;
     traj = other.traj;
     force_field = other.force_field;
 }
 
 System& System::operator=(System other){
-    clear(true);
+    clear();
     atoms = other.atoms;
     traj = other.traj;
     force_field = other.force_field;
@@ -68,7 +67,7 @@ System& System::operator=(System other){
 }
 
 // Clear the system (i.e. before reading new system from file)
-void System::clear(bool delete_selections){
+void System::clear(){
     atoms.clear();
     traj.clear();
     force_field.clear();
@@ -223,12 +222,6 @@ void System::frame_append(const Frame& fr){
     traj.push_back(fr);
 }
 
-Frame& System::Frame_data(int fr) {
-    //if(fr<0 || fr>=traj.size())
-    //	throw Pteros_error("Invalid frame!");
-    return traj[fr];
-}
-
 void System::assign_resindex(){
     //cout << "Assigning resindex..." << endl;
     int curres = atoms[0].resid;
@@ -241,6 +234,28 @@ void System::assign_resindex(){
             curchain = atoms[i].chain;
         }
         atoms[i].resindex = cur;
+    }
+}
+
+bool by_resindex_sorter(int i, int j, System& sys){
+    return (sys.Atom_data(i).resindex < sys.Atom_data(j).resindex);
+}
+
+void System::sort_by_resindex()
+{
+    // Make and array of indexes to shuffle
+    vector<int> ind(atoms.size());
+    for(int i=0;i<ind.size();++i) ind[i] = i;
+    // Sort indexes
+    sort(ind.begin(),ind.end(),boost::bind(&by_resindex_sorter,_1,_2,*this));
+    // Now shuffle atoms and coordinates according to indexes
+    vector<Atom> tmp(atoms); //temporary
+    for(int i=0;i<ind.size();++i) atoms[i] = tmp[ind[i]];
+
+    std::vector<Eigen::Vector3f> tmp_coord;
+    for(int j=0; j<traj.size(); ++j){ // Over all frames
+        tmp_coord = traj[j].coord; //temporary
+        for(int i=0;i<ind.size();++i) traj[j].coord[i] = tmp_coord[ind[i]];
     }
 }
 

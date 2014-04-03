@@ -140,6 +140,8 @@ Eigen::Vector3f Periodic_box::get_closest_image(Vector3f_const_ref point, Vector
     }
 }
 
+// The code below is hacked from Gromacs 3.3.x
+
 #define epbcSCREW 1111
 #define XX 0
 #define YY 1

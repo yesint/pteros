@@ -24,6 +24,7 @@
 #include "pteros/analysis/bilayer.h"
 #include "pteros/core/pteros_error.h"
 #include <boost/lexical_cast.hpp>
+#include <boost/bind.hpp>
 
 using namespace std;
 using namespace pteros;
