@@ -238,12 +238,12 @@ void Grid_searcher::search_within(const Selection &target, std::vector<int> &bon
 
                     // Cycle over N2 and N1                    
                     for(n2=0;n2<N2;++n2){
-                        coor1 = target._XYZ(grid2[i][j][k][n2]);
+                        coor1 = target.XYZ(grid2[i][j][k][n2]);
 
                         for(n1=0;n1<N1;++n1){
                             // Skip already used points
                             if(grid1[m1][m2][m3][n1]<0) continue;
-                            coor2 = p_sel->_XYZ(grid1[m1][m2][m3][n1]);
+                            coor2 = p_sel->XYZ(grid1[m1][m2][m3][n1]);
 
                             if(!is_periodic)
                                 d = (coor2 - coor1).norm();
@@ -375,7 +375,7 @@ Grid_searcher::Grid_searcher(float d,
                 // difference for large cutoffs!
                 MatrixXf pre(3,N2);
                 for(n2=0;n2<N2;++n2){ //over target atoms
-                    pre.col(n2) = target._XYZ(grid2[i][j][k][n2]);
+                    pre.col(n2) = target.XYZ(grid2[i][j][k][n2]);
                 }
 
                 // Get neighbour list
@@ -404,7 +404,7 @@ Grid_searcher::Grid_searcher(float d,
                         // Skip already used source points
                         if(ind<0) continue;
 
-                        coor1 = src._XYZ(ind); // Coord of source point
+                        coor1 = src.XYZ(ind); // Coord of source point
 
                         for(n2=0;n2<N2;++n2){ //over target atoms of current cell
 
@@ -415,7 +415,7 @@ Grid_searcher::Grid_searcher(float d,
 
                             if(d<=cutoff){
                                 if(abs_index){
-                                    bon.push_back( src._Index(ind) );
+                                    bon.push_back( src.Index(ind) );
                                 } else {
                                     bon.push_back( ind );
                                 }
@@ -567,7 +567,7 @@ void Grid_searcher::populate_grid(Grid_t& grid, const Selection &sel){
         // Non-periodic variant
         for(i=0;i<Natoms;++i){
             // Get coordinates of atom
-            coor = sel._XYZ(i);
+            coor = sel.XYZ(i);
 
             n1 = floor((NgridX-0)*(coor(0)-min(0))/(max(0)-min(0)));
             if(n1<0 || n1>=NgridX) continue;
@@ -584,7 +584,7 @@ void Grid_searcher::populate_grid(Grid_t& grid, const Selection &sel){
         // Periodic variant        
         for(i=0;i<Natoms;++i){
             // Get coordinates of atom
-            coor = sel._XYZ(i);
+            coor = sel.XYZ(i);
             // Get coordinates in triclinic basis if needed
             if(box.is_triclinic()) coor = box.to_box(coor);
             // Assign to non-periodic grid first
@@ -702,17 +702,17 @@ void Grid_searcher::get_central_1(int i1, int j1, int k1, const Selection &sel,
         for(c2=c1+1;c2<n1;++c2){
             if(!is_periodic)
                 // Get non-periodic distance
-                d = (sel._XYZ(grid1[i1][j1][k1][c1]) -
-                     sel._XYZ(grid1[i1][j1][k1][c2])).norm();
+                d = (sel.XYZ(grid1[i1][j1][k1][c1]) -
+                     sel.XYZ(grid1[i1][j1][k1][c2])).norm();
             else
                 // Get periodic distance
-                d = box.distance(sel._XYZ(grid1[i1][j1][k1][c1]),
-                                      sel._XYZ(grid1[i1][j1][k1][c2]));
+                d = box.distance(sel.XYZ(grid1[i1][j1][k1][c1]),
+                                      sel.XYZ(grid1[i1][j1][k1][c2]));
 
             if(d<=cutoff){
                 if(abs_index){
-                    pair(0) = sel._Index(grid1[i1][j1][k1][c1]);
-                    pair(1) = sel._Index(grid1[i1][j1][k1][c2]);
+                    pair(0) = sel.Index(grid1[i1][j1][k1][c1]);
+                    pair(1) = sel.Index(grid1[i1][j1][k1][c2]);
                 } else {
                     pair(0) = grid1[i1][j1][k1][c1];
                     pair(1) = grid1[i1][j1][k1][c2];
@@ -741,16 +741,16 @@ void Grid_searcher::get_side_1(int i1, int j1, int k1, int i2, int j2, int k2, c
     for(c1=0;c1<n1;++c1)
         for(c2=0;c2<n2;++c2){
             if(!is_periodic)
-                d = (sel._XYZ(grid1[i1][j1][k1][c1]) -
-                     sel._XYZ(grid1[i2][j2][k2][c2])).norm();
+                d = (sel.XYZ(grid1[i1][j1][k1][c1]) -
+                     sel.XYZ(grid1[i2][j2][k2][c2])).norm();
             else
-                d = box.distance(sel._XYZ(grid1[i1][j1][k1][c1]),
-                                      sel._XYZ(grid1[i2][j2][k2][c2]));
+                d = box.distance(sel.XYZ(grid1[i1][j1][k1][c1]),
+                                      sel.XYZ(grid1[i2][j2][k2][c2]));
 
             if(d<=cutoff){
                 if(abs_index){
-                    pair(0) = sel._Index(grid1[i1][j1][k1][c1]);
-                    pair(1) = sel._Index(grid1[i2][j2][k2][c2]);
+                    pair(0) = sel.Index(grid1[i1][j1][k1][c1]);
+                    pair(1) = sel.Index(grid1[i2][j2][k2][c2]);
                 } else {
                     pair(0) = grid1[i1][j1][k1][c1];
                     pair(1) = grid1[i2][j2][k2][c2];
@@ -880,15 +880,15 @@ void Grid_searcher::get_central_2(int i1, int j1, int k1, const Selection &sel1,
     for(c1=0;c1<n1;++c1)
         for(c2=0;c2<n2;++c2){
             if(!is_periodic)
-                d = (sel1._XYZ(grid1[i1][j1][k1][c1]) - sel2._XYZ(grid2[i1][j1][k1][c2])).norm();
+                d = (sel1.XYZ(grid1[i1][j1][k1][c1]) - sel2.XYZ(grid2[i1][j1][k1][c2])).norm();
             else
-                d = box.distance(sel1._XYZ(grid1[i1][j1][k1][c1]),
-                                 sel2._XYZ(grid2[i1][j1][k1][c2]));
+                d = box.distance(sel1.XYZ(grid1[i1][j1][k1][c1]),
+                                 sel2.XYZ(grid2[i1][j1][k1][c2]));
 
             if(d<=cutoff){
                 if(abs_index){
-                    pair(0) = sel1._Index(grid1[i1][j1][k1][c1]);
-                    pair(1) = sel2._Index(grid2[i1][j1][k1][c2]);
+                    pair(0) = sel1.Index(grid1[i1][j1][k1][c1]);
+                    pair(1) = sel2.Index(grid2[i1][j1][k1][c2]);
                 } else {
                     pair(0) = grid1[i1][j1][k1][c1];
                     pair(1) = grid2[i1][j1][k1][c2];
@@ -917,16 +917,16 @@ void Grid_searcher::get_side_2(int i1, int j1, int k1, int i2, int j2, int k2,
             for(c2=0;c2<n2;++c2){
 
                 if(!is_periodic)
-                    d = (sel1._XYZ(grid1[i1][j1][k1][c1]) - sel2._XYZ(grid2[i2][j2][k2][c2])).norm();
+                    d = (sel1.XYZ(grid1[i1][j1][k1][c1]) - sel2.XYZ(grid2[i2][j2][k2][c2])).norm();
                 else {
-                    d = box.distance(sel1._XYZ(grid1[i1][j1][k1][c1]),
-                                     sel2._XYZ(grid2[i2][j2][k2][c2]));
+                    d = box.distance(sel1.XYZ(grid1[i1][j1][k1][c1]),
+                                     sel2.XYZ(grid2[i2][j2][k2][c2]));
                 }
 
                 if(d<=cutoff){
                     if(abs_index){
-                        pair(0) = sel1._Index(grid1[i1][j1][k1][c1]);
-                        pair(1) = sel2._Index(grid2[i2][j2][k2][c2]);
+                        pair(0) = sel1.Index(grid1[i1][j1][k1][c1]);
+                        pair(1) = sel2.Index(grid2[i2][j2][k2][c2]);
                     } else {
                         pair(0) = grid1[i1][j1][k1][c1];
                         pair(1) = grid2[i2][j2][k2][c2];
@@ -945,16 +945,16 @@ void Grid_searcher::get_side_2(int i1, int j1, int k1, int i2, int j2, int k2,
         for(c1=0;c1<n1;++c1)
             for(c2=0;c2<n2;++c2){
                 if(!is_periodic)
-                    d = (sel2._XYZ(grid2[i1][j1][k1][c1]) - sel1._XYZ(grid1[i2][j2][k2][c2])).norm();
+                    d = (sel2.XYZ(grid2[i1][j1][k1][c1]) - sel1.XYZ(grid1[i2][j2][k2][c2])).norm();
                 else {
-                    d = box.distance(sel2._XYZ(grid2[i1][j1][k1][c1]),
-                                     sel1._XYZ(grid1[i2][j2][k2][c2]));
+                    d = box.distance(sel2.XYZ(grid2[i1][j1][k1][c1]),
+                                     sel1.XYZ(grid1[i2][j2][k2][c2]));
                 }
 
                 if(d<=cutoff){
                     if(abs_index){
-                        pair(1) = sel2._Index(grid2[i1][j1][k1][c1]); //ordered pair!
-                        pair(0) = sel1._Index(grid1[i2][j2][k2][c2]);
+                        pair(1) = sel2.Index(grid2[i1][j1][k1][c1]); //ordered pair!
+                        pair(0) = sel1.Index(grid1[i2][j2][k2][c2]);
                     } else {
                         pair(1) = grid2[i1][j1][k1][c1]; //ordered pair!
                         pair(0) = grid1[i2][j2][k2][c2];

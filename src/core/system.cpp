@@ -368,11 +368,11 @@ void System::append(const Selection &sel)
     if(num_frames()!=sel.get_system()->num_frames()) throw Pteros_error("Can't merge systems with different number of frames!");
     // Merge atoms
     atoms.reserve(atoms.size()+sel.size());
-    for(int i=0;i<sel.size();++i) atoms.push_back(sel._Atom(i));
+    for(int i=0;i<sel.size();++i) atoms.push_back(sel.Atom(i));
     // Merge coordinates
     for(int fr=0; fr<num_frames(); ++fr){
         traj[fr].coord.reserve(atoms.size()+sel.size());
-        for(int i=0;i<sel.size();++i) traj[fr].coord.push_back(sel._XYZ(i,fr));
+        for(int i=0;i<sel.size();++i) traj[fr].coord.push_back(sel.XYZ(i,fr));
     }
     // Reassign resindex
     assign_resindex();

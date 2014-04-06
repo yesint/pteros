@@ -646,13 +646,13 @@ Vector3f Selection::center(bool mass_weighted, bool periodic) const {
         if(mass_weighted){
             float m = 0.0;
             for(i=0; i<n; ++i){
-                res += _XYZ(i)*_Mass(i);
-                m += _Mass(i);
+                res += XYZ(i)*Mass(i);
+                m += Mass(i);
             }
             return res/m;
         } else {
             for(i=0; i<n; ++i)
-                res += _XYZ(i);
+                res += XYZ(i);
 
             return res/n;
         }
@@ -660,17 +660,17 @@ Vector3f Selection::center(bool mass_weighted, bool periodic) const {
         // Periodic center
         // We will find closest periodic images of all points
         // using first point as a reference
-        Vector3f ref_point = _XYZ(0);
+        Vector3f ref_point = XYZ(0);
         if(mass_weighted){
             float m = 0.0;
             for(i=0; i<n; ++i){
-                res += system->Box(frame).get_closest_image(_XYZ(i),ref_point) * _Mass(i);
-                m += _Mass(i);
+                res += system->Box(frame).get_closest_image(XYZ(i),ref_point) * Mass(i);
+                m += Mass(i);
             }
             return res/m;
         } else {
             for(i=0; i<n; ++i)
-                res += system->Box(frame).get_closest_image(_XYZ(i),ref_point);
+                res += system->Box(frame).get_closest_image(XYZ(i),ref_point);
 
             return res/n;
         }
@@ -796,7 +796,7 @@ float Selection::rmsd(int fr1, int fr2) const{
     }
 
     for(int i=0; i<n; ++i)
-        res += (_XYZ(i,fr1)-_XYZ(i,fr2)).squaredNorm();
+        res += (XYZ(i,fr1)-XYZ(i,fr2)).squaredNorm();
 
     return sqrt(res/n);
 }
@@ -836,7 +836,7 @@ Energy_components Selection::non_bond_energy(float cutoff, bool periodic) const
         n = size();
         for(i=0; i<n-1; ++i)
             for(j=i+1; j<n; ++j)
-                system->add_non_bond_energy(e,_Index(i),_Index(j),frame,periodic);
+                system->add_non_bond_energy(e,Index(i),Index(j),frame,periodic);
         return e;
     }
 }
@@ -879,7 +879,7 @@ Energy_components non_bond_energy(const Selection &sel1, const Selection &sel2,
 
         for(i=0;i<n1;++i)
             for(j=0;j<n2;++j)
-                sel1.get_system()->add_non_bond_energy(e,sel1._Index(i),sel2._Index(j),fr,periodic);
+                sel1.get_system()->add_non_bond_energy(e,sel1.Index(i),sel2.Index(j),fr,periodic);
 
         return e;
     }
@@ -908,7 +908,7 @@ float rmsd(const Selection& sel1, int fr1, const Selection& sel2, int fr2){
     }
 
     for(int i=0; i<n1; ++i)
-        res += (sel1._XYZ(i,fr1)-sel2._XYZ(i,fr2)).squaredNorm();
+        res += (sel1.XYZ(i,fr1)-sel2.XYZ(i,fr2)).squaredNorm();
 
     return sqrt(res/n1);
 }
@@ -957,7 +957,7 @@ Affine3f fit_transform(const Selection& sel1, const Selection& sel2){
     //Calculate the matrix U
     u.fill(0.0);
     for(i=0;i<N;++i) // Over atoms in selection
-        u += sel1._XYZ(i)*sel2._XYZ(i).transpose()*sel1._Mass(i);
+        u += sel1.XYZ(i)*sel2.XYZ(i).transpose()*sel1.Mass(i);
 
     //Construct omega
     for(r=0; r<6; r++){
@@ -1067,7 +1067,7 @@ void Selection::minmax(Vector3f_ref min, Vector3f_ref max) const {
     min.fill(1e10);
     max.fill(-1e10);
     for(i=0; i<n; ++i){
-        xyz = _XYZ(i);
+        xyz = XYZ(i);
         for(j=0; j<3; ++j){
             if(xyz(j)<min(j)) min(j) = xyz(j);
             if(xyz(j)>max(j)) max(j) = xyz(j);
@@ -1219,8 +1219,8 @@ void Selection::split_by_connectivity(float d, std::vector<Selection> &res) {
         while(!to_search.empty()){
             k = to_search.front();
             to_search.pop();
-            res.back().index.push_back(_Index(k)); // add it to current selection
-            res.back().sel_text += " "+boost::lexical_cast<string>(_Index(k));
+            res.back().index.push_back(Index(k)); // add it to current selection
+            res.back().sel_text += " "+boost::lexical_cast<string>(Index(k));
             // See all atoms connected to k
             for(int j=0; j<con[k].size(); ++j){
                 // if atom is not used, add it to search
@@ -1265,25 +1265,25 @@ void Selection::inertia(Vector3f_ref moments, Matrix3f_ref axes, bool periodic) 
         for(i=0;i<n;++i){
             // 0 point was used as an anchor in periodic center calculation,
             // so we have to use it as an anchor here as well!
-            p = system->Box(frame).get_closest_image(_XYZ(i),_XYZ(0));
+            p = system->Box(frame).get_closest_image(XYZ(i),XYZ(0));
 
             d = p-c;
-            axes(0,0) += _Mass(i)*( d(1)*d(1) + d(2)*d(2) );
-            axes(1,1) += _Mass(i)*( d(0)*d(0) + d(2)*d(2) );
-            axes(2,2) += _Mass(i)*( d(0)*d(0) + d(1)*d(1) );
-            axes(0,1) -= _Mass(i)*d(0)*d(1);
-            axes(0,2) -= _Mass(i)*d(0)*d(2);
-            axes(1,2) -= _Mass(i)*d(1)*d(2);
+            axes(0,0) += Mass(i)*( d(1)*d(1) + d(2)*d(2) );
+            axes(1,1) += Mass(i)*( d(0)*d(0) + d(2)*d(2) );
+            axes(2,2) += Mass(i)*( d(0)*d(0) + d(1)*d(1) );
+            axes(0,1) -= Mass(i)*d(0)*d(1);
+            axes(0,2) -= Mass(i)*d(0)*d(2);
+            axes(1,2) -= Mass(i)*d(1)*d(2);
         }
     } else {
         for(i=0;i<n;++i){
-            d = _XYZ(i)-c;
-            axes(0,0) += _Mass(i)*( d(1)*d(1) + d(2)*d(2) );
-            axes(1,1) += _Mass(i)*( d(0)*d(0) + d(2)*d(2) );
-            axes(2,2) += _Mass(i)*( d(0)*d(0) + d(1)*d(1) );
-            axes(0,1) -= _Mass(i)*d(0)*d(1);
-            axes(0,2) -= _Mass(i)*d(0)*d(2);
-            axes(1,2) -= _Mass(i)*d(1)*d(2);
+            d = XYZ(i)-c;
+            axes(0,0) += Mass(i)*( d(1)*d(1) + d(2)*d(2) );
+            axes(1,1) += Mass(i)*( d(0)*d(0) + d(2)*d(2) );
+            axes(2,2) += Mass(i)*( d(0)*d(0) + d(1)*d(1) );
+            axes(0,1) -= Mass(i)*d(0)*d(1);
+            axes(0,2) -= Mass(i)*d(0)*d(2);
+            axes(1,2) -= Mass(i)*d(1)*d(2);
         }
     }
     axes(1,0) = axes(0,1);
@@ -1304,12 +1304,12 @@ float Selection::gyration(bool periodic) const {
     Vector3f c = center(true,periodic);
     for(i=0;i<n;++i){
         if(periodic){
-            d = system->Box(frame).distance(_XYZ(i),c);
+            d = system->Box(frame).distance(XYZ(i),c);
         } else {
-            d = (_XYZ(i)-c).norm();
+            d = (XYZ(i)-c).norm();
         }
-        a += _Mass(i)*d*d;
-        b += _Mass(i);
+        a += Mass(i)*d*d;
+        b += Mass(i);
     }
     return sqrt(a/b);
 }

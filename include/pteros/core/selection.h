@@ -522,7 +522,7 @@ class Selection {
 
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    /** @name Inlined accessors
+    /** @name Inline accessors
     *   Used to access the properties of
     *   particular atom in selection. The ind passed to these functions is
     *   is the selection index, not the global system %index. I.e. passing 10 will
@@ -538,8 +538,16 @@ class Selection {
         return system->traj[frame].coord[index[ind]](0);
     }
 
+    inline float& X(int ind) const {
+        return system->traj[frame].coord[index[ind]](0);
+    }
+
     /// Extracts X for given frame frame fr
     inline float& X(int ind, int fr){
+        return system->traj[fr].coord[index[ind]](0);
+    }
+
+    inline float& X(int ind, int fr) const {
         return system->traj[fr].coord[index[ind]](0);
     }
 
@@ -548,9 +556,17 @@ class Selection {
         return system->traj[frame].coord[index[ind]](1);
     }
 
+    inline float& Y(int ind) const {
+        return system->traj[frame].coord[index[ind]](1);
+    }
+
     /// Extracts Y for given frame frame fr
     inline float& Y(int ind, int fr){
     	return system->traj[fr].coord[index[ind]](1);
+    }
+
+    inline float& Y(int ind, int fr) const {
+        return system->traj[fr].coord[index[ind]](1);
     }
 
     /// Extracts Z for current frame
@@ -558,9 +574,17 @@ class Selection {
     	return system->traj[frame].coord[index[ind]](2);
     }
 
+    inline float& Z(int ind) const {
+        return system->traj[frame].coord[index[ind]](2);
+    }
+
     /// Extracts Z for given frame frame fr
     inline float& Z(int ind, int fr){
     	return system->traj[fr].coord[index[ind]](2);
+    }
+
+    inline float& Z(int ind, int fr) const {
+        return system->traj[fr].coord[index[ind]](2);
     }
 
     /// Extracts X,Y and Z for current frame
@@ -568,9 +592,17 @@ class Selection {
     	return system->traj[frame].coord[index[ind]];
     }
 
+    inline Eigen::Vector3f& XYZ(int ind) const {
+        return system->traj[frame].coord[index[ind]];
+    }
+
     /// Extracts X,Y and Z for given frame frame fr
     inline Eigen::Vector3f& XYZ(int ind, int fr){
     	return system->traj[fr].coord[index[ind]];
+    }
+
+    inline Eigen::Vector3f& XYZ(int ind, int fr) const {
+        return system->traj[fr].coord[index[ind]];
     }
 
     /// Extracts type
@@ -578,9 +610,17 @@ class Selection {
     	return system->atoms[index[ind]].type;
     }
 
+    inline int& Type(int ind) const {
+        return system->atoms[index[ind]].type;
+    }
+
     /// Extracts residue name
     inline std::string& Resname(int ind){
     	return system->atoms[index[ind]].resname;
+    }
+
+    inline std::string& Resname(int ind) const {
+        return system->atoms[index[ind]].resname;
     }
 
     /// Extracts chain
@@ -588,9 +628,17 @@ class Selection {
     	return system->atoms[index[ind]].chain;
     }
 
+    inline char& Chain(int ind) const {
+        return system->atoms[index[ind]].chain;
+    }
+
     /// Extracts atom name
     inline std::string& Name(int ind){
     	return system->atoms[index[ind]].name;
+    }
+
+    inline std::string& Name(int ind) const {
+        return system->atoms[index[ind]].name;
     }
 
     /// Extracts atom mass
@@ -598,9 +646,17 @@ class Selection {
     	return system->atoms[index[ind]].mass;
     }
 
+    inline float& Mass(int ind) const {
+        return system->atoms[index[ind]].mass;
+    }
+
     /// Extracts atom charge
     inline float& Charge(int ind){
     	return system->atoms[index[ind]].charge;
+    }
+
+    inline float& Charge(int ind) const {
+        return system->atoms[index[ind]].charge;
     }
 
     /// Extracts B-factor
@@ -608,9 +664,17 @@ class Selection {
     	return system->atoms[index[ind]].beta;
     }
 
+    inline float& Beta(int ind) const {
+        return system->atoms[index[ind]].beta;
+    }
+
     /// Extracts occupancy field
     inline float& Occupancy(int ind){
     	return system->atoms[index[ind]].occupancy;
+    }
+
+    inline float& Occupancy(int ind) const {
+        return system->atoms[index[ind]].occupancy;
     }
 
     /// Extracts residue number
@@ -618,9 +682,17 @@ class Selection {
     	return system->atoms[index[ind]].resid;
     }
 
+    inline int& Resid(int ind) const {
+        return system->atoms[index[ind]].resid;
+    }
+
     /// Extracts atom index in the system, which is pointed by selection
     inline int& Index(int ind){
     	return index[ind];
+    }
+
+    inline int Index(int ind) const {
+        return index[ind];
     }
 
     /// Extracts tag
@@ -628,13 +700,25 @@ class Selection {
     	return system->atoms[index[ind]].tag;
     }
 
+    inline std::string& Tag(int ind) const {
+        return system->atoms[index[ind]].tag;
+    }
+
     /// Extracts whole atom
     inline pteros::Atom& Atom(int ind){
         return system->atoms[index[ind]];
     }
 
+    inline pteros::Atom& Atom(int ind) const {
+        return system->atoms[index[ind]];
+    }
+
     /// Extracts resindex
     inline int& Resindex(int ind){
+        return system->atoms[index[ind]].resindex;
+    }
+
+    inline int& Resindex(int ind) const {
         return system->atoms[index[ind]].resindex;
     }
 
@@ -675,21 +759,6 @@ protected:
     void create_internal(System& sys, int ind1, int ind2);
     // Private function for deleting selection
     void delete_internal();        
-
-    // Here we define read-only accessors for coordinate and mass
-    // This is needed because public XYZ() accessor is not const
-    // and thus can't be used in const methods
-    inline float& _X(int ind) const { return system->traj[frame].coord[index[ind]](0); }
-    inline float& _X(int ind, int fr) const { return system->traj[fr].coord[index[ind]](0); }
-    inline float& _Y(int ind) const { return system->traj[frame].coord[index[ind]](1); }
-    inline float& _Y(int ind, int fr) const { return system->traj[fr].coord[index[ind]](1); }
-    inline float& _Z(int ind) const { return system->traj[frame].coord[index[ind]](2); }
-    inline float& _Z(int ind, int fr) const { return system->traj[fr].coord[index[ind]](2); }
-    inline Eigen::Vector3f& _XYZ(int ind) const { return system->traj[frame].coord[index[ind]]; }
-    inline Eigen::Vector3f& _XYZ(int ind, int fr) const { return system->traj[fr].coord[index[ind]]; }
-    inline float& _Mass(int ind) const { return system->atoms[index[ind]].mass; }
-    inline int _Index(int ind) const { return index[ind]; }
-    inline pteros::Atom& _Atom(int ind) const { return system->atoms[index[ind]]; }
 };
 
 
