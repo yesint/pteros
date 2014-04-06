@@ -538,7 +538,7 @@ class Selection {
         return system->traj[frame].coord[index[ind]](0);
     }
 
-    inline float& X(int ind) const {
+    inline const float& X(int ind) const {
         return system->traj[frame].coord[index[ind]](0);
     }
 
@@ -547,7 +547,7 @@ class Selection {
         return system->traj[fr].coord[index[ind]](0);
     }
 
-    inline float& X(int ind, int fr) const {
+    inline const float& X(int ind, int fr) const {
         return system->traj[fr].coord[index[ind]](0);
     }
 
@@ -556,7 +556,7 @@ class Selection {
         return system->traj[frame].coord[index[ind]](1);
     }
 
-    inline float& Y(int ind) const {
+    inline const float& Y(int ind) const {
         return system->traj[frame].coord[index[ind]](1);
     }
 
@@ -565,7 +565,7 @@ class Selection {
     	return system->traj[fr].coord[index[ind]](1);
     }
 
-    inline float& Y(int ind, int fr) const {
+    inline const float& Y(int ind, int fr) const {
         return system->traj[fr].coord[index[ind]](1);
     }
 
@@ -574,7 +574,7 @@ class Selection {
     	return system->traj[frame].coord[index[ind]](2);
     }
 
-    inline float& Z(int ind) const {
+    inline const float& Z(int ind) const {
         return system->traj[frame].coord[index[ind]](2);
     }
 
@@ -583,7 +583,7 @@ class Selection {
     	return system->traj[fr].coord[index[ind]](2);
     }
 
-    inline float& Z(int ind, int fr) const {
+    inline const float& Z(int ind, int fr) const {
         return system->traj[fr].coord[index[ind]](2);
     }
 
@@ -592,7 +592,7 @@ class Selection {
     	return system->traj[frame].coord[index[ind]];
     }
 
-    inline Eigen::Vector3f& XYZ(int ind) const {
+    inline const Eigen::Vector3f& XYZ(int ind) const {
         return system->traj[frame].coord[index[ind]];
     }
 
@@ -601,7 +601,7 @@ class Selection {
     	return system->traj[fr].coord[index[ind]];
     }
 
-    inline Eigen::Vector3f& XYZ(int ind, int fr) const {
+    inline const Eigen::Vector3f& XYZ(int ind, int fr) const {
         return system->traj[fr].coord[index[ind]];
     }
 
@@ -610,7 +610,7 @@ class Selection {
     	return system->atoms[index[ind]].type;
     }
 
-    inline int& Type(int ind) const {
+    inline const int& Type(int ind) const {
         return system->atoms[index[ind]].type;
     }
 
@@ -619,7 +619,7 @@ class Selection {
     	return system->atoms[index[ind]].resname;
     }
 
-    inline std::string& Resname(int ind) const {
+    inline const std::string& Resname(int ind) const {
         return system->atoms[index[ind]].resname;
     }
 
@@ -628,7 +628,7 @@ class Selection {
     	return system->atoms[index[ind]].chain;
     }
 
-    inline char& Chain(int ind) const {
+    inline const char& Chain(int ind) const {
         return system->atoms[index[ind]].chain;
     }
 
@@ -637,7 +637,7 @@ class Selection {
     	return system->atoms[index[ind]].name;
     }
 
-    inline std::string& Name(int ind) const {
+    inline const std::string& Name(int ind) const {
         return system->atoms[index[ind]].name;
     }
 
@@ -646,7 +646,7 @@ class Selection {
     	return system->atoms[index[ind]].mass;
     }
 
-    inline float& Mass(int ind) const {
+    inline const float& Mass(int ind) const {
         return system->atoms[index[ind]].mass;
     }
 
@@ -655,7 +655,7 @@ class Selection {
     	return system->atoms[index[ind]].charge;
     }
 
-    inline float& Charge(int ind) const {
+    inline const float& Charge(int ind) const {
         return system->atoms[index[ind]].charge;
     }
 
@@ -664,7 +664,7 @@ class Selection {
     	return system->atoms[index[ind]].beta;
     }
 
-    inline float& Beta(int ind) const {
+    inline const float& Beta(int ind) const {
         return system->atoms[index[ind]].beta;
     }
 
@@ -673,7 +673,7 @@ class Selection {
     	return system->atoms[index[ind]].occupancy;
     }
 
-    inline float& Occupancy(int ind) const {
+    inline const float& Occupancy(int ind) const {
         return system->atoms[index[ind]].occupancy;
     }
 
@@ -682,7 +682,7 @@ class Selection {
     	return system->atoms[index[ind]].resid;
     }
 
-    inline int& Resid(int ind) const {
+    inline const int& Resid(int ind) const {
         return system->atoms[index[ind]].resid;
     }
 
@@ -691,7 +691,7 @@ class Selection {
     	return index[ind];
     }
 
-    inline int Index(int ind) const {
+    inline const int& Index(int ind) const {
         return index[ind];
     }
 
@@ -700,7 +700,7 @@ class Selection {
     	return system->atoms[index[ind]].tag;
     }
 
-    inline std::string& Tag(int ind) const {
+    inline const std::string& Tag(int ind) const {
         return system->atoms[index[ind]].tag;
     }
 
@@ -709,7 +709,7 @@ class Selection {
         return system->atoms[index[ind]];
     }
 
-    inline pteros::Atom& Atom(int ind) const {
+    inline const pteros::Atom& Atom(int ind) const {
         return system->atoms[index[ind]];
     }
 
@@ -718,7 +718,7 @@ class Selection {
         return system->atoms[index[ind]].resindex;
     }
 
-    inline int& Resindex(int ind) const {
+    inline const int& Resindex(int ind) const {
         return system->atoms[index[ind]].resindex;
     }
 

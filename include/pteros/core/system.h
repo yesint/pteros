@@ -183,9 +183,17 @@ public:
         return traj[fr].box;
     }
 
+    inline const Periodic_box& Box(int fr) const {
+        return traj[fr].box;
+    }
+
     /// Read/Write access to the time stamp of given frame
     inline float& Time(int fr){
     	return traj[fr].t;
+    }
+
+    inline const float& Time(int fr) const {
+        return traj[fr].t;
     }
 
     /// Read/Write access for given coordinate of given frame
@@ -193,13 +201,26 @@ public:
         return traj[fr].coord[ind];
     }
 
+    inline const Eigen::Vector3f& XYZ(int ind, int fr) const {
+        return traj[fr].coord[ind];
+    }
+
     /// Read/Write access for given atom
-    inline Atom& Atom_data(int ind) {
+    inline const Atom& Atom_data(int ind) {
         return atoms[ind];
     }
 
+    inline const Atom& Atom_data(int ind) const {
+        return atoms[ind];
+    }
+
+
     /// Get read/write reference for given frame
     inline Frame& Frame_data(int fr){
+        return traj[fr];
+    }
+
+    inline const Frame& Frame_data(int fr) const {
         return traj[fr];
     }
 
