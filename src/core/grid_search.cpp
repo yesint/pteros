@@ -144,7 +144,7 @@ void Grid_searcher::search_within(Vector3f_ref coor, vector<int> &bon){
     bon.clear();
 
     // Get coordinates in triclinic basis if needed
-    if(is_periodic && box.is_triclinic()) coor = box.to_box(coor);
+    if(is_periodic && box.is_triclinic()) coor = box.lab_to_box(coor);
 
     // Assign point to grid
     n1 = floor((NgridX-1)*(coor(0)-min(0))/(max(0)-min(0)));
@@ -586,7 +586,7 @@ void Grid_searcher::populate_grid(Grid_t& grid, const Selection &sel){
             // Get coordinates of atom
             coor = sel.XYZ(i);
             // Get coordinates in triclinic basis if needed
-            if(box.is_triclinic()) coor = box.to_box(coor);
+            if(box.is_triclinic()) coor = box.lab_to_box(coor);
             // Assign to non-periodic grid first
             n1 = floor((NgridX-0)*(coor(0)-min(0))/(max(0)-min(0)));
             n2 = floor((NgridY-0)*(coor(1)-min(1))/(max(1)-min(1)));

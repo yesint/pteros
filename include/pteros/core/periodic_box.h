@@ -64,16 +64,16 @@ public:
     Eigen::Matrix3f get_box() const {return _box;}
 
     /// Convert point from lab coordinates to box coordinates
-    Eigen::Vector3f to_box(Vector3f_const_ref point) const { return _to_box*point; }
+    Eigen::Vector3f lab_to_box(Vector3f_const_ref point) const { return _to_box*point; }
 
     /// Return the transformation matrix from lab coordinates to box coordinates
-    const Eigen::Matrix3f& to_box_matrix() const {return _to_box;}
+    const Eigen::Matrix3f& lab_to_box_matrix() const {return _to_box;}
 
     /// Convert point from box coordinates to lab coordinates
-    Eigen::Vector3f to_lab(Vector3f_const_ref point) const { return _to_lab*point; }
+    Eigen::Vector3f box_to_lab(Vector3f_const_ref point) const { return _to_lab*point; }
 
     /// Return the transformation matrix from box coordinates to lab coordinates
-    const Eigen::Matrix3f& to_lab_matrix() const {return _to_lab;}
+    const Eigen::Matrix3f& box_to_lab_matrix() const {return _to_lab;}
 
     /// Return i-th extent of the box
     float extent(int i) const {return _extents(i);}

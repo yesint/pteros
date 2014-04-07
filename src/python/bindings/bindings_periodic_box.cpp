@@ -44,7 +44,7 @@ PyObject* Periodic_box_to_box(Periodic_box* b, PyObject* point){
     CREATE_PYARRAY_1D(ret,3)
     MAP_EIGEN_TO_PYARRAY(v,Vector3f,ret)
     MAP_EIGEN_TO_PYARRAY(p,Vector3f,point)
-    v = b->to_box(p);
+    v = b->lab_to_box(p);
     return boost::python::incref(ret);
 }
 
@@ -52,21 +52,21 @@ PyObject* Periodic_box_to_lab(Periodic_box* b, PyObject* point){
     CREATE_PYARRAY_1D(ret,3)
     MAP_EIGEN_TO_PYARRAY(v,Vector3f,ret)
     MAP_EIGEN_TO_PYARRAY(p,Vector3f,point)
-    v = b->to_lab(p);
+    v = b->box_to_lab(p);
     return boost::python::incref(ret);
 }
 
 PyObject* Periodic_box_to_box_matrix(Periodic_box* b){
     CREATE_PYARRAY_2D(ret,3,3)
     MAP_EIGEN_TO_PYARRAY(m,Matrix3f,ret)
-    m = b->to_box_matrix();
+    m = b->lab_to_box_matrix();
     return boost::python::incref(ret);
 }
 
 PyObject* Periodic_box_to_lab_matrix(Periodic_box* b){
     CREATE_PYARRAY_2D(ret,3,3)
     MAP_EIGEN_TO_PYARRAY(m,Matrix3f,ret)
-    m = b->to_lab_matrix();
+    m = b->box_to_lab_matrix();
     return boost::python::incref(ret);
 }
 
@@ -163,10 +163,10 @@ void make_bindings_Periodic_box(){
     class_<Periodic_box>("Periodic_box", init<>())
         .def("modify",&Periodic_box_modify)
         .def("get_box",&Periodic_box_get_box)
-        .def("to_box",&Periodic_box_to_box)
-        .def("to_box_matrix",&Periodic_box_to_box_matrix)
-        .def("to_lab",&Periodic_box_to_lab)
-        .def("to_lab_matrix",&Periodic_box_to_lab_matrix)
+        .def("lab_to_box",&Periodic_box_to_box)
+        .def("lab_to_box_matrix",&Periodic_box_to_box_matrix)
+        .def("box_to_lab",&Periodic_box_to_lab)
+        .def("box_to_lab_matrix",&Periodic_box_to_lab_matrix)
         .def("extent",&Periodic_box::extent)
         .def("extents",&Periodic_box_extents)
         .def("is_triclinic",&Periodic_box::is_triclinic)
