@@ -295,6 +295,11 @@ bool Selection::operator==(const Selection &other) const {
     return index == other.index;
 }
 
+Atom_proxy Selection::operator[](int ind)
+{
+    return Atom_proxy(this,ind);
+}
+
 // Copy constructor
 Selection::Selection(const Selection& sel){
     if(sel.system==NULL){
@@ -344,6 +349,15 @@ void Selection::set_frame(int fr){
     // If parser is persistent, do quick update
     // This will only work for coordinate-dependent selections
     apply();
+}
+
+
+Selection::iterator Selection::begin(){
+    return iterator(this,0);
+}
+
+Selection::iterator Selection::end(){
+    return iterator(this,size());
 }
 
 /////////////////////////

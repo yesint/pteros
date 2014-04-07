@@ -33,9 +33,10 @@
 
 namespace pteros {
 
-// Forward declaration of frient class
+// Forward declaration of friend class
 class System;
 class Selection_parser;
+class Atom_proxy;
 
 /** @brief Selection class.
 *
@@ -106,6 +107,10 @@ class Selection {
     bool operator!=(const Selection &other) const {
         return !(*this == other);
     }
+
+    /// Indexing operator. Returns a proxy object,
+    /// which incapsulates atom and its coordinates for current frame
+    Atom_proxy operator[](int ind);
 
     /// Destructor
     ~Selection();
@@ -181,6 +186,15 @@ class Selection {
     std::back_insert_iterator<std::vector<int> > index_back_inserter() {
         return std::back_inserter(index);
     }
+
+    /// Forward random-access iterator for Selection class.
+    /// Iterator reffers to Atom_proxy object
+    class iterator;
+
+    /// Begin iterator
+    iterator begin();
+    /// End iterator
+    iterator end();
     /// @}
 
 
@@ -614,6 +628,15 @@ class Selection {
         return system->atoms[index[ind]].type;
     }
 
+    /// Extracts typename
+    inline std::string& Type_name(int ind){
+        return system->atoms[index[ind]].type_name;
+    }
+
+    inline const std::string& Type_name(int ind) const {
+        return system->atoms[index[ind]].type_name;
+    }
+
     /// Extracts residue name
     inline std::string& Resname(int ind){
     	return system->atoms[index[ind]].resname;
@@ -761,6 +784,53 @@ protected:
     void delete_internal();        
 };
 
+/// Auxilary type used to incapsulate the atom and its current coordinates
+/// Used internally in Selection::operator[] and in iterator access to Selection
+/// Objects of this class should not be created by the user in normal situation.
+class Atom_proxy {
+    friend class Selection::iterator;
+public:
+    Atom_proxy(){}
+    Atom_proxy(Selection* s, int i): sel(s), ind(i) {}
+    int Resid(){ return sel->Resid(ind); }
+    std::string Name(){ return sel->Name(ind); }
+    char Chain(){ return sel->Chain(ind); }
+    std::string Resname(){ return sel->Resname(ind); }
+    std::string Tag(){ return sel->Tag(ind); }
+    float Occupancy(){ return sel->Occupancy(ind); }
+    float Beta(){ return sel->Beta(ind); }
+    int Resindex(){ return sel->Resindex(ind); }
+    float Mass(){ return sel->Mass(ind); }
+    float Charge(){ return sel->Charge(ind); }
+    int Type(){ return sel->Type(ind); }
+    std::string Type_name(){ return sel->Type_name(ind); }
+    float X(){ return sel->X(ind); }
+    float Y(){ return sel->Y(ind); }
+    float Z(){ return sel->Z(ind); }
+    Eigen::Vector3f XYZ(){ return sel->XYZ(ind); }
+    float X(int fr){ return sel->X(ind,fr); }
+    float Y(int fr){ return sel->Y(ind,fr); }
+    float Z(int fr){ return sel->Z(ind,fr); }
+    Eigen::Vector3f XYZ(int fr){ return sel->XYZ(ind,fr); }
+private:
+    Selection* sel;
+    int ind;
+};
 
-}
+/// Random-access forward iterator for Selection
+class Selection::iterator {
+public:
+    typedef std::forward_iterator_tag iterator_category;
+    iterator(Selection* sel, int pos) { proxy.sel = sel; proxy.ind = pos; }
+    iterator operator++() { iterator tmp = *this; proxy.ind++; return tmp; }
+    iterator operator++(int junk) { proxy.ind++; return *this; }
+    Atom_proxy& operator*() { return proxy; }
+    Atom_proxy* operator->() { return &proxy; }
+    bool operator==(const iterator& rhs) { return proxy.ind == rhs.proxy.ind; }
+    bool operator!=(const iterator& rhs) { return proxy.ind != rhs.proxy.ind; }
+private:
+    Atom_proxy proxy;
+};
+
+} // namespace pteros
 #endif /* SELECTION_H */
