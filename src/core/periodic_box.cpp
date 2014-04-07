@@ -140,6 +140,11 @@ Eigen::Vector3f Periodic_box::get_closest_image(Vector3f_const_ref point, Vector
     }
 }
 
+Vector3f Periodic_box::shortest_vector(Vector3f_const_ref point1, Vector3f_const_ref point2, Vector3i_const_ref dims) const
+{
+    return point2 - get_closest_image(point1,point2,true,dims);
+}
+
 // The code below is hacked from Gromacs 3.3.x
 
 #define epbcSCREW 1111

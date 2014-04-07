@@ -112,6 +112,11 @@ public:
                                       bool do_wrapping = true,
                                       Vector3i_const_ref dims_to_wrap = Eigen::Vector3i::Ones()) const;
 
+    /// Computes shortest vector from point1 to point2 between their closest images
+    Eigen::Vector3f shortest_vector(Vector3f_const_ref point1,
+                                    Vector3f_const_ref point2,
+                                    Vector3i_const_ref dims = Eigen::Vector3i::Ones()) const;
+
     /// Return box volume
     float volume();
 
