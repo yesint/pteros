@@ -93,10 +93,10 @@ class Selection {
     Selection(System& sys, int ind1, int ind2);
 
     /// Assignment operator
-    Selection& operator=(Selection);    
+    Selection& operator=(Selection sel);
 
     /// Copy constructor
-    Selection(const Selection&);
+    Selection(const Selection& sel);
 
     /// Equality operator
     /// Selection are compared by their indexes
@@ -108,7 +108,7 @@ class Selection {
         return !(*this == other);
     }
 
-    /// Indexing operator. Returns a proxy object,
+    /// Indexing operator. Returns an Atom_proxy object,
     /// which incapsulates atom and its coordinates for current frame
     Atom_proxy operator[](int ind);
 
@@ -728,11 +728,11 @@ class Selection {
     }
 
     /// Extracts whole atom
-    inline pteros::Atom& Atom(int ind){
+    inline pteros::Atom& Atom_data(int ind){
         return system->atoms[index[ind]];
     }
 
-    inline const pteros::Atom& Atom(int ind) const {
+    inline const pteros::Atom& Atom_data(int ind) const {
         return system->atoms[index[ind]];
     }
 
@@ -784,6 +784,8 @@ protected:
     void delete_internal();        
 };
 
+//==============================================================================
+
 /// Auxilary type used to incapsulate the atom and its current coordinates
 /// Used internally in Selection::operator[] and in iterator access to Selection
 /// Objects of this class should not be created by the user in normal situation.
@@ -792,30 +794,87 @@ class Atom_proxy {
 public:
     Atom_proxy(){}
     Atom_proxy(Selection* s, int i): sel(s), ind(i) {}
-    int Resid(){ return sel->Resid(ind); }
-    std::string Name(){ return sel->Name(ind); }
-    char Chain(){ return sel->Chain(ind); }
-    std::string Resname(){ return sel->Resname(ind); }
-    std::string Tag(){ return sel->Tag(ind); }
-    float Occupancy(){ return sel->Occupancy(ind); }
-    float Beta(){ return sel->Beta(ind); }
-    int Resindex(){ return sel->Resindex(ind); }
-    float Mass(){ return sel->Mass(ind); }
-    float Charge(){ return sel->Charge(ind); }
-    int Type(){ return sel->Type(ind); }
-    std::string Type_name(){ return sel->Type_name(ind); }
-    float X(){ return sel->X(ind); }
-    float Y(){ return sel->Y(ind); }
-    float Z(){ return sel->Z(ind); }
-    Eigen::Vector3f XYZ(){ return sel->XYZ(ind); }
-    float X(int fr){ return sel->X(ind,fr); }
-    float Y(int fr){ return sel->Y(ind,fr); }
-    float Z(int fr){ return sel->Z(ind,fr); }
-    Eigen::Vector3f XYZ(int fr){ return sel->XYZ(ind,fr); }
-private:
+
+    /// Accessors. Const and non-const versions.
+    inline int& Resid(){ return sel->Resid(ind); }
+    inline const int& Resid() const { return sel->Resid(ind); }
+
+    inline std::string& Name(){ return sel->Name(ind); }
+    inline const std::string& Name() const { return sel->Name(ind); }
+
+    inline char& Chain(){ return sel->Chain(ind); }
+    inline const char& Chain() const { return sel->Chain(ind); }
+
+    inline std::string& Resname(){ return sel->Resname(ind); }
+    inline const std::string& Resname() const { return sel->Resname(ind); }
+
+    inline std::string& Tag(){ return sel->Tag(ind); }
+    inline const std::string& Tag() const { return sel->Tag(ind); }
+
+    inline float& Occupancy(){ return sel->Occupancy(ind); }
+    inline const float& Occupancy() const { return sel->Occupancy(ind); }
+
+    inline float& Beta(){ return sel->Beta(ind); }
+    inline const float& Beta() const { return sel->Beta(ind); }
+
+    inline int& Resindex(){ return sel->Resindex(ind); }
+    inline const int& Resindex() const { return sel->Resindex(ind); }
+
+    inline float& Mass(){ return sel->Mass(ind); }
+    inline const float& Mass() const { return sel->Mass(ind); }
+
+    inline float& Charge(){ return sel->Charge(ind); }
+    inline const float& Charge() const { return sel->Charge(ind); }
+
+    inline int& Type(){ return sel->Type(ind); }
+    inline const int& Type() const { return sel->Type(ind); }
+
+    inline std::string& Type_name(){ return sel->Type_name(ind); }
+    inline const std::string& Type_name() const { return sel->Type_name(ind); }
+
+    inline float& X(){ return sel->X(ind); }
+    inline const float& X() const { return sel->X(ind); }
+
+    inline float& Y(){ return sel->Y(ind); }
+    inline const float& Y() const { return sel->Y(ind); }
+
+    inline float& Z(){ return sel->Z(ind); }
+    inline const float& Z() const { return sel->Z(ind); }
+
+    inline Eigen::Vector3f& XYZ(){ return sel->XYZ(ind); }
+    inline const Eigen::Vector3f& XYZ() const { return sel->XYZ(ind); }
+
+    inline float& X(int fr){ return sel->X(ind,fr); }
+    inline const float& X(int fr) const { return sel->X(ind,fr); }
+
+    inline float& Y(int fr){ return sel->Y(ind,fr); }
+    inline const float& Y(int fr) const { return sel->Y(ind,fr); }
+
+    inline float& Z(int fr){ return sel->Z(ind,fr); }
+    inline const float& Z(int fr) const { return sel->Z(ind,fr); }
+
+    inline Eigen::Vector3f& XYZ(int fr){ return sel->XYZ(ind,fr); }
+    inline const Eigen::Vector3f& XYZ(int fr) const { return sel->XYZ(ind,fr); }
+
+    inline Atom& Atom_data(){ return sel->Atom_data(ind); }
+    inline const Atom& Atom_data() const { return sel->Atom_data(ind); }
+
+    /// Equality operator
+    bool operator==(const Atom_proxy& other) const {
+        return (sel==other.sel && ind==other.ind);
+    }
+
+    /// Inequality operator
+    bool operator!=(const Atom_proxy &other) const {
+        return !(*this == other);
+    }
+
+protected:
     Selection* sel;
     int ind;
 };
+
+//==============================================================================
 
 /// Random-access forward iterator for Selection
 class Selection::iterator {
@@ -826,8 +885,8 @@ public:
     iterator operator++(int junk) { proxy.ind++; return *this; }
     Atom_proxy& operator*() { return proxy; }
     Atom_proxy* operator->() { return &proxy; }
-    bool operator==(const iterator& rhs) { return proxy.ind == rhs.proxy.ind; }
-    bool operator!=(const iterator& rhs) { return proxy.ind != rhs.proxy.ind; }
+    bool operator==(const iterator& rhs) { return proxy == rhs.proxy; }
+    bool operator!=(const iterator& rhs) { return proxy != rhs.proxy; }
 private:
     Atom_proxy proxy;
 };
