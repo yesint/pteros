@@ -423,6 +423,7 @@ WRAP_ACCESSOR_FR(float,X)
 WRAP_ACCESSOR_FR(float,Y)
 WRAP_ACCESSOR_FR(float,Z)
 WRAP_ACCESSOR(int,Type)
+WRAP_ACCESSOR(std::string,Type_name)
 WRAP_ACCESSOR(std::string,Resname)
 WRAP_ACCESSOR(char,Chain)
 WRAP_ACCESSOR(std::string,Name)
@@ -435,8 +436,38 @@ WRAP_ACCESSOR(int,Index)
 WRAP_ACCESSOR(std::string,Tag)
 WRAP_ACCESSOR(int,Resindex)
 
+// Iteration support
+// For some unknown reason direct wrapping of Selection::iterator does not work properly
+// So we create custom iterator class, which satisfies Python iterator protocol
+// and expose it
+struct Selection_iter {
+    Selection_iter(Selection& sel): it(sel.begin()), it_end(sel.end()) {}
+
+    Atom_proxy next(){
+        Selection::iterator i = it;
+        if(i==it_end){
+            PyErr_SetString(PyExc_StopIteration, "No more data");
+            boost::python::throw_error_already_set();
+        }
+        it++;
+        return *i;
+    }
+
+    Selection::iterator it, it_end;
+};
+
+// Returns an iterator object from __iter__
+Selection_iter get_iter(Selection& sel){
+    return Selection_iter(sel);
+}
+
+
 void make_bindings_Selection(){
     import_array();    
+
+    class_<Selection_iter>("Selection_iter", no_init)
+        .def("next",&Selection_iter::next)
+    ;
 
     def("rmsd",&rmsd_py);
     def("fit",&fit_py);
@@ -576,6 +607,9 @@ void make_bindings_Selection(){
         .def("getType",&Selection_getType)
         .def("setType",&Selection_setType)
 
+        .def("getType_name",&Selection_getType_name)
+        .def("setType_name",&Selection_setType_name)
+
         .def("getResname",&Selection_getResname)
         .def("setResname",&Selection_setResname)
 
@@ -607,6 +641,9 @@ void make_bindings_Selection(){
         .def("setResindex",&Selection_setResindex)
 
         .def("getTag",&Selection_getTag)
-        .def("setTag",&Selection_setTag)        
+        .def("setTag",&Selection_setTag)
+
+        // Iteration protocol support
+        .def("__iter__", &get_iter)
     ;
 }

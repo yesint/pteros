@@ -23,6 +23,8 @@
 #ifndef SELECTION_H
 #define SELECTION_H
 
+#include <iostream>
+
 #include <string>
 #include <Eigen/Core>
 #include <Eigen/Geometry>
@@ -762,9 +764,7 @@ class Selection {
 
 protected:
     // Row text of selection
-    std::string sel_text;
-    // Used with << operator
-    std::ostringstream ss;
+    std::string sel_text;    
     // Indexes of atoms in selection
     std::vector<int> index;
     // Pointer to target system
@@ -798,6 +798,9 @@ public:
     /// Accessors. Const and non-const versions.
     inline int& Resid(){ return sel->Resid(ind); }
     inline const int& Resid() const { return sel->Resid(ind); }
+
+    inline int& Index(){ return sel->Index(ind); }
+    inline const int& Index() const { return sel->Index(ind); }
 
     inline std::string& Name(){ return sel->Name(ind); }
     inline const std::string& Name() const { return sel->Name(ind); }
@@ -879,7 +882,12 @@ protected:
 /// Random-access forward iterator for Selection
 class Selection::iterator {
 public:
+    typedef Atom_proxy value_type;
+    typedef int difference_type;
+    typedef Atom_proxy* pointer;
+    typedef Atom_proxy& reference;
     typedef std::forward_iterator_tag iterator_category;
+
     iterator(Selection* sel, int pos) { proxy.sel = sel; proxy.ind = pos; }
     iterator operator++() { iterator tmp = *this; proxy.ind++; return tmp; }
     iterator operator++(int junk) { proxy.ind++; return *this; }

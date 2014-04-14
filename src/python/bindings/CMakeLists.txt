@@ -23,6 +23,8 @@ if(WRAP_PYTHON)
     bindings_trajectory_processor.h
     bindings_atom.cpp
     bindings_atom.h
+    bindings_atom_proxy.cpp
+    bindings_atom_proxy.h
     bindings_grid_search.cpp
     bindings_grid_search.h
     bindings_periodic_box.cpp

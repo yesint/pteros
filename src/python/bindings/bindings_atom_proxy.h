@@ -20,25 +20,9 @@
  *
 */
 
-#include "bindings_atom.h"
-#include "pteros/python/bindings_util.h"
+#ifndef BINDINGS_ATOM_PROXY_H
+#define BINDINGS_ATOM_PROXY_H
 
-using namespace boost::python;
-using namespace pteros;
+void make_bindings_Atom_proxy();
 
-void make_bindings_Atom(){
-
-    class_<Atom>("Atom", init<>())
-        .def_readwrite("resid",&Atom::resid)
-        .def_readwrite("name",&Atom::name)
-        .def_readwrite("chain",&Atom::chain)
-        .def_readwrite("resname",&Atom::resname)
-        .def_readwrite("tag",&Atom::tag)
-        .def_readwrite("occupancy",&Atom::occupancy)
-        .def_readwrite("beta",&Atom::beta)
-        .def_readwrite("resindex",&Atom::resindex)
-        .def_readwrite("mass",&Atom::mass)
-        .def_readwrite("type",&Atom::type)
-        .def_readwrite("type_name",&Atom::type_name)
-    ;
-}
+#endif

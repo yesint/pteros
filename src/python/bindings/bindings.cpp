@@ -27,6 +27,7 @@
 #include "bindings_frame_info.h"
 #include "bindings_trajectory_processor.h"
 #include "bindings_atom.h"
+#include "bindings_atom_proxy.h"
 #include "bindings_grid_search.h"
 #include "bindings_frame.h"
 #include "bindings_periodic_box.h"
@@ -88,6 +89,9 @@ BOOST_PYTHON_MODULE(pteros)
 
     // Bindings for atom
     make_bindings_Atom();
+
+    // Bindings for Atom_proxy
+    make_bindings_Atom_proxy();
 
     // Bindings for grid search
     make_bindings_grid_search();
