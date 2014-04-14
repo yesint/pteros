@@ -438,7 +438,7 @@ WRAP_ACCESSOR(int,Resindex)
 
 // Iteration support
 // For some unknown reason direct wrapping of Selection::iterator does not work properly
-// So we create custom iterator class, which satisfies Python iterator protocol
+// So we create custom iterator class, which satisfyes Python iterator protocol
 // and expose it
 struct Selection_iter {
     Selection_iter(Selection& sel): it(sel.begin()), it_end(sel.end()) {}

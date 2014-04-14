@@ -66,6 +66,11 @@ void Atom_proxy_setXYZ2(Atom_proxy* s, int fr, PyObject* obj){
     _out_type Atom_proxy_get##_func(Atom_proxy* s){ return s->_func(); } \
     void Atom_proxy_set##_func(Atom_proxy* s, _out_type val){ s->_func() = val; }
 
+#define DEF_WRAPPERS(_prop,_func) \
+    .def("get"#_func,&Atom_proxy_get##_func) \
+    .def("set"#_func,&Atom_proxy_set##_func) \
+    .add_property(#_prop, &Atom_proxy_get##_func, &Atom_proxy_set##_func)
+
 
 WRAP_ACCESSOR_FR(float,X)
 WRAP_ACCESSOR_FR(float,Y)
@@ -94,64 +99,43 @@ void make_bindings_Atom_proxy(){
         // This is because Python don't respect void in return - all functions
         // with equal number of argumets are considered equivalent thus
         // "float X(int,int)" and "void X(int,float)" become the same function...
-        // For non-coordinate accessors this is not needed but used to be consistent
+        // For non-coordinate accessors this is not needed but used to be consistent        
         .def("getX",&Atom_proxy_getX1)
         .def("getX",&Atom_proxy_getX2)
         .def("setX",&Atom_proxy_setX1)
         .def("setX",&Atom_proxy_setX2)
+        .add_property("x", &Atom_proxy_getX1, &Atom_proxy_setX1)
 
         .def("getY",&Atom_proxy_getY1)
         .def("getY",&Atom_proxy_getY2)
         .def("setY",&Atom_proxy_setY1)
         .def("setY",&Atom_proxy_setY2)
+        .add_property("y", &Atom_proxy_getY1, &Atom_proxy_setY1)
 
         .def("getZ",&Atom_proxy_getZ1)
         .def("getZ",&Atom_proxy_getZ2)
         .def("setZ",&Atom_proxy_setZ1)
         .def("setZ",&Atom_proxy_setZ2)
+        .add_property("z", &Atom_proxy_getZ1, &Atom_proxy_setZ1)
 
         .def("getXYZ",&Atom_proxy_getXYZ1)
         .def("getXYZ",&Atom_proxy_getXYZ2)
         .def("setXYZ",&Atom_proxy_setXYZ1)
         .def("setXYZ",&Atom_proxy_setXYZ2)
+        .add_property("xyz", &Atom_proxy_getXYZ1, &Atom_proxy_setXYZ1)
 
-        .def("getType",&Atom_proxy_getType)
-        .def("setType",&Atom_proxy_setType)
-
-        .def("getType_name",&Atom_proxy_getType_name)
-        .def("setType_name",&Atom_proxy_setType_name)
-
-        .def("getResname",&Atom_proxy_getResname)
-        .def("setResname",&Atom_proxy_setResname)
-
-        .def("getChain",&Atom_proxy_getChain)
-        .def("setChain",&Atom_proxy_setChain)
-
-        .def("getName",&Atom_proxy_getName)
-        .def("setName",&Atom_proxy_setName)
-
-        .def("getMass",&Atom_proxy_getMass)
-        .def("setMass",&Atom_proxy_setMass)
-
-        .def("getCharge",&Atom_proxy_getCharge)
-        .def("setCharge",&Atom_proxy_setCharge)
-
-        .def("getBeta",&Atom_proxy_getBeta)
-        .def("setBeta",&Atom_proxy_setBeta)
-
-        .def("getOccupancy",&Atom_proxy_getOccupancy)
-        .def("setOccupancy",&Atom_proxy_setOccupancy)
-
-        .def("getResid",&Atom_proxy_getResid)
-        .def("setResid",&Atom_proxy_setResid)
-
-        .def("getIndex",&Atom_proxy_getIndex)
-        .def("setIndex",&Atom_proxy_setIndex)
-
-        .def("getResindex",&Atom_proxy_getResindex)
-        .def("setResindex",&Atom_proxy_setResindex)
-
-        .def("getTag",&Atom_proxy_getTag)
-        .def("setTag",&Atom_proxy_setTag)
+        DEF_WRAPPERS(type,Type)
+        DEF_WRAPPERS(type_name,Type_name)
+        DEF_WRAPPERS(resname,Resname)
+        DEF_WRAPPERS(chain,Chain)
+        DEF_WRAPPERS(name,Name)
+        DEF_WRAPPERS(mass,Mass)
+        DEF_WRAPPERS(charge,Charge)
+        DEF_WRAPPERS(beta,Beta)
+        DEF_WRAPPERS(occupancy,Occupancy)
+        DEF_WRAPPERS(resid,Resid)
+        DEF_WRAPPERS(index,Index)
+        DEF_WRAPPERS(resindex,Resindex)
+        DEF_WRAPPERS(tag,Tag)
     ;
 }
