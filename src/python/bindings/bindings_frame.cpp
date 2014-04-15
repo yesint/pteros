@@ -65,7 +65,7 @@ void make_bindings_Frame(){
 
     class_<Frame>("Frame", init<>())
         .add_property("coord",&Frame_get_coord,&Frame_set_coord)
-        .def_readwrite("t", &Frame::t)
+        .def_readwrite("t", &Frame::time)
         .add_property("box",&Frame_get_box,&Frame_set_box)
     ;
 }

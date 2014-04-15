@@ -418,6 +418,9 @@ boost::python::list Selection_each_residue(Selection* s){
     _out_type Selection_get##_func(Selection* s, int arg){ return s->_func(arg); } \
     void Selection_set##_func(Selection* s, int arg, _out_type val){ s->_func(arg) = val; }
 
+#define DEF_PROPERTY(_prop,_func) \
+    .add_property(#_prop, &Selection_get##_func, &Selection_set##_func)
+
 
 WRAP_ACCESSOR_FR(float,X)
 WRAP_ACCESSOR_FR(float,Y)
@@ -457,8 +460,15 @@ struct Selection_iter {
 };
 
 // Returns an iterator object from __iter__
-Selection_iter get_iter(Selection& sel){
+Selection_iter Selection_get_iter(Selection& sel){
     return Selection_iter(sel);
+}
+
+//-------------------
+// Indexing
+
+Atom_proxy Selection_getitem(Selection* sel, int i){
+    return (*sel)[i];
 }
 
 
@@ -583,67 +593,41 @@ void make_bindings_Selection(){
         // This is because Python don't respect void in return - all functions
         // with equal number of argumets are considered equivalent thus
         // "float X(int,int)" and "void X(int,float)" become the same function...
-        // For non-coordinate accessors this is not needed but used to be consistent
-        .def("getX",&Selection_getX1)
-        .def("getX",&Selection_getX2)
-        .def("setX",&Selection_setX1)
+        // For non-coordinate accessors this is not needed but used to be consistent        
+        .def("getX",&Selection_getX2)        
         .def("setX",&Selection_setX2)
+        .add_property("x", &Selection_getX1, &Selection_setX1)
 
-        .def("getY",&Selection_getY1)
-        .def("getY",&Selection_getY2)
-        .def("setY",&Selection_setY1)
+        .def("getY",&Selection_getY2)        
         .def("setY",&Selection_setY2)
+        .add_property("y", &Selection_getY1, &Selection_setY1)
 
-        .def("getZ",&Selection_getZ1)
-        .def("getZ",&Selection_getZ2)
-        .def("setZ",&Selection_setZ1)
+        .def("getZ",&Selection_getZ2)        
         .def("setZ",&Selection_setZ2)
+        .add_property("z", &Selection_getZ1, &Selection_setZ1)
 
-        .def("getXYZ",&Selection_getXYZ1)
-        .def("getXYZ",&Selection_getXYZ2)
-        .def("setXYZ",&Selection_setXYZ1)
+        .def("getXYZ",&Selection_getXYZ2)        
         .def("setXYZ",&Selection_setXYZ2)
+        .add_property("xyz", &Selection_getXYZ1, &Selection_setXYZ1)
 
-        .def("getType",&Selection_getType)
-        .def("setType",&Selection_setType)
-
-        .def("getType_name",&Selection_getType_name)
-        .def("setType_name",&Selection_setType_name)
-
-        .def("getResname",&Selection_getResname)
-        .def("setResname",&Selection_setResname)
-
-        .def("getChain",&Selection_getChain)
-        .def("setChain",&Selection_setChain)
-
-        .def("getName",&Selection_getName)
-        .def("setName",&Selection_setName)
-
-        .def("getMass",&Selection_getMass)
-        .def("setMass",&Selection_setMass)
-
-        .def("getCharge",&Selection_getCharge)
-        .def("setCharge",&Selection_setCharge)
-
-        .def("getBeta",&Selection_getBeta)
-        .def("setBeta",&Selection_setBeta)
-
-        .def("getOccupancy",&Selection_getOccupancy)
-        .def("setOccupancy",&Selection_setOccupancy)
-
-        .def("getResid",&Selection_getResid)
-        .def("setResid",&Selection_setResid)
-
-        .def("getIndex",&Selection_getIndex)
-        .def("setIndex",&Selection_setIndex)
-
-        .def("getResindex",&Selection_getResindex)
-        .def("setResindex",&Selection_setResindex)
-
-        .def("getTag",&Selection_getTag)
-        .def("setTag",&Selection_setTag)
+        DEF_PROPERTY(type,Type)
+        DEF_PROPERTY(type_name,Type_name)
+        DEF_PROPERTY(resname,Resname)
+        DEF_PROPERTY(chain,Chain)
+        DEF_PROPERTY(name,Name)
+        DEF_PROPERTY(mass,Mass)
+        DEF_PROPERTY(charge,Charge)
+        DEF_PROPERTY(beta,Beta)
+        DEF_PROPERTY(occupancy,Occupancy)
+        DEF_PROPERTY(resid,Resid)
+        DEF_PROPERTY(index,Index)
+        DEF_PROPERTY(resindex,Resindex)
+        DEF_PROPERTY(tag,Tag)
 
         // Iteration protocol support
-        .def("__iter__", &get_iter)
+        .def("__iter__", &Selection_get_iter)
+        // Indexing support
+        .def("__len__",&Selection::size)
+        .def("__getitem__",&Selection_getitem)
     ;
 }

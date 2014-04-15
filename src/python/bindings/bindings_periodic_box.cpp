@@ -156,6 +156,33 @@ PyObject* Periodic_box_get_closest_image3(Periodic_box* b, PyObject* point, PyOb
     return boost::python::incref(ret);
 }
 
+PyObject* Periodic_box_shortest_vector1(Periodic_box* b, PyObject* point1, PyObject* point2,
+                                        boost::python::list dims_to_wrap){
+    MAP_EIGEN_TO_PYARRAY(p1,Vector3f,point1)
+    MAP_EIGEN_TO_PYARRAY(p2,Vector3f,point2)
+
+    CREATE_PYARRAY_1D(ret,3)
+    MAP_EIGEN_TO_PYARRAY(v,Vector3f,ret)
+
+    Vector3i dims;
+    for(int i=0;i<3;++i) dims(i) = extract<int>(dims_to_wrap[i]);
+
+    v = b->shortest_vector(p1,p2,dims);
+    return boost::python::incref(ret);
+}
+
+
+PyObject* Periodic_box_shortest_vector2(Periodic_box* b, PyObject* point1, PyObject* point2){
+    MAP_EIGEN_TO_PYARRAY(p1,Vector3f,point1)
+    MAP_EIGEN_TO_PYARRAY(p2,Vector3f,point2)
+
+    CREATE_PYARRAY_1D(ret,3)
+    MAP_EIGEN_TO_PYARRAY(v,Vector3f,ret)
+
+    v = b->shortest_vector(p1,p2);
+    return boost::python::incref(ret);
+}
+
 
 void make_bindings_Periodic_box(){
     import_array();
@@ -179,6 +206,8 @@ void make_bindings_Periodic_box(){
         .def("get_closest_image",&Periodic_box_get_closest_image1)
         .def("get_closest_image",&Periodic_box_get_closest_image2)
         .def("get_closest_image",&Periodic_box_get_closest_image3)
+        .def("shortest_vector",&Periodic_box_shortest_vector1)
+        .def("shortest_vector",&Periodic_box_shortest_vector2)
         .def("is_periodic",&Periodic_box::volume)
     ;
 }

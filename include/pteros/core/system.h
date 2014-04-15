@@ -71,10 +71,10 @@ struct Frame {
     /// Periodic box
     Periodic_box box;
     /// Timestamp
-    float t;
+    float time;
 
     Frame(){        
-        t = 0.0;
+        time = 0.0;
     }
 };
 
@@ -189,11 +189,11 @@ public:
 
     /// Read/Write access to the time stamp of given frame
     inline float& Time(int fr){
-    	return traj[fr].t;
+        return traj[fr].time;
     }
 
     inline const float& Time(int fr) const {
-        return traj[fr].t;
+        return traj[fr].time;
     }
 
     /// Read/Write access for given coordinate of given frame

@@ -98,7 +98,7 @@ bool Gromacs_trajectory_file::do_read(System *sys, Frame *frame, Mol_file_conten
     float lambda;    
 
     frame->coord.resize(natoms);
-    ret = read_record(xd,natoms,&step,&frame->t, box, (rvec*)&frame->coord.front());
+    ret = read_record(xd,natoms,&step,&frame->time, box, (rvec*)&frame->coord.front());
 
     if (ret != exdrENDOFFILE){
         if(ret != exdrOK){

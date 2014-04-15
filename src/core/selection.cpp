@@ -295,9 +295,8 @@ bool Selection::operator==(const Selection &other) const {
     return index == other.index;
 }
 
-Atom_proxy Selection::operator[](int ind)
-{
-    return Atom_proxy(this,ind);
+Atom_proxy Selection::operator[](int ind) const {
+    return Atom_proxy(const_cast<Selection*>(this),ind);
 }
 
 // Copy constructor

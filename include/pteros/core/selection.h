@@ -112,7 +112,8 @@ class Selection {
 
     /// Indexing operator. Returns an Atom_proxy object,
     /// which incapsulates atom and its coordinates for current frame
-    Atom_proxy operator[](int ind);
+    /// Can only be used as r-value (can not be assigned to).
+    Atom_proxy operator[](int ind) const;
 
     /// Destructor
     ~Selection();
@@ -793,7 +794,7 @@ class Atom_proxy {
     friend class Selection::iterator;
 public:
     Atom_proxy(){}
-    Atom_proxy(Selection* s, int i): sel(s), ind(i) {}
+    Atom_proxy(Selection* s, int i): sel(s), ind(i) {}        
 
     /// Accessors. Const and non-const versions.
     inline int& Resid(){ return sel->Resid(ind); }

@@ -347,11 +347,11 @@ void Trajectory_processor::reader_thread_body(){
 
                 // If time stamps are overriden, use overrides
                 if(custom_dt>=0){
-                    data->frame.t = custom_start_time + custom_dt*abs_frame;
+                    data->frame.time = custom_start_time + custom_dt*abs_frame;
                 }
 
                 // Check if end of requested interval is reached
-                if( is_end_of_interval(abs_frame,data->frame.t) ){
+                if( is_end_of_interval(abs_frame,data->frame.time) ){
                     // Send stop to the queue
                     channel.send_stop();
                     finished = true;
@@ -361,7 +361,7 @@ void Trajectory_processor::reader_thread_body(){
 
                 // Check if new frame falls into needed range of time.
                 // If not go to next frame
-                if( !is_frame_valid(abs_frame,data->frame.t) ) continue;
+                if( !is_frame_valid(abs_frame,data->frame.time) ) continue;
 
                 // This is valid frame
                 ++valid_frame;
@@ -369,11 +369,11 @@ void Trajectory_processor::reader_thread_body(){
                 if(valid_frame==0){
                     // This is the very first valid frame, set start time
                     saved_first_frame = abs_frame;
-                    saved_first_time = data->frame.t;
+                    saved_first_time = data->frame.time;
                 }
 
                 // Fill data container, which will be sent to the queue
-                data->frame_info.absolute_time = data->frame.t;
+                data->frame_info.absolute_time = data->frame.time;
                 data->frame_info.absolute_frame = abs_frame;
                 data->frame_info.valid_frame = valid_frame;
                 data->frame_info.win_size_frames = window_size_frames;
@@ -381,7 +381,7 @@ void Trajectory_processor::reader_thread_body(){
                 data->frame_info.first_frame = saved_first_frame;
                 data->frame_info.first_time = saved_first_time;
                 data->frame_info.last_frame = abs_frame;
-                data->frame_info.last_time = data->frame.t;
+                data->frame_info.last_time = data->frame.time;
 
                 // There is no data about window starts and ends here!
                 // This information is managed by the Consumer!
