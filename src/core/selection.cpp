@@ -77,7 +77,7 @@ void Selection::create_internal(System& sys, string& str){
     for(int i=0;i<Nmacro;++i)
         boost::replace_all(sel_text,macro[2*i],macro[2*i+1]);
 
-    // Add selection to sys and make connection
+    // Add selection to sys
     system = &sys;
 
     // By default points to frame 0
@@ -856,8 +856,11 @@ Energy_components Selection::non_bond_energy(float cutoff, bool periodic) const
 
 namespace pteros {
 
-Energy_components non_bond_energy(const Selection &sel1, const Selection &sel2,
-                                  float cutoff, int fr, bool periodic)
+Energy_components non_bond_energy(const Selection& sel1,
+                                  const Selection& sel2,
+                                  float cutoff = 0.25,
+                                  int fr = -1,
+                                  bool periodic = true)
 {
     // Check if both selections are from the same system
     if(sel1.get_system()!=sel2.get_system())

@@ -51,10 +51,8 @@ if(PYTHON_BINDINGS)
         #For conditional compile
         SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DWRAP_PYTHON")
 
-        include_directories(${PYTHON_INCLUDE_PATH})
-        link_libraries(${PYTHON_LIBRARIES})
-        # Latest test for boost was for boost::python module, so include it
-        include_directories(${Boost_INCLUDE_DIRS})
+        include_directories(${PYTHON_INCLUDE_PATH} ${Boost_INCLUDE_DIRS})
+        link_libraries(${PYTHON_LIBRARIES} ${Boost_LIBRARIES})
 
         message("Building with python bindings")
     endif()

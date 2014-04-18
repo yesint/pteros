@@ -128,6 +128,6 @@ void make_bindings_System(){
         .def("atoms_dup", &System_atoms_dup2)
         .def("atoms_add", &System_atoms_add1)
         .def("atoms_add", &System_atoms_add2)             
-        .def("wrap_all", &System::wrap_all)
+        .def("wrap_all", &System::wrap_all)        
     ;
 }

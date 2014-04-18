@@ -471,7 +471,7 @@ Atom_proxy Selection_getitem(Selection* sel, int i){
 void make_bindings_Selection(){
     import_array();    
 
-    class_<Selection_iter>("Selection_iter", no_init)
+    class_<Selection_iter>("_Selection_iter", no_init)
         .def("next",&Selection_iter::next)
     ;
 

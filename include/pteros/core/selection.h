@@ -466,9 +466,9 @@ class Selection {
     /// fr = -1 computes for current frame of selection 1.
     friend Energy_components non_bond_energy(const Selection& sel1,
                                              const Selection& sel2,
-                                             float cutoff = 0.25,
-                                             int fr = -1,
-                                             bool periodic = true);
+                                             float cutoff,
+                                             int fr,
+                                             bool periodic);
 
     /// @}
 

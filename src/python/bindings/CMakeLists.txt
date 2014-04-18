@@ -5,6 +5,10 @@ if(WRAP_PYTHON)
         SET(LIB_EXT ".so") # Use default on Linux
     ENDIF()
 
+###########################
+# Main pteros python module
+###########################
+
     add_library(pteros_py SHARED 
     bindings.cpp
 
@@ -41,7 +45,7 @@ if(WRAP_PYTHON)
     consumer_wrapper.h
     )
 
-    target_link_libraries(pteros_py pteros pteros_analysis ${Boost_LIBRARIES} ${PYTHON_LIBRARIES})
+    target_link_libraries(pteros_py pteros pteros_analysis ${PYTHON_LIBRARIES} ${Boost_LIBRARIES})
 
     set_target_properties(pteros_py PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/python"
@@ -55,7 +59,7 @@ if(WRAP_PYTHON)
         ARCHIVE DESTINATION python
     )
 
-
 else()
     message("Python bindings disabled!")
 endif()
+

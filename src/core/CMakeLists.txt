@@ -49,6 +49,7 @@ include_directories(${PROJECT_SOURCE_DIR}/src/core/molfile_plugins)
 # The same is for DSSP
 include_directories(${PROJECT_SOURCE_DIR}/src/core/dssp)
 
+set_source_files_properties(grid_search.cpp PROPERTIES COMPILE_FLAGS -std=c++0x)
 
 # Main pteros library
 add_library(pteros SHARED

@@ -25,9 +25,9 @@
 
 using namespace std;
 
-class rmsd: public pteros::Compiled_plugin_base {
+class rms: public pteros::Compiled_plugin_base {
 public:
-    rmsd(pteros::Trajectory_processor* pr, pteros::Options_tree* opt): Compiled_plugin_base(pr,opt) {}
+    rms(pteros::Trajectory_processor* pr, pteros::Options_tree* opt): Compiled_plugin_base(pr,opt) {}
 
     string help(){
         return  "Purpose:\n"
@@ -91,4 +91,4 @@ private:
 };
 
 
-CREATE_COMPILED_PLUGIN(rmsd)
+CREATE_COMPILED_PLUGIN(rms)
