@@ -1,9 +1,14 @@
-# List of compiled plugins:
-IF(NO_CPP11)
-    SET(PLUGINS center box rms interaction_energy covar_matr distance_matr)
-ELSE()
-    SET(PLUGINS center box rms interaction_energy covar_matr distance_matr secondary)
-ENDIF()
+
+SET(PLUGINS
+    center
+    box
+    rms
+    interaction_energy
+    covar_matr
+    distance_matr
+    secondary
+)
+
 
 # Standalone plugins are incompatible with python plugins, so if they are enabled
 # no python plugins are built

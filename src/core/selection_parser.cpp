@@ -31,7 +31,6 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/regex.hpp>
 #include <boost/lexical_cast.hpp>
-#include <boost/foreach.hpp>
 #include <boost/variant.hpp>
 #include <boost/unordered_set.hpp>
 
@@ -410,7 +409,7 @@ void Selection_parser::tokenize(const string& s){
 #ifdef _DEBUG_PARSER
     cout << endl <<"Tokenizer result:" << endl;
     boost::shared_ptr<AstNode> node;
-    BOOST_FOREACH(node, tokens){
+    for(auto node: tokens){
             cout << tok_names[node->code] << " ";
     }
     cout << endl << endl;

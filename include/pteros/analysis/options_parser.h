@@ -29,7 +29,6 @@
 #include <vector>
 #include <pteros/core/pteros_error.h>
 #include <boost/variant.hpp>
-#include <boost/foreach.hpp>
 
 namespace pteros {
 
@@ -155,7 +154,7 @@ T Options_tree::get_value(std::string key){
     T* ptr = NULL;
     T* cur;
     int k = 0;
-    BOOST_FOREACH(Option_value& val, v.front()->values){
+    for(auto& val: v.front()->values){
          cur = boost::get<T>(&val);
         if(cur){
             ++k;
@@ -180,7 +179,7 @@ T Options_tree::get_value(std::string key, T def_val){
     T* ptr = NULL;
     T* cur;
     int k = 0;
-    BOOST_FOREACH(Option_value& val, v.front()->values){
+    for(auto& val: v.front()->values){
         cur = boost::get<T>(&val);
         if(cur){
             ++k;
@@ -220,7 +219,7 @@ list<T> Options_tree::get_values(std::string key){
     if(v.size()>1) throw pteros::Pteros_error("More then one Options_tree matches!");
     // Return all values, which are of type T
     T* ptr;
-    BOOST_FOREACH(Option_value& val, v.front()->values){
+    for(auto& val: v.front()->values){
         ptr = boost::get<T>(&val);
         if(ptr) res.push_back(*ptr);
     }

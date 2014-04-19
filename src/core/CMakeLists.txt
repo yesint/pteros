@@ -6,7 +6,7 @@ ENDIF()
 # Work with SASA code
 #------------------------
 
-if(POWERSASA AND NOT NO_CPP11)
+if(POWERSASA)
     # Set definition for conditional compilation
     add_definitions(-DUSE_POWERSASA)
     # Make list of SASA files
@@ -24,35 +24,6 @@ if(POWERSASA AND NOT NO_CPP11)
 else()
     SET(SASA_FILES "")
 endif()
-
-#------------------------
-# Make list of DSSP files
-#------------------------
-
-if(NO_CPP11)
-    SET(DSSP_FILES "")
-else()
-    SET(DSSP_FILES
-        ${PROJECT_SOURCE_DIR}/src/core/dssp/pteros_dssp_wrapper.cpp
-        ${PROJECT_SOURCE_DIR}/src/core/dssp/pteros_dssp_wrapper.h
-        ${PROJECT_SOURCE_DIR}/src/core/dssp/buffer.h
-        ${PROJECT_SOURCE_DIR}/src/core/dssp/align-2d.h
-        ${PROJECT_SOURCE_DIR}/src/core/dssp/matrix.h
-        ${PROJECT_SOURCE_DIR}/src/core/dssp/dssp.h
-        ${PROJECT_SOURCE_DIR}/src/core/dssp/mas.h
-        ${PROJECT_SOURCE_DIR}/src/core/dssp/primitives-3d.h
-        ${PROJECT_SOURCE_DIR}/src/core/dssp/structure.h
-        ${PROJECT_SOURCE_DIR}/src/core/dssp/utils.h
-        ${PROJECT_SOURCE_DIR}/src/core/dssp/dssp.cpp
-        ${PROJECT_SOURCE_DIR}/src/core/dssp/mas.cpp
-        ${PROJECT_SOURCE_DIR}/src/core/dssp/primitives-3d.cpp
-        ${PROJECT_SOURCE_DIR}/src/core/dssp/structure.cpp
-        ${PROJECT_SOURCE_DIR}/src/core/dssp/utils.cpp
-    )
-endif()
-
-#DSSP requires c++11
-set_source_files_properties(${DSSP_FILES} PROPERTIES COMPILE_FLAGS -std=c++0x)
 
 #---------------------------------------------
 # Set locations of headers for 3rd party libs
@@ -137,8 +108,22 @@ add_library(pteros SHARED
     #SASA (will be empty if not used)
     ${SASA_FILES}
 
-    #DSSP (will be empty if not used)
-    ${DSSP_FILES}
+    #DSSP
+    ${PROJECT_SOURCE_DIR}/src/core/dssp/pteros_dssp_wrapper.cpp
+    ${PROJECT_SOURCE_DIR}/src/core/dssp/pteros_dssp_wrapper.h
+    ${PROJECT_SOURCE_DIR}/src/core/dssp/buffer.h
+    ${PROJECT_SOURCE_DIR}/src/core/dssp/align-2d.h
+    ${PROJECT_SOURCE_DIR}/src/core/dssp/matrix.h
+    ${PROJECT_SOURCE_DIR}/src/core/dssp/dssp.h
+    ${PROJECT_SOURCE_DIR}/src/core/dssp/mas.h
+    ${PROJECT_SOURCE_DIR}/src/core/dssp/primitives-3d.h
+    ${PROJECT_SOURCE_DIR}/src/core/dssp/structure.h
+    ${PROJECT_SOURCE_DIR}/src/core/dssp/utils.h
+    ${PROJECT_SOURCE_DIR}/src/core/dssp/dssp.cpp
+    ${PROJECT_SOURCE_DIR}/src/core/dssp/mas.cpp
+    ${PROJECT_SOURCE_DIR}/src/core/dssp/primitives-3d.cpp
+    ${PROJECT_SOURCE_DIR}/src/core/dssp/structure.cpp
+    ${PROJECT_SOURCE_DIR}/src/core/dssp/utils.cpp
 )
 
 #--------------

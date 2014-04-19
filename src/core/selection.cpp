@@ -28,7 +28,6 @@
 #include <set>
 #include <queue>
 #include <boost/algorithm/string.hpp> // String algorithms
-#include <boost/foreach.hpp>
 #include <boost/lexical_cast.hpp>
 #include "pteros/core/atom.h"
 #include "pteros/core/selection.h"
@@ -1132,7 +1131,7 @@ void Selection::each_residue(std::vector<Selection>& sel) const {
         m.insert(ss.str());
     }
     // Now cycle over this set and make selections
-    BOOST_FOREACH(string s, m){
+    for(auto s: m){
         //cout << s << endl;
         sel.push_back( Selection(*get_system(),s) );
     }

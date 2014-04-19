@@ -31,7 +31,6 @@
 #include <boost/tokenizer.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
-#include <boost/foreach.hpp>
 
 using namespace std;
 using namespace pteros;
@@ -119,7 +118,7 @@ void Options_tree::find_key(std::string& key,
     list<Options_tree*> new_matches;
 
     // Cycle over elements in path
-    BOOST_FOREACH(string& s, path){
+    for(auto& s: path){
         // Find name s in the list of nodes given by matches
 
         // Ignore empty names
@@ -129,9 +128,9 @@ void Options_tree::find_key(std::string& key,
             // For each element in matches search for nodes child with name s
             // All found nodes are returned as new_mathes
             new_matches.clear();
-            BOOST_FOREACH(Options_tree* cur, matches){
+            for(auto cur: matches){
                 // Cycle over values of cur
-                BOOST_FOREACH(Option_value& val, cur->values){
+                for(auto& val: cur->values){
                     ptr = boost::get<Options_tree>(&val);
                     // If not NULL then it is an Options_tree and we can check name
                     if(ptr){
@@ -161,7 +160,7 @@ void Options_tree::find_key(std::string& key,
 
     }
     // Set value_iter for all matches
-    BOOST_FOREACH(Options_tree* o, matches){
+    for(auto o: matches){
         o->value_iter = o->values.begin();
     }        
 }
@@ -170,7 +169,7 @@ json_spirit::mValue to_json(Options_tree* tree){
     using namespace json_spirit;
 
     mArray vals;
-    BOOST_FOREACH(Option_value& o, *(tree->get_values_ptr()) ){
+    for(auto& o: *(tree->get_values_ptr()) ){
         {// Try to get nested Options_tree
             Options_tree* ptr = boost::get<Options_tree>(&o);
             if(ptr){
@@ -208,7 +207,7 @@ void json_to_tree(json_spirit::mValue& json, Options_tree& tree){
     if(json.type() == obj_type){
         // If this is object cycle over fields
         pair<string,mValue> e;
-        BOOST_FOREACH(e, json.get_obj()){
+        for(auto e: json.get_obj()){
             // Create new tree node with name of this field
             Options_tree t(e.first);
             // Recurse for value
@@ -218,7 +217,7 @@ void json_to_tree(json_spirit::mValue& json, Options_tree& tree){
         }
     } else if(json.type() == array_type){
         // If this is array simply recurse for each element
-        BOOST_FOREACH(mValue& el, json.get_array()){
+        for(auto& el: json.get_array()){
             json_to_tree(el,tree);
         }
     } else if(json.type() == int_type){
@@ -401,7 +400,7 @@ void Options_tree::from_command_line(int argc, char** argv){
     for(int i=1;i<argc;++i){ // We don't need name of program
         // Parse [ and ]
         string s = "";
-        BOOST_FOREACH(char ch, string(argv[i])){
+        for(char ch: string(argv[i])){
             if(ch!='[' && ch!=']'){
                 s += ch;
             } else {
@@ -430,7 +429,7 @@ string Options_tree::to_command_line(){
     bool need_end = false;
     bool has_nested = false;
 
-    BOOST_FOREACH(Option_value& o, values){
+    for(auto& o: values){
         {// Try to get nested Options_tree
             Options_tree* ptr = boost::get<Options_tree>(&o);
             if(ptr){
@@ -478,7 +477,7 @@ void Options_tree::from_indented(string str){
 
     bool added = false;
 
-    BOOST_FOREACH(string& line, lines){
+    for(string& line: lines){
         // Analyse this line.
         // First determine the indentation
         i = 0;
@@ -558,7 +557,7 @@ string Options_tree::to_indented(int level){
         ++level;
     }
 
-    BOOST_FOREACH(Option_value& o, values){
+    for(auto& o: values){
         {// Try to get nested Options_tree
             Options_tree* ptr = boost::get<Options_tree>(&o);
             if(ptr){

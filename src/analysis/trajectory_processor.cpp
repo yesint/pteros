@@ -25,11 +25,9 @@
 #include "pteros/core/pteros_error.h"
 #include <boost/bind.hpp>
 #include <boost/tokenizer.hpp>
-#include <boost/foreach.hpp>
 #include "pteros/analysis/options_parser.h"
 #include "pteros/core/format_recognition.h"
 #include "pteros/core/mol_file.h"
-#include <boost/foreach.hpp>
 
 using namespace pteros;
 using namespace std;
@@ -153,7 +151,7 @@ void Trajectory_processor::run(){
     string top_file = "";
     string structure_file = "";
     traj_files.clear();
-    BOOST_FOREACH(string s, trj->get_values<string>("")){
+    for(string s: trj->get_values<string>("")){
         switch(recognize_format(s)){
         case PDB_FILE:
         case GRO_FILE:
@@ -260,7 +258,7 @@ void Trajectory_processor::run(){
         // Now recieve frames from the queue until reader sends stop
         boost::shared_ptr<Data_container> data;
         while(channel.recieve(data)){
-            BOOST_FOREACH(Data_channel_ptr &ch, worker_channels){
+            for(auto &ch: worker_channels){
                 ch->send(data);
             }
         }
@@ -269,13 +267,13 @@ void Trajectory_processor::run(){
         // Consume all remaining frame
         while(!channel.empty()){
             channel.recieve(data);
-            BOOST_FOREACH(Data_channel_ptr &ch, worker_channels){
+            for(auto &ch: worker_channels){
                 ch->send(data);
             }
         }
 
         // No more new frames, send stop to all consumers
-        BOOST_FOREACH(Data_channel_ptr &ch, worker_channels){
+        for(auto &ch: worker_channels){
             ch->send_stop();
         }
     } else {
@@ -323,7 +321,7 @@ void Trajectory_processor::reader_thread_body(){
 
         bool finished = false;
 
-        BOOST_FOREACH(string& fname, traj_files){
+        for(string& fname: traj_files){
             cout << "==> Reading trajectory " << fname << endl;
 
             boost::shared_ptr<Mol_file> trj = io_factory(fname,'r');

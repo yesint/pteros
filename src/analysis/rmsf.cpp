@@ -22,7 +22,6 @@
 
 
 #include "pteros/analysis/rmsf.h"
-#include <boost/foreach.hpp>
 #include <boost/lexical_cast.hpp>
 
 using namespace pteros;
@@ -65,7 +64,7 @@ RMSF::~RMSF()
 void RMSF::pre_process(){
     // Add selections
     int k = 0;
-    BOOST_FOREACH(Options_tree* o, options->get_options("selection")){
+    for(auto o: options->get_options("selection")){
         rmsf_group gr;
         string sel = o->get_value<string>("");
         gr.sel.modify(system,sel);
@@ -93,7 +92,7 @@ void RMSF::pre_process(){
     */
 
     // For each selection create residue selections and start first window
-    BOOST_FOREACH(rmsf_group& gr, groups){
+    for(auto& gr: groups){
         gr.rmsf.clear();
         gr.sel.each_residue(gr.residue_sel);
 
@@ -135,7 +134,7 @@ void RMSF::window_started(const Frame_info &info){
 
 void RMSF::window_finished(const Frame_info &info){
 
-    BOOST_FOREACH(rmsf_group& gr, groups){
+    for(auto& gr: groups){
 
         int resind;
         // Normilize rmsf for each atom
@@ -185,7 +184,7 @@ void RMSF::process_frame(const Frame_info &info){
     Eigen::Affine3f t;
 
     // For each group
-    BOOST_FOREACH(rmsf_group& gr, groups){
+    for(auto& gr: groups){
         // Update selection
         gr.sel.set_frame(0);
 
@@ -238,7 +237,7 @@ void RMSF::save_results(){
     string prefix = options->get_value<string>("output_prefix","");
 
     int i = 0;
-    BOOST_FOREACH(rmsf_group& gr, groups){
+    for(auto& gr: groups){
         vector<int> resinds = gr.sel.get_unique_resindex();
         int resind;
 

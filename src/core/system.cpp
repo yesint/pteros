@@ -502,8 +502,6 @@ Energy_components System::non_bond_energy(const std::vector<Eigen::Vector2i> &nl
     return e;
 }
 
-#ifndef NO_CPP11
-
 void System::dssp(string fname) const {
     ofstream f(fname.c_str());
     Selection sel(const_cast<System&>(*this),"all");
@@ -515,5 +513,3 @@ string System::dssp() const{
     Selection sel(const_cast<System&>(*this),"all");
     return dssp_string(sel);
 }
-
-#endif
