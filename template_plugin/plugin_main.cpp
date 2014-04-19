@@ -1,4 +1,6 @@
+
 #include "pteros/pteros.h"
+#include "pteros/python/compiled_plugin.h"
 
 using namespace std;
 using namespace pteros;
@@ -6,8 +8,18 @@ using namespace Eigen;
 
 class PLUGIN_NAME: public Compiled_plugin_base {
 public:
-    PLUGIN_NAME(Trajectory_processor* pr, Options_tree* opt): Compiled_plugin_base(pr,opt) {
+
+    PLUGIN_NAME(Trajectory_processor* pr, Options_tree* opt): Compiled_plugin_base(pr,opt) { }
+
+    string help(){
+        return  "Purpose:\n"
+                "\tPut purpose of your plugin here\n"
+                "Output:\n"
+                "\tDescription of its output\n"
+                "Options:\n"
+                "\tAny options";
     }
+
 protected:
     void pre_process(){
         string sel_text = options->get_value<string>("selection");

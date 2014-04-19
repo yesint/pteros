@@ -1,9 +1,13 @@
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/examples")
-
-link_libraries(pteros pteros_analysis ${Boost_LIBRARIES})
+link_libraries(pteros pteros_analysis)
 
 add_executable(parallel_processing parallel_processing.cpp)
 add_executable(benchmark benchmark.cpp)
 add_executable(cg_lipids cg_lipids.cpp)
 add_executable(chol_counter chol_counter.cpp)
 add_executable(water_movement water_movement.cpp)
+
+install(TARGETS parallel_processing benchmark cg_lipids chol_counter water_movement
+    RUNTIME DESTINATION ${CMAKE_BINARY_DIR}/examples
+    LIBRARY DESTINATION ${CMAKE_BINARY_DIR}/examples
+    ARCHIVE DESTINATION ${CMAKE_BINARY_DIR}/examples
+)

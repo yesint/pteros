@@ -18,7 +18,12 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     ## On Windows put the path to boost libs here:  ##
     ##################################################
 
+    # Path to Boost:
     SET(BOOST_ROOT "c:/install/boost")
+    # Path to Boost includes:
+    SET(BOOST_INCLUDEDIR "C:/install/boost/include/boost-1_53")
+    # Path to Boost libs:
+    link_directories("C:/install/boost/lib")
 ENDIF()
 
 
@@ -28,16 +33,21 @@ ENDIF()
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -msse2")
-    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")    
 ENDIF()
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_THREAD_USE_LIB -msse2")
 ENDIF()
 
+# Strip libraries and executables to decrease size in Release builds
+SET(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} -s")
+SET(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -s")
+
+
 SET(CMAKE_BUILD_TYPE Release)
 
-find_package(Boost 1.42.0 REQUIRED thread)
+find_package(Boost 1.48.0 REQUIRED thread regex system date_time)
 
 include_directories(${PTEROS_INCLUDE_PATH} ${Boost_INCLUDE_DIRS})
 link_directories(${PTEROS_LIB_PATH})
