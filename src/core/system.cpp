@@ -85,7 +85,7 @@ void System::check_num_atoms_in_last_frame(){
 // Load structure or trajectory
 void System::load(string fname, int b, int e, int skip){
     // Create an IO file reader
-    boost::shared_ptr<Mol_file> f = io_factory(fname,'r');
+    auto f = io_factory(fname,'r');
 
     int num_stored = 0;    
     // Do we have some structure?

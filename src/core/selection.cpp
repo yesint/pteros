@@ -1103,7 +1103,7 @@ void Selection::write(string fname, int b, int e) {
     if(e==-1) e=get_frame();
     cout << "Writing the range of frames "<<b<<":"<<e<< endl;
 
-    boost::shared_ptr<Mol_file> f = io_factory(fname,'w');
+    auto f = io_factory(fname,'w');
 
     if(!f->get_content_type().structure && e!=b){
         throw Pteros_error("Can't write the range of frames to structure file!");

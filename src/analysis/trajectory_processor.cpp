@@ -324,7 +324,7 @@ void Trajectory_processor::reader_thread_body(){
         for(string& fname: traj_files){
             cout << "==> Reading trajectory " << fname << endl;
 
-            boost::shared_ptr<Mol_file> trj = io_factory(fname,'r');
+            auto trj = io_factory(fname,'r');
 
             // Main loop over trajectory frames
             while(true){

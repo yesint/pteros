@@ -119,19 +119,19 @@ float pteros::get_mass_from_atom_name(string& name){
     else return 1.0; //default
 }
 
-boost::shared_ptr<Mol_file> pteros::io_factory(string fname, char open_mode){
+unique_ptr<Mol_file> pteros::io_factory(string fname, char open_mode){
     FILE_FORMATS fmt = recognize_format(fname);
     switch(fmt){
     case PDB_FILE:
-        return boost::shared_ptr<Mol_file>(new PDB_file(fname,open_mode));
+        return unique_ptr<Mol_file>(new PDB_file(fname,open_mode));
     case DCD_FILE:
-        return boost::shared_ptr<Mol_file>(new DCD_file(fname,open_mode));
+        return unique_ptr<Mol_file>(new DCD_file(fname,open_mode));
     case GRO_FILE:
-        return boost::shared_ptr<Mol_file>(new GRO_file(fname,open_mode));
+        return unique_ptr<Mol_file>(new GRO_file(fname,open_mode));
     case TRR_FILE:
-        return boost::shared_ptr<Mol_file>(new TRR_file(fname,open_mode));
+        return unique_ptr<Mol_file>(new TRR_file(fname,open_mode));
     case XTC_FILE:
-        return boost::shared_ptr<Mol_file>(new XTC_file(fname,open_mode));
+        return unique_ptr<Mol_file>(new XTC_file(fname,open_mode));
     /*
     case TPR_FILE: {
         // TPR files are first converted to PTTOP
@@ -143,6 +143,6 @@ boost::shared_ptr<Mol_file> pteros::io_factory(string fname, char open_mode){
     }
     */
     case PTTOP_FILE:
-        return boost::shared_ptr<Mol_file>(new PTTOP_file(fname,open_mode));
+        return unique_ptr<Mol_file>(new PTTOP_file(fname,open_mode));
     }
 }
