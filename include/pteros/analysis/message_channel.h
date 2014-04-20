@@ -24,9 +24,11 @@
 #ifndef MESSAGE_CHANNEL_H
 #define MESSAGE_CHANNEL_H
 
-#include <boost/thread.hpp>
-#include <boost/function.hpp>
+#include <thread>
+#include <mutex>
+#include <condition_variable>
 #include <queue>
+#include <functional>
 
 template<class T>
 class Message_channel {
@@ -41,29 +43,29 @@ public:
         stop_requested = false;
     }
 
-    void set_buffer_size(int sz){
-        boost::mutex::scoped_lock lock(mutex);
+    void set_buffer_size(int sz){        
+        std::lock_guard<std::mutex> lock(mutex);
         buffer_size = sz;
         cond.notify_all();
     }
 
     void send_stop(){
-        boost::mutex::scoped_lock lock(mutex);
+        std::lock_guard<std::mutex> lock(mutex);
         stop_requested = true;
         cond.notify_all();
     }
 
     bool empty(){
-        boost::mutex::scoped_lock lock(mutex);
+        std::lock_guard<std::mutex> lock(mutex);
         return queue.empty();
     }
 
     bool send(T const& data){
-        boost::mutex::scoped_lock lock(mutex);
+        std::unique_lock<std::mutex> lock(mutex);
+
         // Wait until buffer will clear a bit or until stop is requested
-        while(queue.size()>=buffer_size && !stop_requested){
-            cond.wait(lock);
-        }
+        cond.wait(lock, [this]{return (queue.size()<buffer_size || stop_requested);} );
+
         // If stop requested just do nothing
         if(stop_requested) return false;
 
@@ -73,11 +75,11 @@ public:
     }
 
     bool recieve(T& popped_value){
-        boost::mutex::scoped_lock lock(mutex);
+        std::unique_lock<std::mutex> lock(mutex);
+
         // Wait until something appears in the queue or until stop requested
-        while(queue.empty() && !stop_requested){
-            cond.wait(lock);
-        }
+        cond.wait(lock, [this]{return (!queue.empty() || stop_requested);} );
+
         // If stop requested see if there is something in, if not return false
         if(stop_requested && queue.empty()) return false;
 
@@ -87,7 +89,7 @@ public:
         return true;
     }
 
-    void recieve_each(const boost::function<void(T&)>& callback){
+    void recieve_each(const std::function<void(T&)>& callback){
         T data;
         while(recieve(data)){
             callback(data);
@@ -100,8 +102,8 @@ public:
 
 private:
     int buffer_size;
-    boost::condition_variable cond;
-    boost::mutex mutex;
+    std::condition_variable cond;
+    std::mutex mutex;
     std::queue<T> queue;
     bool stop_requested;
 };
