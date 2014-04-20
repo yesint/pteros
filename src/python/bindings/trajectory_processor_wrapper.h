@@ -25,6 +25,7 @@
 
 #include "pteros/analysis/trajectory_processor.h"
 #include "consumer_wrapper.h"
+#include <boost/shared_ptr.hpp>
 
 namespace pteros {
 

@@ -34,9 +34,6 @@
 #include "pteros/analysis/options_parser.h"
 #include "pteros/analysis/consumer_base.h"
 #include <boost/algorithm/string.hpp>
-#include <boost/thread.hpp>
-#include <boost/thread/mutex.hpp>
-#include <boost/thread/condition.hpp>
 
 #include "pteros/analysis/message_channel.h"
 

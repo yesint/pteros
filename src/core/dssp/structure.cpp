@@ -21,7 +21,7 @@
 
 #include "align-2d.h"
 #include "utils.h"
-#include "buffer.h"
+//#include "buffer.h"
 #include "structure.h"
 
 using namespace std;
@@ -1986,6 +1986,10 @@ void MProtein::CalculateBetaSheets(const std::vector<MResidue*>& inResidues)
 	}
 }
 
+// This function is disabled in Pteros anyway and it depends on boost::thread
+// So, we comment it out to get rid of this dependence
+
+/*
 void MProtein::CalculateAccessibilities(const std::vector<MResidue*>& inResidues)
 {
 	if (VERBOSE)
@@ -2016,6 +2020,7 @@ void MProtein::CalculateAccessibilities(const std::vector<MResidue*>& inResidues
 	}
 }
 
+
 void MProtein::CalculateAccessibility(MResidueQueue& inQueue,
 	const std::vector<MResidue*>& inResidues)
 {
@@ -2033,6 +2038,7 @@ void MProtein::CalculateAccessibility(MResidueQueue& inQueue,
 	
 	inQueue.put(nullptr);
 }
+*/
 
 void MProtein::Center()
 {

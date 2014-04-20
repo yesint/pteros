@@ -16,8 +16,8 @@ class MChain;
 class MProtein;
 
 // forward declaration of buffer
-template<typename T, uint32 N> class buffer;
-typedef buffer<MResidue*,100>	MResidueQueue;
+//template<typename T, uint32 N> class buffer;
+//typedef buffer<MResidue*,100>	MResidueQueue;
 
 const uint32 kHistogramSize = 30;
 
@@ -390,11 +390,15 @@ class MProtein
 	void				CalculateHBondEnergies(const std::vector<MResidue*>& inResidues);
 	void				CalculateAlphaHelices(const std::vector<MResidue*>& inResidues, bool inPreferPiHelices);
 	void				CalculateBetaSheets(const std::vector<MResidue*>& inResidues);
-	void				CalculateAccessibilities(const std::vector<MResidue*>& inResidues);
+
+    /* !! Not ised in Pteros !!
+    void				CalculateAccessibilities(const std::vector<MResidue*>& inResidues);
+
 
 	// a thread entry point
 	void				CalculateAccessibility(MResidueQueue& inQueue,
 							const std::vector<MResidue*>& inResidues);
+    */
 
 	std::string			mID, mHeader;
 

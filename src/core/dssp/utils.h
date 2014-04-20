@@ -10,7 +10,7 @@
 #endif
 
 #include <time.h>
-#include <boost/thread.hpp>
+//#include <boost/thread.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>

@@ -110,8 +110,7 @@ add_library(pteros SHARED
 
     #DSSP
     ${PROJECT_SOURCE_DIR}/src/core/dssp/pteros_dssp_wrapper.cpp
-    ${PROJECT_SOURCE_DIR}/src/core/dssp/pteros_dssp_wrapper.h
-    ${PROJECT_SOURCE_DIR}/src/core/dssp/buffer.h
+    ${PROJECT_SOURCE_DIR}/src/core/dssp/pteros_dssp_wrapper.h    
     ${PROJECT_SOURCE_DIR}/src/core/dssp/align-2d.h
     ${PROJECT_SOURCE_DIR}/src/core/dssp/matrix.h
     ${PROJECT_SOURCE_DIR}/src/core/dssp/dssp.h

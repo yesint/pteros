@@ -23,11 +23,13 @@
 #include <fstream>
 #include "pteros/analysis/trajectory_processor.h"
 #include "pteros/core/pteros_error.h"
-#include <boost/bind.hpp>
-#include <boost/tokenizer.hpp>
+
 #include "pteros/analysis/options_parser.h"
 #include "pteros/core/format_recognition.h"
 #include "pteros/core/mol_file.h"
+
+#include <thread>
+#include <functional>
 
 using namespace pteros;
 using namespace std;
@@ -233,10 +235,10 @@ void Trajectory_processor::run(){
     cout << "Using frame buffers of size " << buf_size << endl;
     channel.set_buffer_size(buf_size);
 
-    // Start reader thread
-    boost::thread reader_thread( boost::bind(&Trajectory_processor::reader_thread_body,this) );
+    // Start reader thread    
+    std::thread reader_thread( &Trajectory_processor::reader_thread_body, this );
 
-    boost::thread_group worker_threads;
+    vector<std::thread> worker_threads;
     vector<Data_channel_ptr> worker_channels;
 
     if(consumers.size() > 1){
@@ -246,12 +248,14 @@ void Trajectory_processor::run(){
             worker_channels.push_back(Data_channel_ptr(new Data_channel));
             // Set buffer size for this consumer
             worker_channels.back()->set_buffer_size(buf_size);
-            // Spawn thread
-            worker_threads.create_thread(
-                        boost::bind(&Consumer_base::run_in_thread,
+            // Spawn thread            
+            worker_threads.push_back(
+                        std::thread(
+                            std::bind(&Consumer_base::run_in_thread,
                                               consumers[i],
                                               worker_channels[i]
                                               )
+                            )
                         );
         }
 
@@ -301,7 +305,8 @@ void Trajectory_processor::run(){
     // Join all threads
     reader_thread.join();    
     if(consumers.size() > 1){
-        worker_threads.join_all();
+        //worker_threads.join_all();
+        for(auto& t: worker_threads) t.join();
     }
 
     cout << "Trajectory processing finished!" << endl;
