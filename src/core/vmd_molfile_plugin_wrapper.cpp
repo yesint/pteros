@@ -180,7 +180,16 @@ bool VMD_molfile_plugin_wrapper::do_read(System *sys, Frame *frame, Mol_file_con
             at.chain = atoms[i].chain[0];
             at.occupancy = atoms[i].occupancy;
             at.beta = atoms[i].bfactor;
-            at.mass = atoms[i].mass;
+
+            // pdb_plugin guesses mass based on element record, which is
+            // often absent. So it is likely that mass will be zero here!
+            // Check and guess ourself!
+            if(atoms[i].mass>0){
+                at.mass = atoms[i].mass;
+            } else {
+                // Guess mass using Pteros assignment
+                at.mass = get_mass_from_atom_name(at.name);
+            }
 
             set_atom_in_system(*sys,i,at);
         }
