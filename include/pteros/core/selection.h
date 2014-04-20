@@ -30,7 +30,6 @@
 #include <Eigen/Geometry>
 #include "pteros/core/selection_parser.h"
 #include "pteros/core/system.h"
-#include <boost/shared_ptr.hpp>
 #include "pteros/core/typedefs.h"
 
 namespace pteros {

@@ -139,7 +139,7 @@ unique_ptr<Mol_file> pteros::io_factory(string fname, char open_mode){
         string cmd("tpr2pteros.py "+fname);
         int ret = system(cmd.c_str());
         if(ret>0) throw Pteros_error("Error executing tpr2pteros.py! Is it in the PATH?");
-        return boost::shared_ptr<Mol_file>(new PTTOP_file(fname+".pttop",open_mode));
+        return shared_ptr<Mol_file>(new PTTOP_file(fname+".pttop",open_mode));
     }
     */
     case PTTOP_FILE:

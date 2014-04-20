@@ -37,6 +37,11 @@ using namespace boost::python;
 
 // Utility class, which allows overriding pre_process, process_frame and post_process in Python
 // and calling that overriden code from C++
+
+/* Here we are forced to work with boost::shared_ptr.
+ * We can't use std::shared_ptr since boost.python doesn't wrap it correctly for now...
+ */
+
 class _callback: public Trajectory_processor_wrapper {
 public:
     _callback(PyObject* p) {

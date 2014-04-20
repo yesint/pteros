@@ -29,7 +29,6 @@
 #include <vector>
 
 #include "pteros/core/system.h"
-#include <boost/shared_ptr.hpp>
 #include <boost/variant.hpp>
 
 namespace pteros {

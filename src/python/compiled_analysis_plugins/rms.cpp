@@ -58,12 +58,9 @@ protected:
             system.frame_dup(0);            
         }
 
-
-
         Eigen::Affine3f trans = sel.fit_transform(0,1);
         sel.apply_transform(trans);
         float v = sel.rmsd(0,1);
-
 
         data.push_back(v);
         mean += v;
