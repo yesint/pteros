@@ -71,7 +71,7 @@ SET(CMAKE_BUILD_TYPE Release)
 # Will use shared Boost libraries
 set(Boost_USE_STATIC_LIBS OFF)
 
-find_package(Boost 1.48.0 REQUIRED regex system date_time python)
+find_package(Boost 1.48.0 REQUIRED system date_time python)
 find_package(PythonInterp)
 find_package(PythonLibs)
 

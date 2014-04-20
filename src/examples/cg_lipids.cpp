@@ -1,5 +1,4 @@
 #include "pteros/analysis/trajectory_processor.h"
-#include <boost/lexical_cast.hpp>
 
 using namespace std;
 using namespace pteros;
@@ -40,7 +39,7 @@ int main(int argc, char** argv){
             occ2.push_back(0);
             // For each lipid find local center of bilayer
             for(int lip=0; lip<ROH.size(); ++lip){
-                sel_text = "not resname W and within_xy 1.5 of index " + boost::lexical_cast<string>(ROH_index[lip]);
+                sel_text = "not resname W and within_xy 1.5 of index " + to_string(ROH_index[lip]);
                 sel.modify(sel_text);
                 sel.set_frame(fr);
                 float localZ = sel.center()(2);

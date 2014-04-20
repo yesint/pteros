@@ -49,7 +49,8 @@ template<class T>
 bool add_to_command_line(std::string& cmd, Option_value& o){
     T* ptr = boost::get<T>(&o);
     if(ptr){
-        // Here we need lexical cast because boost::lexical_cast<string> can't work with strings and bool
+        // Here we need lexical cast because c++11 to_string can't work with string and bool!
+        // TODO: rewrite to avoid this
         cmd += " " + boost::lexical_cast<string>(*ptr);
         return true;
     } else
@@ -60,6 +61,8 @@ template<class T>
 bool add_to_indented(std::string& str, Option_value& o, int level){
     T* ptr = boost::get<T>(&o);
     if(ptr){
+        // Here we need lexical cast because c++11 to_string can't work with string and bool!
+        // TODO: rewrite to avoid this
         str += string(level,' ') + boost::lexical_cast<string>(*ptr) + '\n';
         return true;
     } else

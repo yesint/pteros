@@ -22,7 +22,6 @@
 
 
 #include "pteros/analysis/rmsf.h"
-#include <boost/lexical_cast.hpp>
 
 using namespace pteros;
 
@@ -69,7 +68,7 @@ void RMSF::pre_process(){
         string sel = o->get_value<string>("");
         gr.sel.modify(system,sel);
         // Set name if given
-        gr.name = o->get_value<string>("name",boost::lexical_cast<string>(k));
+        gr.name = o->get_value<string>("name",to_string(k));
 
         groups.push_back(gr);
         cout << "Added selection '" << sel << "' with name '" << gr.name << "'" << endl;

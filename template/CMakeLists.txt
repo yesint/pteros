@@ -47,7 +47,7 @@ SET(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -s")
 
 SET(CMAKE_BUILD_TYPE Release)
 
-find_package(Boost 1.48.0 REQUIRED regex system date_time)
+find_package(Boost 1.48.0 REQUIRED system date_time)
 
 include_directories(${PTEROS_INCLUDE_PATH} ${Boost_INCLUDE_DIRS})
 link_directories(${PTEROS_LIB_PATH})

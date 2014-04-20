@@ -28,7 +28,6 @@
 #include <set>
 #include <queue>
 #include <boost/algorithm/string.hpp> // String algorithms
-#include <boost/lexical_cast.hpp>
 #include "pteros/core/atom.h"
 #include "pteros/core/selection.h"
 #include "pteros/core/system.h"
@@ -1230,7 +1229,7 @@ void Selection::split_by_connectivity(float d, std::vector<Selection> &res) {
         ++ngr;        
         Selection s(*system);
         res.push_back(s);
-        res.back().sel_text = "index";
+        res.back().sel_text = "";
         // Atoms to search
         queue<int> to_search;
         // Add root atom to search set
@@ -1240,8 +1239,7 @@ void Selection::split_by_connectivity(float d, std::vector<Selection> &res) {
         while(!to_search.empty()){
             k = to_search.front();
             to_search.pop();
-            res.back().index.push_back(Index(k)); // add it to current selection
-            res.back().sel_text += " "+boost::lexical_cast<string>(Index(k));
+            res.back().index.push_back(Index(k)); // add it to current selection            
             // See all atoms connected to k
             for(int j=0; j<con[k].size(); ++j){
                 // if atom is not used, add it to search
