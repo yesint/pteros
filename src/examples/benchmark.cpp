@@ -123,25 +123,25 @@ int main(int argc, char** argv){
 
     Trajectory_processor engine(options);
 
-    boost::shared_ptr<Consumer> b1,b2,b3;
+    std::unique_ptr<Consumer> b1,b2,b3;
 
     switch(num){
     case 1: {
-        b1 = boost::shared_ptr<Bench1>(new Bench1(&engine));
+        b1 = std::unique_ptr<Bench1>(new Bench1(&engine));
         break;
     }
     case 2: {
-        b2 = boost::shared_ptr<Bench2>(new Bench2(&engine));
+        b2 = std::unique_ptr<Bench2>(new Bench2(&engine));
         break;
     }
     case 3: {
-        b3 = boost::shared_ptr<Bench3>(new Bench3(&engine));
+        b3 = std::unique_ptr<Bench3>(new Bench3(&engine));
         break;
     }
     case 0: {
-        b1 = boost::shared_ptr<Bench1>(new Bench1(&engine));
-        b2 = boost::shared_ptr<Bench2>(new Bench2(&engine));
-        b3 = boost::shared_ptr<Bench3>(new Bench3(&engine));
+        b1 = std::unique_ptr<Bench1>(new Bench1(&engine));
+        b2 = std::unique_ptr<Bench2>(new Bench2(&engine));
+        b3 = std::unique_ptr<Bench3>(new Bench3(&engine));
         break;
     }
     }

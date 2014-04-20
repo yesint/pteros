@@ -408,7 +408,7 @@ void Selection_parser::tokenize(const string& s){
 
 #ifdef _DEBUG_PARSER
     cout << endl <<"Tokenizer result:" << endl;
-    boost::shared_ptr<AstNode> node;
+    std::shared_ptr<AstNode> node;
     for(auto node: tokens){
             cout << tok_names[node->code] << " ";
     }

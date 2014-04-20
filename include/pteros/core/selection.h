@@ -775,7 +775,7 @@ protected:
     int frame;
 
     // Holds an instance of selection parser
-    boost::shared_ptr<Selection_parser> parser;
+    std::unique_ptr<Selection_parser> parser;
     void allocate_parser();
 
     // Private functions for creating selection

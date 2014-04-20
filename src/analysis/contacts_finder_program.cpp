@@ -57,7 +57,7 @@ int main(int argc, char* argv[]){
         }
 
         cout << "Creating contacts finder..." << endl;
-        boost::shared_ptr<Contacts_finder> finder(new Contacts_finder(processor,options));
+        std::unique_ptr<Contacts_finder> finder(new Contacts_finder(processor,options));
 
         // Do computation
         processor.run();

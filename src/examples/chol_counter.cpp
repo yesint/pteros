@@ -62,7 +62,7 @@ protected:
             Bilayer_point_info data = bi.point_info(roh.XYZ(i));
 
             // Analyze which lipids surround this chol
-            boost::shared_ptr<Selection> ptr;
+            std::shared_ptr<Selection> ptr;
             int num1=0, num2=0;
 
             if(data.monolayer==1){                

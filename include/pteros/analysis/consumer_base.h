@@ -104,8 +104,8 @@ private:
     int saved_abs_frame;
     int saved_valid_frame;    
 
-    void run_in_thread(boost::shared_ptr<Message_channel<boost::shared_ptr<Data_container> > > chan);
-    void consume_frame(boost::shared_ptr<Data_container>& data);
+    void run_in_thread(std::shared_ptr<Message_channel<std::shared_ptr<Data_container> > >& chan);
+    void consume_frame(std::shared_ptr<Data_container>& data);
 };
 
 }

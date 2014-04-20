@@ -226,7 +226,7 @@ void Trajectory_processor::run(){
     //-----------------------------------------
     // Actual processing starts here
     //-----------------------------------------
-    typedef boost::shared_ptr<Data_channel> Data_channel_ptr;
+    typedef std::shared_ptr<Data_channel> Data_channel_ptr;
 
     // Set buffer size
     int buf_size = options->get_value<int>("buffer_size",10);
@@ -256,7 +256,7 @@ void Trajectory_processor::run(){
         }
 
         // Now recieve frames from the queue until reader sends stop
-        boost::shared_ptr<Data_container> data;
+        std::shared_ptr<Data_container> data;
         while(channel.recieve(data)){
             for(auto &ch: worker_channels){
                 ch->send(data);
@@ -286,7 +286,7 @@ void Trajectory_processor::run(){
         // errors should be catched in the Consumer itself!
         consumers[0]->pre_process_handler();
 
-        boost::shared_ptr<Data_container> data;
+        std::shared_ptr<Data_container> data;
         while(channel.recieve(data)){
             consumers[0]->consume_frame(data);
         }
@@ -330,7 +330,7 @@ void Trajectory_processor::reader_thread_body(){
             while(true){
                 // To avoid eccessive copy operations we allocate a shared pointer
                 // and will load data into its storage
-                boost::shared_ptr<Data_container> data(new Data_container);
+                std::shared_ptr<Data_container> data(new Data_container);
 
                 // Load data to this container
                 bool good = trj->read(NULL,&data->frame,content);

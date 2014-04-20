@@ -61,7 +61,7 @@ int main(int argc, char** argv){
             return 0;
         }
 
-        boost::shared_ptr<RMSF> engine(new RMSF(processor,options));
+        std::unique_ptr<RMSF> engine(new RMSF(processor,options));
 
 /*
         Selection s(sys,"all");

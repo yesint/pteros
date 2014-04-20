@@ -657,10 +657,11 @@ Vector3f Selection::center(bool mass_weighted, bool periodic) const {
     if(periodic==false){
         if(mass_weighted){
             float m = 0.0;
-            for(i=0; i<n; ++i){
+            for(i=0; i<n; ++i){                
                 res += XYZ(i)*Mass(i);
                 m += Mass(i);
             }
+            if(m==0) throw Pteros_error("Zero mass in mass-weighted center calculation!");
             return res/m;
         } else {
             for(i=0; i<n; ++i)
@@ -679,6 +680,7 @@ Vector3f Selection::center(bool mass_weighted, bool periodic) const {
                 res += system->Box(frame).get_closest_image(XYZ(i),ref_point) * Mass(i);
                 m += Mass(i);
             }
+            if(m==0) throw Pteros_error("Zero mass in mass-weighted center calculation!");
             return res/m;
         } else {
             for(i=0; i<n; ++i)
@@ -951,6 +953,7 @@ Affine3f fit_transform(const Selection& sel1, const Selection& sel2){
     // Bring centers to zero
     cm1 = sel1.center(true);
     cm2 = sel2.center(true);
+
     const_cast<Selection&>(sel1).translate(-cm1);
     const_cast<Selection&>(sel2).translate(-cm2);
 
@@ -1059,12 +1062,15 @@ void Selection::fit_trajectory(int ref_frame, int b, int e){
 Affine3f Selection::fit_transform(int fr1, int fr2) const {
     // Save current frame
     int cur_frame = get_frame();
+
     const_cast<Selection*>(this)->set_frame(fr1); // this points to fr1
     // Create aux selection
-    Selection s2(*this);
+    Selection s2(*this);    
     s2.set_frame(fr2); // Points to fr2
+
     // Call fit_transform
     Affine3f t = pteros::fit_transform(*this,s2);
+
     // Restore frame
     const_cast<Selection*>(this)->set_frame(cur_frame);
     return t;

@@ -55,14 +55,16 @@ protected:
         // Fitting breaks the system, but we have local copy, nobody cares. Cool :)
         // Set reference frame for very first processed frame as frame 1
         if(info.valid_frame==0){
-            system.frame_dup(0);
+            system.frame_dup(0);            
         }
 
-        sel.apply();
+
 
         Eigen::Affine3f trans = sel.fit_transform(0,1);
         sel.apply_transform(trans);
         float v = sel.rmsd(0,1);
+
+
         data.push_back(v);
         mean += v;
     }

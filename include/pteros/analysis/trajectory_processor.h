@@ -49,8 +49,8 @@ namespace pteros {
 *   by frame number or by physical time.
 */
 
-typedef boost::shared_ptr<Frame> Frame_ptr;
-typedef Message_channel<boost::shared_ptr<Data_container> > Data_channel;
+typedef std::shared_ptr<Frame> Frame_ptr;
+typedef Message_channel<std::shared_ptr<Data_container> > Data_channel;
 
 class Trajectory_processor {
     friend class Consumer_base;

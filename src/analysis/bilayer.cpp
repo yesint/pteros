@@ -90,8 +90,8 @@ Bilayer_point_info Bilayer::point_info(Eigen::Vector3f &point){
     Bilayer_point_info ret;
 
     // Now take 10 closest markers in each monolayer and make selections for them
-    ret.spot1_ptr = boost::shared_ptr<Selection>( new Selection(*bilayer_ptr->get_system()) );
-    ret.spot2_ptr = boost::shared_ptr<Selection>( new Selection(*bilayer_ptr->get_system()) );
+    ret.spot1_ptr = std::shared_ptr<Selection>( new Selection(*bilayer_ptr->get_system()) );
+    ret.spot2_ptr = std::shared_ptr<Selection>( new Selection(*bilayer_ptr->get_system()) );
 
     for(i=0;i<spot_size;++i){
         ret.spot1_ptr->append(surf[0].Index(aux1[i]));
