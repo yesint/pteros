@@ -26,6 +26,7 @@
 #include <iostream>
 #include <string>
 #include <set>
+#include <map>
 #include "pteros/pteros.h"
 #include "pteros/analysis/trajectory_processor.h"
 #include "pteros/analysis/options_parser.h"

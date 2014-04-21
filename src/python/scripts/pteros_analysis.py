@@ -203,7 +203,7 @@ for task in requested_tasks:
 			tsk_name = tsk.get_value_string("")
 			if tsk_name == task_name:
 				# create an independent instance of Task from that module
-				obj = module.Task(proc,task)
+                                obj = module.Task(proc,tsk)
 				# Give this task a unique textual label
 				obj.label = task_name + "_id" + str(task_num);				 
 				print "\t\t Created plugin instance '%s'" % obj.label			 

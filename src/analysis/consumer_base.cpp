@@ -23,7 +23,6 @@
 
 #include "pteros/analysis/consumer_base.h"
 #include "pteros/analysis/trajectory_processor.h"
-#include <boost/bind.hpp>
 
 using namespace std;
 using namespace pteros;

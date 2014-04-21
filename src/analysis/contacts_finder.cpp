@@ -21,9 +21,7 @@
 */
 
 #include "pteros/analysis/contacts_finder.h"
-#include "boost/bind.hpp"
 #include <sstream>
-#include "boost/format.hpp"
 
 #include "json_spirit/json_spirit_reader_template.h"
 #include "json_spirit/json_spirit_writer_template.h"

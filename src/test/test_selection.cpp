@@ -20,16 +20,10 @@
  *
 */
 
-#include "pteros/pteros.h"
-#include "pteros/core/grid_search.h"
-#include "pteros/analysis/trajectory_processor.h"
-#include "pteros/analysis/rmsf.h"
-#include "pteros/core/mol_file.h"
 #include <string>
-
-#include <vector>
-#include <boost/tokenizer.hpp>
-#include <boost/algorithm/string.hpp>
+#include "pteros/analysis/options.h"
+#include <Eigen/Core>
+#include "pteros/core/pteros_error.h"
 
 using namespace std;
 using namespace pteros;
@@ -38,7 +32,45 @@ using namespace Eigen;
 
 int main(int argc, char** argv)
 {
+
     try{
+        /*
+        string str("--trajectory["
+                   "initial_structure.pdb "
+                   "traj.xtc r1/traj.xtc r1/traj.part0002.xtc r1/traj.part0003.xtc "
+                   "--first_frame 0"
+                   "--last_frame 100 "
+                   "--log_interval 2 "
+                   "] "
+                   "--task rms[--selection \"name CA\" --unwrap 0.2] "
+                   "--task rms[--selection \"protein\" --unwrap 0.4] "
+                   "--dump_input dump");
+        cout << str << endl;
+
+        Options_tree opt;
+        opt.from_command_line(str);
+        for(auto o: opt.get_options("task")){
+            cout << o->get_value<string>("selection") << endl;
+            cout << o->get_value<double>("unwrap") << endl;
+        }
+
+        System s;
+        */
+
+        Options toplevel;
+        vector<Options> tasks;
+
+        parse_command_line(argc,argv,toplevel,"task",tasks);
+        //parse_command_line(argc,argv,toplevel);
+        toplevel.print();
+        cout << "------" << endl;
+        for(auto& t: tasks){
+            t.print();
+            cout << "------" << endl;
+        }
+
+        float v = toplevel["t"].as_float();
+        cout << v << endl;
 
 
     } catch(const Pteros_error& e){ e.print(); }

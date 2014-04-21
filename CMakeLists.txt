@@ -105,9 +105,9 @@ add_subdirectory(src/python)
 add_subdirectory(src/python/bindings)
 add_subdirectory(src/python/compiled_analysis_plugins)
 add_subdirectory(src/examples)
+add_subdirectory(src/test)
 add_subdirectory(template)
 add_subdirectory(template_plugin)
-add_subdirectory(src/test)
 
 # Install headers
 install(DIRECTORY include DESTINATION .)

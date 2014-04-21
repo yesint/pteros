@@ -22,15 +22,14 @@
 
 #include <iostream>
 #include <fstream>
-#include <sstream>
 #include <iomanip>
+#include <unordered_map>
 #include "pteros/core/system.h"
 #include "pteros/core/selection.h"
 #include "pteros/core/pteros_error.h"
 #include "pteros/core/grid_search.h"
 #include "pteros/core/format_recognition.h"
 #include "pteros/core/mol_file.h"
-#include <boost/bind.hpp>
 // DSSP
 #include "pteros_dssp_wrapper.h"
 
@@ -236,17 +235,15 @@ void System::assign_resindex(){
     }
 }
 
-bool by_resindex_sorter(int i, int j, System& sys){
-    return (sys.Atom_data(i).resindex < sys.Atom_data(j).resindex);
-}
-
 void System::sort_by_resindex()
 {
     // Make and array of indexes to shuffle
     vector<int> ind(atoms.size());
     for(int i=0;i<ind.size();++i) ind[i] = i;
     // Sort indexes
-    sort(ind.begin(),ind.end(),boost::bind(&by_resindex_sorter,_1,_2,*this));
+    sort(ind.begin(),ind.end(), [this](int i, int j){
+                                    return (Atom_data(i).resindex < Atom_data(j).resindex);
+                                } );
     // Now shuffle atoms and coordinates according to indexes
     vector<Atom> tmp(atoms); //temporary
     for(int i=0;i<ind.size();++i) atoms[i] = tmp[ind[i]];
@@ -460,7 +457,7 @@ void System::add_non_bond_energy(Energy_components &e, int a1, int a2, int frame
         float r = distance(at1,at2,frame);
 
         // Check if this is 1-4 pair
-        boost::unordered_map<int,int>::iterator it = const_cast<System&>(*this).force_field.LJ14_pairs.find(at1*N+at2);
+        std::unordered_map<int,int>::iterator it = const_cast<System&>(*this).force_field.LJ14_pairs.find(at1*N+at2);
         if( it == force_field.LJ14_pairs.end() ){
             // Normal, not 1-4
             e1 = LJ_en_kernel(force_field.LJ_C6(atoms[at1].type,atoms[at2].type),

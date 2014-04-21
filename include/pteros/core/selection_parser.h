@@ -27,6 +27,7 @@
 
 #include <string>
 #include <vector>
+#include <memory>
 
 #include "pteros/core/system.h"
 #include <boost/variant.hpp>

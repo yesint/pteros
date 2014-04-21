@@ -40,7 +40,14 @@ public:
                 "\tAlso reports mean RMSD in the file header.\n"
                 "Options:\n"
                 "\t--selection <string>\n"
-                "\t\tSelection text";
+                "\t\tSelection text"
+                "\t--unwrap <float>. Default: 0.2\n"
+                "\t\tDo unwrapping of selection based on 'bond distance' criterion"
+                "\t\tnegative value means no unwrapping;"
+                "\t\tzero means simple nearest neighbour unwrapping,"
+                "\t\twhich much faster but fails if selection covers more than 1/2"
+                "\t\tof the periodic box size."
+                ;
     }
 
 protected:
@@ -48,15 +55,25 @@ protected:
     void pre_process(){
         mean = 0.0;
         data.clear();
-        sel.modify(system, options->get_value<string>("selection") );       
+        sel.modify(system, options->get_value<string>("selection") );
+        unwrap_cutoff = options->get_value<double>("unwrap");
+        cout << "Unwrap cut-off: " << unwrap_cutoff << endl;
+        cout << sel.get_text() << endl;
+        cout << label << endl;
     }
 
     void process_frame(const pteros::Frame_info &info){
         // Fitting breaks the system, but we have local copy, nobody cares. Cool :)
+
+        // Selection may appear wrapped, so we probably want to unwrap it
+        //if(unwrap_cutoff>0){ sel.unwrap_bonds(unwrap_cutoff); }
+        //if(unwrap_cutoff==0){ sel.unwrap(); }
+
         // Set reference frame for very first processed frame as frame 1
+        // This will be unwrapped already if asked
         if(info.valid_frame==0){
             system.frame_dup(0);            
-        }
+        }                
 
         Eigen::Affine3f trans = sel.fit_transform(0,1);
         sel.apply_transform(trans);
@@ -87,6 +104,7 @@ private:
     std::vector<float> data;
     float mean;
     pteros::Selection sel;
+    float unwrap_cutoff ;
 };
 
 

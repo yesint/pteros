@@ -1144,7 +1144,7 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
         int Nsel = res1.size();
         // Select by residue. This respects chain!
         // First make a set of resids we need to search
-        boost::unordered_set<int> resind;
+        std::unordered_set<int> resind;
         for(i=0;i<Nsel;++i){ //over found atoms
             resind.insert(sys->atoms[res1[i]].resindex);
         }

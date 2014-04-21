@@ -24,17 +24,10 @@
 #ifndef TRAJECTORY_PROCESSOR_H
 #define TRAJECTORY_PROCESSOR_H
 
-#include <iostream>
 #include <string>
-#include <queue>
-#include <set>
 #include "pteros/core/selection.h"
-#include <fstream>
-
 #include "pteros/analysis/options_parser.h"
 #include "pteros/analysis/consumer_base.h"
-#include <boost/algorithm/string.hpp>
-
 #include "pteros/analysis/message_channel.h"
 
 namespace pteros {

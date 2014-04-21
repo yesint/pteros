@@ -27,6 +27,7 @@
 #include <algorithm>
 #include <set>
 #include <queue>
+#include <map>
 #include <boost/algorithm/string.hpp> // String algorithms
 #include "pteros/core/atom.h"
 #include "pteros/core/selection.h"
@@ -1359,8 +1360,7 @@ void Selection::unwrap_bonds(float d, Vector3i_const_ref dims){
     }
 
     // Do all wrapping before    
-    wrap();
-    //write("0.pdb");
+    wrap();    
 
     // Mask of moved atoms
     VectorXi moved(size());
@@ -1378,25 +1378,17 @@ void Selection::unwrap_bonds(float d, Vector3i_const_ref dims){
             // Get center from the queue
             cur = *(todo.begin());
             todo.erase(todo.begin()); // And pop it from the queue
-            //cout << "(C)" << cur << " " << todo.size() << endl;
+
             moved[cur] = 1; // Mark as moved
             // Unwrap all atoms bound to cur to position near cur
             for(int i=0; i<con[cur].size(); ++i){
                 // We only move atoms, which were not yet moved
                 if(moved(con[cur][i])==0){
                     // We don't do wrapping here (passing false) since this will bring atoms back!
-                    // We intentially want atoms to be unwrapped                    
-                    //Vector3f v = XYZ(con[cur][i]);
-                    XYZ(con[cur][i]) = system->Box(frame).get_closest_image(XYZ(con[cur][i]),XYZ(cur),false,dims);
-                    /*
-                    if((v-XYZ(con[cur][i])).norm()>1e-7){
-                        cout << "(0) " << v.transpose() << endl;
-                        cout << "(1) " << XYZ(con[cur][i]).transpose() << endl << endl;
-                    }
-                    */
+                    // We intentially want atoms to be unwrapped                                        
+                    XYZ(con[cur][i]) = system->Box(frame).get_closest_image(XYZ(con[cur][i]),XYZ(cur),false,dims);                    
                     // Add moved atom to centers queue
-                    todo.insert(con[cur][i]);
-                    //cout << "   (+) " << con[cur][i] << endl;
+                    todo.insert(con[cur][i]);                    
                     ++Nmoved;                    
                 }
             }

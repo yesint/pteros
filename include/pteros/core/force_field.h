@@ -24,8 +24,8 @@
 #define FORCE_FIELD_H
 
 #include <vector>
-#include <boost/unordered_set.hpp>
-#include <boost/unordered_map.hpp>
+#include <unordered_set>
+#include <unordered_map>
 #include <Eigen/Core>
 
 namespace pteros {
@@ -51,7 +51,7 @@ struct Force_field {
     /// The storage order is: (atom)-->[i1,i2,i3...in]
     /// which means that all interactions (atom:i1), (atom:i2) ... (atom:in) are excluded
     /// If atom has no exclusions the set is empty
-    std::vector<boost::unordered_set<int> > exclusions;
+    std::vector<std::unordered_set<int> > exclusions;
     /// Matrices of normal (not excluded, not 1-4) LJ interactions.
     /// The size of the matrix == the number of distinct LJ types.
     /// The types themselves are stored in Atom.type
@@ -62,7 +62,7 @@ struct Force_field {
     /// The list of LJ14 pairs. Each (a,b) pair is encoded as (a*LJ14_interactions.size()+b)
     /// There is a mapping:
     /// (a*LJ14_interactions.size()+b) --> LJ14_interaction
-    boost::unordered_map<int,int> LJ14_pairs;
+    std::unordered_map<int,int> LJ14_pairs;
     /// Scaling factor of 1-4 Coulomb interactions
     float fudgeQQ;
 

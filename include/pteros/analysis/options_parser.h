@@ -155,7 +155,7 @@ T Options_tree::get_value(std::string key){
     T* cur;
     int k = 0;
     for(auto& val: v.front()->values){
-         cur = boost::get<T>(&val);
+        cur = boost::get<T>(&val);
         if(cur){
             ++k;
             ptr = cur;

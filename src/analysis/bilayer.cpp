@@ -23,7 +23,6 @@
 
 #include "pteros/analysis/bilayer.h"
 #include "pteros/core/pteros_error.h"
-#include <boost/bind.hpp>
 
 using namespace std;
 using namespace pteros;
@@ -82,8 +81,9 @@ Bilayer_point_info Bilayer::point_info(Eigen::Vector3f &point){
     }
 
     // Sort distances
-    sort(aux1.begin(),aux1.end(),boost::bind(dist_sorter,_1,_2,dist1));
-    sort(aux2.begin(),aux2.end(),boost::bind(dist_sorter,_1,_2,dist2));
+    using namespace std::placeholders;
+    sort(aux1.begin(),aux1.end(),std::bind(dist_sorter,_1,_2,dist1));
+    sort(aux2.begin(),aux2.end(),std::bind(dist_sorter,_1,_2,dist2));
 
     // Start filling output fields
     Bilayer_point_info ret;
