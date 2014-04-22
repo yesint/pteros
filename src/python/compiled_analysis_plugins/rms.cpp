@@ -27,7 +27,7 @@ using namespace std;
 
 class rms: public pteros::Compiled_plugin_base {
 public:
-    rms(pteros::Trajectory_processor* pr, pteros::Options_tree* opt): Compiled_plugin_base(pr,opt) {}
+    rms(pteros::Trajectory_processor* pr, const pteros::Options& opt): Compiled_plugin_base(pr,opt) {}
 
     string help(){
         return  "Purpose:\n"
@@ -55,8 +55,8 @@ protected:
     void pre_process(){
         mean = 0.0;
         data.clear();
-        sel.modify(system, options->get_value<string>("selection") );
-        unwrap_cutoff = options->get_value<double>("unwrap");
+        sel.modify(system, options("selection").as_string() );
+        unwrap_cutoff = options("unwrap").as_float();
         cout << "Unwrap cut-off: " << unwrap_cutoff << endl;
         cout << sel.get_text() << endl;
         cout << label << endl;

@@ -15,8 +15,8 @@ IF(WITH_PYTHON)
         bindings_system.h
         bindings_selection.cpp
         bindings_selection.h
-        bindings_options_tree.cpp
-        bindings_options_tree.h
+        #bindings_options_tree.cpp
+        #bindings_options_tree.h
         bindings_frame_info.cpp
         bindings_frame_info.h
         bindings_trajectory_processor.cpp

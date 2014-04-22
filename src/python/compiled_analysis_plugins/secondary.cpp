@@ -27,7 +27,7 @@ using namespace pteros;
 
 class secondary: public Compiled_plugin_base {
 public:
-    secondary(Trajectory_processor* pr, Options_tree* opt): Compiled_plugin_base(pr,opt) {}
+    secondary(Trajectory_processor* pr, const Options& opt): Compiled_plugin_base(pr,opt) {}
 
     string help(){
         return  "Purpose:\n"

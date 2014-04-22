@@ -8,7 +8,7 @@ namespace pteros {
 
 struct Compiled_plugin_base: public Consumer {
 
-    Compiled_plugin_base(Trajectory_processor* proc, Options_tree* opt): Consumer(proc){
+    Compiled_plugin_base(Trajectory_processor* proc, const Options& opt): Consumer(proc){
         options = opt;
     }
 
@@ -22,7 +22,7 @@ struct Compiled_plugin_base: public Consumer {
 
 protected:
     /// Options for this particular plugin instance
-    Options_tree* options;
+    Options options;
 
     /// Handler overrides
     virtual void pre_process_handler(){

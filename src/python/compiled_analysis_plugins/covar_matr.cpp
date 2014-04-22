@@ -29,13 +29,13 @@ using namespace Eigen;
 
 class covar_matr: public pteros::Compiled_plugin_base {
 public:
-    covar_matr(pteros::Trajectory_processor* pr, pteros::Options_tree* opt): Compiled_plugin_base(pr,opt) {}
+    covar_matr(pteros::Trajectory_processor* pr, const pteros::Options& opt): Compiled_plugin_base(pr,opt) {}
 
 protected:
 
     void pre_process(){
-        do_align = options->get_value<bool>("align",true);
-        sel.modify(system, options->get_value<string>("selection") );
+        do_align = options("align","true").as_bool();
+        sel.modify(system, options("selection").as_string() );
 
         system.frame_dup(0);
 
@@ -80,7 +80,7 @@ protected:
         // Make simmetric
         matr.triangularView<Eigen::StrictlyLower>() = matr.triangularView<Eigen::StrictlyUpper>().transpose();
 
-        bool write_whole = options->get_value<bool>("write_whole",false);
+        bool write_whole = options("write_whole","false").as_bool();
         if(write_whole){
             // Output whole matrix
             fname = label+"-whole.dat";

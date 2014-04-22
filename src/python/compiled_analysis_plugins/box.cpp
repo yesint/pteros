@@ -27,7 +27,7 @@ using namespace pteros;
 
 class box: public Compiled_plugin_base {
 public:
-    box(Trajectory_processor* pr, Options_tree* opt): Compiled_plugin_base(pr,opt) {}
+    box(Trajectory_processor* pr, const Options& opt): Compiled_plugin_base(pr,opt) {}
 
     string help(){
         return  "Purpose:\n"

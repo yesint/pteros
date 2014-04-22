@@ -4,7 +4,7 @@
 
 add_library(pteros_analysis SHARED
     trajectory_processor.cpp
-    options_parser.cpp
+    #options_parser.cpp
     rmsf.cpp
     contacts_finder.cpp
     consumer_base.cpp
@@ -12,7 +12,7 @@ add_library(pteros_analysis SHARED
     ${PROJECT_SOURCE_DIR}/include/pteros/analysis/message_channel.h
 
     ${PROJECT_SOURCE_DIR}/include/pteros/analysis/trajectory_processor.h
-    ${PROJECT_SOURCE_DIR}/include/pteros/analysis/options_parser.h
+    #${PROJECT_SOURCE_DIR}/include/pteros/analysis/options_parser.h
     ${PROJECT_SOURCE_DIR}/include/pteros/analysis/rmsf.h
     ${PROJECT_SOURCE_DIR}/include/pteros/analysis/contacts_finder.h
     ${PROJECT_SOURCE_DIR}/include/pteros/analysis/consumer_base.h

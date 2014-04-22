@@ -48,7 +48,7 @@ public:
         self = p;
     }
 
-    _callback(PyObject* p, Options_tree& opt): Trajectory_processor_wrapper(opt) {
+    _callback(PyObject* p, const Options& opt): Trajectory_processor_wrapper(opt) {
         self = p;
     }
 
@@ -76,7 +76,7 @@ void make_bindings_Trajectory_processor(){
     ;
 
     class_<Trajectory_processor_wrapper, boost::noncopyable, boost::shared_ptr<_callback> , bases<Trajectory_processor> >("Trajectory_processor", init<>())
-        .def(init<Options_tree&>() )
+        .def(init<const Options&>() )
         .def("set_options",&Trajectory_processor_wrapper::set_options)
         .def("run",&Trajectory_processor_wrapper::run)
         .def("get_system",&Trajectory_processor_wrapper::get_system,return_value_policy<reference_existing_object>())

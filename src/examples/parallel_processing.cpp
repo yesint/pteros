@@ -33,12 +33,12 @@ protected:
 };
 
 int main(int argc, char** argv){
-    Options_tree options;
-    options.from_command_line(argc,argv);
+    Options options;
+    parse_command_line(argc,argv,options);
     Trajectory_processor engine(options);
-    string s1 = options.get_value<string>("selection1");
-    string s2 = options.get_value<string>("selection2");
-    float d = options.get_value<float>("distance");
+    string s1 = options("selection1").as_string();
+    string s2 = options("selection2").as_string();
+    float d = options("distance").as_float();
     Our_task task(&engine,s1,s2,d);
     engine.run();
 }

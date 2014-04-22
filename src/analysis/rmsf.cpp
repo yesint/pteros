@@ -24,6 +24,7 @@
 #include "pteros/analysis/rmsf.h"
 
 using namespace pteros;
+using namespace std;
 
 void rmsf_group::add_window(){
     std::map<int,Eigen::VectorXd> v;
@@ -63,15 +64,11 @@ RMSF::~RMSF()
 void RMSF::pre_process(){
     // Add selections
     int k = 0;
-    for(auto o: options->get_options("selection")){
-        rmsf_group gr;
-        string sel = o->get_value<string>("");
-        gr.sel.modify(system,sel);
-        // Set name if given
-        gr.name = o->get_value<string>("name",to_string(k));
-
+    for(auto sel: options("selections").as_strings()){
+        rmsf_group gr;        
+        gr.sel.modify(system,sel);        
         groups.push_back(gr);
-        cout << "Added selection '" << sel << "' with name '" << gr.name << "'" << endl;
+        cout << "Added selection '" << sel << "'" << endl;
         k++;
     }
 
@@ -123,7 +120,7 @@ void RMSF::pre_process(){
 
     all.modify(system,"all");
 
-    do_rmsd = options->get_value<bool>("do_rmsd",false);
+    do_rmsd = options("do_rmsd","false").as_bool();
 }
 
 void RMSF::window_started(const Frame_info &info){            
@@ -233,7 +230,7 @@ void RMSF::save_results(){
     // For each group open file and write matrices
     cout << "Saving data..." << endl;
 
-    string prefix = options->get_value<string>("output_prefix","");
+    string prefix = options("output_prefix","").as_string();
 
     int i = 0;
     for(auto& gr: groups){
@@ -268,7 +265,7 @@ void RMSF::save_results(){
 
         // Per-atom matrix
         // Only save it if requested because ti is HUGE!
-        if(options->get_value<bool>("save_per_atom",false)){
+        if(options("save_per_atom","false").as_bool()){
             f.open((prefix+gr.name+"_per_atom_rmsf.dat").c_str());
             for(int w=0; w<gr.rmsf.size()-1; ++w){
                 // For each group do

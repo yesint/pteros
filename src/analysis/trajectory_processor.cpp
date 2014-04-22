@@ -23,13 +23,14 @@
 #include <fstream>
 #include "pteros/analysis/trajectory_processor.h"
 #include "pteros/core/pteros_error.h"
-
-#include "pteros/analysis/options_parser.h"
 #include "pteros/core/format_recognition.h"
 #include "pteros/core/mol_file.h"
 
 #include <thread>
 #include <functional>
+
+#include <boost/algorithm/string.hpp> // For to_lower
+#include <boost/lexical_cast.hpp>
 
 using namespace pteros;
 using namespace std;
@@ -126,34 +127,47 @@ void Trajectory_processor::add_consumer(Consumer_base *p){
     consumers.back()->set_id(consumers.size()-1);
 }
 
+void process_value_with_suffix(const string& s, int& intval, float& floatval){
+    int pos = s.find_last_of("0123456789");
+    if(pos==string::npos) throw Pteros_error("A number with optional suffix required!");
+    string val = s.substr(0,pos);
+    string suffix = s.substr(pos+1);
+    boost::algorithm::to_lower(val);
+    boost::algorithm::to_lower(suffix);
+    // Now analyze suffix
+    if(suffix=="fr" || suffix==""){
+        intval = boost::lexical_cast<int>(val);
+        floatval = -1.0;
+    } else {
+        intval = -1;
+        floatval = boost::lexical_cast<float>(val);
+        if(suffix=="ps" || suffix=="t"){
+            floatval *= 1.0;
+        } else if(suffix=="ns"){
+            floatval *= 1000.0;
+        } else if(suffix=="us"){
+            floatval *= 1000000.0;
+        } else if(suffix=="ms"){
+            floatval *= 1000000000.0;
+        }
+    }
+}
+
 void Trajectory_processor::run(){
     cout << "Starting trajectory processing..." << endl;
 
     // See if thre are some connected consumers
     if(consumers.size()==0) throw Pteros_error("No consumers are connected to trajectory processor!");
-    cout << "Connected " << consumers.size() << " consumers" << endl;
+    cout << "Connected " << consumers.size() << " consumers" << endl;    
 
-    // If asked to dump input in json format, do it
-    string dump_file = options->get_value<string>("dump_input","");
-    if(dump_file!=""){
-        cout << "Dumping input to " << dump_file << "..." << endl;
-        ofstream f(dump_file.c_str());
-        f << options->to_json_string() << endl;
-        f.close();
-    }
-
-    // Work with trajectory block
-    // The block must include structre file,
-    // one or more trajectory files and optional topology file
-    // Get trajectory node
-    Options_tree* trj = &options->get_option("trajectory");
+    // Get files to work with
+    auto file_list = options("f").as_strings();
 
     // Get all string parameters and find out how many different files we have
     // and arrange them structure->topology->traj
     string top_file = "";
-    string structure_file = "";
-    traj_files.clear();
-    for(string s: trj->get_values<string>("")){
+    string structure_file = "";    
+    for(string& s: file_list){
         switch(recognize_format(s)){
         case PDB_FILE:
         case GRO_FILE:
@@ -202,18 +216,27 @@ void Trajectory_processor::run(){
     }
 
     // Get parameters
-    // See if window processing is requested
-    window_size_frames = trj->get_value<int>("window_size_frames",-1);
-    window_size_time = trj->get_value<float>("window_size_time",-1);
+    float fdum;
+    int idum;
+
+    // See if window processing is requested    
+    process_value_with_suffix(options("w","-1").as_string(),
+                              window_size_frames, window_size_time);
+
     // Determine range for this group
-    first_frame = trj->get_value<int>("first_frame",-1);
-    last_frame = trj->get_value<int>("last_frame",-1);
-    first_time = trj->get_value<float>("first_time",-1);
-    last_time = trj->get_value<float>("last_time",-1);
-    skip = trj->get_value<int>("skip",-1);
+    process_value_with_suffix(options("b","-1").as_string(),
+                              first_frame, first_time);
+    process_value_with_suffix(options("e","-1").as_string(),
+                              last_frame, last_time);
+
+    // Skip interval
+    skip = options("skip","-1").as_int();
+
     // Check for custom start time and dt
-    custom_start_time = trj->get_value<float>("custom_start_time",-1);
-    custom_dt = trj->get_value<float>("custom_dt",-1);
+    process_value_with_suffix(options("start","-1").as_string(),
+                              idum, custom_start_time);
+    process_value_with_suffix(options("de","-1").as_string(),
+                              idum, custom_dt);
     if(custom_start_time>=0 && custom_dt==-1) custom_dt = 1;
     if(custom_start_time==-1 && custom_dt>=0) custom_start_time = 0;
 
@@ -223,7 +246,7 @@ void Trajectory_processor::run(){
     if(first_time>=0 && last_time>=0 && last_time<first_time)
         throw Pteros_error("Last time") << last_time<< " is smaller that first time" << first_time;
 
-    log_interval = trj->get_value<int>("log_interval",-1);
+    log_interval = options("log","-1").as_int();
 
     //-----------------------------------------
     // Actual processing starts here
@@ -231,8 +254,9 @@ void Trajectory_processor::run(){
     typedef std::shared_ptr<Data_channel> Data_channel_ptr;
 
     // Set buffer size
-    int buf_size = options->get_value<int>("buffer_size",10);
+    int buf_size = options("buffer","10").as_int();
     cout << "Using frame buffers of size " << buf_size << endl;
+
     channel.set_buffer_size(buf_size);
 
     // Start reader thread    

@@ -1,6 +1,7 @@
 #include "pteros/analysis/trajectory_processor.h"
 #include "pteros/analysis/consumer.h"
 #include "pteros/core/grid_search.h"
+#include "pteros/core/pteros_error.h"
 
 using namespace std;
 using namespace pteros;
@@ -78,9 +79,9 @@ int main(int argc, char** argv){
     try{
 
 
-    Options_tree options;
-    options.from_command_line(argc,argv);
-    int num = options.get_value<int>("bench");
+    Options options;
+    parse_command_line(argc,argv,options);
+    int num = options("bench").as_int();
     cout << num << endl;
     if(num>3){
         System s("/home/semen/work/Projects/kornelyuk/Sasha/dimer_md/1/dimer_pdb2gmx.gro");

@@ -2,6 +2,7 @@
 #include "pteros/analysis/consumer.h"
 #include <fstream>
 #include "pteros/core/grid_search.h"
+#include "pteros/core/pteros_error.h"
 
 
 using namespace std;
@@ -10,7 +11,7 @@ using namespace Eigen;
 
 class Water_processor: public Consumer {
 public:
-    Water_processor(Trajectory_processor* pr, Options_tree* opt): Consumer(pr){
+    Water_processor(Trajectory_processor* pr, const Options& opt): Consumer(pr){
         options = opt;
     }
 protected:
@@ -20,7 +21,7 @@ protected:
 
         // Allocate a grid
         // Get size of the cell
-        float cell_size = options->get_value<double>("cell_size");
+        float cell_size = options("cell_size").as_float();
         // Get extents of the box
         Vector3f box_dim = system.Box(0).extents();
 
@@ -114,7 +115,7 @@ protected:
         f.close();
     }
 
-    Options_tree* options;
+    Options options;
     Grid_searcher searcher;
     boost::multi_array<float,3> grid;
     int NgridX, NgridY, NgridZ;
@@ -124,11 +125,11 @@ protected:
 
 int main(int argc, char** argv){
     try {
-        Options_tree opt;
-        opt.from_command_line(argc,argv);
+        Options opt;
+        parse_command_line(argc,argv,opt);
 
         Trajectory_processor proc(opt);
-        Water_processor wp(&proc,&opt);
+        Water_processor wp(&proc,opt);
 
         proc.run();
 

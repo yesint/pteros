@@ -1,4 +1,5 @@
 #include "pteros/analysis/trajectory_processor.h"
+#include "pteros/core/pteros_error.h"
 
 using namespace std;
 using namespace pteros;
@@ -6,13 +7,13 @@ using namespace Eigen;
 
 int main(int argc, char** argv){
     try {
-    Options_tree opt;
-    opt.from_command_line(argc,argv);
+    Options opt;
+    parse_command_line(argc,argv,opt);
 
     string fname;
 
     // Load structure
-    fname = opt.get_value<string>("struct");
+    fname = opt("struct").as_string();
     System sys(fname);
     // Get indexes of ROH atoms of CHOL molecules
     Selection ROH(sys,"name ROH");
@@ -22,7 +23,7 @@ int main(int argc, char** argv){
     vector<int> mon1_occ, mon2_occ;
 
     // Cycle over supplied trajectories
-    list<string> traj_list = opt.get_values<string>("traj");
+    vector<string> traj_list = opt("traj").as_strings();
     for(string& ff: traj_list){
         // Delete all frames
         sys.frame_delete();

@@ -56,18 +56,6 @@ Options parse_command_line1(boost::python::list py_argv){
     return opt;
 }
 
-// Version for parsing python string
-// inserts fake first argument to mimick script name in argv[0]
-Options parse_command_line2(string py_str){
-    boost::python::list lst;
-    lst.append("fake");
-    // Split by " "
-    stringstream ss(py_str);
-    string buf;
-    while(ss >> buf) lst.append(buf);
-    return parse_command_line1(lst);
-}
-
 boost::python::list Option_as_ints(Option* o){
     boost::python::list res;
     auto vec = o->as_ints();
@@ -102,7 +90,6 @@ void make_bindings_Options(){
     import_array();
 
     def("parse_command_line", &parse_command_line1);
-    def("parse_command_line", &parse_command_line2);
 
     class_<Option>("Option", init<>())
         .def("as_int",&Option::as_int)

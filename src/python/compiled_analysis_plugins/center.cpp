@@ -5,7 +5,7 @@ using namespace pteros;
 
 class center: public Compiled_plugin_base {
 public:
-    center(Trajectory_processor* pr, Options_tree* opt): Compiled_plugin_base(pr,opt) {
+    center(Trajectory_processor* pr, const Options& opt): Compiled_plugin_base(pr,opt) {
     }
 
     string help(){
@@ -24,8 +24,8 @@ public:
 
 protected:
     void pre_process(){                
-        string sel_text = options->get_value<string>("selection");
-        use_mass = options->get_value<bool>("mass_weighted",false);
+        string sel_text = options("selection").as_string();
+        use_mass = options("mass_weighted","false").as_bool();
         sel.modify(system,sel_text);               
 
         string fname = label+".dat";

@@ -34,7 +34,7 @@ public:
     void initialize();
 
     Trajectory_processor_wrapper();
-    Trajectory_processor_wrapper(Options_tree& opt);
+    Trajectory_processor_wrapper(const Options &opt);
     ~Trajectory_processor_wrapper(){}    
 
     virtual void pre_process() = 0;

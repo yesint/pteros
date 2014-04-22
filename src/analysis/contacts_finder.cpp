@@ -31,13 +31,14 @@ using namespace pteros;
 using namespace std;
 using namespace Eigen;
 
-void Contacts_finder::create(Trajectory_processor& proc, Options_tree& opt){    
-    options = &opt;    
+void Contacts_finder::create(Trajectory_processor& proc, const Options& opt){
+    options = opt;
 
     // Set method and cut-off
     string s;
-    if( options->count_options("method") ){
-        options->get_option("method") >> s >> dist;
+    if( options.has("method") ){
+        s = options("method").as_string();
+        dist = options("dist").as_float();
         if(s=="cut_off"){
             method = CUT_OFF;
         } else if(s=="vdw"){
@@ -50,10 +51,10 @@ void Contacts_finder::create(Trajectory_processor& proc, Options_tree& opt){
     if(method==VDW_RADII) vdw_gap = dist;
 
     // Set periodic
-    is_periodic = options->get_value<bool>("periodic",false);
+    is_periodic = options("periodic","false").as_bool();
 }
 
-Contacts_finder::Contacts_finder(Trajectory_processor& proc, Options_tree& opt):
+Contacts_finder::Contacts_finder(Trajectory_processor& proc, const pteros::Options &opt):
     Consumer(&proc)
 {
     create(proc,opt);
@@ -66,14 +67,12 @@ void Contacts_finder::pre_process(){
     // Set selections
     sel_pairs.clear();
     string sel1, sel2;
-    for(auto o: options->get_options("selections")){
-        o->get_option("") >> sel1 >> sel2;
-        //sel1 = o->get_value<string>("");
-        Selections_pair aux;
-        sel_pairs.push_back(aux);
-        sel_pairs.back().sel1.modify(system,sel1);
-        sel_pairs.back().sel2.modify(system,sel2);
-    }
+    sel1 = options("sel1").as_string();
+    sel2 = options("sel2").as_string();
+    Selections_pair aux;
+    sel_pairs.push_back(aux);
+    sel_pairs.back().sel1.modify(system,sel1);
+    sel_pairs.back().sel2.modify(system,sel2);
 
     real_time.clear();
 
@@ -658,7 +657,7 @@ void Contacts_finder::save(ostream& out, bool human_readable){
     result["is_energy"] = true;//(simulation!=NULL);
 
     // Add info for trajectories
-    result["job_info"] = options->to_json_string();
+    //result["job_info"] = options->to_json_string();
 
     write_stream(mValue(result),out,human_readable);
 }

@@ -1,6 +1,7 @@
 #include "pteros/analysis/trajectory_processor.h"
 #include "pteros/analysis/consumer.h"
 #include "pteros/analysis/bilayer.h"
+#include "pteros/core/pteros_error.h"
 
 using namespace std;
 using namespace pteros;
@@ -27,18 +28,18 @@ struct Chol_data {
 
 class Chol_counter: public Consumer {
 public:
-    Chol_counter(Trajectory_processor* pr, Options_tree* opt): Consumer(pr) {
+    Chol_counter(Trajectory_processor* pr, const Options& opt): Consumer(pr) {
         options = opt;
     }
 protected:
     virtual void pre_process(){
-        bilayer.modify(system,options->get_value<string>("lipids_selection"));
-        roh.modify(system,options->get_value<string>("chol_head_selection"));
-        lip_name1 = options->get_value<string>("lipid_name1");
-        lip_name2 = options->get_value<string>("lipid_name2");
+        bilayer.modify(system, options("lipids_selection").as_string());
+        roh.modify(system, options("chol_head_selection").as_string());
+        lip_name1 = options("lipid_name1").as_string();
+        lip_name2 = options("lipid_name2").as_string();
 
         // Parse bilayer
-        marker_sel_text = options->get_value<string>("lipid_marker_selection");
+        marker_sel_text = options("lipid_marker_selection").as_string();
         bi.create(bilayer,marker_sel_text,2.0);        
     }
 
@@ -132,7 +133,7 @@ protected:
     virtual void post_process(const Frame_info& info){
 
         // Write trace
-        ofstream ff(options->get_value<string>("output_file","trace.dat").c_str());
+        ofstream ff(options("output_file","trace.dat").as_string().c_str());
         for(int i=0; i<trace.size();++i){
             ff << trace[i].print();
             // Compute mean center distance for each domain
@@ -159,7 +160,7 @@ protected:
     string lip_name1, lip_name2; // Name of the lipids
 
     string marker_sel_text;
-    Options_tree* options;
+    Options options;
     // Trace in time
     vector<Chol_data> trace;    
     float last_t;
@@ -167,10 +168,10 @@ protected:
 
 int main(int argc, char** argv){
     try {
-        Options_tree options;
-        options.from_command_line(argc,argv);
+        Options options;
+        parse_command_line(argc,argv,options);
         Trajectory_processor proc(options);
-        Chol_counter counter(&proc,&options);
+        Chol_counter counter(&proc,options);
         proc.run();
     } catch(const Pteros_error& e){
         e.print();

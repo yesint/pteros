@@ -86,6 +86,7 @@ public:
     /// Return single option with given name
     const Option& operator()(std::string key) const;
     const Option& operator()(std::string key, std::string default_val);
+    bool has(std::string key);
 
     void debug();
 private:

@@ -29,7 +29,7 @@
 #include <map>
 #include "pteros/pteros.h"
 #include "pteros/analysis/trajectory_processor.h"
-#include "pteros/analysis/options_parser.h"
+#include "pteros/analysis/options.h"
 #include "pteros/core/grid_search.h"
 
 namespace pteros {
@@ -81,9 +81,9 @@ struct Selections_pair {
 
 class Contacts_finder: public Consumer {
     public:
-        Contacts_finder(Trajectory_processor& proc, Options_tree& opt);
+        Contacts_finder(Trajectory_processor& proc, const Options& opt);
 
-        void create(Trajectory_processor& proc, Options_tree& opt);
+        void create(Trajectory_processor& proc, const Options& opt);
 
         /// Prints pretty human-readable summary to the stream
         //void print_info(std::ostream& out);
@@ -95,7 +95,7 @@ class Contacts_finder: public Consumer {
         static void print_help();
 
     private:
-        Options_tree* options;
+        Options options;
 
         //------------------------------------
         /// Slots, which are going to be connected with the signals

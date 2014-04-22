@@ -30,7 +30,7 @@ using namespace pteros;
 
 class interaction_energy: public pteros::Compiled_plugin_base {
 public:
-    interaction_energy(pteros::Trajectory_processor* pr, pteros::Options_tree* opt): Compiled_plugin_base(pr,opt) {}
+    interaction_energy(pteros::Trajectory_processor* pr, const pteros::Options& opt): Compiled_plugin_base(pr,opt) {}
 
     string help(){
         return  "Purpose:\n"
@@ -50,17 +50,17 @@ public:
 protected:
 
     void pre_process(){        
-        cutoff = options->get_value<float>("cutoff",0.25);
-        is_periodic = options->get_value<bool>("periodic",false);
+        cutoff = options("cutoff","0.25").as_float();
+        is_periodic = options("periodic","false").as_bool();
         // Get selections
-        std::list<string> sels = options->get_values<string>("selections");
+        std::vector<string> sels = options("selections").as_strings();
         if(sels.size()<1 || sels.size()>2) throw Pteros_error("Either 1 or 2 selections should be passed");
         if(sels.size()==1){
             sel1.modify(system,  sels.front());            
             is_self_energy = true;
         } else {
             sel1.modify(system,  sels.front());
-            std::list<string>::iterator it = sels.begin();
+            std::vector<string>::iterator it = sels.begin();
             it++;
             sel2.modify(system, *it);
             is_self_energy = false;

@@ -62,15 +62,16 @@ int main(int argc, char** argv)
 
         parse_command_line(argc,argv,toplevel,"task",tasks);
         //parse_command_line(argc,argv,toplevel);
-        toplevel.print();
+        toplevel.debug();
         cout << "------" << endl;
         for(auto& t: tasks){
-            t.print();
+            t.debug();
             cout << "------" << endl;
         }
 
-        float v = toplevel["t"].as_float();
-        cout << v << endl;
+        vector<float> v = toplevel("tramvay","3.14159 42 -4.5").as_floats();
+        v = toplevel("tramvay").as_floats();
+        for(auto a: v) cout << a << endl;
 
 
     } catch(const Pteros_error& e){ e.print(); }
