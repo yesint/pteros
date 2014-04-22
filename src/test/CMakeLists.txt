@@ -1,4 +1,4 @@
-link_libraries(pteros pteros_analysis)
+link_libraries( pteros_analysis pteros)
 
 #add_executable(threads_test test_threads.cpp)
 #target_link_libraries(threads_test
@@ -7,8 +7,6 @@ link_libraries(pteros pteros_analysis)
 
 add_executable(pteros_test
 test_selection.cpp
-    ${PROJECT_SOURCE_DIR}/include/pteros/analysis/options.h
-    ${PROJECT_SOURCE_DIR}/src/analysis/options.cpp
 )
 #target_link_libraries(pteros_test ${Boost_LIBRARIES} ${PYTHON_LIBRARIES} ${BOOST_PYTHON_LIB})
 

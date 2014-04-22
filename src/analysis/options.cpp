@@ -23,6 +23,8 @@
 #include "pteros/analysis/options.h"
 #include "pteros/core/pteros_error.h"
 #include "boost/lexical_cast.hpp"
+#include <boost/algorithm/string.hpp> // For to_lower
+#include <sstream>
 
 using namespace std;
 using namespace pteros;
@@ -45,17 +47,17 @@ void parse_command_line(int argc, char** argv,
     Options tsk;
     tsk.task_name = "";
 
-    for(int i=1;i<argc;++i){
+    for(int i=1;i<argc;++i){        
         string str(argv[i]);
 
-        if(str=="-" || str=="--") throw Pteros_error("Lone '-' or '--'!");
+        if(str=="-") throw Pteros_error("Lone '-'!");
 
-        //See if token contains - as first symbol not followed by number
+        //See if token contains '-' as first symbol not followed by number
         if(str[0]=='-' && str.size()>1 && !isdigit(str[1]) ){
             // This is key
             has_key = true;
-            // If second symbol is also - skip both, if not skip first -
-            str = (str[1]=='-' ? str.substr(2) : str.substr(1) );
+            // strip '-'
+            str = str.substr(1);
 
             // If we have filled option already, add it
             if(o.name!="" && !o.data.empty()){
@@ -126,14 +128,14 @@ void parse_command_line(int argc, char** argv, Options& toplevel){
 } // namespece
 
 
-void Options::print(){
+void Options::debug(){
     cout << "task_name = " << task_name << endl;
     for(auto& o: data){
-        o.print();
+        o.debug();
     }
 }
 
-void Option::print(){
+void Option::debug(){
     cout << name << ": ";
     for(auto& o: data){
         cout << o << " ";
@@ -141,8 +143,8 @@ void Option::print(){
     cout << endl;
 }
 
-const Option& Options::operator[](std::string key) const {
-    int ind = 0;
+const Option& Options::operator()(std::string key) const {
+    int ind = -1;
     int found = 0;
     for(int i=0;i<data.size();++i){
         if(data[i].name==key){
@@ -154,6 +156,35 @@ const Option& Options::operator[](std::string key) const {
     if(found>1) throw Pteros_error("More than one key '"+key+"' found!");
     return data[ind];
 }
+
+const Option& Options::operator()(std::string key, std::string default_val) {
+    int ind = -1;
+    int found = 0;
+    for(int i=0;i<data.size();++i){
+        if(data[i].name==key){
+            ind = i;
+            ++found;
+        }
+    }
+    if(found>1) throw Pteros_error("More than one key '"+key+"' found!");
+    if(found==0){
+        // Default value case
+        Option tmp;
+        tmp.name = key;
+        // Split default_val by " "
+        stringstream ss(default_val);
+        string buf;
+        while(ss >> buf) tmp.data.push_back(buf);
+        // Default value is added to data and returned as usually
+        data.push_back(tmp);
+        return data.back();
+    }
+    // Normal case
+    return data[ind];
+}
+
+
+//----------------------------------------------------------------
 
 int Option::as_int() const {
     if(data.size()!=1) throw Pteros_error("Only one INT value expected for key '"+name+"'!");
@@ -175,11 +206,16 @@ float Option::as_float() const {
 
 bool Option::as_bool() const {
     if(data.size()!=1) throw Pteros_error("Only one BOOL value expected for key '"+name+"'!");
-    try {
-        return boost::lexical_cast<bool>(data[0]);
-    } catch(boost::bad_lexical_cast){
-        throw Pteros_error("Value '"+data[0]+"' is not BOOL!");
+    string s(data[0]);
+    boost::algorithm::to_lower(s);
+    if(s=="true"){
+        return true;
+    } else if(s=="false"){
+        return false;
+    } else {
+        throw Pteros_error("Value '"+s+"' is not BOOL!");
     }
+
 }
 
 string Option::as_string() const {
@@ -216,11 +252,14 @@ vector<float> Option::as_floats() const {
 vector<bool> Option::as_bools() const {
     if(data.empty()) throw Pteros_error("One or more BOOL values are expected for key '"+name+"'!");
     vector<bool> res;
-    for(auto& str: data){
-        try {
-            res.push_back( boost::lexical_cast<bool>(str) );
-        } catch(boost::bad_lexical_cast){
-            throw Pteros_error("Value '"+str+"' is not BOOL!");
+    for(auto s: data){
+        boost::algorithm::to_lower(s);
+        if(s=="true"){
+            res.push_back(true);
+        } else if(s=="false"){
+            res.push_back(false);
+        } else {
+            throw Pteros_error("Value '"+s+"' is not BOOL!");
         }
     }
     return res;

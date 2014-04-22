@@ -21,7 +21,8 @@ add_library(pteros_analysis SHARED
     ${PROJECT_SOURCE_DIR}/include/pteros/analysis/bilayer.h
     bilayer.cpp
 
-
+    ${PROJECT_SOURCE_DIR}/include/pteros/analysis/options.h
+    ${PROJECT_SOURCE_DIR}/src/analysis/options.cpp
 )
 
 #------------------

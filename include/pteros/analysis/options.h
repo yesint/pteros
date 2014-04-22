@@ -66,7 +66,7 @@ private:
     // names of this option
     std::string name;
 
-    void print();
+    void debug();
 };
 
 //---------------------------------------------------------------------------
@@ -84,9 +84,10 @@ class Options {
 
 public:
     /// Return single option with given name
-    const Option& operator[](std::string key) const;
+    const Option& operator()(std::string key) const;
+    const Option& operator()(std::string key, std::string default_val);
 
-    void print();
+    void debug();
 private:
     std::vector<Option> data;
     std::string task_name;

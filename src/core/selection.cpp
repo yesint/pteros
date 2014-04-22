@@ -86,7 +86,7 @@ void Selection::create_internal(System& sys, string& str){
 
     // Show warning if empty selection is created
     if(size()==0) cout << "(WARNING) Selection '" << sel_text
-                       << "' is empty!\n\t\tAny call of its methods will crash your program!" << endl;
+                       << "' is empty!\n\t\tAny call of its methods (except size()) will crash your program!" << endl;
 }
 
 // Aux function, which creates selection
@@ -108,7 +108,7 @@ void Selection::create_internal(System& sys, int ind1, int ind2){
 
     // Show warning if empty selection is created
     if(size()==0) cout << "(WARNING) Selection '" << ind1 << ":" << ind2
-                       << "' is empty!\n\t\tAny call of its methods will crash your program!" << endl;
+                       << "' is empty!\n\t\tAny call of its methods (except size()) will crash your program!" << endl;
 }
 
 
