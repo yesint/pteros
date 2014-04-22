@@ -127,10 +127,10 @@ void Trajectory_processor::add_consumer(Consumer_base *p){
     consumers.back()->set_id(consumers.size()-1);
 }
 
-void process_value_with_suffix(const string& s, int& intval, float& floatval){
+void process_value_with_suffix(const string& s, int& intval, float& floatval){    
     int pos = s.find_last_of("0123456789");
     if(pos==string::npos) throw Pteros_error("A number with optional suffix required!");
-    string val = s.substr(0,pos);
+    string val = s.substr(0,pos+1);
     string suffix = s.substr(pos+1);
     boost::algorithm::to_lower(val);
     boost::algorithm::to_lower(suffix);

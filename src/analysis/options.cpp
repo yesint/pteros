@@ -170,11 +170,14 @@ const Option& Options::operator()(std::string key, std::string default_val) {
     if(found==0){
         // Default value case
         Option tmp;
-        tmp.name = key;
+        tmp.name = key;        
         // Split default_val by " "
         stringstream ss(default_val);
         string buf;
-        while(ss >> buf) tmp.data.push_back(buf);
+        while(ss >> buf) tmp.data.push_back(buf);        
+        // If tmp.data is still empty here, than default_val is empty string or a space(s)
+        // In this case we add it as is
+        if(tmp.data.empty()) tmp.data.push_back(default_val);
         // Default value is added to data and returned as usually
         data.push_back(tmp);
         return data.back();
@@ -235,7 +238,7 @@ bool Option::as_bool() const {
 
 }
 
-string Option::as_string() const {
+string Option::as_string() const {        
     if(data.size()!=1) throw Pteros_error("Only one STRING value expected for key '"+name+"'!");
     return data[0];
 }

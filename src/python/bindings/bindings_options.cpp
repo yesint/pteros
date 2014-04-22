@@ -28,11 +28,11 @@ using namespace pteros;
 using namespace Eigen;
 using namespace boost::python;
 
-const Option& Options_call1(Options* o, std::string key){
+const Option& Options_call1(Options* o, std::string key){    
     return (*o)(key);
 }
 
-const Option& Options_call2(Options* o, std::string key, std::string default_val){
+const Option& Options_call2(Options* o, std::string key, std::string default_val){    
     return (*o)(key,default_val);
 }
 
@@ -54,6 +54,31 @@ Options parse_command_line1(boost::python::list py_argv){
     for(int i=0;i<argc;++i) free(argv[i]);
 
     return opt;
+}
+
+// Version with tasks
+boost::python::tuple parse_command_line2(boost::python::list py_argv, string task_tag){
+    int argc = len(py_argv);
+    char* argv[argc];
+    string tmp;
+    // Allocate memory for c-strings and copy
+    for(int i=0;i<argc;++i){
+        argv[i] = (char*)malloc( sizeof(char) * len(py_argv[i]) );
+        tmp = extract<string>(py_argv[i]);
+        strcpy(argv[i], tmp.c_str());
+    }
+    // Call
+    Options opt;
+    vector<Options> tasks;
+    parse_command_line(argc,argv,opt,task_tag,tasks);
+    // Free memory of c-strings
+    for(int i=0;i<argc;++i) free(argv[i]);
+
+    // Convert tasks to python list
+    boost::python::list tasks_list;
+    for(auto& t: tasks) tasks_list.append(t);
+
+    return boost::python::make_tuple(opt,tasks_list);
 }
 
 boost::python::list Option_as_ints(Option* o){
@@ -90,6 +115,7 @@ void make_bindings_Options(){
     import_array();
 
     def("parse_command_line", &parse_command_line1);
+    def("parse_command_line", &parse_command_line2);
 
     class_<Option>("Option", init<>())
         .def("as_int",&Option::as_int)
@@ -107,5 +133,7 @@ void make_bindings_Options(){
         .def("__call__",&Options_call1, return_value_policy<reference_existing_object>())
         .def("__call__",&Options_call2, return_value_policy<reference_existing_object>())
         .def("debug",&Options::debug)
+        .def("has",&Options::has)
+        .def("get_name",&Options::get_name)
     ;
 }

@@ -87,6 +87,7 @@ public:
     const Option& operator()(std::string key) const;
     const Option& operator()(std::string key, std::string default_val);
     bool has(std::string key);
+    std::string get_name(){ return task_name; }
 
     void debug();
 private:

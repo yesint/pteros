@@ -26,8 +26,7 @@
 using namespace pteros;
 
 void Trajectory_processor_wrapper::initialize(){
-    if(cons_p.use_count()==0){
-        cout << "INIT" << endl;
+    if(cons_p.use_count()==0){        
         cons_p = boost::shared_ptr<Consumer_wrapper>(new Consumer_wrapper(this));
     }
 }
