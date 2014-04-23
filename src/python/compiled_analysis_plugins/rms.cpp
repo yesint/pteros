@@ -41,14 +41,11 @@ public:
                 "\ttime RMSD\n"
                 "\tAlso reports mean RMSD in the file header.\n"
                 "Options:\n"
-                "\t--selection <string>\n"
+                "\t-selection <string>\n"
                 "\t\tSelection text"
-                "\t--unwrap <float>. Default: 0.2\n"
-                "\t\tDo unwrapping of selection based on 'bond distance' criterion"
-                "\t\tnegative value means no unwrapping;"
-                "\t\tzero means simple nearest neighbour unwrapping,"
-                "\t\twhich much faster but fails if selection covers more than 1/2"
-                "\t\tof the periodic box size."
+                "\t-nojump <true|false>. Default: true\n"
+                "\t\tRemove jumps of atoms aver periodic box boundary."
+                "\t\tSetting this to false is only meaningful is very special cases."
                 ;
     }
 
@@ -100,10 +97,10 @@ protected:
 
         // If nojump is set remove jumps for every atom of selection
         if(nojump){
+            auto& box = sel.get_system()->Box(0);
             for(int i=0;i<sel.size();++i){
                 // Get image closest to running reference in frame 2
-                sel.XYZ(i,0) = sel.get_system()->
-                        Box(0).get_closest_image(sel.XYZ(i,0),sel.XYZ(i,2),false);
+                sel.XYZ(i,0) = box.get_closest_image(sel.XYZ(i,0),sel.XYZ(i,2),false);
                 // Update running reference
                 sel.XYZ(i,2) = sel.XYZ(i,0);
             }
