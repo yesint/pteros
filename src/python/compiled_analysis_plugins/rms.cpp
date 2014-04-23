@@ -21,9 +21,11 @@
 */
 
 #include "pteros/python/compiled_plugin.h"
+#include "pteros/core/pteros_error.h"
 #include <fstream>
 
 using namespace std;
+using namespace pteros;
 
 class rms: public pteros::Compiled_plugin_base {
 public:
@@ -56,25 +58,58 @@ protected:
         mean = 0.0;
         data.clear();
         sel.modify(system, options("selection").as_string() );
-        unwrap_cutoff = options("unwrap").as_float();
-        cout << "Unwrap cut-off: " << unwrap_cutoff << endl;
-        cout << sel.get_text() << endl;
-        cout << label << endl;
+        nojump = options("nojump","true").as_bool();
     }
 
     void process_frame(const pteros::Frame_info &info){
-        // Fitting breaks the system, but we have local copy, nobody cares. Cool :)
+        // Fitting breaks the system, but we have local copy, nobody cares. Cool :)                        
 
-        // Selection may appear wrapped, so we probably want to unwrap it
-        //if(unwrap_cutoff>0){ sel.unwrap_bonds(unwrap_cutoff); }
-        //if(unwrap_cutoff==0){ sel.unwrap(); }
-
-        // Set reference frame for very first processed frame as frame 1
-        // This will be unwrapped already if asked
+        // Set reference frame for very first processed frame as frame 1        
         if(info.valid_frame==0){
-            system.frame_dup(0);            
-        }                
+            if(nojump){
+                // If nojump is set, do initial unwrapping
+                cout << "Initial unwrapping of selection..." << endl;
+                float cutoff = 0.2;
+                float max_extent = sel.get_system()->Box(0).extents().maxCoeff();
+                while(true){
+                    try{
+                        sel.unwrap_bonds(cutoff);
+                    }catch(Pteros_error){
+                        cout << "Cutoff " << cutoff << " too small for unwrapping. ";
+                        cutoff *= 2.0;
+                        cout << "Trying " << cutoff << "..." <<endl;
+                        if(cutoff > 0.5*max_extent)
+                            throw Pteros_error("Can't unwrap selection with cutoff < 0.5*box_extent.\n"
+                                               "Your selection is probably not suitable for RMSD.");
+                        continue;
+                    }
+                    // If we are here unwrapping is successfull
+                    break;
+                }
+                cout << "Unwrapping done." << endl;
+            }
 
+            // Create frame 1, which is fixed RMSD reference
+            system.frame_dup(0);
+
+            if(nojump){
+                // Create frame 2, which is a running reference for unwrapping
+                system.frame_dup(0);
+            }
+        }
+
+        // If nojump is set remove jumps for every atom of selection
+        if(nojump){
+            for(int i=0;i<sel.size();++i){
+                // Get image closest to running reference in frame 2
+                sel.XYZ(i,0) = sel.get_system()->
+                        Box(0).get_closest_image(sel.XYZ(i,0),sel.XYZ(i,2),false);
+                // Update running reference
+                sel.XYZ(i,2) = sel.XYZ(i,0);
+            }
+        }
+
+        // Compute transform with fixed reference in frame 1
         Eigen::Affine3f trans = sel.fit_transform(0,1);
         sel.apply_transform(trans);
         float v = sel.rmsd(0,1);
@@ -104,7 +139,7 @@ private:
     std::vector<float> data;
     float mean;
     pteros::Selection sel;
-    float unwrap_cutoff ;
+    bool nojump;
 };
 
 
