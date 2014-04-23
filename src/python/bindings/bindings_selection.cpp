@@ -270,9 +270,8 @@ void Selection_set_resid2(Selection* s, char data){
 }
 
 boost::python::list Selection_get_name(Selection* s){
-    boost::python::list l;
-    vector<string> r;    
-    for(int i=0;i<r.size();++i) l.append(s->Name(i).c_str());
+    boost::python::list l;    
+    for(int i=0;i<s->size();++i) l.append(s->Name(i).c_str());
     return l;
 }
 
@@ -289,9 +288,8 @@ void Selection_set_name2(Selection* s, string& data){
 }
 
 boost::python::list Selection_get_resname(Selection* s){
-    boost::python::list l;
-    vector<string> r;    
-    for(int i=0;i<r.size();++i) l.append(s->Resname(i).c_str());
+    boost::python::list l;    
+    for(int i=0;i<s->size();++i) l.append(s->Resname(i).c_str());
     return l;
 }
 

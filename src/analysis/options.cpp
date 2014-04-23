@@ -60,15 +60,13 @@ void parse_command_line(int argc, char** argv,
             str = str.substr(1);
 
             // If we have filled option already, add it
-            if(o.name!="" && !o.data.empty()){
+            if(o.name!=""){
                 if(!in_task){
                     toplevel.data.push_back(o);
                 } else {
                     tsk.data.push_back(o);
                 }
-            }
-
-            if(o.name!="" && o.data.empty()) throw Pteros_error("No values for key '"+o.name+"'!");
+            }            
 
             // See if we got task tag
             if(str==task_tag){
@@ -106,7 +104,7 @@ void parse_command_line(int argc, char** argv,
         }
     }
     // At the end see where to put last option
-    if(o.name!="" && !o.data.empty()){
+    if(o.name!=""){
         if(!in_task){
             toplevel.data.push_back(o);
         } else {
@@ -114,9 +112,7 @@ void parse_command_line(int argc, char** argv,
             // Add task itself
             tasks.push_back(tsk);
         }
-    }
-
-    if(o.name!="" and o.data.empty()) throw Pteros_error("No values for key '"+o.name+"'!");
+    }    
 }
 
 /// without nested tasks

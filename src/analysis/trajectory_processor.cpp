@@ -41,7 +41,7 @@ Trajectory_processor::~Trajectory_processor(){
 string Trajectory_processor::help(){
     return  "Trajectory processing options:\n"
             "General usage:\n"
-            "\t--trajectory[ filename1 filename2 ... <processing options>]\n"
+            "\t-t filename1 filename2 ... <processing options>\n"
             "Files:\n"
             "\t* Exactly one structure file (PDB or GRO)\n"
             "\t  If not specified, topology PTTOP file must be given instead.\n"
@@ -54,43 +54,48 @@ string Trajectory_processor::help(){
             "\tin the order of their appearance.\n\n"
 
             "Processing options:\n"
-            "\t--first_frame <fr>\n"
-            "\t\tfirst frame to read, default: 0\n"
+            "\t-b <value[suffix]>\n"
+            "\t\tbeginning of processing (starting frame or time), default: 0\n"
 
-            "\t--last_frame <fr>\n"
-            "\t\tlast frame to read, default: -1 (up to the end)\n"
+            "\t-e <value[suffix]>\n"
+            "\t\tend of processing (end frame or time), default: -1 (up to the end)\n"
 
-            "\t--first_time <t>\n"
-            "\t\tfirst time step to read, ps, default: 0.0\n"
+            "\t-w <value[suffix]>\n"
+            "\t\tprocess by windows of given size in frames or time.\n"
 
-            "\t--last_time <t>\n"
-            "\t\tlast time step to read, ps, default: -1 (up to the end)\n"
-
-            "\t--window_size_frames sz:\n"
-            "\t\tprocess by windows of size sz determined by frame.\n"
-
-            "\t--window_size_time t:\n"
-            "\t\tprocess by windows of size t determined by time.\n"
-
-            "\t--skip <n>\n"
+            "\t-skip <n>\n"
             "\t\tProcess only each n'th frame, default: -1 (process each frame)\n"
 
-            "\t--custom_start_time <t>\n"
-            "\t\tUse t as a starting, default: -1 (use value from first trajectory frame)\n"
+            "\t-t0 <t[suffix]>\n"
+            "\t\tCustom starting time, default: -1 (use value from first frame)\n"
             "\t\tUseful if trajectory does not contain time stamps\n"
             "\t\tor if the starting time is incorrect.\n"
-            "\t\tIf set and custom_dt is not given sets custom_dt to 1.0!\n"
+            "\t\tIf set and dt is not given sets dt to 1.0!\n"
 
-            "\t--custom_dt <t>\n"
-            "\t\tUsed as a time step, default: -1 (use value from trajectory)\n"
+            "\t-dt <t[suffix]>\n"
+            "\t\tCutom time stap, default: -1 (use value from trajectory)\n"
             "\t\tUseful if trajectory does not contain time stamps.\n"
-            "\t\tIf set and custom_start_time is not given sets custom_start_time to 0.0!\n"
+            "\t\tIf set and start is not given sets start to 0.0!\n"
 
-            "\t--log_interval n\n"
-            "\t\tPrints logging information each n frames, default -1 (no logging)\n"
+            "\t-log <n>\n"
+            "\t\tPrints logging information on each n-th frame, default: -1 (no logging)\n"
 
-            "\t--dump_input filename\n"
-            "\t\tDumps input in JSON format to specified file\n";
+            "\t-buffer <n>\n"
+            "\t\tNumber of frames, which are kept in memory, default: 10\n"
+            "\t\tOnly touch this if individual frames are very large.\n"
+
+            "Suffixes:\n"
+            "\tAll parameters markes as <value[suffix]> accept following optional suffixes:\n"
+            "\t\t(no suffix) - value is in frames\n"
+            "\t\tfr - value is in frames\n"
+            "\t\tt - value is time in picoseconds (value used as is)\n"
+            "\t\tps - value is time in picoseconds (value used as is)\n"
+            "\t\tns - value is time in nanoseconds (value multiplied by 10^3)\n"
+            "\t\tus - value is time in microseconds (value multiplied by 10^6)\n"
+            "\t\tms - value is time in milliseconds (value multiplied by 10^9)\n"
+            "\tParameters markes as <t[suffix]> does not accept fr suffix.\n"
+            "\tIn this case no suffix means ps.\n"
+            ;
 }
 
 bool Trajectory_processor::is_frame_valid(int fr, float t){
@@ -127,7 +132,7 @@ void Trajectory_processor::add_consumer(Consumer_base *p){
     consumers.back()->set_id(consumers.size()-1);
 }
 
-void process_value_with_suffix(const string& s, int& intval, float& floatval){    
+void process_value_with_suffix(const string& s, int* intval, float* floatval){
     int pos = s.find_last_of("0123456789");
     if(pos==string::npos) throw Pteros_error("A number with optional suffix required!");
     string val = s.substr(0,pos+1);
@@ -135,21 +140,23 @@ void process_value_with_suffix(const string& s, int& intval, float& floatval){
     boost::algorithm::to_lower(val);
     boost::algorithm::to_lower(suffix);
     // Now analyze suffix
-    if(suffix=="fr" || suffix==""){
-        intval = boost::lexical_cast<int>(val);
-        floatval = -1.0;
-    } else {
-        intval = -1;
-        floatval = boost::lexical_cast<float>(val);
+    if(intval!=nullptr && (suffix=="fr" || suffix=="")){
+        *intval = boost::lexical_cast<int>(val);
+        *floatval = -1.0;
+    } else if(floatval!=nullptr) {
+        *intval = -1;
+        *floatval = boost::lexical_cast<float>(val);
         if(suffix=="ps" || suffix=="t"){
-            floatval *= 1.0;
+            *floatval *= 1.0;
         } else if(suffix=="ns"){
-            floatval *= 1000.0;
+            *floatval *= 1000.0;
         } else if(suffix=="us"){
-            floatval *= 1000000.0;
+            *floatval *= 1000000.0;
         } else if(suffix=="ms"){
-            floatval *= 1000000000.0;
+            *floatval *= 1000000000.0;
         }
+    } else if(floatval==nullptr && intval==nullptr){
+        throw Pteros_error("Both int and float vals are NULL! WTF?");
     }
 }
 
@@ -216,27 +223,24 @@ void Trajectory_processor::run(){
     }
 
     // Get parameters
-    float fdum;
-    int idum;
-
     // See if window processing is requested    
     process_value_with_suffix(options("w","-1").as_string(),
-                              window_size_frames, window_size_time);
+                              &window_size_frames, &window_size_time);
 
     // Determine range for this group
     process_value_with_suffix(options("b","-1").as_string(),
-                              first_frame, first_time);
+                              &first_frame, &first_time);
     process_value_with_suffix(options("e","-1").as_string(),
-                              last_frame, last_time);
+                              &last_frame, &last_time);
 
     // Skip interval
     skip = options("skip","-1").as_int();
 
     // Check for custom start time and dt
-    process_value_with_suffix(options("start","-1").as_string(),
-                              idum, custom_start_time);
-    process_value_with_suffix(options("de","-1").as_string(),
-                              idum, custom_dt);
+    process_value_with_suffix(options("t0","-1").as_string(),
+                              nullptr, &custom_start_time);
+    process_value_with_suffix(options("dt","-1").as_string(),
+                              nullptr, &custom_dt);
     if(custom_start_time>=0 && custom_dt==-1) custom_dt = 1;
     if(custom_start_time==-1 && custom_dt>=0) custom_start_time = 0;
 

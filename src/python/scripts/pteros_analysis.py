@@ -49,15 +49,13 @@ def general_help():
     Usage:
         pteros_analysis.py --trajectory[<options>] --task[name1 <options>] --task[name2 <options>] ...
 
-        --help
-            Display usage message
-        --help traj
+        -help traj
             Help for trajectory processing options
-        --help plugins
+        -help plugins
             List available analysis plugins
-        --help <plugin name>
+        -help <plugin name>
             Detailed help for particular analysis plugin
-        --help all
+        -help all
             Detailed help for all analysis plugins and trajectory processing options
     """
 #--------------------------------------
@@ -113,8 +111,8 @@ if opt.has("help"):
                 detailed_help(module)
                 print "------------------------"
         if not detailed:
-            print "For detailed help for particular plugin use --help <plugin_name>"
-            print "For detailed help for all available plugins use --help all"
+            print "For detailed help for particular plugin use -help <plugin_name>"
+            print "For detailed help for all available plugins use -help all"
 
     sys.exit(0)
 
