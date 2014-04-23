@@ -115,7 +115,7 @@ void parse_command_line(int argc, char** argv,
     }    
 }
 
-/// without nested tasks
+// without nested tasks
 void parse_command_line(int argc, char** argv, Options& toplevel){
     vector<Options> dum;
     parse_command_line(argc,argv,toplevel,"",dum);

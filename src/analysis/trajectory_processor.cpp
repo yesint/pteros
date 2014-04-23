@@ -21,13 +21,13 @@
 */
 
 #include <fstream>
+#include <thread>
+#include <functional>
+
 #include "pteros/analysis/trajectory_processor.h"
 #include "pteros/core/pteros_error.h"
 #include "pteros/core/format_recognition.h"
 #include "pteros/core/mol_file.h"
-
-#include <thread>
-#include <functional>
 
 #include <boost/algorithm/string.hpp> // For to_lower
 #include <boost/lexical_cast.hpp>
@@ -279,6 +279,7 @@ void Trajectory_processor::run(){
             // Spawn thread            
             worker_threads.push_back(
                         std::thread(
+                            // We need bind here - doesn't work without it
                             std::bind(&Consumer_base::run_in_thread,
                                               consumers[i],
                                               worker_channels[i]
@@ -312,7 +313,7 @@ void Trajectory_processor::run(){
         // There is only one consumer, no need for multiple threads
         // Run pre-process
 
-        //!! Important !!
+        // Important !!
         // Try block here does not catch exceptions inside pre_process
         // because this could be called from externally loaded compiled plugin!
         // errors should be catched in the Consumer itself!
@@ -332,8 +333,7 @@ void Trajectory_processor::run(){
 
     // Join all threads
     reader_thread.join();    
-    if(consumers.size() > 1){
-        //worker_threads.join_all();
+    if(consumers.size() > 1){        
         for(auto& t: worker_threads) t.join();
     }
 
