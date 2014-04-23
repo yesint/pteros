@@ -142,9 +142,9 @@ void process_value_with_suffix(const string& s, int* intval, float* floatval){
     // Now analyze suffix
     if(intval!=nullptr && (suffix=="fr" || suffix=="")){
         *intval = boost::lexical_cast<int>(val);
-        *floatval = -1.0;
+        if(floatval) *floatval = -1.0;
     } else if(floatval!=nullptr) {
-        *intval = -1;
+        if(intval) *intval = -1;
         *floatval = boost::lexical_cast<float>(val);
         if(suffix=="ps" || suffix=="t"){
             *floatval *= 1.0;
@@ -220,19 +220,17 @@ void Trajectory_processor::run(){
         for(int i=1; i<consumers.size(); ++i){
             *(consumers[i]->get_system()) = *sys1; // deep copying
         }
-    }
+    }    
 
     // Get parameters
     // See if window processing is requested    
     process_value_with_suffix(options("w","-1").as_string(),
                               &window_size_frames, &window_size_time);
-
     // Determine range for this group
     process_value_with_suffix(options("b","-1").as_string(),
                               &first_frame, &first_time);
     process_value_with_suffix(options("e","-1").as_string(),
                               &last_frame, &last_time);
-
     // Skip interval
     skip = options("skip","-1").as_int();
 
