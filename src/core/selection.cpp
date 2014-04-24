@@ -802,7 +802,7 @@ float Selection::rmsd(int fr1, int fr2) const{
     float res = 0.0;
 
     if(fr1<0 || fr1>=system->num_frames() ||
-            fr2<0 || fr2>=system->num_frames()){
+       fr2<0 || fr2>=system->num_frames()){
         Pteros_error e;
         e << "RMSD requested for frames" << fr1 << " and "<<fr2
           << " while the valid range is " << 0<<":"<<system->num_frames()-1;
@@ -827,10 +827,8 @@ float Selection::rmsd(int fr) const {
 }
 
 // Apply transformation
-void Selection::apply_transform(Affine3f &t){
-    int n = size();
-
-    Vector3f v;
+void Selection::apply_transform(const Affine3f &t){
+    int n = size();    
     for(int i=0; i<n; ++i){        
         XYZ(i) = (t * XYZ(i)).eval();
     }

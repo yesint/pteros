@@ -18,6 +18,8 @@ add_library(pteros_analysis SHARED
     bilayer.cpp
     ${PROJECT_SOURCE_DIR}/include/pteros/analysis/options.h
     options.cpp
+    ${PROJECT_SOURCE_DIR}/include/pteros/analysis/jump_remover.h
+    jump_remover.cpp
 )
 
 #------------------

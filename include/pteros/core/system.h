@@ -156,7 +156,7 @@ public:
     /// @{
 
     /// Duplicates given frame and adds it to the end of frame vector
-    void frame_dup(int);
+    int frame_dup(int);
 
     /// Adds new frame to trajectory
     void frame_append(const Frame& fr);

@@ -4,19 +4,27 @@ from pteros import *
 import sys, pkgutil, copy, os, imp
 
 import pteros_analysis_plugins
+import types
 
 #--------------------------------------
 # Create processor class
+def add_no_jump_atoms_(self,sel):
+    self.jump_remover.add_no_jump_atoms(sel)
+
 class Processor(Trajectory_processor):
         def __init__(self,opt):
                 Trajectory_processor.__init__(self,opt)
                 # Init data
-                self.task_list = []
+                self.task_list = []                
 
         def pre_process(self):
                 for task in self.task_list:
-                        # We need to give each task a copy of system
+                        # We need to give each task its own system
                         task.system = System(self.get_system())
+                        # We also need to give it its own jump remover
+                        task.jump_remover = Jump_remover()
+                        # Make an add_no_jump_atoms method
+                        task.add_no_jump_atoms = types.MethodType(add_no_jump_atoms_,task)
                         # Run pre_process for each task
                         task.pre_process()
 
@@ -24,6 +32,9 @@ class Processor(Trajectory_processor):
                 for i in range(0,len(self.task_list)):
                         # We need to update frame 0 of each task with the current value
                         self.task_list[i].system.setFrame_data( self.get_frame_ptr() , 0)
+                        # Call jump remover
+                        self.task_list[i].jump_remover.remove_jumps(self.task_list[i].system,info)
+                        # Process frame
                         self.task_list[i].process_frame(info)
 
         def post_process(self,info):

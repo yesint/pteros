@@ -447,7 +447,7 @@ class Selection {
     void fit(int fr1, int fr2);
 
     /// Apply fitting transformation
-    void apply_transform(Eigen::Affine3f& t);
+    void apply_transform(const Eigen::Affine3f& t);
     /// @}
 
 

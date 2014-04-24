@@ -51,59 +51,22 @@ public:
 
 protected:
 
-    void pre_process(){
-        mean = 0.0;
+    void pre_process(){        
         data.clear();
         sel.modify(system, options("selection").as_string() );
         nojump = options("nojump","true").as_bool();
-    }
 
-    void process_frame(const pteros::Frame_info &info){
-        // Fitting breaks the system, but we have local copy, nobody cares. Cool :)                        
-
-        // Set reference frame for very first processed frame as frame 1        
-        if(info.valid_frame==0){
-            if(nojump){
-                // If nojump is set, do initial unwrapping
-                cout << "Initial unwrapping of selection..." << endl;
-                float cutoff = 0.2;
-                float max_extent = sel.get_system()->Box(0).extents().maxCoeff();
-                while(true){
-                    try{
-                        sel.unwrap_bonds(cutoff);
-                    }catch(Pteros_error){
-                        cout << "Cutoff " << cutoff << " too small for unwrapping. ";
-                        cutoff *= 2.0;
-                        cout << "Trying " << cutoff << "..." <<endl;
-                        if(cutoff > 0.5*max_extent)
-                            throw Pteros_error("Can't unwrap selection with cutoff < 0.5*box_extent.\n"
-                                               "Your selection is probably not suitable for RMSD.");
-                        continue;
-                    }
-                    // If we are here unwrapping is successfull
-                    break;
-                }
-                cout << "Unwrapping done." << endl;
-            }
-
-            // Create frame 1, which is fixed RMSD reference
-            system.frame_dup(0);
-
-            if(nojump){
-                // Create frame 2, which is a running reference for unwrapping
-                system.frame_dup(0);
-            }
-        }
-
-        // If nojump is set remove jumps for every atom of selection
+        // Add our selection to nojump list if asked
         if(nojump){
-            auto& box = sel.get_system()->Box(0);
-            for(int i=0;i<sel.size();++i){
-                // Get image closest to running reference in frame 2
-                sel.XYZ(i,0) = box.get_closest_image(sel.XYZ(i,0),sel.XYZ(i,2),false);
-                // Update running reference
-                sel.XYZ(i,2) = sel.XYZ(i,0);
-            }
+            add_no_jump_atoms(sel);
+        }
+    }     
+
+    void process_frame(const pteros::Frame_info &info){                
+        // Fitting breaks the system, but we have local copy, nobody cares. Cool :)                        
+        if(info.valid_frame==0){
+            // Create frame 1 for fitting
+            system.frame_dup(0);
         }
 
         // Compute transform with fixed reference in frame 1
@@ -111,20 +74,17 @@ protected:
         sel.apply_transform(trans);
         float v = sel.rmsd(0,1);
 
-        data.push_back(v);
-        mean += v;
+        data.push_back(v);        
     }
 
-    void post_process(const pteros::Frame_info &info){
-        mean /= (float)info.valid_frame;
+    void post_process(const pteros::Frame_info &info){        
         // Output
         string fname = label+".dat";
         // Get time step in frames and time
         float dt = (info.last_time-info.first_time)/(float)(info.valid_frame);
 
         ofstream f(fname.c_str());
-        f << "# RMSD of selection [" << sel.get_text() << "]" << endl;
-        f << "# Mean: " << mean << endl;
+        f << "# RMSD of selection [" << sel.get_text() << "]" << endl;        
         f << "# time RMSD:" << endl;
         for(int i=0; i<data.size(); ++i){
             f << i*dt << " " << data[i] << endl;
@@ -133,8 +93,7 @@ protected:
     }
 
 private:
-    std::vector<float> data;
-    float mean;
+    std::vector<float> data;    
     pteros::Selection sel;
     bool nojump;
 };

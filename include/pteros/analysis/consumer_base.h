@@ -29,6 +29,8 @@
 
 #include <fstream>
 
+#include <iostream>
+
 namespace pteros {
 
 /// Auxiliary container for sending data to consumers
@@ -36,7 +38,7 @@ struct Data_container {
     /// Frame itself
     Frame frame;
     /// Frame information
-    Frame_info frame_info;    
+    Frame_info frame_info;
 };
 
 // Forward declaration
@@ -51,13 +53,13 @@ class Trajectory_processor;
   */
 class Consumer_base {
     friend class Trajectory_processor;
-public:        
-    Consumer_base(Trajectory_processor* pr);    
+public:
+    Consumer_base(Trajectory_processor* pr);
 
-    System* get_system(){return &system;}    
-    void set_id(int i){id = i;}   
+    System* get_system(){return &system;}
+    void set_id(int i){id = i;}    
 
-protected:    
+protected:
     /// Called immediately before first frame is passed
     virtual void pre_process();
     /// Called immediately after last frame is processed
@@ -74,17 +76,45 @@ protected:
     /// Pointer to trajectory processor
     Trajectory_processor* proc;
 
+    /// Removes jumps on each frame for given set of atoms,
+    /// which is stored in no_jump_ind selection
+    /// If no_jumps_ind is empty (default) does nothing
+    /// User have to populate it in pre_process() callback using
+    /// add_no_jump_atoms() methods
+    void remove_jumps(const Frame_info &info);
+
     /// Handler functions which call user callbacks
     /// Could be overriden to take additional actions
     /// These handlers are called by Trajectory_processor
     virtual void pre_process_handler(){
-
+        in_pre_process = true;
+        in_process_frame = in_post_process = false;
         pre_process();
     }
-    virtual void post_process_handler(const Frame_info& info){ post_process(info); }
-    virtual void process_frame_handler(const Frame_info& info){ process_frame(info); }
-    virtual void window_started_handler(const Frame_info& info){ window_started(info); }
-    virtual void window_finished_handler(const Frame_info& info){ window_finished(info); }
+
+    virtual void post_process_handler(const Frame_info& info){
+        in_post_process = true;
+        in_pre_process = in_process_frame = false;
+        post_process(info);
+    }
+
+    virtual void process_frame_handler(const Frame_info& info){
+        in_process_frame = true;
+        in_pre_process = in_post_process = false;        
+        // Call user callback
+        process_frame(info);
+    }
+
+    virtual void window_started_handler(const Frame_info& info){
+        window_started(info);
+    }
+
+    virtual void window_finished_handler(const Frame_info& info){
+        window_finished(info);
+    }
+
+    // Flags, which indicate where user-called method is executed
+    bool in_pre_process, in_process_frame, in_post_process;
 
 private:
 
@@ -105,7 +135,7 @@ private:
     int saved_valid_frame;    
 
     void run_in_thread(std::shared_ptr<Message_channel<std::shared_ptr<Data_container> > >& chan);
-    void consume_frame(std::shared_ptr<Data_container>& data);
+    void consume_frame(std::shared_ptr<Data_container>& data);    
 };
 
 }

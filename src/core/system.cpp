@@ -182,10 +182,11 @@ void System::load(string fname, int b, int e, int skip){
 // Destructor of the system class
 System::~System() {}
 
-void System::frame_dup(int fr){
+int System::frame_dup(int fr){
     if(fr<0 || fr>=traj.size())
     	throw Pteros_error("Invalid frame for duplication!");
     traj.push_back(traj[fr]);
+    return traj.size()-1;
 }
 
 void System::frame_copy(int fr1, int fr2){

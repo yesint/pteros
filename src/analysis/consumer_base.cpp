@@ -23,15 +23,15 @@
 
 #include "pteros/analysis/consumer_base.h"
 #include "pteros/analysis/trajectory_processor.h"
+#include "pteros/core/pteros_error.h"
 
 using namespace std;
 using namespace pteros;
 
 Consumer_base::Consumer_base(Trajectory_processor* pr){
     proc = pr;
-    proc->add_consumer(this); // Add this consumer to trajectory processor        
+    proc->add_consumer(this); // Add this consumer to trajectory processor
 }
-
 
 void Consumer_base::run_in_thread(std::shared_ptr<Message_channel<std::shared_ptr<pteros::Data_container> > > &chan){
     // Call user pre-process
