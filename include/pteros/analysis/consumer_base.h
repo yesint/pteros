@@ -76,13 +76,6 @@ protected:
     /// Pointer to trajectory processor
     Trajectory_processor* proc;
 
-    /// Removes jumps on each frame for given set of atoms,
-    /// which is stored in no_jump_ind selection
-    /// If no_jumps_ind is empty (default) does nothing
-    /// User have to populate it in pre_process() callback using
-    /// add_no_jump_atoms() methods
-    void remove_jumps(const Frame_info &info);
-
     /// Handler functions which call user callbacks
     /// Could be overriden to take additional actions
     /// These handlers are called by Trajectory_processor

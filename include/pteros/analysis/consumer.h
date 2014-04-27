@@ -35,17 +35,14 @@ class Consumer: public Consumer_base {
 public:
     Consumer(Trajectory_processor* pr): Consumer_base(pr){}
 
-    void add_no_jump_atoms(const Selection &sel){
-        if(!in_pre_process) throw Pteros_error("add_no_jump_atoms() can only be called from pre_process()!");
+    void add_no_jump_atoms(const Selection &sel){        
         remover.add_no_jump_atoms(sel);
     }
 
 protected:
     virtual void process_frame_data(Frame& data);
 
-    virtual void process_frame_handler(const Frame_info& info){
-        in_process_frame = true;
-        in_pre_process = in_post_process = false;
+    virtual void process_frame_handler(const Frame_info& info){        
         // Remove jumps
         remover.remove_jumps(system,info);
         // Call user callback
