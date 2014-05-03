@@ -62,6 +62,7 @@ string Trajectory_processor::help(){
 
             "\t-w <value[suffix]>\n"
             "\t\tprocess by windows of given size in frames or time.\n"
+            "\t\tdefault: -1 (no windows)\n"
 
             "\t-skip <n>\n"
             "\t\tProcess only each n'th frame, default: -1 (process each frame)\n"
@@ -85,7 +86,7 @@ string Trajectory_processor::help(){
             "\t\tOnly touch this if individual frames are very large.\n"
 
             "Suffixes:\n"
-            "\tAll parameters markes as <value[suffix]> accept following optional suffixes:\n"
+            "\tAll parameters marked as <value[suffix]> accept the following optional suffixes:\n"
             "\t\t(no suffix) - value is in frames\n"
             "\t\tfr - value is in frames\n"
             "\t\tt - value is time in picoseconds (value used as is)\n"
@@ -93,7 +94,7 @@ string Trajectory_processor::help(){
             "\t\tns - value is time in nanoseconds (value multiplied by 10^3)\n"
             "\t\tus - value is time in microseconds (value multiplied by 10^6)\n"
             "\t\tms - value is time in milliseconds (value multiplied by 10^9)\n"
-            "\tParameters markes as <t[suffix]> does not accept fr suffix.\n"
+            "\tParameters marked as <t[suffix]> does not accept fr suffix.\n"
             "\tIn this case no suffix means ps.\n"
             ;
 }
