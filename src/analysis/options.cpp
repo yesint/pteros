@@ -36,7 +36,7 @@ void parse_command_line(int argc, char** argv,
                         std::string task_tag,
                         std::vector<Options>& tasks){
 
-    if(argc<2) throw Pteros_error("No options in the command line!");
+    if(argc<2) return; // Command line is empty
 
     bool in_task = false; // start with toplevel
     bool has_key = false;
@@ -163,7 +163,7 @@ const Option& Options::operator()(std::string key, std::string default_val) {
         }
     }
     if(found>1) throw Pteros_error("More than one key '"+key+"' found!");
-    if(found==0){
+    if(found==0 || data[ind].data.empty()){
         // Default value case
         Option tmp;
         tmp.name = key;        
@@ -174,6 +174,7 @@ const Option& Options::operator()(std::string key, std::string default_val) {
         // If tmp.data is still empty here, than default_val is empty string or a space(s)
         // In this case we add it as is
         if(tmp.data.empty()) tmp.data.push_back(default_val);
+
         // Default value is added to data and returned as usually
         data.push_back(tmp);
         return data.back();

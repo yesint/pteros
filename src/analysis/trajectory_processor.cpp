@@ -134,7 +134,7 @@ void Trajectory_processor::add_consumer(Consumer_base *p){
 }
 
 void process_value_with_suffix(const string& s, int* intval, float* floatval){
-    int pos = s.find_last_of("0123456789");
+    size_t pos = s.find_last_of("0123456789");
     if(pos==string::npos) throw Pteros_error("A number with optional suffix required!");
     string val = s.substr(0,pos+1);
     string suffix = s.substr(pos+1);

@@ -35,7 +35,7 @@ public:
                 "Output:\n"
                 "\tFile <label>.dat containing the following columns:\n"
                 "\ttime box_a box_b box_c box_volume\n"
-                "Options:\n:"
+                "Options:\n"
                 "\tNone";
     }
 

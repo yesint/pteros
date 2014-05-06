@@ -23,7 +23,6 @@
 #include "pteros/python/bindings_util.h"
 #include "bindings_system.h"
 #include "bindings_selection.h"
-//#include "bindings_options_tree.h"
 #include "bindings_options.h"
 #include "bindings_frame_info.h"
 #include "bindings_trajectory_processor.h"

@@ -51,7 +51,7 @@ SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -msse2")
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
 
 # Find Python
-if(PYTHON_BINDINGS)
+if(PYTHON_BINDINGS AND NOT STANDALONE_PLUGINS)
     find_package(PythonInterp)
     find_package(PythonLibs)    
 

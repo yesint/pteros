@@ -3,6 +3,7 @@
 
 #include "pteros/analysis/consumer.h"
 #include "pteros/analysis/trajectory_processor.h"
+#include "boost/current_function.hpp"
 
 namespace pteros {
 
