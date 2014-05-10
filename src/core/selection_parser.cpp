@@ -29,11 +29,10 @@
 #include <cctype>
 #include <algorithm>
 #include <boost/algorithm/string.hpp>
-#include <boost/regex.hpp>
 #include <boost/lexical_cast.hpp>
-#include <boost/foreach.hpp>
 #include <boost/variant.hpp>
-#include <boost/unordered_set.hpp>
+#include <unordered_set>
+#include <regex>
 
 //-----------------------------------------------------
 //  Functions for creating actual selection from AST
@@ -409,8 +408,8 @@ void Selection_parser::tokenize(const string& s){
 
 #ifdef _DEBUG_PARSER
     cout << endl <<"Tokenizer result:" << endl;
-    boost::shared_ptr<AstNode> node;
-    BOOST_FOREACH(node, tokens){
+    std::shared_ptr<AstNode> node;
+    for(auto node: tokens){
             cout << tok_names[node->code] << " ";
     }
     cout << endl << endl;
@@ -948,10 +947,10 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
                     if(sys->atoms[at].name == str) result.push_back(at);
             } else if(node->child_node(i)->code == TOK_REGEX){
                 // For regex
-                boost::cmatch what;
-                boost::regex reg(str);
+                std::cmatch what;
+                std::regex reg(str);
                 for(at=0;at<Natoms;++at){
-                    if(boost::regex_match(sys->atoms[at].name.c_str(),what,reg)){
+                    if(std::regex_match(sys->atoms[at].name.c_str(),what,reg)){
                          result.push_back(at);
                     }
                 }
@@ -973,10 +972,10 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
                     if(sys->atoms[at].resname == str) result.push_back(at);
             } else if(node->child_node(i)->code == TOK_REGEX){
                 // For regex
-                boost::cmatch what;
-                boost::regex reg(str);
+                std::cmatch what;
+                std::regex reg(str);
                 for(at=0;at<Natoms;++at){
-                    if(boost::regex_match(sys->atoms[at].resname.c_str(),what,reg)){
+                    if(std::regex_match(sys->atoms[at].resname.c_str(),what,reg)){
                          result.push_back(at);
                     }
                 }
@@ -997,10 +996,10 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
                     if(sys->atoms[at].tag == str) result.push_back(at);
             } else if(node->child_node(i)->code == TOK_REGEX){
                 // For regex
-                boost::cmatch what;
-                boost::regex reg(str);
+                std::cmatch what;
+                std::regex reg(str);
                 for(at=0;at<Natoms;++at){
-                    if(boost::regex_match(sys->atoms[at].tag.c_str(),what,reg)){
+                    if(std::regex_match(sys->atoms[at].tag.c_str(),what,reg)){
                          result.push_back(at);
                     }
                 }
@@ -1145,7 +1144,7 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
         int Nsel = res1.size();
         // Select by residue. This respects chain!
         // First make a set of resids we need to search
-        boost::unordered_set<int> resind;
+        std::unordered_set<int> resind;
         for(i=0;i<Nsel;++i){ //over found atoms
             resind.insert(sys->atoms[res1[i]].resindex);
         }

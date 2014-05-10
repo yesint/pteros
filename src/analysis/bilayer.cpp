@@ -23,8 +23,6 @@
 
 #include "pteros/analysis/bilayer.h"
 #include "pteros/core/pteros_error.h"
-#include <boost/lexical_cast.hpp>
-#include <boost/bind.hpp>
 
 using namespace std;
 using namespace pteros;
@@ -47,14 +45,14 @@ void Bilayer::create(Selection &sel, std::string head_marker_atom, float d){
     // Monolayer 1
     ind = surf[0].get_unique_resindex();
     str = "resindex";
-    for(int i=0; i<ind.size(); ++i) str += " "+boost::lexical_cast<string>(ind[i]);
+    for(int i=0; i<ind.size(); ++i) str += " "+to_string(ind[i]);
     mono1.modify(*sel.get_system(),str);
     cout << "Monolayer 1 contains " << mono1.size() << " atoms in " << surf[0].size() << " lipids " << endl;
 
     // Monolayer 2
     ind = surf[1].get_unique_resindex();
     str = "resindex";
-    for(int i=0; i<ind.size(); ++i) str += " "+boost::lexical_cast<string>(ind[i]);
+    for(int i=0; i<ind.size(); ++i) str += " "+to_string(ind[i]);
     mono2.modify(*sel.get_system(),str);
     cout << "Monolayer 2 contains " << mono1.size() << " atoms in " << surf[1].size() << " lipids " << endl;
 }
@@ -83,15 +81,16 @@ Bilayer_point_info Bilayer::point_info(Eigen::Vector3f &point){
     }
 
     // Sort distances
-    sort(aux1.begin(),aux1.end(),boost::bind(dist_sorter,_1,_2,dist1));
-    sort(aux2.begin(),aux2.end(),boost::bind(dist_sorter,_1,_2,dist2));
+    using namespace std::placeholders;
+    sort(aux1.begin(),aux1.end(),std::bind(dist_sorter,_1,_2,dist1));
+    sort(aux2.begin(),aux2.end(),std::bind(dist_sorter,_1,_2,dist2));
 
     // Start filling output fields
     Bilayer_point_info ret;
 
     // Now take 10 closest markers in each monolayer and make selections for them
-    ret.spot1_ptr = boost::shared_ptr<Selection>( new Selection(*bilayer_ptr->get_system()) );
-    ret.spot2_ptr = boost::shared_ptr<Selection>( new Selection(*bilayer_ptr->get_system()) );
+    ret.spot1_ptr = std::shared_ptr<Selection>( new Selection(*bilayer_ptr->get_system()) );
+    ret.spot2_ptr = std::shared_ptr<Selection>( new Selection(*bilayer_ptr->get_system()) );
 
     for(i=0;i<spot_size;++i){
         ret.spot1_ptr->append(surf[0].Index(aux1[i]));

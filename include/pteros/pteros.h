@@ -7,7 +7,7 @@
 
 #include "analysis/trajectory_processor.h"
 #include "analysis/consumer.h"
-#include "analysis/options_parser.h"
+#include "analysis/options.h"
 
 #include <Eigen/Core>
 

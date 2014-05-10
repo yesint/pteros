@@ -27,9 +27,9 @@
 
 #include <string>
 #include <vector>
+#include <memory>
 
 #include "pteros/core/system.h"
-#include <boost/shared_ptr.hpp>
 #include <boost/variant.hpp>
 
 namespace pteros {
@@ -103,7 +103,7 @@ typedef boost::variant<
     int,
     bool,
     std::string,
-    boost::shared_ptr<AstNode>
+    std::shared_ptr<AstNode>
 > ast_element;
 
 // The tree itself
@@ -120,7 +120,7 @@ struct AstNode {
     bool child_as_bool(int i);
     float child_as_float_or_int(int i);
     std::string child_as_str(int i);
-    boost::shared_ptr<AstNode>& child_node(int i);
+    std::shared_ptr<AstNode>& child_node(int i);
 
 
 #ifdef _DEBUG_PARSER
@@ -129,7 +129,7 @@ struct AstNode {
 #endif
 };
 
-typedef boost::shared_ptr<AstNode> AstNode_ptr;
+typedef std::shared_ptr<AstNode> AstNode_ptr;
 
 /**
 *   Selection parser class.
@@ -167,7 +167,7 @@ private:
     void tokenize(const std::string& s);
 
     /// AST structure
-    boost::shared_ptr<AstNode> tree;
+    std::shared_ptr<AstNode> tree;
 
     // Array of tokens
     std::vector<AstNode_ptr> tokens;

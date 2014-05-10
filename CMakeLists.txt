@@ -4,7 +4,6 @@ project(pteros)
 OPTION(PYTHON_BINDINGS "Build python bindings and compiled analysis plugins as Python modules" ON)
 OPTION(VMD_PDB "Use VMD molfile plugin for reading PDB files (if OFF - internal reader is used)" ON)
 OPTION(POWERSASA "Use POWERSASA code. This implies severe license restrictions! \n Read the comment in src/core/sasa/power_sasa.h carefully before enabling this option!" OFF)
-OPTION(NO_CPP11 "Old compiler is used. Disable code with all C++11 features" OFF)
 OPTION(STANDALONE_PLUGINS "Compile all analysis plugins as stand-alone executables" OFF)
 
 # Use shared Boost libraries
@@ -48,8 +47,11 @@ ENDIF()
 #Sets optmization for Eigen in Release build
 SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -msse2")
 
+# Enable C++11 everywhere
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+
 # Find Python
-if(PYTHON_BINDINGS)
+if(PYTHON_BINDINGS AND NOT STANDALONE_PLUGINS)
     find_package(PythonInterp)
     find_package(PythonLibs)    
 
@@ -72,7 +74,7 @@ if(PYTHON_BINDINGS)
 endif()
 
 # Find Boost
-find_package(Boost 1.48.0 REQUIRED thread regex system date_time)
+find_package(Boost 1.48.0 REQUIRED system date_time)
 
 # Add Boost includes and libs globally - they are needed everywhere
 include_directories(${Boost_INCLUDE_DIRS})
@@ -89,11 +91,6 @@ include_directories(include)
 # Main Pteros lib dir (for build time, not yet installed)
 link_directories("${CMAKE_BINARY_DIR}/lib")
 
-# Disable CPP11 if asked
-IF(NO_CPP11)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNO_CPP11")
-ENDIF()
-
 # Determine extension of the shared libs depending on platform
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     SET(SHARED_LIB_EXT ".pyd") # Force .pyd extension on Windows to ensure correct loading
@@ -108,14 +105,9 @@ add_subdirectory(src/python)
 add_subdirectory(src/python/bindings)
 add_subdirectory(src/python/compiled_analysis_plugins)
 add_subdirectory(src/examples)
-add_subdirectory(template)
-add_subdirectory(template_plugin)
-
-if(NO_CPP11)
-    message("Test program is disabled in NO_CPP11 mode")
-else()
-    add_subdirectory(src/test)
-endif()
+add_subdirectory(src/test)
+#add_subdirectory(template)
+#add_subdirectory(template_plugin)
 
 # Install headers
 install(DIRECTORY include DESTINATION .)

@@ -9,7 +9,7 @@
 #include <cstdio>
 
 #include <boost/bind.hpp>
-#include <boost/thread.hpp>
+//#include <boost/thread.hpp>
 #include <boost/foreach.hpp>
 #define foreach BOOST_FOREACH
 //#include <boost/timer/timer.hpp>

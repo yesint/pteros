@@ -4,19 +4,27 @@ from pteros import *
 import sys, pkgutil, copy, os, imp
 
 import pteros_analysis_plugins
+import types
 
 #--------------------------------------
 # Create processor class
+def add_no_jump_atoms_(self,sel):
+    self.jump_remover.add_no_jump_atoms(sel)
+
 class Processor(Trajectory_processor):
         def __init__(self,opt):
                 Trajectory_processor.__init__(self,opt)
                 # Init data
-                self.task_list = []
+                self.task_list = []                
 
         def pre_process(self):
                 for task in self.task_list:
-                        # We need to give each task a copy of system
+                        # We need to give each task its own system
                         task.system = System(self.get_system())
+                        # We also need to give it its own jump remover
+                        task.jump_remover = Jump_remover()
+                        # Make an add_no_jump_atoms method
+                        task.add_no_jump_atoms = types.MethodType(add_no_jump_atoms_,task)
                         # Run pre_process for each task
                         task.pre_process()
 
@@ -24,6 +32,9 @@ class Processor(Trajectory_processor):
                 for i in range(0,len(self.task_list)):
                         # We need to update frame 0 of each task with the current value
                         self.task_list[i].system.setFrame_data( self.get_frame_ptr() , 0)
+                        # Call jump remover
+                        self.task_list[i].jump_remover.remove_jumps(self.task_list[i].system,info)
+                        # Process frame
                         self.task_list[i].process_frame(info)
 
         def post_process(self,info):
@@ -49,15 +60,13 @@ def general_help():
     Usage:
         pteros_analysis.py --trajectory[<options>] --task[name1 <options>] --task[name2 <options>] ...
 
-        --help
-            Display usage message
-        --help traj
+        -help traj
             Help for trajectory processing options
-        --help plugins
+        -help plugins
             List available analysis plugins
-        --help <plugin name>
+        -help <plugin name>
             Detailed help for particular analysis plugin
-        --help all
+        -help all
             Detailed help for all analysis plugins and trajectory processing options
     """
 #--------------------------------------
@@ -74,19 +83,16 @@ if len(sys.argv)==1:
 
 
 # Parse command line
-opt = Options_tree()
-opt.from_command_line(sys.argv)
+opt,task_opts = parse_command_line(sys.argv,"task")
 
 # Display help info
-if opt.count_options("help")>0:
+if opt.has("help"):
     # Create instance of processor
     proc = Processor(opt)
 
     # Check if we are asked for help for single plugin
-    plugin = opt.get_value_string("help","")
-    if plugin == "":
-        general_help()
-    elif plugin == "traj":
+    plugin = opt("help","all").as_string()
+    if plugin == "traj":
         # Show trajectory processor options
         print proc.help()
     elif plugin != "all" and plugin != "plugins":
@@ -116,8 +122,8 @@ if opt.count_options("help")>0:
                 detailed_help(module)
                 print "------------------------"
         if not detailed:
-            print "For detailed help for particular plugin use --help <plugin_name>"
-            print "For detailed help for all available plugins use --help all"
+            print "For detailed help for particular plugin use -help <plugin_name>"
+            print "For detailed help for all available plugins use -help all"
 
     sys.exit(0)
 
@@ -127,21 +133,20 @@ task_list = []
 
 unique_names = set()
 # Process all task options
-for task in opt.get_options("task"):
-	name = task.get_value_string("")
-	task_list.append(task)
+for task in task_opts:
+        name = task.get_name()
 	if name not in unique_names:
 		unique_names.add(name)
 		requested_tasks.append(task)
 	
 
-for task in task_list:
-	f = task.get_value_string("plugin_file","")
+for task in task_opts:
+        f = task("plugin_file","").as_string()
 	if f:
 		s = "from custom plugin_file '%s'" % f
 	else:
 		s = ""
-	print "\t* Requested task '%s' %s" % (task.get_value_string(""),s)
+        print "\t* Requested task '%s' %s" % (task.get_name(),s)
 	
 # Create instance of processor
 proc = Processor(opt)
@@ -155,11 +160,11 @@ compiled_list = []
 task_num = 0
 print "Loading needed plugins..."
 for task in requested_tasks:
-	task_name = task.get_value_string("")
+        task_name = task.get_name()
 
 	# Task is loaded from the package pteros_analysis_plugins by default
 	# If 'file' option is set for the task it is loaded from given file instead
-	plugin_file = task.get_value_string("plugin_file","")
+        plugin_file = task("plugin_file","").as_string()
 	
 	if plugin_file:
 		# Get full path
@@ -181,8 +186,8 @@ for task in requested_tasks:
 		proc.initialize();
 		
 		# Now work with tasks		
-		for tsk in task_list:		
-			tsk_name = tsk.get_value_string("")
+                for tsk in task_opts:
+                        tsk_name = tsk.get_name()
 			if tsk_name == task_name:
 				# create an independent instance of Task from that module
 				obj = module.Task()
@@ -199,11 +204,11 @@ for task in requested_tasks:
 		print "\t* Loaded compiled plugin '%s'" % task_name
 
 		# Now work with tasks		
-		for tsk in task_list:
-			tsk_name = tsk.get_value_string("")
+                for tsk in task_opts:
+                        tsk_name = tsk.get_name()
 			if tsk_name == task_name:
 				# create an independent instance of Task from that module
-				obj = module.Task(proc,task)
+                                obj = module.Task(proc,tsk)
 				# Give this task a unique textual label
 				obj.label = task_name + "_id" + str(task_num);				 
 				print "\t\t Created plugin instance '%s'" % obj.label			 

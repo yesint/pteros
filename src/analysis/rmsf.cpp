@@ -22,10 +22,9 @@
 
 
 #include "pteros/analysis/rmsf.h"
-#include <boost/foreach.hpp>
-#include <boost/lexical_cast.hpp>
 
 using namespace pteros;
+using namespace std;
 
 void rmsf_group::add_window(){
     std::map<int,Eigen::VectorXd> v;
@@ -65,15 +64,11 @@ RMSF::~RMSF()
 void RMSF::pre_process(){
     // Add selections
     int k = 0;
-    BOOST_FOREACH(Options_tree* o, options->get_options("selection")){
-        rmsf_group gr;
-        string sel = o->get_value<string>("");
-        gr.sel.modify(system,sel);
-        // Set name if given
-        gr.name = o->get_value<string>("name",boost::lexical_cast<string>(k));
-
+    for(auto sel: options("selections").as_strings()){
+        rmsf_group gr;        
+        gr.sel.modify(system,sel);        
         groups.push_back(gr);
-        cout << "Added selection '" << sel << "' with name '" << gr.name << "'" << endl;
+        cout << "Added selection '" << sel << "'" << endl;
         k++;
     }
 
@@ -93,7 +88,7 @@ void RMSF::pre_process(){
     */
 
     // For each selection create residue selections and start first window
-    BOOST_FOREACH(rmsf_group& gr, groups){
+    for(auto& gr: groups){
         gr.rmsf.clear();
         gr.sel.each_residue(gr.residue_sel);
 
@@ -125,7 +120,7 @@ void RMSF::pre_process(){
 
     all.modify(system,"all");
 
-    do_rmsd = options->get_value<bool>("do_rmsd",false);
+    do_rmsd = options("do_rmsd","false").as_bool();
 }
 
 void RMSF::window_started(const Frame_info &info){            
@@ -135,7 +130,7 @@ void RMSF::window_started(const Frame_info &info){
 
 void RMSF::window_finished(const Frame_info &info){
 
-    BOOST_FOREACH(rmsf_group& gr, groups){
+    for(auto& gr: groups){
 
         int resind;
         // Normilize rmsf for each atom
@@ -185,7 +180,7 @@ void RMSF::process_frame(const Frame_info &info){
     Eigen::Affine3f t;
 
     // For each group
-    BOOST_FOREACH(rmsf_group& gr, groups){
+    for(auto& gr: groups){
         // Update selection
         gr.sel.set_frame(0);
 
@@ -235,10 +230,10 @@ void RMSF::save_results(){
     // For each group open file and write matrices
     cout << "Saving data..." << endl;
 
-    string prefix = options->get_value<string>("output_prefix","");
+    string prefix = options("output_prefix","").as_string();
 
     int i = 0;
-    BOOST_FOREACH(rmsf_group& gr, groups){
+    for(auto& gr: groups){
         vector<int> resinds = gr.sel.get_unique_resindex();
         int resind;
 
@@ -270,7 +265,7 @@ void RMSF::save_results(){
 
         // Per-atom matrix
         // Only save it if requested because ti is HUGE!
-        if(options->get_value<bool>("save_per_atom",false)){
+        if(options("save_per_atom","false").as_bool()){
             f.open((prefix+gr.name+"_per_atom_rmsf.dat").c_str());
             for(int w=0; w<gr.rmsf.size()-1; ++w){
                 // For each group do

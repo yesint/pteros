@@ -21,15 +21,16 @@
 */
 
 #include <fstream>
+#include <thread>
+#include <functional>
+
 #include "pteros/analysis/trajectory_processor.h"
 #include "pteros/core/pteros_error.h"
-#include <boost/bind.hpp>
-#include <boost/tokenizer.hpp>
-#include <boost/foreach.hpp>
-#include "pteros/analysis/options_parser.h"
 #include "pteros/core/format_recognition.h"
 #include "pteros/core/mol_file.h"
-#include <boost/foreach.hpp>
+
+#include <boost/algorithm/string.hpp> // For to_lower
+#include <boost/lexical_cast.hpp>
 
 using namespace pteros;
 using namespace std;
@@ -40,7 +41,7 @@ Trajectory_processor::~Trajectory_processor(){
 string Trajectory_processor::help(){
     return  "Trajectory processing options:\n"
             "General usage:\n"
-            "\t--trajectory[ filename1 filename2 ... <processing options>]\n"
+            "\t-t filename1 filename2 ... <processing options>\n"
             "Files:\n"
             "\t* Exactly one structure file (PDB or GRO)\n"
             "\t  If not specified, topology PTTOP file must be given instead.\n"
@@ -53,43 +54,49 @@ string Trajectory_processor::help(){
             "\tin the order of their appearance.\n\n"
 
             "Processing options:\n"
-            "\t--first_frame <fr>\n"
-            "\t\tfirst frame to read, default: 0\n"
+            "\t-b <value[suffix]>\n"
+            "\t\tbeginning of processing (starting frame or time), default: 0\n"
 
-            "\t--last_frame <fr>\n"
-            "\t\tlast frame to read, default: -1 (up to the end)\n"
+            "\t-e <value[suffix]>\n"
+            "\t\tend of processing (end frame or time), default: -1 (up to the end)\n"
 
-            "\t--first_time <t>\n"
-            "\t\tfirst time step to read, ps, default: 0.0\n"
+            "\t-w <value[suffix]>\n"
+            "\t\tprocess by windows of given size in frames or time.\n"
+            "\t\tdefault: -1 (no windows)\n"
 
-            "\t--last_time <t>\n"
-            "\t\tlast time step to read, ps, default: -1 (up to the end)\n"
-
-            "\t--window_size_frames sz:\n"
-            "\t\tprocess by windows of size sz determined by frame.\n"
-
-            "\t--window_size_time t:\n"
-            "\t\tprocess by windows of size t determined by time.\n"
-
-            "\t--skip <n>\n"
+            "\t-skip <n>\n"
             "\t\tProcess only each n'th frame, default: -1 (process each frame)\n"
 
-            "\t--custom_start_time <t>\n"
-            "\t\tUse t as a starting, default: -1 (use value from first trajectory frame)\n"
+            "\t-t0 <t[suffix]>\n"
+            "\t\tCustom starting time, default: -1 (use value from first frame)\n"
             "\t\tUseful if trajectory does not contain time stamps\n"
             "\t\tor if the starting time is incorrect.\n"
-            "\t\tIf set and custom_dt is not given sets custom_dt to 1.0!\n"
+            "\t\tIf set and dt is not given sets dt to 1.0!\n"
 
-            "\t--custom_dt <t>\n"
-            "\t\tUsed as a time step, default: -1 (use value from trajectory)\n"
+            "\t-dt <t[suffix]>\n"
+            "\t\tCutom time stap, default: -1 (use value from trajectory)\n"
             "\t\tUseful if trajectory does not contain time stamps.\n"
-            "\t\tIf set and custom_start_time is not given sets custom_start_time to 0.0!\n"
+            "\t\tIf set and start is not given sets start to 0.0!\n"
 
-            "\t--log_interval n\n"
-            "\t\tPrints logging information each n frames, default -1 (no logging)\n"
+            "\t-log <n>\n"
+            "\t\tPrints logging information on each n-th frame, default: -1 (no logging)\n"
 
-            "\t--dump_input filename\n"
-            "\t\tDumps input in JSON format to specified file\n";
+            "\t-buffer <n>\n"
+            "\t\tNumber of frames, which are kept in memory, default: 10\n"
+            "\t\tOnly touch this if individual frames are very large.\n"
+
+            "Suffixes:\n"
+            "\tAll parameters marked as <value[suffix]> accept the following optional suffixes:\n"
+            "\t\t(no suffix) - value is in frames\n"
+            "\t\tfr - value is in frames\n"
+            "\t\tt - value is time in picoseconds (value used as is)\n"
+            "\t\tps - value is time in picoseconds (value used as is)\n"
+            "\t\tns - value is time in nanoseconds (value multiplied by 10^3)\n"
+            "\t\tus - value is time in microseconds (value multiplied by 10^6)\n"
+            "\t\tms - value is time in milliseconds (value multiplied by 10^9)\n"
+            "\tParameters marked as <t[suffix]> does not accept fr suffix.\n"
+            "\tIn this case no suffix means ps.\n"
+            ;
 }
 
 bool Trajectory_processor::is_frame_valid(int fr, float t){
@@ -126,34 +133,49 @@ void Trajectory_processor::add_consumer(Consumer_base *p){
     consumers.back()->set_id(consumers.size()-1);
 }
 
+void process_value_with_suffix(const string& s, int* intval, float* floatval){
+    size_t pos = s.find_last_of("0123456789");
+    if(pos==string::npos) throw Pteros_error("A number with optional suffix required!");
+    string val = s.substr(0,pos+1);
+    string suffix = s.substr(pos+1);
+    boost::algorithm::to_lower(val);
+    boost::algorithm::to_lower(suffix);
+    // Now analyze suffix
+    if(intval!=nullptr && (suffix=="fr" || suffix=="")){
+        *intval = boost::lexical_cast<int>(val);
+        if(floatval) *floatval = -1.0;
+    } else if(floatval!=nullptr) {
+        if(intval) *intval = -1;
+        *floatval = boost::lexical_cast<float>(val);
+        if(suffix=="ps" || suffix=="t"){
+            *floatval *= 1.0;
+        } else if(suffix=="ns"){
+            *floatval *= 1000.0;
+        } else if(suffix=="us"){
+            *floatval *= 1000000.0;
+        } else if(suffix=="ms"){
+            *floatval *= 1000000000.0;
+        }
+    } else if(floatval==nullptr && intval==nullptr){
+        throw Pteros_error("Both int and float vals are NULL! WTF?");
+    }
+}
+
 void Trajectory_processor::run(){
     cout << "Starting trajectory processing..." << endl;
 
     // See if thre are some connected consumers
     if(consumers.size()==0) throw Pteros_error("No consumers are connected to trajectory processor!");
-    cout << "Connected " << consumers.size() << " consumers" << endl;
+    cout << "Connected " << consumers.size() << " consumers" << endl;    
 
-    // If asked to dump input in json format, do it
-    string dump_file = options->get_value<string>("dump_input","");
-    if(dump_file!=""){
-        cout << "Dumping input to " << dump_file << "..." << endl;
-        ofstream f(dump_file.c_str());
-        f << options->to_json_string() << endl;
-        f.close();
-    }
-
-    // Work with trajectory block
-    // The block must include structre file,
-    // one or more trajectory files and optional topology file
-    // Get trajectory node
-    Options_tree* trj = &options->get_option("trajectory");
+    // Get files to work with
+    auto file_list = options("f").as_strings();
 
     // Get all string parameters and find out how many different files we have
     // and arrange them structure->topology->traj
     string top_file = "";
-    string structure_file = "";
-    traj_files.clear();
-    BOOST_FOREACH(string s, trj->get_values<string>("")){
+    string structure_file = "";    
+    for(string& s: file_list){
         switch(recognize_format(s)){
         case PDB_FILE:
         case GRO_FILE:
@@ -199,21 +221,25 @@ void Trajectory_processor::run(){
         for(int i=1; i<consumers.size(); ++i){
             *(consumers[i]->get_system()) = *sys1; // deep copying
         }
-    }
+    }    
 
     // Get parameters
-    // See if window processing is requested
-    window_size_frames = trj->get_value<int>("window_size_frames",-1);
-    window_size_time = trj->get_value<float>("window_size_time",-1);
+    // See if window processing is requested    
+    process_value_with_suffix(options("w","-1").as_string(),
+                              &window_size_frames, &window_size_time);
     // Determine range for this group
-    first_frame = trj->get_value<int>("first_frame",-1);
-    last_frame = trj->get_value<int>("last_frame",-1);
-    first_time = trj->get_value<float>("first_time",-1);
-    last_time = trj->get_value<float>("last_time",-1);
-    skip = trj->get_value<int>("skip",-1);
+    process_value_with_suffix(options("b","-1").as_string(),
+                              &first_frame, &first_time);
+    process_value_with_suffix(options("e","-1").as_string(),
+                              &last_frame, &last_time);
+    // Skip interval
+    skip = options("skip","-1").as_int();
+
     // Check for custom start time and dt
-    custom_start_time = trj->get_value<float>("custom_start_time",-1);
-    custom_dt = trj->get_value<float>("custom_dt",-1);
+    process_value_with_suffix(options("t0","-1").as_string(),
+                              nullptr, &custom_start_time);
+    process_value_with_suffix(options("dt","-1").as_string(),
+                              nullptr, &custom_dt);
     if(custom_start_time>=0 && custom_dt==-1) custom_dt = 1;
     if(custom_start_time==-1 && custom_dt>=0) custom_start_time = 0;
 
@@ -223,22 +249,23 @@ void Trajectory_processor::run(){
     if(first_time>=0 && last_time>=0 && last_time<first_time)
         throw Pteros_error("Last time") << last_time<< " is smaller that first time" << first_time;
 
-    log_interval = trj->get_value<int>("log_interval",-1);
+    log_interval = options("log","-1").as_int();
 
     //-----------------------------------------
     // Actual processing starts here
     //-----------------------------------------
-    typedef boost::shared_ptr<Data_channel> Data_channel_ptr;
+    typedef std::shared_ptr<Data_channel> Data_channel_ptr;
 
     // Set buffer size
-    int buf_size = options->get_value<int>("buffer_size",10);
+    int buf_size = options("buffer","10").as_int();
     cout << "Using frame buffers of size " << buf_size << endl;
+
     channel.set_buffer_size(buf_size);
 
-    // Start reader thread
-    boost::thread reader_thread( boost::bind(&Trajectory_processor::reader_thread_body,this) );
+    // Start reader thread    
+    std::thread reader_thread( &Trajectory_processor::reader_thread_body, this );
 
-    boost::thread_group worker_threads;
+    vector<std::thread> worker_threads;
     vector<Data_channel_ptr> worker_channels;
 
     if(consumers.size() > 1){
@@ -248,19 +275,22 @@ void Trajectory_processor::run(){
             worker_channels.push_back(Data_channel_ptr(new Data_channel));
             // Set buffer size for this consumer
             worker_channels.back()->set_buffer_size(buf_size);
-            // Spawn thread
-            worker_threads.create_thread(
-                        boost::bind(&Consumer_base::run_in_thread,
+            // Spawn thread            
+            worker_threads.push_back(
+                        std::thread(
+                            // We need bind here - doesn't work without it
+                            std::bind(&Consumer_base::run_in_thread,
                                               consumers[i],
                                               worker_channels[i]
                                               )
+                            )
                         );
         }
 
         // Now recieve frames from the queue until reader sends stop
-        boost::shared_ptr<Data_container> data;
+        std::shared_ptr<Data_container> data;
         while(channel.recieve(data)){
-            BOOST_FOREACH(Data_channel_ptr &ch, worker_channels){
+            for(auto &ch: worker_channels){
                 ch->send(data);
             }
         }
@@ -269,26 +299,26 @@ void Trajectory_processor::run(){
         // Consume all remaining frame
         while(!channel.empty()){
             channel.recieve(data);
-            BOOST_FOREACH(Data_channel_ptr &ch, worker_channels){
+            for(auto &ch: worker_channels){
                 ch->send(data);
             }
         }
 
         // No more new frames, send stop to all consumers
-        BOOST_FOREACH(Data_channel_ptr &ch, worker_channels){
+        for(auto &ch: worker_channels){
             ch->send_stop();
         }
     } else {
         // There is only one consumer, no need for multiple threads
         // Run pre-process
 
-        //!! Important !!
+        // Important !!
         // Try block here does not catch exceptions inside pre_process
         // because this could be called from externally loaded compiled plugin!
         // errors should be catched in the Consumer itself!
         consumers[0]->pre_process_handler();
 
-        boost::shared_ptr<Data_container> data;
+        std::shared_ptr<Data_container> data;
         while(channel.recieve(data)){
             consumers[0]->consume_frame(data);
         }
@@ -302,8 +332,8 @@ void Trajectory_processor::run(){
 
     // Join all threads
     reader_thread.join();    
-    if(consumers.size() > 1){
-        worker_threads.join_all();
+    if(consumers.size() > 1){        
+        for(auto& t: worker_threads) t.join();
     }
 
     cout << "Trajectory processing finished!" << endl;
@@ -323,16 +353,16 @@ void Trajectory_processor::reader_thread_body(){
 
         bool finished = false;
 
-        BOOST_FOREACH(string& fname, traj_files){
+        for(string& fname: traj_files){
             cout << "==> Reading trajectory " << fname << endl;
 
-            boost::shared_ptr<Mol_file> trj = io_factory(fname,'r');
+            auto trj = io_factory(fname,'r');
 
             // Main loop over trajectory frames
             while(true){
                 // To avoid eccessive copy operations we allocate a shared pointer
                 // and will load data into its storage
-                boost::shared_ptr<Data_container> data(new Data_container);
+                std::shared_ptr<Data_container> data(new Data_container);
 
                 // Load data to this container
                 bool good = trj->read(NULL,&data->frame,content);

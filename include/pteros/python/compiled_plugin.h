@@ -41,7 +41,7 @@ BOOST_PYTHON_MODULE(_name) \
     import_array(); \
     boost::python::numeric::array::set_module_and_type("numpy", "ndarray"); \
     register_exception_translator<pteros::Pteros_error>(&Pteros_error_translator); \
-    class_<_name,boost::noncopyable>("Task", init<pteros::Trajectory_processor*,pteros::Options_tree*>()) \
+    class_<_name,boost::noncopyable>("Task", init<pteros::Trajectory_processor*,const pteros::Options&>()) \
     .def_readwrite("label",&_name::label) \
     .def("help",&_name::help) \
     ; \
@@ -60,24 +60,24 @@ using namespace std;
 #define CREATE_COMPILED_PLUGIN(_name) \
 int main(int argc, char** argv){\
     try {\
-        Options_tree options;\
-        options.from_command_line(argc,argv);\
+        Options options;\
+        parse_command_line(argc,argv,options);\
         Trajectory_processor engine(options);\
-        _name task(&engine,&options);\
+        _name task(&engine,options);\
         task.label = #_name;\
         cout << "-------------------------------------------------------------" << endl;\
         cout << "  This is stand-alone Pteros analysis plugin '" #_name "'" << endl;\
         cout << "-------------------------------------------------------------" << endl;\
-        if(options.count_options("trajectory")==0 && options.count_options("help")==0){\
+        if(!options.has("f") && !options.has("help")){\
             cout << "Usage:" << endl;\
-            cout << "\tpteros_" #_name " --trajectory[<traj options>] <task options>" << endl;\
-            cout << "\n\tFor specific task options use '--help task'" << endl;\
-            cout << "\tFor trajectory processing options use '--help traj'" << endl;\
-            cout << "\tFor all available options use '--help all' or just '--help'" << endl;\
+            cout << "\tpteros_" #_name " -f <files> <task options>" << endl;\
+            cout << "\n\tFor specific task options use '-help task'" << endl;\
+            cout << "\tFor trajectory processing options use '-help traj'" << endl;\
+            cout << "\tFor all available options use '-help all' or just '-help'" << endl;\
             return 1;\
         }\
-        if(options.count_options("help")>0){\
-            string help = options.get_value<string>("help","");\
+        if(options.has("help")){\
+            string help = options("help","").as_string();\
             if(help=="traj"){\
                 cout << engine.help() << endl;\
             } else if(help=="task"){\

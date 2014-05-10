@@ -28,36 +28,22 @@ using namespace std;
 int main(int argc, char* argv[]){
 
     try{
-        Options_tree options;
+        Options options;
 
-        options.from_command_line(argc,argv);
-/*
-        options.from_command_line("--trajectory_group "
-            "/home/semen/work/Projects/kornelyuk/Sasha/dimer_md/1/dimer_noPBC_1.xtc "
-            "--range frame_range 0 100 --end-range "            
-            " --structure_file /home/semen/work/Projects/kornelyuk/Sasha/dimer_md/1/dimer_pdb2gmx.gro "
-            " --end-trajectory_group "
-            " --selections \"resid 364 to 528\" "
-            " \"resid 1 to 342 or resid 529 to 869\" "
-            " --topology_file /home/semen/work/Projects/kornelyuk/Sasha/dimer_md/protein_only.top "
-            " --method cut_off 0.25 "
-            " --async true "
-            "--log_interval 100 ");
-*/
-
+        parse_command_line(argc,argv,options);
 
         cout << "Creating trajectory processor..." << endl;
         Trajectory_processor processor(options);
 
         // Show help if asked
-        if(options.count_options("help") || argc==1){
+        if(argc==1){
             cout << processor.help() << endl;
             Contacts_finder::print_help();
             return 0;
         }
 
         cout << "Creating contacts finder..." << endl;
-        boost::shared_ptr<Contacts_finder> finder(new Contacts_finder(processor,options));
+        std::unique_ptr<Contacts_finder> finder(new Contacts_finder(processor,options));
 
         // Do computation
         processor.run();

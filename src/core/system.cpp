@@ -22,16 +22,14 @@
 
 #include <iostream>
 #include <fstream>
-#include <sstream>
 #include <iomanip>
+#include <unordered_map>
 #include "pteros/core/system.h"
 #include "pteros/core/selection.h"
 #include "pteros/core/pteros_error.h"
 #include "pteros/core/grid_search.h"
 #include "pteros/core/format_recognition.h"
-#include <boost/lexical_cast.hpp>
 #include "pteros/core/mol_file.h"
-#include <boost/bind.hpp>
 // DSSP
 #include "pteros_dssp_wrapper.h"
 
@@ -76,16 +74,16 @@ void System::clear(){
 void System::check_num_atoms_in_last_frame(){
     if(Frame_data(num_frames()-1).coord.size()!=num_atoms())
         throw Pteros_error("File contains "
-                           +boost::lexical_cast<string>(Frame_data(num_frames()-1).coord.size())
+                           +to_string(Frame_data(num_frames()-1).coord.size())
                            +" atoms while the system has "
-                           +boost::lexical_cast<string>(num_atoms())
+                           +to_string(num_atoms())
                            );
 }
 
 // Load structure or trajectory
 void System::load(string fname, int b, int e, int skip){
     // Create an IO file reader
-    boost::shared_ptr<Mol_file> f = io_factory(fname,'r');
+    auto f = io_factory(fname,'r');
 
     int num_stored = 0;    
     // Do we have some structure?
@@ -184,10 +182,11 @@ void System::load(string fname, int b, int e, int skip){
 // Destructor of the system class
 System::~System() {}
 
-void System::frame_dup(int fr){
+int System::frame_dup(int fr){
     if(fr<0 || fr>=traj.size())
     	throw Pteros_error("Invalid frame for duplication!");
     traj.push_back(traj[fr]);
+    return traj.size()-1;
 }
 
 void System::frame_copy(int fr1, int fr2){
@@ -237,17 +236,15 @@ void System::assign_resindex(){
     }
 }
 
-bool by_resindex_sorter(int i, int j, System& sys){
-    return (sys.Atom_data(i).resindex < sys.Atom_data(j).resindex);
-}
-
 void System::sort_by_resindex()
 {
     // Make and array of indexes to shuffle
     vector<int> ind(atoms.size());
     for(int i=0;i<ind.size();++i) ind[i] = i;
     // Sort indexes
-    sort(ind.begin(),ind.end(),boost::bind(&by_resindex_sorter,_1,_2,*this));
+    sort(ind.begin(),ind.end(), [this](int i, int j){
+                                    return (Atom_data(i).resindex < Atom_data(j).resindex);
+                                } );
     // Now shuffle atoms and coordinates according to indexes
     vector<Atom> tmp(atoms); //temporary
     for(int i=0;i<ind.size();++i) atoms[i] = tmp[ind[i]];
@@ -433,11 +430,11 @@ inline float Coulomb_en_kernel(float q1, float q2, float r){
 }
 
 string Energy_components::to_str(){
-    return    boost::lexical_cast<string>(total) + " "
-            + boost::lexical_cast<string>(lj_sr) + " "
-            + boost::lexical_cast<string>(lj_14) + " "
-            + boost::lexical_cast<string>(q_sr) + " "
-            + boost::lexical_cast<string>(q_14);
+    return    to_string(total) + " "
+            + to_string(lj_sr) + " "
+            + to_string(lj_14) + " "
+            + to_string(q_sr) + " "
+            + to_string(q_14);
 }
 
 void System::add_non_bond_energy(Energy_components &e, int a1, int a2, int frame, bool is_periodic) const
@@ -461,7 +458,7 @@ void System::add_non_bond_energy(Energy_components &e, int a1, int a2, int frame
         float r = distance(at1,at2,frame);
 
         // Check if this is 1-4 pair
-        boost::unordered_map<int,int>::iterator it = const_cast<System&>(*this).force_field.LJ14_pairs.find(at1*N+at2);
+        std::unordered_map<int,int>::iterator it = const_cast<System&>(*this).force_field.LJ14_pairs.find(at1*N+at2);
         if( it == force_field.LJ14_pairs.end() ){
             // Normal, not 1-4
             e1 = LJ_en_kernel(force_field.LJ_C6(atoms[at1].type,atoms[at2].type),
@@ -502,8 +499,6 @@ Energy_components System::non_bond_energy(const std::vector<Eigen::Vector2i> &nl
     return e;
 }
 
-#ifndef NO_CPP11
-
 void System::dssp(string fname) const {
     ofstream f(fname.c_str());
     Selection sel(const_cast<System&>(*this),"all");
@@ -515,5 +510,3 @@ string System::dssp() const{
     Selection sel(const_cast<System&>(*this),"all");
     return dssp_string(sel);
 }
-
-#endif

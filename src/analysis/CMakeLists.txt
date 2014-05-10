@@ -2,24 +2,24 @@
 # Analysis library
 #------------------
 
-add_library(pteros_analysis SHARED
-    trajectory_processor.cpp
-    options_parser.cpp
-    rmsf.cpp
-    contacts_finder.cpp
-    consumer_base.cpp
-    consumer.cpp
+add_library(pteros_analysis SHARED    
     ${PROJECT_SOURCE_DIR}/include/pteros/analysis/message_channel.h
-
-    ${PROJECT_SOURCE_DIR}/include/pteros/analysis/trajectory_processor.h
-    ${PROJECT_SOURCE_DIR}/include/pteros/analysis/options_parser.h
+    ${PROJECT_SOURCE_DIR}/include/pteros/analysis/trajectory_processor.h    
+    trajectory_processor.cpp
     ${PROJECT_SOURCE_DIR}/include/pteros/analysis/rmsf.h
+    rmsf.cpp
     ${PROJECT_SOURCE_DIR}/include/pteros/analysis/contacts_finder.h
+    contacts_finder.cpp
     ${PROJECT_SOURCE_DIR}/include/pteros/analysis/consumer_base.h
+    consumer_base.cpp
     ${PROJECT_SOURCE_DIR}/include/pteros/analysis/consumer.h
-
+    consumer.cpp
     ${PROJECT_SOURCE_DIR}/include/pteros/analysis/bilayer.h
     bilayer.cpp
+    ${PROJECT_SOURCE_DIR}/include/pteros/analysis/options.h
+    options.cpp
+    ${PROJECT_SOURCE_DIR}/include/pteros/analysis/jump_remover.h
+    jump_remover.cpp
 )
 
 #------------------

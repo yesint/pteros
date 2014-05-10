@@ -33,6 +33,10 @@ using namespace Eigen;
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(assign_to_grid_overloads, assign_to_grid, 2, 4)
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(fill_custom_grid_overloads, fill_custom_grid, 1, 2)
 
+/* Here we are forced to work with boost::shared_ptr.
+ * We can't use std::shared_ptr since boost.python doesn't wrap it correctly for now...
+ */
+
 //---------------- for one selection --------------------
 
 boost::shared_ptr<Grid_searcher> constructor0(float d, Selection& sel,

@@ -1,6 +1,5 @@
 #include "pteros/analysis/trajectory_processor.h"
-#include <boost/foreach.hpp>
-#include <boost/lexical_cast.hpp>
+#include "pteros/core/pteros_error.h"
 
 using namespace std;
 using namespace pteros;
@@ -8,13 +7,13 @@ using namespace Eigen;
 
 int main(int argc, char** argv){
     try {
-    Options_tree opt;
-    opt.from_command_line(argc,argv);
+    Options opt;
+    parse_command_line(argc,argv,opt);
 
     string fname;
 
     // Load structure
-    fname = opt.get_value<string>("struct");
+    fname = opt("struct").as_string();
     System sys(fname);
     // Get indexes of ROH atoms of CHOL molecules
     Selection ROH(sys,"name ROH");
@@ -24,8 +23,8 @@ int main(int argc, char** argv){
     vector<int> mon1_occ, mon2_occ;
 
     // Cycle over supplied trajectories
-    list<string> traj_list = opt.get_values<string>("traj");
-    BOOST_FOREACH(string ff, traj_list){
+    vector<string> traj_list = opt("traj").as_strings();
+    for(string& ff: traj_list){
         // Delete all frames
         sys.frame_delete();
         // Load trajectory
@@ -41,7 +40,7 @@ int main(int argc, char** argv){
             occ2.push_back(0);
             // For each lipid find local center of bilayer
             for(int lip=0; lip<ROH.size(); ++lip){
-                sel_text = "not resname W and within_xy 1.5 of index " + boost::lexical_cast<string>(ROH_index[lip]);
+                sel_text = "not resname W and within_xy 1.5 of index " + to_string(ROH_index[lip]);
                 sel.modify(sel_text);
                 sel.set_frame(fr);
                 float localZ = sel.center()(2);

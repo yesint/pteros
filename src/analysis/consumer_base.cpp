@@ -23,22 +23,21 @@
 
 #include "pteros/analysis/consumer_base.h"
 #include "pteros/analysis/trajectory_processor.h"
-#include <boost/bind.hpp>
+#include "pteros/core/pteros_error.h"
 
 using namespace std;
 using namespace pteros;
 
 Consumer_base::Consumer_base(Trajectory_processor* pr){
     proc = pr;
-    proc->add_consumer(this); // Add this consumer to trajectory processor        
+    proc->add_consumer(this); // Add this consumer to trajectory processor
 }
 
-
-void Consumer_base::run_in_thread(boost::shared_ptr<Message_channel<boost::shared_ptr<Data_container> > > chan){
+void Consumer_base::run_in_thread(std::shared_ptr<Message_channel<std::shared_ptr<pteros::Data_container> > > &chan){
     // Call user pre-process
     pre_process_handler();
 
-    boost::shared_ptr<Data_container> data;
+    std::shared_ptr<Data_container> data;
 
     while(chan->recieve(data)){
         consume_frame(data);
@@ -55,7 +54,7 @@ void Consumer_base::run_in_thread(boost::shared_ptr<Message_channel<boost::share
     post_process_handler(data->frame_info);
 }
 
-void Consumer_base::consume_frame(boost::shared_ptr<Data_container> &data){
+void Consumer_base::consume_frame(std::shared_ptr<Data_container> &data){
     process_window_info(data->frame_info);
     process_frame_data(data->frame);
     process_frame_handler(data->frame_info);

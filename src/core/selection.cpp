@@ -27,9 +27,8 @@
 #include <algorithm>
 #include <set>
 #include <queue>
+#include <map>
 #include <boost/algorithm/string.hpp> // String algorithms
-#include <boost/foreach.hpp>
-#include <boost/lexical_cast.hpp>
 #include "pteros/core/atom.h"
 #include "pteros/core/selection.h"
 #include "pteros/core/system.h"
@@ -87,7 +86,7 @@ void Selection::create_internal(System& sys, string& str){
 
     // Show warning if empty selection is created
     if(size()==0) cout << "(WARNING) Selection '" << sel_text
-                       << "' is empty!\n\t\tAny call of its methods will crash your program!" << endl;
+                       << "' is empty!\n\t\tAny call of its methods (except size()) will crash your program!" << endl;
 }
 
 // Aux function, which creates selection
@@ -109,7 +108,7 @@ void Selection::create_internal(System& sys, int ind1, int ind2){
 
     // Show warning if empty selection is created
     if(size()==0) cout << "(WARNING) Selection '" << ind1 << ":" << ind2
-                       << "' is empty!\n\t\tAny call of its methods will crash your program!" << endl;
+                       << "' is empty!\n\t\tAny call of its methods (except size()) will crash your program!" << endl;
 }
 
 
@@ -658,10 +657,11 @@ Vector3f Selection::center(bool mass_weighted, bool periodic) const {
     if(periodic==false){
         if(mass_weighted){
             float m = 0.0;
-            for(i=0; i<n; ++i){
+            for(i=0; i<n; ++i){                
                 res += XYZ(i)*Mass(i);
                 m += Mass(i);
             }
+            if(m==0) throw Pteros_error("Zero mass in mass-weighted center calculation!");
             return res/m;
         } else {
             for(i=0; i<n; ++i)
@@ -680,6 +680,7 @@ Vector3f Selection::center(bool mass_weighted, bool periodic) const {
                 res += system->Box(frame).get_closest_image(XYZ(i),ref_point) * Mass(i);
                 m += Mass(i);
             }
+            if(m==0) throw Pteros_error("Zero mass in mass-weighted center calculation!");
             return res/m;
         } else {
             for(i=0; i<n; ++i)
@@ -801,7 +802,7 @@ float Selection::rmsd(int fr1, int fr2) const{
     float res = 0.0;
 
     if(fr1<0 || fr1>=system->num_frames() ||
-            fr2<0 || fr2>=system->num_frames()){
+       fr2<0 || fr2>=system->num_frames()){
         Pteros_error e;
         e << "RMSD requested for frames" << fr1 << " and "<<fr2
           << " while the valid range is " << 0<<":"<<system->num_frames()-1;
@@ -826,10 +827,8 @@ float Selection::rmsd(int fr) const {
 }
 
 // Apply transformation
-void Selection::apply_transform(Affine3f &t){
-    int n = size();
-
-    Vector3f v;
+void Selection::apply_transform(const Affine3f &t){
+    int n = size();    
     for(int i=0; i<n; ++i){        
         XYZ(i) = (t * XYZ(i)).eval();
     }
@@ -952,6 +951,7 @@ Affine3f fit_transform(const Selection& sel1, const Selection& sel2){
     // Bring centers to zero
     cm1 = sel1.center(true);
     cm2 = sel2.center(true);
+
     const_cast<Selection&>(sel1).translate(-cm1);
     const_cast<Selection&>(sel2).translate(-cm2);
 
@@ -1060,12 +1060,15 @@ void Selection::fit_trajectory(int ref_frame, int b, int e){
 Affine3f Selection::fit_transform(int fr1, int fr2) const {
     // Save current frame
     int cur_frame = get_frame();
+
     const_cast<Selection*>(this)->set_frame(fr1); // this points to fr1
     // Create aux selection
-    Selection s2(*this);
+    Selection s2(*this);    
     s2.set_frame(fr2); // Points to fr2
+
     // Call fit_transform
     Affine3f t = pteros::fit_transform(*this,s2);
+
     // Restore frame
     const_cast<Selection*>(this)->set_frame(cur_frame);
     return t;
@@ -1104,7 +1107,7 @@ void Selection::write(string fname, int b, int e) {
     if(e==-1) e=get_frame();
     cout << "Writing the range of frames "<<b<<":"<<e<< endl;
 
-    boost::shared_ptr<Mol_file> f = io_factory(fname,'w');
+    auto f = io_factory(fname,'w');
 
     if(!f->get_content_type().structure && e!=b){
         throw Pteros_error("Can't write the range of frames to structure file!");
@@ -1132,7 +1135,7 @@ void Selection::each_residue(std::vector<Selection>& sel) const {
         m.insert(ss.str());
     }
     // Now cycle over this set and make selections
-    BOOST_FOREACH(string s, m){
+    for(auto s: m){
         //cout << s << endl;
         sel.push_back( Selection(*get_system(),s) );
     }
@@ -1225,7 +1228,7 @@ void Selection::split_by_connectivity(float d, std::vector<Selection> &res) {
         ++ngr;        
         Selection s(*system);
         res.push_back(s);
-        res.back().sel_text = "index";
+        res.back().sel_text = "";
         // Atoms to search
         queue<int> to_search;
         // Add root atom to search set
@@ -1235,8 +1238,7 @@ void Selection::split_by_connectivity(float d, std::vector<Selection> &res) {
         while(!to_search.empty()){
             k = to_search.front();
             to_search.pop();
-            res.back().index.push_back(Index(k)); // add it to current selection
-            res.back().sel_text += " "+boost::lexical_cast<string>(Index(k));
+            res.back().index.push_back(Index(k)); // add it to current selection            
             // See all atoms connected to k
             for(int j=0; j<con[k].size(); ++j){
                 // if atom is not used, add it to search
@@ -1356,8 +1358,7 @@ void Selection::unwrap_bonds(float d, Vector3i_const_ref dims){
     }
 
     // Do all wrapping before    
-    wrap();
-    //write("0.pdb");
+    wrap();    
 
     // Mask of moved atoms
     VectorXi moved(size());
@@ -1375,25 +1376,17 @@ void Selection::unwrap_bonds(float d, Vector3i_const_ref dims){
             // Get center from the queue
             cur = *(todo.begin());
             todo.erase(todo.begin()); // And pop it from the queue
-            //cout << "(C)" << cur << " " << todo.size() << endl;
+
             moved[cur] = 1; // Mark as moved
             // Unwrap all atoms bound to cur to position near cur
             for(int i=0; i<con[cur].size(); ++i){
                 // We only move atoms, which were not yet moved
                 if(moved(con[cur][i])==0){
                     // We don't do wrapping here (passing false) since this will bring atoms back!
-                    // We intentially want atoms to be unwrapped                    
-                    //Vector3f v = XYZ(con[cur][i]);
-                    XYZ(con[cur][i]) = system->Box(frame).get_closest_image(XYZ(con[cur][i]),XYZ(cur),false,dims);
-                    /*
-                    if((v-XYZ(con[cur][i])).norm()>1e-7){
-                        cout << "(0) " << v.transpose() << endl;
-                        cout << "(1) " << XYZ(con[cur][i]).transpose() << endl << endl;
-                    }
-                    */
+                    // We intentially want atoms to be unwrapped                                        
+                    XYZ(con[cur][i]) = system->Box(frame).get_closest_image(XYZ(con[cur][i]),XYZ(cur),false,dims);                    
                     // Add moved atom to centers queue
-                    todo.insert(con[cur][i]);
-                    //cout << "   (+) " << con[cur][i] << endl;
+                    todo.insert(con[cur][i]);                    
                     ++Nmoved;                    
                 }
             }

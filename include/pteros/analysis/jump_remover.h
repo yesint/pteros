@@ -20,35 +20,27 @@
  *
 */
 
-#ifndef TRAJECTORY_PROCESSOR_WRAPPER_H
-#define TRAJECTORY_PROCESSOR_WRAPPER_H
+#ifndef JUMP_REMOVER_H
+#define JUMP_REMOVER_H
 
-#include "pteros/analysis/trajectory_processor.h"
-#include "consumer_wrapper.h"
-#include <boost/shared_ptr.hpp>
+#include "pteros/core/selection.h"
+#include "pteros/analysis/frame_info.h"
+
+#include <iostream>
 
 namespace pteros {
 
-class Trajectory_processor_wrapper: public Trajectory_processor {
+class Jump_remover {
 public:
-    void initialize();
-
-    Trajectory_processor_wrapper();
-    Trajectory_processor_wrapper(const Options &opt);
-    ~Trajectory_processor_wrapper(){}    
-
-    virtual void pre_process() = 0;
-    virtual void process_frame(const Frame_info& info) = 0;
-    virtual void post_process(const Frame_info& info) = 0;
-
-    System* get_system();   
-    // Gets pointer to internal frame obtained from reader
-    Frame* get_frame_ptr();
-
+    void add_no_jump_atoms(const Selection &sel);
+    void remove_jumps(System& system, const Frame_info &info);
 private:
-    boost::shared_ptr<Consumer_wrapper> cons_p;
+    // Indexes for removing jumps
+    std::vector<int> no_jump_ind;
+    // Running reference coordinates for removing jumps
+    Eigen::MatrixXf no_jump_ref;
 };
 
-}
+} // namespace
 
 #endif

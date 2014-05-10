@@ -768,7 +768,7 @@ void Grid_searcher::get_nlist(int i,int j,int k){
     int c1,c2,c3;
     float x,y,z;
 
-    nlist.clear();    
+    nlist.clear();
 
     // Determine how many cells the cutoff span in directions X, Y and Z
     int spanX = ceil(cutoff/dX);

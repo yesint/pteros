@@ -30,16 +30,16 @@ using namespace Eigen;
 
 class distance_matr: public pteros::Compiled_plugin_base {
 public:
-    distance_matr(pteros::Trajectory_processor* pr, pteros::Options_tree* opt): Compiled_plugin_base(pr,opt) {}
+    distance_matr(pteros::Trajectory_processor* pr, const pteros::Options& opt): Compiled_plugin_base(pr,opt) {}
 
 protected:
 
     void pre_process(){
         // See if computation of pairs within given distance is requested (0 means not requested)
-        dist = options->get_value<double>("dist",0.0);
-        max_moment = options->get_value<int>("max_moment",4.0);
+        dist = options("dist","0.0").as_float();
+        max_moment = options("max_moment","4.0").as_int();
         if(max_moment<1 || max_moment>4) throw Pteros_error("Moments from 1 to 4 are supported");
-        sel.modify(system, options->get_value<string>("selection") );
+        sel.modify(system, options("selection").as_string() );
 
         system.frame_dup(0);
 

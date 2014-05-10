@@ -84,7 +84,7 @@ protected:
     virtual void do_write(Selection& sel, Mol_file_content what) = 0;
 };
 
-boost::shared_ptr<Mol_file> io_factory(std::string fname, char open_mode);
+std::unique_ptr<Mol_file> io_factory(std::string fname, char open_mode);
 
 float get_mass_from_atom_name(std::string& name);
 

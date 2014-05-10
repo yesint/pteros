@@ -15,8 +15,8 @@ IF(WITH_PYTHON)
         bindings_system.h
         bindings_selection.cpp
         bindings_selection.h
-        bindings_options_tree.cpp
-        bindings_options_tree.h
+        #bindings_options_tree.cpp
+        #bindings_options_tree.h
         bindings_frame_info.cpp
         bindings_frame_info.h
         bindings_trajectory_processor.cpp
@@ -39,6 +39,9 @@ IF(WITH_PYTHON)
 
         consumer_wrapper.cpp
         consumer_wrapper.h
+
+        bindings_options.cpp
+        bindings_options.h
     )
 
     target_link_libraries(pteros_py pteros pteros_analysis ${PYTHON_LIBRARIES} ${BOOST_PYTHON_LIB})

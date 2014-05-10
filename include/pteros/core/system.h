@@ -20,8 +20,6 @@
  *
 */
 
-//
-
 #ifndef SYSTEM_H
 #define SYSTEM_H
 
@@ -158,7 +156,7 @@ public:
     /// @{
 
     /// Duplicates given frame and adds it to the end of frame vector
-    void frame_dup(int);
+    int frame_dup(int);
 
     /// Adds new frame to trajectory
     void frame_append(const Frame& fr);
@@ -226,8 +224,6 @@ public:
 
     /// @}
 
-
-#ifndef NO_CPP11
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     /// @name Secondary structure functions
     /// @{
@@ -250,7 +246,6 @@ public:
      */
     std::string dssp() const;
     /// @}
-#endif
 
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

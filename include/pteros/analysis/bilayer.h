@@ -46,7 +46,7 @@ struct Bilayer_point_info {
     /// Projections of the point to both surfaces
     Eigen::Vector3f proj1, proj2;
     /// Pointers to projection spots (marker atoms in both monolayers used to compute normal)
-    boost::shared_ptr<Selection> spot1_ptr, spot2_ptr;
+    std::shared_ptr<Selection> spot1_ptr, spot2_ptr;
     void print();
 };
 

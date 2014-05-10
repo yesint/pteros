@@ -24,20 +24,10 @@
 #ifndef TRAJECTORY_PROCESSOR_H
 #define TRAJECTORY_PROCESSOR_H
 
-#include <iostream>
 #include <string>
-#include <queue>
-#include <set>
 #include "pteros/core/selection.h"
-#include <fstream>
-
-#include "pteros/analysis/options_parser.h"
+#include "pteros/analysis/options.h"
 #include "pteros/analysis/consumer_base.h"
-#include <boost/algorithm/string.hpp>
-#include <boost/thread.hpp>
-#include <boost/thread/mutex.hpp>
-#include <boost/thread/condition.hpp>
-
 #include "pteros/analysis/message_channel.h"
 
 namespace pteros {
@@ -49,8 +39,8 @@ namespace pteros {
 *   by frame number or by physical time.
 */
 
-typedef boost::shared_ptr<Frame> Frame_ptr;
-typedef Message_channel<boost::shared_ptr<Data_container> > Data_channel;
+typedef std::shared_ptr<Frame> Frame_ptr;
+typedef Message_channel<std::shared_ptr<Data_container> > Data_channel;
 
 class Trajectory_processor {
     friend class Consumer_base;
@@ -58,16 +48,16 @@ class Trajectory_processor {
 
         /// Default constructor
         Trajectory_processor(){ }
-        /// Constructor with system
-        Trajectory_processor(Options_tree& opt){            
-            options = &opt;
+        /// Constructor with options
+        Trajectory_processor(const Options& opt){
+            options = opt;
         }
         /// Destructor
         virtual ~Trajectory_processor();
 
         /// Pass options
-        void set_options(Options_tree& opt){
-            options = &opt;
+        void set_options(const Options& opt){
+            options = opt;
         }
 
         /// Do computation
@@ -77,26 +67,8 @@ class Trajectory_processor {
         std::string help();
 
     protected:
-        /// Tree of options
-        /** Tree of options is supposed to have the following structure:
-            root:
-                log_interval:
-                    int
-                trajectory_group:
-                    range: (optional)
-                        type:
-                            "frame_range" | "time_range"
-                        begin:
-                            int | double
-                        end:
-                            int | double
-                    trajectory_file_1
-                    trajectory_file_2
-                    trajectory_file_3...
-                trajectory_group:
-                    ...
-        */
-        Options_tree* options;
+        // Options
+        Options options;
 
         int log_interval;
 

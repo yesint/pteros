@@ -24,6 +24,7 @@
 #include "trajectory_processor_wrapper.h"
 #include "consumer_wrapper.h"
 #include "pteros/python/bindings_util.h"
+#include "pteros/analysis/jump_remover.h"
 
 using namespace pteros;
 using namespace boost::python;
@@ -37,13 +38,18 @@ using namespace boost::python;
 
 // Utility class, which allows overriding pre_process, process_frame and post_process in Python
 // and calling that overriden code from C++
+
+/* Here we are forced to work with boost::shared_ptr.
+ * We can't use std::shared_ptr since boost.python doesn't wrap it correctly for now...
+ */
+
 class _callback: public Trajectory_processor_wrapper {
 public:
     _callback(PyObject* p) {
         self = p;
     }
 
-    _callback(PyObject* p, Options_tree& opt): Trajectory_processor_wrapper(opt) {
+    _callback(PyObject* p, const Options& opt): Trajectory_processor_wrapper(opt) {
         self = p;
     }
 
@@ -71,13 +77,19 @@ void make_bindings_Trajectory_processor(){
     ;
 
     class_<Trajectory_processor_wrapper, boost::noncopyable, boost::shared_ptr<_callback> , bases<Trajectory_processor> >("Trajectory_processor", init<>())
-        .def(init<Options_tree&>() )
+        .def(init<const Options&>() )
         .def("set_options",&Trajectory_processor_wrapper::set_options)
         .def("run",&Trajectory_processor_wrapper::run)
         .def("get_system",&Trajectory_processor_wrapper::get_system,return_value_policy<reference_existing_object>())
         .def("get_frame_ptr",&Trajectory_processor_wrapper::get_frame_ptr,return_value_policy<reference_existing_object>())
         .def("initialize",&Trajectory_processor_wrapper::initialize)
         .def("help",&Trajectory_processor_wrapper::help)
+    ;
+
+    // Also wrap Jump_remover. It will be created for each python plugin on python side
+    class_<Jump_remover>("Jump_remover",init<>())
+        .def("add_no_jump_atoms",&Jump_remover::add_no_jump_atoms)
+        .def("remove_jumps",&Jump_remover::remove_jumps)
     ;
 
 }

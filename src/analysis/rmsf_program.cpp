@@ -21,7 +21,8 @@
 */
 
 #include "pteros/analysis/rmsf.h"
-#include "pteros/pteros.h"
+#include "pteros/analysis/options.h"
+#include "pteros/core/pteros_error.h"
 
 using namespace std;
 using namespace pteros;
@@ -29,39 +30,19 @@ using namespace pteros;
 int main(int argc, char** argv){
 
     try {
-        Options_tree options;
-        options.from_command_line(argc,argv);
-        //json_spirit::mValue m = engine->options.to_json();
-        //json_spirit::write_stream(m,cout,true);
-/*
-        options.from_command_line(
-"time ~/work/Projects/pteros/svn/pteros_build/src/analysis/pteros_rmsf "
-"--trajectory_group "
-"--range frame_range 0 1000 --end-range "
-//"--window time_window 200 --end-window "
-"/home/semen/work/Projects/kornelyuk/Sasha/dimer_md/1/dimer_noPBC_1.xtc "
-"--end-trajectory_group "
-"--structure_file /home/semen/work/Projects/kornelyuk/Sasha/dimer_md/1/ref.pdb "
-"--selection "
-    "all "
-    "--name all "
-"--end-selection "
-"--log_interval 1000 "
-"--async true "
-"--do_rmsd true"
-            );
-*/        
+        Options options;
+        parse_command_line(argc,argv,options);
 
         Trajectory_processor processor(options);
 
         // Show help if asked
-        if(options.count_options("help") || argc==1){
+        if(argc==1){
             cout << processor.help() << endl;
             RMSF::print_help();
             return 0;
         }
 
-        boost::shared_ptr<RMSF> engine(new RMSF(processor,options));
+        std::unique_ptr<RMSF> engine(new RMSF(processor,options));
 
 /*
         Selection s(sys,"all");

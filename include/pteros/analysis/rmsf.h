@@ -26,6 +26,7 @@
 
 #include "pteros/analysis/trajectory_processor.h"
 #include "pteros/analysis/consumer.h"
+#include <map>
 
 namespace pteros {
 
@@ -48,7 +49,7 @@ struct rmsf_group {
     // Per residue energy
     //std::vector<Eigen::VectorXf> per_res_energy;
 
-    string name;
+    std::string name;
 
     // RMSD
     std::vector<double> rmsd;
@@ -65,12 +66,12 @@ struct rmsf_group {
 class RMSF: public Consumer
 {
 public:
-    RMSF(Trajectory_processor& proc, Options_tree& opt): Consumer(&proc){
+    RMSF(Trajectory_processor& proc, const Options& opt): Consumer(&proc){
         set_options(opt);
     }
 
-    void set_options(Options_tree& opt){
-        options = &opt;
+    void set_options(const Options& opt){
+        options = opt;
     }
 
     static void print_help();
@@ -102,7 +103,7 @@ private:
         */
 
     bool do_rmsd;    
-    Options_tree* options;    
+    Options options;
 };
 
 }

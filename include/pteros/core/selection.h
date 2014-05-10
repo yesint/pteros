@@ -30,7 +30,6 @@
 #include <Eigen/Geometry>
 #include "pteros/core/selection_parser.h"
 #include "pteros/core/system.h"
-#include <boost/shared_ptr.hpp>
 #include "pteros/core/typedefs.h"
 
 namespace pteros {
@@ -448,7 +447,7 @@ class Selection {
     void fit(int fr1, int fr2);
 
     /// Apply fitting transformation
-    void apply_transform(Eigen::Affine3f& t);
+    void apply_transform(const Eigen::Affine3f& t);
     /// @}
 
 
@@ -775,7 +774,7 @@ protected:
     int frame;
 
     // Holds an instance of selection parser
-    boost::shared_ptr<Selection_parser> parser;
+    std::unique_ptr<Selection_parser> parser;
     void allocate_parser();
 
     // Private functions for creating selection

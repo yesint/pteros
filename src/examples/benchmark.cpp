@@ -1,6 +1,7 @@
 #include "pteros/analysis/trajectory_processor.h"
 #include "pteros/analysis/consumer.h"
 #include "pteros/core/grid_search.h"
+#include "pteros/core/pteros_error.h"
 
 using namespace std;
 using namespace pteros;
@@ -78,9 +79,9 @@ int main(int argc, char** argv){
     try{
 
 
-    Options_tree options;
-    options.from_command_line(argc,argv);
-    int num = options.get_value<int>("bench");
+    Options options;
+    parse_command_line(argc,argv,options);
+    int num = options("bench").as_int();
     cout << num << endl;
     if(num>3){
         System s("/home/semen/work/Projects/kornelyuk/Sasha/dimer_md/1/dimer_pdb2gmx.gro");
@@ -123,25 +124,25 @@ int main(int argc, char** argv){
 
     Trajectory_processor engine(options);
 
-    boost::shared_ptr<Consumer> b1,b2,b3;
+    std::unique_ptr<Consumer> b1,b2,b3;
 
     switch(num){
     case 1: {
-        b1 = boost::shared_ptr<Bench1>(new Bench1(&engine));
+        b1 = std::unique_ptr<Bench1>(new Bench1(&engine));
         break;
     }
     case 2: {
-        b2 = boost::shared_ptr<Bench2>(new Bench2(&engine));
+        b2 = std::unique_ptr<Bench2>(new Bench2(&engine));
         break;
     }
     case 3: {
-        b3 = boost::shared_ptr<Bench3>(new Bench3(&engine));
+        b3 = std::unique_ptr<Bench3>(new Bench3(&engine));
         break;
     }
     case 0: {
-        b1 = boost::shared_ptr<Bench1>(new Bench1(&engine));
-        b2 = boost::shared_ptr<Bench2>(new Bench2(&engine));
-        b3 = boost::shared_ptr<Bench3>(new Bench3(&engine));
+        b1 = std::unique_ptr<Bench1>(new Bench1(&engine));
+        b2 = std::unique_ptr<Bench2>(new Bench2(&engine));
+        b3 = std::unique_ptr<Bench3>(new Bench3(&engine));
         break;
     }
     }
