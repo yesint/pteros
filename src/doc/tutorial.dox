@@ -184,7 +184,6 @@ Main attributes of the atoms are:
 - \b tag - arbitrary textual tag (often called "segment" in CHARMM, NAMD or VMD)
 - \b mass - the mass of the atom in atomic units
 
-
 Now let's play with the coordinates of atoms. First of all let's load molecular dynamics trajectory into the system:
 \code
 System s("some-protein.pdb");
@@ -225,6 +224,24 @@ It is also possible to get coordinates of any frame by supplying second paramete
 sel1.XYZ(20,5) = sel1.XYZ(10,3);
 \endcode
 
+Another way of getting the properties of atoms and coordinates in selection is using the indexing syntax:
+\code
+cout << sel1[0].Resid() << " " << sel1[3].XYZ(10) << endl;
+\endcode
+
+This code will output resid of the atom 0 and the coordinates of atom 3 for frame 10. Usually indexing syntax is less convenient and more verbose, however it has an big advantage of working in the iterator-based or range-based loops:
+\code
+// Iterator-based loop:
+for(Selection::iterator it=sel1.begin(); it!=sel1.end(); it++){
+  cout << it->Resid() << endl;
+}
+
+// Range-based C++11 for loop:
+for(auto& at: sel1){
+  cout << at.Resid() << endl;
+}
+\endcode 
+
 One can also duplicate frames, copy one frame to the other and delete frames. Note that this is done by the methods of System class:
 \code
 System sys("some-protein.pdb");
@@ -233,6 +250,7 @@ sys.frame_dup(4);
 // Copy coordinates of this duplicated frame to frame 1
 sys.frame_copy(sys.num_frames()-1, 1); // Note the usage of num_frames() to get the nuber of frames in the system
 \endcode
+
 
 \subsection transforms Geometry transformations
 
@@ -425,44 +443,36 @@ int main(int argc, char* argv[]){
 Now three tasks, operating on different selections will run in parallel during the reading of trajectory. But wait, what trajectory we are going to read? This is cpecified at run time by the command line arguments:
 
 \code
-./our_program --trajectory[ some-protein.pdb traj-part1.xtc traj-part2.xtc --first_frame 14 --last_time 250 ]
+./our_program -f some-protein.pdb traj-part1.xtc traj-part2.xtc -b 14fr -e 250ps
 \endcode
 
-The groups of options are passed in square brackets. In our case we specify --trajectory argument, which is absorbed internally by Trajectory_processor. It looks at the list of specified files and finds a structure file (some-protein.pdb in our case). This file is loaded into the "system" variable of all our tasks. Then Trajectory_processor reads all trajectories one by one in order of appearance and calls our task for frame processing. Processing starts at frame 14 and ends when the time stamp in current frame becomes larger then 250 ps. All this complex logic is completely abstracted by the Trajectory_processor class, which saves you a lot of time.
+In our case we specify -f, -b and -e arguments, which are absorbed internally by Trajectory_processor. Trajectory_processor looks at the list of files cpecified after -f and finds a structure file (some-protein.pdb in our case). This file is loaded into the "system" variable of all our tasks. Then Trajectory_processor reads all trajectories one by one in order of appearance and calls our task for frame processing. Processing starts at frame 14 and ends when the time stamp in current frame becomes larger then 250 ps. All this complex logic is completely abstracted by the Trajectory_processor class, which saves you a lot of time.
 
 As you noticed, we hard-coded selection texts in out code. Let's do our program more flexible. We will modify it to take multiple additional arguments like this: 
 \code
-./our_program --trajectory[ some-protein.pdb traj-part1.xtc traj-part2.xtc --first_frame 14 --last_time 250 ] \
-	--selection "name CA" --selection "name CB" --selection "resid 1-15"
+./our_program -f some-protein.pdb traj-part1.xtc traj-part2.xtc -b 14fr -e 250ps -sel "name CA" "name CB" "resid 1-15"
 \endcode
 
 This is surprisingly simple:
 
 \code
-...
-#include <boost/foreach.hpp>
-#include <boost/shared_ptr.hpp>
-...
-
 int main(int argc, char* argv[]){
 	// Create container for command-line options
-        Options_tree options;
+        Options options;
         // Parse command line
-        options.from_command_line(argc,argv);
+        parse_command_line(argc,argv,options);
 	// Create Trajectory processor;
 	Trajectory_processor proc;
 	
 	// Container for our tasks
 	vector<shared_ptr<Our_task> > tasks;
 	
-	// Get all options named "selection" and cycle over them
-	BOOST_FOREACH(Options_tree* opt, options->get_options("selection")){
-		// Get selection text as a string from current option
-		string sel_text = o->get_value<string>("");
+	// Get all values from -sel key and cycle over them
+	for(auto& sel_text: options("sel").as_strings()){		
 		// Create task
 		shared_ptr<Our_task> task(&proc, sel_text);
 		tasks.push_back(task); 
-		// Without this task will go out of scope, get destructed and cause a crash!
+		// Without this task will go out of scope, get distructed and will cause a crash!
 	}
 	
 	// Run processor!
@@ -470,9 +480,7 @@ int main(int argc, char* argv[]){
 }
 \endcode
 
-In fact we only need three lines to process our additional options. The usage of boost::foreach and boost::shared_ptr libraries allows to simplify the code considerably, but it is not necessary.
-
-
+In fact we only need three lines to process our additional options!
 
 
 \section analysis_plugins Very-high-level facilities
@@ -488,19 +496,18 @@ In the /bin directory of your pteros installation you can find pteros_analysis.p
 The driver script is called like this (splitted by several lines for clarity):
 \code
 python pteros_analysis.py \
---trajectory[ \
+-f \
  structure-file.pdb \
  some-trajectory.xtc \
- --first_frame 0 --last_frame 100 \
-] \
---task [center --selection "name CA" --mass_weighted true] \
---task [sample1 --val 1] \
---task [sample2 --val 2] \
---task [user_script --plugin_file script1.py --val 42]
+ -b 0fr -e 100fr \
+-task center -selection "name CA" -mass_weighted true \
+-task sample1 -val 1 \
+-task sample2 -val 2 \
+-task user_script -plugin_file script1.py -val 42
 \endcode
 
 The driver loads specified structure file and reads provided trajectory frame by frame in the given range of frames.
-On each frame all specified tasks are called:
+On each frame all specified tasks are called.
 
 - Compiled C++ tasks are executed in separate threads <i>completely in parallel</i>. 
 - All Python tasks are executed <i>sequencially</i> in one dedicated thread. 
@@ -511,8 +518,8 @@ Passing the parameter --plugin_file to any task allows loading plugins from any 
 
 You are free to run multiple instances of the same task with different parameters
 \code
---task [center --selection "name CA" --mass_weighted true] \
---task [center --selection "name CB CC" --mass_weighted false] \
+-task center -selection "name CA" -mass_weighted true \
+-task center -selection "name CB CC" -mass_weighted false \
 \endcode
 
 all of them will be executed separately and will not interfere with each other.
@@ -528,9 +535,9 @@ from pteros import *
 
 class Task:		
 	def pre_process(self):
-		sel_text = self.options.get_value_string("selection")
+		sel_text = self.options("selection").as_string()
 		self.sel = Selection(self.system, sel_text )
-		self.use_mass = self.options.get_value_bool("mass_weighted",False)
+		self.use_mass = self.options("mass_weighted","False").as_bool()
 		print "Working on selection '%s'" % self.sel.get_text()
 		print "There are %i atoms in selection" % self.sel.size()
 		
@@ -551,7 +558,6 @@ The rest of the code is self-explanatory.
 
 
 
-
 \subsection compiled Writing compiled analysis plugin
 
 Let us implement the same plugin in C++. It will look almost the same and has very small syntactic overhead:
@@ -563,8 +569,8 @@ public:
     }
 protected:
     void pre_process(){
-        string sel_text = options->get_value<string>("selection");
-        use_mass = options->get_value<bool>("mass_weighted",false);
+        string sel_text = options("selection").as_string();
+        use_mass = options("mass_weighted","false").as_bool();
         sel.modify(system,sel_text);
         cout << "Working on selection " << sel.get_text() << endl;
         cout << "There are " << sel.size() << " atoms in selection" << endl;

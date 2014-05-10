@@ -88,7 +88,7 @@ Intel ICC compiles Pteros on Linux, but gives poor performance. Compiling with I
 \subsection depend 	Dependencies 
 The prerequisites for compilation of Pteros are the following:
 
-- Standard-conforming C and C++ compileres (tested with gcc>=4.7, clang>=3.1).
+- Standard-conforming C and C++11 compileres (tested with gcc>=4.8, clang>=3.1).
 - <a href="http://www.cmake.org/">cmake</a> build system.
 - <a href="http://www.boost.org/">boost</a> 1.48 or higher.
 - Python 2.5 of higher.
@@ -102,18 +102,30 @@ sudo apt-get install g++ cmake libboost-all-dev python-dev python-numpy git doxy
 
 Installation of dependencies on Windows is described here \ref install_win.
 
+Starting from May 2014 Pteros has moved to C++11 standard. As a result it can only be compiled with sufficiently modern C++ compilers. We are aware that many workstations and computational clusters still has ancient versions of compilers, which do not support C++11. For such situations an older C++98 version of Pteros is preserved in a separate repository (see below).
+
+
 \subsection build	Building Pteros
+\subsubsection get Getting the code
 Get the latest source code could from the Git repository. If you want the stable branch use the following command:
 \code
 git clone git://git.code.sf.net/p/pteros/code pteros-code
 \endcode
-This will create a directory named "pteros" in you current working directory and will download the latest stable branch of Pteros source code into it.
+This will create a directory named "pteros-code" in you current working directory and will download the latest stable branch of Pteros source code into it.
 
 You can also get the latest development branch (named "experimental"), which is the bleading-age of Pteros development but may contain some bugs and unstable features:
 \code
 git clone -b experimental git://git.code.sf.net/p/pteros/code pteros-code
 \endcode
 
+If you need older version, which does not contain C++11 features, use the "optional_cpp11" branch:
+\code
+git clone -b optional_cpp11 git://git.code.sf.net/p/pteros/code pteros-code
+\endcode
+ 
+Please note, that this branch is completely outdated now and will never get new features. It is preserved only for compatibility with ancient compilers.
+
+\subsubsection compile Compiling
 Create a build directory (for example 'pteros_build'). Go to this directory and issue the following commands:
 
 \code
@@ -143,7 +155,7 @@ If you want to compile with alternative compiler (for example Clang), add the co
 -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
 \endcode
 
-\subsection test Testing installation
+\subsubsection test Testing installation
 
 Run the following command:
 \code
@@ -190,7 +202,7 @@ If the Python is installed, but you don't want to use it add the following flag 
 Compiled analysis plugins, which are written in C++, will be also missing in this case because they are built as Python extensions by default. However, it is possible to build each plugin as a separate standalone program, which does not depend on Python, by adding the following flag to CMake invocation:
 \code -DSTANDALONE_PLUGINS="ON" \endcode
 
-If you want to build plugins as standalone programs AND python extensions at the same time you'll need the following sequence of commands:
+If you want to build plugins as the standalone programs AND as python extensions at the same time you'll need to compile twice:
 \code
 cmake <usual options> -DSTANDALONE_PLUGINS="OFF"
 make
