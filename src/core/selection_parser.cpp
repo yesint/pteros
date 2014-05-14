@@ -132,7 +132,7 @@ string AstNode::decode(){
 
 #endif
 
-int AstNode::child_as_int(int i){
+int AstNode::child_as_int(int i){    
     return boost::get<int>(boost::get<AstNode_ptr>(children[i])->children[0]);
 }
 
@@ -140,7 +140,7 @@ bool AstNode::child_as_bool(int i){
     return boost::get<bool>(boost::get<AstNode_ptr>(children[i])->children[0]);
 }
 
-string AstNode::child_as_str(int i){
+string AstNode::child_as_str(int i){    
     return boost::get<string>(boost::get<AstNode_ptr>(children[i])->children[0]);
 }
 
@@ -148,11 +148,11 @@ char AstNode::child_as_char(int i){
     return boost::get<char>(boost::get<AstNode_ptr>(children[i])->children[0]);
 }
 
-float AstNode::child_as_float(int i){
+float AstNode::child_as_float(int i){        
     return boost::get<float>(boost::get<AstNode_ptr>(children[i])->children[0]);
 }
 
-float AstNode::child_as_float_or_int(int i){
+float AstNode::child_as_float_or_int(int i){    
     float d;
     try {
         d = child_as_float(i);
@@ -277,7 +277,7 @@ AstNode_ptr recognize(string s){
             // Try to convert token to float
             try {
                 node->children.push_back( boost::lexical_cast<float>(str) );
-                node->code = TOK_FLOAT;
+                node->code = TOK_FLOAT;                
             } catch(boost::bad_lexical_cast) {
                 // ok, save it as a string
                 node->children.push_back(str);
@@ -439,18 +439,6 @@ struct Grammar {
             return true;
         } else {
             return false;
-        }
-    }
-
-    // If input node in a data node, it is reduced to data instantly
-    // if not, it is returned as is
-    // Used to add children to nodes without creating excessive sub-nodes with data
-    ast_element simplify(AstNode_ptr& node){
-        if(node->code == TOK_INT || node->code == TOK_FLOAT
-                || node->code == TOK_STR || node->code == TOK_REGEX){
-            return node->children[0];
-        } else {
-            return node;
         }
     }
 
@@ -1266,16 +1254,16 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
     }   
 }
 
-float Selection_parser::eval_numeric(AstNode_ptr& node, int at){
+float Selection_parser::eval_numeric(AstNode_ptr& node, int at){    
     if(node->code == TOK_INT){
-        return node->child_as_int(0);
-    } else if(node->code == TOK_FLOAT){
-        return node->child_as_float(0);
+        return boost::get<int>(node->children[0]);
+    } else if(node->code == TOK_FLOAT){        
+        return boost::get<float>(node->children[0]);
     } else if(node->code == TOK_X){
         return sys->traj[frame].coord[at](0);
     } else if(node->code == TOK_Y){
         return sys->traj[frame].coord[at](1);
-    } else if(node->code == TOK_Z){
+    } else if(node->code == TOK_Z){        
         return sys->traj[frame].coord[at](2);
     } else if(node->code == TOK_BETA){
         return sys->atoms[at].beta;
@@ -1345,8 +1333,8 @@ float Selection_parser::eval_numeric(AstNode_ptr& node, int at){
 
         bool pbc = false;
         if(node->children.size()==7)
-            pbc = node->child_as_bool(6);
-
+            //TODO
+            pbc = node->child_as_bool(6); // Is this correct???
 
         // Return distance between atom and v
         if(pbc){
