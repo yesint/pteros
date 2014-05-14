@@ -25,6 +25,7 @@
 
 #include <string>
 #include <vector>
+#include <functional>
 #include <Eigen/Core>
 #include <Eigen/Dense>
 #include "pteros/core/atom.h"
@@ -145,9 +146,16 @@ public:
     /// @{
 
     /** Read structure, trajectory or topology from file.
+     @param b First frame to read
+     @param e Last frame to read (-1 means up to the end of trajectory)
+     @param skip Read only each skip frames
+     @param on_frame Callback function, which takes pointer to the System as a
+     first argument and the index of current stored frame as the second.
+     If callback returns false loading stops.
     */
     // Skip functionality suggested by Raul Mera
-    void load(std::string fname, int b=0, int e=-1, int skip = 0);
+    void load(std::string fname, int b=0, int e=-1, int skip = 0,
+              std::function<bool(System*,int)> on_frame = 0);
     /// @}
 
 

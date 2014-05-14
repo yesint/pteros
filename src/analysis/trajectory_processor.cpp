@@ -164,7 +164,7 @@ void process_value_with_suffix(const string& s, int* intval, float* floatval){
 void Trajectory_processor::run(){
     cout << "Starting trajectory processing..." << endl;
 
-    // See if thre are some connected consumers
+    // See if there are some connected consumers
     if(consumers.size()==0) throw Pteros_error("No consumers are connected to trajectory processor!");
     cout << "Connected " << consumers.size() << " consumers" << endl;    
 
@@ -219,7 +219,7 @@ void Trajectory_processor::run(){
     if(consumers.size()>1){
         cout << "Copying system data to consumers..." << endl;
         for(int i=1; i<consumers.size(); ++i){
-            *(consumers[i]->get_system()) = *sys1; // deep copying
+            *(consumers[i]->get_system()) = *sys1; // deep copy
         }
     }    
 
@@ -360,7 +360,7 @@ void Trajectory_processor::reader_thread_body(){
 
             // Main loop over trajectory frames
             while(true){
-                // To avoid eccessive copy operations we allocate a shared pointer
+                // To avoid excessive copy operations we allocate a shared pointer
                 // and will load data into its storage
                 std::shared_ptr<Data_container> data(new Data_container);
 
@@ -385,7 +385,7 @@ void Trajectory_processor::reader_thread_body(){
                     // Send stop to the queue
                     channel.send_stop();
                     finished = true;
-                    // End exit loop
+                    // exit loop
                     break;
                 }
 

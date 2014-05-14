@@ -27,6 +27,7 @@
 
 using namespace pteros;
 using namespace Eigen;
+namespace bp = boost::python;
 using namespace boost::python;
 
 /**********************
@@ -115,13 +116,6 @@ PyObject* Selection_get_traj2(Selection* s, int ind, int b){
 
 PyObject* Selection_get_traj1(Selection* s, int ind){
     return Selection_get_traj3(s,ind,0,-1);
-}
-
-PyObject* Selection_center(Selection* s, bool mass_weighted){
-    CREATE_PYARRAY_1D(p,3)
-    MAP_EIGEN_TO_PYARRAY(data,Vector3f,p)
-    data = s->center(mass_weighted);
-    return boost::python::incref(p);
 }
 
 boost::python::tuple Selection_minmax(Selection* s){
@@ -306,16 +300,13 @@ void Selection_set_resname2(Selection* s, string& data){
 }
 
 
-PyObject* Selection_center1(Selection* s, bool w){
+PyObject* Selection_center(Selection* s, bool mass_weighted, bool periodic){
     CREATE_PYARRAY_1D(p,3)
     MAP_EIGEN_TO_PYARRAY(data,Vector3f,p)
-    data = s->center(w);
+    data = s->center(mass_weighted,periodic);
     return boost::python::incref(p);
 }
 
-PyObject* Selection_center0(Selection* s){
-    return Selection_center1(s,false);
-}
 
 float rmsd_py(Selection& sel1, int fr1, Selection& sel2, int fr2){
     return rmsd(sel1,fr1,sel2,fr2);
@@ -540,8 +531,7 @@ void make_bindings_Selection(){
         .def("get_traj",&Selection_get_traj2)
         .def("get_traj",&Selection_get_traj1)        
 
-        .def("center",&Selection_center1)
-        .def("center",&Selection_center0)
+        .def("center",&Selection_center, (bp::arg("mass_weighted")=false,bp::arg("periodic")=false) )
 
         .def("minmax",&Selection_minmax)
         .def("translate",&Selection_translate)

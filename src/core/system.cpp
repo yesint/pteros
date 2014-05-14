@@ -81,7 +81,7 @@ void System::check_num_atoms_in_last_frame(){
 }
 
 // Load structure or trajectory
-void System::load(string fname, int b, int e, int skip){
+void System::load(string fname, int b, int e, int skip, std::function<bool(System*,int)> on_frame){
     // Create an IO file reader
     auto f = io_factory(fname,'r');
 
@@ -119,7 +119,9 @@ void System::load(string fname, int b, int e, int skip){
 
             cout << "Reading..."<<endl;
 
-            int actually_read = 0;            
+            int actually_read = 0;
+
+            bool callback_ok = true;
 
             while(true){
                 // End frame reached?
@@ -132,7 +134,7 @@ void System::load(string fname, int b, int e, int skip){
                 bool ok = f->read(NULL,&Frame_data(num_frames()-1),c);
                 if(!ok){
                     frame_delete(num_frames()-1); // Remove last frame - it's invalid
-                    break;
+                    break; // end of trajectory
                 }
 
                 check_num_atoms_in_last_frame();
@@ -147,8 +149,13 @@ void System::load(string fname, int b, int e, int skip){
                     actually_read = 0;
                 }
 
-                // If we are here new frame is already accepted
+                // If we are here new frame is accepted
                 ++num_stored;
+
+                // Call a callback if asked
+                if(on_frame) callback_ok = on_frame(this,num_frames()-1);
+                // If callback returns false stop reading
+                if(!callback_ok) break;
             }        
         } else if(f->get_content_type().coordinates) {
             Mol_file_content c;
@@ -161,6 +168,8 @@ void System::load(string fname, int b, int e, int skip){
             f->read(NULL,&Frame_data(num_frames()-1),c);
             check_num_atoms_in_last_frame();
             ++num_stored;
+            // Call a callback if asked
+            if(on_frame) on_frame(this,num_frames()-1);
         }
     } else {
         // We don't have atoms yet, so we will read everything possible
@@ -174,9 +183,12 @@ void System::load(string fname, int b, int e, int skip){
         ++num_stored;
 
         assign_resindex();
+
+        // Call a callback if asked
+        if(on_frame) on_frame(this,num_frames()-1);
     }
 
-    cout << "Stored " << num_stored << " frames. Now " << num_frames() << " frames in the System" << endl;
+    cout << "Accepted " << num_stored << " frames. Now " << num_frames() << " frames in the System" << endl;
 }
 
 // Destructor of the system class
@@ -349,7 +361,7 @@ void System::atoms_delete(const std::vector<int> &ind){
 
 void System::append(const System &sys){
     //Sanity check
-    if(num_frames()!=sys.num_frames()) throw Pteros_error("Can't merge systems with different number of frames!");
+    if(num_frames()>0 && num_frames()!=sys.num_frames()) throw Pteros_error("Can't merge systems with different number of frames!");
     // Merge atoms
     copy(sys.atoms.begin(),sys.atoms.end(),back_inserter(atoms));
     // Merge coordinates
@@ -359,10 +371,9 @@ void System::append(const System &sys){
     assign_resindex();
 }
 
-void System::append(const Selection &sel)
-{
+void System::append(const Selection &sel){
     //Sanity check
-    if(num_frames()!=sel.get_system()->num_frames()) throw Pteros_error("Can't merge systems with different number of frames!");
+    if(num_frames()>0 && num_frames()!=sel.get_system()->num_frames()) throw Pteros_error("Can't merge systems with different number of frames!");
     // Merge atoms
     atoms.reserve(atoms.size()+sel.size());
     for(int i=0;i<sel.size();++i) atoms.push_back(sel.Atom_data(i));

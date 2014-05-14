@@ -26,13 +26,14 @@
 
 using namespace pteros;
 using namespace Eigen;
+namespace bp = boost::python;
 using namespace boost::python;
 
 /**********************
   Wrappers for System
 ***********************/
 
-BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(load_overloads, load, 1, 3)
+BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(load_overloads, load, 1, 4)
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(frame_delete_overloads, frame_delete, 0, 2)
 
 const Periodic_box& System_getBox(System* s, int fr){
@@ -102,6 +103,23 @@ void System_atoms_add2(System* s, boost::python::list& atm, boost::python::list&
     System_atoms_add1(s,atm,crd,NULL);
 }
 
+void System_load_callback(System* sys, string fname, int b, int e, int skip, boost::python::object obj){
+    // Create a callback from obj
+    auto callback = [&obj](System* s, int fr)->bool { return extract<bool>(obj(ptr(s),fr)); };
+    sys->load(fname,b,e,skip,callback);
+}
+
+void System_wrap_all1(System* sys, int fr, bp::list& dims){
+    Vector3i d;
+    for(int i=0;i<3;++i) d(i) = extract<int>(dims[i]);
+    sys->wrap_all(fr,d);
+}
+
+void System_wrap_all2(System* sys, int fr){
+    sys->wrap_all(fr);
+}
+
+
 void make_bindings_System(){
     import_array();
 
@@ -111,6 +129,7 @@ void make_bindings_System(){
         .def("num_atoms", &System::num_atoms)
         .def("num_frames", &System::num_frames)
         .def("load", &System::load, load_overloads())
+        .def("load", &System_load_callback,(bp::arg("fname"),bp::arg("b")=0,bp::arg("e")=-1,bp::arg("skip")=0,bp::arg("on_frame")))
         .def("frame_dup", &System::frame_dup)
         .def("frame_copy", &System::frame_copy)
         .def("frame_delete", &System::frame_delete, frame_delete_overloads())
@@ -128,6 +147,9 @@ void make_bindings_System(){
         .def("atoms_dup", &System_atoms_dup2)
         .def("atoms_add", &System_atoms_add1)
         .def("atoms_add", &System_atoms_add2)             
-        .def("wrap_all", &System::wrap_all)        
+        .def("wrap_all", &System_wrap_all1)
+        .def("wrap_all", &System_wrap_all2)
+        .def("append", static_cast<void(System::*)(const Selection&)>(&System::append))
+        .def("append", static_cast<void(System::*)(const System&)>(&System::append))
     ;
 }
