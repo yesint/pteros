@@ -129,15 +129,15 @@ Selection::Selection(const System &sys, string str){
 
 
 // Constructor without immediate parsing
-Selection::Selection(System& sys){
+Selection::Selection(const System &sys){
     // Add selection to sys and save self-pointer
-    system = &sys;   
+    system = const_cast<System*>(&sys);
     sel_text = "";
     frame = 0;
     parser.reset();
 }
 
-Selection::Selection(System& sys, int ind1, int ind2){
+Selection::Selection(const System &sys, int ind1, int ind2){
     create_internal(sys, ind1, ind2);
 }
 
@@ -149,7 +149,7 @@ Selection::~Selection(){
     // All the rest will be destroyed automatically
 }
 
-void Selection::append(Selection &sel){
+void Selection::append(const Selection &sel){
     if(!system) throw Pteros_error("Can't append to undefined system!");
     if(!sel.system) throw Pteros_error("Can't append undefined system!");
     if(sel.system!=system) throw Pteros_error("Can't append atoms from other system!");
@@ -187,7 +187,7 @@ void Selection::clear(){
 }
 
 // Modifies both system and text in selection
-void Selection::modify(System& sys, string str){
+void Selection::modify(const System &sys, string str){
     // If selecton is assigned already, delete and clear it
     if(system){
         delete_internal();
@@ -196,7 +196,7 @@ void Selection::modify(System& sys, string str){
     create_internal(sys, str);
 }
 
-void Selection::modify(System& sys, int ind1, int ind2){
+void Selection::modify(const System &sys, int ind1, int ind2){
     // If selecton is assigned already, delete and clear it
     if(system){
         delete_internal();
@@ -215,12 +215,12 @@ void Selection::modify(string str){
     allocate_parser();
 }
 
-void Selection::modify(System &sys){
+void Selection::modify(const System &sys){
     if(system){
         delete_internal();
     }
     // Add selection to sys and save self-pointer
-    system = &sys;
+    system = const_cast<System*>(&sys);
     frame = 0;
     parser.reset();
     sel_text = "";
@@ -239,7 +239,7 @@ void Selection::modify(int ind1, int ind2){
     for(int i=ind1; i<=ind2; ++i) index.push_back(i);       
 }
 
-void Selection::modify(std::vector<int> &ind){
+void Selection::modify(const std::vector<int> &ind){
     if(system==NULL) Pteros_error("Selection does not belong to the system!");
     parser.reset();
     // By default points to frame 0
@@ -733,7 +733,7 @@ void Selection::rotate(int axis, float angle){
     translate(cm);
 }
 
-// Sequence of rotations around x,y,z relative to zero
+// Sequence of rotations around x,y,z relative to pivot
 void Selection::rotate(Vector3f_const_ref angles, Vector3f_const_ref pivot){
     int n = index.size();
     Affine3f m( AngleAxisf(angles[0],Vector3f::UnitX()) *

@@ -78,7 +78,7 @@ class Selection {
         but does not parse selection.
     *   Selection text should be passed later by calling modify().
     */
-    Selection(System& sys);
+    Selection(const System& sys);
 
     /// Default constructor for absolutely empty selection.
     Selection();
@@ -91,7 +91,7 @@ class Selection {
         @param ind1 First index in interval
         @param ind2 Last index in interval (inclusive!)
      */
-    Selection(System& sys, int ind1, int ind2);
+    Selection(const System& sys, int ind1, int ind2);
 
     /// Assignment operator
     Selection& operator=(Selection sel);
@@ -124,13 +124,13 @@ class Selection {
     /// @{
 
     /// Append another selection to this one. Acts like logical "OR" between selections.
-    void append(Selection& sel);
+    void append(const Selection& sel);
 
     /// Append absolute index to selection
     void append(int ind);
 
     /// Modifies both system and string in selection.    
-    void modify(System& sys, std::string str);
+    void modify(const System& sys, std::string str);
 
     /** Modifies selection string in existing selection.
     *   @param str New value of selection text. Selection is re-parsed immediately with
@@ -139,16 +139,16 @@ class Selection {
     void modify(std::string str);
 
     /// Change system for selection (clears selection)
-    void modify(System& sys);
+    void modify(const System& sys);
 
     /// Modifies both system and selection using the range of indexes.   
-    void modify(System& sys, int ind1, int ind2);
+    void modify(const System& sys, int ind1, int ind2);
 
     /// Modifies selection using the range of indexes
     void modify(int ind1, int ind2);
 
     /// Modifies selection using vector of indexes
-    void modify(std::vector<int>& ind);
+    void modify(const std::vector<int>& ind);
 
     /// Modifies selection using pair of iterators to index array
     void modify(std::vector<int>::iterator it1, std::vector<int>::iterator it2);    
@@ -166,8 +166,7 @@ class Selection {
     */
     void update();
 
-    /** Clears selection and frees memory, but do not delete it.
-    *   Selection remains registered in parent system, but is cleared from any data.
+    /** Clears selection and frees memory.
     *   Subsequent call of modify() may populate it again.
     */
     void clear();
@@ -463,6 +462,7 @@ class Selection {
     /// Non-bond energy between two selections computed within given interaction cut-off.
     /// If cutoff is 0 or negative computes all pairs of atoms (very slow for large selections)
     /// fr = -1 computes for current frame of selection 1.
+    // Default value should be given in definition of friend function!
     friend Energy_components non_bond_energy(const Selection& sel1,
                                              const Selection& sel2,
                                              float cutoff,
@@ -510,7 +510,7 @@ class Selection {
     /// Get the size of selection
     int size() const {return index.size();}
 
-    /// Returnss true if selection was created from text string and false if it was
+    /// Returns true if selection was created from text string and false if it was
     /// constructed 'by hand' by appending indexes or other selections
     bool text_based() const {
         return sel_text!="";
