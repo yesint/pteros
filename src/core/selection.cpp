@@ -67,7 +67,7 @@ Selection::Selection(){
 };
 
 // Aux function, which creates selection
-void Selection::create_internal(System& sys, string& str){
+void Selection::create_internal(const System &sys, const string &str){
     // Set selection string
     sel_text = str;
     boost::trim(sel_text);
@@ -77,7 +77,7 @@ void Selection::create_internal(System& sys, string& str){
         boost::replace_all(sel_text,macro[2*i],macro[2*i+1]);
 
     // Add selection to sys
-    system = &sys;
+    system = const_cast<System*>(&sys);
 
     // By default points to frame 0
     frame = 0;
@@ -90,12 +90,12 @@ void Selection::create_internal(System& sys, string& str){
 }
 
 // Aux function, which creates selection
-void Selection::create_internal(System& sys, int ind1, int ind2){
+void Selection::create_internal(const System &sys, int ind1, int ind2){
     // No selection string
     sel_text = "";
 
     // Add selection to sys and save self-pointer
-    system = &sys;
+    system = const_cast<System*>(&sys);
 
     // By default points to frame 0
     frame = 0;
@@ -123,9 +123,10 @@ void Selection::delete_internal(){
 }
 
 // Main constructor
-Selection::Selection(System& sys, string str){
+Selection::Selection(const System &sys, string str){
     create_internal(sys, str);
 }
+
 
 // Constructor without immediate parsing
 Selection::Selection(System& sys){

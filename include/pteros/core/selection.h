@@ -71,7 +71,7 @@ class Selection {
     *   @param sys System pointed by this selection
     *   @param str Selection string    
     */
-    Selection(System& sys, std::string str);
+    Selection(const System& sys, std::string str);
 
     /** Constructor with delayed parsing of selection text.
     *   Associates selection with the system @param sys,
@@ -778,8 +778,8 @@ protected:
     void allocate_parser();
 
     // Private functions for creating selection
-    void create_internal(System& sys, std::string& str);
-    void create_internal(System& sys, int ind1, int ind2);
+    void create_internal(const System& sys, const std::string& str);
+    void create_internal(const System& sys, int ind1, int ind2);
     // Private function for deleting selection
     void delete_internal();        
 };
