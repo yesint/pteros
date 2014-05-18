@@ -787,7 +787,7 @@ protected:
 //==============================================================================
 
 /// Auxilary type used to incapsulate the atom and its current coordinates
-/// Used internally in Selection::operator[] and in iterator access to Selection
+/// Used internally in Selection::operator[] and in iterator access to Selection.
 /// Objects of this class should not be created by the user in normal situation.
 class Atom_proxy {
     friend class Selection::iterator;
