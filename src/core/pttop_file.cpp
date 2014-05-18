@@ -37,7 +37,7 @@ PTTOP_file::PTTOP_file(string fname, char mode): Mol_file(fname, mode)
 PTTOP_file::~PTTOP_file(){
 }
 
-bool PTTOP_file::do_read(System *sys, Frame *frame, Mol_file_content what){
+bool PTTOP_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
     if(open_mode=='r'){
         string line;
         stringstream ss;

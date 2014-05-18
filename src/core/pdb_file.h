@@ -37,7 +37,7 @@ namespace pteros {
 class PDB_file: public VMD_molfile_plugin_wrapper {
 public:    
 
-    virtual Mol_file_content get_content_type(){
+    virtual Mol_file_content get_content_type() const {
         Mol_file_content c;
         c.structure = true;
         c.coordinates = true;

@@ -48,8 +48,8 @@ protected:
     molfile_plugin_t* plugin;
     char mode;
 
-    virtual bool do_read(System *sys, Frame *frame, Mol_file_content what);
-    virtual void do_write(Selection &sel, Mol_file_content what);
+    virtual bool do_read(System *sys, Frame *frame, const Mol_file_content& what);
+    virtual void do_write(const Selection &sel, const Mol_file_content& what);
 };
 
 }

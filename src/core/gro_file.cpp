@@ -42,7 +42,7 @@ GRO_file::~GRO_file(){
     if(f) f.close();
 }
 
-bool GRO_file::do_read(System *sys, Frame *frame, Mol_file_content what){
+bool GRO_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
 
     stringstream ss;
     string dum,line;
@@ -124,7 +124,7 @@ bool GRO_file::do_read(System *sys, Frame *frame, Mol_file_content what){
     return true;
 }
 
-void GRO_file::do_write(Selection &sel, Mol_file_content what){
+void GRO_file::do_write(const Selection &sel, const Mol_file_content &what){
     int n = sel.size();
     char ch[80];
 

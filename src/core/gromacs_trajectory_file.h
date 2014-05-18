@@ -45,7 +45,7 @@ class Gromacs_trajectory_file: public Mol_file {
 
         virtual ~Gromacs_trajectory_file();        
 
-        virtual Mol_file_content get_content_type(){
+        virtual Mol_file_content get_content_type() const {
             Mol_file_content c;
             c.trajectory = true;
             return c;
@@ -73,9 +73,9 @@ class Gromacs_trajectory_file: public Mol_file {
                       matrix box,rvec *x) = 0;
 
         /// Reads next frame into internal storage. Returns false if failed or EOF reached.
-        virtual bool do_read(System *sys, Frame *frame, Mol_file_content what);
+        virtual bool do_read(System *sys, Frame *frame, const Mol_file_content& what);
         /// Writes data from given frame to trajectory
-        virtual void do_write(Selection &sel, Mol_file_content what);
+        virtual void do_write(const Selection &sel, const Mol_file_content& what);
 };
 
 }

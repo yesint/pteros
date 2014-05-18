@@ -80,21 +80,14 @@ protected:
     /// Could be overriden to take additional actions
     /// These handlers are called by Trajectory_processor
     virtual void pre_process_handler(){
-        in_pre_process = true;
-        in_process_frame = in_post_process = false;
         pre_process();
     }
 
     virtual void post_process_handler(const Frame_info& info){
-        in_post_process = true;
-        in_pre_process = in_process_frame = false;
         post_process(info);
     }
 
-    virtual void process_frame_handler(const Frame_info& info){
-        in_process_frame = true;
-        in_pre_process = in_post_process = false;        
-        // Call user callback
+    virtual void process_frame_handler(const Frame_info& info){        
         process_frame(info);
     }
 
@@ -105,9 +98,6 @@ protected:
     virtual void window_finished_handler(const Frame_info& info){
         window_finished(info);
     }
-
-    // Flags, which indicate where user-called method is executed
-    bool in_pre_process, in_process_frame, in_post_process;
 
 private:
 

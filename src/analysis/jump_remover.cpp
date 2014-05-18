@@ -29,9 +29,11 @@ using namespace pteros;
 
 void Jump_remover::add_no_jump_atoms(const Selection &sel)
 {    
+    int ind;
+    int n = sel.get_system()->num_atoms();
     for(int i=0;i<sel.size();++i){
-        int ind = sel.Index(i);
-        if(ind<0 || ind>=sel.get_system()->num_atoms()) throw Pteros_error("Index for jump removal out of range!");
+        ind = sel.Index(i);
+        if(ind<0 || ind>=n) throw Pteros_error("Index for jump removal out of range!");
         no_jump_ind.push_back(ind);
     }
 

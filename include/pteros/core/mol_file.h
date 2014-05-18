@@ -37,12 +37,8 @@ struct Mol_file_content {
     bool trajectory; // Many frames
     bool topology; // Molecular topology
 
-    Mol_file_content(){
-        structure = false;
-        coordinates = false;
-        trajectory = false;
-        topology = false;
-    }
+    Mol_file_content(): structure(false), coordinates(false),
+                        trajectory(false), topology(false){}
 };
 
 /// Generic API for reading and writing any molecule file formats
@@ -52,15 +48,15 @@ public:
     Mol_file(std::string fname, char open_mode);
     ~Mol_file();       
 
-    /// Reads data, which are specified by what, for example: MOLFILE_ATOMS|MOLFILE_COORDINATES
+    /// Reads data, which are specified by what.
     /// Pointers to System and Frame could be NULL if not used
-    bool read(System* sys, Frame* frame, Mol_file_content what);
+    bool read(System* sys, Frame* frame, const Mol_file_content& what);
 
     /// Write given data from selection specidied by what.
-    void write(Selection& sel, Mol_file_content what);
+    void write(const Selection& sel, const Mol_file_content& what);
 
     /// Reports content of this file type
-    virtual Mol_file_content get_content_type() = 0;
+    virtual Mol_file_content get_content_type() const = 0;
 
 protected:    
     int natoms;    
@@ -74,14 +70,14 @@ protected:
     Force_field& ff_in_system(System& sys);
 
     // Method to sanity check parameters send to read and write
-    void sanity_check_read(System* sys, Frame* frame, Mol_file_content what);
-    void sanity_check_write(Selection& sel, Mol_file_content what);
+    void sanity_check_read(System* sys, Frame* frame, const Mol_file_content &what) const;
+    void sanity_check_write(const Selection& sel, const Mol_file_content& what) const;
 
     /// User-overriden method for reading
-    virtual bool do_read(System* sys, Frame* frame, Mol_file_content what) = 0;
+    virtual bool do_read(System* sys, Frame* frame, const Mol_file_content& what) = 0;
 
     /// User-overriden method for writing
-    virtual void do_write(Selection& sel, Mol_file_content what) = 0;
+    virtual void do_write(const Selection& sel, const Mol_file_content& what) = 0;
 };
 
 std::unique_ptr<Mol_file> io_factory(std::string fname, char open_mode);

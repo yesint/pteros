@@ -92,7 +92,7 @@ Gromacs_trajectory_file::~Gromacs_trajectory_file(){
              <<  " Total writing time " << time_per_frame/(float)CLOCKS_PER_SEC << " s." <<endl;
 }
 
-bool Gromacs_trajectory_file::do_read(System *sys, Frame *frame, Mol_file_content what){
+bool Gromacs_trajectory_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
     clock_t t1 = clock();
     int i;
     float lambda;    
@@ -123,7 +123,7 @@ bool Gromacs_trajectory_file::do_read(System *sys, Frame *frame, Mol_file_conten
     return true; // Allows to proceed to next frame
 }
 
-void Gromacs_trajectory_file::do_write(Selection &sel, Mol_file_content what){
+void Gromacs_trajectory_file::do_write(const Selection &sel, const Mol_file_content &what){
     clock_t t1 = clock();
 
     if(!x){

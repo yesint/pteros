@@ -158,7 +158,7 @@ void VMD_molfile_plugin_wrapper::open(string fname, char open_mode){
     }
 }
 
-bool VMD_molfile_plugin_wrapper::do_read(System *sys, Frame *frame, Mol_file_content what){
+bool VMD_molfile_plugin_wrapper::do_read(System *sys, Frame *frame, const Mol_file_content &what){
 
     if(what.structure){
         // READ STRUCTURE:
@@ -239,7 +239,7 @@ bool VMD_molfile_plugin_wrapper::do_read(System *sys, Frame *frame, Mol_file_con
     }       
 }
 
-void VMD_molfile_plugin_wrapper::do_write(Selection &sel, Mol_file_content what){
+void VMD_molfile_plugin_wrapper::do_write(const Selection &sel, const Mol_file_content &what) {
 
     if(what.structure){
         // WRITE STRUCTURE:

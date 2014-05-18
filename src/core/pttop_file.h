@@ -37,7 +37,7 @@ public:
     PTTOP_file(std::string fname, char mode);
     ~PTTOP_file();
 
-    virtual Mol_file_content get_content_type(){
+    virtual Mol_file_content get_content_type() const {
         Mol_file_content c;
         c.topology = true;
         c.structure= true;
@@ -47,11 +47,11 @@ public:
 
 protected:    
 
-    virtual void do_write(Selection &sel, Mol_file_content what){
+    virtual void do_write(const Selection &sel, const Mol_file_content& what) {
         throw Pteros_error("PTTOP files could be produced by the dedicated script only!");
     }
 
-    virtual bool do_read(System *sys, Frame *frame, Mol_file_content what);
+    virtual bool do_read(System *sys, Frame *frame, const Mol_file_content& what);
 
     std::string file_name;
     char open_mode;

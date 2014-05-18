@@ -41,12 +41,12 @@ Mol_file::Mol_file(string fname, char open_mode){
 Mol_file::~Mol_file(){    
 }
 
-bool Mol_file::read(System *sys, Frame *frame, Mol_file_content what){
+bool Mol_file::read(System *sys, Frame *frame, const Mol_file_content &what){
     sanity_check_read(sys,frame,what);
     return do_read(sys,frame,what);
 }
 
-void Mol_file::write(Selection &sel, Mol_file_content what){
+void Mol_file::write(const Selection &sel, const Mol_file_content &what) {
     sanity_check_write(sel,what);
     do_write(sel,what);
 }
@@ -72,7 +72,7 @@ Force_field &Mol_file::ff_in_system(System &sys){
     return sys.force_field;
 }
 
-void Mol_file::sanity_check_read(System *sys, Frame *frame, Mol_file_content what){
+void Mol_file::sanity_check_read(System *sys, Frame *frame, const Mol_file_content& what) const {
     if( !get_content_type().structure && what.structure )
         throw Pteros_error("Can't read structure from this file type!");
     if( !get_content_type().coordinates && what.coordinates)
@@ -93,7 +93,7 @@ void Mol_file::sanity_check_read(System *sys, Frame *frame, Mol_file_content wha
         throw Pteros_error("Can't read structure because system already has atoms!");
 }
 
-void Mol_file::sanity_check_write(Selection &sel, Mol_file_content what){
+void Mol_file::sanity_check_write(const Selection &sel, const Mol_file_content &what) const{
     if(!what.structure && !what.coordinates && !what.trajectory && !what.topology)
         throw Pteros_error("Nothing to write!");
     if( !get_content_type().structure && what.structure )
