@@ -39,49 +39,31 @@ BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(get_average_overloads, get_average, 0, 2)
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(principal_orient_overloads, principal_orient, 0, 1)
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(unwrap_bonds_overloads, unwrap_bonds, 0, 1)
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(non_bond_energy_overloads, non_bond_energy, 0, 2)
+BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(rmsd_overloads, rmsd, 1, 2)
+BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(atoms_dup_overloads, atoms_dup, 0, 1)
 
-void Selection_modify1(Selection* s, System& sys, string str){
-    s->modify(sys,str);
-}
-
-void Selection_modify2(Selection* s, string str){
-    s->modify(str);
-}
-
-void Selection_modify3(Selection* s, System& sys, int ind1, int ind2){
-    s->modify(sys,ind1,ind2);
-}
-
-void Selection_modify4(Selection* s, int ind1, int ind2){
-    s->modify(ind1,ind2);
-}
 
 PyObject* Selection_get_xyz(Selection* s){
     CREATE_PYARRAY_2D(p,3,s->size())
-    MAP_EIGEN_TO_PYARRAY(data,MatrixXf,p)
+    MAP_EIGEN_TO_PYARRAY(MatrixXf,data,p)
     data = s->get_xyz();
     return boost::python::incref(p);
 }
 
 void Selection_set_xyz(Selection* s, PyObject* data){
-    MAP_EIGEN_TO_PYARRAY(m,MatrixXf,data)
+    MAP_EIGEN_TO_PYARRAY(MatrixXf,m,data)
     s->set_xyz(m);
 }
 
-PyObject* Selection_get_average1(Selection* s, int b, int e){
+PyObject* Selection_get_average(Selection* s, int b=0, int e=-1){
     CREATE_PYARRAY_2D(p,3,s->size())
-    MAP_EIGEN_TO_PYARRAY(data,MatrixXf,p)
+    MAP_EIGEN_TO_PYARRAY(MatrixXf,data,p)
     data = s->average_structure(b,e);
     return boost::python::incref(p);
 }
 
-PyObject* Selection_get_average2(Selection* s, int b){
-    return Selection_get_average1(s, b, -1);
-}
+BOOST_PYTHON_FUNCTION_OVERLOADS(Selection_get_average_overloads, Selection_get_average, 1, 3)
 
-PyObject* Selection_get_average3(Selection* s){
-    return Selection_get_average1(s, 0, -1);
-}
 
 boost::python::list Selection_get_mass(Selection* s){
     boost::python::list l;
@@ -103,56 +85,49 @@ void Selection_set_mass2(Selection* s, float data){
 }
 
 
-PyObject* Selection_get_traj3(Selection* s, int ind, int b, int e){
+PyObject* Selection_get_traj(Selection* s, int ind, int b=0, int e=-1){
     CREATE_PYARRAY_2D(p,3,s->get_system()->num_frames())
-    MAP_EIGEN_TO_PYARRAY(data,MatrixXf,p)
+    MAP_EIGEN_TO_PYARRAY(MatrixXf,data,p)
     data = s->atom_traj(ind,b,e);
     return boost::python::incref(p);
 }
 
-PyObject* Selection_get_traj2(Selection* s, int ind, int b){
-    return Selection_get_traj3(s,ind,b,-1);
-}
-
-PyObject* Selection_get_traj1(Selection* s, int ind){
-    return Selection_get_traj3(s,ind,0,-1);
-}
+BOOST_PYTHON_FUNCTION_OVERLOADS(Selection_get_traj_overloads, Selection_get_traj, 2, 4)
 
 boost::python::tuple Selection_minmax(Selection* s){
     CREATE_PYARRAY_1D(min,3)
     CREATE_PYARRAY_1D(max,3)
-    MAP_EIGEN_TO_PYARRAY(_min,Vector3f,min)
-    MAP_EIGEN_TO_PYARRAY(_max,Vector3f,max)    
+    MAP_EIGEN_TO_PYARRAY(Vector3f,_min,min)
+    MAP_EIGEN_TO_PYARRAY(Vector3f,_max,max)
     s->minmax(_min,_max);
     return boost::python::make_tuple(handle<>(min),handle<>(max));
 }
 
 void Selection_translate(Selection* s, PyObject* vec){
-    MAP_EIGEN_TO_PYARRAY(v,Vector3f,vec)
+    MAP_EIGEN_TO_PYARRAY(Vector3f,v,vec)
     s->translate(v);
 }
 
-
 void Selection_rotate3(Selection* s, PyObject* ar1, PyObject* ar2, PyObject* ar3){
     if(PyArray_Check(ar1)){
-        MAP_EIGEN_TO_PYARRAY(dir,Vector3f,ar1)
-        MAP_EIGEN_TO_PYARRAY(piv,Vector3f,ar3)
+        MAP_EIGEN_TO_PYARRAY(Vector3f,dir,ar1)
+        MAP_EIGEN_TO_PYARRAY(Vector3f,piv,ar3)
         s->rotate(dir,extract<float>(ar2),piv);
     } else {
-        MAP_EIGEN_TO_PYARRAY(piv,Vector3f,ar3)
+        MAP_EIGEN_TO_PYARRAY(Vector3f,piv,ar3)
         s->rotate(extract<int>(ar2),extract<float>(ar2),piv);
     }
 }
 
 void Selection_rotate1(Selection* s, PyObject* ar1){
-    MAP_EIGEN_TO_PYARRAY(matr,Matrix3f,ar1)
+    MAP_EIGEN_TO_PYARRAY(Matrix3f,matr,ar1)
     s->rotate(matr);
 }
 
 void Selection_rotate2(Selection* s, PyObject* ar1, PyObject* ar2){
     if(PyArray_Check(ar1)){
-        MAP_EIGEN_TO_PYARRAY(ang,Vector3f,ar1)
-        MAP_EIGEN_TO_PYARRAY(piv,Vector3f,ar2)
+        MAP_EIGEN_TO_PYARRAY(Vector3f,ang,ar1)
+        MAP_EIGEN_TO_PYARRAY(Vector3f,piv,ar2)
         s->rotate(ang,piv);
     } else {
         s->rotate(extract<int>(ar1),extract<float>(ar2));
@@ -162,51 +137,47 @@ void Selection_rotate2(Selection* s, PyObject* ar1, PyObject* ar2){
 
 PyObject* fit_transform_py(Selection& sel1, Selection& sel2){
     CREATE_PYARRAY_2D(p,4,4)
-    MAP_EIGEN_TO_PYARRAY(m,Matrix4f,p)
+    MAP_EIGEN_TO_PYARRAY(Matrix4f,m,p)
     m = fit_transform(sel1,sel2).matrix();
     return boost::python::incref(p);
 }
 
-PyObject* Selection_principal_transform_py1(Selection* sel, bool periodic){
+PyObject* Selection_principal_transform(Selection* sel, bool periodic=false){
     CREATE_PYARRAY_2D(p,4,4)
-    MAP_EIGEN_TO_PYARRAY(m,Matrix4f,p)
+    MAP_EIGEN_TO_PYARRAY(Matrix4f,m,p)
     m = sel->principal_transform(periodic).matrix();
     return boost::python::incref(p);
 }
 
-PyObject* Selection_principal_transform_py2(Selection* sel){
-    return Selection_principal_transform_py1(sel,false);
-}
-
+BOOST_PYTHON_FUNCTION_OVERLOADS(Selection_principal_transform_overloads, Selection_principal_transform, 1, 2)
 
 void Selection_apply_transform(Selection* s, PyObject* t){
-    MAP_EIGEN_TO_PYARRAY(m,Matrix4f,t)
+    MAP_EIGEN_TO_PYARRAY(Matrix4f,m,t)
     Affine3f tr(m);
     s->apply_transform(tr);
 }
 
-
 PyObject* Selection_getXYZ1(Selection* s, int ind){
     CREATE_PYARRAY_1D(p,3)
-    MAP_EIGEN_TO_PYARRAY(data,Vector3f,p)
+    MAP_EIGEN_TO_PYARRAY(Vector3f,data,p)
     data = s->XYZ(ind);
     return boost::python::incref(p);
 }
 
 PyObject* Selection_getXYZ2(Selection* s, int ind, int fr){
     CREATE_PYARRAY_1D(p,3)
-    MAP_EIGEN_TO_PYARRAY(data,Vector3f,p)
+    MAP_EIGEN_TO_PYARRAY(Vector3f,data,p)
     data = s->XYZ(ind,fr);
     return boost::python::incref(p);
 }
 
 void Selection_setXYZ1(Selection* s, int ind, PyObject* obj){
-    MAP_EIGEN_TO_PYARRAY(data,Vector3f,obj)
+    MAP_EIGEN_TO_PYARRAY(Vector3f,data,obj)
     s->XYZ(ind) = data;
 }
 
 void Selection_setXYZ2(Selection* s, int ind, int fr, PyObject* obj){
-    MAP_EIGEN_TO_PYARRAY(data,Vector3f,obj)
+    MAP_EIGEN_TO_PYARRAY(Vector3f,data,obj)
     s->XYZ(ind,fr) = data;
 }
 
@@ -302,7 +273,7 @@ void Selection_set_resname2(Selection* s, string& data){
 
 PyObject* Selection_center(Selection* s, bool mass_weighted, bool periodic){
     CREATE_PYARRAY_1D(p,3)
-    MAP_EIGEN_TO_PYARRAY(data,Vector3f,p)
+    MAP_EIGEN_TO_PYARRAY(Vector3f,data,p)
     data = s->center(mass_weighted,periodic);
     return boost::python::incref(p);
 }
@@ -326,45 +297,19 @@ Energy_components non_bond_energy_py(const Selection& sel1,
 
 BOOST_PYTHON_FUNCTION_OVERLOADS(non_bond_energy_overloads_free, non_bond_energy_py, 2, 5)
 
-float Selection_rmsd1(Selection* s, int fr){
-    return s->rmsd(fr);
-}
-
-float Selection_rmsd2(Selection* s, int fr1, int fr2){
-    return s->rmsd(fr1,fr2);
-}
-
-void Selection_append1(Selection* s, Selection& sel){
-    s->append(sel);
-}
-
-void Selection_append2(Selection* s, int i){
-    s->append(i);
-}
-
-boost::python::tuple Selection_inertia1(Selection* s, bool periodic){    
+boost::python::tuple Selection_inertia(Selection* s, bool periodic=false){
     CREATE_PYARRAY_1D(m,3)
     CREATE_PYARRAY_2D(a,3,3)
-    MAP_EIGEN_TO_PYARRAY(_m,Vector3f,m)
-    MAP_EIGEN_TO_PYARRAY(_a,Matrix3f,a)    
+    MAP_EIGEN_TO_PYARRAY(Vector3f,_m,m)
+    MAP_EIGEN_TO_PYARRAY(Vector3f,_a,a)
     s->inertia(_m,_a,periodic);
     return boost::python::make_tuple(handle<>(m),handle<>(a));
 }
 
-boost::python::tuple Selection_inertia2(Selection* s){
-    return Selection_inertia1(s,false);
-}
-
-void Selection_atoms_dup1(Selection* s, Selection* res_sel){
-    s->atoms_dup(res_sel);
-}
-
-void Selection_atoms_dup2(Selection* s){
-    s->atoms_dup();
-}
+BOOST_PYTHON_FUNCTION_OVERLOADS(Selection_inertia_overloads, Selection_inertia, 1, 2)
 
 void Selection_distribute(Selection* s, boost::python::list& ncopy, PyObject* shift){
-    MAP_EIGEN_TO_PYARRAY(sh,Vector3f,shift)
+    MAP_EIGEN_TO_PYARRAY(Vector3f,sh,shift)
     Vector3i nc;
     for(int i=0;i<3;++i) nc(i) = extract<int>(ncopy[i]);
     s->distribute(nc,sh);
@@ -392,6 +337,14 @@ boost::python::list Selection_each_residue(Selection* s){
     boost::python::list l;
     for(int i=0;i<res.size();++i) l.append(res[i]);
     return l;
+}
+
+float Selection_rmsd1(Selection* s, int fr){
+    return s->rmsd(fr);
+}
+
+float Selection_rmsd2(Selection* s, int fr1, int fr2){
+    return s->rmsd(fr1,fr2);
 }
 
 //-------------------------------------------------------
@@ -478,13 +431,13 @@ void make_bindings_Selection(){
 
         // Modification of existing selection
 
-        .def("append",&Selection_append1)
-        .def("append",&Selection_append2)
+        .def("append", static_cast<void(Selection::*)   (const Selection&)      >(&Selection::append) )
+        .def("append", static_cast<void(Selection::*)   (int)                   >(&Selection::append) )
 
-        .def("modify", Selection_modify1)
-        .def("modify", Selection_modify2)
-        .def("modify", Selection_modify3)
-        .def("modify", Selection_modify4)
+        .def("modify", static_cast<void(Selection::*)   (const System&,string)  >(&Selection::modify) )
+        .def("modify", static_cast<void(Selection::*)   (string)                >(&Selection::modify) )
+        .def("modify", static_cast<void(Selection::*)   (const System&,int,int) >(&Selection::modify) )
+        .def("modify", static_cast<void(Selection::*)   (int,int)               >(&Selection::modify) )
 
         .def("apply",&Selection::apply)
         .def("update",&Selection::update)
@@ -494,8 +447,10 @@ void make_bindings_Selection(){
 
         .def("clear",&Selection::clear)        
 
-        .def("get_system",&Selection_get_system,return_value_policy<reference_existing_object>())
+        .def("get_system",&Selection_get_system, return_value_policy<reference_existing_object>())
+
         .def("get_text",&Selection::get_text)
+
         .def("get_index",&Selection_get_index)
 
         .def("get_chain",&Selection_get_chain)
@@ -519,54 +474,52 @@ void make_bindings_Selection(){
         .def("get_xyz",&Selection_get_xyz)
         .def("set_xyz",&Selection_set_xyz)
 
-        .def("get_average",&Selection_get_average1)
-        .def("get_average",&Selection_get_average2)
-        .def("get_average",&Selection_get_average3)
+        .def("get_average",&Selection_get_average, Selection_get_average_overloads())
 
         .def("get_mass",&Selection_get_mass)
         .def("set_mass",&Selection_set_mass1)
         .def("set_mass",&Selection_set_mass2)
 
-        .def("get_traj",&Selection_get_traj3)
-        .def("get_traj",&Selection_get_traj2)
-        .def("get_traj",&Selection_get_traj1)        
+        .def("get_traj",&Selection_get_traj, Selection_get_traj_overloads())
 
         .def("center",&Selection_center, (bp::arg("mass_weighted")=false,bp::arg("periodic")=false) )
 
         .def("minmax",&Selection_minmax)
+
         .def("translate",&Selection_translate)
 
         .def("rotate",&Selection_rotate1)
         .def("rotate",&Selection_rotate2)
         .def("rotate",&Selection_rotate3)
 
-        .def("rmsd",&Selection_rmsd1)
-        .def("rmsd",&Selection_rmsd2)
+        .def("rmsd", &Selection_rmsd1 )
+        .def("rmsd", &Selection_rmsd2 )
 
-        .def("fit_trajectory",&Selection::fit_trajectory,fit_trajectory_overloads())
+        .def("fit_trajectory",&Selection::fit_trajectory, fit_trajectory_overloads())
         .def("apply_transform",&Selection_apply_transform)
-        .def("write",&Selection::write,write_overloads())
 
-        .def("atoms_dup",&Selection_atoms_dup1)
-        .def("atoms_dup",&Selection_atoms_dup2)
+        .def("write",&Selection::write, write_overloads())
+
+        .def("atoms_dup",&Selection::atoms_dup, atoms_dup_overloads())
+
+
         .def("atoms_delete",&Selection::atoms_delete)
         .def("distribute",&Selection_distribute)
 
         // inertia return a tuple of (moments,axes)
-        .def("inertia",&Selection_inertia1)
-        .def("inertia",&Selection_inertia2)
+        .def("inertia",&Selection_inertia, Selection_inertia_overloads())
 
-        .def("principal_transform",&Selection_principal_transform_py1)
-        .def("principal_transform",&Selection_principal_transform_py2)
-        .def("principal_orient",&Selection::principal_orient,principal_orient_overloads())
+        .def("principal_transform",&Selection_principal_transform, Selection_principal_transform_overloads())
+
+        .def("principal_orient",&Selection::principal_orient, principal_orient_overloads())
 
         .def("wrap",&Selection::wrap)
         .def("unwrap",&Selection::unwrap)
-        .def("unwrap_bonds",&Selection::unwrap_bonds,unwrap_bonds_overloads())
+        .def("unwrap_bonds",&Selection::unwrap_bonds, unwrap_bonds_overloads())
 
         .def("text_based",&Selection::text_based)
 
-        .def("non_bond_energy",&Selection::non_bond_energy,non_bond_energy_overloads())
+        .def("non_bond_energy",&Selection::non_bond_energy, non_bond_energy_overloads())
 
         // Splitting functions
         .def("split_by_connectivity",&Selection_split_by_connectivity)

@@ -165,7 +165,7 @@ boost::shared_ptr<Grid_searcher> constructor7(float d, Selection& sel1,Selection
 
 //---------------- for within selections --------------------
 void search_within1(Grid_searcher* g, PyObject* coor, boost::python::list& bon){
-    MAP_EIGEN_TO_PYARRAY(c,Vector3f,coor)
+    MAP_EIGEN_TO_PYARRAY(Vector3f,c,coor)
     std::vector<int> b;
     Vector3f _c;
     _c = c;

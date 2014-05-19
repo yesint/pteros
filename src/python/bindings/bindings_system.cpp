@@ -53,13 +53,13 @@ void System_setTime(System* s, int fr, float t){
 
 PyObject* System_getXYZ(System* s, int ind, int fr){
     CREATE_PYARRAY_1D(p,3)
-    MAP_EIGEN_TO_PYARRAY(v,Vector3f,p)
+    MAP_EIGEN_TO_PYARRAY(Vector3f,v,p)
     v = s->XYZ(ind,fr);
     return boost::python::incref(p);
 }
 
 void System_setXYZ(System* s, PyObject* arr, int ind, int fr){
-    MAP_EIGEN_TO_PYARRAY(v,Vector3f,arr)
+    MAP_EIGEN_TO_PYARRAY(Vector3f,v,arr)
      s->XYZ(ind,fr) = v;
 }
 
@@ -93,7 +93,7 @@ void System_atoms_add1(System* s, boost::python::list& atm,
     for(int i=0;i<a.size();++i) a[i] = extract<Atom>(atm[i]);
     for(int i=0;i<c.size();++i){
         boost::python::object o = crd[i];
-        MAP_EIGEN_TO_PYARRAY(v,Vector3f,o.ptr())
+        MAP_EIGEN_TO_PYARRAY(Vector3f,v,o.ptr())
         c[i] = v;
     }
     s->atoms_add(a,c,sel);

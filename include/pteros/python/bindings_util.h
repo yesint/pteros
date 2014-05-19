@@ -37,29 +37,26 @@ namespace pteros {
 
 // Some macros
 
-#define MAP_EIGEN_TO_PYARRAY(_matr,_T,_obj_ptr) \
-    if(!PyArray_Check(_obj_ptr)) throw pteros::Pteros_error("NumPy array expected!"); \
-    if(PyArray_TYPE(_obj_ptr)!=PyArray_FLOAT) throw pteros::Pteros_error("float NumPy array expected!"); \
-    Eigen::Map<_T> _matr((float*) PyArray_DATA(_obj_ptr), \
-            (PyArray_DIM((PyArrayObject*)_obj_ptr,0)==PyArray_Size(_obj_ptr)) ? PyArray_DIM((PyArrayObject*)_obj_ptr,0) : PyArray_DIM((PyArrayObject*)_obj_ptr,1), \
-            (PyArray_DIM((PyArrayObject*)_obj_ptr,0)==PyArray_Size(_obj_ptr)) ? 1 : PyArray_DIM((PyArrayObject*)_obj_ptr,0) );
+#define MAP_EIGEN_TO_PYARRAY(T, matr, pyobj) \
+    if(!PyArray_Check(pyobj)) throw pteros::Pteros_error("NumPy array expected!"); \
+    if(PyArray_TYPE(pyobj)!=PyArray_FLOAT) throw pteros::Pteros_error("float NumPy array expected!"); \
+    Eigen::Map<T> matr((float*) PyArray_DATA(pyobj), \
+            (PyArray_DIM((PyArrayObject*)pyobj,0)==PyArray_Size(pyobj)) ? PyArray_DIM((PyArrayObject*)pyobj,0) : PyArray_DIM((PyArrayObject*)pyobj,1), \
+            (PyArray_DIM((PyArrayObject*)pyobj,0)==PyArray_Size(pyobj)) ? 1 : PyArray_DIM((PyArrayObject*)pyobj,0) );
 
 
-#define CREATE_PYARRAY_1D(_ptr_obj, _dim1) \
-    PyObject* _ptr_obj; \
+#define CREATE_PYARRAY_1D(pyobj, dim) \
+    PyObject* pyobj; \
     { \
-        npy_intp _sz_dim1[1];\
-        _sz_dim1[0] = _dim1; \
-        _ptr_obj = PyArray_SimpleNew(1, _sz_dim1, PyArray_FLOAT); \
+        npy_intp sz[1] = {dim};\
+        pyobj = PyArray_SimpleNew(1, sz, PyArray_FLOAT); \
     }
 
-#define CREATE_PYARRAY_2D(_ptr_obj, _dim1, _dim2) \
-    PyObject* _ptr_obj; \
+#define CREATE_PYARRAY_2D(pyobj, dim1, dim2) \
+    PyObject* pyobj; \
     { \
-        npy_intp _dims[2]; \
-        _dims[1] = _dim1; \
-        _dims[0] = _dim2; \
-        _ptr_obj = PyArray_SimpleNew(2, _dims, PyArray_FLOAT); \
+        npy_intp dims[2] = {dim2,dim1}; \
+        pyobj = PyArray_SimpleNew(2, dims, PyArray_FLOAT); \
     }
 
 } // End of namespace Pteros

@@ -32,25 +32,25 @@ using namespace boost::python;
 
 PyObject* Atom_proxy_getXYZ1(Atom_proxy* s){    
     CREATE_PYARRAY_1D(p,3)
-    MAP_EIGEN_TO_PYARRAY(data,Vector3f,p)
+    MAP_EIGEN_TO_PYARRAY(Vector3f,data,p)
     data = s->XYZ();
     return boost::python::incref(p);
 }
 
 PyObject* Atom_proxy_getXYZ2(Atom_proxy* s, int fr){
     CREATE_PYARRAY_1D(p,3)
-    MAP_EIGEN_TO_PYARRAY(data,Vector3f,p)
+    MAP_EIGEN_TO_PYARRAY(Vector3f,data,p)
     data = s->XYZ(fr);
     return boost::python::incref(p);
 }
 
 void Atom_proxy_setXYZ1(Atom_proxy* s, PyObject* obj){
-    MAP_EIGEN_TO_PYARRAY(data,Vector3f,obj)
+    MAP_EIGEN_TO_PYARRAY(Vector3f,data,obj)
     s->XYZ() = data;
 }
 
 void Atom_proxy_setXYZ2(Atom_proxy* s, int fr, PyObject* obj){
-    MAP_EIGEN_TO_PYARRAY(data,Vector3f,obj)
+    MAP_EIGEN_TO_PYARRAY(Vector3f,data,obj)
     s->XYZ(fr) = data;
 }
 
