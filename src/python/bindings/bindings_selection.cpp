@@ -43,10 +43,9 @@ BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(rmsd_overloads, rmsd, 1, 2)
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(atoms_dup_overloads, atoms_dup, 0, 1)
 
 
-PyObject* Selection_get_xyz(Selection* s){
-    CREATE_PYARRAY_2D(p,3,s->size())
-    MAP_EIGEN_TO_PYARRAY(MatrixXf,data,p)
-    data = s->get_xyz();
+PyObject* Selection_get_xyz(Selection* s){    
+    CREATE_PYARRAY_2D_AND_MAP(p,MatrixXf,data,3,s->size())
+    s->get_xyz(data);
     return boost::python::incref(p);
 }
 
@@ -56,14 +55,12 @@ void Selection_set_xyz(Selection* s, PyObject* data){
 }
 
 PyObject* Selection_get_average(Selection* s, int b=0, int e=-1){
-    CREATE_PYARRAY_2D(p,3,s->size())
-    MAP_EIGEN_TO_PYARRAY(MatrixXf,data,p)
+    CREATE_PYARRAY_2D_AND_MAP(p,MatrixXf,data,3,s->size())
     data = s->average_structure(b,e);
     return boost::python::incref(p);
 }
 
 BOOST_PYTHON_FUNCTION_OVERLOADS(Selection_get_average_overloads, Selection_get_average, 1, 3)
-
 
 boost::python::list Selection_get_mass(Selection* s){
     boost::python::list l;
@@ -86,8 +83,7 @@ void Selection_set_mass2(Selection* s, float data){
 
 
 PyObject* Selection_get_traj(Selection* s, int ind, int b=0, int e=-1){
-    CREATE_PYARRAY_2D(p,3,s->get_system()->num_frames())
-    MAP_EIGEN_TO_PYARRAY(MatrixXf,data,p)
+    CREATE_PYARRAY_2D_AND_MAP(p,MatrixXf,data,3,s->get_system()->num_frames())
     data = s->atom_traj(ind,b,e);
     return boost::python::incref(p);
 }
@@ -95,16 +91,14 @@ PyObject* Selection_get_traj(Selection* s, int ind, int b=0, int e=-1){
 BOOST_PYTHON_FUNCTION_OVERLOADS(Selection_get_traj_overloads, Selection_get_traj, 2, 4)
 
 boost::python::tuple Selection_minmax(Selection* s){
-    CREATE_PYARRAY_1D(min,3)
-    CREATE_PYARRAY_1D(max,3)
-    MAP_EIGEN_TO_PYARRAY(Vector3f,_min,min)
-    MAP_EIGEN_TO_PYARRAY(Vector3f,_max,max)
-    s->minmax(_min,_max);
-    return boost::python::make_tuple(handle<>(min),handle<>(max));
+    CREATE_PYARRAY_1D_AND_MAP(pmin,Vector3f,min,3)
+    CREATE_PYARRAY_1D_AND_MAP(pmax,Vector3f,max,3)
+    s->minmax(min,max);
+    return boost::python::make_tuple(handle<>(pmin),handle<>(pmax));
 }
 
 void Selection_translate(Selection* s, PyObject* vec){
-    MAP_EIGEN_TO_PYARRAY(Vector3f,v,vec)
+    MAP_EIGEN_TO_PYTHON(Vector3f,v,vec)
     s->translate(v);
 }
 

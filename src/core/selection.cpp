@@ -567,7 +567,7 @@ MatrixXf Selection::get_xyz() const {
 void Selection::get_xyz(MatrixXf_ref res) const {
     int i,n;
     n = index.size();
-    res.resize(3,n);
+    if(res.rows()!=3 || res.cols()!=n) res.resize(3,n);
     for(i=0; i<n; ++i) res.col(i) = system->traj[frame].coord[index[i]];
 }
 
