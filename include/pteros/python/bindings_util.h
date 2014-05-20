@@ -35,43 +35,42 @@
 
 namespace pteros {
 
-// Some macros
+// Some helper functions and macros
 
-#define MAP_EIGEN_TO_PYARRAY(T, matr, pyobj) \
-    if(!PyArray_Check(pyobj)) throw pteros::Pteros_error("NumPy array expected!"); \
-    if(PyArray_TYPE(pyobj)!=PyArray_FLOAT) throw pteros::Pteros_error("float NumPy array expected!"); \
-    Eigen::Map<T> matr((float*) PyArray_DATA(pyobj), \
-            (PyArray_DIM((PyArrayObject*)pyobj,0)==PyArray_Size(pyobj)) ? PyArray_DIM((PyArrayObject*)pyobj,0) : PyArray_DIM((PyArrayObject*)pyobj,1), \
-            (PyArray_DIM((PyArrayObject*)pyobj,0)==PyArray_Size(pyobj)) ? 1 : PyArray_DIM((PyArrayObject*)pyobj,0) );
+template<class T, int PyT>
+PyObject* mapper(PyObject* pyobj, size_t& dim1, size_t& dim2){
+    PyObject* aux = nullptr;
 
+    size_t py_dim1, py_dim2;
 
-template<class T>
-void mapper(PyObject* pyobj, Eigen::Map<T>* map_ptr, PyObject* aux){
-    size_t py_dim1, py_dim2, dim1, dim2;
     // Check if pyobj is a numpy array
-    if(PyArray_Check(pyobj)){
+    if(PyArray_Check(pyobj)){                
+        int ndim = PyArray_NDIM(pyobj);
+        if(ndim>2) throw Pteros_error("Need 1D or 2D array!");
+
         py_dim1 = PyArray_DIM((PyArrayObject*)pyobj,0);
         py_dim2 = PyArray_DIM((PyArrayObject*)pyobj,1);
-        dim1 = (PyArray_Size(pyobj)==py_dim1) ? py_dim1 : py_dim2;
-        dim2 = (PyArray_Size(pyobj)==py_dim1) ? 1 : py_dim1;
+        dim1 = (ndim==1) ? py_dim1 : py_dim2;
+        dim2 = (ndim==1) ? 1 : py_dim1;
+
         // For fixed size Eigen object do a sanity check
         if(    T::RowsAtCompileTime!=Eigen::Dynamic
             && T::ColsAtCompileTime!=Eigen::Dynamic
             && (T::RowsAtCompileTime!=dim1 || T::ColsAtCompileTime!=dim2) )
         {
-            throw Pteros_error()<<"Passed an object of size "<<dim1<<":"<<dim2
+            throw Pteros_error()<<"Passed an array of size "<<dim1<<":"<<dim2
                             << " while expected size is "
                             << T::RowsAtCompileTime<<":"<<T::ColsAtCompileTime<<"!";
         }
 
         // Check array type
-        if(PyArray_TYPE(pyobj)==PyArray_FLOAT){
+        if(PyArray_TYPE(pyobj)==PyT){
             // The best case! Direct mapping
-            new (map_ptr) Eigen::Map<T>((float*) PyArray_DATA(pyobj),dim1,dim2);
+            return pyobj;
         } else {
             // Wrong type :( Need to cast.
-            aux = PyArray_Cast((PyArrayObject*)pyobj,PyArray_FLOAT);
-            new (map_ptr) Eigen::Map<T>((float*) PyArray_DATA(aux),dim1,dim2);
+            aux = PyArray_Cast((PyArrayObject*)pyobj,PyT);
+            return aux;
         }
 
     } else if(PySequence_Check(pyobj)) { // Check if it is a sequence
@@ -97,23 +96,27 @@ void mapper(PyObject* pyobj, Eigen::Map<T>* map_ptr, PyObject* aux){
                             << " while expected size is "
                             << T::RowsAtCompileTime<<":"<<T::ColsAtCompileTime<<"!";
         }
+
         // Convert to array and map
-        aux = PyArray_FROM_OT(pyobj,PyArray_FLOAT);
-        new (map_ptr) Eigen::Map<T>((float*) PyArray_DATA(aux),dim1,dim2);
+        aux = PyArray_FROM_OT(pyobj,PyT);
+        if(!aux) throw Pteros_error("Can't convert sequence to array!");
+        return aux;
+    } else {
+        // Something incompatible
+        throw Pteros_error("An array or a sequence is required!");
     }
 }
 
-#define MAP_EIGEN_TO_PYTHON(T,matr,pyobj) \
-    Eigen::Map<T> matr(NULL); \
-    PyObject* _aux_for_##matr; \
-    mapper(pyobj,&matr,_aux_for_##matr);
+#define MAP_EIGEN_TO_PYTHON_F(T,matr,pyobj) \
+    size_t __dim1__for__##matr, __dim2__for__##matr; \
+    PyObject* __pyobj__for__##matr = mapper<T,PyArray_FLOAT>(pyobj,__dim1__for__##matr,__dim2__for__##matr);\
+    Eigen::Map<T>  matr((float*)PyArray_DATA(__pyobj__for__##matr),__dim1__for__##matr,__dim2__for__##matr);
 
-#define CREATE_PYARRAY_1D(pyobj, dim) \
-    PyObject* pyobj; \
-    { \
-        npy_intp sz[1] = {dim};\
-        pyobj = PyArray_SimpleNew(1, sz, PyArray_FLOAT); \
-    }
+#define MAP_EIGEN_TO_PYTHON_I(T,matr,pyobj) \
+    size_t __dim1__for__##matr, __dim2__for__##matr; \
+    PyObject* __pyobj__for__##matr = mapper<T,PyArray_INT>(pyobj,__dim1__for__##matr,__dim2__for__##matr);\
+    Eigen::Map<T>  matr((int*)PyArray_DATA(__pyobj__for__##matr),__dim1__for__##matr,__dim2__for__##matr);
+
 
 #define CREATE_PYARRAY_1D_AND_MAP(pyobj, T, matr, dim) \
     PyObject* pyobj; \
@@ -123,13 +126,6 @@ void mapper(PyObject* pyobj, Eigen::Map<T>* map_ptr, PyObject* aux){
     } \
     Eigen::Map<T> matr((float*)PyArray_DATA(pyobj),1,dim);
 
-
-#define CREATE_PYARRAY_2D(pyobj, dim1, dim2) \
-    PyObject* pyobj; \
-    { \
-        npy_intp dims[2] = {dim2,dim1}; \
-        pyobj = PyArray_SimpleNew(2, dims, PyArray_FLOAT); \
-    }
 
 #define CREATE_PYARRAY_2D_AND_MAP(pyobj, T, matr, dim1, dim2) \
     PyObject* pyobj; \

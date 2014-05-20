@@ -29,155 +29,130 @@ using namespace Eigen;
 using namespace boost::python;
 
 void Periodic_box_modify(Periodic_box* b, PyObject* arr){
-    MAP_EIGEN_TO_PYARRAY(Matrix3f,m,arr)
+    MAP_EIGEN_TO_PYTHON_F(Matrix3f,m,arr)
     b->modify(m);
 }
 
 PyObject* Periodic_box_get_box(Periodic_box* b){
-    CREATE_PYARRAY_2D(p,3,3)
-    MAP_EIGEN_TO_PYARRAY(Matrix3f,m,p)
+    CREATE_PYARRAY_2D_AND_MAP(p,Matrix3f,m,3,3)
     m = b->get_box();
     return boost::python::incref(p);
 }
 
 PyObject* Periodic_box_to_box(Periodic_box* b, PyObject* point){
-    CREATE_PYARRAY_1D(ret,3)
-    MAP_EIGEN_TO_PYARRAY(Vector3f,v,ret)
-    MAP_EIGEN_TO_PYARRAY(Vector3f,p,point)
+    CREATE_PYARRAY_1D_AND_MAP(ret,Vector3f,v,3)
+    MAP_EIGEN_TO_PYTHON_F(Vector3f,p,point)
     v = b->lab_to_box(p);
     return boost::python::incref(ret);
 }
 
 PyObject* Periodic_box_to_lab(Periodic_box* b, PyObject* point){
-    CREATE_PYARRAY_1D(ret,3)
-    MAP_EIGEN_TO_PYARRAY(Vector3f,v,ret)
-    MAP_EIGEN_TO_PYARRAY(Vector3f,p,point)
+    CREATE_PYARRAY_1D_AND_MAP(ret,Vector3f,v,3)
+    MAP_EIGEN_TO_PYTHON_F(Vector3f,p,point)
     v = b->box_to_lab(p);
     return boost::python::incref(ret);
 }
 
 PyObject* Periodic_box_to_box_matrix(Periodic_box* b){
-    CREATE_PYARRAY_2D(ret,3,3)
-    MAP_EIGEN_TO_PYARRAY(Matrix3f,m,ret)
+    CREATE_PYARRAY_2D_AND_MAP(ret,Matrix3f,m,3,3)
     m = b->lab_to_box_matrix();
     return boost::python::incref(ret);
 }
 
 PyObject* Periodic_box_to_lab_matrix(Periodic_box* b){
-    CREATE_PYARRAY_2D(ret,3,3)
-    MAP_EIGEN_TO_PYARRAY(Matrix3f,m,ret)
+    CREATE_PYARRAY_2D_AND_MAP(ret,Matrix3f,m,3,3)
     m = b->box_to_lab_matrix();
     return boost::python::incref(ret);
 }
 
 PyObject* Periodic_box_extents(Periodic_box* b){
-    CREATE_PYARRAY_1D(ret,3)
-    MAP_EIGEN_TO_PYARRAY(Vector3f,v,ret)
+    CREATE_PYARRAY_1D_AND_MAP(ret,Vector3f,v,3)
     v = b->extents();
     return boost::python::incref(ret);
 }
 
 float Periodic_box_distance1(Periodic_box* b, PyObject* point1, PyObject* point2,
-                             bool do_wrap, boost::python::list periodic_dims){
-    MAP_EIGEN_TO_PYARRAY(Vector3f,p1,point1)
-    MAP_EIGEN_TO_PYARRAY(Vector3f,p2,point2)
-    Vector3i dims;
-    for(int i=0;i<3;++i) dims(i) = extract<int>(periodic_dims[i]);
-
-    float dist = b->distance(p1,p2,do_wrap,dims);
-    return dist;
+                             bool do_wrap, PyObject* periodic_dims){
+    MAP_EIGEN_TO_PYTHON_F(Vector3f,p1,point1)
+    MAP_EIGEN_TO_PYTHON_F(Vector3f,p2,point2)
+    MAP_EIGEN_TO_PYTHON_I(Vector3i,dim,periodic_dims)
+    return b->distance(p1,p2,do_wrap,dim);
 }
 
 float Periodic_box_distance2(Periodic_box* b, PyObject* point1, PyObject* point2, bool do_wrap){
-    MAP_EIGEN_TO_PYARRAY(Vector3f,p1,point1)
-    MAP_EIGEN_TO_PYARRAY(Vector3f,p2,point2)
-
-    float dist = b->distance(p1,p2,do_wrap);
-    return dist;
+    MAP_EIGEN_TO_PYTHON_F(Vector3f,p1,point1)
+    MAP_EIGEN_TO_PYTHON_F(Vector3f,p2,point2)
+    return b->distance(p1,p2,do_wrap);
 }
 
 float Periodic_box_distance3(Periodic_box* b, PyObject* point1, PyObject* point2){
-    MAP_EIGEN_TO_PYARRAY(Vector3f,p1,point1)
-    MAP_EIGEN_TO_PYARRAY(Vector3f,p2,point2)
-
-    float dist = b->distance(p1,p2);
-    return dist;
+    MAP_EIGEN_TO_PYTHON_F(Vector3f,p1,point1)
+    MAP_EIGEN_TO_PYTHON_F(Vector3f,p2,point2)
+    return b->distance(p1,p2);
 }
 
-void Periodic_box_wrap_point1(Periodic_box* b, PyObject* point, boost::python::list dims_to_wrap){
-    MAP_EIGEN_TO_PYARRAY(Vector3f,p,point)
-
-    Vector3i dims;
-    for(int i=0;i<3;++i) dims(i) = extract<int>(dims_to_wrap[i]);
-
-    b->wrap_point(p,dims);
+void Periodic_box_wrap_point1(Periodic_box* b, PyObject* point, PyObject* dims_to_wrap){
+    MAP_EIGEN_TO_PYTHON_F(Vector3f,p,point)
+    MAP_EIGEN_TO_PYTHON_I(Vector3i,dim,dims_to_wrap)
+    b->wrap_point(p,dim);
 }
 
 void Periodic_box_wrap_point2(Periodic_box* b, PyObject* point){
-    MAP_EIGEN_TO_PYARRAY(Vector3f,p,point)
+    MAP_EIGEN_TO_PYTHON_F(Vector3f,p,point)
     b->wrap_point(p);
 }
 
 PyObject* Periodic_box_get_closest_image1(Periodic_box* b, PyObject* point, PyObject* target,
-                             bool do_wrap, boost::python::list dims_to_wrap){
-    MAP_EIGEN_TO_PYARRAY(Vector3f,p,point)
-    MAP_EIGEN_TO_PYARRAY(Vector3f,t,target)
+                             bool do_wrap, PyObject* dims_to_wrap){
+    MAP_EIGEN_TO_PYTHON_F(Vector3f,p,point)
+    MAP_EIGEN_TO_PYTHON_F(Vector3f,t,target)
+    MAP_EIGEN_TO_PYTHON_I(Vector3i,dim,dims_to_wrap)
 
-    CREATE_PYARRAY_1D(ret,3)
-    MAP_EIGEN_TO_PYARRAY(Vector3f,v,ret)
+    CREATE_PYARRAY_1D_AND_MAP(ret,Vector3f,v,3)
 
-    Vector3i dims;
-    for(int i=0;i<3;++i) dims(i) = extract<int>(dims_to_wrap[i]);
-
-    v = b->get_closest_image(p,t,do_wrap,dims);
+    v = b->get_closest_image(p,t,do_wrap,dim);
     return boost::python::incref(ret);
 }
 
 PyObject* Periodic_box_get_closest_image2(Periodic_box* b, PyObject* point, PyObject* target,
                              bool do_wrap){
-    MAP_EIGEN_TO_PYARRAY(Vector3f,p,point)
-    MAP_EIGEN_TO_PYARRAY(Vector3f,t,target)
+    MAP_EIGEN_TO_PYTHON_F(Vector3f,p,point)
+    MAP_EIGEN_TO_PYTHON_F(Vector3f,t,target)
 
-    CREATE_PYARRAY_1D(ret,3)
-    MAP_EIGEN_TO_PYARRAY(Vector3f,v,ret)
+    CREATE_PYARRAY_1D_AND_MAP(ret,Vector3f,v,3)
 
     v = b->get_closest_image(p,t,do_wrap);
     return boost::python::incref(ret);
 }
 
 PyObject* Periodic_box_get_closest_image3(Periodic_box* b, PyObject* point, PyObject* target){
-    MAP_EIGEN_TO_PYARRAY(Vector3f,p,point)
-    MAP_EIGEN_TO_PYARRAY(Vector3f,t,target)
+    MAP_EIGEN_TO_PYTHON_F(Vector3f,p,point)
+    MAP_EIGEN_TO_PYTHON_F(Vector3f,t,target)
 
-    CREATE_PYARRAY_1D(ret,3)
-    MAP_EIGEN_TO_PYARRAY(Vector3f,v,ret)
+    CREATE_PYARRAY_1D_AND_MAP(ret,Vector3f,v,3)
 
     v = b->get_closest_image(p,t);
     return boost::python::incref(ret);
 }
 
 PyObject* Periodic_box_shortest_vector1(Periodic_box* b, PyObject* point1, PyObject* point2,
-                                        boost::python::list dims_to_wrap){
-    MAP_EIGEN_TO_PYARRAY(Vector3f,p1,point1)
-    MAP_EIGEN_TO_PYARRAY(Vector3f,p2,point2)
+                                        PyObject* dims_to_wrap){
+    MAP_EIGEN_TO_PYTHON_F(Vector3f,p1,point1)
+    MAP_EIGEN_TO_PYTHON_F(Vector3f,p2,point2)
+    MAP_EIGEN_TO_PYTHON_I(Vector3i,dim,dims_to_wrap)
 
-    CREATE_PYARRAY_1D(ret,3)
-    MAP_EIGEN_TO_PYARRAY(Vector3f,v,ret)
+    CREATE_PYARRAY_1D_AND_MAP(ret,Vector3f,v,3)
 
-    Vector3i dims;
-    for(int i=0;i<3;++i) dims(i) = extract<int>(dims_to_wrap[i]);
-
-    v = b->shortest_vector(p1,p2,dims);
+    v = b->shortest_vector(p1,p2,dim);
     return boost::python::incref(ret);
 }
 
 
 PyObject* Periodic_box_shortest_vector2(Periodic_box* b, PyObject* point1, PyObject* point2){
-    MAP_EIGEN_TO_PYARRAY(Vector3f,p1,point1)
-    MAP_EIGEN_TO_PYARRAY(Vector3f,p2,point2)
+    MAP_EIGEN_TO_PYTHON_F(Vector3f,p1,point1)
+    MAP_EIGEN_TO_PYTHON_F(Vector3f,p2,point2)
 
-    CREATE_PYARRAY_1D(ret,3)
-    MAP_EIGEN_TO_PYARRAY(Vector3f,v,ret)
+    CREATE_PYARRAY_1D_AND_MAP(ret,Vector3f,v,3)
 
     v = b->shortest_vector(p1,p2);
     return boost::python::incref(ret);

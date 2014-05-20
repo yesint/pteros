@@ -50,7 +50,7 @@ PyObject* Selection_get_xyz(Selection* s){
 }
 
 void Selection_set_xyz(Selection* s, PyObject* data){
-    MAP_EIGEN_TO_PYARRAY(MatrixXf,m,data)
+    MAP_EIGEN_TO_PYTHON_F(MatrixXf,m,data)
     s->set_xyz(m);
 }
 
@@ -98,30 +98,30 @@ boost::python::tuple Selection_minmax(Selection* s){
 }
 
 void Selection_translate(Selection* s, PyObject* vec){
-    MAP_EIGEN_TO_PYTHON(Vector3f,v,vec)
+    MAP_EIGEN_TO_PYTHON_F(Vector3f,v,vec)
     s->translate(v);
 }
 
-void Selection_rotate3(Selection* s, PyObject* ar1, PyObject* ar2, PyObject* ar3){
+void Selection_rotate_3_arg(Selection* s, PyObject* ar1, PyObject* ar2, PyObject* ar3){
     if(PyArray_Check(ar1)){
-        MAP_EIGEN_TO_PYARRAY(Vector3f,dir,ar1)
-        MAP_EIGEN_TO_PYARRAY(Vector3f,piv,ar3)
+        MAP_EIGEN_TO_PYTHON_F(Vector3f,dir,ar1)
+        MAP_EIGEN_TO_PYTHON_F(Vector3f,piv,ar3)
         s->rotate(dir,extract<float>(ar2),piv);
     } else {
-        MAP_EIGEN_TO_PYARRAY(Vector3f,piv,ar3)
+        MAP_EIGEN_TO_PYTHON_F(Vector3f,piv,ar3)
         s->rotate(extract<int>(ar2),extract<float>(ar2),piv);
     }
 }
 
-void Selection_rotate1(Selection* s, PyObject* ar1){
-    MAP_EIGEN_TO_PYARRAY(Matrix3f,matr,ar1)
+void Selection_rotate_1_arg(Selection* s, PyObject* ar1){
+    MAP_EIGEN_TO_PYTHON_F(Matrix3f,matr,ar1)
     s->rotate(matr);
 }
 
-void Selection_rotate2(Selection* s, PyObject* ar1, PyObject* ar2){
+void Selection_rotate_2_arg(Selection* s, PyObject* ar1, PyObject* ar2){
     if(PyArray_Check(ar1)){
-        MAP_EIGEN_TO_PYARRAY(Vector3f,ang,ar1)
-        MAP_EIGEN_TO_PYARRAY(Vector3f,piv,ar2)
+        MAP_EIGEN_TO_PYTHON_F(Vector3f,ang,ar1)
+        MAP_EIGEN_TO_PYTHON_F(Vector3f,piv,ar2)
         s->rotate(ang,piv);
     } else {
         s->rotate(extract<int>(ar1),extract<float>(ar2));
@@ -130,15 +130,13 @@ void Selection_rotate2(Selection* s, PyObject* ar1, PyObject* ar2){
 
 
 PyObject* fit_transform_py(Selection& sel1, Selection& sel2){
-    CREATE_PYARRAY_2D(p,4,4)
-    MAP_EIGEN_TO_PYARRAY(Matrix4f,m,p)
+    CREATE_PYARRAY_2D_AND_MAP(p,Matrix4f,m,4,4)
     m = fit_transform(sel1,sel2).matrix();
     return boost::python::incref(p);
 }
 
 PyObject* Selection_principal_transform(Selection* sel, bool periodic=false){
-    CREATE_PYARRAY_2D(p,4,4)
-    MAP_EIGEN_TO_PYARRAY(Matrix4f,m,p)
+    CREATE_PYARRAY_2D_AND_MAP(p,Matrix4f,m,4,4)
     m = sel->principal_transform(periodic).matrix();
     return boost::python::incref(p);
 }
@@ -146,32 +144,30 @@ PyObject* Selection_principal_transform(Selection* sel, bool periodic=false){
 BOOST_PYTHON_FUNCTION_OVERLOADS(Selection_principal_transform_overloads, Selection_principal_transform, 1, 2)
 
 void Selection_apply_transform(Selection* s, PyObject* t){
-    MAP_EIGEN_TO_PYARRAY(Matrix4f,m,t)
+    MAP_EIGEN_TO_PYTHON_F(Matrix4f,m,t)
     Affine3f tr(m);
     s->apply_transform(tr);
 }
 
 PyObject* Selection_getXYZ1(Selection* s, int ind){
-    CREATE_PYARRAY_1D(p,3)
-    MAP_EIGEN_TO_PYARRAY(Vector3f,data,p)
+    CREATE_PYARRAY_1D_AND_MAP(p,Vector3f,data,3)
     data = s->XYZ(ind);
     return boost::python::incref(p);
 }
 
 PyObject* Selection_getXYZ2(Selection* s, int ind, int fr){
-    CREATE_PYARRAY_1D(p,3)
-    MAP_EIGEN_TO_PYARRAY(Vector3f,data,p)
+    CREATE_PYARRAY_1D_AND_MAP(p,Vector3f,data,3)
     data = s->XYZ(ind,fr);
     return boost::python::incref(p);
 }
 
 void Selection_setXYZ1(Selection* s, int ind, PyObject* obj){
-    MAP_EIGEN_TO_PYARRAY(Vector3f,data,obj)
+    MAP_EIGEN_TO_PYTHON_F(Vector3f,data,obj)
     s->XYZ(ind) = data;
 }
 
 void Selection_setXYZ2(Selection* s, int ind, int fr, PyObject* obj){
-    MAP_EIGEN_TO_PYARRAY(Vector3f,data,obj)
+    MAP_EIGEN_TO_PYTHON_F(Vector3f,data,obj)
     s->XYZ(ind,fr) = data;
 }
 
@@ -266,8 +262,7 @@ void Selection_set_resname2(Selection* s, string& data){
 
 
 PyObject* Selection_center(Selection* s, bool mass_weighted, bool periodic){
-    CREATE_PYARRAY_1D(p,3)
-    MAP_EIGEN_TO_PYARRAY(Vector3f,data,p)
+    CREATE_PYARRAY_1D_AND_MAP(p,Vector3f,data,3)
     data = s->center(mass_weighted,periodic);
     return boost::python::incref(p);
 }
@@ -292,10 +287,8 @@ Energy_components non_bond_energy_py(const Selection& sel1,
 BOOST_PYTHON_FUNCTION_OVERLOADS(non_bond_energy_overloads_free, non_bond_energy_py, 2, 5)
 
 boost::python::tuple Selection_inertia(Selection* s, bool periodic=false){
-    CREATE_PYARRAY_1D(m,3)
-    CREATE_PYARRAY_2D(a,3,3)
-    MAP_EIGEN_TO_PYARRAY(Vector3f,_m,m)
-    MAP_EIGEN_TO_PYARRAY(Vector3f,_a,a)
+    CREATE_PYARRAY_1D_AND_MAP(m,Vector3f,_m,3)
+    CREATE_PYARRAY_2D_AND_MAP(a,Matrix3f,_a,3,3)
     s->inertia(_m,_a,periodic);
     return boost::python::make_tuple(handle<>(m),handle<>(a));
 }
@@ -303,7 +296,7 @@ boost::python::tuple Selection_inertia(Selection* s, bool periodic=false){
 BOOST_PYTHON_FUNCTION_OVERLOADS(Selection_inertia_overloads, Selection_inertia, 1, 2)
 
 void Selection_distribute(Selection* s, boost::python::list& ncopy, PyObject* shift){
-    MAP_EIGEN_TO_PYARRAY(Vector3f,sh,shift)
+    MAP_EIGEN_TO_PYTHON_F(Vector3f,sh,shift)
     Vector3i nc;
     for(int i=0;i<3;++i) nc(i) = extract<int>(ncopy[i]);
     s->distribute(nc,sh);
@@ -407,6 +400,8 @@ Atom_proxy Selection_getitem(Selection* sel, int i){
 void make_bindings_Selection(){
     import_array();    
 
+    Vector3f::Scalar a;
+
     class_<Selection_iter>("_Selection_iter", no_init)
         .def("next",&Selection_iter::next)
     ;
@@ -482,9 +477,9 @@ void make_bindings_Selection(){
 
         .def("translate",&Selection_translate)
 
-        .def("rotate",&Selection_rotate1)
-        .def("rotate",&Selection_rotate2)
-        .def("rotate",&Selection_rotate3)
+        .def("rotate",&Selection_rotate_1_arg)
+        .def("rotate",&Selection_rotate_2_arg)
+        .def("rotate",&Selection_rotate_3_arg)
 
         .def("rmsd", &Selection_rmsd1 )
         .def("rmsd", &Selection_rmsd2 )

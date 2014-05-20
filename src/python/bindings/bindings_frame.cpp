@@ -31,8 +31,7 @@ using namespace boost::python;
 boost::python::list Frame_get_coord(Frame* f){
     boost::python::list l;
     for(int i=0;i<f->coord.size();++i){
-        CREATE_PYARRAY_1D(p,3)
-        MAP_EIGEN_TO_PYARRAY(Vector3f,v,p)
+        CREATE_PYARRAY_1D_AND_MAP(p,Vector3f,v,3)
         v = f->coord[i];
         l.append(handle<>(p));
     }
@@ -43,20 +42,19 @@ void Frame_set_coord(Frame* f, boost::python::list l){
     f->coord.resize(len(l));
     for(int i=0;i<f->coord.size();++i){
         boost::python::object o = l[i];
-        MAP_EIGEN_TO_PYARRAY(Vector3f,v,o.ptr())
+        MAP_EIGEN_TO_PYTHON_F(Vector3f,v,o.ptr())
         f->coord[i] = v;
     }
 }
 
 PyObject* Frame_get_box(Frame* f){
-    CREATE_PYARRAY_2D(p,3,3)
-    MAP_EIGEN_TO_PYARRAY(Matrix3f,m,p)
+    CREATE_PYARRAY_2D_AND_MAP(p,Matrix3f,m,3,3)
     m = f->box.get_box();
     return boost::python::incref(p);
 }
 
 void Frame_set_box(Frame* f, PyObject* arr){
-    MAP_EIGEN_TO_PYARRAY(Matrix3f,m,arr)
+    MAP_EIGEN_TO_PYTHON_F(Matrix3f,m,arr)
      f->box.modify(m);
 }
 
