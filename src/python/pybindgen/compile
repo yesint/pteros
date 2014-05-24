@@ -1,0 +1,9 @@
+#!/bin/bash
+
+clang++ bindings.cpp -std=c++11 -shared \
+-lpython2.7 \
+-I/home/semen/programs/pteros/include/ \
+-I/usr/include/python2.7/ \
+-L/home/semen/programs/pteros/lib/ \
+-lpteros -lpteros_analysis \
+-fPIC -o pteros.so 
