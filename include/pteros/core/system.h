@@ -212,7 +212,7 @@ public:
     }
 
     /// Read/Write access for given atom
-    inline const Atom& Atom_data(int ind) {
+    inline Atom& Atom_data(int ind) {
         return atoms[ind];
     }
 
