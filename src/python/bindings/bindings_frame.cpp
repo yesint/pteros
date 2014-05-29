@@ -55,7 +55,7 @@ PyObject* Frame_get_box(Frame* f){
 
 void Frame_set_box(Frame* f, PyObject* arr){
     MAP_EIGEN_TO_PYTHON_F(Matrix3f,m,arr)
-     f->box.modify(m);
+    f->box.modify(m);
 }
 
 void make_bindings_Frame(){

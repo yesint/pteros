@@ -559,15 +559,16 @@ void Selection::set_resname(string& data){
 
 
 MatrixXf Selection::get_xyz() const {
-    MatrixXf res;
-    get_xyz(res);
+    int n = index.size();
+    MatrixXf res(3,n);
+    for(int i=0; i<n; ++i) res.col(i) = system->traj[frame].coord[index[i]];
     return res;
 }
 
 void Selection::get_xyz(MatrixXf_ref res) const {
     int i,n;
     n = index.size();
-    if(res.rows()!=3 || res.cols()!=n) res.resize(3,n);
+    res.resize(3,n);
     for(i=0; i<n; ++i) res.col(i) = system->traj[frame].coord[index[i]];
 }
 

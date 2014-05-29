@@ -36,6 +36,20 @@ s.atoms_dup([1,2,3],sel)
 print 'after dup: ',s.num_atoms()
 print 'dup sel: ',sel.size()
 
-sel = Selection(s,'name CA')
+sel = Selection(s,'all')
 print '>>> sel.size:',sel.size()
+a = sel.get_xyz()
+print a
 
+print sel.get_index()[1:10]
+
+o = sel.get_name()
+print o[0:10]
+o[0]='AAA'
+sel.set_name(o)
+print sel.get_name()[0:10]
+
+o=sel.get_chain()
+o[1]='Y'
+sel.set_chain(o)
+print sel.get_chain()[0:10]
