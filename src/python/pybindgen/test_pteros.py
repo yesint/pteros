@@ -30,11 +30,15 @@ print s.getXYZ(0,0)
 
 print s.dssp()
 
+
+
 print 'before dup: ',s.num_atoms()
 sel = Selection()
 s.atoms_dup([1,2,3],sel)
 print 'after dup: ',s.num_atoms()
 print 'dup sel: ',sel.size()
+
+
 
 sel = Selection(s,'all')
 print '>>> sel.size:',sel.size()
@@ -49,7 +53,22 @@ o[0]='AAA'
 sel.set_name(o)
 print sel.get_name()[0:10]
 
+o = sel.get_resname()
+print o[0:10]
+o[0]='RRR'
+sel.set_resname(o)
+print sel.get_resname()[0:10]
+
+
 o=sel.get_chain()
 o[1]='Y'
 sel.set_chain(o)
 print sel.get_chain()[0:10]
+
+print "TEST TEST TEST ::::: ",s.getXYZ(0,0)
+
+l=sel.split_by_residue()
+print l[2].get_resid()
+
+a,b= sel.minmax()
+print a,b

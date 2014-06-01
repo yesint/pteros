@@ -220,7 +220,7 @@ class std_vector_wrapper(Parameter):
         # declare a pyobject which holds a sequence
         arg = wrapper.declarations.declare_variable("PyObject*", self.name+'_arg','NULL')
         # declare a c++ vector
-        cpp_vec = wrapper.declarations.declare_variable('std::vector<%s>' % self.CPP_DTYPE, self.name+'_cpp_vec')
+        self.cpp_vec = wrapper.declarations.declare_variable('std::vector<%s>' % self.CPP_DTYPE, self.name+'_cpp_vec')
         
         if self.direction & Parameter.DIRECTION_IN:
             # Parse pyobject from python params
@@ -238,23 +238,21 @@ class std_vector_wrapper(Parameter):
             self.pylist_element_to_cpp(wrapper) # This could be overloaded for different types
             
             # Copy this element to c++ vector
-            wrapper.before_call.write_code('%s.push_back(cpp_el);' % cpp_vec)
-            # decref i-th element
-            wrapper.before_call.write_code('Py_DECREF(el);')
+            wrapper.before_call.write_code('%s.push_back(cpp_el);' % self.cpp_vec)
             
             self.extra_cleanup(wrapper)
 
             wrapper.before_call.unindent()
             wrapper.before_call.write_code('}')
             # Now add call param
-            wrapper.call_params.append(cpp_vec)
+            wrapper.call_params.append(self.cpp_vec)
 
         if self.direction & Parameter.DIRECTION_OUT:
             # Add call param
-            wrapper.call_params.append(cpp_vec)
+            wrapper.call_params.append(self.cpp_vec)
             # After call cycle over the vector and create a sequence from it            
-            wrapper.after_call.write_code('PyObject* outlist_%s = PyList_New(%s.size());' % (self.name,cpp_vec))
-            wrapper.after_call.write_code('for(size_t i=0;i<%s.size();++i){' % cpp_vec)
+            wrapper.after_call.write_code('PyObject* outlist_%s = PyList_New(%s.size());' % (self.name,self.cpp_vec))
+            wrapper.after_call.write_code('for(size_t i=0;i<%s.size();++i){' % self.cpp_vec)
             wrapper.after_call.indent()
             
             self.cppvector_element_to_py(wrapper)
@@ -291,7 +289,7 @@ class vector_of_EigenVectors(std_vector_wrapper):
         wrapper.after_call.write_code('PyObject* py_el = PyArray_SimpleNew(1, arr_sz, %s);' % self.PYARRAY_DTYPE)
         wrapper.after_call.write_code('Eigen::Map<%s> mp((%s*)PyArray_DATA(arr),3,1);' % 
                                             (self.CPP_DTYPE,self.CAST_DTYPE))
-        wrapper.after_call.write_code('mp = %s[i];' % cpp_vec)
+        wrapper.after_call.write_code('mp = %s[i];' % self.cpp_vec)
 
             
 class vector_of_Vector3f(vector_of_EigenVectors):
@@ -325,7 +323,7 @@ class vector_of_int(std_vector_wrapper):
     
     def cppvector_element_to_py(self, wrapper):
         # MUST define py_el in the code!
-        wrapper.after_call.write_code('PyObject* py_el = PyInt_FromLong(%s[i]);' % cpp_vec)
+        wrapper.after_call.write_code('PyObject* py_el = PyInt_FromLong(%s[i]);' % self.cpp_vec)
 
 
 class vector_of_float(std_vector_wrapper):
@@ -343,7 +341,7 @@ class vector_of_float(std_vector_wrapper):
     
     def cppvector_element_to_py(self, wrapper):
         # MUST define py_el in the code!
-        wrapper.after_call.write_code('PyObject* py_el = PyFloat_FromDouble((double)%s[i]);' % cpp_vec)
+        wrapper.after_call.write_code('PyObject* py_el = PyFloat_FromDouble((double)%s[i]);' % self.cpp_vec)
 
 
 class vector_of_string(std_vector_wrapper):
@@ -362,7 +360,7 @@ class vector_of_string(std_vector_wrapper):
         
     def cppvector_element_to_py(self, wrapper):
         # MUST define py_el in the code!
-        wrapper.after_call.write_code('PyObject* py_el = PyString_FromString(%s[i].c_str());' % cpp_vec)
+        wrapper.after_call.write_code('PyObject* py_el = PyString_FromString(%s[i].c_str());' % self.cpp_vec)
 
 class vector_of_char(std_vector_wrapper):
     DIRECTIONS = [Parameter.DIRECTION_IN, Parameter.DIRECTION_OUT]
@@ -382,7 +380,40 @@ class vector_of_char(std_vector_wrapper):
         
     def cppvector_element_to_py(self, wrapper):
         # MUST define py_el in the code!
-        wrapper.after_call.write_code('PyObject* py_el = PyString_FromFormat("\%c",%s[i]);' % cpp_vec)
+        wrapper.after_call.write_code('PyObject* py_el = PyString_FromFormat("\%c",%s[i]);' % self.cpp_vec)
+
+
+class vector_of_Selection(std_vector_wrapper):
+    DIRECTIONS = [Parameter.DIRECTION_IN, Parameter.DIRECTION_OUT]
+    CTYPES = ['std::vector<Selection>&']
+    CPP_DTYPE = 'Selection'
+    
+    def pylist_element_to_cpp(self, wrapper):
+        # MUST define cpp_el in the code!
+        # Create an int from i-th element        
+        wrapper.before_call.write_code('Selection cpp_el(*(((PyPterosSelection*)el)->obj));')
+        
+    def cppvector_element_to_py(self, wrapper):
+        # MUST define py_el in the code!        
+        wrapper.after_call.write_code('PyObject* py_el = PyObject_CallObject((PyObject *)&PyPterosSelection_Type,NULL);')
+        wrapper.after_call.write_code('*((PyPterosSelection*)py_el)->obj = %s[i];' % self.cpp_vec)
+        wrapper.after_call.write_code('((PyPterosSelection*)py_el)->flags = PYBINDGEN_WRAPPER_FLAG_NONE;')
+
+class vector_of_Atom(std_vector_wrapper):
+    DIRECTIONS = [Parameter.DIRECTION_IN, Parameter.DIRECTION_OUT]
+    CTYPES = ['std::vector<pteros::Atom>&']
+    CPP_DTYPE = 'pteros::Atom'
+    
+    def pylist_element_to_cpp(self, wrapper):
+        # MUST define cpp_el in the code!
+        # Create an int from i-th element        
+        wrapper.before_call.write_code('pteros::Atom cpp_el(*( ((PyPterosAtom*)el)->obj));')
+        
+    def cppvector_element_to_py(self, wrapper):
+        # MUST define py_el in the code!        
+        wrapper.after_call.write_code('PyObject* py_el = PyObject_CallObject((PyObject *)&PyPterosAtom_Type,NULL);')
+        wrapper.after_call.write_code('*((PyPterosAtom*)py_el)->obj = %s[i];' % self.cpp_vec)
+        wrapper.after_call.write_code('((PyPterosAtom*)py_el)->flags = PYBINDGEN_WRAPPER_FLAG_NONE;')
     
 #----------------------------------------------------------------------------------------------------------
 
@@ -470,6 +501,7 @@ class std_vector_return(ReturnValue):
         self.cppvector_element_to_py(wrapper)
         
         wrapper.after_call.write_code('PyList_SET_ITEM(retlist,i,py_el);')
+        #wrapper.after_call.write_code('Py_DECREF(py_el);')
         wrapper.after_call.unindent()
         wrapper.after_call.write_code('}')
         # And return the param in output tuple
@@ -493,7 +525,22 @@ class std_vector_string_return(std_vector_return):
 class std_vector_char_return(std_vector_return):
     CTYPES = ['std::vector<char>']
     def cppvector_element_to_py(self,wrapper):
-        wrapper.after_call.write_code('PyObject* py_el = PyString_FromStringAndSize(&retval[i],1);')
+        wrapper.after_call.write_code('std::string tmp_str(1,retval[i]);')
+        wrapper.after_call.write_code('PyObject* py_el = PyString_FromString(tmp_str.c_str());')
+
+class std_vector_Selection_return(std_vector_return):
+    CTYPES = ['std::vector<pteros::Selection>']
+    def cppvector_element_to_py(self,wrapper):
+        wrapper.after_call.write_code('PyObject* py_el = PyObject_CallObject((PyObject *)&PyPterosSelection_Type,NULL);')
+        wrapper.after_call.write_code('*((PyPterosSelection*)py_el)->obj = retval[i];')
+        wrapper.after_call.write_code('((PyPterosSelection*)py_el)->flags = PYBINDGEN_WRAPPER_FLAG_NONE;')
+
+class std_vector_Atom_return(std_vector_return):
+    CTYPES = ['std::vector<pteros::Atom>']
+    def cppvector_element_to_py(self,wrapper):
+        wrapper.after_call.write_code('PyObject* py_el = PyObject_CallObject((PyObject *)&PyPterosAtom_Type,NULL);')
+        wrapper.after_call.write_code('*((PyPterosAtom*)py_el)->obj = retval[i];')
+        wrapper.after_call.write_code('((PyPterosAtom*)py_el)->flags = PYBINDGEN_WRAPPER_FLAG_NONE;')
 
 
 #-----------------------------------------------------
@@ -585,10 +632,6 @@ System = mod.add_class('System')
 Selection = mod.add_class('Selection')
 Periodic_box = mod.add_class('Periodic_box')
 Periodic_box = mod.add_class('Atom')
-
-# Pre-register stl containers:
-mod.add_container('std::vector<pteros::Selection>', 'pteros::Selection', 'vector')
-mod.add_container('std::vector<pteros::Atom>', 'pteros::Atom', 'vector')
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Energy_components
@@ -701,6 +744,18 @@ Selection.add_method('get_resname',retval('std::vector<std::string>'),[])
 Selection.add_method('set_resname',None,[param('const std::vector<std::string>&','data')])
 Selection.add_method('set_resname',None,[param('std::string&','data')])
 Selection.add_method('get_xyz',retval('Eigen::MatrixXf',dim1='3',dim2='self->obj->size()'),[])
+Selection.add_method('set_xyz',None,[param('MatrixXf_const_ref','coord')])
+Selection.add_method('get_mass',retval('std::vector<float>'),[])
+Selection.add_method('set_mass',None,[param('const std::vector<float>&','data')])
+Selection.add_method('set_mass',None,[param('float','data')])
+Selection.add_method('get_beta',retval('std::vector<float>'),[])
+Selection.add_method('set_beta',None,[param('const std::vector<float>&','data')])
+Selection.add_method('set_beta',None,[param('float','data')])
+Selection.add_method('center',retval('Eigen::Vector3f'),[param('bool','mass_weighted',default_value='false'),
+                                                         param('bool','periodic',default_value='false')])
+Selection.add_method('minmax',None,[param('Vector3f_ref','min',OUT),param('Vector3f_ref','max',OUT)] )
+
+Selection.add_method('split_by_residue',None,[param('std::vector<Selection>&','res',OUT)] )
 
 Selection.add_method('size',retval('int'),[])
 #==========================================
