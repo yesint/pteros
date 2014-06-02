@@ -300,7 +300,17 @@ class Selection {
     void set_beta(std::vector<float>& data);
 
     /// Sets beta of all selected atoms to the same given value.
-    void set_beta(float data);    
+    void set_beta(float data);
+
+    /// Get occupancy
+    std::vector<float> get_occupancy() const;
+
+    /// Set occupancy in selection to the values from supplied vector.
+    /// Its size must be the save as the size of selection.
+    void set_occupancy(std::vector<float>& data);
+
+    /// Sets occupancy of all selected atoms to the same given value.
+    void set_occupancy(float data);
     /// @}
 
 
@@ -319,15 +329,10 @@ class Selection {
     /// Get minimal and maximal coordinates in selection
     void minmax(Vector3f_ref min, Vector3f_ref max) const;
 
-#ifdef USE_POWERSASA
-    /// Get the SASA. Easy way - only returns SASA area of selection
-    float sasa(float probe_r = 0.14) const;
-
-    /// Get the SASA. Detailed way - returns area and computes volume and per-atom values
-    float sasa(float probe_r = 0.14, float* total_volume = NULL,
-               std::vector<float>* area_per_atom = NULL,
-               std::vector<float>* volume_per_atom = NULL) const;
-#endif
+    /// Get the SASA. Returns area and computes volume and per-atom values if asked
+    float sasa(float probe_r = 0.14, float* total_volume = nullptr,
+               std::vector<float>* area_per_atom = nullptr,
+               std::vector<float>* volume_per_atom = nullptr) const;
 
     /// Computes average structure over the range of frames
     Eigen::MatrixXf average_structure(int b=0, int e=-1) const;

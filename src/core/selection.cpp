@@ -633,14 +633,35 @@ void Selection::set_beta(float data){
     for(i=0; i<n; ++i) system->atoms[index[i]].beta = data;
 }
 
-/*
-// Compute bonds using grid search
-vector<Vector2i> Selection::compute_bonds(){
-    vector<Vector2i> ret;
-    Grid_searcher(0.16,*this,ret);
-    return ret;
+
+vector<float> Selection::get_occupancy() const{
+    vector<float> res;
+    int i,n;
+    n = index.size();
+    res.resize(n);
+    for(i=0; i<n; ++i) res[i] = system->atoms[index[i]].occupancy;
+    return res;
 }
-*/
+
+void Selection::set_occupancy(std::vector<float>& data){
+    int i,n;
+    n = index.size();
+    // Sanity check
+    if(data.size()!=n){
+        Pteros_error e;
+        e << "Invalid data size "<< data.size()
+          << " for selection of size " << n;
+        throw e;
+    }
+    for(i=0; i<n; ++i) system->atoms[index[i]].occupancy = data[i];
+}
+
+void Selection::set_occupancy(float data){
+    int i,n;
+    n = index.size();
+    for(i=0; i<n; ++i) system->atoms[index[i]].occupancy = data;
+}
+
 
 ////////////////////////////////////////////
 // Transformations and inquery functions
@@ -1450,10 +1471,6 @@ void Selection::principal_orient(bool is_periodic){
 }
 
 #ifdef USE_POWERSASA
-float Selection::sasa(float probe_r) const
-{
-    return sasa(probe_r,NULL,NULL,NULL);
-}
 
 float Selection::sasa(float probe_r, float *total_volume,
                       vector<float> *area_per_atom, vector<float> *volume_per_atom) const
@@ -1473,6 +1490,7 @@ float Selection::sasa(float probe_r, float *total_volume,
     float v,surf;
 
     if(do_v || do_v_per_atom){
+        if(volume_per_atom) volume_per_atom->resize(size());
         for(int i = 0; i < size(); ++i){
             v = ps.getVol()[i];
             if(do_v_per_atom) (*volume_per_atom)[i] = v;
@@ -1480,7 +1498,8 @@ float Selection::sasa(float probe_r, float *total_volume,
         }
     }
 
-    for(int i = 0; i < size(); ++i){
+    if(area_per_atom) area_per_atom->resize(size());
+    for(int i = 0; i < size(); ++i){        
         v = ps.getSasa()[i];
         if(do_a_per_atom) (*area_per_atom)[i] = v;
         surf += v;
@@ -1488,4 +1507,13 @@ float Selection::sasa(float probe_r, float *total_volume,
 
     return surf;
 }
+
+#else
+
+float Selection::sasa(float probe_r, float *total_volume,
+                      vector<float> *area_per_atom, vector<float> *volume_per_atom) const
+{
+    throw Pteros_error("Pteros is compiled without POWERSASA support. Can't compute SASA!");
+}
+
 #endif

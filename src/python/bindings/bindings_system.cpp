@@ -150,5 +150,7 @@ void make_bindings_System(){
         .def("wrap_all", &System_wrap_all2)
         .def("append", static_cast<void(System::*)(const Selection&)>(&System::append))
         .def("append", static_cast<void(System::*)(const System&)>(&System::append))
+        .def("dssp", static_cast<void(System::*)(std::string)const>(&System::dssp))
+        .def("dssp", static_cast<std::string(System::*)()const>(&System::dssp))
     ;
 }

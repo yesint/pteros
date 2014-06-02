@@ -81,6 +81,43 @@ void Selection_set_mass2(Selection* s, float data){
     s->set_mass(data);
 }
 
+boost::python::list Selection_get_beta(Selection* s){
+    boost::python::list l;
+    vector<float> r = s->get_beta();
+    for(int i=0;i<r.size();++i) l.append(r[i]);
+    return l;
+}
+
+void Selection_set_beta1(Selection* s, boost::python::list& data){
+    int n = len(data);
+    vector<float> r;
+    r.resize(n);
+    for(int i=0;i<r.size();++i) r[i] = extract<float>(data[i]);
+    s->set_beta(r);
+}
+
+void Selection_set_beta2(Selection* s, float data){
+    s->set_beta(data);
+}
+
+boost::python::list Selection_get_occupancy(Selection* s){
+    boost::python::list l;
+    vector<float> r = s->get_occupancy();
+    for(int i=0;i<r.size();++i) l.append(r[i]);
+    return l;
+}
+
+void Selection_set_occupancy1(Selection* s, boost::python::list& data){
+    int n = len(data);
+    vector<float> r;
+    r.resize(n);
+    for(int i=0;i<r.size();++i) r[i] = extract<float>(data[i]);
+    s->set_occupancy(r);
+}
+
+void Selection_set_occupancy2(Selection* s, float data){
+    s->set_occupancy(data);
+}
 
 PyObject* Selection_get_traj(Selection* s, int ind, int b=0, int e=-1){
     CREATE_PYARRAY_2D_AND_MAP(p,MatrixXf,data,3,s->get_system()->num_frames())
@@ -334,6 +371,33 @@ float Selection_rmsd2(Selection* s, int fr1, int fr2){
     return s->rmsd(fr1,fr2);
 }
 
+bp::tuple Selection_sasa(Selection* s, float probe_r = 0.14,
+                     bool do_total_volume = false,
+                     bool do_area_per_atom = false,
+                     bool do_volume_per_atom = false)
+{
+    float total_v,ret;
+    std::vector<float> area_per_atom;
+    std::vector<float> volume_per_atom;
+    bp::list a_list, v_list;
+    bp::object tot_obj; //Defaults to None
+
+    float* tot_ptr = do_total_volume ? &total_v : nullptr;
+    std::vector<float>* a_ptr = do_area_per_atom ? &area_per_atom : nullptr;
+    std::vector<float>* v_ptr = do_volume_per_atom ? &volume_per_atom : nullptr;
+
+    ret = s->sasa(probe_r,tot_ptr,a_ptr,v_ptr);
+
+    if(tot_ptr) tot_obj = bp::object(total_v);
+    if(a_ptr) for(int i=0;i<area_per_atom.size();++i) a_list.append(area_per_atom[i]);
+    if(v_ptr) for(int i=0;i<volume_per_atom.size();++i) v_list.append(volume_per_atom[i]);
+
+    return boost::python::make_tuple(bp::object(ret),tot_obj,a_list,v_list);
+}
+
+BOOST_PYTHON_FUNCTION_OVERLOADS(Selection_sasa_overloads,Selection_sasa,1,5)
+
+
 //-------------------------------------------------------
 
 // Macros to wrap an inline accessor function
@@ -469,6 +533,14 @@ void make_bindings_Selection(){
         .def("set_mass",&Selection_set_mass1)
         .def("set_mass",&Selection_set_mass2)
 
+        .def("get_beta",&Selection_get_beta)
+        .def("set_beta",&Selection_set_beta1)
+        .def("set_beta",&Selection_set_beta2)
+
+        .def("get_occupancy",&Selection_get_occupancy)
+        .def("set_occupancy",&Selection_set_occupancy1)
+        .def("set_occupancy",&Selection_set_occupancy2)
+
         .def("get_traj",&Selection_get_traj, Selection_get_traj_overloads())
 
         .def("center",&Selection_center, (bp::arg("mass_weighted")=false,bp::arg("periodic")=false) )
@@ -514,6 +586,8 @@ void make_bindings_Selection(){
         .def("split_by_connectivity",&Selection_split_by_connectivity)
         .def("split_by_residue",&Selection_split_by_residue)
         .def("each_residue",&Selection_each_residue)
+
+        .def("sasa",&Selection_sasa,Selection_sasa_overloads())
 
         // For coordinate accessors we should use setX instead of just X in Python
         // This is because Python don't respect void in return - all functions
