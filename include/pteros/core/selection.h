@@ -496,7 +496,7 @@ class Selection {
 
     /// Duplicate current selection in the parent system
     /// @param res_sel Pointer to selection of duplicated atoms
-    void atoms_dup(Selection* res_sel = NULL);
+    void atoms_dup(Selection* res_sel = nullptr);
 
     /// Delete all atoms of current selection from the parent system
     /// Current selection becomes invalid after this!

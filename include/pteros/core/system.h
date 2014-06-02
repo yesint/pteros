@@ -169,7 +169,7 @@ public:
     /// Adds new frame to trajectory
     void frame_append(const Frame& fr);
 
-    /// Copy coordinates from fr1 to fr2
+    /// Copy all frame data from fr1 to fr2
     void frame_copy(int fr1, int fr2);
 
     /** Delete specified range of frames.
@@ -189,6 +189,7 @@ public:
         return traj[fr].box;
     }
 
+    /// Read only access for periodic box for given frame
     inline const Periodic_box& Box(int fr) const {
         return traj[fr].box;
     }
@@ -198,6 +199,7 @@ public:
         return traj[fr].time;
     }
 
+    /// Read only access to the time stamp of given frame
     inline const float& Time(int fr) const {
         return traj[fr].time;
     }
@@ -207,6 +209,7 @@ public:
         return traj[fr].coord[ind];
     }
 
+    /// Read only access for given coordinate of given frame
     inline const Eigen::Vector3f& XYZ(int ind, int fr) const {
         return traj[fr].coord[ind];
     }
@@ -216,16 +219,17 @@ public:
         return atoms[ind];
     }
 
+    /// Read only access for given atom
     inline const Atom& Atom_data(int ind) const {
         return atoms[ind];
     }
-
 
     /// Get read/write reference for given frame
     inline Frame& Frame_data(int fr){
         return traj[fr];
     }
 
+    /// Get read only reference for given frame
     inline const Frame& Frame_data(int fr) const {
         return traj[fr];
     }
@@ -236,8 +240,11 @@ public:
     /// @name Secondary structure functions
     /// @{
 
-    /// Determines secondary structure with DSSP algorithm and write detailed report to file
+    /// Determines secondary structure with DSSP algorithm and writes detailed report to file
     void dssp(std::string fname) const;
+
+    /// Determines secondary structure with DSSP algorithm and writes detailed report to stream
+    void dssp(std::ostream& os) const;
 
     /**
      * @brief Determines secondary structure with DSSP algorithm and return it as a code string
@@ -261,12 +268,12 @@ public:
     /// @{
 
     /// Adds new atoms, which are duplicates of existing ones by index
-    void atoms_dup(const std::vector<int>& ind, Selection* res_sel = NULL);
+    void atoms_dup(const std::vector<int>& ind, Selection* res_sel = nullptr);
 
     /// Adds new atoms from supplied vectors of atoms and coordinates
     void atoms_add(const std::vector<Atom>& atm,
                    const std::vector<Eigen::Vector3f>& crd,
-                   Selection* res_sel = NULL);    
+                   Selection* res_sel = nullptr);
 
     /// Delete the set of atoms
     void atoms_delete(const std::vector<int>& ind);
@@ -318,7 +325,7 @@ public:
         if(force_field.ready)
             return &force_field;
         else
-            return NULL;
+            return nullptr;
     }
 
     /// Assign unique resindexes

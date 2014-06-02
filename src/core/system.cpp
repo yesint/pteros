@@ -517,6 +517,12 @@ void System::dssp(string fname) const {
     f.close();
 }
 
+void System::dssp(ostream& os) const {
+    Selection sel(const_cast<System&>(*this),"all");
+    dssp_wrapper(sel,os);
+}
+
+
 string System::dssp() const{
     Selection sel(const_cast<System&>(*this),"all");
     return dssp_string(sel);
