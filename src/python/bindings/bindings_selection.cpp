@@ -24,6 +24,7 @@
 #include "pteros/core/system.h"
 #include "pteros/core/selection.h"
 #include "pteros/python/bindings_util.h"
+#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 
 using namespace pteros;
 using namespace Eigen;
@@ -261,6 +262,13 @@ void Selection_set_resid2(Selection* s, char data){
     s->set_resid(data);
 }
 
+boost::python::list Selection_get_resindex(Selection* s){
+    boost::python::list l;
+    for(int i=0;i<s->size();++i) l.append(s->Resindex(i));
+    return l;
+}
+
+
 boost::python::list Selection_get_name(Selection* s){
     boost::python::list l;    
     for(int i=0;i<s->size();++i) l.append(s->Name(i).c_str());
@@ -461,10 +469,27 @@ Atom_proxy Selection_getitem(Selection* sel, int i){
 }
 
 
+
+/** to-python converter */
+struct Vector3f_to_python
+{
+    static PyObject* convert(const Vector3f& data){
+        CREATE_PYARRAY_1D_AND_MAP(p,Vector3f,vec,3)
+        vec = data;
+        return bp::incref(p);
+    }
+};
+
+
+
 void make_bindings_Selection(){
     import_array();    
 
-    Vector3f::Scalar a;
+    //boost::python::to_python_converter<Eigen::Vector3f,Vector3f_to_python>();
+
+    boost::python::class_<std::vector<int> >("VecInt")
+        .def(boost::python::vector_indexing_suite<std::vector<int> >())
+    ;
 
     class_<Selection_iter>("_Selection_iter", no_init)
         .def("next",&Selection_iter::next)
@@ -515,6 +540,9 @@ void make_bindings_Selection(){
         .def("get_resid",&Selection_get_resid)
         .def("set_resid",&Selection_set_resid1)
         .def("set_resid",&Selection_set_resid2)
+
+        .def("get_resindex",&Selection_get_resindex)
+        .def("get_resindex1",&Selection::get_resindex)
 
         .def("get_name",&Selection_get_name)
         .def("set_name",&Selection_set_name1)
@@ -613,6 +641,8 @@ void make_bindings_Selection(){
         .def("getXYZ",&Selection_getXYZ2)
         .def("setXYZ",&Selection_setXYZ1)
         .def("setXYZ",&Selection_setXYZ2)
+
+        //.def("getXYZ1",static_cast<const Eigen::Vector3f&(Selection::*)(int)const>(&Selection::XYZ),return_value_policy<reference_existing_object>())
 
         .def("getType",&Selection_getType)
         .def("setType",&Selection_setType)

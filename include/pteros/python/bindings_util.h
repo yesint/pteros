@@ -124,7 +124,7 @@ PyObject* mapper(PyObject* pyobj, size_t& dim1, size_t& dim2){
         npy_intp sz[1] = {dim};\
         pyobj = PyArray_SimpleNew(1, sz, PyArray_FLOAT); \
     } \
-    Eigen::Map<T> matr((float*)PyArray_DATA(pyobj),1,dim);
+    Eigen::Map<T> matr((float*)PyArray_DATA(pyobj),dim,1);
 
 
 #define CREATE_PYARRAY_2D_AND_MAP(pyobj, T, matr, dim1, dim2) \
