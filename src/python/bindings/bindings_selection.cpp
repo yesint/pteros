@@ -470,22 +470,8 @@ Atom_proxy Selection_getitem(Selection* sel, int i){
 
 
 
-/** to-python converter */
-struct Vector3f_to_python
-{
-    static PyObject* convert(const Vector3f& data){
-        CREATE_PYARRAY_1D_AND_MAP(p,Vector3f,vec,3)
-        vec = data;
-        return bp::incref(p);
-    }
-};
-
-
-
 void make_bindings_Selection(){
-    import_array();    
-
-    //boost::python::to_python_converter<Eigen::Vector3f,Vector3f_to_python>();
+    import_array();
 
     boost::python::class_<std::vector<int> >("VecInt")
         .def(boost::python::vector_indexing_suite<std::vector<int> >())
@@ -540,6 +526,8 @@ void make_bindings_Selection(){
         .def("get_resid",&Selection_get_resid)
         .def("set_resid",&Selection_set_resid1)
         .def("set_resid",&Selection_set_resid2)
+
+        .def("set_resid1",static_cast<void(Selection::*)(const vector<int>&)>(&Selection::set_resid))
 
         .def("get_resindex",&Selection_get_resindex)
         .def("get_resindex1",&Selection::get_resindex)
