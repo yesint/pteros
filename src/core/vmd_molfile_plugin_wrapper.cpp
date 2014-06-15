@@ -204,7 +204,6 @@ bool VMD_molfile_plugin_wrapper::do_read(System *sys, Frame *frame, const Mol_fi
         }
         sys->assign_resindex();
 
-        return true;
     }
 
     if(what.coordinates || what.trajectory){
@@ -294,14 +293,24 @@ void VMD_molfile_plugin_wrapper::do_write(const Selection &sel, const Mol_file_c
             k+=3;
         }
         ts.coords = &buffer.front();
-        Eigen::Vector3f v,a;
-        sel.get_system()->Box(sel.get_frame()).to_vectors_angles(v,a);
-        ts.A = v(0)*10.0;
-        ts.B = v(1)*10.0;
-        ts.C = v(2)*10.0;
-        ts.alpha = a(0);
-        ts.beta = a(1);
-        ts.gamma = a(2);
+        // Only convert periodic box if it is present
+        if(sel.get_system()->Box(sel.get_frame()).is_periodic()){
+            Eigen::Vector3f v,a;
+            sel.get_system()->Box(sel.get_frame()).to_vectors_angles(v,a);
+            ts.A = v(0)*10.0;
+            ts.B = v(1)*10.0;
+            ts.C = v(2)*10.0;
+            ts.alpha = a(0);
+            ts.beta = a(1);
+            ts.gamma = a(2);
+        } else {
+            ts.A = 0.0;
+            ts.B = 0.0;
+            ts.C = 0.0;
+            ts.alpha = 0;
+            ts.beta = 0;
+            ts.gamma = 0;
+        }
 
         ts.physical_time = sel.get_system()->Time(sel.get_frame());
 

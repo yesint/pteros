@@ -143,10 +143,14 @@ void GRO_file::do_write(const Selection &sel, const Mol_file_content &what){
     }
 
     // Write periodic box
-    // We store box as column-vectors, while the code below hacked from VMD use row vectors,
-    // so, transpose
-    Eigen::Matrix3f b = sel.get_system()->Box(sel.get_frame()).get_box().transpose();
-
+    Eigen::Matrix3f b;
+    if(sel.get_system()->Box(sel.get_frame()).is_periodic()){
+        // We store box as column-vectors, while the code below hacked from VMD use row vectors,
+        // so, transpose
+        b = sel.get_system()->Box(sel.get_frame()).get_box().transpose();
+    } else {
+        b.fill(0.0);
+    }
     // We are writing dimensions in nm to be compatible with Gromacs
     f << b(0,0) << " "
       << b(1,1) << " "

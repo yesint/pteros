@@ -37,7 +37,7 @@ class VMD_molfile_plugin_wrapper: public Mol_file {
 public:
     // High-level API    
     VMD_molfile_plugin_wrapper(std::string fname, char open_mode);
-    ~VMD_molfile_plugin_wrapper();    
+    virtual ~VMD_molfile_plugin_wrapper();
 
 protected:
     virtual void open(std::string fname, char open_mode);

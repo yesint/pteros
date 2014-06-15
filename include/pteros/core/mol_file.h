@@ -46,7 +46,7 @@ class Mol_file {
 public:
     // High-level API    
     Mol_file(std::string fname, char open_mode);
-    ~Mol_file();       
+    virtual ~Mol_file();
 
     /// Reads data, which are specified by what.
     /// Pointers to System and Frame could be NULL if not used

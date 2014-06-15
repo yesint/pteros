@@ -37,7 +37,7 @@ class GRO_file: public Mol_file {
 public:
     // High-level API    
     GRO_file(std::string fname, char open_mode);
-    ~GRO_file();    
+    virtual ~GRO_file();
 
     virtual Mol_file_content get_content_type() const {
         Mol_file_content c;
