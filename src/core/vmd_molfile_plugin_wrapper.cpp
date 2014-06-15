@@ -203,6 +203,8 @@ bool VMD_molfile_plugin_wrapper::do_read(System *sys, Frame *frame, const Mol_fi
             set_atom_in_system(*sys,i,at);
         }
         sys->assign_resindex();
+
+        return true;
     }
 
     if(what.coordinates || what.trajectory){
@@ -246,6 +248,9 @@ bool VMD_molfile_plugin_wrapper::do_read(System *sys, Frame *frame, const Mol_fi
         }
         */
     }       
+
+    // If we are here than something is wrong
+    return false;
 }
 
 void VMD_molfile_plugin_wrapper::do_write(const Selection &sel, const Mol_file_content &what) {
