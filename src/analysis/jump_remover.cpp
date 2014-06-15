@@ -51,7 +51,7 @@ void Jump_remover::remove_jumps(System& system, const Frame_info &info){
 
     if(info.valid_frame==0){
         // Do initial unwrapping
-        // Make temp selection form no_jump_ind
+        // Make temp selection from no_jump_ind
         Selection sel(system);
         sel.modify(no_jump_ind);
 

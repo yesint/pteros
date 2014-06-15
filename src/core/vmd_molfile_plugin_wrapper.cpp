@@ -22,6 +22,7 @@
 
 #include "vmd_molfile_plugin_wrapper.h"
 #include "pteros/core/pteros_error.h"
+#include "molfile_plugins/periodic_table.h"
 #include <Eigen/Core>
 
 // General molfile_plugin includes
@@ -173,6 +174,7 @@ bool VMD_molfile_plugin_wrapper::do_read(System *sys, Frame *frame, const Mol_fi
         allocate_atoms_in_system(*sys,natoms);
         // Copy atoms to the system
         Atom at;
+        int pos,idx;
         for(int i=0; i<natoms; ++i){
             at.name = atoms[i].name;
             at.resname = atoms[i].resname;
@@ -180,14 +182,21 @@ bool VMD_molfile_plugin_wrapper::do_read(System *sys, Frame *frame, const Mol_fi
             at.chain = atoms[i].chain[0];
             at.occupancy = atoms[i].occupancy;
             at.beta = atoms[i].bfactor;
+            // VMD gets element as an atomic number. We convert it back
+            // to textual representation and store in tag field
+            if(atoms[i].atomicnumber > 0)
+                at.tag = get_pte_label(atoms[i].atomicnumber);
 
             // pdb_plugin guesses mass based on element record, which is
             // often absent. So it is likely that mass will be zero here!
             // Check and guess ourself!
+            // We can't use functions from VMD here since atom CA will be
+            // treated as calcium for example. Out technique is more primitive
+            // and only recognizes few most common elements
             if(atoms[i].mass>0){
                 at.mass = atoms[i].mass;
             } else {
-                // Guess mass using Pteros assignment
+                // Guess mass from atom name
                 at.mass = get_mass_from_atom_name(at.name);
             }
 
@@ -255,9 +264,11 @@ void VMD_molfile_plugin_wrapper::do_write(const Selection &sel, const Mol_file_c
             atoms[i].occupancy = sel.Occupancy(i);
             atoms[i].bfactor = sel.Beta(i);
             atoms[i].mass = sel.Mass(i);
+            // Try to deduce an element number from tag field
+            atoms[i].atomicnumber = get_pte_idx_from_string(sel.Tag(i).c_str());
         }
 
-        int flags = MOLFILE_OCCUPANCY | MOLFILE_BFACTOR;
+        int flags = MOLFILE_OCCUPANCY | MOLFILE_BFACTOR | MOLFILE_ATOMICNUMBER;
         plugin->write_structure(w_handle,flags,&atoms.front());
     }
 
