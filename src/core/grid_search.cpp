@@ -475,8 +475,8 @@ void Grid_searcher::set_grid_size(const Vector3f& min, const Vector3f& max, int 
 
     // Grid vectors:
     dX = (max(0)-min(0))/NgridX;
-    dY = (max(1)-min(1))/NgridX;
-    dZ = (max(2)-min(2))/NgridX;
+    dY = (max(1)-min(1))/NgridY;
+    dZ = (max(2)-min(2))/NgridZ;
 
 
     // See if some of grid vectors smaller then cutoff
