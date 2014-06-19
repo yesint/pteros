@@ -7,6 +7,7 @@ SET(PLUGINS
     covar_matr
     distance_matr
     secondary
+    rdf
 )
 
 
