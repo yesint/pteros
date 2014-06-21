@@ -301,33 +301,28 @@ Grid_searcher::Grid_searcher(float d,
     is_periodic = periodic;
     abs_index = absolute_index;
 
+    // Get current box
     box = src.get_system()->Box(src.get_frame());
 
     //------------
     // Grid creation part
-    //------------
-
-    // Get the minmax of each selection
-    Vector3f min1,min2,max1,max2;
-    int i;
-
-    src.minmax(min1,max1);
-    target.minmax(min2,max2);
-    // Add a "halo: of size cutoff for each of them
-    min1.array() -= cutoff;
-    max1.array() += cutoff;
-    min2.array() -= cutoff;
-    max2.array() += cutoff;
-
-    int effective_num = src.size() + target.size();
-
-    // Get current box    
-    box = src.get_system()->Box(src.get_frame());
+    //------------        
 
     // Determine bounding box
     if(!is_periodic){
+        // Get the minmax of each selection
+        Vector3f min1,min2,max1,max2;
+
+        src.minmax(min1,max1);
+        target.minmax(min2,max2);
+        // Add a "halo: of size cutoff for each of them
+        min1.array() -= cutoff;
+        max1.array() += cutoff;
+        min2.array() -= cutoff;
+        max2.array() += cutoff;
+
         // Find true bounding box
-        for(i=0;i<3;++i){
+        for(int i=0;i<3;++i){
             overlap_1d(min1(i),max1(i),min2(i),max2(i),min(i),max(i));
             // If no overlap just exit
             if(max(i)==min(i)) return;
@@ -338,7 +333,7 @@ Grid_searcher::Grid_searcher(float d,
         max = box.extents();
     }
 
-    set_grid_size(min,max, effective_num);
+    set_grid_size(min,max, src.size()+target.size());
 
     // Allocate both grids
     grid1.resize( boost::extents[NgridX][NgridY][NgridZ] );
@@ -353,7 +348,7 @@ Grid_searcher::Grid_searcher(float d,
     //------------
     bon.clear();
 
-    int j,k,c,n1,n2,nlist_size,m1,m2,m3,N1,N2,ind;
+    int i,j,k,c,n1,n2,nlist_size,m1,m2,m3,N1,N2,ind;
 
     Vector3f coor1;
 
@@ -436,10 +431,14 @@ Grid_searcher::Grid_searcher(float d,
     }
 
     sort(bon.begin(),bon.end());
-    // Remove duplicates
-    vector<int>::iterator it = std::unique(bon.begin(), bon.end());
-    // Get rid of the tail with garbage
-    bon.resize( it - bon.begin() );
+
+    // Shoud be no duplicates without include_self!
+    if(include_self){
+        // Remove duplicates
+        vector<int>::iterator it = std::unique(bon.begin(), bon.end());
+        // Get rid of the tail with garbage
+        bon.resize( it - bon.begin() );
+    }
 
     if(!include_self){
         vector<int> dum = bon;
@@ -495,7 +494,7 @@ void Grid_searcher::create_grid(Grid_t& grid, const Selection &sel){
     } else {        
         // Set dimensions of the current unit cell
         min.fill(0.0);
-        max = box.extents(); //Also sets box dimensions
+        max = box.extents();
     }
 
     set_grid_size(min,max, sel.size());
@@ -506,30 +505,29 @@ void Grid_searcher::create_grid(Grid_t& grid, const Selection &sel){
 }
 
 
-void Grid_searcher::create_grid2(const Selection &sel1, const Selection &sel2){
-    // Get the minmax of each selection
-    Vector3f min1,min2,max1,max2;
-    int i;
+void Grid_searcher::create_grid2(const Selection &sel1, const Selection &sel2){    
+    if(!is_periodic){
+        // Get the minmax of each selection
+        Vector3f min1,min2,max1,max2;
 
-    sel1.minmax(min1,max1);
-    sel2.minmax(min2,max2);
-    // Add a "halo: of size cutoff for each of them
-    min1.array() -= cutoff;
-    max1.array() += cutoff;
-    min2.array() -= cutoff;
-    max2.array() += cutoff;
+        sel1.minmax(min1,max1);
+        sel2.minmax(min2,max2);
+        // Add a "halo: of size cutoff for each of them
+        min1.array() -= cutoff;
+        max1.array() += cutoff;
+        min2.array() -= cutoff;
+        max2.array() += cutoff;
 
-    if(!is_periodic)
         // Find true bounding box
-        for(i=0;i<3;++i){
+        for(int i=0;i<3;++i){
             overlap_1d(min1(i),max1(i),min2(i),max2(i),min(i),max(i));
             // If no overlap just exit
             if(max(i)==min(i)) return;
         }
-    else {
+    } else {
         // Set dimensions of the current unit cell
         min.fill(0.0);
-        max = box.extents(); //Also sets box dimensions
+        max = box.extents();
     }
 
     set_grid_size(min,max, sel1.size()+sel2.size());
