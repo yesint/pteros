@@ -779,35 +779,31 @@ void Grid_searcher::get_nlist(int i,int j,int k){
         }
     } else {
         // Periodic variant
-        // Lists of possible shifts for each coordinate
-        vector<int> shiftX, shiftY, shiftZ;
-        shiftX.reserve(2);
-        shiftY.reserve(2);
-        shiftZ.reserve(2);
+        int bX = 0, eX = 0;
+        int bY = 0, eY = 0;
+        int bZ = 0, eZ = 0;
 
         // If the number of cells in dimension is 2 this is a special case
-        // when only one neighbour is need. Otherwise add both.
-        shiftX.push_back(0);
-        shiftY.push_back(0);
-        shiftZ.push_back(0);
+        // when only one neighbour is need. Otherwise add both.        
+        if(NgridX>1) bX = -1;
+        if(NgridY>1) bY = -1;
+        if(NgridZ>1) bZ = -1;
 
-        if(NgridX>1) shiftX.push_back(-1);
-        if(NgridY>1) shiftY.push_back(-1);
-        if(NgridZ>1) shiftZ.push_back(-1);
+        if(NgridX>2) eX = 1;
+        if(NgridY>2) eY = 1;
+        if(NgridZ>2) eZ = 1;
 
-        if(NgridX>2) shiftX.push_back(1);
-        if(NgridY>2) shiftY.push_back(1);
-        if(NgridZ>2) shiftZ.push_back(1);
+        int c1,c2,c3;
 
-        for(int c1: shiftX){
+        for(c1 = bX; c1<=eX; ++c1){
             coor(0) = i+c1;
             if(coor(0)==NgridX) coor(0) = 0;
             if(coor(0)==-1) coor(0) = NgridX-1;
-            for(int c2: shiftY){
+            for(c2 = bY; c2<=eY; ++c2){
                 coor(1) = j+c2;
                 if(coor(1)==NgridY) coor(1) = 0;
                 if(coor(1)==-1) coor(1) = NgridY-1;
-                for(int c3: shiftZ){
+                for(c3 = bZ; c3<=eZ; ++c3){
                     coor(2) = k+c3;
                     if(coor(2)==NgridZ) coor(2) = 0;
                     if(coor(2)==-1) coor(2) = NgridZ-1;

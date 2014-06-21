@@ -166,7 +166,7 @@ namespace pteros {
                            std::vector<float>* dist_vec);
             // Min and max of the bounding box
             Eigen::Vector3f min,max;
-            // Grid dimensiond
+            // Grid dimensions
             int NgridX, NgridY, NgridZ;
 
             // Grids
