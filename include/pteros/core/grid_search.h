@@ -112,11 +112,11 @@ namespace pteros {
             /// Search atoms within given distance from point in space
             /// Existing grid set in assign_to_grid() is used
             /// Returns the list of atoms in the vicinity of given point
-            void search_within(Vector3f_ref coor,
+            void search_within(Vector3f_const_ref coord,
                               std::vector<int>& bon);
 
             /// Search atoms within given distance from target selection
-            /// target must be the subset of selectionm which was used in assign_to_grid()
+            /// target must be the subset of selection, which was used in assign_to_grid()
             /// to give meaningful results
             void search_within(const Selection& target,
                                std::vector<int>& bon,
@@ -168,8 +168,7 @@ namespace pteros {
             Eigen::Vector3f min,max;
             // Grid dimensiond
             int NgridX, NgridY, NgridZ;
-            // Grid periodic steps
-            float dX, dY, dZ;
+
             // Grids
             Grid_t grid1, grid2;
             boost::multi_array<bool, 3> visited;

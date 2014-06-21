@@ -122,10 +122,6 @@ void Grid_searcher::fill_custom_grid(const Selection sel, bool absolute_index){
 
     min.fill(0.0);
     max = box.extents();
-    // Grid vectors:
-    dX = (max(0)-min(0))/NgridX;
-    dY = (max(1)-min(1))/NgridX;
-    dZ = (max(2)-min(2))/NgridX;
 
     is_periodic = true;
     abs_index = absolute_index;
@@ -137,11 +133,11 @@ vector<int>& Grid_searcher::cell_of_custom_grid(int x, int y, int z){
     return grid1[x][y][z];
 }
 
-void Grid_searcher::search_within(Vector3f_ref coor, vector<int> &bon){
-    // Determine cell, which given point belongs to
+void Grid_searcher::search_within(Vector3f_const_ref coord, vector<int> &bon){
     int n1,n2,n3,i,m1,m2,m3;
 
     bon.clear();
+    Vector3f coor(coord);
 
     // Get coordinates in triclinic basis if needed
     if(is_periodic && box.is_triclinic()) coor = box.lab_to_box(coor);
@@ -474,24 +470,19 @@ void Grid_searcher::set_grid_size(const Vector3f& min, const Vector3f& max, int 
     if(NgridZ==0) NgridZ = 1;    
 
     // Grid vectors:
-    dX = (max(0)-min(0))/NgridX;
-    dY = (max(1)-min(1))/NgridY;
-    dZ = (max(2)-min(2))/NgridZ;
+    float dX = (max(0)-min(0))/NgridX;
+    float dY = (max(1)-min(1))/NgridY;
+    float dZ = (max(2)-min(2))/NgridZ;
 
+    // See if some of grid vectors smaller than cutoff
+    if(dX<cutoff) NgridX = floor((max(0)-min(0))/cutoff);
+    if(dY<cutoff) NgridY = floor((max(1)-min(1))/cutoff);
+    if(dZ<cutoff) NgridZ = floor((max(2)-min(2))/cutoff);
 
-    // See if some of grid vectors smaller then cutoff
-    if(dX<cutoff){
-        NgridX = floor((max(0)-min(0))/cutoff);
-        dX = (max(0)-min(0))/NgridX;
-    }
-    if(dY<cutoff){
-        NgridY = floor((max(1)-min(1))/cutoff);
-        dY = (max(1)-min(1))/NgridY;
-    }
-    if(dZ<cutoff){
-        NgridZ = floor((max(2)-min(2))/cutoff);
-        dZ = (max(2)-min(2))/NgridZ;
-    }
+    // See if some of grid vectors larger than 2*cutoff
+    if(dX>2.0*cutoff) NgridX = floor((max(0)-min(0))/(2.0*cutoff));
+    if(dY>2.0*cutoff) NgridY = floor((max(1)-min(1))/(2.0*cutoff));
+    if(dZ>2.0*cutoff) NgridZ = floor((max(2)-min(2))/(2.0*cutoff));
 }
 
 void Grid_searcher::create_grid(Grid_t& grid, const Selection &sel){
@@ -761,7 +752,76 @@ void Grid_searcher::get_side_1(int i1, int j1, int k1, int i2, int j2, int k2, c
         }
 }
 
+void Grid_searcher::get_nlist(int i,int j,int k){
 
+    nlist.clear();
+
+    Vector3i coor;
+
+    if(!is_periodic){
+        int c1,c2,c3;
+        // Non-periodic variant
+        for(c1=-1; c1<=1; ++c1){
+            coor(0) = i+c1;
+            if(coor(0)<0 || coor(0)>=NgridX) continue; // Bounds check
+            for(c2=-1; c2<=1; ++c2){
+                coor(1) = j+c2;
+                if(coor(1)<0 || coor(1)>=NgridY) continue; // Bounds check
+                for(c3=-1; c3<=1; ++c3){
+                    coor(2) = k+c3;
+                    if(coor(2)<0 || coor(2)>=NgridZ) continue; // Bounds check
+                    //Exclude central cell
+                    if(coor(0) == i && coor(1) == j && coor(2) == k ) continue;
+                    // Add cell
+                    nlist.push_back(coor);
+                }
+            }
+        }
+    } else {
+        // Periodic variant
+        // Lists of possible shifts for each coordinate
+        vector<int> shiftX, shiftY, shiftZ;
+        shiftX.reserve(2);
+        shiftY.reserve(2);
+        shiftZ.reserve(2);
+
+        // If the number of cells in dimension is 2 this is a special case
+        // when only one neighbour is need. Otherwise add both.
+        shiftX.push_back(0);
+        shiftY.push_back(0);
+        shiftZ.push_back(0);
+
+        if(NgridX>1) shiftX.push_back(-1);
+        if(NgridY>1) shiftY.push_back(-1);
+        if(NgridZ>1) shiftZ.push_back(-1);
+
+        if(NgridX>2) shiftX.push_back(1);
+        if(NgridY>2) shiftY.push_back(1);
+        if(NgridZ>2) shiftZ.push_back(1);
+
+        for(int c1: shiftX){
+            coor(0) = i+c1;
+            if(coor(0)==NgridX) coor(0) = 0;
+            if(coor(0)==-1) coor(0) = NgridX-1;
+            for(int c2: shiftY){
+                coor(1) = j+c2;
+                if(coor(1)==NgridY) coor(1) = 0;
+                if(coor(1)==-1) coor(1) = NgridY-1;
+                for(int c3: shiftZ){
+                    coor(2) = k+c3;
+                    if(coor(2)==NgridZ) coor(2) = 0;
+                    if(coor(2)==-1) coor(2) = NgridZ-1;
+                    //Exclude central cell
+                    if(coor(0) == i && coor(1) == j && coor(2) == k) continue;
+                    // Add cell
+                    nlist.push_back(coor);
+                }
+            }
+        }
+    }
+}
+
+/*
 // Get list of neighbouring cells. Depends on cutoff!
 void Grid_searcher::get_nlist(int i,int j,int k){
     Vector3i coor;
@@ -863,7 +923,7 @@ void Grid_searcher::get_nlist(int i,int j,int k){
                 }
     }
 }
-
+*/
 
 // Add bonds inside one cell for two selections
 void Grid_searcher::get_central_2(int i1, int j1, int k1, const Selection &sel1, const Selection &sel2,
