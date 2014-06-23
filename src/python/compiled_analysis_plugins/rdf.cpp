@@ -22,10 +22,12 @@
 
 #include "pteros/python/compiled_plugin.h"
 #include "pteros/core/pteros_error.h"
+#include "pteros/core/grid_search.h"
 #include <fstream>
 
 using namespace std;
 using namespace pteros;
+using namespace Eigen;
 
 class rdf: public pteros::Compiled_plugin_base {
 public:
@@ -49,8 +51,7 @@ public:
 
 protected:
 
-    void pre_process(){        
-        data.clear();
+    void pre_process(){                
         sel1.modify(system, options("sel1").as_string() );
         sel2.modify(system, options("sel2").as_string() );
         do_cm = options("cm","false").as_bool();
@@ -59,13 +60,13 @@ protected:
         // Max dist will be set later when we get the box dimension
         mass_weighted = options("mass_weighted","true").as_bool();
 
-        data.resize(n_bins,0.0);
-        density = 0.0;
+        data.resize(n_bins);
+        data.fill(0.0);
     }     
 
     void process_frame(const pteros::Frame_info &info){
         if(info.valid_frame==0){
-            max_dist = options("max",
+            max_dist = 0.5*options("max",
                                boost::lexical_cast<string>(system.Box(0).extents().minCoeff())
                               ).as_float();
             bin_sz = (max_dist-min_dist)/float(n_bins);
@@ -76,48 +77,43 @@ protected:
         sel1.apply();
         sel2.apply();
 
-        if(do_cm){
-            // If doing center of masses compute them periodically and get distance
-            d = system.Box(0).distance(sel1.center(mass_weighted,true),
-                                       sel2.center(mass_weighted,true));
-            data[ int(floor(d/bin_sz)) ] += 1;
-            density += 2.0/system.Box(0).volume(); // Only two cms as particles
-        } else {
-            // Atom-atom rdf
-            Eigen::Vector3f coor1;
-            for(int i=0;i<sel1.size();++i){
-                coor1 = sel1.XYZ(i);
-                for(int j=0;j<sel2.size();++j){
-                    d = system.Box(0).distance(coor1,sel2.XYZ(j));
-                    data[ int(floor(d/bin_sz)) ] += 1;
-                }
+        density = (sel1.size()*sel2.size())/system.Box(0).volume();
+
+        vector<Vector2i> bon;
+        vector<float> dist_vec;
+        Grid_searcher(max_dist,sel1,sel2,bon,true,true,&dist_vec);
+
+
+        // Atom-atom rdf
+        int bin;
+        float r;
+        for(int i=0;i<dist_vec.size();++i){
+            bin = int(floor(dist_vec[i]/bin_sz));
+            if(bin<n_bins){
+                r = (0.5+bin)*bin_sz;
+                data[bin] += 1.0/( 4.0*M_PI*r*r*density*bin_sz );
             }
-            density += (sel1.size()*sel2.size())/system.Box(0).volume();
         }
+
     }
 
     void post_process(const pteros::Frame_info &info){        
         // Output
-        string fname = label+".dat";
-        // Get time step in frames and time
-        float dt = (info.last_time-info.first_time)/(float)(info.valid_frame);
-
-        density /= (float)info.valid_frame;
+        string fname = label+".dat";                      
 
         ofstream f(fname.c_str());
         f << "# RDF of selections [" << sel1.get_text() << "] and ["
           << sel2.get_text() << "]"
-          << endl;
-        f << "# time RDF:" << endl;
+          << endl;        
         for(int i=0; i<data.size(); ++i){
             float r = 0.5*bin_sz+i*bin_sz;
-            f << i*dt << " " << data[i]/( 4.0*M_PI*r*r*density*bin_sz ) << endl;
+            f << r << " " << data[i]/(float)info.valid_frame << endl;
         }
         f.close();
     }
 
 private:
-    std::vector<float> data;
+    VectorXf data;
     pteros::Selection sel1, sel2;
     bool do_cm;
     bool mass_weighted;
