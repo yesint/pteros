@@ -1132,7 +1132,7 @@ void Selection::write(string fname, int b, int e) {
 
     auto f = io_factory(fname,'w');
 
-    if(!f->get_content_type().structure && e!=b){
+    if(!f->get_content_type().trajectory && e!=b){
         throw Pteros_error("Can't write the range of frames to structure file!");
     }    
 
