@@ -102,5 +102,6 @@ void Jump_remover::remove_jumps(System& system, const Frame_info &info){
             // Update running reference
             no_jump_ref.col(i) = system.XYZ(ind,0);
         }
+
     }
 }

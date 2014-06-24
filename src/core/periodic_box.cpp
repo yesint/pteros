@@ -117,19 +117,23 @@ Eigen::Vector3f Periodic_box::get_closest_image(Vector3f_const_ref point, Vector
             wrap_point(t, dims_to_wrap);
         }
 
-        Vector3f d = (p-t).array();
-
         // If triclinic convert to box coords
-        if(_is_triclinic){
-            d = (_to_box*d).eval();
+        if(_is_triclinic){            
             p = (_to_box*p).eval();
+            t = (_to_box*t).eval();
         }
 
-        for(int i=0;i<3;++i)
-            if(dims_to_wrap(i) && abs(d(i))>0.5*_extents(i)){
-                // Need to translate along this dimension
-                d(i)>0 ? p(i)-=_extents(i) : p(i)+=_extents(i);
+        Vector3f d = p-t;
+
+        for(int i=0;i<3;++i){
+            if(dims_to_wrap(i)){
+                while( abs(d(i))>0.5*_extents(i) ){
+                    // Need to translate along this dimension
+                    d(i)>0 ? p(i)-=_extents(i) : p(i)+=_extents(i);
+                    d(i) = p(i)-t(i);
+                }
             }
+        }
 
         // If triclinic convert back to lab coords
         if(_is_triclinic) p = (_to_lab*p).eval();
