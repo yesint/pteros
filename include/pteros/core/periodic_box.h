@@ -57,8 +57,14 @@ public:
     /// Constructor from other box
     Periodic_box(Matrix3f_const_ref box);
 
+    /// Copy constructor
+    Periodic_box& operator=(Periodic_box other){
+        modify(other._box);
+        return *this;
+    }
+
     /// Modify the box
-    void modify(Matrix3f_const_ref box);
+    void modify(Matrix3f_const_ref box);       
 
     /// Get stored periodic box
     Eigen::Matrix3f get_box() const {return _box;}

@@ -362,11 +362,22 @@ void System::atoms_delete(const std::vector<int> &ind){
 void System::append(const System &sys){
     //Sanity check
     if(num_frames()>0 && num_frames()!=sys.num_frames()) throw Pteros_error("Can't merge systems with different number of frames!");
+    // If no frames create needed ammount
+    bool transfer_time_box = false;
+    if(num_frames()==0){
+        transfer_time_box = true;
+        traj.resize(sys.num_frames());
+    }
     // Merge atoms
     copy(sys.atoms.begin(),sys.atoms.end(),back_inserter(atoms));
     // Merge coordinates
-    for(int fr=0; fr<num_frames(); ++fr)
+    for(int fr=0; fr<num_frames(); ++fr){
+        if(transfer_time_box){
+            traj[fr].time = sys.Time(fr);
+            traj[fr].box = sys.Box(fr);
+        }
         copy(sys.traj[fr].coord.begin(),sys.traj[fr].coord.end(),back_inserter(traj[fr].coord));
+    }
     // Reassign resindex
     assign_resindex();
 }
@@ -374,13 +385,25 @@ void System::append(const System &sys){
 void System::append(const Selection &sel){
     //Sanity check
     if(num_frames()>0 && num_frames()!=sel.get_system()->num_frames()) throw Pteros_error("Can't merge systems with different number of frames!");
+    // If no frames create needed ammount
+    bool transfer_time_box = false;
+    if(num_frames()==0){
+        transfer_time_box = true;
+        traj.resize(sel.get_system()->num_frames());
+    }
     // Merge atoms
     atoms.reserve(atoms.size()+sel.size());
     for(int i=0;i<sel.size();++i) atoms.push_back(sel.Atom_data(i));
-    // Merge coordinates
+    // Merge coordinates    
     for(int fr=0; fr<num_frames(); ++fr){
         traj[fr].coord.reserve(atoms.size()+sel.size());
-        for(int i=0;i<sel.size();++i) traj[fr].coord.push_back(sel.XYZ(i,fr));
+        if(transfer_time_box){
+            traj[fr].time = sel.get_system()->Time(fr);
+            traj[fr].box = sel.get_system()->Box(fr);
+        }
+        for(int i=0;i<sel.size();++i){
+            traj[fr].coord.push_back(sel.XYZ(i,fr));
+        }
     }
     // Reassign resindex
     assign_resindex();
