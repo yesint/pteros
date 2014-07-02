@@ -152,5 +152,6 @@ void make_bindings_System(){
         .def("append", static_cast<void(System::*)(const System&)>(&System::append))
         .def("dssp", static_cast<void(System::*)(std::string)const>(&System::dssp))
         .def("dssp", static_cast<std::string(System::*)()const>(&System::dssp))
+        .def("sort_by_resindex",&System::sort_by_resindex)
     ;
 }
