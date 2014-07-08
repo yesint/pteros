@@ -1,7 +1,5 @@
 /** \page tutorial Tutorial
 
-<i>This tutorial describes the usage of Pteros as it is expected to work in the stable release. Current version may not be 100% compatible with this description, but the discrepancies are minor.</i>
-
 \section contents Contents
 
 - \ref getting_started
@@ -22,13 +20,13 @@ Suppose that the Pteros library is compiled and all linking requirements are sat
 \endcode
 
 This will include basic classes of the library. More advanced usage requires additional includes.
-All classes and function of the Pteros library are defined inside "pteros" namespace. The following line will allow to omit repetitive "pteros::" prefix in your program
+All classes and function of the Pteros library are defined inside "pteros" namespace. The following line will allow to omit repetitive "pteros::" prefix in your program:
 
 \code
 using namespace pteros;
 \endcode
 
-The fundamental objects in Pteros are \e systems and \e selections. System is what its name suggests - the set of atoms. The attributes and the coordinates of atoms are physically stored in the system. Typically the system is loaded from a structure file in PDB or GRO format. The system can contain several sets of coordinates, called \e frames, which are typically loaded from trajectory files of MD simulations. The system can be created in two ways:
+The fundamental objects in Pteros are \e systems and \e selections. System is what its name suggests - the set of atoms. The attributes and the coordinates of atoms are physically stored in the system. Typically the system is loaded from a structure file (such as PDB or GRO). The system can contain several sets of coordinates, called \e frames, which are typically loaded from trajectory files of MD simulations. The system can be created in two ways:
 
 \code
 // Two step method:
@@ -39,15 +37,16 @@ sys1.load("2lao.pdb"); // Load data into system
 System  sys2("2lao.pdb"); // Read the structure file into the system immediately
 \endcode
 
-Atoms and frames are stored inside the system can not be accessed directly. The system is only a container for them, while all manipulations are done by means means \e selections.
+Atoms and frames are stored inside the system are usually not accessed directly. The system is only a container for them, while all manipulations are done by means of \e selections.
 
 \section selections 	Selections
 
 Selection is a subset of atoms in the System. Selection does not hold any data, but merely
-point to particular group of atoms. In order to create a selection you must supply the parent system and the selection string - textual description of selection. The selection syntax in Pteros is very similar to one used in <a href="http://www.ks.uiuc.edu/Research/vmd/">VMD</a>. 
+point to particular group of atoms. In order to create a selection you must supply the parent system and selection string - textual description of selection. The selection syntax in Pteros is very similar to one used in <a href="http://www.ks.uiuc.edu/Research/vmd/">VMD</a>.
 
 Instead of giving long and boring formal description of the selection syntax, let's learn it by example:
 \code
+// Create a system
 System sys("some-protein.pdb");
 
 // Select everything
@@ -77,17 +76,19 @@ Selection sel10(sys,"chain A B");
 Selection sel11(sys,"x<10 and y>z*4.5+x");
 
 // This will select all atoms inside a cylinder aligned with Z axis with a radius of 2 Angstroms:
-Selection sel12(sys,"x*x+y*y < 4");
+Selection sel12(sys,"x*x+y*y < 2*2");
 
 // Arbitraraly complex logic with AND, OR  and NOT could be used
 Selection sel13(sys,"((name CA and resid 10 to 100) or (name CB and resname ALA)) or x^2>y^2");
 Selection sel14(sys,"not (name CA and resid 10-100)");
 
-// Select all atoms, which are within given distance from another selection
+// Select all atoms, which are within given distance (in nm!) from another selection
 Selection sel15(sys,"within 2.5 of (name CA and resid ALA)");
 
 // The same as above, but takes care of periodic boundary conditions (try doing this in VMD. Good luck :) )
 Selection sel15periodic(sys,"within 2.5 periodic of (name CA and resid ALA)");
+
+// Instead of "periodic" keyword you can use shorter "pbc". "nopbc" and "noperiodic" could also be used but they are used by default and could be omitted.
 
 // Select whole residue if at least one atom from this residue is found in selection, enclosed into "()"
 Selection sel16(sys,"by residue (name CA and resid ALA)");
@@ -95,7 +96,7 @@ Selection sel16(sys,"by residue (name CA and resid ALA)");
 // Select using regular expressions. Will select all atoms with names staring with C - CA, CB, C1H, etc.
 Selection sel17(sys, "name 'C.*'");
 
-// Select atoms within 0.5 nm of the  point in space with coordinates {1.12, 4.56, 6.7}:
+// Select atoms within 0.5 nm of the point in space with coordinates {1.12, 4.56, 6.7}:
 Selection sel18(sys,"distance point 1.12 4.56 6.7 < 0.5");
 
 // Select atoms within 0.5 nm of the line, specified by two points {1.12, 4.56, 6.7} and {3.5 5.6 10.1}:
@@ -104,10 +105,20 @@ Selection sel19(sys,"distance vector 1.12 4.56 6.7 3.5 5.6 10.1 < 0.5");
 // Select atoms within 0.5 nm of the plane, specified by the point {1.12, 4.56, 6.7} and the normal vector {0 1 1}
 // accounting for periodic boundary conditions (pbc is handy equivalent to periodic):
 Selection sel19(sys,"distance pbc plane 1.12 4.56 6.7 0 1 1 < 0.5");
-
 \endcode
 
-Every selection is associated with one and only one system. You can't select atoms from several systems.
+It is also possible to make a selection from the pair of indexes or the pair of iterators of some integer sequence:
+
+\code
+int ind1 = 10;
+int ind2 = 20;
+Selection sel20(sys,ind1,ind2); // Selects all indexes from 10 to 20 inclusive
+
+vector<int> ind = {5,10,34,1,4,15};
+Selection sel21(sys,ind.begin(),ind.end()); // Select by iterators to integer container
+\endcode
+
+Every selection is associated with one and only one system. You can't select atoms from several systems simultaneously.
 
 You can also create empty selections and populate them later using modify() method:
 \code
@@ -115,14 +126,17 @@ Selection sel2; // Empty selection, not associated with the system
 Selection sel3(sys); // Selection bounded to system sys, but selection text is not yet specified
 
 // Now populate these selections
-sel2.modify(sys,"name CA");
-sel3.modify("name CB");
+sel2.set_system(sys); // Set system first
+sel2.modify("name CA");
+
+sel3.modify("name CB"); // The system was set already
 
 // You can reassign selection to another system if you want:
-sel3.modify(other_sys,"name CB");
+sel3.set_system(other_sys); // This clears selection...
+sel3.modify("name CB"); // ...so we need to create it again
 \endcode
 
-Selections could be copyed and assigned, particularly it is  possible to place them to STL containers:
+Selections could be copyed and assigned, particularly it is possible to place them to STL containers:
 \code
 vector<Selection> vec;
 Selection sel(sys,"all");
@@ -131,8 +145,10 @@ vec.push_back(sel);
 // Make a vector of 10 empty selections
 vector<Selection> vec10(10);
 // Populate some of them
-vec10[5].modify(sys,"resname ALA");
-vec10[6].modify(sys,"not name O");
+vec10[5].set_system(sys);
+vec10[5].modify("resname ALA");
+vec10[6].set_system(sys);
+vec10[6].modify("not name O");
 \endcode
 
 If assigning one selection to another, the deep copy of the selection (not just a reference!) is created.
@@ -175,7 +191,7 @@ cout << sys.atoms[sel1.index[0]].chain;
 
 This fragment will not compile because Selection::index is private, but in any case the shorthand function Selection::Chain() simplifies the things a lot. Such shorthand functions are inlined, thus in principle there is no
 performance loss. Other atom attributes could also be accessed by means of such functions with the name, which coincide with the attribute name, but with the capital first letter (Name(i), Chain(i), Index(i), X(i), etc.).
-Main attributes of the atoms are:
+The main attributes of the atoms are:
 - \b name - the name of atom in PDB file (such as "CA")
 - \b resid - the number of residue (an integer). Unique within each chain.
 - \b resindex - Unique index of the residue in the whole system, even is multiple chains are present.
@@ -183,6 +199,9 @@ Main attributes of the atoms are:
 - \b chain - the chain in PDB file (single character, such as "A")
 - \b tag - arbitrary textual tag (often called "segment" in CHARMM, NAMD or VMD)
 - \b mass - the mass of the atom in atomic units
+- \b charge - atomic charge (only assigned correctly if MD topology is loaded)
+- \b beta - the B-factor in PDB file
+- \b occupancy - the occupancy in PDB file
 
 Now let's play with the coordinates of atoms. First of all let's load molecular dynamics trajectory into the system:
 \code
