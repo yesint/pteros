@@ -53,7 +53,8 @@ protected:
 
     void pre_process(){        
         data.clear();
-        sel.modify(system, options("selection").as_string() );
+        sel.set_system(system);
+        sel.modify(options("selection").as_string() );
         nojump = options("nojump","true").as_bool();
 
         // Add our selection to nojump list if asked

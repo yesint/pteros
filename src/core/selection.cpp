@@ -111,22 +111,10 @@ void Selection::create_internal(const System &sys, int ind1, int ind2){
                        << "' is empty!\n\t\tAny call of its methods (except size()) will crash your program!" << endl;
 }
 
-
-// Aux function for deleting selection
-void Selection::delete_internal(){
-    // Clear index
-    index.clear();
-    // If parser is persistent, delete it
-    parser.reset();
-
-    sel_text="";
-}
-
 // Main constructor
 Selection::Selection(const System &sys, string str){
     create_internal(sys, str);
 }
-
 
 // Constructor without immediate parsing
 Selection::Selection(const System &sys){
@@ -140,7 +128,6 @@ Selection::Selection(const System &sys){
 Selection::Selection(const System &sys, int ind1, int ind2){
     create_internal(sys, ind1, ind2);
 }
-
 
 // Destructor
 Selection::~Selection(){
@@ -176,6 +163,11 @@ void Selection::append(int ind){
     parser.reset();
 }
 
+void Selection::set_system(const System &sys){
+    clear();
+    system = const_cast<System*>(&sys);
+}
+
 // Free memory used by selection.
 // Selection is still present in parent.
 void Selection::clear(){
@@ -184,66 +176,34 @@ void Selection::clear(){
     // If parser is present (persistent), delete it
     parser.reset();
     sel_text = "";
+    frame = 0;
 }
 
-// Modifies both system and text in selection
-void Selection::modify(const System &sys, string str){
-    // If selecton is assigned already, delete and clear it
-    if(system){
-        delete_internal();
-    }
-    // re-create selection
-    create_internal(sys, str);
-}
-
-void Selection::modify(const System &sys, int ind1, int ind2){
-    // If selecton is assigned already, delete and clear it
-    if(system){
-        delete_internal();
-    }
-    // re-create selection
-    create_internal(sys, ind1, ind2);
-}
-
-
-// Modify selection if string is provided
+// Modify selection with new selection string
 void Selection::modify(string str){
-    if(system==NULL) Pteros_error("Selection does not belong to the system!");
+    if(system==nullptr) throw Pteros_error("Selection does not belong to any system!");
     sel_text = str;
     boost::trim(sel_text);
     index.clear();
     allocate_parser();
 }
 
-void Selection::modify(const System &sys){
-    if(system){
-        delete_internal();
-    }
-    // Add selection to sys and save self-pointer
-    system = const_cast<System*>(&sys);
-    frame = 0;
-    parser.reset();
-    sel_text = "";
-}
-
-
 void Selection::modify(int ind1, int ind2){
-    if(system==NULL) Pteros_error("Selection does not belong to the system!");
+    if(system==nullptr) throw Pteros_error("Selection does not belong to any system!");
+    // no parser needed
     parser.reset();
-    // re-create selection
-    sel_text = "";
-    // By default points to frame 0
-    frame = 0;
+    // not textual
+    sel_text = "";    
     // Populate selection directly
     index.clear();
     for(int i=ind1; i<=ind2; ++i) index.push_back(i);       
 }
 
 void Selection::modify(const std::vector<int> &ind){
-    if(system==NULL) Pteros_error("Selection does not belong to the system!");
-    parser.reset();
-    // By default points to frame 0
-    frame = 0;
+    if(system==nullptr) throw Pteros_error("Selection does not belong to any system!");
+    // no parser needed
+    parser.reset();    
+    // not textual
     sel_text = "";
     // Create text and populate selection
     index.clear();
@@ -253,10 +213,10 @@ void Selection::modify(const std::vector<int> &ind){
 }
 
 void Selection::modify(std::vector<int>::iterator it1, std::vector<int>::iterator it2){
-    if(system==NULL) Pteros_error("Selection does not belong to the system!");
+    if(system==nullptr) throw Pteros_error("Selection does not belong to any system!");
+    // no parser needed
     parser.reset();
-    // By default points to frame 0
-    frame = 0;
+    // not textual
     sel_text = "";
     // Populate selection
     index.clear();

@@ -129,20 +129,14 @@ class Selection {
     /// Append absolute index to selection
     void append(int ind);
 
-    /// Modifies both system and string in selection.    
-    void modify(const System& sys, std::string str);
+    /// Sets new system for selection. This clears selection index and leaves it empty!
+    void set_system(const System& sys);
 
     /** Modifies selection string in existing selection.
     *   @param str New value of selection text. Selection is re-parsed immediately with
     *   this new value.
     */
-    void modify(std::string str);
-
-    /// Change system for selection (clears selection)
-    void modify(const System& sys);
-
-    /// Modifies both system and selection using the range of indexes.   
-    void modify(const System& sys, int ind1, int ind2);
+    void modify(std::string str);    
 
     /// Modifies selection using the range of indexes
     void modify(int ind1, int ind2);
@@ -784,9 +778,7 @@ protected:
 
     // Private functions for creating selection
     void create_internal(const System& sys, const std::string& str);
-    void create_internal(const System& sys, int ind1, int ind2);
-    // Private function for deleting selection
-    void delete_internal();        
+    void create_internal(const System& sys, int ind1, int ind2);    
 };
 
 //==============================================================================

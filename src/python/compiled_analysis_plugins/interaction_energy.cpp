@@ -56,13 +56,16 @@ protected:
         std::vector<string> sels = options("selections").as_strings();
         if(sels.size()<1 || sels.size()>2) throw Pteros_error("Either 1 or 2 selections should be passed");
         if(sels.size()==1){
-            sel1.modify(system,  sels.front());            
+            sel1.set_system(system);
+            sel1.modify(sels.front());
             is_self_energy = true;
         } else {
-            sel1.modify(system,  sels.front());
+            sel1.set_system(system);
+            sel1.modify(sels.front());
             std::vector<string>::iterator it = sels.begin();
             it++;
-            sel2.modify(system, *it);
+            sel2.set_system(system);
+            sel2.modify(*it);
             is_self_energy = false;
         }
 

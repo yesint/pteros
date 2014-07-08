@@ -26,7 +26,8 @@ protected:
     void pre_process(){                
         string sel_text = options("selection").as_string();
         use_mass = options("mass_weighted","false").as_bool();
-        sel.modify(system,sel_text);               
+        sel.set_system(system);
+        sel.modify(sel_text);
 
         string fname = label+".dat";
         f.open(fname.c_str());

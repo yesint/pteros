@@ -495,11 +495,11 @@ void make_bindings_Selection(){
         // Modification of existing selection
 
         .def("append", static_cast<void(Selection::*)   (const Selection&)      >(&Selection::append) )
-        .def("append", static_cast<void(Selection::*)   (int)                   >(&Selection::append) )
+        .def("append", static_cast<void(Selection::*)   (int)                   >(&Selection::append) )        
 
-        .def("modify", static_cast<void(Selection::*)   (const System&,string)  >(&Selection::modify) )
+        .def("set_system", &Selection::set_system)
+
         .def("modify", static_cast<void(Selection::*)   (string)                >(&Selection::modify) )
-        .def("modify", static_cast<void(Selection::*)   (const System&,int,int) >(&Selection::modify) )
         .def("modify", static_cast<void(Selection::*)   (int,int)               >(&Selection::modify) )
 
         .def("apply",&Selection::apply)

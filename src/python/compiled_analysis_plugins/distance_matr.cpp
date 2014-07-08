@@ -39,7 +39,8 @@ protected:
         dist = options("dist","0.0").as_float();
         max_moment = options("max_moment","4.0").as_int();
         if(max_moment<1 || max_moment>4) throw Pteros_error("Moments from 1 to 4 are supported");
-        sel.modify(system, options("selection").as_string() );
+        sel.set_system(system);
+        sel.modify(options("selection").as_string() );
 
         system.frame_dup(0);
 

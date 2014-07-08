@@ -33,8 +33,10 @@ public:
     }
 protected:
     virtual void pre_process(){
-        bilayer.modify(system, options("lipids_selection").as_string());
-        roh.modify(system, options("chol_head_selection").as_string());
+        bilayer.set_system(system);
+        bilayer.modify(options("lipids_selection").as_string());
+        roh.set_system(system);
+        roh.modify(options("chol_head_selection").as_string());
         lip_name1 = options("lipid_name1").as_string();
         lip_name2 = options("lipid_name2").as_string();
 

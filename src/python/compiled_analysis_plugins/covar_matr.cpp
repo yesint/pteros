@@ -35,7 +35,8 @@ protected:
 
     void pre_process(){
         do_align = options("align","true").as_bool();
-        sel.modify(system, options("selection").as_string() );
+        sel.set_system(system);
+        sel.modify(options("selection").as_string() );
 
         system.frame_dup(0);
 

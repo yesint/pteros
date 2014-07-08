@@ -295,7 +295,10 @@ void System::atoms_dup(const vector<int>& ind, Selection* res_sel){
         }
     }
 
-    if(res_sel) res_sel->modify(*this,first_added,last_added);
+    if(res_sel){
+        res_sel->set_system(*this);
+        res_sel->modify(first_added,last_added);
+    }
 }
 
 void System::atoms_add(const vector<Atom>& atm, const vector<Vector3f>& crd, Selection* res_sel){
@@ -320,7 +323,10 @@ void System::atoms_add(const vector<Atom>& atm, const vector<Vector3f>& crd, Sel
         }
     }
 
-    if(res_sel) res_sel->modify(*this,first_added,last_added);
+    if(res_sel){
+        res_sel->set_system(*this);
+        res_sel->modify(first_added,last_added);
+    }
 }
 
 void System::atoms_delete(const std::vector<int> &ind){
@@ -354,9 +360,6 @@ void System::atoms_delete(const std::vector<int> &ind){
             if(tmp[i].mass>=0) traj[fr].coord.push_back(tmp_coord[i]);
         }
     }
-    // Reassign residue indexes
-    //system->assign_resindex();
-    //system->update_selections();
 }
 
 void System::append(const System &sys){

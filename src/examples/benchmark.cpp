@@ -13,7 +13,8 @@ public:
     }
 protected:
     virtual void pre_process(){
-        sel.modify(system, "all");
+        sel.set_system(system);
+        sel.modify("all");
     }
 
     virtual void process_frame(const Frame_info& info){
@@ -36,8 +37,10 @@ public:
     }
 protected:
     virtual void pre_process(){
-        sel1.modify(system, "resid 1 to 100");
-        sel2.modify(system, "resid 102 to 200");
+        sel1.set_system(system);
+        sel2.set_system(system);
+        sel1.modify("resid 1 to 100");
+        sel2.modify("resid 102 to 200");
     }
 
     virtual void process_frame(const Frame_info& info){

@@ -65,8 +65,9 @@ void RMSF::pre_process(){
     // Add selections
     int k = 0;
     for(auto sel: options("selections").as_strings()){
-        rmsf_group gr;        
-        gr.sel.modify(system,sel);        
+        rmsf_group gr;
+        gr.sel.set_system(system);
+        gr.sel.modify(sel);
         groups.push_back(gr);
         cout << "Added selection '" << sel << "'" << endl;
         k++;
@@ -118,7 +119,8 @@ void RMSF::pre_process(){
         //gr.variance.resize(gr.residue_sel.size());
     }
 
-    all.modify(system,"all");
+    all.set_system(system);
+    all.modify("all");
 
     do_rmsd = options("do_rmsd","false").as_bool();
 }
