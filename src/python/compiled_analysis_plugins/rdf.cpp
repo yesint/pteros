@@ -51,11 +51,9 @@ public:
 
 protected:
 
-    void pre_process(){                
-        sel1.set_system(system);
-        sel2.set_system(system);
-        sel1.modify(options("sel1").as_string() );
-        sel2.modify(options("sel2").as_string() );
+    void pre_process(){                        
+        sel1.modify(system,options("sel1").as_string() );
+        sel2.modify(system,options("sel2").as_string() );
         do_cm = options("cm","false").as_bool();
         n_bins = options("bins","50").as_int();
         min_dist = options("min","0.0").as_float();

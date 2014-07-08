@@ -45,17 +45,15 @@ void Bilayer::create(Selection &sel, std::string head_marker_atom, float d){
     // Monolayer 1
     ind = surf[0].get_unique_resindex();
     str = "resindex";
-    for(int i=0; i<ind.size(); ++i) str += " "+to_string(ind[i]);
-    mono1.set_system(*sel.get_system());
-    mono1.modify(str);
+    for(int i=0; i<ind.size(); ++i) str += " "+to_string(ind[i]);    
+    mono1.modify(*sel.get_system(),str);
     cout << "Monolayer 1 contains " << mono1.size() << " atoms in " << surf[0].size() << " lipids " << endl;
 
     // Monolayer 2
     ind = surf[1].get_unique_resindex();
     str = "resindex";
-    for(int i=0; i<ind.size(); ++i) str += " "+to_string(ind[i]);
-    mono2.set_system(*sel.get_system());
-    mono2.modify(str);
+    for(int i=0; i<ind.size(); ++i) str += " "+to_string(ind[i]);    
+    mono2.modify(*sel.get_system(),str);
     cout << "Monolayer 2 contains " << mono1.size() << " atoms in " << surf[1].size() << " lipids " << endl;
 }
 

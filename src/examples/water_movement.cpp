@@ -16,9 +16,8 @@ public:
     }
 protected:
     virtual void pre_process(){       
-        // Create selection for water
-        water.set_system(system);
-        water.modify("resname SOL and name OW");
+        // Create selection for water        
+        water.modify(system,"resname SOL and name OW");
 
         // Allocate a grid
         // Get size of the cell

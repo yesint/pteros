@@ -12,9 +12,8 @@ public:
     Bench1(Trajectory_processor* pr): Consumer(pr){
     }
 protected:
-    virtual void pre_process(){
-        sel.set_system(system);
-        sel.modify("all");
+    virtual void pre_process(){        
+        sel.modify(system,"all");
     }
 
     virtual void process_frame(const Frame_info& info){
@@ -36,11 +35,9 @@ public:
     Bench2(Trajectory_processor* pr): Consumer(pr){
     }
 protected:
-    virtual void pre_process(){
-        sel1.set_system(system);
-        sel2.set_system(system);
-        sel1.modify("resid 1 to 100");
-        sel2.modify("resid 102 to 200");
+    virtual void pre_process(){        
+        sel1.modify(system,"resid 1 to 100");
+        sel2.modify(system,"resid 102 to 200");
     }
 
     virtual void process_frame(const Frame_info& info){

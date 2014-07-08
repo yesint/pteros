@@ -14,11 +14,9 @@ public:
         dist = d;
     }
 protected:      
-    virtual void pre_process(){
-        sel1.set_system(system);
-        sel2.set_system(system);
-        sel1.modify(sel1_text);
-        sel2.modify(sel2_text);
+    virtual void pre_process(){        
+        sel1.modify(system,sel1_text);
+        sel2.modify(system,sel2_text);
     }
 
     virtual void process_frame(const Frame_info& info){

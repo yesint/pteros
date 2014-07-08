@@ -295,9 +295,8 @@ void System::atoms_dup(const vector<int>& ind, Selection* res_sel){
         }
     }
 
-    if(res_sel){
-        res_sel->set_system(*this);
-        res_sel->modify(first_added,last_added);
+    if(res_sel){        
+        res_sel->modify(*this,first_added,last_added);
     }
 }
 
@@ -323,9 +322,8 @@ void System::atoms_add(const vector<Atom>& atm, const vector<Vector3f>& crd, Sel
         }
     }
 
-    if(res_sel){
-        res_sel->set_system(*this);
-        res_sel->modify(first_added,last_added);
+    if(res_sel){        
+        res_sel->modify(*this,first_added,last_added);
     }
 }
 

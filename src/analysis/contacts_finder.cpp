@@ -61,9 +61,8 @@ Contacts_finder::Contacts_finder(Trajectory_processor& proc, const pteros::Optio
 }
 
 void Contacts_finder::pre_process(){
-    // Set all selection
-    all.set_system(system);
-    all.modify("all");
+    // Set all selection    
+    all.modify(system,"all");
 
     // Set selections
     sel_pairs.clear();
@@ -72,10 +71,9 @@ void Contacts_finder::pre_process(){
     sel2 = options("sel2").as_string();
     Selections_pair aux;
     sel_pairs.push_back(aux);
-    sel_pairs.back().sel1.set_system(system);
-    sel_pairs.back().sel1.modify(sel1);
-    sel_pairs.back().sel2.set_system(system);
-    sel_pairs.back().sel2.modify(sel2);
+
+    sel_pairs.back().sel1.modify(system,sel1);
+    sel_pairs.back().sel2.modify(system,sel2);
 
     real_time.clear();
 
