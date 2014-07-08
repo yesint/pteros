@@ -64,7 +64,7 @@ class Selection {
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    /// @name Constructors and basic operators
+    /// @name Constructors and operators
     /// @{
 
     /** Main constructor.
@@ -91,13 +91,16 @@ class Selection {
         @param ind1 First index in interval
         @param ind2 Last index in interval (inclusive!)
      */
-    Selection(const System& sys, int ind1, int ind2);
-
-    /// Assignment operator
-    Selection& operator=(Selection sel);
+    Selection(const System& sys, int ind1, int ind2);    
 
     /// Copy constructor
     Selection(const Selection& sel);
+
+    /// Destructor
+    ~Selection();
+
+    /// Assignment operator
+    Selection& operator=(Selection sel);
 
     /// Equality operator
     /// Selection are compared by their indexes
@@ -114,8 +117,21 @@ class Selection {
     /// Can only be used as r-value (can not be assigned to).
     Atom_proxy operator[](int ind) const;
 
-    /// Destructor
-    ~Selection();
+    // Writing selection to stream.
+    // Outputs index as a space separated list
+    friend std::ostream& operator<<(std::ostream& os, const Selection& sel);
+
+    // Creates new Selection, which is the logical OR of two parent selections.
+    // Parent selections are not modified.
+    friend Selection operator||(const Selection& sel1, const Selection& sel2);
+
+    // Creates new Selection, which is the logical AND of two parent selections.
+    // Parent selections are not modified.
+    friend Selection operator&&(const Selection& sel1, const Selection& sel2);
+
+    // Creates new Selection, which is a logical negation of existing one.
+    // Parent selection is not modified
+    Selection operator!() const;
 
     /// @}
 

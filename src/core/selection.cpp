@@ -259,6 +259,65 @@ Atom_proxy Selection::operator[](int ind) const {
     return Atom_proxy(const_cast<Selection*>(this),ind);
 }
 
+Selection Selection::operator!() const {
+    Selection res(*system);
+    res.frame = frame;
+    // Not textual
+    res.sel_text = "";
+    // Assign index
+    // We can speed up negation a bit by filling only the "gaps"
+    int n = index.size();
+    int i,j;
+    for(j=0;j<index[0];++j) res.index.push_back(j); //Before first
+    for(i=1;i<n;++i)
+        for(j=index[i-1]+1;j<index[i];++j) res.index.push_back(j); // between any two
+    for(j=index[n-1]+1;j<system->num_atoms();++j) res.index.push_back(j); // after last
+    return res;
+}
+
+Selection pteros::operator||(const Selection &sel1, const Selection &sel2){
+    if(sel1.system!=sel2.system) throw Pteros_error("Can't take logical OR of selections belonging to different systems!");
+    if(sel1.frame!=sel2.frame) throw Pteros_error("Can't take logical OR of selections pointing to different frames!");
+    // Create resulting selection
+    Selection res(*sel1.system);
+    // Not text based
+    res.sel_text = "";
+    // No parser needed
+    res.parser.reset();
+    // Set frame
+    res.frame = sel1.frame;
+    // Combine indexes
+    std::set_union(sel1.index.begin(),sel1.index.end(),
+                   sel2.index.begin(),sel2.index.end(),
+                   back_inserter(res.index));
+    return res;
+}
+
+Selection pteros::operator&&(const Selection &sel1, const Selection &sel2){
+    if(sel1.system!=sel2.system) throw Pteros_error("Can't take logical AND of selections belonging to different systems!");
+    if(sel1.frame!=sel2.frame) throw Pteros_error("Can't take logical AND of selections pointing to different frames!");
+    // Create resulting selection
+    Selection res(*sel1.system);
+    // Not text based
+    res.sel_text = "";
+    // No parser needed
+    res.parser.reset();
+    // Set frame
+    res.frame = sel1.frame;
+    // Combine indexes
+    std::set_intersection(sel1.index.begin(),sel1.index.end(),
+                          sel2.index.begin(),sel2.index.end(),
+                          back_inserter(res.index));
+    return res;
+}
+
+
+ostream& pteros::operator<<(ostream &os, const Selection &sel){
+    for(int i=0;i<sel.size()-1;++i) os << sel.Index(i) << " ";
+    os << sel.Index(sel.size()-1);
+    return os;
+}
+
 // Copy constructor
 Selection::Selection(const Selection& sel){
     if(sel.system==NULL){
