@@ -259,7 +259,7 @@ Atom_proxy Selection::operator[](int ind) const {
     return Atom_proxy(const_cast<Selection*>(this),ind);
 }
 
-Selection Selection::operator!() const {
+Selection Selection::operator~() const {
     Selection res(*system);
     res.frame = frame;
     // Not textual
@@ -275,7 +275,7 @@ Selection Selection::operator!() const {
     return res;
 }
 
-Selection pteros::operator||(const Selection &sel1, const Selection &sel2){
+Selection pteros::operator|(const Selection &sel1, const Selection &sel2){
     if(sel1.system!=sel2.system) throw Pteros_error("Can't take logical OR of selections belonging to different systems!");
     if(sel1.frame!=sel2.frame) throw Pteros_error("Can't take logical OR of selections pointing to different frames!");
     // Create resulting selection
@@ -293,7 +293,7 @@ Selection pteros::operator||(const Selection &sel1, const Selection &sel2){
     return res;
 }
 
-Selection pteros::operator&&(const Selection &sel1, const Selection &sel2){
+Selection pteros::operator&(const Selection &sel1, const Selection &sel2){
     if(sel1.system!=sel2.system) throw Pteros_error("Can't take logical AND of selections belonging to different systems!");
     if(sel1.frame!=sel2.frame) throw Pteros_error("Can't take logical AND of selections pointing to different frames!");
     // Create resulting selection
@@ -313,8 +313,10 @@ Selection pteros::operator&&(const Selection &sel1, const Selection &sel2){
 
 
 ostream& pteros::operator<<(ostream &os, const Selection &sel){
-    for(int i=0;i<sel.size()-1;++i) os << sel.Index(i) << " ";
-    os << sel.Index(sel.size()-1);
+    if(sel.size()>0){
+        for(int i=0;i<sel.size()-1;++i) os << sel.Index(i) << " ";
+        os << sel.Index(sel.size()-1);
+    }
     return os;
 }
 

@@ -107,7 +107,7 @@ class Selection {
     bool operator==(const Selection &other) const;
 
     /// Inequality operator
-    /// /// Selection are compared by their indexes
+    /// Selection are compared by their indexes
     bool operator!=(const Selection &other) const {
         return !(*this == other);
     }
@@ -121,17 +121,17 @@ class Selection {
     // Outputs index as a space separated list
     friend std::ostream& operator<<(std::ostream& os, const Selection& sel);
 
-    // Creates new Selection, which is the logical OR of two parent selections.
-    // Parent selections are not modified.
-    friend Selection operator||(const Selection& sel1, const Selection& sel2);
+    /// Creates new Selection, which is the logical OR of two parent selections.
+    /// Parent selections are not modified.
+    friend Selection operator|(const Selection& sel1, const Selection& sel2);
 
-    // Creates new Selection, which is the logical AND of two parent selections.
-    // Parent selections are not modified.
-    friend Selection operator&&(const Selection& sel1, const Selection& sel2);
+    /// Creates new Selection, which is the logical AND of two parent selections.
+    /// Parent selections are not modified.
+    friend Selection operator&(const Selection& sel1, const Selection& sel2);
 
-    // Creates new Selection, which is a logical negation of existing one.
-    // Parent selection is not modified
-    Selection operator!() const;
+    /// Creates new Selection, which is a logical negation of existing one.
+    /// Parent selection is not modified
+    Selection operator~() const;
 
     /// @}
 
@@ -173,10 +173,12 @@ class Selection {
     /** Recomputes selection completely.
     *   May be used when new file is loaded into the system, or when atoms are
     *   created/deleted. Forces re-parsing of selection text.
+    *   For non-textual selections does nothing.
     */
     void update();
 
     /** Clears selection and frees memory.
+    *   Selection is still assigned to its system after clearing.
     *   Subsequent call of modify() may populate it again.
     */
     void clear();
@@ -223,6 +225,7 @@ class Selection {
     System* get_system() const { return system; }
 
     /// Get selection text
+    /// If selection is not textual returns generated index-based text "index i j k..."
     std::string get_text() const;
 
     /// Get vector of all indexes in selection
@@ -286,7 +289,7 @@ class Selection {
     /// Get coordinates of all atoms in this selection for the current frame
     Eigen::MatrixXf get_xyz() const;
 
-    /// Get coordinates of all atoms in this selection for the current frame
+    /// Get coordinates of all atoms in this selection for the current frame in existing matrix
     void get_xyz(MatrixXf_ref res) const;
 
     /// Set coordinates of this selection for current frame
@@ -333,6 +336,7 @@ class Selection {
     * @param periodic Account for periodic boundary conditions.
     * Please note that if the size of selection is larger than 1/2 of the box size in
     * any dimension you will get incorrect results if periodic is set to true.
+    * In this case use one of the unwrapping options first.
     */
     Eigen::Vector3f center(bool mass_weighted = false, bool periodic = false) const;
 

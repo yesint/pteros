@@ -675,5 +675,16 @@ void make_bindings_Selection(){
         // Indexing support
         .def("__len__",&Selection::size)
         .def("__getitem__",&Selection_getitem)
+
+        // String conversion
+        .def(self_ns::str(self_ns::self))
+
+        // Operators
+        .def(self == self)
+        .def(self != self)
+        .def(self | self)
+        .def(self & self)
+        .def(~self)
+
     ;
 }

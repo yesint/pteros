@@ -24,6 +24,7 @@
 #include "pteros/analysis/options.h"
 #include <Eigen/Core>
 #include "pteros/core/pteros_error.h"
+#include "pteros/core/selection.h"
 
 using namespace std;
 using namespace pteros;
@@ -34,6 +35,18 @@ int main(int argc, char** argv)
 {
 
     try{
+        System s("/home/semen/work/Projects/Besancon-2014/5fu/G53A6/5fu.pdb");
+        Selection sel1(s,"index 0 8");
+        Selection sel2(s,"index 0 2 3");
+        Selection sel3 = sel1 | sel2;
+        Selection sel4 = sel1 & sel2;
+
+        cout << sel3 << endl;
+        cout << sel4 << endl;
+        cout << (sel1&sel2) << endl;
+        cout << (sel1|sel2) << endl;
+        cout << (~(sel1|sel2)) << endl;
+
         /*
         string str("--trajectory["
                    "initial_structure.pdb "
@@ -55,7 +68,7 @@ int main(int argc, char** argv)
         }
 
         System s;
-        */
+
 
         Options toplevel;
         vector<Options> tasks;
@@ -73,7 +86,7 @@ int main(int argc, char** argv)
         v = toplevel("tramvay").as_floats();
         for(auto a: v) cout << a << endl;
 
-
+*/
     } catch(const Pteros_error& e){ e.print(); }
 
 }
