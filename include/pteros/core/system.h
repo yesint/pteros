@@ -140,6 +140,33 @@ public:
     inline int num_atoms() const { return atoms.size(); }
     /// @}
 
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    /** @name Selecting atoms.
+     This functions are just convenience adaptors for constructors of Selection class:
+     \code
+     // Conventional way:
+     sys = System("structure.pdb");
+     Selection sel(s,"name CA");
+
+     // "Fancy" way:
+     sys = System("structure.pdb");
+     auto sel = sys.select("name CA");
+     \endcode
+    **/
+    /// @{
+
+    Selection select(std::string str);
+
+    Selection select(int ind1, int ind2);
+
+    Selection select(const std::vector<int>& ind);
+
+    Selection select(std::vector<int>::iterator it1,
+                     std::vector<int>::iterator it2);
+
+    /// Convenience function to select all
+    Selection select_all();
+    /// @}
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     /// @name File IO
@@ -178,7 +205,7 @@ public:
     */
     void frame_delete(int b = 0, int e = -1);    
     /// @}
-    ///
+
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     /// @name Inline accessors

@@ -404,6 +404,24 @@ bp::tuple Selection_sasa(Selection* s, float probe_r = 0.14,
 
 BOOST_PYTHON_FUNCTION_OVERLOADS(Selection_sasa_overloads,Selection_sasa,1,5)
 
+boost::shared_ptr<Selection> constructor_list(const System& sys, const bp::list& l){
+    vector<int> v(len(l));
+    for(int i=0;i<len(l);++i) v[i] = extract<int>(l[i]);
+    boost::shared_ptr<Selection> g(new Selection(sys,v));
+    return g;
+}
+
+void Selection_modify_list1(Selection* sel, const bp::list& l){
+    vector<int> v(len(l));
+    for(int i=0;i<len(l);++i) v[i] = extract<int>(l[i]);
+    sel->modify(v);
+}
+
+void Selection_modify_list2(Selection* sel, const System& sys, const bp::list& l){
+    vector<int> v(len(l));
+    for(int i=0;i<len(l);++i) v[i] = extract<int>(l[i]);
+    sel->modify(sys,v);
+}
 
 //-------------------------------------------------------
 
@@ -490,6 +508,8 @@ void make_bindings_Selection(){
         .def(init<System&>() )
         .def(init<const Selection&>() )
         .def(init<System&,int,int>() )
+        .def("__init__",make_constructor(&constructor_list))
+
         .def("size",&Selection::size)
 
         // Modification of existing selection
@@ -501,6 +521,10 @@ void make_bindings_Selection(){
 
         .def("modify", static_cast<void(Selection::*)   (string)                >(&Selection::modify) )
         .def("modify", static_cast<void(Selection::*)   (int,int)               >(&Selection::modify) )
+        .def("modify", &Selection_modify_list1)
+        .def("modify", static_cast<void(Selection::*)   (const System&,string)  >(&Selection::modify) )
+        .def("modify", static_cast<void(Selection::*)   (const System&,int,int) >(&Selection::modify) )
+        .def("modify", &Selection_modify_list2)
 
         .def("apply",&Selection::apply)
         .def("update",&Selection::update)

@@ -119,14 +119,26 @@ void System_wrap_all2(System* sys, int fr){
 }
 
 
+Selection System_select_vec(System* sys, bp::list l){
+    vector<int> v(len(l));
+    for(int i=0;i<len(l);++i) v[i] = extract<int>(l[i]);
+    return sys->select(v);
+}
+
 void make_bindings_System(){
     import_array();
 
     class_<System, boost::noncopyable>("System", init<>())
         .def(init<std::string>() )
-        .def(init<System>() )
+        .def(init<System>() )            
         .def("num_atoms", &System::num_atoms)
         .def("num_frames", &System::num_frames)
+
+        .def("select", static_cast<Selection(System::*) (std::string)>         (&System::select))
+        .def("select", static_cast<Selection(System::*) (int ind1, int ind2)>  (&System::select))
+        .def("select", &System_select_vec)
+        .def("select_all", &System::select_all)
+
         .def("load", &System::load, load_overloads())
         .def("load", &System_load_callback,(bp::arg("fname"),bp::arg("b")=0,bp::arg("e")=-1,bp::arg("skip")=0,bp::arg("on_frame")))
         .def("frame_dup", &System::frame_dup)

@@ -412,6 +412,26 @@ void System::append(const Selection &sel){
     assign_resindex();
 }
 
+Selection System::select(string str){
+    return Selection(*this,str);
+}
+
+Selection System::select(int ind1, int ind2){
+    return Selection(*this,ind1,ind2);
+}
+
+Selection System::select(const std::vector<int> &ind){
+    return Selection(*this,ind);
+}
+
+Selection System::select(std::vector<int>::iterator it1, std::vector<int>::iterator it2){
+    return Selection(*this,it1,it2);
+}
+
+Selection System::select_all(){
+    return Selection(*this,"all");
+}
+
 inline void wrap_coord(Vector3f& point, const Matrix3f& box,
                        const Vector3i dims_to_wrap = Vector3i::Ones()){
     Matrix3f b;

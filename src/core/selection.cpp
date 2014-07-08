@@ -62,12 +62,14 @@ void Selection::allocate_parser(){
 }
 
 Selection::Selection(){
-    system = NULL;
+    system = nullptr;
     parser.reset();
+    sel_text = "";
+    frame = 0;
 };
 
-// Aux function, which creates selection
-void Selection::create_internal(const System &sys, const string &str){
+// Main constructor
+Selection::Selection(const System &sys, string str){
     // Set selection string
     sel_text = str;
     boost::trim(sel_text);
@@ -89,14 +91,20 @@ void Selection::create_internal(const System &sys, const string &str){
                        << "' is empty!\n\t\tAny call of its methods (except size()) will crash your program!" << endl;
 }
 
-// Aux function, which creates selection
-void Selection::create_internal(const System &sys, int ind1, int ind2){
-    // No selection string
-    sel_text = "";
-
+// Constructor without immediate parsing
+Selection::Selection(const System &sys){
     // Add selection to sys and save self-pointer
     system = const_cast<System*>(&sys);
+    sel_text = "";
+    frame = 0;
+    parser.reset();
+}
 
+Selection::Selection(const System &sys, int ind1, int ind2){
+    // No selection string
+    sel_text = "";
+    // set system
+    system = const_cast<System*>(&sys);
     // By default points to frame 0
     frame = 0;
     // No parser needed
@@ -111,22 +119,43 @@ void Selection::create_internal(const System &sys, int ind1, int ind2){
                        << "' is empty!\n\t\tAny call of its methods (except size()) will crash your program!" << endl;
 }
 
-// Main constructor
-Selection::Selection(const System &sys, string str){
-    create_internal(sys, str);
-}
-
-// Constructor without immediate parsing
-Selection::Selection(const System &sys){
-    // Add selection to sys and save self-pointer
-    system = const_cast<System*>(&sys);
+Selection::Selection(const System &sys, const std::vector<int> &ind){
+    // No selection string
     sel_text = "";
+    // set system
+    system = const_cast<System*>(&sys);
+    // By default points to frame 0
     frame = 0;
+    // No parser needed
     parser.reset();
+
+    // populate selection
+    for(int i=0; i<ind.size(); ++i){
+        index.push_back(ind[i]);
+    }
+
+    // Show warning if empty selection is created
+    if(size()==0) cout << "(WARNING) Selection is empty!\n\t\tAny call of its methods (except size()) will crash your program!" << endl;
 }
 
-Selection::Selection(const System &sys, int ind1, int ind2){
-    create_internal(sys, ind1, ind2);
+Selection::Selection(const System &sys, std::vector<int>::iterator it1, std::vector<int>::iterator it2){
+    // No selection string
+    sel_text = "";
+    // set system
+    system = const_cast<System*>(&sys);
+    // By default points to frame 0
+    frame = 0;
+    // No parser needed
+    parser.reset();
+
+    // Populate
+    while(it1!=it2){
+        index.push_back(*it1);
+        it1++;
+    }
+
+    // Show warning if empty selection is created
+    if(size()==0) cout << "(WARNING) Selection is empty!\n\t\tAny call of its methods (except size()) will crash your program!" << endl;
 }
 
 // Destructor
@@ -205,7 +234,7 @@ void Selection::modify(const std::vector<int> &ind){
     parser.reset();    
     // not textual
     sel_text = "";
-    // Create text and populate selection
+    // populate selection
     index.clear();
     for(int i=0; i<ind.size(); ++i){
         index.push_back(ind[i]);        
@@ -224,6 +253,26 @@ void Selection::modify(std::vector<int>::iterator it1, std::vector<int>::iterato
         index.push_back(*it1);        
         it1++;
     }
+}
+
+void Selection::modify(const System &sys, string str){
+    set_system(sys);
+    modify(str);
+}
+
+void Selection::modify(const System &sys, int ind1, int ind2){
+    set_system(sys);
+    modify(ind1,ind2);
+}
+
+void Selection::modify(const System &sys, const std::vector<int> &ind){
+    set_system(sys);
+    modify(ind);
+}
+
+void Selection::modify(const System &sys, std::vector<int>::iterator it1, std::vector<int>::iterator it2){
+    set_system(sys);
+    modify(it1,it2);
 }
 
 // Assignment

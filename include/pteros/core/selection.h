@@ -67,21 +67,19 @@ class Selection {
     /// @name Constructors and operators
     /// @{
 
+    /// Default constructor for absolutely empty selection.
+    Selection();
+
+    /** Associates selection with the system @param sys,
+    *   Selection content should be set later by calling modify().
+    */
+    Selection(const System& sys);
+
     /** Main constructor.
     *   @param sys System pointed by this selection
     *   @param str Selection string    
     */
-    Selection(const System& sys, std::string str);
-
-    /** Constructor with delayed parsing of selection text.
-    *   Associates selection with the system @param sys,
-        but does not parse selection.
-    *   Selection text should be passed later by calling modify().
-    */
-    Selection(const System& sys);
-
-    /// Default constructor for absolutely empty selection.
-    Selection();
+    Selection(const System& sys, std::string str);    
 
     /** Constructor, which creates selection from the interval of indexes
         instead of selection string.
@@ -91,7 +89,15 @@ class Selection {
         @param ind1 First index in interval
         @param ind2 Last index in interval (inclusive!)
      */
-    Selection(const System& sys, int ind1, int ind2);    
+    Selection(const System& sys, int ind1, int ind2);
+
+    /// Constructor from vector of indexes
+    Selection(const System& sys, const std::vector<int>& ind);
+
+    /// Constructor from the pair of iterators to int sequence
+    Selection(const System& sys,
+              std::vector<int>::iterator it1,
+              std::vector<int>::iterator it2);
 
     /// Copy constructor
     Selection(const Selection& sel);
@@ -152,7 +158,7 @@ class Selection {
     *   @param str New value of selection text. Selection is re-parsed immediately with
     *   this new value.
     */
-    void modify(std::string str);    
+    void modify(std::string str);
 
     /// Modifies selection using the range of indexes
     void modify(int ind1, int ind2);
@@ -160,8 +166,22 @@ class Selection {
     /// Modifies selection using vector of indexes
     void modify(const std::vector<int>& ind);
 
-    /// Modifies selection using pair of iterators to index array
-    void modify(std::vector<int>::iterator it1, std::vector<int>::iterator it2);    
+    /// Modifies selection using pair of iterators to index vector
+    void modify(std::vector<int>::iterator it1, std::vector<int>::iterator it2);
+
+    /// Convenience function, which combines set_system and modify(str)
+    void modify(const System& sys, std::string str);
+
+    /// Convenience function, which combines set_system and modify(int,int)
+    void modify(const System& sys, int ind1, int ind2);
+
+    /// Convenience function, which combines set_system and modify(vector<int>)
+    void modify(const System& sys, const std::vector<int>& ind);
+
+    /// Convenience function, which combines set_system and modify(iter,iter)
+    void modify(const System& sys,
+                std::vector<int>::iterator it1,
+                std::vector<int>::iterator it2);
 
     /** Recomputes selection without re-parsing selection text.
     *   Only makes sense for coordinate-dependent selections when the coordinates change.
@@ -795,10 +815,6 @@ protected:
     // Holds an instance of selection parser
     std::unique_ptr<Selection_parser> parser;
     void allocate_parser();
-
-    // Private functions for creating selection
-    void create_internal(const System& sys, const std::string& str);
-    void create_internal(const System& sys, int ind1, int ind2);    
 };
 
 //==============================================================================
