@@ -55,6 +55,10 @@ void Consumer_base::run_in_thread(std::shared_ptr<Message_channel<std::shared_pt
 }
 
 void Consumer_base::consume_frame(std::shared_ptr<Data_container> &data){
+    // Check number of atoms
+    if(data->frame.coord.size()!=system.num_atoms()){
+        throw Pteros_error("Wrong number of atoms in the trajectory frame!");
+    }
     process_window_info(data->frame_info);
     process_frame_data(data->frame);
     process_frame_handler(data->frame_info);

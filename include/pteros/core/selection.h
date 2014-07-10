@@ -145,7 +145,7 @@ class Selection {
     /// @name Modification of existing selection
     /// @{
 
-    /// Append another selection to this one. Acts like logical "OR" between selections.
+    /// Append another selection to this one.
     void append(const Selection& sel);
 
     /// Append absolute index to selection

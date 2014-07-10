@@ -166,8 +166,8 @@ Selection::~Selection(){
 }
 
 void Selection::append(const Selection &sel){
-    if(!system) throw Pteros_error("Can't append to undefined system!");
-    if(!sel.system) throw Pteros_error("Can't append undefined system!");
+    if(!system) throw Pteros_error("Can't append to selection with undefined system!");
+    if(!sel.system) throw Pteros_error("Can't append selection with undefined system!");
     if(sel.system!=system) throw Pteros_error("Can't append atoms from other system!");
 
     copy(sel.index.begin(),sel.index.end(),back_inserter(index));
@@ -181,8 +181,8 @@ void Selection::append(const Selection &sel){
 }
 
 void Selection::append(int ind){
-    if(!system) throw Pteros_error("Can't append to undefined system!");
-    if(ind<0 || ind>=system->num_atoms()) throw Pteros_error("Appended index is out of bonds!");
+    if(!system) throw Pteros_error("Can't append to selection with undefined system!");
+    if(ind<0 || ind>=system->num_atoms()) throw Pteros_error("Appended index is out of range!");
 
     if(find(index.begin(),index.end(),ind)!=index.end()){
         index.push_back(ind);

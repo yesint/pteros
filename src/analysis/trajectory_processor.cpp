@@ -206,11 +206,11 @@ void Trajectory_processor::run(){
         sys1->load(structure_file);
     } else if(structure_file=="" && top_file!=""){
         // we have only topology but no structure
-        sys1->load(top_file); // coordinates and stucture from top!
+        sys1->load(top_file); // coordinates from top!
     } else if(structure_file!="" && top_file!=""){
         // we have both topology and structure
         sys1->load(structure_file);
-        sys1->load(top_file); // No coordinates and stucture from top!
+        sys1->load(top_file); // No coordinates from top!
     } else {
         Pteros_error("Structure AND/OR topology file is required!");
     }
