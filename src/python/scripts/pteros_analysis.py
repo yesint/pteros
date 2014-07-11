@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 from pteros import *
 import sys, pkgutil, copy, os, imp
