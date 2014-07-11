@@ -563,7 +563,8 @@ struct Grammar {
         return ok;
     }
 
-    bool logical_expr(AstNode_ptr& res){
+    bool logical_expr(AstNode_ptr& res){        
+
         AstNode_ptr operand1,operand2,op;
         bool ok = logical_operand(operand1);
 
@@ -668,8 +669,8 @@ struct Grammar {
     }
 
     bool logical_operand(AstNode_ptr& res){
-        bool ok = (expect(TOK_LPAREN,dum) && logical_expr(res) && expect(TOK_RPAREN,dum))
-                  || num_comparison(res)
+        bool ok =    num_comparison(res)
+                  ||(expect(TOK_LPAREN,dum) && logical_expr(res) && expect(TOK_RPAREN,dum))
                   || expect(TOK_ALL,res)
                   || logical_not(res)
                   || within_rule(res)                  
@@ -710,11 +711,17 @@ void Selection_parser::create_ast(string& sel_str){
 #endif
     tokenize(sel_str);
     Grammar gr(this);
-    int pos = gr.run(tree);
+    int pos = gr.run(tree); 
+
     if(pos!=tokens.size()){
         string s("Syntax error in selection string here:\n\""+sel_str+"\"\n");
         for(int i=0;i<token_ends[pos];++i) s+="~";
         s+="^";
+
+#ifdef _DEBUG_PARSER
+    cout << "Before ERROR:" << endl;
+    tree->dump();
+#endif
         throw Pteros_error(s);
     }
     // Now we can free tokens array. This will kill all unused nodes
