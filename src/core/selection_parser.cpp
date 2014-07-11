@@ -1188,12 +1188,13 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
         return;
     //---------------------------------------------------------------------------
     case  TOK_LT:
-        if(!subspace){
-            for(at=0;at<Natoms;++at) // over all atoms
+        if(!subspace){            
+            for(at=0;at<Natoms;++at){ // over all atoms
                 if(eval_numeric(node->child_node(0),at) <
                    eval_numeric(node->child_node(1),at)
                   ) result.push_back(at);
-        } else {
+            }
+        } else {            
             for(int i=0;i<subspace->size();++i){ // over subspace
                 at = (*subspace)[i];
                 if(eval_numeric(node->child_node(0),at) <
@@ -1257,7 +1258,7 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
 float Selection_parser::eval_numeric(AstNode_ptr& node, int at){    
     if(node->code == TOK_INT){
         return boost::get<int>(node->children[0]);
-    } else if(node->code == TOK_FLOAT){        
+    } else if(node->code == TOK_FLOAT){
         return boost::get<float>(node->children[0]);
     } else if(node->code == TOK_X){
         return sys->traj[frame].coord[at](0);
@@ -1270,28 +1271,28 @@ float Selection_parser::eval_numeric(AstNode_ptr& node, int at){
     } else if(node->code == TOK_OCC){
         return sys->atoms[at].occupancy;
     } else if(node->code == TOK_UNARY_MINUS){
-        return -eval_numeric(node->child_node(0),frame);
+        return -eval_numeric(node->child_node(0),at);
     } else if(node->code == TOK_PLUS){
-        return eval_numeric(node->child_node(0),frame)
-             + eval_numeric(node->child_node(1),frame);
+        return eval_numeric(node->child_node(0),at)
+             + eval_numeric(node->child_node(1),at);
     } else if(node->code == TOK_MINUS){
-        return eval_numeric(node->child_node(0),frame)
-             - eval_numeric(node->child_node(1),frame);
+        return eval_numeric(node->child_node(0),at)
+             - eval_numeric(node->child_node(1),at);
     } else if(node->code == TOK_MULT){
-        return eval_numeric(node->child_node(0),frame)
-             * eval_numeric(node->child_node(1),frame);
+        return eval_numeric(node->child_node(0),at)
+             * eval_numeric(node->child_node(1),at);
     } else if(node->code == TOK_DIV){
-        float v = eval_numeric(node->child_node(0),frame);
+        float v = eval_numeric(node->child_node(0),at);
         if(v==0.0) throw Pteros_error("Divition by zero in selection!");
-        return eval_numeric(node->child_node(1),frame) / v;
+        return eval_numeric(node->child_node(1),at) / v;
 
     } else if(node->code == TOK_POINT){
         // Extract point
         Eigen::Vector3f p;
 
-        p(0) = eval_numeric(node->child_node(0),frame);
-        p(1) = eval_numeric(node->child_node(1),frame);
-        p(2) = eval_numeric(node->child_node(2),frame);
+        p(0) = eval_numeric(node->child_node(0),at);
+        p(1) = eval_numeric(node->child_node(1),at);
+        p(2) = eval_numeric(node->child_node(2),at);
 
         bool pbc = false;
         if(node->children.size()==4)
@@ -1306,14 +1307,14 @@ float Selection_parser::eval_numeric(AstNode_ptr& node, int at){
     } else if(node->code == TOK_VECTOR || node->code == TOK_PLANE ){
         // Extract point
         Eigen::Vector3f p;
-        p(0) = eval_numeric(node->child_node(0),frame);
-        p(1) = eval_numeric(node->child_node(1),frame);
-        p(2) = eval_numeric(node->child_node(2),frame);
+        p(0) = eval_numeric(node->child_node(0),at);
+        p(1) = eval_numeric(node->child_node(1),at);
+        p(2) = eval_numeric(node->child_node(2),at);
         // Extract direction vector (or a normal if it's a plane)
         Eigen::Vector3f dir;
-        dir(0) = eval_numeric(node->child_node(3),frame);
-        dir(1) = eval_numeric(node->child_node(4),frame);
-        dir(2) = eval_numeric(node->child_node(5),frame);
+        dir(0) = eval_numeric(node->child_node(3),at);
+        dir(1) = eval_numeric(node->child_node(4),at);
+        dir(2) = eval_numeric(node->child_node(5),at);
 
         Eigen::Vector3f atom = sys->traj[frame].coord[at];
 
