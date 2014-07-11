@@ -669,11 +669,11 @@ struct Grammar {
     }
 
     bool logical_operand(AstNode_ptr& res){
-        bool ok =    num_comparison(res)
-                  ||(expect(TOK_LPAREN,dum) && logical_expr(res) && expect(TOK_RPAREN,dum))
+        bool ok = (expect(TOK_LPAREN,dum) && logical_expr(res) && expect(TOK_RPAREN,dum))
+                  || num_comparison(res)
                   || expect(TOK_ALL,res)
                   || logical_not(res)
-                  || within_rule(res)                  
+                  || within_rule(res)
                   || by_residue(res)
                   || keyword_text_list(res)
                   || keyword_int_list(res);
@@ -683,7 +683,14 @@ struct Grammar {
     // Evaluates top-level rule and return AST
     int run(AstNode_ptr& res){
         // Match top-level rule
-        logical_expr(res);
+        AstNode_ptr p;
+        bool ok = logical_expr(p);
+        if(!ok){
+            cur = 0;
+            num_comparison(res);
+        } else {
+            res = p;
+        }
         return cur;
     }
 
