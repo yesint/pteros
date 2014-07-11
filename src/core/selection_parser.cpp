@@ -563,15 +563,39 @@ struct Grammar {
         return ok;
     }
 
+    bool toplevel_operand(AstNode_ptr& res){
+        AstNode_ptr p1,p2;
+        int old_pos = cur;
+
+        bool ok = logical_operand(p1);
+
+        if(ok){
+            res = p1;
+            return true;
+        } else {
+            cur = old_pos;
+
+            ok = num_comparison(p2);
+
+            if(ok){
+                res = p2;
+                return true;
+            } else {
+                return false;
+            }
+        }
+    }
+
     bool logical_expr(AstNode_ptr& res){        
 
         AstNode_ptr operand1,operand2,op;
-        bool ok = logical_operand(operand1);
+
+        bool ok = toplevel_operand(operand1);
 
         if(!ok) return false;
 
         res = operand1; // If no operators follow this will be passed out
-        while( (expect(TOK_OR,op) || expect(TOK_AND,op)) && logical_operand(operand2) ){
+        while( (expect(TOK_OR,op) || expect(TOK_AND,op)) && toplevel_operand(operand2) ){
             if(res->children.size()==2){
                 operand1 = res; // Move ready tree to the first operand
             }
@@ -683,14 +707,19 @@ struct Grammar {
     // Evaluates top-level rule and return AST
     int run(AstNode_ptr& res){
         // Match top-level rule
+        logical_expr(res);
+        /*
         AstNode_ptr p;
         bool ok = logical_expr(p);
+
         if(!ok){
             cur = 0;
             num_comparison(res);
         } else {
             res = p;
         }
+        */
+
         return cur;
     }
 
