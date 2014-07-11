@@ -53,27 +53,39 @@ protected:
 
     void pre_process(){        
         data.clear();        
-        sel.modify(system,options("selection").as_string() );
-        nojump = options("nojump","true").as_bool();
 
-        // Add our selection to nojump list if asked
-        if(nojump){
-            add_no_jump_atoms(sel);
+        // rms_sel is required
+        rms_sel.modify(system, options("rms_sel").as_string() );
+
+        // fit_sel is optional
+        string fit_str = options("fit_sel","").as_string();
+        if(fit_str!="") fit_sel.modify(system, fit_str);
+
+        if((fit_sel.size()>0 && fit_sel.size()<3) || (fit_sel.size()==0 && rms_sel.size()<3)){
+            throw Pteros_error("Can't fit selection with less than 3 atoms!");
         }
+
+        // Add our selections to nojump list
+        add_no_jump_atoms(fit_sel);
+        add_no_jump_atoms(rms_sel);
     }     
 
     void process_frame(const pteros::Frame_info &info){                
-        // Fitting breaks the system, but we have local copy, nobody cares. Cool :)                        
+
         if(info.valid_frame==0){
             // Create frame 1 for fitting
             system.frame_dup(0);
         }
 
-        // Compute transform with fixed reference in frame 1
-        Eigen::Affine3f trans = sel.fit_transform(0,1);
-        sel.apply_transform(trans);
-        float v = sel.rmsd(0,1);
+        // Compute RMSD with fixed reference in frame 1
+        if(fit_sel.size()>2){
+            Eigen::Affine3f trans = fit_sel.fit_transform(0,1);
+            rms_sel.apply_transform(trans);
+        } else {
+            rms_sel.fit(0,1);
+        }
 
+        float v = rms_sel.rmsd(0,1);
         data.push_back(v);        
     }
 
@@ -84,8 +96,11 @@ protected:
         float dt = (info.last_time-info.first_time)/(float)(info.valid_frame);
 
         ofstream f(fname.c_str());
-        f << "# RMSD of selection [" << sel.get_text() << "]" << endl;        
-        f << "# time RMSD:" << endl;
+        f << "# RMSD of selection [" << rms_sel.get_text() << "]" << endl;
+        if(fit_sel.size()>2){
+            f << "# after fitting of selection [" << fit_sel.get_text() << "]" << endl;
+        }
+        f << "# time(ns) RMSD(nm)" << endl;
         for(int i=0; i<data.size(); ++i){
             f << i*dt << " " << data[i] << endl;
         }
@@ -93,9 +108,8 @@ protected:
     }
 
 private:
-    std::vector<float> data;    
-    pteros::Selection sel;
-    bool nojump;
+    vector<float> data;
+    Selection fit_sel, rms_sel;
 };
 
 
