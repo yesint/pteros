@@ -4,9 +4,18 @@ link_libraries( pteros_analysis pteros)
 #target_link_libraries(threads_test
 #    pteros pteros_analysis ${Boost_LIBRARIES} ${PYTHON_LIBRARIES})
 
+# Alternative parser
+add_custom_command(OUTPUT ${PROJECT_SOURCE_DIR}/include/pteros/core/peg_parser.h
+    #COMMAND /home/semen/install/greg-master/greg ${PROJECT_SOURCE_DIR}/src/core/peg_parser.leg -o ${PROJECT_SOURCE_DIR}/src/core/peg_parser.cpp
+    COMMAND /home/semen/install/greg-master/greg ${PROJECT_SOURCE_DIR}/src/test/peg_parser.leg -o ${PROJECT_SOURCE_DIR}/include/pteros/core/peg_parser.h
+    DEPENDS ${PROJECT_SOURCE_DIR}/src/test/peg_parser.leg
+)
+
 
 add_executable(pteros_test
 test_selection.cpp
+    #${PROJECT_SOURCE_DIR}/src/core/peg_parser.cpp
+    ${PROJECT_SOURCE_DIR}/include/pteros/core/peg_parser.h
 )
 #target_link_libraries(pteros_test ${Boost_LIBRARIES} ${PYTHON_LIBRARIES} ${BOOST_PYTHON_LIB})
 

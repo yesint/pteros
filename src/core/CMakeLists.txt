@@ -122,7 +122,7 @@ add_library(pteros SHARED
     ${PROJECT_SOURCE_DIR}/src/core/dssp/mas.cpp
     ${PROJECT_SOURCE_DIR}/src/core/dssp/primitives-3d.cpp
     ${PROJECT_SOURCE_DIR}/src/core/dssp/structure.cpp
-    ${PROJECT_SOURCE_DIR}/src/core/dssp/utils.cpp
+    ${PROJECT_SOURCE_DIR}/src/core/dssp/utils.cpp    
 )
 
 #--------------
@@ -133,3 +133,4 @@ install(TARGETS pteros
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
 )
+
