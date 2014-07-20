@@ -36,7 +36,7 @@ using namespace pteros;
 
 %}
 
-root_rule = - v:NUM_EXPR !. {cout << "MATCH" << endl; G->data->root = v; }
+root_rule = - v:LOGICAL_EXPR !. {cout << "MATCH" << endl; G->data->root = v; }
 
 # Terminals
 
@@ -48,79 +48,113 @@ root_rule = - v:NUM_EXPR !. {cout << "MATCH" << endl; G->data->root = v; }
 
 # Integer number
 INT = < ('-'|'+')? [0-9]+ > -
-        {
-            $$.reset(new AstNode);
-            $$->code = TOK_INT;
-            $$->children.push_back( atoi(yytext) );
-        }
+                                {
+                                    $$.reset(new AstNode);
+                                    $$->code = TOK_INT;
+                                    $$->children.push_back( atoi(yytext) );
+                                }
 
 # Float-point number
 FLOAT = < (
               ( (('-'|'+')? [0-9]+)? '.' [0-9]+)
             | ( (('-'|'+')? [0-9]+) '.' [0-9]?)
           ) ([eE] (('-'|'+')? [0-9]+))? > -
-        {
-            $$.reset(new AstNode);
-            $$->code = TOK_FLOAT;
-            $$->children.push_back( float(atof(yytext)) );
-        }
+                                {
+                                    $$.reset(new AstNode);
+                                    $$->code = TOK_FLOAT;
+                                    $$->children.push_back( float(atof(yytext)) );
+                                }
+
+# Forces float or int to be float
+AS_FLOAT = v:FLOAT | v:INT
+                                {
+                                    $$.reset(new AstNode);
+                                    if(v->code==TOK_INT){
+                                        $$->code = TOK_FLOAT;
+                                        $$->children.push_back(float(boost::get<int>(v->children[0])));
+                                    } else {
+                                        $$ = v;
+                                    }
+                                }
 
 # Rules
 NUM_EXPR = l:NUM_TERM
            (
             (
-            '+' {
-                    auto tmp = AstNode_ptr(new AstNode);
-                    l.swap(tmp);
-                    l->code = TOK_PLUS;
-                    l->children.push_back(tmp);
-                }
+            '+'
+                                {
+                                    auto tmp = AstNode_ptr(new AstNode);
+                                    l.swap(tmp);
+                                    l->code = TOK_PLUS;
+                                    if(tmp->code==TOK_INT || tmp->code==TOK_FLOAT)
+                                        l->children.push_back(tmp->children[0]);
+                                    else
+                                        l->children.push_back(tmp);
+                                }
             -
             |
-            '-' {
-                    auto tmp = AstNode_ptr(new AstNode);
-                    l.swap(tmp);
-                    l->code = TOK_MINUS;
-                    l->children.push_back(tmp);
-                }
+            '-'
+                                {
+                                    auto tmp = AstNode_ptr(new AstNode);
+                                    l.swap(tmp);
+                                    l->code = TOK_MINUS;
+                                    if(tmp->code==TOK_INT || tmp->code==TOK_FLOAT)
+                                        l->children.push_back(tmp->children[0]);
+                                    else
+                                        l->children.push_back(tmp);
+                                }
             -
             )
            r:NUM_TERM
-                {
-                    l->children.push_back(r);
-                }
+                                {
+                                    if(r->code==TOK_INT || r->code==TOK_FLOAT)
+                                        l->children.push_back(r->children[0]);
+                                    else
+                                        l->children.push_back(r);
+                                }
            )*
-            {
-                $$ = l;
-            }
+                                {
+                                    $$ = l;
+                                }
 
 NUM_TERM = l:NUM_FACTOR
            (
             (
-            '*' {
-                    auto tmp = AstNode_ptr(new AstNode);
-                    l.swap(tmp);
-                    l->code = TOK_MULT;
-                    l->children.push_back(tmp);
-                }
+            '*'
+                                {
+                                    auto tmp = AstNode_ptr(new AstNode);
+                                    l.swap(tmp);
+                                    l->code = TOK_MULT;
+                                    if(tmp->code==TOK_INT || tmp->code==TOK_FLOAT)
+                                        l->children.push_back(tmp->children[0]);
+                                    else
+                                       l->children.push_back(tmp);
+                                }
             -
             |
-            '/' {
-                    auto tmp = AstNode_ptr(new AstNode);
-                    l.swap(tmp);
-                    l->code = TOK_DIV;
-                    l->children.push_back(tmp);
-                }
+            '/'
+                                {
+                                    auto tmp = AstNode_ptr(new AstNode);
+                                    l.swap(tmp);
+                                    l->code = TOK_DIV;
+                                    if(tmp->code==TOK_INT || tmp->code==TOK_FLOAT)
+                                        l->children.push_back(tmp->children[0]);
+                                    else
+                                        l->children.push_back(tmp);
+                                }
             -
             )
             r:NUM_FACTOR
-                {
-                    l->children.push_back(r);
-                }
+                                {
+                                    if(r->code==TOK_INT || r->code==TOK_FLOAT)
+                                        l->children.push_back(r->children[0]);
+                                    else
+                                        l->children.push_back(r);
+                                }
            )*
-            {
-                $$ = l;
-            }
+                                {
+                                    $$ = l;
+                                }
 
 NUM_FACTOR = '(' - NUM_EXPR ')' -
              | FLOAT
@@ -135,38 +169,261 @@ NUM_FACTOR = '(' - NUM_EXPR ')' -
 
 UNARY_MINUS = '-'
               v:NUM_FACTOR
-                {
-                    $$.reset(new AstNode);
-                    $$->code = TOK_UNARY_MINUS;
-                    $$->children.push_back(v);
-                }
+                                {
+                                    $$.reset(new AstNode);
+                                    $$->code = TOK_UNARY_MINUS;
+                                    $$->children.push_back(v);
+                                }
 
 X = 'x' -
-    {
-        $$ = AstNode_ptr(new AstNode);
-        $$->code = TOK_X;
-    }
+                                {
+                                    $$.reset(new AstNode);
+                                    $$->code = TOK_X;
+                                }
 
 Y = 'y' -
-    {
-        $$ = AstNode_ptr(new AstNode);
-        $$->code = TOK_Y;
-    }
+                                {
+                                    $$.reset(new AstNode);
+                                    $$->code = TOK_Y;
+                                }
 
 Z = 'z' -
-    {
-        $$ = AstNode_ptr(new AstNode);
-        $$->code = TOK_Z;
-    }
+                                {
+                                    $$.reset(new AstNode);
+                                    $$->code = TOK_Z;
+                                }
 
 BETA = 'beta' -
-    {
-        $$ = AstNode_ptr(new AstNode);
-        $$->code = TOK_BETA;
-    }
+                                {
+                                    $$.reset(new AstNode);
+                                    $$->code = TOK_BETA;
+                                }
 
 OCCUPANCY = 'occupancy' -
-    {
-        $$ = AstNode_ptr(new AstNode);
-        $$->code = TOK_OCC;
-    }
+                                {
+                                    $$.reset(new AstNode);
+                                    $$->code = TOK_OCC;
+                                }
+
+COMPARISON_OPERATOR =
+          '=='
+                                {
+                                    $$.reset(new AstNode);
+                                    $$->code = TOK_EQ;
+                                }
+          -
+        | '!='
+                                {
+                                    $$.reset(new AstNode);
+                                    $$->code = TOK_NEQ;
+                                }
+          -
+        | '<'
+                                {
+                                    $$.reset(new AstNode);
+                                    $$->code = TOK_LT;
+                                }
+          -
+        | '>'
+                                {
+                                    $$.reset(new AstNode);
+                                    $$->code = TOK_GT;
+                                }
+          -
+        | '<='
+                                {
+                                    $$.reset(new AstNode);
+                                    $$->code = TOK_LEQ;
+                                }
+          -
+        | '>='
+                                {
+                                    $$.reset(new AstNode);
+                                    $$->code = TOK_GEQ;
+                                }
+          -
+
+NUM_COMPARISON = l:NUM_EXPR
+            (
+            # Chained comparison
+
+              op1:COMPARISON_OPERATOR
+              r1:NUM_EXPR
+              op2:COMPARISON_OPERATOR
+              r2:NUM_EXPR
+                                {
+                                    op1->children.push_back(l);
+                                    op1->children.push_back(r1);
+                                    op2->children.push_back(r1);
+                                    op2->children.push_back(r2);
+                                    auto tmp = AstNode_ptr(new AstNode);
+                                    l.swap(tmp);
+                                    l->code = TOK_AND;
+                                    l->children.push_back(op1);
+                                    l->children.push_back(op2);
+                                }
+            |
+            # Single comparison
+
+              op:COMPARISON_OPERATOR
+               r:NUM_EXPR
+                                {
+                                    op->children.push_back(l);
+                                    op->children.push_back(r);
+                                    l.swap(op);
+                                }
+
+            )?
+                                {
+                                    $$ = l;
+                                }
+
+LOGICAL_EXPR =
+        l:LOGICAL_OPERAND
+        (
+          (
+          'or'
+                                {
+                                    auto tmp = AstNode_ptr(new AstNode);
+                                    l.swap(tmp);
+                                    l->code = TOK_OR;
+                                    l->children.push_back(tmp);
+                                }
+          -
+          |
+          'and'
+                                {
+                                    auto tmp = AstNode_ptr(new AstNode);
+                                    l.swap(tmp);
+                                    l->code = TOK_AND;
+                                    l->children.push_back(tmp);
+                                }
+          -
+          )
+          r:LOGICAL_OPERAND
+                                {
+                                    l->children.push_back(r);
+                                }
+        )*
+                                {
+                                    $$ = l;
+                                }
+
+
+LOGICAL_OPERAND =
+          '(' - LOGICAL_EXPR ')' -
+        | !(NUM_EXPR !COMPARISON_OPERATOR) NUM_COMPARISON
+        | 'all'
+                                {
+                                    $$.reset(new AstNode);
+                                    $$->code = TOK_ALL;
+                                }
+          -
+        | LOGICAL_NOT
+        | WITHIN
+        | BY_RESIDUE
+        | KEYWORD_LIST_STR
+        | KEYWORD_INT_STR
+
+LOGICAL_NOT =
+        'not' - v:LOGICAL_OPERAND
+                                {
+                                    $$.reset(new AstNode);
+                                    $$->code = TOK_NOT;
+                                    $$->children.push_back(v);
+                                }
+
+WITHIN =
+        'within' -
+        d:AS_FLOAT
+                                {
+                                    auto tmp = AstNode_ptr(new AstNode);
+                                    d.swap(tmp);
+                                    d->code = TOK_WITHIN;
+                                    d->children.push_back(0); // Reserve for v
+                                    // dist is float, so simplify node here
+                                    d->children.push_back(tmp->children[0]);
+                                    d->children.push_back(0); // this is pbc by default
+                                }
+
+      (
+         'periodic' --          {  d->children[2] = 1; }
+       | 'pbc' --               {  d->children[2] = 1; }
+       | 'noperiodic' --
+       | 'nopbc' --
+      )?
+
+        'of' (--|&'(')
+        v:LOGICAL_OPERAND
+                                {
+                                    d->children[0] = v;
+                                    $$ = d;
+                                }
+
+
+BY_RESIDUE =
+        'by' -- 'residue' - v:LOGICAL_OPERAND
+                                {
+                                    $$.reset(new AstNode);
+                                    $$->code = TOK_BY;
+                                    $$->children.push_back(v);
+                                }
+
+KEYWORD_LIST_STR =
+        k:STR_KEYWORD
+        (
+           v:STR                { k->children.push_back(v->children[0]); }
+         | v:REGEX              { k->children.push_back(v); }
+        )+
+                                {
+                                    $$ = k;
+                                }
+
+KEYWORD_INT_STR =
+        k:INT_KEYWORD
+        (
+           v:RANGE              { k->children.push_back(v); }
+         | v:INT                { k->children.push_back(v->children[0]); }
+        )+
+                                {
+                                    $$ = k;
+                                }
+
+STR_KEYWORD =
+          'name' --             { $$.reset(new AstNode); $$->code = TOK_NAME; }
+        | 'resname' --          { $$.reset(new AstNode); $$->code = TOK_RESNAME; }
+        | 'tag' --              { $$.reset(new AstNode); $$->code = TOK_TAG; }
+        | 'chain' --            { $$.reset(new AstNode); $$->code = TOK_CHAIN; }
+
+INT_KEYWORD =
+          'resid' --            { $$.reset(new AstNode); $$->code = TOK_RESID; }
+        | 'resindex' --         { $$.reset(new AstNode); $$->code = TOK_RESINDEX; }
+        | 'index' --            { $$.reset(new AstNode); $$->code = TOK_INDEX; }
+
+STR = !('or'|'and') < [a-zA-z0-9_]+ > (--|&')'|&'-'|!.)
+                                {
+                                    $$.reset(new AstNode);
+                                    $$->code = TOK_STR;
+                                    $$->children.push_back(string(yytext));
+                                }
+
+REGEX =   "'" <[^']+> "'" -
+                                {
+                                    $$.reset(new AstNode);
+                                    $$->code = TOK_REGEX;
+                                    $$->children.push_back(string(yytext));
+                                }
+        | '"' <[^"]+> '"' -
+                                {
+                                    $$.reset(new AstNode);
+                                    $$->code = TOK_REGEX;
+                                    $$->children.push_back(string(yytext));
+                                }
+
+RANGE =   v1:INT ('to'|'-') - v2:INT
+                                {
+                                    $$.reset(new AstNode);
+                                    $$->code = TOK_TO;
+                                    $$->children.push_back(v1->children[0]);
+                                    $$->children.push_back(v2->children[0]);
+                                }
