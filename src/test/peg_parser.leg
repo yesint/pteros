@@ -46,7 +46,7 @@ root_rule = - v:LOGICAL_EXPR !. {cout << "MATCH" << endl; G->data->root = v; }
 # Required space
 -- = [ \t]+
 
-# Integer number
+# Signed integer number
 INT = < ('-'|'+')? [0-9]+ > -
                                 {
                                     $$.reset(new AstNode);
@@ -54,7 +54,16 @@ INT = < ('-'|'+')? [0-9]+ > -
                                     $$->children.push_back( atoi(yytext) );
                                 }
 
-# Float-point number
+# Unsigned integer number
+UINT = < [0-9]+ > -
+                                {
+                                    $$.reset(new AstNode);
+                                    $$->code = TOK_UINT;
+                                    $$->children.push_back( atoi(yytext) );
+                                }
+
+
+# Float-point number. Do not match ints
 FLOAT = < (
               ( (('-'|'+')? [0-9]+)? '.' [0-9]+)
             | ( (('-'|'+')? [0-9]+) '.' [0-9]?)
@@ -65,7 +74,7 @@ FLOAT = < (
                                     $$->children.push_back( float(atof(yytext)) );
                                 }
 
-# Forces float or int to be float
+# Float or int set to float result
 AS_FLOAT = v:FLOAT | v:INT
                                 {
                                     $$.reset(new AstNode);
@@ -86,10 +95,7 @@ NUM_EXPR = l:NUM_TERM
                                     auto tmp = AstNode_ptr(new AstNode);
                                     l.swap(tmp);
                                     l->code = TOK_PLUS;
-                                    if(tmp->code==TOK_INT || tmp->code==TOK_FLOAT)
-                                        l->children.push_back(tmp->children[0]);
-                                    else
-                                        l->children.push_back(tmp);
+                                    l->children.push_back(tmp);
                                 }
             -
             |
@@ -98,26 +104,20 @@ NUM_EXPR = l:NUM_TERM
                                     auto tmp = AstNode_ptr(new AstNode);
                                     l.swap(tmp);
                                     l->code = TOK_MINUS;
-                                    if(tmp->code==TOK_INT || tmp->code==TOK_FLOAT)
-                                        l->children.push_back(tmp->children[0]);
-                                    else
-                                        l->children.push_back(tmp);
+                                    l->children.push_back(tmp);
                                 }
             -
             )
            r:NUM_TERM
                                 {
-                                    if(r->code==TOK_INT || r->code==TOK_FLOAT)
-                                        l->children.push_back(r->children[0]);
-                                    else
-                                        l->children.push_back(r);
+                                    l->children.push_back(r);
                                 }
            )*
                                 {
                                     $$ = l;
                                 }
 
-NUM_TERM = l:NUM_FACTOR
+NUM_TERM = l:NUM_POWER
            (
             (
             '*'
@@ -125,10 +125,7 @@ NUM_TERM = l:NUM_FACTOR
                                     auto tmp = AstNode_ptr(new AstNode);
                                     l.swap(tmp);
                                     l->code = TOK_MULT;
-                                    if(tmp->code==TOK_INT || tmp->code==TOK_FLOAT)
-                                        l->children.push_back(tmp->children[0]);
-                                    else
-                                       l->children.push_back(tmp);
+                                    l->children.push_back(tmp);
                                 }
             -
             |
@@ -137,27 +134,39 @@ NUM_TERM = l:NUM_FACTOR
                                     auto tmp = AstNode_ptr(new AstNode);
                                     l.swap(tmp);
                                     l->code = TOK_DIV;
-                                    if(tmp->code==TOK_INT || tmp->code==TOK_FLOAT)
-                                        l->children.push_back(tmp->children[0]);
-                                    else
-                                        l->children.push_back(tmp);
+                                    l->children.push_back(tmp);
                                 }
             -
             )
-            r:NUM_FACTOR
+            r:NUM_POWER
                                 {
-                                    if(r->code==TOK_INT || r->code==TOK_FLOAT)
-                                        l->children.push_back(r->children[0]);
-                                    else
-                                        l->children.push_back(r);
+                                    l->children.push_back(r);
                                 }
            )*
                                 {
                                     $$ = l;
                                 }
 
+NUM_POWER =
+        l:NUM_FACTOR
+        (
+          ('^'|'**') -
+          r:NUM_FACTOR
+                                {
+                                    auto tmp = AstNode_ptr(new AstNode);
+                                    l.swap(tmp);
+                                    l->code = TOK_POWER;
+                                    l->children.push_back(tmp);
+                                    l->children.push_back(r);
+                                }
+        )?
+                                {
+                                    $$ = l;
+                                }
+
+
 NUM_FACTOR = '(' - NUM_EXPR ')' -
-             | FLOAT
+             | FLOAT        
              | INT
              | X
              | Y
@@ -165,6 +174,7 @@ NUM_FACTOR = '(' - NUM_EXPR ')' -
              | BETA
              | OCCUPANCY
              | UNARY_MINUS
+             | DISTANCE
 
 
 UNARY_MINUS = '-'
@@ -204,6 +214,69 @@ OCCUPANCY = 'occupancy' -
                                     $$.reset(new AstNode);
                                     $$->code = TOK_OCC;
                                 }
+
+DISTANCE =
+           POINT
+         | VECTOR
+         | PLANE
+
+
+POINT = 'distance' --
+        'point' --
+        p:PBC
+        v1:AS_FLOAT v2:AS_FLOAT v3:AS_FLOAT
+                                {
+                                    $$.reset(new AstNode);
+                                    $$->code = TOK_POINT;
+                                    $$->children.push_back(p->children[0]);
+                                    $$->children.push_back(v1);
+                                    $$->children.push_back(v2);
+                                    $$->children.push_back(v3);
+                                }
+VECTOR = 'distance' --
+        'vector' --
+        p:PBC
+        v1:AS_FLOAT v2:AS_FLOAT v3:AS_FLOAT v4:AS_FLOAT v5:AS_FLOAT v6:AS_FLOAT
+                                {
+                                    $$.reset(new AstNode);
+                                    $$->code = TOK_VECTOR;
+                                    $$->children.push_back(p->children[0]);
+                                    $$->children.push_back(v1);
+                                    $$->children.push_back(v2);
+                                    $$->children.push_back(v3);
+                                    $$->children.push_back(v4);
+                                    $$->children.push_back(v5);
+                                    $$->children.push_back(v6);
+                                }
+PLANE = 'distance' --
+        'plane' --
+        p:PBC
+        v1:AS_FLOAT v2:AS_FLOAT v3:AS_FLOAT v4:AS_FLOAT v5:AS_FLOAT v6:AS_FLOAT
+                                {
+                                    $$.reset(new AstNode);
+                                    $$->code = TOK_PLANE;
+                                    $$->children.push_back(p->children[0]);
+                                    $$->children.push_back(v1);
+                                    $$->children.push_back(v2);
+                                    $$->children.push_back(v3);
+                                    $$->children.push_back(v4);
+                                    $$->children.push_back(v5);
+                                    $$->children.push_back(v6);
+                                }
+
+
+PBC =                           {
+                                   $$.reset(new AstNode);
+                                   $$->code=TOK_INT;
+                                   $$->children.push_back(0);
+                                } # Default
+        (
+           'periodic' --        {  $$->children[0] = 1; }
+         | 'pbc' --             {  $$->children[0] = 1; }
+         | 'noperiodic' --
+         | 'nopbc' --
+        )?
+
 
 COMPARISON_OPERATOR =
           '=='
@@ -336,28 +409,15 @@ LOGICAL_NOT =
 WITHIN =
         'within' -
         d:AS_FLOAT
-                                {
-                                    auto tmp = AstNode_ptr(new AstNode);
-                                    d.swap(tmp);
-                                    d->code = TOK_WITHIN;
-                                    d->children.push_back(0); // Reserve for v
-                                    // dist is float, so simplify node here
-                                    d->children.push_back(tmp->children[0]);
-                                    d->children.push_back(0); // this is pbc by default
-                                }
-
-      (
-         'periodic' --          {  d->children[2] = 1; }
-       | 'pbc' --               {  d->children[2] = 1; }
-       | 'noperiodic' --
-       | 'nopbc' --
-      )?
-
+        p:PBC
         'of' (--|&'(')
         v:LOGICAL_OPERAND
                                 {
-                                    d->children[0] = v;
-                                    $$ = d;
+                                    $$.reset(new AstNode);
+                                    $$->code = TOK_WITHIN;
+                                    $$->children.push_back(d->children[0]);
+                                    $$->children.push_back(v);
+                                    $$->children.push_back(p->children[0]); //pbc
                                 }
 
 
@@ -383,7 +443,7 @@ KEYWORD_INT_STR =
         k:INT_KEYWORD
         (
            v:RANGE              { k->children.push_back(v); }
-         | v:INT                { k->children.push_back(v->children[0]); }
+         | v:UINT               { k->children.push_back(v->children[0]); }
         )+
                                 {
                                     $$ = k;
@@ -420,7 +480,7 @@ REGEX =   "'" <[^']+> "'" -
                                     $$->children.push_back(string(yytext));
                                 }
 
-RANGE =   v1:INT ('to'|'-') - v2:INT
+RANGE =   v1:UINT ('to'|'-') - v2:UINT
                                 {
                                     $$.reset(new AstNode);
                                     $$->code = TOK_TO;

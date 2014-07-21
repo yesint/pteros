@@ -49,6 +49,7 @@ char* tok_names[] = {
     "TOK_PLUS",
     "TOK_MULT",
     "TOK_DIV",
+    "TOK_POWER",
     "TOK_EQ", // == or =
     "TOK_NEQ", // <> or !=
     "TOK_LT", //<
@@ -87,6 +88,7 @@ char* tok_names[] = {
     "TOK_TO", // '-' or 'to'
     // Data "TOKens
     "TOK_INT",
+    "TOK_UINT",
     "TOK_FLOAT",
     "TOK_STR",
     // Parens

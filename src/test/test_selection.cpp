@@ -40,7 +40,7 @@ int main(int argc, char** argv)
 
         input_data INP;
         //INP.string_to_parse = "-( 2.3e-8+ (x - 3.014 ) *1.2)-(3+4- -4*5.5-(2+-3.1)) ";
-        INP.string_to_parse = "index 7-9 5-19 8";
+        INP.string_to_parse = "(3.1+1)**5.0+2*2<x";
         INP.cur_buf_pos = 0;
         GREG g;        
         yyinit(&g);        
