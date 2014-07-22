@@ -32,24 +32,30 @@ using namespace std;
 using namespace pteros;
 using namespace Eigen;
 
-
-int main(int argc, char** argv)
-{
-
-    try{        
-
+struct Parser {
+    void parse(){
         input_data INP;
         //INP.string_to_parse = "-( 2.3e-8+ (x - 3.014 ) *1.2)-(3+4- -4*5.5-(2+-3.1)) ";
         INP.string_to_parse = "(3.1+1)**5.0+2*2<x";
         INP.cur_buf_pos = 0;
-        GREG g;        
-        yyinit(&g);        
+        GREG g;
+        yyinit(&g);
         g.data = &INP;
         while (yyparse(&g));
         if(g.begin != g.end) throw Pteros_error("Syntax error at pos "+to_string(g.begin));
 
         yydeinit(&g);
         INP.root->dump();
+    }
+};
+
+int main(int argc, char** argv)
+{
+
+    try{        
+
+        std::shared_ptr<Parser> p(new Parser);
+        p->parse();
 
 //        System s("/home/semen/work/Projects/asymmetric_bilayer/for-diamonds/hexagonal/2x2.gro");
   //      Selection sel(s,"(y+4)<(x+2) or (1-z)>x");
