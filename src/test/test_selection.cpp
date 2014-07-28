@@ -347,8 +347,98 @@ public:
         END_RESULT
     END_RULE
 
+    RULE(LOGICAL_EXPR)
+        _ok_ = LOGICAL_OPERAND();
+        bool ok = true;
+        while(ok){
+             ok = (LIT("or") || LIT("and")) && opt(SP()) && LOGICAL_OPERAND();
+        }
+
+        RESULT
+            _result_ = SUBRULE(0); // left
+            if(_this_rule_->children.size()>1){
+                for(int i=1; i<_this_rule_->children.size()-1; i+=2){
+                    auto tmp = AstNode_ptr(new AstNode);
+                    _result_.swap(tmp);
+
+                    if(boost::get<string>(SUBRULE(i)->children[0])=="or")
+                        _result_->code = TOK_OR;
+                    else
+                        _result_->code = TOK_AND;
+
+                    _result_->children.push_back(tmp); // left operand
+                    _result_->children.push_back(SUBRULE(i+1)); // right operand
+                }
+            }
+        END_RESULT
+    END_RULE
+
+    RULE(LOGICAL_OPERAND)
+        _ok_ = ( LIT('(',false) && opt(SP()) && LOGICAL_EXPR() && LIT(')',false) && opt(SP()) )
+                ||
+               ( !check(NUM_EXPR(false) && !COMPARISON_OPERATOR(false)) && NUM_COMPARISON() )
+               /* ||
+               ALL()
+                ||
+               LOGICAL_NOT()
+                ||
+               WITHIN()
+                ||
+               BY_RESIDUE()
+                ||
+               KEYWORD_LIST_STR()
+                ||
+               KEYWORD_INT_STR()*/
+                ;
+        RESULT
+            _result_ = SUBRULE(0);
+        END_RESULT
+    END_RULE
+
+    RULE(COMPARISON_OPERATOR)
+        _ok_ = (LIT("==") || LIT("!=") || LIT("<") || LIT(">") || LIT("<=") || LIT(">=")) && opt(SP());
+        RESULT
+            _result_.reset(new AstNode);
+            string s = boost::get<string>(SUBRULE(0)->children[0]);
+            if     (s=="==") _result_->code = TOK_EQ;
+            else if(s=="!=") _result_->code = TOK_NEQ;
+            else if(s=="<")  _result_->code = TOK_LT;
+            else if(s==">")  _result_->code = TOK_GT;
+            else if(s=="<=") _result_->code = TOK_LEQ;
+            else if(s==">=") _result_->code = TOK_GEQ;
+        END_RESULT
+    END_RULE
+
+    RULE(NUM_COMPARISON)
+        _ok_ = NUM_EXPR();
+        ( COMPARISON_OPERATOR() && NUM_EXPR() && COMPARISON_OPERATOR() && NUM_EXPR()) //chained
+        ||
+        ( COMPARISON_OPERATOR() && NUM_EXPR() ); // normal
+        RESULT
+            if(_this_rule_->children.size()==1){ // single NUM_EXPR
+                _result_ = SUBRULE(0);
+            } else if(_this_rule_->children.size()==3){ // normal comparison
+                _result_ = SUBRULE(1);
+                _result_->children.push_back(SUBRULE(0));
+                _result_->children.push_back(SUBRULE(2));
+            } else { // chained comparison
+                AstNode_ptr op1 = SUBRULE(1);
+                op1->children.push_back(SUBRULE(0));
+                op1->children.push_back(SUBRULE(2));
+                AstNode_ptr op2 = SUBRULE(3);
+                op2->children.push_back(SUBRULE(2));
+                op2->children.push_back(SUBRULE(4));
+                _result_.reset(new AstNode);
+                _result_->code = TOK_AND;
+                _result_->children.push_back(op1);
+                _result_->children.push_back(op2);
+            }
+        END_RESULT;
+    END_RULE
+
+
     RULE(START)
-        _ok_ = opt(SP()) && NUM_EXPR();
+        _ok_ = opt(SP()) && LOGICAL_EXPR();
 
         RESULT
             _result_ = SUBRULE(0);
@@ -361,7 +451,7 @@ public:
         Parse_node_ptr p = current_parent;
         START();
         cout << "Lazily getting AST:" << endl;
-        if(p->children.size()>0)
+        if(p->children.size()>0 && _pos_== end)
             return p->children[0]->result();
         else {
             cout << "Syntax error at " << *_pos_ << endl;
@@ -382,7 +472,7 @@ int main(int argc, char** argv)
 
     try{        
 
-        Grammar g(" -x* -(y/x^2.2)");
+        Grammar g(" 2<x+y or 1>x-2^x");
         AstNode_ptr res = g.run();
         if(res) res->dump();
 
