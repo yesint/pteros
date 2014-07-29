@@ -121,6 +121,10 @@ bool _name(bool add_to_tree = true){ \
 
 #define SUBRULE(n) (_this_rule_->children[n]->result())
 
+/*===================================*/
+/*           PREDICATES              */
+/*===================================*/
+
 // Make rule optional
 #define opt(rule) (rule||true)
 
@@ -136,13 +140,34 @@ bool _name(bool add_to_tree = true){ \
     )
 
 class Grammar {
+
+private:
+    std::string::iterator _pos_,end;
+    string str;
+    Parse_node_ptr current_parent;
+
 public:
     Grammar(std::string s){
         str = s;
         _pos_ = str.begin();
         end = str.end();
     }
-    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    void dump(Parse_node_ptr p, int indent=0){
+        for(int i=0;i<indent;++i) cout << '\t';
+        cout << p->name << endl;
+
+        for(int i=0;i<p->children.size();++i){
+                dump(p->children[i],indent+1);
+        }
+        //for(int i=0;i<indent;++i) cout << '\t';
+        //cout << "}" << endl;
+    }
+
+    /*===================================*/
+    /*           TERMINALS               */
+    /*===================================*/
+
 
     RULE(SP) SKIP
         while(isspace(*_pos_)) _pos_++;
@@ -177,7 +202,8 @@ public:
         char* e;
         int val = strtoul(&*_old_, &e, 0);
         _pos_ += e-&*_old_;
-        if(_old_!=_pos_) _ok_ = true;
+        if(_old_!=_pos_) _ok_ = true;        
+        opt(SP()); // Consume any training space if present
         RESULT
             int val = atoi(string(_old_,_pos_).c_str());
             _result_->code = TOK_UINT;
@@ -189,7 +215,8 @@ public:
         char* e;
         int val = strtol(&*_old_, &e, 0);
         _pos_ += e-&*_old_;
-        if(_old_!=_pos_) _ok_ = true;
+        if(_old_!=_pos_) _ok_ = true;        
+        opt(SP()); // Consume any training space if present
         RESULT
             int val = atoi(string(_old_,_pos_).c_str());
             _result_->code = TOK_INT;
@@ -201,14 +228,18 @@ public:
         char* e;
         float val = strtod(&*_old_, &e);
         _pos_ += e-&*_old_;
-        if(_old_!=_pos_) _ok_ = true;
-        RESULT            
+        if(_old_!=_pos_) _ok_ = true;       
+        opt(SP()); // Consume any training space if present
+        RESULT
             _result_->code = TOK_FLOAT;
             _result_->children.push_back(val);
         END_RESULT
     END_RULE
 
-    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    /*===================================*/
+    /*           NON-TERMINALS           */
+    /*===================================*/
+
 
     RULE(NUM_EXPR)
         _ok_ = NUM_TERM();
@@ -282,15 +313,18 @@ public:
     END_RULE
 
     RULE(NUM_FACTOR)
-        _ok_ = LIT('(',false) && opt(SP()) && NUM_EXPR() && LIT(')',false) && opt(SP())
-                || ( FLOAT() && opt(SP()) )
-                || ( INT() && opt(SP()) )
-                || ( X() && opt(SP()) )
-                || ( Y() && opt(SP()) )
-                || ( Z() && opt(SP()) )
-                || ( BETA() && opt(SP()) )
-                || ( OCCUPANCY() && opt(SP()) )
+        _ok_ = LIT('(',false) && opt(SP()) && NUM_EXPR() && LIT(')',false) && opt(SP())                
+                || FLOAT()
+                //|| ( INT() && opt(SP()) )
+                || X()
+                || Y()
+                || Z()
+                || BETA()
+                || OCCUPANCY()
                 || UNARY_MINUS()
+                || DIST_POINT()
+                || DIST_VECTOR()
+                || DIST_PLANE()
                 ;
 
         RESULT
@@ -299,7 +333,8 @@ public:
     END_RULE
 
     RULE(X)
-        _ok_ = LIT('x',false);
+        _ok_ = LIT('x',false);        
+        opt(SP()); // Consume any training space if present
         RESULT
             _result_.reset(new AstNode);
             _result_->code = TOK_X;
@@ -308,6 +343,7 @@ public:
 
     RULE(Y)
         _ok_ = LIT('y',false);
+        opt(SP()); // Consume any training space if present
         RESULT
             _result_.reset(new AstNode);
             _result_->code = TOK_Y;
@@ -316,6 +352,7 @@ public:
 
     RULE(Z)
         _ok_ = LIT('z',false);
+        opt(SP()); // Consume any training space if present
         RESULT
             _result_.reset(new AstNode);
             _result_->code = TOK_Z;
@@ -324,6 +361,7 @@ public:
 
     RULE(BETA)
         _ok_ = LIT("beta",false);
+        opt(SP()); // Consume any training space if present
         RESULT
             _result_.reset(new AstNode);
             _result_->code = TOK_BETA;
@@ -332,6 +370,7 @@ public:
 
     RULE(OCCUPANCY)
         _ok_ = LIT("occupancy",false);
+        opt(SP()); // Consume any training space if present
         RESULT
             _result_.reset(new AstNode);
             _result_->code = TOK_OCC;
@@ -344,6 +383,84 @@ public:
             _result_.reset(new AstNode);
             _result_->code = TOK_UNARY_MINUS;
             _result_->children.push_back(SUBRULE(0));
+        END_RESULT
+    END_RULE
+
+    RULE(DIST_POINT)
+        _ok_ = (LIT("distance",false) || LIT("dist",false)) && SP()
+                && LIT("point",false) && SP()
+                && opt(PBC())
+                && FLOAT() && FLOAT() && FLOAT();
+        RESULT
+        _result_.reset(new AstNode);
+        _result_->code = TOK_POINT;
+        if(_this_rule_->children.size()==3){ // No pbc given
+            _result_->children.push_back(SUBRULE(0));
+            _result_->children.push_back(SUBRULE(1));
+            _result_->children.push_back(SUBRULE(2));
+            _result_->children.push_back(0); // default pbc
+        } else {
+            _result_->children.push_back(SUBRULE(1));
+            _result_->children.push_back(SUBRULE(2));
+            _result_->children.push_back(SUBRULE(3));
+            _result_->children.push_back(SUBRULE(0)->children[0]); // pbc
+        }
+        END_RESULT
+    END_RULE
+
+    RULE(DIST_VECTOR)
+        _ok_ = (LIT("distance",false) || LIT("dist",false)) && SP()
+                && LIT("vector",false) && SP()
+                && opt(PBC())
+                && FLOAT() && FLOAT() && FLOAT() && FLOAT() && FLOAT() && FLOAT();
+        RESULT
+        _result_.reset(new AstNode);
+        _result_->code = TOK_VECTOR;
+        if(_this_rule_->children.size()==6){ // No pbc given
+            _result_->children.push_back(SUBRULE(0));
+            _result_->children.push_back(SUBRULE(1));
+            _result_->children.push_back(SUBRULE(2));
+            _result_->children.push_back(SUBRULE(3));
+            _result_->children.push_back(SUBRULE(4));
+            _result_->children.push_back(SUBRULE(5));
+            _result_->children.push_back(0); // default pbc
+        } else {
+            _result_->children.push_back(SUBRULE(1));
+            _result_->children.push_back(SUBRULE(2));
+            _result_->children.push_back(SUBRULE(3));
+            _result_->children.push_back(SUBRULE(4));
+            _result_->children.push_back(SUBRULE(5));
+            _result_->children.push_back(SUBRULE(6));
+            _result_->children.push_back(SUBRULE(0)->children[0]); // pbc
+        }
+        END_RESULT
+    END_RULE
+
+    RULE(DIST_PLANE)
+        _ok_ = (LIT("distance",false) || LIT("dist",false)) && SP()
+                && LIT("plane",false) && SP()
+                && opt(PBC())
+                && FLOAT() && FLOAT() && FLOAT() && FLOAT() && FLOAT() && FLOAT();
+        RESULT
+        _result_.reset(new AstNode);
+        _result_->code = TOK_PLANE;
+        if(_this_rule_->children.size()==6){ // No pbc given
+            _result_->children.push_back(SUBRULE(0));
+            _result_->children.push_back(SUBRULE(1));
+            _result_->children.push_back(SUBRULE(2));
+            _result_->children.push_back(SUBRULE(3));
+            _result_->children.push_back(SUBRULE(4));
+            _result_->children.push_back(SUBRULE(5));
+            _result_->children.push_back(0); // default pbc
+        } else {
+            _result_->children.push_back(SUBRULE(1));
+            _result_->children.push_back(SUBRULE(2));
+            _result_->children.push_back(SUBRULE(3));
+            _result_->children.push_back(SUBRULE(4));
+            _result_->children.push_back(SUBRULE(5));
+            _result_->children.push_back(SUBRULE(6));
+            _result_->children.push_back(SUBRULE(0)->children[0]); // pbc
+        }
         END_RESULT
     END_RULE
 
@@ -377,7 +494,7 @@ public:
         _ok_ = ( LIT('(',false) && opt(SP()) && LOGICAL_EXPR() && LIT(')',false) && opt(SP()) )
                 ||
                ( !check(NUM_EXPR(false) && !COMPARISON_OPERATOR(false)) && NUM_COMPARISON() )
-               /* ||
+                ||
                ALL()
                 ||
                LOGICAL_NOT()
@@ -388,7 +505,7 @@ public:
                 ||
                KEYWORD_LIST_STR()
                 ||
-               KEYWORD_INT_STR()*/
+               KEYWORD_INT_STR()
                 ;
         RESULT
             _result_ = SUBRULE(0);
@@ -436,6 +553,168 @@ public:
         END_RESULT;
     END_RULE
 
+    RULE(ALL)
+        _ok_ = LIT("all",false) && opt(SP());
+        RESULT
+            _result_.reset(new AstNode);
+            _result_->code = TOK_ALL;
+        END_RESULT
+    END_RULE
+
+    RULE(LOGICAL_NOT)
+        _ok_ = LIT("not",false) && opt(SP()) && LOGICAL_OPERAND();
+        RESULT
+            _result_.reset(new AstNode);
+            _result_->code = TOK_NOT;
+            _result_->children.push_back(SUBRULE(0));
+        END_RESULT
+    END_RULE
+
+    RULE(WITHIN)
+        _ok_ = LIT("within",false) && opt(SP()) && FLOAT() && opt(SP())
+                && opt(PBC()) && LIT("of",false)
+                && (SP()||check(LIT('(',false))) && LOGICAL_OPERAND();
+
+        RESULT
+        _result_.reset(new AstNode);
+        _result_->code = TOK_WITHIN;
+        _result_->children.push_back(SUBRULE(0)->children[0]); // d
+        if(_this_rule_->children.size()==2){ // no pbc given
+            _result_->children.push_back(SUBRULE(1)); // operand
+            _result_->children.push_back(0); // pbc
+        } else { // with pbc
+            _result_->children.push_back(SUBRULE(2)); // operand
+            _result_->children.push_back(SUBRULE(1)->children[0]); // pbc
+        }
+        END_RESULT
+    END_RULE
+
+    RULE(PBC)
+        _ok_ = (LIT("pbc") || LIT("periodic") || LIT("nopbc") || LIT("noperiodic")) && opt(SP());
+        RESULT
+            _result_.reset(new AstNode);
+            _result_->code = TOK_INT;
+            string s = boost::get<string>(SUBRULE(0)->children[0]);
+            if(s=="pbc" || s=="periodic"){
+                _result_->children.push_back(1);
+            } else {
+                _result_->children.push_back(0);
+            }
+        END_RESULT
+    END_RULE
+
+    RULE(BY_RESIDUE)
+        _ok_ = LIT("by",false) && SP() && LIT("residue",false) && opt(SP()) && LOGICAL_OPERAND();
+        RESULT
+        _result_.reset(new AstNode);
+        _result_->code = TOK_BY;
+        _result_->children.push_back(SUBRULE(0));
+        END_RESULT
+    END_RULE
+
+    RULE(KEYWORD_LIST_STR)
+        _ok_ = STR_KEYWORD() && SP() && (STR()||REGEX());
+        while( STR()||REGEX() );
+        RESULT
+            _result_ = SUBRULE(0);
+            for(int i=1; i<_this_rule_->children.size(); ++i){
+                _result_->children.push_back(SUBRULE(i));
+            }
+        END_RESULT
+    END_RULE
+
+    RULE(KEYWORD_INT_STR)
+        _ok_ = INT_KEYWORD() && SP() && (RANGE()||UINT() && opt(SP()));
+        while( (RANGE()||UINT()) && opt(SP()) );
+        RESULT
+            _result_ = SUBRULE(0);
+            for(int i=1; i<_this_rule_->children.size(); ++i){
+                _result_->children.push_back(SUBRULE(i));
+            }
+        END_RESULT
+    END_RULE
+
+    RULE(STR_KEYWORD)
+        _ok_ = LIT("name") || LIT("resname") || LIT("tag") || LIT("chain");
+        RESULT
+            _result_.reset(new AstNode);
+            string s = boost::get<string>(SUBRULE(0)->children[0]);
+            if     (s=="name") _result_->code = TOK_NAME;
+            else if(s=="resname") _result_->code = TOK_RESNAME;
+            else if(s=="tag") _result_->code = TOK_TAG;
+            else if(s=="chain") _result_->code = TOK_CHAIN;
+        END_RESULT
+    END_RULE
+
+    RULE(INT_KEYWORD)
+        _ok_ = LIT("resid") || LIT("resindex") || LIT("index");
+        RESULT
+            _result_.reset(new AstNode);
+            string s = boost::get<string>(SUBRULE(0)->children[0]);
+            if     (s=="resid") _result_->code = TOK_RESID;
+            else if(s=="resindex") _result_->code = TOK_RESINDEX;
+            else if(s=="index") _result_->code = TOK_INDEX;
+        END_RESULT
+    END_RULE
+
+    RULE(STR)
+        _ok_ = !check(LIT("or",false)||LIT("and",false));
+        if(_ok_){
+            while(isalnum(*_pos_) && _pos_!=end){
+                _pos_++;
+            }
+        }
+        if(_pos_!=_old_){
+            _ok_ = SP() || check(LIT(')',false)) || check(LIT('-',false)) || (_pos_==end);
+        } else {
+            _ok_ = false;
+        }
+
+        string s;
+        if(_ok_) s = string(_old_,_pos_);
+
+        RESULT
+            _result_.reset(new AstNode);
+            _result_->code = TOK_STR;
+            _result_->children.push_back(s);
+        END_RESULT
+    END_RULE
+
+    RULE(REGEX)
+        _ok_ = LIT('\'',false);
+        if(_ok_){
+            while(*_pos_!='\'' && _pos_!=end) _pos_++;
+            if(_pos_!=_old_) _ok_ = LIT('\'',false);
+        } else {
+            _ok_ = LIT('"',false);
+            if(_ok_){
+                while(*_pos_!='"' && _pos_!=end) _pos_++;
+                if(_pos_!=_old_) _ok_ = LIT('"',false);
+            }
+        }
+
+        string::iterator b = _old_+1;
+        string::iterator e = _pos_-1;
+
+        opt(SP()); // Consume any trailing space if present
+
+        RESULT
+            _result_.reset(new AstNode);
+            _result_->code = TOK_REGEX;
+            _result_->children.push_back(string(b,e));
+        END_RESULT
+    END_RULE
+
+    RULE(RANGE)
+        _ok_ = UINT() && opt(SP()) && (LIT("to",false)||LIT('-',false)) && opt(SP()) && UINT();
+        RESULT
+            _result_.reset(new AstNode);
+            _result_->code = TOK_TO;
+            _result_->children.push_back(SUBRULE(0)->children[0]);
+            _result_->children.push_back(SUBRULE(1)->children[0]);
+        END_RESULT
+    END_RULE
+
 
     RULE(START)
         _ok_ = opt(SP()) && LOGICAL_EXPR();
@@ -450,19 +729,19 @@ public:
         current_parent.reset(new Parse_node);
         Parse_node_ptr p = current_parent;
         START();
+
+        dump(p);
+
         cout << "Lazily getting AST:" << endl;
         if(p->children.size()>0 && _pos_== end)
             return p->children[0]->result();
         else {
             cout << "Syntax error at " << *_pos_ << endl;
             return nullptr;
-        }
+        }        
     }
 
-private:
-    std::string::iterator _pos_,end;
-    string str;
-    Parse_node_ptr current_parent;
+
 };
 
 //===========================================================
@@ -472,7 +751,7 @@ int main(int argc, char** argv)
 
     try{        
 
-        Grammar g(" 2<x+y or 1>x-2^x");
+        Grammar g("dist point 1 2 3 < 34 and within 5.65 of index 2-56 61");
         AstNode_ptr res = g.run();
         if(res) res->dump();
 
