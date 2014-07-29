@@ -39,7 +39,9 @@ GRO_file::GRO_file(string fname, char open_mode): Mol_file(fname, open_mode)
 }
 
 GRO_file::~GRO_file(){
-    if(f) f.close();
+    if(f){
+        f.close();
+    }
 }
 
 bool GRO_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){

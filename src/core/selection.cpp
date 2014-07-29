@@ -69,7 +69,7 @@ Selection::Selection(){
 };
 
 // Main constructor
-Selection::Selection(const System &sys, string str){
+Selection::Selection(const System &sys, string str){   
     // Set selection string
     sel_text = str;
     boost::trim(sel_text);

@@ -28,6 +28,8 @@
 
 #include "pteros/core/peg_parser.h"
 
+#include <list>
+
 using namespace std;
 using namespace pteros;
 using namespace Eigen;
@@ -37,10 +39,10 @@ int main(int argc, char** argv)
 {
 
     try{        
-
-        input_data INP;
+/*
+        Parser_data INP;
         //INP.string_to_parse = "-( 2.3e-8+ (x - 3.014 ) *1.2)-(3+4- -4*5.5-(2+-3.1)) ";
-        INP.string_to_parse = "(3.1+1)**5.0+2*2<x";
+        INP.string_to_parse = "name CA";
         INP.cur_buf_pos = 0;
         GREG g;        
         yyinit(&g);        
@@ -50,11 +52,30 @@ int main(int argc, char** argv)
 
         yydeinit(&g);
         INP.root->dump();
+*/
+        //System s("/home/semen/work/Projects/asymmetric_bilayer/for-diamonds/hexagonal/2x2.gro");
+        //System s1("/home/semen/work/Projects/asymmetric_bilayer/for-diamonds/hexagonal/128.pdb");
 
-//        System s("/home/semen/work/Projects/asymmetric_bilayer/for-diamonds/hexagonal/2x2.gro");
-  //      Selection sel(s,"(y+4)<(x+2) or (1-z)>x");
 
+/*
+Grammar g("ups");
+g.root();
 
+while(!g.actions.empty()){
+    g.actions.front()();
+    g.actions.remove(g.actions.front());
+}
+*/
+        //Selection sel(s,"name CA");
+/*
+std::unique_ptr<T> p,p1;
+p.reset(new T);
+p1.reset(new T);
+string s("name CA");
+p->doit(s);
+s = "name BF";
+p1->doit(s);
+*/
         /*
         string str("--trajectory["
                    "initial_structure.pdb "

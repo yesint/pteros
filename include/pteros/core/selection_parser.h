@@ -20,10 +20,10 @@
  *
 */
 
-//#define _DEBUG_PARSER
+#define _DEBUG_PARSER
 
-#ifndef SELECTION_PARSER2_H
-#define SELECTION_PARSER2_H
+#ifndef SELECTION_PARSER_H
+#define SELECTION_PARSER_H
 
 #include <string>
 #include <vector>
@@ -36,12 +36,13 @@ namespace pteros {
 
 // Codes of tokens
 enum Codes {
-    TOK_VOID,
+    //TOK_VOID,
     TOK_MINUS,
     TOK_UNARY_MINUS,
     TOK_PLUS,
     TOK_MULT,
     TOK_DIV,
+    TOK_POWER,
     TOK_EQ, // == or =
     TOK_NEQ, // <> or !=
     TOK_LT, //<
@@ -60,8 +61,8 @@ enum Codes {
     // Prefixes
     TOK_NOT,
     TOK_WITHIN,    
-    TOK_PERIODIC,
-    TOK_OF,
+    //TOK_PERIODIC,
+    //TOK_OF,
     TOK_BY,
     TOK_RESIDUE,
     // text keywords
@@ -80,13 +81,14 @@ enum Codes {
     TOK_TO, // '-' or 'to'
     // Data tokens
     TOK_INT,
+    TOK_UINT,
     TOK_FLOAT,
     TOK_STR,
     // Parens
-    TOK_LPAREN,
-    TOK_RPAREN,
+    //TOK_LPAREN,
+    //TOK_RPAREN,
     // Distances
-    TOK_DIST,
+    //TOK_DIST,
     TOK_POINT,
     TOK_VECTOR,
     TOK_PLANE,
@@ -100,8 +102,7 @@ struct AstNode; // Forward declaration
 typedef boost::variant<
     float,
     char,
-    int,
-    bool,
+    int,   
     std::string,
     std::shared_ptr<AstNode>
 > ast_element;
@@ -140,8 +141,7 @@ typedef std::shared_ptr<AstNode> AstNode_ptr;
     This class should never be used directly.
 */
 
-class Selection_parser{
-    friend struct Grammar;
+class Selection_parser{    
 public:
     /** True if there are coordinate keywords in selection.
     *   If true, the parser will persist (not deleted after parsing).
@@ -162,18 +162,8 @@ public:
     void apply(System* system, std::size_t fr, std::vector<int>& result);
 
 private:
-    // Tokenizer stuff
-    void end_token(const std::string& s, int& b, int i);
-    void tokenize(const std::string& s);
-
     /// AST structure
     std::shared_ptr<AstNode> tree;
-
-    // Array of tokens
-    std::vector<AstNode_ptr> tokens;
-
-    // Indexes of the ends of tokens. Used for error reporting
-    std::vector<int> token_ends;
 
     // AST evaluation stuff
     System* sys;

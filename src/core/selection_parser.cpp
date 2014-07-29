@@ -21,6 +21,7 @@
 */
 
 #include "pteros/core/selection_parser.h"
+
 #include "pteros/core/system.h"
 #include "pteros/core/selection.h"
 #include "pteros/core/pteros_error.h"
@@ -34,6 +35,8 @@
 #include <unordered_set>
 #include <regex>
 
+#include "pteros/core/selection_grammar.h"
+
 //-----------------------------------------------------
 //  Functions for creating actual selection from AST
 //-----------------------------------------------------
@@ -43,7 +46,7 @@ using namespace boost;
 
 #ifdef _DEBUG_PARSER
 char* tok_names[] = {
-    "TOK_VOID",
+    //"TOK_VOID",
     "TOK_MINUS",
     "TOK_UNARY_MINUS",
     "TOK_PLUS",
@@ -68,8 +71,8 @@ char* tok_names[] = {
     // Prefixes
     "TOK_NOT",
     "TOK_WITHIN",
-    "TOK_PERIODIC",
-    "TOK_OF",
+    //"TOK_PERIODIC",
+    //"TOK_OF",
     "TOK_BY",
     "TOK_RESIDUE",
     // text keywords
@@ -92,10 +95,10 @@ char* tok_names[] = {
     "TOK_FLOAT",
     "TOK_STR",
     // Parens
-    "TOK_LPAREN",
-    "TOK_RPAREN",
+    //"TOK_LPAREN",
+    //"TOK_RPAREN",
     // Distances
-    "TOK_DIST",
+    //"TOK_DIST",
     "TOK_POINT",
     "TOK_VECTOR",
     "TOK_PLANE",
@@ -185,549 +188,6 @@ Selection_parser::Selection_parser(){
 
 Selection_parser::~Selection_parser(){}
 
-// Recognizer
-AstNode_ptr recognize(string s){
-    AstNode_ptr node(new AstNode);
-    string str(s);
-    to_lower(s);
-    if(s=="+"){
-        node->code = TOK_PLUS;
-    } else if(s=="*"){
-        node->code = TOK_MULT;
-    } else if(s=="/"){
-        node->code = TOK_DIV;    
-    } else if(s== "-"){
-        node->code = TOK_MINUS;
-    } else if(s== "("){
-        node->code = TOK_LPAREN;
-    } else if(s== ")"){
-        node->code = TOK_RPAREN;
-    } else if(s== "=" || s=="=="){
-        node->code = TOK_EQ;
-    } else if(s== "<>" || s=="!="){
-        node->code = TOK_NEQ;
-    } else if(s== "<"){
-        node->code = TOK_LT;
-    } else if(s== ">"){
-        node->code = TOK_GT;
-    } else if(s== "<="){
-        node->code = TOK_LEQ;
-    } else if(s== ">="){
-        node->code = TOK_GEQ;
-    } else if(s== "x"){
-        node->code = TOK_X;
-    } else if(s== "y"){
-        node->code = TOK_Y;
-    } else if(s== "z"){
-        node->code = TOK_Z;
-    } else if(s== "occupancy"){
-        node->code =TOK_OCC;
-    } else if(s== "beta"){
-        node->code = TOK_BETA;
-    } else if(s== "or"){
-        node->code = TOK_OR;
-    } else if(s== "and"){
-        node->code = TOK_AND;
-    } else if(s== "not"){
-        node->code = TOK_NOT;
-    } else if(s== "within"){
-        node->code = TOK_WITHIN;        
-    } else if(s== "periodic" || s=="nonperiodic" || s=="pbc" || s=="nopbc"){
-        node->code = TOK_PERIODIC;
-        if(s== "periodic" || s=="pbc")
-            node->children.push_back(true);
-        else
-            node->children.push_back(false);
-    } else if(s== "of"){
-        node->code = TOK_OF;
-    } else if(s== "by"){
-        node->code = TOK_BY;
-    } else if(s=="res" || s=="residue"){
-        node->code = TOK_RESIDUE;
-    } else if(s== "name"){
-        node->code = TOK_NAME;
-    } else if(s== "resname"){
-        node->code = TOK_RESNAME;
-    } else if(s== "tag"){
-        node->code = TOK_TAG;
-    } else if(s== "chain"){
-        node->code = TOK_CHAIN;
-    } else if(s== "resid"){
-        node->code = TOK_RESID;
-    } else if(s== "index"){
-        node->code = TOK_INDEX;
-    } else if(s== "resindex"){
-        node->code = TOK_RESINDEX;
-    } else if(s== "all"){
-        node->code = TOK_ALL;
-    } else if(s== "to"){
-        node->code = TOK_TO;
-    } else if(s== "dist" || s== "distance"){
-        node->code = TOK_DIST;
-    } else if(s== "point"){
-        node->code = TOK_POINT;
-    } else if(s== "vector"){
-        node->code = TOK_VECTOR;
-    } else if(s== "plane"){
-        node->code = TOK_PLANE;
-    } else {
-        // Try to convert token to int
-        try {
-            node->children.push_back( boost::lexical_cast<int>(str));
-            node->code = TOK_INT;
-        } catch(boost::bad_lexical_cast) {
-            // Try to convert token to float
-            try {
-                node->children.push_back( boost::lexical_cast<float>(str) );
-                node->code = TOK_FLOAT;                
-            } catch(boost::bad_lexical_cast) {
-                // ok, save it as a string
-                node->children.push_back(str);
-                // Check if this is a regex
-                if( boost::algorithm::all(str,boost::algorithm::is_alnum()) ){
-                    // Plane string
-                    node->code = TOK_STR;
-                } else {
-                    // Regex
-                    node->code = TOK_REGEX;
-                }
-            }
-        }
-    }
-    return node;
-}
-
-// Safely get char respecting end of string
-char at(const string& s, int i){
-    if(i<s.size()) return s[i]; else return 0;
-}
-
-// End current token at index i
-void Selection_parser::end_token(const string& s, int& b, int i){ // i is last included index
-    if(b>=0 && i>=b && i<s.size()){ // Previous token exists, save it
-        // Recognize new token
-        tokens.push_back( recognize(s.substr(b,i+1-b)) );
-        token_ends.push_back(i);
-        // Reset starting position
-        b = i+1;
-    }
-}
-
-void Selection_parser::tokenize(const string& s){
-    tokens.clear();
-
-    int b = -1; // Begin of current token
-    int cur = 0; // Current position
-
-    // Cycle over characters and collect tokens
-    while(cur<s.size()){
-        // Classify this character
-        if(!isspace(s[cur])){
-            // If b<0 then start new token here, otherwise continue previous one
-            if(b<0) b = cur;
-
-            // See if we have "" or '' escaped sequence - it's possibly a regex
-            if(s[cur]=='"' || s[cur]=='\''){
-                end_token(s,b,cur-1);
-                char delim = s[cur];
-                cur += 1;
-                b += 1;
-                while(s[cur]!=delim) cur += 1;
-                end_token(s,b,cur-1);
-                cur += 1;
-            }
-
-            // Avoid recognition of - in scientific notation like 4.5e-5
-            if( (s[cur]=='e' || s[cur]=='E') && at(s,cur+1)=='-' && isdigit(at(s,cur-1)) ){
-                cur += 2;
-                continue;
-            }
-
-            // See if this is one of single "punctuation" symbols
-            // they can only come alone, so they are separate tokens
-            if(s[cur]=='+' || s[cur]=='*' || s[cur]=='/' ||
-               s[cur]=='(' || s[cur]==')' || s[cur]=='-'){
-                end_token(s,b,cur-1);
-                end_token(s,b,cur);
-                cur += 1;
-                continue;
-            }
-            // See if we have one of two-character operators, like >=
-            if(s[cur]=='>'){
-                end_token(s,b,cur-1);
-                if(at(s,cur+1)=='='){
-                    end_token(s,b,cur+1);
-                    cur += 2;
-                } else {
-                    end_token(s,b,cur);
-                    cur += 1;
-                }
-                continue;
-            }
-
-            if(s[cur]=='<'){
-                end_token(s,b,cur-1);
-                if(at(s,cur+1)=='=' || at(s,cur+1)=='>'){
-                    end_token(s,b,cur+1);
-                    cur += 2;
-                } else {
-                    end_token(s,b,cur);
-                    cur += 1;
-                }
-                continue;
-            }
-
-            if(s[cur]=='='){
-                end_token(s,b,cur-1);
-                if(at(s,cur+1)=='='){
-                    end_token(s,b,cur+1);
-                    cur += 2;
-                } else {
-                    end_token(s,b,cur);
-                    cur += 1;
-                }
-                continue;
-            }
-
-            if(s[cur]=='!' && at(s,cur+1)=='='){
-                end_token(s,b,cur-1);
-                end_token(s,b,cur+1);
-                cur += 2;
-                continue;
-            }
-
-        } else {
-            // This is whitespace, token complete
-            end_token(s,b,cur-1);
-            b = -1;
-        }
-
-        // If we are here, then just silently increment cur
-        ++cur;
-    }
-    // Add last token
-    end_token(s,b,cur-1);
-
-#ifdef _DEBUG_PARSER
-    cout << endl <<"Tokenizer result:" << endl;
-    std::shared_ptr<AstNode> node;
-    for(auto node: tokens){
-            cout << tok_names[node->code] << " ";
-    }
-    cout << endl << endl;
-#endif
-}
-
-// Class used to recognize grammar rules
-namespace pteros {
-struct Grammar {
-    int cur;
-    Selection_parser* p;
-    AstNode_ptr dum;
-
-    Grammar(Selection_parser* parent){
-        cur = 0; // Current token being processed
-        p = parent;
-    }
-
-    // Tries to read next token of type c
-    // If succesfull advances to one token
-    // Returns true if found and sets match to matched token
-    bool expect(Codes c, AstNode_ptr& match){
-        if(cur>=p->tokens.size()) return false; // No more tokens
-        if(p->tokens[cur]->code == c){
-            match = p->tokens[cur];
-            ++cur;
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    //--------------------------
-    // Rules
-    //--------------------------
-    bool unary_minus(AstNode_ptr& res){
-        AstNode_ptr val;
-        if( expect(TOK_MINUS,res) && num_factor(val) ){
-            res->children.push_back(val);
-            res->code = TOK_UNARY_MINUS;
-            return true;
-        }
-        return false;
-    }
-
-    bool num_factor(AstNode_ptr& res){
-        bool ok =  expect(TOK_FLOAT,res)
-                || expect(TOK_INT,res)
-                || (expect(TOK_LPAREN,dum) && num_expr(res) && expect(TOK_RPAREN,dum))
-                || expect(TOK_X,res)
-                || expect(TOK_Y,res)
-                || expect(TOK_Z,res)
-                || expect(TOK_BETA,res)
-                || expect(TOK_OCC,res)
-                || distance_rule(res)
-                || unary_minus(res);
-        return ok;
-    }
-
-
-    bool distance_rule(AstNode_ptr& res){
-        AstNode_ptr dum,pbc;
-        bool ok =  expect(TOK_DIST,dum);
-
-        if(!ok) return false;
-
-        bool has_pbc = false;
-        if(expect(TOK_PERIODIC,pbc)) has_pbc = true;
-
-        if(expect(TOK_POINT,res)){
-            AstNode_ptr x,y,z;
-            ok = num_factor(x) && num_factor(y) && num_factor(z);
-            if(!ok) return false;
-
-            res->children.push_back(x);
-            res->children.push_back(y);
-            res->children.push_back(z);
-
-            if(has_pbc) res->children.push_back(pbc);
-
-        } else if(expect(TOK_VECTOR,res) || expect(TOK_PLANE,res)){
-            AstNode_ptr x,y,z,dir1,dir2,dir3;
-            ok = num_factor(x) && num_factor(y) && num_factor(z)
-              && num_factor(dir1) && num_factor(dir2) && num_factor(dir3);
-            if(!ok) return false;
-
-            res->children.push_back(x);
-            res->children.push_back(y);
-            res->children.push_back(z);
-            res->children.push_back(dir1);
-            res->children.push_back(dir2);
-            res->children.push_back(dir3);
-
-            if(has_pbc) res->children.push_back(pbc);
-        }
-        return true;
-    }
-
-
-    bool num_term(AstNode_ptr& res){
-        AstNode_ptr operand1,operand2,op;
-        bool ok = num_factor(operand1);
-
-        if(!ok) return false;
-
-        res = operand1; // If no operators follow this will be passed out
-        while( (expect(TOK_MULT,op) || expect(TOK_DIV,op)) && num_factor(operand2) ){
-            if(res->children.size()==2){
-                operand1 = res; // Move ready tree to the first operand
-            }
-            res = op;
-            res->children.push_back( operand1 );
-            res->children.push_back( operand2 );
-        }
-        return true;
-    }
-
-    bool num_expr(AstNode_ptr& res){
-        AstNode_ptr operand1,operand2,op;
-        bool ok = num_term(operand1);
-
-        if(!ok) return false;
-
-        res = operand1; // If no operators follow this will be passed out
-        while( (expect(TOK_PLUS,op) || expect(TOK_MINUS,op)) && num_term(operand2) ){
-            if(res->children.size()==2){
-                operand1 = res; // Move ready tree to the first operand
-            }
-            res = op;
-            res->children.push_back( operand1 );
-            res->children.push_back( operand2 );
-        }
-        return true;
-    }
-
-
-    bool num_comparison(AstNode_ptr& res){
-        AstNode_ptr operand1,operand2,op;
-        bool ok = num_expr(operand1);
-        if(!ok) return false;
-        if( (  expect(TOK_EQ,op)  || expect(TOK_NEQ,op)
-            || expect(TOK_LT,op)  || expect(TOK_GT,op)
-            || expect(TOK_LEQ,op) || expect(TOK_GEQ,op)
-            ) && num_expr(operand2)){
-            // Both operands are present
-            res = op;
-            res->children.push_back( operand1 );
-            res->children.push_back( operand2 );
-            ok = true;
-        } else ok = false;
-        return ok;
-    }
-
-    bool toplevel_operand(AstNode_ptr& res){
-        AstNode_ptr p1,p2;
-        int old_pos = cur;
-
-        bool ok = logical_operand(p1);
-
-        if(ok){
-            res = p1;
-            return true;
-        } else {
-            cur = old_pos;
-
-            ok = num_comparison(p2);
-
-            if(ok){
-                res = p2;
-                return true;
-            } else {
-                return false;
-            }
-        }
-    }
-
-    bool logical_expr(AstNode_ptr& res){        
-
-        AstNode_ptr operand1,operand2,op;
-
-        bool ok = toplevel_operand(operand1);
-
-        if(!ok) return false;
-
-        res = operand1; // If no operators follow this will be passed out
-        while( (expect(TOK_OR,op) || expect(TOK_AND,op)) && toplevel_operand(operand2) ){
-            if(res->children.size()==2){
-                operand1 = res; // Move ready tree to the first operand
-            }
-            res = op;
-            res->children.push_back( operand1 );
-            res->children.push_back( operand2 );
-        }
-        return true;
-    }
-
-
-    bool logical_not(AstNode_ptr& res){
-        AstNode_ptr tmp;
-        bool ok = expect(TOK_NOT,tmp);
-        if(!ok) return false;
-        ok = logical_operand(res);
-        if(ok){
-            tmp->children.push_back( res );
-            res = tmp;
-        }
-        return ok;
-    }
-
-    bool within_rule(AstNode_ptr& res){
-        AstNode_ptr dist,expr,dim,periodic;
-        bool ok,has_periodic = false;
-
-        ok =  expect(TOK_WITHIN,res) && (expect(TOK_FLOAT,dist) || expect(TOK_INT,dist));
-        if(!ok) return false;
-
-        // Set periodicity if given
-        if( expect(TOK_PERIODIC,periodic) ) has_periodic = true;
-
-        ok = expect(TOK_OF,dum) && logical_operand(expr);
-
-        if(ok){
-            res->children.push_back( dist );
-            res->children.push_back( expr );            
-            if(has_periodic) res->children.push_back( periodic );
-        }
-        return ok;
-    }
-
-    bool by_residue(AstNode_ptr& res){
-        AstNode_ptr expr;
-        bool ok =  expect(TOK_BY,res) && expect(TOK_RESIDUE,dum)
-                && logical_operand(expr);
-        if(ok){
-            res->children.push_back( expr );
-        }
-        return ok;
-    }
-
-    // rule of type "keyword text text text ..."
-    bool keyword_text_list(AstNode_ptr& res){
-
-        bool ok =  expect(TOK_NAME,res) || expect(TOK_RESNAME,res)
-                || expect(TOK_TAG,res)  || expect(TOK_CHAIN,res);
-        if(ok){
-
-            AstNode_ptr str;
-            // Read list of STR tokens
-            while( expect(TOK_STR,str) || expect(TOK_REGEX,str) ){
-                res->children.push_back( str );
-            }
-            if(res->children.size()==0) ok = false;
-        }
-        return ok;
-    }
-
-    // rule of type "keyword [int|range] [int|range]..."
-    bool int_or_range(AstNode_ptr& res){
-        AstNode_ptr v1,v2;
-        if( expect(TOK_INT,v1) ){
-            if( (expect(TOK_TO,res) || expect(TOK_MINUS,res)) && expect(TOK_INT,v2) ){
-                res->code = TOK_TO;
-                res->children.push_back( v1 );
-                res->children.push_back( v2 );
-            } else res = v1;
-            return true;
-        }
-        return false;
-    }
-
-    bool keyword_int_list(AstNode_ptr& res){
-        bool ok =  expect(TOK_RESID,res) || expect(TOK_RESINDEX,res)
-                || expect(TOK_INDEX,res);
-        if(ok){
-            AstNode_ptr tok;
-            // Read list of STR tokens
-            while( int_or_range(tok) ) res->children.push_back( tok );
-            if(res->children.size()==0) ok = false;
-        }
-        return ok;
-    }
-
-    bool logical_operand(AstNode_ptr& res){
-        bool ok = (expect(TOK_LPAREN,dum) && logical_expr(res) && expect(TOK_RPAREN,dum))
-                  || num_comparison(res)
-                  || expect(TOK_ALL,res)
-                  || logical_not(res)
-                  || within_rule(res)
-                  || by_residue(res)
-                  || keyword_text_list(res)
-                  || keyword_int_list(res);
-        return ok;
-    }
-
-    // Evaluates top-level rule and return AST
-    int run(AstNode_ptr& res){
-        // Match top-level rule
-        logical_expr(res);
-        /*
-        AstNode_ptr p;
-        bool ok = logical_expr(p);
-
-        if(!ok){
-            cur = 0;
-            num_comparison(res);
-        } else {
-            res = p;
-        }
-        */
-
-        return cur;
-    }
-
-};
-} //namespace
-
 
 bool is_node_pure(AstNode_ptr& node){
     if(node->is_coordinate_dependent()) return false;
@@ -747,25 +207,8 @@ void Selection_parser::create_ast(string& sel_str){
 #ifdef _DEBUG_PARSER
 	cout << "Going to create AST from: " << sel_str <<endl;
 #endif
-    tokenize(sel_str);
-    Grammar gr(this);
-    int pos = gr.run(tree); 
-
-    if(pos!=tokens.size()){
-        string s("Syntax error in selection string here:\n\""+sel_str+"\"\n");
-        for(int i=0;i<token_ends[pos];++i) s+="~";
-        s+="^";
-
-#ifdef _DEBUG_PARSER
-    cout << "Before ERROR:" << endl;
-    tree->dump();
-#endif
-        throw Pteros_error(s);
-    }
-    // Now we can free tokens array. This will kill all unused nodes
-    tokens.clear();
-    // Also free aux error reporting positions
-    token_ends.clear();
+    Grammar g(sel_str);
+    tree = g.run();
 
     if(!is_node_pure(tree)) has_coord = true;
     is_optimized = false; // Not yet optimized
@@ -781,11 +224,11 @@ void Selection_parser::create_ast(string& sel_str){
 void Selection_parser::do_optimization(AstNode_ptr& node){
 
     // Skip optimization for trivial leaf nodes
-    if(node->code == TOK_VOID
-        || node->code == TOK_STR
+    if(    node->code == TOK_UINT
+        || node->code == TOK_INT
         || node->code == TOK_REGEX
         || node->code == TOK_FLOAT
-        || node->code == TOK_INT        
+        || node->code == TOK_STR
        ) return;
 
     // Now check if this node does not contain coord-dependent children
@@ -793,39 +236,18 @@ void Selection_parser::do_optimization(AstNode_ptr& node){
 #ifdef _DEBUG_PARSER
         cout << "Node " << node->decode() << " is pure" << endl;
 #endif
-        // Unary minus nodes require special treatment
-        if(node->code == TOK_UNARY_MINUS){
-            // If the child of unary minus node is a number than apply minus to it and store
-            // otherwise keep it as is
-            Codes c = node->child_node(0)->code;
-            if(c == TOK_INT){
-                int val = node->child_as_int(0);
-                node->children.clear();
-                node->children.push_back(-val);
-                node->code = TOK_INT;
-            } else if(c == TOK_FLOAT){
-                float val = node->child_as_float(0);
-                node->children.clear();
-                node->children.push_back(-val);
-                node->code = TOK_FLOAT;
-            }
-        } else {
-            // Node is pure, so clear all its children and keep precomputed index
-            // Set node type to precomputed
+        // Unary minus nodes requires special treatment
 
-            /*
-            vector<int> res;
-            eval_node(node,res,NULL);
-            node->precomputed = res;
-            */
-            eval_node(node,node->precomputed,NULL);
-            node->children.clear();
-            node->code = TOK_PRECOMPUTED;
+        // Node is pure, so clear all its children and keep precomputed index
+        // Set node type to precomputed
 
-    #ifdef _DEBUG_PARSER
-            cout << "Node set to precomputed " << endl;
-    #endif
-        }
+        eval_node(node,node->precomputed,NULL);
+        node->children.clear();
+        node->code = TOK_PRECOMPUTED;
+
+#ifdef _DEBUG_PARSER
+        cout << "Node set to precomputed " << endl;
+#endif
     }
 
     // Optimize AND operations - coord-dependent operand
@@ -840,8 +262,6 @@ void Selection_parser::do_optimization(AstNode_ptr& node){
                 cout << "Node " << node->decode() << " swapped" << endl;
 #endif
 
-                //p1.swap(p2);
-                //boost::get<AstNode_ptr>(node->children[0]).swap(boost::get<AstNode_ptr>(node->children[1]));
                 node->child_node(0).swap(node->child_node(1));
              }
         } catch (boost::bad_get) {}
@@ -852,7 +272,6 @@ void Selection_parser::do_optimization(AstNode_ptr& node){
         try {
             do_optimization(node->child_node(i));
         } catch(boost::bad_get){};
-
 }
 
 
