@@ -223,12 +223,17 @@ void Selection_parser::create_ast(string& sel_str){
 
 void Selection_parser::do_optimization(AstNode_ptr& node){
 
-    // Skip optimization for trivial leaf nodes
+    // Skip optimization for trivial terminal nodes
     if(    node->code == TOK_UINT
         || node->code == TOK_INT
-        || node->code == TOK_REGEX
         || node->code == TOK_FLOAT
         || node->code == TOK_STR
+        || node->code == TOK_REGEX
+        || node->code == TOK_X
+        || node->code == TOK_Y
+        || node->code == TOK_Z
+        || node->code == TOK_BETA
+        || node->code == TOK_OCC
        ) return;
 
     // Now check if this node does not contain coord-dependent children
@@ -236,12 +241,11 @@ void Selection_parser::do_optimization(AstNode_ptr& node){
 #ifdef _DEBUG_PARSER
         cout << "Node " << node->decode() << " is pure" << endl;
 #endif
-        // Unary minus nodes requires special treatment
 
         // Node is pure, so clear all its children and keep precomputed index
         // Set node type to precomputed
 
-        eval_node(node,node->precomputed,NULL);
+        eval_node(node,node->precomputed,nullptr);
         node->children.clear();
         node->code = TOK_PRECOMPUTED;
 
@@ -395,8 +399,9 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
             str = node->child_as_str(i);
             if(node->child_node(i)->code == TOK_STR){
                 // For normal strings
-                for(at=0;at<Natoms;++at)
+                for(at=0;at<Natoms;++at){
                     if(sys->atoms[at].name == str) result.push_back(at);
+                }
             } else if(node->child_node(i)->code == TOK_REGEX){
                 // For regex
                 std::cmatch what;

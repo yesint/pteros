@@ -35,6 +35,9 @@ using namespace pteros;
 using namespace Eigen;
 
 
+
+//--------------------------------------------------------------------------------------
+
 int main(int argc, char** argv)
 {
 
@@ -54,7 +57,8 @@ int main(int argc, char** argv)
         INP.root->dump();
 */
         //System s("/home/semen/work/Projects/asymmetric_bilayer/for-diamonds/hexagonal/2x2.gro");
-        //System s1("/home/semen/work/Projects/asymmetric_bilayer/for-diamonds/hexagonal/128.pdb");
+        System s1("/home/semen/work/Projects/asymmetric_bilayer/for-diamonds/hexagonal/128.pdb");
+        Selection sel(s1,"(y+13)/2.0 > dist point nopbc 1 2 3.5 and resname CA RED GFR '**' dd or (x>y*(2+5/y) and within 2.3 of (index 2-3 5 6 -9))");
 
 
 /*
