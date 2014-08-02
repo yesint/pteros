@@ -234,6 +234,7 @@ void Selection_parser::do_optimization(AstNode_ptr& node){
         || node->code == TOK_Z
         || node->code == TOK_BETA
         || node->code == TOK_OCC
+        || node->code == TOK_TO
        ) return;
 
     // Now check if this node does not contain coord-dependent children
@@ -481,17 +482,16 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
         int Nchildren = node->children.size(); // Get number of children
         // Cycle over children
         for(i=0;i<Nchildren;++i){
-            // Try to get integer. If successful, go to add atoms to selection
-            try {
+            if(node->child_node(i)->code == TOK_UINT) {
                 k = node->child_as_int(i);
                 for(at=0;at<Natoms;++at)
                     // Even if k is out of range, nothing will crash here
-                    if(sys->atoms[at].resid == k) result.push_back(at);
-            } catch(boost::bad_get) {
-                // Exception thrown, which means that this is a range, not an integer
+                    if(sys->atoms[at].resindex == k) result.push_back(at);
+            } else {
+                // this is a range, not an integer
                 AstNode_ptr range = node->child_node(i);
-                int i1 = range->child_as_int(0);
-                int i2 = range->child_as_int(1);
+                int i1 = boost::get<int>(range->children[0]);
+                int i2 = boost::get<int>(range->children[1]);
                 for(k=i1;k<=i2;++k)
                     for(at=0;at<Natoms;++at)
                         // Even if k is out of range, nothing will crash here
@@ -504,18 +504,17 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
     case  TOK_RESINDEX: {
         int Nchildren = node->children.size(); // Get number of children
         // Cycle over children
-        for(i=0;i<Nchildren;++i){
-            // Try to get integer. If successful, go to add atoms to selection
-            try {
+        for(i=0;i<Nchildren;++i){                        
+            if(node->child_node(i)->code == TOK_UINT) {
                 k = node->child_as_int(i);
                 for(at=0;at<Natoms;++at)
                     // Even if k is out of range, nothing will crash here
                     if(sys->atoms[at].resindex == k) result.push_back(at);
-            } catch(boost::bad_get) {
-                // Exception thrown, which means that this is a range, not an integer
+            } else {
+                // this is a range, not an integer
                 AstNode_ptr range = node->child_node(i);
-                int i1 = range->child_as_int(0);
-                int i2 = range->child_as_int(1);
+                int i1 = boost::get<int>(range->children[0]);
+                int i2 = boost::get<int>(range->children[1]);
                 for(k=i1;k<=i2;++k)
                     for(at=0;at<Natoms;++at)
                         // Even if k is out of range, nothing will crash here
@@ -529,17 +528,16 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
         int Nchildren = node->children.size(); // Get number of children
         // Cycle over children
         for(i=0;i<Nchildren;++i){
-            // Try to get integer. If successful, go to add atoms to selection
-            try {
+            if(node->child_node(i)->code == TOK_UINT) {
                 k = node->child_as_int(i);
                 // We have to check the range here
                 if(k>=0 && k<Natoms)
                     result.push_back(k);
-            } catch(boost::bad_get) {
-                // Exception thrown, which means that this is a range, not an integer
+            } else {
+                // this is a range, not an integer
                 AstNode_ptr range = node->child_node(i);
-                int i1 = range->child_as_int(0);
-                int i2 = range->child_as_int(1);
+                int i1 = boost::get<int>(range->children[0]);
+                int i2 = boost::get<int>(range->children[1]);
                 for(k=i1;k<=i2;++k)
                     // We have to check the range here
                     if(k>=0 && k<Natoms)
@@ -551,7 +549,9 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
     //---------------------------------------------------------------------------
     case  TOK_WITHIN: {        
         // Get distance
-        double dist = node->child_as_float_or_int(0);
+        double dist = boost::get<float>(node->children[0]);
+        // Get PBC
+        bool periodic = (boost::get<int>(node->children[2])) ? true : false;
 
 #ifdef _DEBUG_PARSER
         if(subspace)
@@ -568,12 +568,6 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
         // Result is returned directly into the index array of selection dum2
         // thus no additional copying
         eval_node(node->child_node(1), dum2.index, NULL);
-
-        bool periodic = false;
-        // If we have children[2] then dimensions or/and periodicity are set
-        if(node->children.size()==3){
-            periodic = node->child_as_bool(2);
-        }
 
         // Prepare selection dum1
         if(!subspace){
@@ -727,6 +721,8 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
 float Selection_parser::eval_numeric(AstNode_ptr& node, int at){    
     if(node->code == TOK_INT){
         return boost::get<int>(node->children[0]);
+    } else if(node->code == TOK_UINT){
+        return boost::get<int>(node->children[0]);
     } else if(node->code == TOK_FLOAT){
         return boost::get<float>(node->children[0]);
     } else if(node->code == TOK_X){
@@ -754,7 +750,9 @@ float Selection_parser::eval_numeric(AstNode_ptr& node, int at){
         float v = eval_numeric(node->child_node(0),at);
         if(v==0.0) throw Pteros_error("Divition by zero in selection!");
         return eval_numeric(node->child_node(1),at) / v;
-
+    } else if(node->code == TOK_POWER) {
+        return std::pow( eval_numeric(node->child_node(0),at),
+                         eval_numeric(node->child_node(1),at) );
     } else if(node->code == TOK_POINT){
         // Extract point
         Eigen::Vector3f p;
@@ -763,9 +761,8 @@ float Selection_parser::eval_numeric(AstNode_ptr& node, int at){
         p(1) = eval_numeric(node->child_node(1),at);
         p(2) = eval_numeric(node->child_node(2),at);
 
-        bool pbc = false;
-        if(node->children.size()==4)
-            pbc = node->child_as_bool(3);
+        bool pbc = (boost::get<int>(node->children[3])) ? true : false;
+
         // Return distance
         if(pbc){
             return sys->Box(frame).distance(p, sys->traj[frame].coord[at]);
@@ -785,6 +782,9 @@ float Selection_parser::eval_numeric(AstNode_ptr& node, int at){
         dir(1) = eval_numeric(node->child_node(4),at);
         dir(2) = eval_numeric(node->child_node(5),at);
 
+        // pbc
+        bool pbc = (boost::get<int>(node->children[6])) ? true : false;
+
         Eigen::Vector3f atom = sys->traj[frame].coord[at];
 
         // Get vector from p to current atom
@@ -800,11 +800,6 @@ float Selection_parser::eval_numeric(AstNode_ptr& node, int at){
             // Get the end point of projection
             v += p;
         }
-
-        bool pbc = false;
-        if(node->children.size()==7)
-            //TODO
-            pbc = node->child_as_bool(6); // Is this correct???
 
         // Return distance between atom and v
         if(pbc){

@@ -26,7 +26,7 @@
 #include "pteros/core/selection_parser.h"
 #include <functional>
 #include <map>
-
+#include "pteros/core/pteros_error.h"
 
 //===========================================================
 using namespace std;
@@ -46,30 +46,35 @@ public:
 
 typedef std::shared_ptr<Parse_node> Parse_node_ptr;
 
+#ifdef _DEBUG_PARSER
+#define DEBUG(code) code
+#else
+#define DEBUG(code)
+#endif
+
 #define HEADER(_name) \
     if(_pos_==end) return false; \
-    std::string::iterator _old_ = _pos_; \
-    bool _ok_ = false; \
     Parse_node_ptr _this_rule_(new Parse_node); \
     _this_rule_->name = #_name; \
-    Parse_node_ptr parent = current_parent; \
+    Parse_node_ptr saved_parent = current_parent; \
     current_parent = _this_rule_; \
-    static int rule_used = 0; \
     static int rule_id = -1; \
-    if(rule_used==0){ /*first call of this rule*/ \
+    if(rule_id==-1){ /*first call of this rule*/ \
         rule_id = rule_counter; \
         rule_counter++; \
+        if(memo.size()<rule_id+1) memo.resize(rule_id+1);\
     } \
-    rule_used++; \
-    if(rule_used==1){ if(memo.size()<rule_id+1) memo.resize(rule_id+1); } \
     int n = std::distance(beg,_pos_); \
-    for(int i=0;i<level;++i) cout <<"  "; \
-    cout << "::: " << _this_rule_->name << " id: " << rule_id << " at: " << n << endl; \
+    DEBUG(for(int i=0;i<level;++i) cout <<"  ";) \
+    DEBUG(cout << "::: " << _this_rule_->name << " id: " << rule_id << " at: " << n << endl;) \
+    /* variables for rule body */\
+    std::string::iterator _old_ = _pos_; \
+    bool _ok_ = false; \
     /* check memotable */ \
     bool restored = false; \
     if(do_memo && memo[rule_id].count(n)==1){ \
-        for(int i=0;i<level;++i) cout <<"  "; \
-        cout << "from memo: " << _this_rule_->name << " at: " << n << endl; \
+        DEBUG(for(int i=0;i<level;++i) cout <<"  ";) \
+        DEBUG(cout << "from memo: " << _this_rule_->name << " at: " << n << endl;) \
         Memo_data& m = memo[rule_id][n]; \
         _this_rule_ = m.tree; \
         _pos_ = m.pos; \
@@ -82,62 +87,78 @@ typedef std::shared_ptr<Parse_node> Parse_node_ptr;
     if(!restored){ \
 
 
-// Rule without argument
+// Rule
 #define RULE(_name) \
 bool _name(bool add_to_tree = true, bool do_memo = true){ \
+    bool simplify = false;\
     HEADER(_name) \
 
+#define RULE_REDUCE(_name) \
+bool _name(bool add_to_tree = true, bool do_memo = true){ \
+    bool simplify = true;\
+    HEADER(_name) \
 
 #define END_RULE \
     } /*if not restored*/ \
     if(_ok_){    \
         if(add_to_tree) { \
-            for(int i=0;i<level;++i) cout <<"  "; \
-            cout << "Adding node "<<_this_rule_->name << " to parent " << parent->name << endl; \
-            parent->children.push_back(_this_rule_); \
+            DEBUG(for(int i=0;i<level;++i) cout <<"  ";) \
+            DEBUG(cout << "Adding node "<<_this_rule_->name << " to parent " << saved_parent->name << endl;) \
+            last_success = _pos_;\
+            if(simplify && _this_rule_->children.size()==1)\
+                saved_parent->children.push_back(_this_rule_->children[0]); \
+            else \
+                saved_parent->children.push_back(_this_rule_); \
         } \
     } else { \
         _pos_ = _old_; \
         _this_rule_->children.clear(); \
         _this_rule_->result = nullptr; \
     } \
-    current_parent = parent; \
+    current_parent = saved_parent; \
     /* Add to memotable */ \
-    if(do_memo && rule_used>0 && !restored) { \
-       Memo_data m; \
-       m.ok = _ok_; \
-       m.tree = _this_rule_; \
-       m.pos = _pos_; \
-       for(int i=0;i<level;++i) cout <<"  "; \
-       cout << "to memo: " << _this_rule_->name << " at: " << n << endl; \
-       memo[rule_id][n] = m; \
+    if(do_memo && !restored) { \
+       DEBUG(for(int i=0;i<level;++i) cout <<"  ";) \
+       DEBUG(cout << "to memo: " << _this_rule_->name << " at: " << n << endl;) \
+       memo[rule_id][n] = Memo_data(_ok_,_this_rule_,_pos_); \
        num_stored++; \
     } \
     level--; \
     return _ok_; \
 }
 
-#define END_RESULT \
-    cout << "calling result of " << _this_rule_->name << endl; \
-    return _result_; }; }
 
-#define END_LITERAL \
-    END_RESULT\
-    END_RULE
-
-
-#define RESULT \
+#define RESULT() \
     if(_ok_){ \
-        _this_rule_->result = [=]()->AstNode_ptr { \
+        _this_rule_->result = [_this_rule_]()->AstNode_ptr { \
+                AstNode_ptr _result_(new AstNode); \
+
+#define RESULT1(A) \
+    if(_ok_){ \
+        _this_rule_->result = [_this_rule_,A]()->AstNode_ptr { \
+                AstNode_ptr _result_(new AstNode); \
+
+#define RESULT2(A,B) \
+    if(_ok_){ \
+        _this_rule_->result = [_this_rule_,A,B]()->AstNode_ptr { \
+                AstNode_ptr _result_(new AstNode); \
+
+
+/*
+#define RESULT(A) \
+    if(_ok_){ \
+        _this_rule_->result = [_this_rule_]()->AstNode_ptr { \
                 AstNode_ptr _result_(new AstNode);
+*/
 
-#define RESULT_T AstNode_ptr
-
-#define SUBRULE(n) (_this_rule_->children[n]->result())
+#define END_RESULT \
+    /*DEBUG(cout << "calling result of " << _this_rule_->name << endl;) */\
+    return _result_; }; }
 
 // Rule without argument
 #define LITERAL(_name, _v) \
 bool _name(bool add_to_tree = true, bool do_memo = false){ \
+    bool simplify = false;\
     HEADER(_name) \
     string _arg_(_v); \
     for(auto ch: _arg_){ \
@@ -148,8 +169,15 @@ bool _name(bool add_to_tree = true, bool do_memo = false){ \
         } \
     } \
     if(_pos_-_old_==_arg_.size()) _ok_ = true; \
-    RESULT
+    RESULT()
 
+#define END_LITERAL \
+    END_RESULT\
+    END_RULE
+
+#define SUBRULE(n) (_this_rule_->children[n]->result())
+
+#define NUM_SUBRULES() (_this_rule_->children.size())
 /*===================================*/
 /*           PREDICATES              */
 /*===================================*/
@@ -159,7 +187,7 @@ bool _name(bool add_to_tree = true, bool do_memo = false){ \
     ( \
     [this,&_this_rule_]()->bool{ \
         std::string::iterator old=_pos_; \
-        int old_sz = _this_rule_->children.size(); \
+        int old_sz = NUM_SUBRULES(); \
         bool ok = (rule);\
         if(!ok) { \
             _pos_ = old; \
@@ -177,7 +205,7 @@ bool _name(bool add_to_tree = true, bool do_memo = false){ \
     ( \
     [this,&_this_rule_]()->bool{ \
         std::string::iterator old=_pos_; \
-        int old_sz = _this_rule_->children.size(); \
+        int old_sz = NUM_SUBRULES(); \
         bool ok = (rule);\
         _pos_ = old; \
         _this_rule_->children.resize(old_sz); \
@@ -206,6 +234,13 @@ bool _name(bool add_to_tree = true, bool do_memo = false){ \
 
 
 struct Memo_data {
+    Memo_data(){}
+    Memo_data(bool _ok, const Parse_node_ptr& _tree, const string::iterator& _pos){
+        ok = _ok;
+        tree = _tree;
+        pos = _pos;
+    }
+
     bool ok; // Rule evaluation result
     Parse_node_ptr tree;  // Subtree
     string::iterator pos;  // iterator after rule completion
@@ -216,66 +251,11 @@ struct Memo_data {
 /*===================================*/
 /*           THE GRAMMAR             */
 /*===================================*/
-class Rule_proxy {
-public:
-
-    Rule_proxy(){
-        used = 0;
-    }
-
-    bool is_cached(const string::iterator& pos){
-        return memo.count(pos);
-    }
-
-    bool restore_cached(string::iterator& pos, Parse_node_ptr& parent){
-        auto& m = memo[pos];
-        // Add tree to parent
-        parent->children.push_back(m.tree);
-        // Advance iterator
-        pos = m.pos;
-        // Return saved result
-        return m.ok;
-    }
-
-    void setup(Parse_node_ptr& current_parent){
-        // Create new node and set global current_parent to it
-        this_rule.reset(new Parse_node);
-        saved_parent = current_parent;
-        current_parent = this_rule;
-    }
-
-    void commit(Parse_node_ptr& current_parent){
-        saved_parent->children.push_back(this_rule);
-        current_parent = saved_parent;
-    }
-
-    void backtrack(string::iterator& pos, const string::iterator& old){
-        pos = old;
-        this_rule.reset();
-    }
-
-    void cache(bool ok, const string::iterator& pos){
-        Memo_data m;
-        m.ok = ok;
-        m.tree = this_rule;
-        m.pos = pos;
-        memo[pos] = m;
-    }
-
-private:
-    int used;
-    map<string::iterator,Memo_data> memo;
-    Parse_node_ptr this_rule, saved_parent;
-};
-
-
-
-
 
 class Grammar {
 friend class Rule_proxy;
 private:
-    std::string::iterator _pos_,end,beg;
+    std::string::iterator _pos_,end,beg,last_success;
     Parse_node_ptr current_parent;
     // Rule counter
     static int rule_counter;
@@ -288,7 +268,7 @@ private:
 
 public:
     Grammar(std::string& s){
-        _pos_ = beg = s.begin();
+        _pos_ = beg = last_success = s.begin();
         end = s.end();
         // Initial size of memotable
         memo.reserve(100);
@@ -317,44 +297,17 @@ public:
     END_RULE
 
 // Optional space
-#define SP_ (SPACE(false,false)||true)
+#define SP_() (SPACE(false,false)||true)
 // Mandatory space
 #define SP() (SPACE(false,false))
-
-    /*
-    ARG_RULE(LIT,char)
-        if(*_pos_==_arg_) _ok_ = true;
-        _pos_++;
-        RESULT
-            _result_->code = TOK_STR;
-            _result_->children.push_back(_arg_);
-        END_RESULT
-    END_RULE
-
-    ARG_RULE(LIT,string)
-        for(auto ch: _arg_){
-            if(*_pos_==ch){
-                _pos_++;
-            } else {
-                break;
-            }
-        }
-        if(_pos_-_old_==_arg_.size()) _ok_ = true;
-        RESULT
-            _result_->code = TOK_STR;
-            _result_->children.push_back(_arg_);
-        END_RESULT
-    END_RULE
-    */
 
     RULE(UINT)
         char* e;
         int val = strtoul(&*_old_, &e, 0);
         _pos_ += e-&*_old_;
         if(_old_!=_pos_) _ok_ = true;
-        SP_; // Consume any training space if present
-        RESULT
-            int val = atoi(string(_old_,_pos_).c_str());
+        SP_(); // Consume any training space if present
+        RESULT1(val)
             _result_->code = TOK_UINT;
             _result_->children.push_back(val);
         END_RESULT
@@ -365,9 +318,8 @@ public:
         int val = strtol(&*_old_, &e, 0);
         _pos_ += e-&*_old_;
         if(_old_!=_pos_) _ok_ = true;
-        SP_; // Consume any training space if present
-        RESULT
-            int val = atoi(string(_old_,_pos_).c_str());
+        SP_(); // Consume any training space if present
+        RESULT1(val)
             _result_->code = TOK_INT;
             _result_->children.push_back(val);
         END_RESULT
@@ -378,12 +330,17 @@ public:
         float val = strtod(&*_old_, &e);
         _pos_ += e-&*_old_;
         if(_old_!=_pos_) _ok_ = true;
-        SP_; // Consume any training space if present
-        RESULT
+        SP_(); // Consume any training space if present
+        RESULT1(val)
             _result_->code = TOK_FLOAT;
             _result_->children.push_back(val);
         END_RESULT
     END_RULE
+
+
+    /*===================================*/
+    /*           LITERALS                */
+    /*===================================*/
 
     LITERAL(PLUS,"+")
         _result_->code = TOK_PLUS;
@@ -557,15 +514,14 @@ public:
     /*===================================*/
 
 
-    RULE(NUM_EXPR)
+    RULE_REDUCE(NUM_EXPR)
 
-        //_ok_ = NUM_TERM() && ZeroOrMore( (LIT('+') || LIT('-')) && SP_ && NUM_EXPR() );
-        _ok_ = NUM_TERM() && ZeroOrMore( (PLUS() || MINUS()) && SP_ && NUM_EXPR() );
+        _ok_ = NUM_TERM() && ZeroOrMore( (PLUS() || MINUS()) && SP_() && NUM_EXPR() );
 
-        RESULT
+        RESULT()
             _result_ = SUBRULE(0); // left
-            if(_this_rule_->children.size()>1){
-                for(int i=1; i<_this_rule_->children.size()-1; i+=2){
+            if(NUM_SUBRULES()>1){
+                for(int i=1; i<NUM_SUBRULES()-1; i+=2){
                     AstNode_ptr tmp = SUBRULE(i); // Operation
                     _result_.swap(tmp);
                     _result_->children.push_back(tmp); // left operand
@@ -575,14 +531,14 @@ public:
         END_RESULT
     END_RULE
 
-    RULE(NUM_TERM)
+    RULE_REDUCE(NUM_TERM)
 
-        _ok_ = NUM_POWER() && ZeroOrMore( (STAR() || SLASH()) && SP_ && NUM_POWER() );
+        _ok_ = NUM_POWER() && ZeroOrMore( (STAR() || SLASH()) && SP_() && NUM_POWER() );
 
-        RESULT
+        RESULT()
             _result_ = SUBRULE(0); // left
-            if(_this_rule_->children.size()>1){
-                for(int i=1; i<_this_rule_->children.size()-1; i+=2){
+            if(NUM_SUBRULES()>1){
+                for(int i=1; i<NUM_SUBRULES()-1; i+=2){
                     AstNode_ptr tmp = SUBRULE(i);
                     _result_.swap(tmp);                   
                     _result_->children.push_back(tmp); // left operand
@@ -593,13 +549,13 @@ public:
     END_RULE
 
 
-    RULE(NUM_POWER)
+    RULE_REDUCE(NUM_POWER)
 
-        _ok_ = NUM_FACTOR() && Opt( (CAP() || DOUBLE_STAR()) && SP_&& NUM_FACTOR() );
+        _ok_ = NUM_FACTOR() && Opt( (CAP() || DOUBLE_STAR()) && SP_()&& NUM_FACTOR() );
 
-        RESULT
+        RESULT()
             _result_ = SUBRULE(0); // left
-            if(_this_rule_->children.size()>1){
+            if(NUM_SUBRULES()>1){
                 AstNode_ptr tmp = SUBRULE(1);
                 _result_.swap(tmp);                
                 _result_->children.push_back(tmp); // left operand
@@ -608,28 +564,28 @@ public:
         END_RESULT
     END_RULE
 
-    RULE(NUM_FACTOR)
-        _ok_ = Comb( LPAREN(false) && SP_ && NUM_EXPR() && RPAREN(false) && SP_ )
+    RULE_REDUCE(NUM_FACTOR)
+        _ok_ = Comb( LPAREN(false) && SP_() && NUM_EXPR() && RPAREN(false) && SP_() )
                 || FLOAT()                
-                || Comb( X() && SP_ )
-                || Comb( Y() && SP_ )
-                || Comb( Z() && SP_ )
-                || Comb( BETA() && SP_ )
-                || Comb( OCCUPANCY() && SP_ )
+                || Comb( X() && SP_() )
+                || Comb( Y() && SP_() )
+                || Comb( Z() && SP_() )
+                || Comb( BETA() && SP_() )
+                || Comb( OCCUPANCY() && SP_() )
                 || UNARY_MINUS()
                 || DIST_POINT()
                 || DIST_VECTOR()
                 || DIST_PLANE()
                 ;
 
-        RESULT
+        RESULT()
             _result_ = SUBRULE(0);
         END_RESULT
     END_RULE    
 
     RULE(UNARY_MINUS)
         _ok_ = MINUS(false) && NUM_FACTOR();
-        RESULT            
+        RESULT()
             _result_->code = TOK_UNARY_MINUS;
             _result_->children.push_back(SUBRULE(0));
         END_RESULT
@@ -640,9 +596,9 @@ public:
                 && POINT(false) && SP()
                 && Opt(PBC())
                 && FLOAT() && FLOAT() && FLOAT();
-        RESULT
+        RESULT()
         _result_->code = TOK_POINT;
-        if(_this_rule_->children.size()==3){ // No pbc given
+        if(NUM_SUBRULES()==3){ // No pbc given
             _result_->children.push_back(SUBRULE(0));
             _result_->children.push_back(SUBRULE(1));
             _result_->children.push_back(SUBRULE(2));
@@ -661,9 +617,9 @@ public:
                 && VECTOR(false) && SP()
                 && Opt(PBC())
                 && FLOAT() && FLOAT() && FLOAT() && FLOAT() && FLOAT() && FLOAT();
-        RESULT
+        RESULT()
         _result_->code = TOK_VECTOR;
-        if(_this_rule_->children.size()==6){ // No pbc given
+        if(NUM_SUBRULES()==6){ // No pbc given
             _result_->children.push_back(SUBRULE(0));
             _result_->children.push_back(SUBRULE(1));
             _result_->children.push_back(SUBRULE(2));
@@ -688,9 +644,9 @@ public:
                 && PLANE(false) && SP()
                 && Opt(PBC())
                 && FLOAT() && FLOAT() && FLOAT() && FLOAT() && FLOAT() && FLOAT();
-        RESULT
+        RESULT()
         _result_->code = TOK_PLANE;
-        if(_this_rule_->children.size()==6){ // No pbc given
+        if(NUM_SUBRULES()==6){ // No pbc given
             _result_->children.push_back(SUBRULE(0));
             _result_->children.push_back(SUBRULE(1));
             _result_->children.push_back(SUBRULE(2));
@@ -710,14 +666,14 @@ public:
         END_RESULT
     END_RULE
 
-    RULE(LOGICAL_EXPR)
+    RULE_REDUCE(LOGICAL_EXPR)
 
-        _ok_ = LOGICAL_OPERAND() && ZeroOrMore( (OR() || AND()) && SP_ && LOGICAL_OPERAND() );
+        _ok_ = LOGICAL_OPERAND() && ZeroOrMore( (OR() || AND()) && SP_() && LOGICAL_OPERAND() );
 
-        RESULT
+        RESULT()
             _result_ = SUBRULE(0); // left
-            if(_this_rule_->children.size()>1){
-                for(int i=1; i<_this_rule_->children.size()-1; i+=2){
+            if(NUM_SUBRULES()>1){
+                for(int i=1; i<NUM_SUBRULES()-1; i+=2){
                     AstNode_ptr tmp = SUBRULE(i);
                     _result_.swap(tmp);
                     _result_->children.push_back(tmp); // left operand
@@ -727,12 +683,12 @@ public:
         END_RESULT
     END_RULE
 
-    RULE(LOGICAL_OPERAND)
-        _ok_ = Comb( LPAREN(false) && SP_ && LOGICAL_EXPR() && RPAREN(false) && SP_ )
+    RULE_REDUCE(LOGICAL_OPERAND)
+        _ok_ = Comb( LPAREN(false) && SP_() && LOGICAL_EXPR() && RPAREN(false) && SP_() )
                 ||
                Comb( !Check(NUM_EXPR(false) && !COMPARISON_OPERATOR(false)) && NUM_COMPARISON() )
                 ||
-               Comb( ALL() && SP_ )
+               Comb( ALL() && SP_() )
                 ||
                LOGICAL_NOT()
                 ||
@@ -744,29 +700,29 @@ public:
                 ||
                KEYWORD_INT_STR()
                 ;
-        RESULT
+        RESULT()
             _result_ = SUBRULE(0);
         END_RESULT
     END_RULE
 
     RULE(COMPARISON_OPERATOR)
-        _ok_ = (EQ() || NEQ() || LEQ() || GEQ() || LT() || GT()) && SP_;
-        RESULT                        
+        _ok_ = (EQ() || NEQ() || LEQ() || GEQ() || LT() || GT()) && SP_();
+        RESULT()
             _result_ = SUBRULE(0);
         END_RESULT
     END_RULE
 
-    RULE(NUM_COMPARISON)
+    RULE_REDUCE(NUM_COMPARISON)
         _ok_ = NUM_EXPR();
 
         Comb( COMPARISON_OPERATOR() && NUM_EXPR() && COMPARISON_OPERATOR() && NUM_EXPR()) //chained
         ||
         Comb( COMPARISON_OPERATOR() && NUM_EXPR() ); // normal
 
-        RESULT
-            if(_this_rule_->children.size()==1){ // single NUM_EXPR
+        RESULT()
+            if(NUM_SUBRULES()==1){ // single NUM_EXPR
                 _result_ = SUBRULE(0);
-            } else if(_this_rule_->children.size()==3){ // normal comparison
+            } else if(NUM_SUBRULES()==3){ // normal comparison
                 _result_ = SUBRULE(1);
                 _result_->children.push_back(SUBRULE(0));
                 _result_->children.push_back(SUBRULE(2));
@@ -785,22 +741,22 @@ public:
     END_RULE    
 
     RULE(LOGICAL_NOT)
-        _ok_ = NOT(false) && SP_ && LOGICAL_OPERAND();
-        RESULT            
+        _ok_ = NOT(false) && SP_() && LOGICAL_OPERAND();
+        RESULT()
             _result_->code = TOK_NOT;
             _result_->children.push_back(SUBRULE(0));
         END_RESULT
     END_RULE
 
     RULE(WITHIN)
-        _ok_ = WITHIN_(false) && SP_ && FLOAT() && SP_
+        _ok_ = WITHIN_(false) && SP_() && FLOAT() && SP_()
                 && Opt(PBC()) && OF(false)
                 && (SP()||Check(LPAREN(false))) && LOGICAL_OPERAND();
 
-        RESULT        
+        RESULT()
         _result_->code = TOK_WITHIN;
         _result_->children.push_back(SUBRULE(0)->children[0]); // d
-        if(_this_rule_->children.size()==2){ // no pbc given
+        if(NUM_SUBRULES()==2){ // no pbc given
             _result_->children.push_back(SUBRULE(1)); // operand
             _result_->children.push_back(0); // pbc
         } else { // with pbc
@@ -811,15 +767,15 @@ public:
     END_RULE
 
     RULE(PBC)
-        _ok_ = (PBC_ON1() || PBC_ON2() || PBC_OFF1() || PBC_OFF2()) && SP_;
-        RESULT            
+        _ok_ = (PBC_ON1() || PBC_ON2() || PBC_OFF1() || PBC_OFF2()) && SP_();
+        RESULT()
             _result_ = SUBRULE(0);
         END_RESULT
     END_RULE
 
     RULE(BY_RESIDUE)
-        _ok_ = BY(false) && SP() && RESIDUE(false) && SP_ && LOGICAL_OPERAND();
-        RESULT        
+        _ok_ = BY(false) && SP() && RESIDUE(false) && SP_() && LOGICAL_OPERAND();
+        RESULT()
         _result_->code = TOK_BY;
         _result_->children.push_back(SUBRULE(0));
         END_RESULT
@@ -828,20 +784,20 @@ public:
     RULE(KEYWORD_LIST_STR)
         _ok_ = STR_KEYWORD() && SP() && OneOrMore( STR()||REGEX() );
 
-        RESULT
+        RESULT()
             _result_ = SUBRULE(0);
-            for(int i=1; i<_this_rule_->children.size(); ++i){
+            for(int i=1; i<NUM_SUBRULES(); ++i){
                 _result_->children.push_back(SUBRULE(i));
             }
         END_RESULT
     END_RULE
 
     RULE(KEYWORD_INT_STR)
-        _ok_ = INT_KEYWORD() && SP() && OneOrMore( RANGE()||UINT() && SP_ );
+        _ok_ = INT_KEYWORD() && SP() && OneOrMore( RANGE()||UINT() && SP_() );
 
-        RESULT
+        RESULT()
             _result_ = SUBRULE(0);
-            for(int i=1; i<_this_rule_->children.size(); ++i){
+            for(int i=1; i<NUM_SUBRULES(); ++i){
                 _result_->children.push_back(SUBRULE(i));
             }
         END_RESULT
@@ -849,14 +805,14 @@ public:
 
     RULE(STR_KEYWORD)
         _ok_ = NAME() || RESNAME() || TAG() || CHAIN();
-        RESULT            
+        RESULT()
             _result_ = SUBRULE(0);
         END_RESULT
     END_RULE
 
     RULE(INT_KEYWORD)
         _ok_ = RESID() || RESINDEX() || INDEX();
-        RESULT            
+        RESULT()
             _result_ = SUBRULE(0);
         END_RESULT
     END_RULE
@@ -878,7 +834,7 @@ public:
             _ok_ = false;
         }
 
-        RESULT            
+        RESULT1(s)
             _result_->code = TOK_STR;
             _result_->children.push_back(s);
         END_RESULT
@@ -906,19 +862,19 @@ public:
         }
 
         string::iterator b = _old_+1;
-        string::iterator e = _pos_-1;
+        string::iterator e = _pos_-1;        
 
-        SP_; // Consume any trailing space if present
+        SP_(); // Consume any trailing space if present
 
-        RESULT            
+        RESULT2(b,e)
             _result_->code = TOK_REGEX;
             _result_->children.push_back(string(b,e));
         END_RESULT
     END_RULE
 
     RULE(RANGE)
-        _ok_ = UINT() && SP_ && (TO(false)||MINUS(false)) && SP_ && UINT();
-        RESULT            
+        _ok_ = UINT() && SP_() && (TO(false)||MINUS(false)) && SP_() && UINT();
+        RESULT()
             _result_->code = TOK_TO;
             _result_->children.push_back(SUBRULE(0)->children[0]);
             _result_->children.push_back(SUBRULE(1)->children[0]);
@@ -926,10 +882,10 @@ public:
     END_RULE
 
 
-    RULE(START)
-        _ok_ = SP_ && LOGICAL_EXPR();
+    RULE_REDUCE(START)
+        _ok_ = SP_() && LOGICAL_EXPR();
 
-        RESULT
+        RESULT()
             _result_ = SUBRULE(0);
         END_RESULT
     END_RULE
@@ -937,63 +893,33 @@ public:
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     AstNode_ptr run(){
         current_parent.reset(new Parse_node);
-        Parse_node_ptr p = current_parent;
+        //Parse_node_ptr p = current_parent;
         START();
 
+#ifdef _DEBUG_PARSER
         cout << "Statistics:" << endl;
         cout << "Nesting level reached: " << max_level << endl;
         cout << "Size of memotable: " << memo.size() << endl;
         cout << "Rules stored to memotable: " << num_stored << endl;
         cout << "Rules restored from memotable: " << num_restored << endl;
-
-#ifdef _DEBUG_PARSER
-        dump(p);
+        dump(current_parent);
         cout << "Lazily getting AST:" << endl;
 #endif
-        if(p->children.size()>0 && _pos_== end)
-            return p->children[0]->result();
-        else {
-            cout << "Syntax error at " << *_pos_ << endl;
-            return nullptr;
+
+        if(current_parent->children.size()>0 && _pos_== end)
+            return current_parent->children[0]->result();
+        else {            
+            int n = std::distance(beg,last_success);
+            stringstream ss;
+            ss << "Syntax error in selection! Somewhere after position " << n << ":" << endl;
+            ss << string(beg,end) << endl;
+            for(int i=0;i<n-1;i++) ss<< "-";
+            ss << "^" << endl;
+
+            throw Pteros_error(ss.str());
         }        
     }
 
-
-    bool rule_a(){
-        static Rule_proxy* proxy = nullptr;
-        if(!proxy){
-            rules.push_back(Rule_proxy());
-            proxy = &rules.back();
-        }
-        if(proxy->is_cached(_pos_)){
-            return proxy->restore_cached(_pos_,current_parent);
-        }
-
-        // If we are here than not chached
-        proxy->setup(current_parent);
-
-        // Variables to be used in body
-        bool _ok_ = false;
-        string::iterator _old_ = _pos_;
-
-        //////////////////
-        // Here is a body
-        //////////////////
-
-        // Footer
-        if(_ok_){
-            proxy->commit(current_parent);
-        } else {
-            proxy->backtrack(_pos_,_old_);
-        }
-
-        // Add to memotable if needed
-        proxy->cache(_ok_,_pos_);
-        return _ok_;
-    }
-
-private:
-    vector<Rule_proxy> rules;
 };
 
 int Grammar::rule_counter = 0;
@@ -1003,5 +929,5 @@ int Grammar::rule_counter = 0;
 
 //===========================================================
 
-
 #endif /* SELECTION_PARSER_H */
+
