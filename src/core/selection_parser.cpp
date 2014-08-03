@@ -46,7 +46,7 @@ using namespace boost;
 
 #ifdef _DEBUG_PARSER
 char* tok_names[] = {
-    //"TOK_VOID",
+    "TOK_VOID",
     "TOK_MINUS",
     "TOK_UNARY_MINUS",
     "TOK_PLUS",
@@ -243,16 +243,32 @@ void Selection_parser::do_optimization(AstNode_ptr& node){
         cout << "Node " << node->decode() << " is pure" << endl;
 #endif
 
-        // Node is pure, so clear all its children and keep precomputed index
-        // Set node type to precomputed
+        // Node is pure! Check if this is a math expression, which evaluates to constant
+        if(    node->code == TOK_PLUS
+            || node->code == TOK_MINUS
+            || node->code == TOK_MULT
+            || node->code == TOK_DIV
+            || node->code == TOK_POWER
+          )
+        {
+            // Eval to constant and replace node with float
+            float val = eval_numeric(node,0);
+            node->code = TOK_FLOAT;
+            node->children.clear();
+            node->children.push_back(val);
+        } else {
 
-        eval_node(node,node->precomputed,nullptr);
-        node->children.clear();
-        node->code = TOK_PRECOMPUTED;
+            // Not a math expression,so clear all its children and keep precomputed index
+            // Set node type to precomputed
+
+            eval_node(node,node->precomputed,nullptr);
+            node->children.clear();
+            node->code = TOK_PRECOMPUTED;
 
 #ifdef _DEBUG_PARSER
-        cout << "Node set to precomputed " << endl;
+            cout << "Node set to precomputed " << endl;
 #endif
+        }
     }
 
     // Optimize AND operations - coord-dependent operand

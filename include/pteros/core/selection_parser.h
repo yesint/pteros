@@ -36,7 +36,7 @@ namespace pteros {
 
 // Codes of tokens
 enum Codes {
-    //TOK_VOID,
+    TOK_VOID,
     TOK_MINUS,
     TOK_UNARY_MINUS,
     TOK_PLUS,
@@ -109,6 +109,8 @@ typedef boost::variant<
 
 // The tree itself
 struct AstNode {
+    AstNode(){ code = TOK_VOID; }
+
     Codes code; //Code of operation
     std::vector<ast_element> children;
     std::vector<int> precomputed; // Precomputed indexes for coordinate-independent nodes
@@ -127,6 +129,7 @@ struct AstNode {
 #ifdef _DEBUG_PARSER
     void dump(int indent=0);
     std::string decode();
+    std::string name;
 #endif
 };
 
