@@ -27,11 +27,8 @@
 #include "pteros/core/pteros_error.h"
 #include "pteros/core/grid_search.h"
 #include <Eigen/Core>
-#include <cctype>
 #include <algorithm>
 #include <boost/algorithm/string.hpp>
-#include <boost/lexical_cast.hpp>
-#include <boost/variant.hpp>
 #include <unordered_set>
 #include <regex>
 
@@ -141,30 +138,12 @@ int AstNode::child_as_int(int i){
     return boost::get<int>(boost::get<AstNode_ptr>(children[i])->children[0]);
 }
 
-bool AstNode::child_as_bool(int i){
-    return boost::get<bool>(boost::get<AstNode_ptr>(children[i])->children[0]);
-}
-
 string AstNode::child_as_str(int i){    
     return boost::get<string>(boost::get<AstNode_ptr>(children[i])->children[0]);
 }
 
-char AstNode::child_as_char(int i){
-    return boost::get<char>(boost::get<AstNode_ptr>(children[i])->children[0]);
-}
-
 float AstNode::child_as_float(int i){        
     return boost::get<float>(boost::get<AstNode_ptr>(children[i])->children[0]);
-}
-
-float AstNode::child_as_float_or_int(int i){    
-    float d;
-    try {
-        d = child_as_float(i);
-    } catch(boost::bad_get){
-        d = child_as_int(i);
-    }
-    return d;
 }
 
 AstNode_ptr& AstNode::child_node(int i){

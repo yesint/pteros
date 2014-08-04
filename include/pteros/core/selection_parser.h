@@ -20,7 +20,7 @@
  *
 */
 
-#define _DEBUG_PARSER
+//#define _DEBUG_PARSER
 
 #ifndef SELECTION_PARSER_H
 #define SELECTION_PARSER_H
@@ -100,8 +100,7 @@ enum Codes {
 struct AstNode; // Forward declaration
 // An element of the tree is either a recursive sub-tree or a leaf
 typedef boost::variant<
-    float,
-    char,
+    float,    
     int,   
     std::string,
     std::shared_ptr<AstNode>
@@ -109,7 +108,9 @@ typedef boost::variant<
 
 // The tree itself
 struct AstNode {
+#ifdef _DEBUG_PARSER
     AstNode(){ code = TOK_VOID; }
+#endif
 
     Codes code; //Code of operation
     std::vector<ast_element> children;
@@ -117,11 +118,8 @@ struct AstNode {
 
     bool is_coordinate_dependent();
     // Returns child elements
-    int child_as_int(int i);
-    char child_as_char(int i);
-    float child_as_float(int i);
-    bool child_as_bool(int i);
-    float child_as_float_or_int(int i);
+    int child_as_int(int i);    
+    float child_as_float(int i);        
     std::string child_as_str(int i);
     std::shared_ptr<AstNode>& child_node(int i);
 

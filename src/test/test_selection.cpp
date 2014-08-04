@@ -58,7 +58,7 @@ int main(int argc, char** argv)
 */
         //System s("/home/semen/work/Projects/asymmetric_bilayer/for-diamonds/hexagonal/2x2.gro");
         System s1("/home/semen/work/Projects/asymmetric_bilayer/for-diamonds/hexagonal/128.pdb");
-        Selection sel(s1,"dist point pbc 1 2 3 < 3.14**(2+1) or within 2 nopbc of name CA CB '.*C'");
+        Selection sel(s1,"(name CA CB 'N.*' and index 1 2 3 5-25) or within 2.3 of (x^2+y^2>2.5+43.2*(y+z)/3)");
 
 
 /*

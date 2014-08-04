@@ -41,7 +41,7 @@ using namespace pteros;
 #define HEADER(_name) \
     if(_pos_==end) return false; \
     AstNode_ptr _this_rule_(new AstNode); \
-    _this_rule_->name = #_name; \
+    DEBUG(_this_rule_->name = #_name;)\
     AstNode_ptr saved_parent = current_parent; \
     current_parent = _this_rule_; \
     static int rule_id = -1; \
@@ -53,6 +53,7 @@ using namespace pteros;
     int n = std::distance(beg,_pos_); \
     DEBUG(for(int i=0;i<level;++i) cout <<"  ";) \
     DEBUG(cout << "Trying " << _this_rule_->name << " id: " << rule_id << " at: " << n << endl;) \
+    DEBUG(num_tried++;)\
     /* variables for rule body */\
     std::string::iterator _old_ = _pos_; \
     bool _ok_ = false; \
@@ -66,32 +67,32 @@ using namespace pteros;
         _pos_ = m.pos; \
         _ok_ = m.ok; \
         restored = true; \
-        num_restored++; \
+        DEBUG(num_restored++;)\
     } \
-    level++; \
-    if(max_level<level) max_level = level;\
+    DEBUG(level++;)\
+    DEBUG(if(max_level<level) max_level = level;)\
     if(!restored){ \
 
 
 // Rule
 #define RULE(_name) \
 bool _name(bool add_to_tree = true, bool do_memo = true){ \
-    bool simplify = false;\
+    bool do_reduce = false;\
     HEADER(_name) \
 
 #define RULE_REDUCE(_name) \
 bool _name(bool add_to_tree = true, bool do_memo = true){ \
-    bool simplify = true;\
+    bool do_reduce = true;\
     HEADER(_name) \
 
 #define END_RULE \
     } /*if not restored*/ \
-    if(_ok_){    \
+    if(_ok_){\
+        if(_pos_>last_success) last_success = _pos_;\
         DEBUG(for(int i=0;i<level-1;++i) cout <<"  ";) \
         DEBUG(cout<<"Matched "<< _this_rule_->name << " at: " << n << endl;)\
         if(add_to_tree) { \
-            last_success = _pos_;\
-            if(simplify && _this_rule_->children.size()==1){\
+            if(do_reduce && _this_rule_->children.size()==1){\
                 saved_parent->children.push_back(_this_rule_->children[0]); \
                 DEBUG(for(int i=0;i<level-1;++i) cout <<"  ";) \
                 DEBUG(cout << "-- simplifying node "<<_this_rule_->name << " to parent " << saved_parent->name << endl;) \
@@ -100,13 +101,13 @@ bool _name(bool add_to_tree = true, bool do_memo = true){ \
                 DEBUG(for(int i=0;i<level-1;++i) cout <<"  ";) \
                 DEBUG(cout << "-- adding node "<<_this_rule_->name << " to parent " << saved_parent->name << endl;) \
             }\
-            saved_parent->dump();\
         } \
     } else { \
         DEBUG(for(int i=0;i<level-1;++i) cout <<"  ";) \
         DEBUG(cout<<"Failed "<< _this_rule_->name << " at: " << n << endl;)\
         _pos_ = _old_; \
         _this_rule_->children.clear(); \
+        DEBUG(num_failed++;)\
     } \
     current_parent = saved_parent; \
     /* Add to memotable */ \
@@ -114,9 +115,9 @@ bool _name(bool add_to_tree = true, bool do_memo = true){ \
        DEBUG(for(int i=0;i<level-1;++i) cout <<"  ";) \
        DEBUG(cout << "-- to memo: " << _this_rule_->name << " at: " << n << endl;) \
        memo[rule_id][n] = Memo_data(_ok_,_this_rule_,_pos_); \
-       num_stored++; \
+       DEBUG(num_stored++;)\
     } \
-    level--; \
+    DEBUG(level--;)\
     DEBUG(cout << endl;)\
     return _ok_; \
 }
@@ -124,9 +125,10 @@ bool _name(bool add_to_tree = true, bool do_memo = true){ \
 // Literla rule
 #define LITERAL_RULE(_name, _v) \
 bool _name(bool add_to_tree = true, bool do_memo = false){ \
-    bool simplify = false;\
+    bool do_reduce = false;\
     HEADER(_name) \
     string _arg_(_v); \
+    if(_arg_.size()>3) do_memo = true; /*cache only 'large' literals*/ \
     for(auto ch: _arg_){ \
         if(*_pos_==ch){ \
             _pos_++; \
@@ -217,16 +219,20 @@ struct Memo_data {
 class Grammar {
 friend class Rule_proxy;
 private:
-    std::string::iterator _pos_,end,beg,last_success;
+    std::string::iterator _pos_,beg,end,last_success;
     AstNode_ptr current_parent;
     // Rule counter
     static int rule_counter;
     // Memo table
     vector< map<int,Memo_data> > memo;
 
+#ifdef _DEBUG_PARSER
     int level; // For pretty printing
     int num_stored, num_restored;
     int max_level;
+    int num_tried;
+    int num_failed;
+#endif
 
 public:
     Grammar(std::string& s){
@@ -234,7 +240,15 @@ public:
         end = s.end();
         // Initial size of memotable
         memo.reserve(100);
-        level = num_stored = num_restored = max_level = 0;
+
+#ifdef _DEBUG_PARSER
+        level = 0;
+        num_stored = 0;
+        num_restored = 0;
+        max_level = 0;
+        num_tried = 0;
+        num_failed = 0;
+#endif
     }
 
     /*===================================*/
@@ -808,15 +822,18 @@ public:
     AstNode_ptr run(){
         current_parent.reset(new AstNode); // Hierarchy root
 
-        START();
+        START(true,false);
 
 #ifdef _DEBUG_PARSER
         cout << "Statistics:" << endl;
-        cout << "Nesting level reached: " << max_level << endl;
+        cout << "Number of rules in the grammar: " << rule_counter-1 << endl;
+        cout << "Recursion depth: " << max_level << endl;
         cout << "Size of memotable: " << memo.size() << endl;
         cout << "Rules stored to memotable: " << num_stored << endl;
         cout << "Rules restored from memotable: " << num_restored << endl;
-        current_parent->child_node(0)->dump();
+        cout << "Rules tried: " << num_tried << endl;
+        cout << "Rules succeded: " << num_tried-num_failed << endl;
+        cout << "Rules failed: " << num_failed << endl;
 #endif
 
         if(current_parent->children.size()>0 && _pos_== end)
@@ -837,10 +854,7 @@ public:
 
 int Grammar::rule_counter = 0;
 
-
-
-
 //===========================================================
 
-#endif /* SELECTION_PARSER_H */
+#endif /* SELECTION_GRAMMAR_H */
 
