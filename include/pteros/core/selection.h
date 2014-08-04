@@ -61,7 +61,7 @@ class Selection {
 
   public:
     // Ensure correct 16-bytes-alignment for Eigen sse2 optimizations
-    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+    //EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     /// @name Constructors and operators

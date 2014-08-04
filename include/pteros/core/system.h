@@ -100,7 +100,7 @@ class System {
     friend class Mol_file;
 public:
     // Ensure correct 16-bytes-alignment for Eigen vectorization
-    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+    //EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     /// @name Constructors, operators and modification functions

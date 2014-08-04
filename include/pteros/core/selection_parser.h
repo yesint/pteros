@@ -22,8 +22,8 @@
 
 //#define _DEBUG_PARSER
 
-#ifndef SELECTION_PARSER2_H
-#define SELECTION_PARSER2_H
+#ifndef SELECTION_PARSER_H
+#define SELECTION_PARSER_H
 
 #include <string>
 #include <vector>
@@ -42,6 +42,7 @@ enum Codes {
     TOK_PLUS,
     TOK_MULT,
     TOK_DIV,
+    TOK_POWER,
     TOK_EQ, // == or =
     TOK_NEQ, // <> or !=
     TOK_LT, //<
@@ -60,8 +61,8 @@ enum Codes {
     // Prefixes
     TOK_NOT,
     TOK_WITHIN,    
-    TOK_PERIODIC,
-    TOK_OF,
+    //TOK_PERIODIC,
+    //TOK_OF,
     TOK_BY,
     TOK_RESIDUE,
     // text keywords
@@ -80,13 +81,14 @@ enum Codes {
     TOK_TO, // '-' or 'to'
     // Data tokens
     TOK_INT,
+    TOK_UINT,
     TOK_FLOAT,
     TOK_STR,
     // Parens
-    TOK_LPAREN,
-    TOK_RPAREN,
+    //TOK_LPAREN,
+    //TOK_RPAREN,
     // Distances
-    TOK_DIST,
+    //TOK_DIST,
     TOK_POINT,
     TOK_VECTOR,
     TOK_PLANE,
@@ -98,27 +100,26 @@ enum Codes {
 struct AstNode; // Forward declaration
 // An element of the tree is either a recursive sub-tree or a leaf
 typedef boost::variant<
-    float,
-    char,
-    int,
-    bool,
+    float,    
+    int,   
     std::string,
     std::shared_ptr<AstNode>
 > ast_element;
 
 // The tree itself
 struct AstNode {
+#ifdef _DEBUG_PARSER
+    AstNode(){ code = TOK_VOID; }
+#endif
+
     Codes code; //Code of operation
     std::vector<ast_element> children;
     std::vector<int> precomputed; // Precomputed indexes for coordinate-independent nodes
 
     bool is_coordinate_dependent();
     // Returns child elements
-    int child_as_int(int i);
-    char child_as_char(int i);
-    float child_as_float(int i);
-    bool child_as_bool(int i);
-    float child_as_float_or_int(int i);
+    int child_as_int(int i);    
+    float child_as_float(int i);        
     std::string child_as_str(int i);
     std::shared_ptr<AstNode>& child_node(int i);
 
@@ -126,6 +127,7 @@ struct AstNode {
 #ifdef _DEBUG_PARSER
     void dump(int indent=0);
     std::string decode();
+    std::string name;
 #endif
 };
 
@@ -140,8 +142,7 @@ typedef std::shared_ptr<AstNode> AstNode_ptr;
     This class should never be used directly.
 */
 
-class Selection_parser{
-    friend struct Grammar;
+class Selection_parser{    
 public:
     /** True if there are coordinate keywords in selection.
     *   If true, the parser will persist (not deleted after parsing).
@@ -162,18 +163,8 @@ public:
     void apply(System* system, std::size_t fr, std::vector<int>& result);
 
 private:
-    // Tokenizer stuff
-    void end_token(const std::string& s, int& b, int i);
-    void tokenize(const std::string& s);
-
     /// AST structure
     std::shared_ptr<AstNode> tree;
-
-    // Array of tokens
-    std::vector<AstNode_ptr> tokens;
-
-    // Indexes of the ends of tokens. Used for error reporting
-    std::vector<int> token_ends;
 
     // AST evaluation stuff
     System* sys;
