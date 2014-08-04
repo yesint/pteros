@@ -44,7 +44,7 @@ public:
                 "\t-selection <string>\n"
                 "\t\tSelection text"
                 "\t-nojump <true|false>. Default: true\n"
-                "\t\tRemove jumps of atoms over periodic box boundary."
+                "\t\tRemove jumps of atoms over periodic box boundary.\n"
                 "\t\tSetting this to false is only meaningful is very special cases."
                 ;
     }
