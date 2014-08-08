@@ -43,13 +43,8 @@ using namespace pteros;
     AstNode_ptr _this_rule_(new AstNode); \
     DEBUG(_this_rule_->name = #_name;)\
     AstNode_ptr saved_parent = current_parent; \
-    current_parent = _this_rule_; \
-    static int rule_id = -1; \
-    if(rule_id==-1){ /*first call of this rule*/ \
-        rule_id = rule_counter; \
-        rule_counter++; \
-        if(memo.size()<rule_id+1) memo.resize(rule_id+1);\
-    } \
+    current_parent = _this_rule_; \    
+    const int rule_id = __LINE__;\
     int n = std::distance(beg,_pos_); \
     DEBUG(for(int i=0;i<level;++i) cout <<"  ";) \
     DEBUG(cout << "Trying " << _this_rule_->name << " id: " << rule_id << " at: " << n << endl;) \
@@ -217,14 +212,11 @@ struct Memo_data {
 /*===================================*/
 
 class Grammar {
-friend class Rule_proxy;
 private:
     std::string::iterator _pos_,beg,end,last_success;
-    AstNode_ptr current_parent;
-    // Rule counter
-    static int rule_counter;
+    AstNode_ptr current_parent;    
     // Memo table
-    vector< map<int,Memo_data> > memo;
+    map<int, map<int,Memo_data> > memo;
 
 #ifdef _DEBUG_PARSER
     int level; // For pretty printing
@@ -238,8 +230,6 @@ public:
     Grammar(std::string& s){
         _pos_ = beg = last_success = s.begin();
         end = s.end();
-        // Initial size of memotable
-        memo.reserve(100);
 
 #ifdef _DEBUG_PARSER
         level = 0;
@@ -826,7 +816,7 @@ public:
 
 #ifdef _DEBUG_PARSER
         cout << "Statistics:" << endl;
-        cout << "Number of rules in the grammar: " << rule_counter-1 << endl;
+        cout << "Number of used rules: " << memo.size() << endl;
         cout << "Recursion depth: " << max_level << endl;
         cout << "Size of memotable: " << memo.size() << endl;
         cout << "Rules stored to memotable: " << num_stored << endl;
@@ -852,7 +842,7 @@ public:
 
 };
 
-int Grammar::rule_counter = 0;
+//int Grammar::rule_counter = 0;
 
 //===========================================================
 

@@ -37,6 +37,10 @@ int main(int argc, char** argv)
     try{        
 
 
+System s("/home/semen/work/Projects/kornelyuk/dimer_human/3.2.pdb");
+Selection sel(s,"all");
+Selection sel1(s,"all");
+cout << sel.size() << endl;
 
 /*
 Grammar g("ups");
