@@ -46,7 +46,7 @@ void GNM::compute(Selection& sel, float cutoff){
 
     kirk.fill(0.0);
     // Compute off-diagonal elements
-    for(i=0;i<N-1;++i)
+    for(i=0;i<N-1;++i)        
         for(j=i+1;j<N;++j){            
             d = (sel.XYZ(i)-sel.XYZ(j)).norm();
             if(d<=cutoff){
@@ -55,7 +55,7 @@ void GNM::compute(Selection& sel, float cutoff){
             }
         }
 
-
+cout << "**" << endl;
     // Compute diagonal elements
     for(i=0;i<N;++i) kirk(i,i) = -kirk.col(i).sum();
 

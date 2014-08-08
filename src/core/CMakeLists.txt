@@ -2,6 +2,8 @@ IF(VMD_PDB)
     add_definitions(-DVMD_PDB)
 ENDIF()
 
+add_subdirectory(${PROJECT_SOURCE_DIR}/src/core/tng_io)
+
 #------------------------
 # Work with SASA code
 #------------------------
@@ -37,6 +39,8 @@ include_directories(${PROJECT_SOURCE_DIR}/src/core/xdrfile)
 include_directories(${PROJECT_SOURCE_DIR}/src/core/molfile_plugins)
 # The same is for DSSP
 include_directories(${PROJECT_SOURCE_DIR}/src/core/dssp)
+# tng
+include_directories(${PROJECT_SOURCE_DIR}/src/core/tng_io/include/tng)
 
 #---------------------
 # Main pteros library
@@ -85,6 +89,8 @@ add_library(pteros SHARED
     xtc_file.cpp
     pttop_file.h
     pttop_file.cpp
+    tng_file.h
+    tng_file.cpp
 
     # xdrfile
     ${PROJECT_SOURCE_DIR}/src/core/xdrfile/xdrfile.c
@@ -125,6 +131,8 @@ add_library(pteros SHARED
     ${PROJECT_SOURCE_DIR}/src/core/dssp/structure.cpp
     ${PROJECT_SOURCE_DIR}/src/core/dssp/utils.cpp    
 )
+
+target_link_libraries(pteros tng_io)
 
 #--------------
 # Installation

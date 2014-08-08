@@ -35,7 +35,8 @@ int main(int argc, char** argv)
 {
 
     try{        
-
+        System s("/home/semen/work/Projects/Besancon-2014/cisplatin/fit/amber/after_md.pdb");
+        s.load("/home/semen/work/Projects/Besancon-2014/cisplatin/fit/amber/traj.tng");
 
 
 /*
