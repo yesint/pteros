@@ -22,6 +22,7 @@
 
 #include "pteros/core/gnm.h"
 #include "pteros/core/pteros_error.h"
+#include "pteros/core/grid_search.h"
 #include <fstream>
 #include <Eigen/Core>
 #include <Eigen/Dense>
@@ -46,6 +47,8 @@ void GNM::compute(Selection& sel, float cutoff){
 
     kirk.fill(0.0);
     // Compute off-diagonal elements
+
+    /*
     for(i=0;i<N-1;++i)
         for(j=i+1;j<N;++j){            
             d = (sel.XYZ(i)-sel.XYZ(j)).norm();
@@ -54,6 +57,15 @@ void GNM::compute(Selection& sel, float cutoff){
                 kirk(j,i)= -1.0;
             }
         }
+
+    */
+
+    vector<Eigen::Vector2i> bon;
+    Grid_searcher(cutoff,sel,bon);
+    for(int i=0; i<bon.size(); ++i){
+        kirk(bon[i](0),bon[i](1)) = kirk(bon[i](1),bon[i](0)) = -1.0;
+    }
+
 
 
     // Compute diagonal elements
