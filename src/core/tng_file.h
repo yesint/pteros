@@ -24,16 +24,15 @@
 #define TNG_FILE_H
 
 #include <string>
-#include "pteros/core/mol_file.h"
+//#include "pteros/core/mol_file.h"
+#include "vmd_molfile_plugin_wrapper.h"
 #include "tng_io.h"
 
 namespace pteros {
 
-class TNG_file: public Mol_file {
+class TNG_file: public VMD_molfile_plugin_wrapper {
 public:
-    TNG_file(std::string fname, char openmode);
-
-    virtual ~TNG_file();
+    TNG_file(std::string fname, char openmode);    
 
     virtual Mol_file_content get_content_type() const {
         Mol_file_content c;
@@ -42,15 +41,6 @@ public:
         return c;
     }
 
-protected:
-    virtual bool do_read(System* sys, Frame* frame, const Mol_file_content& what);
-    virtual void do_write(const Selection& sel, const Mol_file_content& what);
-
-private:
-    float unit_conv;
-    tng_trajectory_t trj;
-    int64_t n_atoms;
-    int64_t cur_fr;
 };
 
 }

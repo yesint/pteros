@@ -2,6 +2,7 @@ IF(VMD_PDB)
     add_definitions(-DVMD_PDB)
 ENDIF()
 
+# Build separate tng_io library (will linked later)
 add_subdirectory(${PROJECT_SOURCE_DIR}/src/core/tng_io)
 
 #------------------------
@@ -18,10 +19,7 @@ if(POWERSASA)
     )
 
     message("------------------------------")
-    message("POWERSASA code is used! \n This implies severe license restrictions! \n Read the comment in src/core/sasa/power_sasa.h carefully. \n If you don't agree with this license please use flag -DPOWERSASA=\"OFF\" !")       
-
-    # POWERSASA requires c++11
-    set_source_files_properties(${SASA_FILES} PROPERTIES COMPILE_FLAGS -std=c++0x)
+    message("POWERSASA code is used! \n This implies severe license restrictions! \n Read the comment in src/core/sasa/power_sasa.h carefully. \n If you don't agree with this license please use flag -DPOWERSASA=\"OFF\" !")
 
 else()
     SET(SASA_FILES "")
@@ -111,6 +109,7 @@ add_library(pteros SHARED
     ${PROJECT_SOURCE_DIR}/src/core/molfile_plugins/pdbplugin.c
     ${PROJECT_SOURCE_DIR}/src/core/molfile_plugins/fastio.h
     ${PROJECT_SOURCE_DIR}/src/core/molfile_plugins/dcdplugin.c
+    ${PROJECT_SOURCE_DIR}/src/core/molfile_plugins/tngplugin.cpp
 
     #SASA (will be empty if not used)
     ${SASA_FILES}

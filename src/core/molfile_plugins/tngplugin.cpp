@@ -281,8 +281,7 @@ static int read_tng_timestep(void *v, int natoms, molfile_timestep_t *ts)
 //     fprintf(stderr, "Reading framestep from TNG\n");
    
     stat = tng_util_particle_data_next_frame_read(tng->tng_traj, TNG_TRAJ_POSITIONS, &values,
-                                                  &datatype, &frame, &ts->physical_time);
-    printf("%d %d --> ",frame,stat);
+                                                  &datatype, &frame, &ts->physical_time);    
     if(stat != TNG_SUCCESS)
     {
         return MOLFILE_ERROR;
@@ -466,8 +465,7 @@ static int write_tng_timestep(void *v, const molfile_timestep_t *ts)
     /* If there are fewer particles in the TNG mol system (write_tng_structure
      * has not already been performed) compensate by creating implicit particles,
      * which will not have full atom information. */
-    //tng_implicit_num_particles_set(tng->tng_traj, tng->natoms);
-    tng_implicit_num_particles_set(tng->tng_traj, 641);
+    tng_implicit_num_particles_set(tng->tng_traj, tng->natoms);
 
     if(!ts)
     {

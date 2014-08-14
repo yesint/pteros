@@ -293,6 +293,7 @@ void VMD_molfile_plugin_wrapper::do_write(const Selection &sel, const Mol_file_c
             k+=3;
         }
         ts.coords = &buffer.front();
+        ts.velocities = NULL; // No velocities currently supported
         // Only convert periodic box if it is present
         if(sel.get_system()->Box(sel.get_frame()).is_periodic()){
             Eigen::Vector3f v,a;

@@ -21,13 +21,20 @@
 */
 
 #include "tng_file.h"
-#include "molfile_plugin.h"
-#include "pteros/core/pteros_error.h"
 
 using namespace std;
 using namespace pteros;
 using namespace Eigen;
 
+extern molfile_plugin_t tng_plugin;
+
+TNG_file::TNG_file(string fname, char open_mode): VMD_molfile_plugin_wrapper(fname,open_mode){
+    plugin = &tng_plugin;
+    accepted_format = TNG_FILE;
+    open(fname,open_mode);
+}
+
+/*
 TNG_file::TNG_file(string fname, char open_mode): Mol_file(fname, open_mode){
     if(open_mode=='r'){
         if( tng_util_trajectory_open(fname.c_str(),'r',&trj) != TNG_SUCCESS )
@@ -39,10 +46,6 @@ TNG_file::TNG_file(string fname, char open_mode): Mol_file(fname, open_mode){
 
         tng_num_particles_get(trj, &n_atoms);
 
-        int64_t n1,n2;
-        tng_num_frames_get(trj, &n1);
-        tng_num_frame_sets_get(trj, &n2);
-        cout << n1 << " " << n2 << endl;
         cur_fr = 1;
 
     } else {
@@ -62,16 +65,18 @@ bool TNG_file::do_read(System *sys, Frame *frame, const Mol_file_content &what)
     int64_t len;
     double time_stamp;
 
+    void* values = 0;
+    int64_t frame_num;
+    double frame_time;
+
     if(what.coordinates || what.trajectory){
 
-        frame->coord.resize(n_atoms);
-
-        float* ptr = (float*)&frame->coord.front();
-
-        stat = tng_util_pos_read_range(trj,cur_fr,cur_fr, &ptr, &len);
-        cout << cur_fr << " " << stat << " " << frame->coord[0].transpose() << endl;
-        if(stat) cur_fr++;
-
+        stat = tng_util_particle_data_next_frame_read(trj, TNG_TRAJ_POSITIONS, &values,
+                                                      &datatype, &frame_num, &frame_time);
+        cout << cur_fr << " " << stat << endl;
+        if(stat){
+            cur_fr++;
+        }
     }
 
     return stat;
@@ -82,3 +87,4 @@ void TNG_file::do_write(const Selection &sel, const Mol_file_content &what)
 
 }
 
+*/

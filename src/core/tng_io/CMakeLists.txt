@@ -1,6 +1,6 @@
-#cmake_minimum_required(VERSION 2.8.8)
-
-#project(TNG_IO)
+##########################################
+# This file is MODIFIED by Pteros!
+##########################################
 
 message("Configuring TNG library...")
 
@@ -45,6 +45,10 @@ add_library(tng_io ${TNG_SOURCES})
 target_link_libraries(tng_io ${EXTRA_LIBRARIES})
 
 set_target_properties(tng_io PROPERTIES VERSION ${TNG_IO_VERSION} SOVERSION ${TNG_MAJOR_VERSION})
+
+##########################################
+# Install to lib directory of Pteros tree
+##########################################
 
 install(TARGETS tng_io
     LIBRARY DESTINATION lib
