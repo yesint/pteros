@@ -32,7 +32,7 @@
 #include <unordered_set>
 #include <regex>
 
-#include "pteros/core/selection_grammar.h"
+#include "selection_grammar.h"
 
 //-----------------------------------------------------
 //  Functions for creating actual selection from AST
@@ -484,9 +484,9 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
                     if(sys->atoms[at].resindex == k) result.push_back(at);
             } else {
                 // this is a range, not an integer
-                AstNode_ptr range = node->child_node(i);
-                int i1 = boost::get<int>(range->children[0]);
-                int i2 = boost::get<int>(range->children[1]);
+                AstNode_ptr range = node->child_node(i);                
+                int i1 = range->child_as_int(0);
+                int i2 = range->child_as_int(1);
                 for(k=i1;k<=i2;++k)
                     for(at=0;at<Natoms;++at)
                         // Even if k is out of range, nothing will crash here
@@ -508,8 +508,8 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
             } else {
                 // this is a range, not an integer
                 AstNode_ptr range = node->child_node(i);
-                int i1 = boost::get<int>(range->children[0]);
-                int i2 = boost::get<int>(range->children[1]);
+                int i1 = range->child_as_int(0);
+                int i2 = range->child_as_int(1);
                 for(k=i1;k<=i2;++k)
                     for(at=0;at<Natoms;++at)
                         // Even if k is out of range, nothing will crash here
@@ -531,8 +531,8 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
             } else {
                 // this is a range, not an integer
                 AstNode_ptr range = node->child_node(i);
-                int i1 = boost::get<int>(range->children[0]);
-                int i2 = boost::get<int>(range->children[1]);
+                int i1 = range->child_as_int(0);
+                int i2 = range->child_as_int(1);
                 for(k=i1;k<=i2;++k)
                     // We have to check the range here
                     if(k>=0 && k<Natoms)
