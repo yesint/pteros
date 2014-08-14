@@ -637,6 +637,8 @@ public:
                KEYWORD_LIST_STR()
                 ||
                KEYWORD_INT_STR()
+                ||
+               RESID_RULE()
                 ;        
     END_RULE
 
@@ -733,12 +735,24 @@ public:
         } // _ok_
     END_RULE
 
+    // resid could be negative in some funny structures, so INT, not UINT
+    RULE(RESID_RULE)
+        _ok_ = RESID() && SP() && OneOrMore( RANGE_SIGNED()||INT() && SP_() );
+
+        if(_ok_){
+            for(int i=1; i<NUM_SUBRULES(); ++i){
+                SUBRULE(0)->children.push_back(SUBRULE(i));
+            }
+            _this_rule_ = SUBRULE(0);
+        } // _ok_
+    END_RULE
+
     RULE_REDUCE(STR_KEYWORD)
         _ok_ = NAME() || RESNAME() || TAG() || CHAIN();
     END_RULE
 
     RULE_REDUCE(INT_KEYWORD)
-        _ok_ = RESID() || RESINDEX() || INDEX();    
+        _ok_ = RESINDEX() || INDEX();
     END_RULE
 
     RULE(STR)
@@ -798,6 +812,13 @@ public:
 
     RULE(RANGE)
         _ok_ = UINT() && SP_() && (TO(false)||MINUS(false)) && SP_() && UINT();
+        if(_ok_){
+            _this_rule_->code = TOK_TO;
+        } // _ok_
+    END_RULE
+
+    RULE(RANGE_SIGNED)
+        _ok_ = INT() && SP_() && (TO(false)||MINUS(false)) && SP_() && INT();
         if(_ok_){
             _this_rule_->code = TOK_TO;
         } // _ok_
