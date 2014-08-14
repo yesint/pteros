@@ -33,6 +33,7 @@ FILE_FORMATS recognize_format(std::string& fname){
     else if(ftype=="gro")   return GRO_FILE;
     else if(ftype=="dcd")   return DCD_FILE;
     else if(ftype=="pttop") return PTTOP_FILE;
+    else if(ftype=="tng") return TNG_FILE;
     else throw Pteros_error("File extension "+ftype+ " not recognized!");
 }
 

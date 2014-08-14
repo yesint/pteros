@@ -25,6 +25,7 @@
 #include <Eigen/Core>
 #include "pteros/core/pteros_error.h"
 #include "pteros/core/selection.h"
+#include "../core/tng_io/include/tng/tng_io.h"
 
 using namespace std;
 using namespace pteros;
@@ -34,13 +35,32 @@ using namespace Eigen;
 int main(int argc, char** argv)
 {
 
-    try{        
+    try{
+        /*
+        tng_trajectory_t trj;
+        string fname("/home/semen/work/Projects/Besancon-2014/cisplatin/fit/amber/traj.tng");
+        tng_util_trajectory_open(fname.c_str(),'r',&trj);
 
+        int stat = TNG_SUCCESS;
+        char datatype;
+        void* values = 0;
+        int64_t frame_num;
+        double frame_time;
 
-System s("/home/semen/work/Projects/kornelyuk/dimer_human/3.2.pdb");
-Selection sel(s,"all");
-Selection sel1(s,"all");
-cout << sel.size() << endl;
+        while(stat==TNG_SUCCESS){
+
+            stat = tng_util_particle_data_next_frame_read(trj, TNG_TRAJ_POSITIONS, &values,
+                                                          &datatype, &frame_num, &frame_time);
+            cout << stat << " " << frame_num<< endl;
+        }
+        */
+
+        //System s("/home/semen/work/Projects/Besancon-2014/cisplatin/fit/amber/after_md.pdb");
+        //s.load("/home/semen/work/Projects/Besancon-2014/cisplatin/fit/amber/traj.tng");
+        System s("/home/semen/work/Projects/Besancon-2014/cisplatin/fit/amber/traj.tng");
+
+        Selection sel(s,"all");
+        sel.write("test.tng");
 
 /*
 Grammar g("ups");

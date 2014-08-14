@@ -30,6 +30,7 @@
 #include "trr_file.h"
 #include "xtc_file.h"
 #include "pttop_file.h"
+#include "tng_file.h"
 
 using namespace std;
 using namespace pteros;
@@ -131,18 +132,10 @@ unique_ptr<Mol_file> pteros::io_factory(string fname, char open_mode){
     case TRR_FILE:
         return unique_ptr<Mol_file>(new TRR_file(fname,open_mode));
     case XTC_FILE:
-        return unique_ptr<Mol_file>(new XTC_file(fname,open_mode));
-    /*
-    case TPR_FILE: {
-        // TPR files are first converted to PTTOP
-        cout << "Running tpr2pteros.py script on file '" << fname << "'..." << endl;
-        string cmd("tpr2pteros.py "+fname);
-        int ret = system(cmd.c_str());
-        if(ret>0) throw Pteros_error("Error executing tpr2pteros.py! Is it in the PATH?");
-        return shared_ptr<Mol_file>(new PTTOP_file(fname+".pttop",open_mode));
-    }
-    */
+        return unique_ptr<Mol_file>(new XTC_file(fname,open_mode));    
     case PTTOP_FILE:
         return unique_ptr<Mol_file>(new PTTOP_file(fname,open_mode));
+    case TNG_FILE:
+        return unique_ptr<Mol_file>(new TNG_file(fname,open_mode));
     }
 }
