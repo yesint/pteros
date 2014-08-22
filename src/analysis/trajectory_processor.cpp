@@ -212,8 +212,26 @@ void Trajectory_processor::run(){
         // we have both topology and structure
         sys1->load(structure_file);
         sys1->load(top_file); // No coordinates from top!
-    } else {
-        Pteros_error("Structure AND/OR topology file is required!");
+    } else {                
+        // No topology and no structure!
+        // try using first TNG file as structure
+        for(auto& s: traj_files)
+            if(recognize_format(s)==TNG_FILE){
+                structure_file = s;
+                // We only need to load structure from TNG here
+                cout << "Uning TNG file " << s << " to read structure..." << endl;
+                auto f = io_factory(structure_file,'r');
+                Mol_file_content c;
+                c.structure = true;
+                Frame fr;
+                f->read(sys1,&fr,c);
+                sys1->frame_append(fr);
+                break;
+            }
+
+        // If still no structure give up
+        if(structure_file=="")
+            Pteros_error("Structure AND/OR topology file is required!");
     }
 
     // Copy system to other consumers if needed
