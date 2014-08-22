@@ -189,6 +189,7 @@ void Trajectory_processor::run(){
         case TRR_FILE:
         case XTC_FILE:
         case DCD_FILE:
+        case TNG_FILE:
             traj_files.push_back(s);
             break;
         }
