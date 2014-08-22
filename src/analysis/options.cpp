@@ -66,10 +66,10 @@ void parse_command_line(int argc, char** argv,
                 } else {
                     tsk.data.push_back(o);
                 }
-            }            
+            }
 
             // See if we got task tag
-            if(str==task_tag){
+            if(str==task_tag){            
                 if(i==argc-1) throw Pteros_error("Incomplete task at the end of command line!");
                 // If we already been in task mode, then end old task
                 if(in_task){
@@ -95,14 +95,17 @@ void parse_command_line(int argc, char** argv,
             if(!has_key && in_task){
                 // This is task name
                 if(tsk.task_name!="") throw Pteros_error("Error: double task name '"+str+"'");
-                if(i==argc-1) throw Pteros_error("Incomplete task at the end of command line!");
                 tsk.task_name = str;
+                if(i==argc-1) tasks.push_back(tsk);
                 continue;
             }
             // Add it
             o.data.push_back(str);
         }
     }
+
+    //TODO: last task without options doesn't work...
+
     // At the end see where to put last option
     if(o.name!=""){
         if(!in_task){
