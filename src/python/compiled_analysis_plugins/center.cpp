@@ -23,19 +23,22 @@ public:
     }
 
 protected:
-    void pre_process(){                
-        string sel_text = options("selection").as_string();
-        use_mass = options("mass_weighted","false").as_bool();        
-        sel.modify(system,sel_text);
+    void pre_process(){
+
+        use_mass = options("mass_weighted","false").as_bool();                
 
         string fname = label+".dat";
         f.open(fname.c_str());
         f << "# time center_x center_y center_z" << endl;
     }
 
-    void process_frame(const Frame_info &info){
-        sel.apply();
-        f << info.absolute_time << " " << sel.center(use_mass).transpose() << endl;
+    void process_frame(const Frame_info &info){        
+        if(info.valid_frame==0){
+            string sel_text = options("selection").as_string();
+            sel.modify(system,sel_text);
+        }
+        sel.apply();        
+        f << info.absolute_time << " " << sel.center(use_mass).transpose() << endl;        
     }
 
     void post_process(const Frame_info &info){        

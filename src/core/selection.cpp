@@ -54,8 +54,8 @@ void Selection::allocate_parser(){
     // Parser is heavy object, so if selection is not persistent
     // we will delete it after parsing is complete
     parser.reset(new Selection_parser);
-    parser->create_ast(sel_text);    
-    parser->apply(system, frame, index);
+    parser->create_ast(sel_text);        
+    parser->apply(system, frame, index);    
     if(!parser->has_coord){
         parser.reset();
     }
@@ -211,10 +211,10 @@ void Selection::clear(){
 // Modify selection with new selection string
 void Selection::modify(string str){
     if(system==nullptr) throw Pteros_error("Selection does not belong to any system!");
-    sel_text = str;
+    sel_text = str;    
     boost::trim(sel_text);
-    index.clear();
-    allocate_parser();
+    index.clear();    
+    allocate_parser();    
 }
 
 void Selection::modify(int ind1, int ind2){
@@ -255,9 +255,9 @@ void Selection::modify(std::vector<int>::iterator it1, std::vector<int>::iterato
     }
 }
 
-void Selection::modify(const System &sys, string str){
-    set_system(sys);
-    modify(str);
+void Selection::modify(const System &sys, string str){    
+    set_system(sys);    
+    modify(str);    
 }
 
 void Selection::modify(const System &sys, int ind1, int ind2){

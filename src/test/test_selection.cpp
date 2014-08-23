@@ -55,12 +55,14 @@ int main(int argc, char** argv)
         }
         */
 
-        //System s("/home/semen/work/Projects/Besancon-2014/cisplatin/fit/amber/after_md.pdb");
+        System s("/home/semen/work/Projects/Besancon-2014/cisplatin/fit/amber/after_md.pdb");
         //s.load("/home/semen/work/Projects/Besancon-2014/cisplatin/fit/amber/traj.tng");
-        System s("/home/semen/work/Projects/Besancon-2014/cisplatin/fit/amber/traj.tng");
+        //System s("/home/semen/work/Projects/Besancon-2014/cisplatin/fit/amber/traj.tng");
 
-        Selection sel(s,"all");
-        sel.write("test.tng");
+        Selection sel;
+        sel.modify(s,"x>1");
+        cout << sel.size() << endl;
+        //sel.write("test.tng");
 
 /*
 Grammar g("ups");

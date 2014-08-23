@@ -218,7 +218,7 @@ void Trajectory_processor::run(){
         for(auto& s: traj_files)
             if(recognize_format(s)==TNG_FILE){
                 structure_file = s;
-                // We only need to load structure from TNG here
+                // We only need to load structure and first frame from TNG here
                 cout << "Uning TNG file " << s << " to read structure..." << endl;
                 auto f = io_factory(structure_file,'r');
                 Mol_file_content c;

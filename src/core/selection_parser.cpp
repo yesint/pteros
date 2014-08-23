@@ -299,7 +299,7 @@ void Selection_parser::apply(System* system, size_t fr, vector<int>& result){
         cout << "Tree after optimizaton:" << endl;
         tree->dump(0);
 #endif
-    }
+    }    
 
     // Eval root node
     eval_node(tree,result,NULL);
@@ -662,13 +662,13 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
         }
         return;
     //---------------------------------------------------------------------------
-    case  TOK_GT:
-        if(!subspace){
+    case  TOK_GT:        
+        if(!subspace){            
             for(at=0;at<Natoms;++at) // over all atoms
                 if(eval_numeric(node->child_node(0),at) >
                    eval_numeric(node->child_node(1),at)
-                  ) result.push_back(at);
-        } else {
+                  ) result.push_back(at);            
+        } else {            
             for(int i=0;i<subspace->size();++i){ // over subspace
                 at = (*subspace)[i];
                 if(eval_numeric(node->child_node(0),at) >
@@ -718,9 +718,9 @@ float Selection_parser::eval_numeric(AstNode_ptr& node, int at){
         return boost::get<int>(node->children[0]);
     } else if(node->code == TOK_UINT){
         return boost::get<int>(node->children[0]);
-    } else if(node->code == TOK_FLOAT){
+    } else if(node->code == TOK_FLOAT){        
         return boost::get<float>(node->children[0]);
-    } else if(node->code == TOK_X){
+    } else if(node->code == TOK_X){        
         return sys->traj[frame].coord[at](0);
     } else if(node->code == TOK_Y){
         return sys->traj[frame].coord[at](1);

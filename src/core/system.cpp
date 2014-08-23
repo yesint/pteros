@@ -86,8 +86,19 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
     auto f = io_factory(fname,'r');
 
     int num_stored = 0;    
+
+    if(num_atoms()==0){
+        // We don't have atoms yet, so we will read everything possible except frames
+        // Append new frame where the data will go
+        Mol_file_content c = f->get_content_type();
+        // Clear flags for trajectory and coordinates
+        c.coordinates = c.trajectory = false;
+        f->read(this,NULL,c);
+        assign_resindex();
+    }
+
     // Do we have some structure?
-    if(num_atoms()>0){
+    if(num_atoms()>0){                
         // We have atoms already, so read only coordinates
         if(!f->get_content_type().coordinates && !f->get_content_type().trajectory)
             throw Pteros_error("File reader for file '"+fname
@@ -156,7 +167,7 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
                 if(on_frame) callback_ok = on_frame(this,num_frames()-1);
                 // If callback returns false stop reading
                 if(!callback_ok) break;
-            }        
+            }
         } else if(f->get_content_type().coordinates) {
             Mol_file_content c;
             c.coordinates = true;
@@ -171,21 +182,6 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
             // Call a callback if asked
             if(on_frame) on_frame(this,num_frames()-1);
         }
-    } else {
-        // We don't have atoms yet, so we will read everything possible
-        // Append new frame where the data will go
-        Frame fr;
-        frame_append(fr);
-        Mol_file_content c = f->get_content_type();
-        f->read(this,&Frame_data(num_frames()-1),c);
-
-        check_num_atoms_in_last_frame();
-        ++num_stored;
-
-        assign_resindex();
-
-        // Call a callback if asked
-        if(on_frame) on_frame(this,num_frames()-1);
     }
 
     cout << "Accepted " << num_stored << " frames. Now " << num_frames() << " frames in the System" << endl;
