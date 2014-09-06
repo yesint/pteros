@@ -244,12 +244,14 @@ void System::frame_append(const Frame& fr){
     traj.push_back(fr);
 }
 
-void System::assign_resindex(){
+void System::assign_resindex(int start){
+    if(start<0) start=0;
     //cout << "Assigning resindex..." << endl;
-    int curres = atoms[0].resid;
-    int curchain = atoms[0].chain;
+    int curres = atoms[start].resid;
+    int curchain = atoms[start].chain;
     int cur = 0;
-    for(int i=0; i<atoms.size(); ++i){
+    if(start>0) cur = atoms[start].resindex;
+    for(int i=start; i<atoms.size(); ++i){
         if( atoms[i].resid!=curres || atoms[i].chain!=curchain ){
             ++cur;
             curres = atoms[i].resid;
@@ -371,7 +373,7 @@ void System::atoms_delete(const std::vector<int> &ind){
     }
 }
 
-void System::append(const System &sys){
+void System::append(const System &sys, Selection *res_sel){
     //Sanity check
     if(num_frames()>0 && num_frames()!=sys.num_frames()) throw Pteros_error("Can't merge systems with different number of frames!");
     // If no frames create needed ammount
@@ -380,6 +382,9 @@ void System::append(const System &sys){
         transfer_time_box = true;
         traj.resize(sys.num_frames());
     }
+
+    int first_added = num_atoms();
+
     // Merge atoms
     copy(sys.atoms.begin(),sys.atoms.end(),back_inserter(atoms));
     // Merge coordinates
@@ -390,11 +395,16 @@ void System::append(const System &sys){
         }
         copy(sys.traj[fr].coord.begin(),sys.traj[fr].coord.end(),back_inserter(traj[fr].coord));
     }
-    // Reassign resindex
-    assign_resindex();
+
+    // Reassign resindex for added atoms
+    assign_resindex(first_added-1);
+
+    if(res_sel){
+        res_sel->modify(*this,first_added,num_atoms()-1);
+    }
 }
 
-void System::append(const Selection &sel){
+void System::append(const Selection &sel, Selection *res_sel){
     //Sanity check
     if(num_frames()>0 && num_frames()!=sel.get_system()->num_frames()) throw Pteros_error("Can't merge systems with different number of frames!");
     // If no frames create needed ammount
@@ -403,6 +413,9 @@ void System::append(const Selection &sel){
         transfer_time_box = true;
         traj.resize(sel.get_system()->num_frames());
     }
+
+    int first_added = num_atoms();
+
     // Merge atoms
     atoms.reserve(atoms.size()+sel.size());
     for(int i=0;i<sel.size();++i) atoms.push_back(sel.Atom_data(i));
@@ -418,7 +431,11 @@ void System::append(const Selection &sel){
         }
     }
     // Reassign resindex
-    assign_resindex();
+    assign_resindex(first_added-1);
+
+    if(res_sel){
+        res_sel->modify(*this,first_added,num_atoms()-1);
+    }
 }
 
 Selection System::select(string str){

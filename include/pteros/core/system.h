@@ -121,10 +121,10 @@ public:
     ~System();
 
     /// Append other system to this one
-    void append(const System& sys);
+    void append(const System& sys, Selection* res_sel=nullptr);
 
     /// Append atoms from selection to this system
-    void append(const Selection& sel);
+    void append(const Selection& sel, Selection* res_sel=nullptr);
 
     /// @}
 
@@ -357,7 +357,7 @@ public:
 
     /// Assign unique resindexes
     /// This is usually done automatically upon loading a structure from file
-    void assign_resindex();
+    void assign_resindex(int start=0);
 
     /// Sorts atoms by resindex arranging atoms with the same resindexes
     /// into contigous pieces. Could be called after atom additions or duplications.

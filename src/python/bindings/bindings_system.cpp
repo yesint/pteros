@@ -35,6 +35,7 @@ using namespace boost::python;
 
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(load_overloads, load, 1, 4)
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(frame_delete_overloads, frame_delete, 0, 2)
+BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(append_overloads, append, 1, 2)
 
 const Periodic_box& System_getBox(System* s, int fr){
     return s->Box(fr);
@@ -160,8 +161,8 @@ void make_bindings_System(){
         .def("atoms_add", &System_atoms_add2)             
         .def("wrap_all", &System_wrap_all1)
         .def("wrap_all", &System_wrap_all2)
-        .def("append", static_cast<void(System::*)(const Selection&)>(&System::append))
-        .def("append", static_cast<void(System::*)(const System&)>(&System::append))
+        .def("append", static_cast<void(System::*)(const Selection&,Selection*)>(&System::append), append_overloads())
+        .def("append", static_cast<void(System::*)(const System&,Selection*)>(&System::append), append_overloads())
         .def("dssp", static_cast<void(System::*)(std::string)const>(&System::dssp))
         .def("dssp", static_cast<std::string(System::*)()const>(&System::dssp))
         .def("sort_by_resindex",&System::sort_by_resindex)
