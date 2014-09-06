@@ -24,7 +24,6 @@ public:
 
 protected:
     void pre_process(){
-
         use_mass = options("mass_weighted","false").as_bool();                
 
         string fname = label+".dat";
@@ -36,8 +35,9 @@ protected:
         if(info.valid_frame==0){
             string sel_text = options("selection").as_string();
             sel.modify(system,sel_text);
+        } else {
+            sel.apply();
         }
-        sel.apply();        
         f << info.absolute_time << " " << sel.center(use_mass).transpose() << endl;        
     }
 

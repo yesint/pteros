@@ -88,12 +88,27 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
     int num_stored = 0;    
 
     if(num_atoms()==0){
-        // We don't have atoms yet, so we will read everything possible except frames
-        // Append new frame where the data will go
+        // We don't have atoms yet, so we will read everything possible except trajectory
         Mol_file_content c = f->get_content_type();
-        // Clear flags for trajectory and coordinates
-        c.coordinates = c.trajectory = false;
-        f->read(this,NULL,c);
+
+        if(f->get_content_type().coordinates && !f->get_content_type().trajectory){
+            // If we have single frame read it directly here
+            Frame fr;
+            frame_append(fr);
+            f->read(this,&Frame_data(num_frames()-1),c);
+            check_num_atoms_in_last_frame();
+            ++num_stored;
+            // Call a callback if asked
+            if(on_frame) on_frame(this,num_frames()-1);
+            // And now we should just exit
+            return;
+        } else {
+            // We have not a single frame, so read only structure here
+            // Clear flags for trajectory and coordinates
+            c.coordinates = c.trajectory = false;
+            f->read(this,NULL,c);
+        }
+
         assign_resindex();
     }
 

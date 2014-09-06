@@ -55,7 +55,8 @@ int main(int argc, char** argv)
         }
         */
 
-        System s("/home/semen/work/Projects/Besancon-2014/cisplatin/fit/amber/after_md.pdb");
+        System s("/media/semen/data/semen/trajectories/asymmetric_hexagonal/with_c60/last.gro");
+        //System s("/home/semen/work/Projects/Besancon-2014/cisplatin/fit/amber/after_md.pdb");
         //s.load("/home/semen/work/Projects/Besancon-2014/cisplatin/fit/amber/traj.tng");
         //System s("/home/semen/work/Projects/Besancon-2014/cisplatin/fit/amber/traj.tng");
 
