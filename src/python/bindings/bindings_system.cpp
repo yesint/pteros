@@ -35,7 +35,6 @@ using namespace boost::python;
 
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(load_overloads, load, 1, 4)
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(frame_delete_overloads, frame_delete, 0, 2)
-BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(append_overloads, append, 1, 2)
 
 const Periodic_box& System_getBox(System* s, int fr){
     return s->Box(fr);
@@ -72,20 +71,15 @@ void System_setFrame_data(System* s, Frame& data, int fr){
 }
 
 
-void System_atoms_dup1(System* s, boost::python::list& data, Selection* sel){
+Selection System_atoms_dup(System* s, boost::python::list& data){
     vector<int> r;
     r.resize(len(data));
     for(int i=0;i<r.size();++i) r[i] = extract<int>(data[i]);
-    s->atoms_dup(r,sel);
+    return s->atoms_dup(r);
 }
 
-void System_atoms_dup2(System* s, boost::python::list& data){
-    System_atoms_dup1(s,data,NULL);
-}
-
-void System_atoms_add1(System* s, boost::python::list& atm,
-                       boost::python::list& crd,
-                       Selection* sel){
+Selection System_atoms_add(System* s, boost::python::list& atm,
+                       boost::python::list& crd){
     vector<Atom> a;
     vector<Vector3f> c;
     a.resize(len(atm));
@@ -96,12 +90,9 @@ void System_atoms_add1(System* s, boost::python::list& atm,
         MAP_EIGEN_TO_PYTHON_F(Vector3f,v,o.ptr())
         c[i] = v;
     }
-    s->atoms_add(a,c,sel);
+    return s->atoms_add(a,c);
 }
 
-void System_atoms_add2(System* s, boost::python::list& atm, boost::python::list& crd){
-    System_atoms_add1(s,atm,crd,NULL);
-}
 
 void System_load_callback(System* sys, string fname, int b, int e, int skip, boost::python::object obj){
     // Create a callback from obj
@@ -155,14 +146,12 @@ void make_bindings_System(){
         .def("setXYZ", &System_setXYZ)
         .def("frame_append", &System::frame_append)
         .def("assign_resindex", &System::assign_resindex)
-        .def("atoms_dup", &System_atoms_dup1)
-        .def("atoms_dup", &System_atoms_dup2)
-        .def("atoms_add", &System_atoms_add1)
-        .def("atoms_add", &System_atoms_add2)             
+        .def("atoms_dup", &System_atoms_dup)
+        .def("atoms_add", &System_atoms_add)
         .def("wrap_all", &System_wrap_all1)
         .def("wrap_all", &System_wrap_all2)
-        .def("append", static_cast<void(System::*)(const Selection&,Selection*)>(&System::append), append_overloads())
-        .def("append", static_cast<void(System::*)(const System&,Selection*)>(&System::append), append_overloads())
+        .def("append", static_cast<Selection(System::*)(const Selection&)>(&System::append))
+        .def("append", static_cast<Selection(System::*)(const System&)>(&System::append))
         .def("dssp", static_cast<void(System::*)(std::string)const>(&System::dssp))
         .def("dssp", static_cast<std::string(System::*)()const>(&System::dssp))
         .def("sort_by_resindex",&System::sort_by_resindex)

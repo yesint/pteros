@@ -41,7 +41,6 @@ BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(principal_orient_overloads, principal_ori
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(unwrap_bonds_overloads, unwrap_bonds, 0, 1)
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(non_bond_energy_overloads, non_bond_energy, 0, 2)
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(rmsd_overloads, rmsd, 1, 2)
-BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(atoms_dup_overloads, atoms_dup, 0, 1)
 
 
 PyObject* Selection_get_xyz(Selection* s){    
@@ -600,7 +599,7 @@ void make_bindings_Selection(){
 
         .def("write",&Selection::write, write_overloads())
 
-        .def("atoms_dup",&Selection::atoms_dup, atoms_dup_overloads())
+        .def("atoms_dup",&Selection::atoms_dup)
 
 
         .def("atoms_delete",&Selection::atoms_delete)

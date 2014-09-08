@@ -281,7 +281,7 @@ void System::sort_by_resindex()
     }
 }
 
-void System::atoms_dup(const vector<int>& ind, Selection* res_sel){
+Selection System::atoms_dup(const vector<int>& ind){
     // Sanity check
     if(!ind.size()) throw Pteros_error("No atoms to duplicate!");
     for(int i=0; i<ind.size(); ++i){
@@ -308,12 +308,11 @@ void System::atoms_dup(const vector<int>& ind, Selection* res_sel){
         }
     }
 
-    if(res_sel){        
-        res_sel->modify(*this,first_added,last_added);
-    }
+
+    return Selection(*this,first_added,last_added);
 }
 
-void System::atoms_add(const vector<Atom>& atm, const vector<Vector3f>& crd, Selection* res_sel){
+Selection System::atoms_add(const vector<Atom>& atm, const vector<Vector3f>& crd){
     // Sanity check
     if(!atm.size()) throw Pteros_error("No atoms to add!");
     if(atm.size()!=crd.size()) throw Pteros_error("Wrong number of coordinates for adding atoms!");
@@ -335,9 +334,7 @@ void System::atoms_add(const vector<Atom>& atm, const vector<Vector3f>& crd, Sel
         }
     }
 
-    if(res_sel){        
-        res_sel->modify(*this,first_added,last_added);
-    }
+    return Selection(*this,first_added,last_added);
 }
 
 void System::atoms_delete(const std::vector<int> &ind){
@@ -373,7 +370,7 @@ void System::atoms_delete(const std::vector<int> &ind){
     }
 }
 
-void System::append(const System &sys, Selection *res_sel){
+Selection System::append(const System &sys){
     //Sanity check
     if(num_frames()>0 && num_frames()!=sys.num_frames()) throw Pteros_error("Can't merge systems with different number of frames!");
     // If no frames create needed ammount
@@ -399,12 +396,10 @@ void System::append(const System &sys, Selection *res_sel){
     // Reassign resindex for added atoms
     assign_resindex(first_added-1);
 
-    if(res_sel){
-        res_sel->modify(*this,first_added,num_atoms()-1);
-    }
+    return Selection(*this,first_added,num_atoms()-1);
 }
 
-void System::append(const Selection &sel, Selection *res_sel){
+Selection System::append(const Selection &sel){
     //Sanity check
     if(num_frames()>0 && num_frames()!=sel.get_system()->num_frames()) throw Pteros_error("Can't merge systems with different number of frames!");
     // If no frames create needed ammount
@@ -433,9 +428,8 @@ void System::append(const Selection &sel, Selection *res_sel){
     // Reassign resindex
     assign_resindex(first_added-1);
 
-    if(res_sel){
-        res_sel->modify(*this,first_added,num_atoms()-1);
-    }
+
+    return Selection(*this,first_added,num_atoms()-1);
 }
 
 Selection System::select(string str){

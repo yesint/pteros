@@ -1254,8 +1254,8 @@ MatrixXf Selection::atom_traj(int ind, int b, int e) const {
     return ret;
 }
 
-void Selection::atoms_dup(Selection *res_sel){
-    system->atoms_dup(index,res_sel);
+Selection Selection::atoms_dup(){
+    return system->atoms_dup(index);
 }
 
 void Selection::atoms_delete(){
@@ -1270,7 +1270,7 @@ void Selection::distribute(Vector3i_const_ref ncopies, Vector3f_const_ref shift)
     b = system->num_atoms(); // First added atom
     e = b;
     for(int i = 1; i<ncopies(0); ++i){
-        atoms_dup(&res);
+        res = atoms_dup();
         e += index.size()-1;
         res.translate(Vector3f(shift(0)*i,0,0));
     }
@@ -1278,7 +1278,7 @@ void Selection::distribute(Vector3i_const_ref ncopies, Vector3f_const_ref shift)
     tmp.modify(b,e);
     tmp.append(*this); // Add this selection to tmp
     for(int i = 1; i<ncopies(1); ++i){
-        tmp.atoms_dup(&res);
+        res = tmp.atoms_dup();
         e += tmp.size()-1;
         res.translate(Vector3f(0,shift(1)*i,0));
     }
