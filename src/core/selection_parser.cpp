@@ -477,11 +477,11 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
         int Nchildren = node->children.size(); // Get number of children
         // Cycle over children
         for(i=0;i<Nchildren;++i){
-            if(node->child_node(i)->code == TOK_UINT) {
+            if(node->child_node(i)->code == TOK_INT) { // Resid could be int!
                 k = node->child_as_int(i);
                 for(at=0;at<Natoms;++at)
                     // Even if k is out of range, nothing will crash here
-                    if(sys->atoms[at].resindex == k) result.push_back(at);
+                    if(sys->atoms[at].resid == k) result.push_back(at);
             } else {
                 // this is a range, not an integer
                 AstNode_ptr range = node->child_node(i);                
