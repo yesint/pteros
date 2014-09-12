@@ -22,6 +22,8 @@ add_library(pteros_analysis SHARED
     jump_remover.cpp
 )
 
+target_link_libraries(pteros_analysis pteros ${Boost_LIBRARIES})
+
 #------------------
 # pteros_rmsf
 #------------------

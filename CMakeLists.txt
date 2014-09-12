@@ -74,7 +74,7 @@ if(PYTHON_BINDINGS AND NOT STANDALONE_PLUGINS)
 endif()
 
 # Find Boost
-find_package(Boost 1.48.0 REQUIRED system date_time)
+find_package(Boost 1.48.0 REQUIRED system filesystem date_time)
 
 # Add Boost includes and libs globally - they are needed everywhere
 include_directories(${Boost_INCLUDE_DIRS})
