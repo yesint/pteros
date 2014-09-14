@@ -98,8 +98,11 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
             f->read(this,&Frame_data(num_frames()-1),c);
             check_num_atoms_in_last_frame();
             ++num_stored;
+
+            assign_resindex();
+
             // Call a callback if asked
-            if(on_frame) on_frame(this,num_frames()-1);
+            if(on_frame) on_frame(this,num_frames()-1);            
             // And now we should just exit
             return;
         } else {
@@ -107,9 +110,8 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
             // Clear flags for trajectory and coordinates
             c.coordinates = c.trajectory = false;
             f->read(this,NULL,c);
-        }
-
-        assign_resindex();
+            assign_resindex();
+        }        
     }
 
     // Do we have some structure?

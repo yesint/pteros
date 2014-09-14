@@ -36,6 +36,12 @@ int main(int argc, char** argv)
 {
 
     try{
+
+        System sys("/home/semen/work/temp/structure1.pml.pdb");
+        Selection sel(sys,"name C2");
+        cout << sys.num_atoms() << endl;
+        cout<<sel.XYZ(0).transpose()<<endl;
+
         /*
         tng_trajectory_t trj;
         string fname("/home/semen/work/Projects/Besancon-2014/cisplatin/fit/amber/traj.tng");
@@ -55,14 +61,14 @@ int main(int argc, char** argv)
         }
         */
 
-        System s("/media/semen/data/semen/trajectories/asymmetric_hexagonal/with_c60/last.gro");
+        //System s("/media/semen/data/semen/trajectories/asymmetric_hexagonal/with_c60/last.gro");
         //System s("/home/semen/work/Projects/Besancon-2014/cisplatin/fit/amber/after_md.pdb");
         //s.load("/home/semen/work/Projects/Besancon-2014/cisplatin/fit/amber/traj.tng");
         //System s("/home/semen/work/Projects/Besancon-2014/cisplatin/fit/amber/traj.tng");
 
-        Selection sel;
-        sel.modify(s,"x>1");
-        cout << sel.size() << endl;
+        //Selection sel;
+        //sel.modify(s,"x>1");
+        //cout << sel.size() << endl;
         //sel.write("test.tng");
 
 /*

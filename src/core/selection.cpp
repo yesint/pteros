@@ -184,7 +184,7 @@ void Selection::append(int ind){
     if(!system) throw Pteros_error("Can't append to selection with undefined system!");
     if(ind<0 || ind>=system->num_atoms()) throw Pteros_error("Appended index is out of range!");
 
-    if(find(index.begin(),index.end(),ind)!=index.end()){
+    if(find(index.begin(),index.end(),ind)==index.end()){
         index.push_back(ind);
     }
 
