@@ -51,6 +51,7 @@ set_target_properties(tng_io PROPERTIES VERSION ${TNG_IO_VERSION} SOVERSION ${TN
 ##########################################
 
 install(TARGETS tng_io
+    RUNTIME DESTINATION lib
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
 )

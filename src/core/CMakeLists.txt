@@ -37,7 +37,7 @@ include_directories(${PROJECT_SOURCE_DIR}/src/core/xdrfile)
 include_directories(${PROJECT_SOURCE_DIR}/src/core/molfile_plugins)
 # The same is for DSSP
 include_directories(${PROJECT_SOURCE_DIR}/src/core/dssp)
-# tng
+# For tng
 include_directories(${PROJECT_SOURCE_DIR}/src/core/tng_io/include/tng)
 
 #---------------------
@@ -137,8 +137,8 @@ target_link_libraries(pteros tng_io)
 # Installation
 #--------------
 
-install(TARGETS pteros
+install(TARGETS pteros    
+    RUNTIME DESTINATION lib
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
 )
-

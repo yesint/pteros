@@ -23,6 +23,7 @@
 #include "pteros/python/compiled_plugin.h"
 #include "pteros/core/pteros_error.h"
 #include "pteros/core/grid_search.h"
+#include <boost/lexical_cast.hpp>
 #include <fstream>
 
 using namespace std;
