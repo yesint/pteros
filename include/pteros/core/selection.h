@@ -34,7 +34,7 @@
 
 namespace pteros {
 
-// Forward declaration of friend class
+// Forward declaration of friend classes
 class System;
 class Selection_parser;
 class Atom_proxy;
@@ -528,12 +528,12 @@ class Selection {
     /// @name Building functions
     /// @{
 
-    /// Duplicate current selection in the parent system
-    /// @param res_sel Pointer to selection of duplicated atoms
+    /// Duplicate current selection in the parent system.
+    /// Returns selection corresponding to duplicated atoms.
     Selection atoms_dup();
 
-    /// Delete all atoms of current selection from the parent system
-    /// Current selection becomes invalid after this!
+    /// Delete all atoms of current selection from the parent system.
+    /// Current selection becomes invalid after this!.
     void atoms_delete();
 
     /// Creates multiple copies of selection in the parent system and

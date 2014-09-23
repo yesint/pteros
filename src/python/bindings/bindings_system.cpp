@@ -39,6 +39,7 @@ BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(frame_delete_overloads, frame_delete, 0, 
 const Periodic_box& System_getBox(System* s, int fr){
     return s->Box(fr);
 }
+
 void System_setBox(System* s, int fr, Periodic_box& b){
      s->Box(fr) = b;
 }
