@@ -13,6 +13,7 @@
 - \ref third
 - \ref design
 - \ref bench
+- <a href="python/_build/html/index.html"> <b>Python bindings</b> </a>
 
 \section what_is_pteros		What is Pteros?
 
@@ -58,7 +59,7 @@ Pteros contains bindings for Python language. They come handy when one need smal
 - Easy to use. API is very simple and intuitive.
 - Easy to extend. Pteros is writen in 100% standard high-level C++.
 - Oriented to reserachers and students, not to programming gurus. The code is well structured and well documented.
-- Bindings for Python language
+- Bindings for Python language (<a href="python/_build/html/index.html"> bindings documentation </a>)
 - The plugin architecture, which makes writing C++ or Python code for asynchronous trajectory analysis trivial. You concentrate on the analysis algorithm itself, not on the technical details of managing files and trajectories.
 
 Some less widely used features include:
@@ -91,44 +92,50 @@ The prerequisites for compilation of Pteros are the following:
 - Standard-conforming C and C++11 compileres (tested with gcc>=4.8, clang>=3.1).
 - <a href="http://www.cmake.org/">cmake</a> build system.
 - <a href="http://www.boost.org/">boost</a> 1.48 or higher.
-- Python 2.5 of higher.
-- <a href="http://git-scm.com/">Git</a> client for getting the source code.
+- <a href="http://git-scm.com/">Git</a> for getting the source code.
+- <a href="https://www.python.org/">Python</a> 2.5 of higher (optional if you don't use dynamic plugins and python bindings)
 - <a href="www.doxygen.org">Doxygen</a> (only if you want to build documentation yourself)
+- <a href="http://sphinx-doc.org/">Sphinx</a> (only if you want to build documentation for python bindings yourself)
 
 If you are using Debian or Ubuntu it should be enough to run the following command in the terminal to install all dependencies:
-\code
-sudo apt-get install g++ cmake libboost-all-dev python-dev python-numpy git doxygen
+\code{.unparsed}
+sudo apt-get install g++ cmake libboost-all-dev python-dev python-numpy python-sphinx git doxygen
 \endcode
 
 Installation of dependencies on Windows is described here \ref install_win.
 
+\note
 Starting from May 2014 Pteros has moved to C++11 standard. As a result it can only be compiled with sufficiently modern C++ compilers. We are aware that many workstations and computational clusters still has ancient versions of compilers, which do not support C++11. For such situations an older C++98 version of Pteros is preserved in a separate repository (see below).
 
 
 \subsection build	Building Pteros
+
 \subsubsection get Getting the code
+
 Get the latest source code could from the Git repository. If you want the stable branch use the following command:
-\code
+\code{.unparsed}
 git clone git://git.code.sf.net/p/pteros/code pteros-code
 \endcode
 This will create a directory named "pteros-code" in you current working directory and will download the latest stable branch of Pteros source code into it.
 
 You can also get the latest development branch (named "experimental"), which is the bleading-age of Pteros development but may contain some bugs and unstable features:
-\code
+\code{.unparsed}
 git clone -b experimental git://git.code.sf.net/p/pteros/code pteros-code
 \endcode
 
 If you need older version, which does not contain C++11 features, use the "optional_cpp11" branch:
-\code
+\code{.unparsed}
 git clone -b optional_cpp11 git://git.code.sf.net/p/pteros/code pteros-code
 \endcode
- 
-Please note, that this branch is completely outdated now and will never get new features. It is preserved only for compatibility with ancient compilers.
+
+\warning
+Currently the *stable* branch is considered significantly outdated and it is advised to use *experimental* branch for new projects. This may change in the future.
+The *optional_cpp11* branch is completely outdated and will \b never get new features. It is preserved only for compatibility with ancient compilers.
 
 \subsubsection compile Compiling
 Create a build directory (for example 'pteros_build'). Go to this directory and issue the following commands:
 
-\code
+\code{.unparsed}
 cmake <path to Pteros source directory> -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=<where to install Pteros>
 make
 make install
@@ -137,7 +144,7 @@ make install
 The 'make install' command may require root access if you are installing into the system-wide location.
 
 The first cmake command will print something like this:
-\code
+\code{.unparsed}
 ------------------------------
 IMPORTANT!
 In order to be able to link with Pteros and to use Pteros Python modules
@@ -151,29 +158,29 @@ export PATH="$PATH:<path to Pteros>/bin"
 Copy suggested lines and add them to your .bashrc file (it is assumed that bash shell is used. If it is not the case use the syntax of your actual shell instead).
 
 If you want to compile with alternative compiler (for example Clang), add the collowing flags to cmake invocation:
-\code
+\code{.unparsed}
 -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
 \endcode
 
 \subsubsection test Testing installation
 
 Run the following command:
-\code
+\code{.unparsed}
 pteros_analysis.py --help all
 \endcode
 
 If you see any error then Pteros can't load plugins or something elese went wrong.
 
-Note: this will only work if you are building with Python support!
+\note This will only work if you are building with Python support!
 
 \subsection trouble Troubleshooting
 
-The most common problems during installation arise from bugs in Boost or in the compilers and from the wrong versions of the libraries, which are found by CMake. In general Google is your best friend in solving any problem. If you are stuck write us and attach error messages and the system configuration (versions of all required libraries and compiler).
+The most common problems during installation arise from bugs in Boost or in the compilers and from the wrong versions of the libraries, which are found by CMake. In general <a href="www.google.com">Google</a> is your best friend in solving any problem. If you are stuck write to <i>yesint4(AT)yahoo.com</i> and attach error messages and the system configuration (versions of all required libraries and compiler).
 
 The list of known problems:
 - clang compiler doesn't work with Boost < 1.52
 - If there are several Boost versions in the system CMake may find the right one for one library (say, Boost.threads) but the wrong one for the other (say, Boost.python), which causes very strange errors. The solution is to include the following flags to CMake invocation: 
-\code -DBoost_NO_SYSTEM_PATHS=ON -DBOOST_ROOT="Correct path to boost" \endcode
+\code{.unparsed} -DBoost_NO_SYSTEM_PATHS=ON -DBOOST_ROOT="Correct path to boost" \endcode
 
 \subsection sasa Enabling SASA code
 
@@ -182,7 +189,7 @@ See the comment in the file src/core/sasa/power_sasa.h for details.
 This license is NOT Open Source and imply many restrictions!
 Please read it carefully. If you agree with this license and performed all required steps
 than use the following flag when invoking cmake: 
-\code
+\code{.unparsed}
 -DPOWERSASA="ON"
 \endcode
 By default this code is NOT compiled. Pteros dosn't support SASA computations without it.
@@ -197,13 +204,13 @@ Pteros could be build without Python. If now Python libraries are found in the S
 
 If the Python is installed, but you don't want to use it add the following flag to CMake invocation:
 
-\code -DPYTHON_BINDINGS="OFF" \endcode
+\code{.unparsed} -DPYTHON_BINDINGS="OFF" \endcode
 
 Compiled analysis plugins, which are written in C++, will be also missing in this case because they are built as Python extensions by default. However, it is possible to build each plugin as a separate standalone program, which does not depend on Python, by adding the following flag to CMake invocation:
-\code -DSTANDALONE_PLUGINS="ON" \endcode
+\code{.unparsed} -DSTANDALONE_PLUGINS="ON" \endcode
 
 If you want to build plugins as the standalone programs AND as python extensions at the same time you'll need to compile twice:
-\code
+\code{.unparsed}
 cmake <usual options> -DSTANDALONE_PLUGINS="OFF"
 make
 make install

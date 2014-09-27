@@ -31,6 +31,7 @@
 #include "bindings_grid_search.h"
 #include "bindings_frame.h"
 #include "bindings_periodic_box.h"
+#include "bindings_energy_components.h"
 
 /**********************
   Create python module
@@ -98,5 +99,7 @@ BOOST_PYTHON_MODULE(pteros)
     // Bindings for grid search
     make_bindings_grid_search();
 
+    // Energy components
+    make_bindings_Energy_components();
 }
 

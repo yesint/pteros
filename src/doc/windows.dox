@@ -23,7 +23,7 @@ Install Python. Download "official" Python for Windows from <a href="http://www.
 Install numpy from <a href="https://sourceforge.net/projects/numpy/files/NumPy/">here</a>. Make sure to download version 1.6.2 for Windows and for Python 2.7 (numpy-1.6.2-win32-superpack-python2.7.exe). Note that new numpy 1.7 didn't work for me but 1.6.2 does.
 
 <li>
-Download latest Boost from here: <a href="https://sourceforge.net/projects/numpy/files/NumPy/1.6.2/numpy-1.6.2-win32-superpack-python2.7.exe/download</a>.
+Download latest Boost from <a href="http://www.boost.org/">here</a>.
 Unzip it into separate folder (say, C:\\install\\boost_1_51).
 <li>
 Open windows console and cd to this directory. Then execute

@@ -468,7 +468,7 @@ Now three tasks, operating on different selections will run in parallel during t
 In our case we specify -f, -b and -e arguments, which are absorbed internally by Trajectory_processor. Trajectory_processor looks at the list of files cpecified after -f and finds a structure file (some-protein.pdb in our case). This file is loaded into the "system" variable of all our tasks. Then Trajectory_processor reads all trajectories one by one in order of appearance and calls our task for frame processing. Processing starts at frame 14 and ends when the time stamp in current frame becomes larger then 250 ps. All this complex logic is completely abstracted by the Trajectory_processor class, which saves you a lot of time.
 
 As you noticed, we hard-coded selection texts in out code. Let's do our program more flexible. We will modify it to take multiple additional arguments like this: 
-\code
+\code{.sh}
 ./our_program -f some-protein.pdb traj-part1.xtc traj-part2.xtc -b 14fr -e 250ps -sel "name CA" "name CB" "resid 1-15"
 \endcode
 
@@ -513,7 +513,7 @@ Pure Python tasks are, of course, limited by the speed of Python interpreter but
 In the /bin directory of your pteros installation you can find pteros_analysis.py executable Python script, which is the driver for analysis plugins. All plugins (both C++ and Python) are stored in python/pteros_analysis_plugins directory. Any shared library (*.so) or python file (*.py), which appear there is treated as a plugin and could be loaded by the driver.
 
 The driver script is called like this (splitted by several lines for clarity):
-\code
+\code{.sh}
 python pteros_analysis.py \
 -f \
  structure-file.pdb \
@@ -536,7 +536,7 @@ Thus all Python tasks run in parallel with C++ tasks but sequentially in respect
 Passing the parameter --plugin_file to any task allows loading plugins from any non-standard location by the relative or absolute path.
 
 You are free to run multiple instances of the same task with different parameters
-\code
+\code{.sh}
 -task center -selection "name CA" -mass_weighted true \
 -task center -selection "name CB CC" -mass_weighted false \
 \endcode
@@ -549,7 +549,7 @@ all of them will be executed separately and will not interfere with each other.
 \subsection pure_python Writing pure Python analysis plugin
 
 Let's write simple pure Python analysis plugin, which computes center of masses of given selection. Put the following code into the file example_plugin.py and place it into the directory python/pteros_analysis_plugins of your Pteros installation
-\code
+\code{.py}
 from pteros import *
 
 class Task:		
