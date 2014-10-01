@@ -23,12 +23,14 @@
 #ifndef COMPILED_PLUGIN_H
 #define COMPILED_PLUGIN_H
 
+// this header is needed anyway
+#include "pteros/python/compiled_plugin_base.h"
+
 #ifndef STANDALONE_PLUGINS
 
 // Make a Python extension module from this plugin
 
 #include "pteros/python/bindings_util.h"
-#include "pteros/python/compiled_plugin_base.h"
 
 using namespace boost::python;
 
@@ -52,7 +54,6 @@ BOOST_PYTHON_MODULE(_name) \
 // Make a stand-alone executable from this plugin
 
 #include "pteros/core/pteros_error.h"
-#include "pteros/python/compiled_plugin_base.h"
 
 using namespace pteros;
 using namespace std;
