@@ -187,7 +187,8 @@ namespace pteros {
             bool abs_index;
             bool is_periodic;            
 
-            void set_grid_size(const Eigen::Vector3f& min, const Eigen::Vector3f& max, int Natoms);
+            void set_grid_size(const Eigen::Vector3f& min, const Eigen::Vector3f& max,
+                               int Natoms, const Periodic_box& box);
 
             void get_nlist(int i,int j,int k);            
 

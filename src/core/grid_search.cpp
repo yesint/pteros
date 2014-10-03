@@ -333,7 +333,7 @@ Grid_searcher::Grid_searcher(float d,
         max = box.extents();
     }
 
-    set_grid_size(min,max, src.size()+target.size());
+    set_grid_size(min,max, src.size()+target.size(),box);
 
     // Allocate both grids
     grid1.resize( boost::extents[NgridX][NgridY][NgridZ] );
@@ -448,7 +448,9 @@ Grid_searcher::Grid_searcher(float d,
 }
 
 
-void Grid_searcher::set_grid_size(const Vector3f& min, const Vector3f& max, int Natoms){
+void Grid_searcher::set_grid_size(const Vector3f& min, const Vector3f& max,
+                                  int Natoms, const Periodic_box& box){
+
     /*  Our grids should satisfy these equations:
         NgridX * NgridY * NgridZ = Natoms
         NgridX/NgridY = a/b
@@ -468,20 +470,53 @@ void Grid_searcher::set_grid_size(const Vector3f& min, const Vector3f& max, int 
     if(NgridY==0) NgridY = 1;
     if(NgridZ==0) NgridZ = 1;    
 
-    // Grid vectors:
+    // Real grid vectors:
     float dX = (max(0)-min(0))/NgridX;
     float dY = (max(1)-min(1))/NgridY;
     float dZ = (max(2)-min(2))/NgridZ;
 
-    // See if some of grid vectors smaller than cutoff
-    if(dX<cutoff) NgridX = floor((max(0)-min(0))/cutoff);
-    if(dY<cutoff) NgridY = floor((max(1)-min(1))/cutoff);
-    if(dZ<cutoff) NgridZ = floor((max(2)-min(2))/cutoff);
+    // See if some of lab extents smaller than cutoff
+    /*
+    if(dX<cutoff) NgridX = floor(extX/cutoff);
+    if(dY<cutoff) NgridY = floor(extY/cutoff);
+    if(dZ<cutoff) NgridZ = floor(extZ/cutoff);
+    */
 
-    // See if some of grid vectors larger than 2*cutoff
-    if(dX>2.0*cutoff) NgridX = floor((max(0)-min(0))/(2.0*cutoff));
-    if(dY>2.0*cutoff) NgridY = floor((max(1)-min(1))/(2.0*cutoff));
-    if(dZ>2.0*cutoff) NgridZ = floor((max(2)-min(2))/(2.0*cutoff));
+    // See if some of grid vectors projected to lab axes smaller than cutoff
+    while(box.box_to_lab(Vector3f(dX,0.0,0.0))(0) < cutoff && NgridX>1){
+        --NgridX;
+        dX = (max(0)-min(0))/NgridX;
+    }
+    while(box.box_to_lab(Vector3f(0.0,dY,0.0))(1) < cutoff && NgridY>1){
+        --NgridY;
+        dY = (max(1)-min(1))/NgridY;
+    }
+    while(box.box_to_lab(Vector3f(0.0,0.0,dZ))(2) < cutoff && NgridZ>1){
+        --NgridZ;
+        dZ = (max(2)-min(2))/NgridZ;
+    }
+
+    // See if some of lab extents larger than 2*cutoff
+    /*
+    if(dX>2.0*cutoff) NgridX = floor(extX/(2.0*cutoff));
+    if(dY>2.0*cutoff) NgridY = floor(extY/(2.0*cutoff));
+    if(dZ>2.0*cutoff) NgridZ = floor(extZ/(2.0*cutoff));
+    */
+
+    // See if some of grid vectors projected to lab axes larger than 2*cutoff
+    while(box.box_to_lab(Vector3f(dX,0.0,0.0))(0) > 2.0*cutoff){
+        ++NgridX;
+        dX = (max(0)-min(0))/NgridX;
+    }
+    while(box.box_to_lab(Vector3f(0.0,dY,0.0))(1) > 2.0*cutoff){
+        ++NgridY;
+        dY = (max(1)-min(1))/NgridY;
+    }
+    while(box.box_to_lab(Vector3f(0.0,0.0,dZ))(2) > 2.0*cutoff){
+        ++NgridZ;
+        dZ = (max(2)-min(2))/NgridZ;
+    }
+
 }
 
 void Grid_searcher::create_grid(Grid_t& grid, const Selection &sel){
@@ -497,7 +532,7 @@ void Grid_searcher::create_grid(Grid_t& grid, const Selection &sel){
         max = box.extents();
     }
 
-    set_grid_size(min,max, sel.size());
+    set_grid_size(min,max, sel.size(), box);
     // Allocate one grid
     grid.resize( boost::extents[NgridX][NgridY][NgridZ] );
     // Allocate visited array
@@ -530,7 +565,7 @@ void Grid_searcher::create_grid2(const Selection &sel1, const Selection &sel2){
         max = box.extents();
     }
 
-    set_grid_size(min,max, sel1.size()+sel2.size());
+    set_grid_size(min,max, sel1.size()+sel2.size(), box);
     // Allocate both grids
     grid1.resize( boost::extents[NgridX][NgridY][NgridZ] );
     grid2.resize( boost::extents[NgridX][NgridY][NgridZ] );
