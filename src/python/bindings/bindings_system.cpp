@@ -94,6 +94,11 @@ Selection System_atoms_add(System* s, boost::python::list& atm,
     return s->atoms_add(a,c);
 }
 
+Selection System_append(System* s, const Atom& atm, PyObject* crd){
+    MAP_EIGEN_TO_PYTHON_F(Vector3f,coord,crd)
+    return s->append(atm,coord);
+}
+
 
 void System_load_callback(System* sys, string fname, int b, int e, int skip, boost::python::object obj){
     // Create a callback from obj
@@ -134,27 +139,39 @@ void make_bindings_System(){
 
         .def("load", &System::load, load_overloads())
         .def("load", &System_load_callback,(bp::arg("fname"),bp::arg("b")=0,bp::arg("e")=-1,bp::arg("skip")=0,bp::arg("on_frame")))
+
+        .def("frame_append", &System::frame_append)
         .def("frame_dup", &System::frame_dup)
         .def("frame_copy", &System::frame_copy)
         .def("frame_delete", &System::frame_delete, frame_delete_overloads())
+
         .def("getFrame_data", &System_getFrame_data)
         .def("setFrame_data", &System_setFrame_data)        
+
         .def("getBox", &System_getBox,return_value_policy<reference_existing_object>())
         .def("setBox", &System_setBox)        
+
         .def("getTime", &System_getTime)
         .def("setTime", &System_setTime)               
+
         .def("getXYZ", &System_getXYZ)
-        .def("setXYZ", &System_setXYZ)
-        .def("frame_append", &System::frame_append)
+        .def("setXYZ", &System_setXYZ)        
+
         .def("assign_resindex", &System::assign_resindex)
+
         .def("atoms_dup", &System_atoms_dup)
         .def("atoms_add", &System_atoms_add)
+
         .def("wrap_all", &System_wrap_all1)
         .def("wrap_all", &System_wrap_all2)
+
         .def("append", static_cast<Selection(System::*)(const Selection&)>(&System::append))
         .def("append", static_cast<Selection(System::*)(const System&)>(&System::append))
+        .def("append", &System_append)
+
         .def("dssp", static_cast<void(System::*)(std::string)const>(&System::dssp))
         .def("dssp", static_cast<std::string(System::*)()const>(&System::dssp))
+
         .def("sort_by_resindex",&System::sort_by_resindex)
     ;
 }
