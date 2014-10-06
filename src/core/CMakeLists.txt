@@ -1,12 +1,8 @@
-IF(VMD_PDB)     
-    add_definitions(-DVMD_PDB)
-ENDIF()
-
-# Build separate tng_io library (will linked later)
+# Build separate tng_io library (will be linked later)
 add_subdirectory(${PROJECT_SOURCE_DIR}/src/core/tng_io)
 
 #------------------------
-# Work with SASA code
+# SASA code
 #------------------------
 
 if(POWERSASA)
