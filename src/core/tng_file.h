@@ -30,6 +30,7 @@
 
 namespace pteros {
 
+/// Use VMD plugin for TNG
 class TNG_file: public VMD_molfile_plugin_wrapper {
 public:
     TNG_file(std::string fname, char openmode);    
