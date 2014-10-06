@@ -26,6 +26,7 @@
 
 using namespace pteros;
 using namespace Eigen;
+using namespace std;
 namespace bp = boost::python;
 using namespace boost::python;
 

@@ -26,6 +26,7 @@
 #include <boost/python/make_constructor.hpp>
 #include <boost/python/slice.hpp>
 
+using namespace std;
 using namespace boost::python;
 using namespace pteros;
 using namespace Eigen;

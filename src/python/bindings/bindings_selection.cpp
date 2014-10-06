@@ -27,6 +27,7 @@
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 
 using namespace pteros;
+using namespace std;
 using namespace Eigen;
 namespace bp = boost::python;
 using namespace boost::python;
