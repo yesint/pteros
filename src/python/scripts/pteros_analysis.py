@@ -58,7 +58,7 @@ def detailed_help(module):
 def general_help():
     print """
     Usage:
-        pteros_analysis.py --trajectory[<options>] --task[name1 <options>] --task[name2 <options>] ...
+        pteros_analysis.py -f <files> <processing options>... -task name1 <task1 options> -task name2 <task2 options> ...
 
         -help traj
             Help for trajectory processing options
