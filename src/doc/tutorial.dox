@@ -337,27 +337,9 @@ Selection(sys,"all").apply_transform(trans);
 \endcode
 
 \section bindings Python bindings
-Although Pteros is a C++ library, many moleuclar analysis tasks require some "quick and dirty" approach, which allows writing simple scripts without edit-compile-run overhead. Python bindings serve this purpose in Pteros. In addition to this end-user application Python bindings are also vital part of the \ref analysis_plugins system.
+Although Pteros is a C++ library, many molecular analysis tasks require writing simple "throw-away" scripts without edit-compile-run overhead of C++. Python bindings serve this purpose in Pteros. In addition to this end-user application Python bindings are also vital part of the \ref analysis_plugins system.
 
-Bindings are done with Boost.python and follow C++ API as much as possible. Not all Pteros classes has bindings now. For up to date status of the bindings see the files /python/bindings/binding_<class_name>.cpp of your Pteros source code.
-
-In general all Eigen objects are converted to corresponding numpy arrays in the bindings.
-
-The following classes are currently exposed to Python almost completely:
-
-- \b Atom \n
-All fields are exposed tranparantly as read-write properties.
-- \b Frame_info \n
-All fields are exposed tranparantly as read-only properties.
-- \b Options_tree \n
-Templated C++ methods get_value<T> and get_values<T> are exposed explicitly for each supported data type as get_value_double, get_value_int, get_value_string, get_value_bool, etc.
-- \b Selection \n
-The only substancial diffence from C++ in Python interface here are accessor methods XYZ(...), Resid(...), etc. All of them are exposed as a pair of methods for setting and getting the values: getXYX(...), setXYZ(...), etc.
-- \b System \n
-The only substancial diffence from C++ in Python interface here are accessor methods Time(), Box() and XYX(). They are exposed as the pairs of methods for setting and getting the values: getTime(), setTime(), etc.
-
-<b>Important!</b> Bindings for Trajectory_processor and Consumer classes are not intended to be used by the end user in Python scripts! These bindings are for internal purposes only. They contain a lot of obscure Boost.python magic, which facilitate interaction with python analysis plugins, extending exposed C++ classes with Python, etc.
-
+Bindings are described in a <a href="python/_build/html/index.html"> dedicated documentation page</a>.
 
 \section hi_level High-level facilities
 
@@ -365,12 +347,12 @@ Although System and Selection classes already provide quite high-level tools for
 - Read only specified range of frames from trajectory based on time or frame number.
 - Read the trajectory, stored by pieces in several files.
 - Read very large trajectory, which doen't fit into the memory frame by frame.
-- Implement parallel execution of several analysis tasks, to keep all procesor cores busy.
+- Implement parallel execution of several analysis tasks, to keep all processor cores busy.
 - Implement processing of the command line arguments, which set all options of trajectory processing and represent custom flags for your analysis.
 
 It is necessary to emphasize an importance of parallel processing. MD trajectories are often huge (up to ~100Gb) and reading them from disk tipically takes many minutes, especially if the storage is not local. If you have 5 different anaysis tasks, which should be applied to the same trajectory it is very wasteful to run them sequntially and to read the whole trajectory five times. It is much more logical to read the trajectory only ones and execute all your tasks in parallel for each frame. By doing this you will also utilize the power of you modern multi-core processor effectively.
 
-All these routine operations in Pteros are incapsulated into the Trajectory_processor class. The logic of using this class is the following. You supply it with the set of options, which say which trajectory to read and which frames to include into the analysis. In addition you create a number of Consumer objects, which represent one separated analysis task, and connect them to the Trajectory_processor. After that you run the processor. It launches all supplied tasks in separate parallel threads, read the trajectory frame by frame and pass the frames to each of the tasks for processing. 
+All these routine operations in Pteros are incapsulated into the Trajectory_processor class. The logic of using this class is the following. You supply it with the set of options (the trajectory to read, which frames to include into the analysis, etc). In addition you create a number of Consumer objects, which represent separated analysis tasks, and connect them to the Trajectory_processor. After that you run the processor. It launches all supplied tasks in separate parallel threads, read the trajectory frame by frame and passes the frames to each of the tasks for user-defined processing.
 
 Let's write a simple example of computing average minimal and maximal coordinates in selection along the trajectory using the power of Trajectory_processor. First of all we need to subclass a Consumer class:
 
@@ -378,19 +360,20 @@ Let's write a simple example of computing average minimal and maximal coordinate
 class Our_task: public Consumer {
 public:
 	// Constructor
-	Our_task(Trajectory_processor* pr, string sel_str): Consumer(pt){
+        Our_task(Trajectory_processor* pr, string sel_str): Consumer(pr){
 		// set selection text
 		sel_text = sel_str;
 	}
 protected:	
-	/// Inherited methods from Consumer:
-	/// Called immediately before first frame is passed
+        // Inherited methods from Consumer:
+        // Called immediately before first frame is processed
 	virtual void pre_process();
-    	/// Called immediately after last frame is processed
+        // Called immediately after last frame is processed
 	virtual void post_process(const Frame_info& info);
-	/// Called each time new frame arrives. This frame is stored in system.traj[0]
+        // Called each time new frame arrives.
+        // This frame is stored in system.traj[0]
 	virtual void process_frame(const Frame_info& info);
-
+private:
 	// Variables, which are specific for our analysis
 	Vector3f min_average, max_average;
 	string sel_text;
@@ -404,12 +387,16 @@ All logic of our analysis should be implemented in three virtual methods: pre_pr
 virtual void pre_process(){
 	// Prepare our min and max variables for computing averages
 	min_average.fill(0.0);
-	max_average.fill(0.0);
-	// Make selection for processing (system is internal System object inherited from Consumer)
-	sel.modify(system,sel_text); 
+	max_average.fill(0.0);	
 }
 
 virtual void process_frame(const Frame_info& info){
+        // On the very first consumed frame initialize our selection
+        if(info.valid_frame==0){
+            // Make selection for processing
+            // system is internal System object inherited from Consumer
+            sel.modify(system,sel_text);
+        }
 	// Currently loaded frame is stored in internal system in frame 0.
 	// Our selection already points to it by default.
 	// Compute minimal and maximal values
@@ -430,7 +417,18 @@ virtual void post_process(const Frame_info& info){
 }
 \endcode
 
-In fact that's all! Now we can write a main program for our small analysis utility:
+\note
+Important thing to note is initialization of selection on the first valid frame:
+\code
+if(info.calid_frame==0){
+    // Make selection for processing
+    // system is internal System object inherited from Consumer
+    sel.modify(system,sel_text);
+}
+\endcode
+The reason of putting this code in process_frame() instead of pre_process() is not so trivial. We are creating selection from the user-supplied string, so we don't know if this selection is coordinate-independent (like "name CA") or coordinate-dependent (like "within 2.5 of name CA"). Coordinate-dependent selections need atom coordinates to exist at the time of parsing, but there are no frames loaded yet in pre_process()! So, if we try to create such selection in pre_process() we'll get a segfault. That is why it's important to initialize all selections in the process_frame() method when the very first frame is loaded.
+
+Now we can write a main program for our small analysis utility:
 \code
 
 #include "pteros/analysis/trajectory_processor.h"
@@ -441,31 +439,29 @@ using namespace pteros;
 
 int main(int argc, char* argv[]){
 	// Create container for command-line options
-        Options_tree options;
+        Options options;
         // Parse command line
-        options.from_command_line(argc,argv);
-	// Create Trajectory processor;
-	Trajectory_processor proc;
-	
+        parse_command_line(argc,argv,options);
+        // Create Trajectory processor and pass options to it
+        Trajectory_processor proc(options);
 	// Create our analysis task and connect it to processor
 	Our_task task1(&proc, "name CA");
 	// Create another task
 	Our_task task2(&proc, "name CB");
 	// And another one
-	Our_task task2(&proc, "resid 1 to 100");
-	
+        Our_task task3(&proc, "within 2.5 of resid 1 to 100");
 	// Run processor!
 	proc.compute();
 }
 \endcode
 
-Now three tasks, operating on different selections will run in parallel during the reading of trajectory. But wait, what trajectory we are going to read? This is cpecified at run time by the command line arguments:
+Now three tasks, operating on different selections will run in parallel while reading the trajectory. But wait, what trajectory we are going to read? This is specified at run time by the command line arguments:
 
 \code
 ./our_program -f some-protein.pdb traj-part1.xtc traj-part2.xtc -b 14fr -e 250ps
 \endcode
 
-In our case we specify -f, -b and -e arguments, which are absorbed internally by Trajectory_processor. Trajectory_processor looks at the list of files cpecified after -f and finds a structure file (some-protein.pdb in our case). This file is loaded into the "system" variable of all our tasks. Then Trajectory_processor reads all trajectories one by one in order of appearance and calls our task for frame processing. Processing starts at frame 14 and ends when the time stamp in current frame becomes larger then 250 ps. All this complex logic is completely abstracted by the Trajectory_processor class, which saves you a lot of time.
+In our case we specify -f, -b and -e arguments, which are absorbed internally by Trajectory_processor. Trajectory_processor looks at the list of files cpecified after -f and finds a structure file (some-protein.pdb in our case). This file is loaded into the "system" variable of all our tasks. Then Trajectory_processor reads all trajectories one by one in order of appearance and calls our task for frame processing. Processing starts at frame 14 and ends when the time stamp in current frame becomes larger then 250 ps. All this complex logic is completely incapsulated by Trajectory_processor class, which saves you a lot of time.
 
 As you noticed, we hard-coded selection texts in out code. Let's do our program more flexible. We will modify it to take multiple additional arguments like this: 
 \code{.sh}
@@ -481,7 +477,7 @@ int main(int argc, char* argv[]){
         // Parse command line
         parse_command_line(argc,argv,options);
 	// Create Trajectory processor;
-	Trajectory_processor proc;
+        Trajectory_processor proc(options);
 	
 	// Container for our tasks
 	vector<shared_ptr<Our_task> > tasks;
@@ -490,8 +486,7 @@ int main(int argc, char* argv[]){
 	for(auto& sel_text: options("sel").as_strings()){		
 		// Create task
 		shared_ptr<Our_task> task(&proc, sel_text);
-		tasks.push_back(task); 
-		// Without this task will go out of scope, get distructed and will cause a crash!
+                tasks.push_back(task);
 	}
 	
 	// Run processor!
@@ -500,17 +495,20 @@ int main(int argc, char* argv[]){
 \endcode
 
 In fact we only need three lines to process our additional options!
-
+\note
+Trajectory_processor doesn't own the consumers, so we need to save them in a vector to ensure that they will not be destructed immediately.
 
 \section analysis_plugins Very-high-level facilities
 
-Pteros provides even higher level facilities for developing custom trajectory analysis algorithms - the analysis plugins. The analysis plugin is a class with very simple interface derived from Consumer, which runs in parallel during reading the trajectory. In contrast to Consumer analysis plugins are loaded and executed by dedicated driver program, so you don't need to bother with initialization of Trajectory_processor, passing parameters and other 'housholding' code. The most exciting thing about analysis plugins is that they could be written either in C++ or pure Python using almost identical API and intergrated seamlessly. 
+Pteros provides even higher level facilities for developing custom trajectory analysis algorithms - the analysis plugins. The analysis plugin is a class with very simple interface derived from Consumer, which runs in parallel during reading the trajectory. In contrast to Consumer analysis plugins are loaded and executed by dedicated driver program, so you don't need to bother with initialization of Trajectory_processor, passing parameters and other 'housholding' code. The most exciting thing about analysis plugins is that they could be written either in C++ or pure Python using almost identical API and intergrated seamlessly.
+\note
+Plugins written in C++ could also be compiled as the separate stand-alone programs, which doesn't require Python to run. Just add <b>-DSTANDALONE_PLUGINS="ON"</b> option when compiling your plugin.
 
 C++ analysis plugins run at <i> the same speed </i> as manually written programs, which use Trajectory_processor and Consumer - there is no run-time overhead (except initial searching and loading of plugins, which is usually neglegible). The driver script only connects the consumers with Trajectory_processor from Python side and after that no Python code is evaluated at all.
 
 Pure Python tasks are, of course, limited by the speed of Python interpreter but they are extremely easy to write and to modify. In general pure Python tasks, which mostly call compiled Pteros methods are also very fast.
 
-In the /bin directory of your pteros installation you can find pteros_analysis.py executable Python script, which is the driver for analysis plugins. All plugins (both C++ and Python) are stored in python/pteros_analysis_plugins directory. Any shared library (*.so) or python file (*.py), which appear there is treated as a plugin and could be loaded by the driver.
+In the /bin directory of your pteros installation you can find pteros_analysis.py executable Python script, which is the driver for analysis plugins. All plugins (both C++ and Python) are stored in \b python/pteros_analysis_plugins directory. Any shared library (*.so) or python file (*.py), which appear there is treated as a plugin and could be loaded by the driver.
 
 The driver script is called like this (splitted by several lines for clarity):
 \code{.sh}
@@ -533,7 +531,7 @@ On each frame all specified tasks are called.
 
 Thus all Python tasks run in parallel with C++ tasks but sequentially in respect to each other (this is an unfortunate limitation of the Python multithreading model). In practice you'll unlikely run many time consuming Python tasks simultaneously, so this should  not be a serious performance limitation. In any case if the execution speed becomes a problem it is better to implement the plugin in C++.
 
-Passing the parameter --plugin_file to any task allows loading plugins from any non-standard location by the relative or absolute path.
+Passing the parameter \b -plugin_file to any task allows loading plugins from any non-standard location by the relative or absolute path.
 
 You are free to run multiple instances of the same task with different parameters
 \code{.sh}
@@ -545,7 +543,6 @@ all of them will be executed separately and will not interfere with each other.
 
 
 
-
 \subsection pure_python Writing pure Python analysis plugin
 
 Let's write simple pure Python analysis plugin, which computes center of masses of given selection. Put the following code into the file example_plugin.py and place it into the directory python/pteros_analysis_plugins of your Pteros installation
@@ -554,24 +551,26 @@ from pteros import *
 
 class Task:		
 	def pre_process(self):
-		sel_text = self.options("selection").as_string()
-		self.sel = Selection(self.system, sel_text )
-		self.use_mass = self.options("mass_weighted","False").as_bool()
-		print "Working on selection '%s'" % self.sel.get_text()
-		print "There are %i atoms in selection" % self.sel.size()
-		
-	def post_process(self,info):
-		print "Finished!"
-		
+                self.sel_text = self.options("selection").as_string()
+                self.use_mass = self.options("mass_weighted","False").as_bool()
+				
 	def process_frame(self,info):
-		print "Frame ", info.absolute_frame, " time ", info.absolute_time
-		print "Selection center: ", self.sel.center(self.use_mass)
+                if info.valid_frame==0:
+                    self.sel = Selection(self.system, self.sel_text )
+                    print "Working on selection '%s'" % self.sel.get_text()
+
+                print "Frame ", info.absolute_frame, " time ", info.absolute_time
+                print "There are %i atoms in selection" % self.sel.size()
+                print "Selection center: ", self.sel.center(self.use_mass)
+
+        def post_process(self,info):
+                print "Finished!"
 
 \endcode
 
-Any Python plugin should define a class Task with three methods: pre_process(), post_process() and process_frame(). The signatures of the methods are evident from the code. Such class gets 'magic' variables system, label and options. The system variable is a reference to the underlying system object, while label is a textual label of the format "TaksName_idN", where TaskName is the name of analysis plugin and N is the unique number of the task. Label is handy when you need to get a unique name of the output file, which will never clash with the output of other tasks. 
+Any Python plugin should define a class Task with three methods: pre_process(), post_process() and process_frame(). The signatures of the methods are evident from the code. Such class gets "magic" variables \b system, \b label and \b options. The \b system variable is a reference to the underlying system object, while \b label is a textual label "\<TaksName\>_id\<N\>", where TaskName is the name of analysis plugin and N is the unique number of the task. Label is handy when you need to get a unique name of the output file, which will never clash with the output of other tasks, which are running in parallel.
 
-The variable options contains the options tree, which corresponds to this particular task. We extract the options selection and mass_weighted using it.
+The variable \b options contains the options, which corresponds <i>to this particular task</i>. We extract the options selection and mass_weighted using it.
 
 The rest of the code is self-explanatory.
 
@@ -589,20 +588,24 @@ public:
 protected:
     void pre_process(){
         string sel_text = options("selection").as_string();
-        use_mass = options("mass_weighted","false").as_bool();
-        sel.modify(system,sel_text);
-        cout << "Working on selection " << sel.get_text() << endl;
-        cout << "There are " << sel.size() << " atoms in selection" << endl;
+        use_mass = options("mass_weighted","false").as_bool();        
     }
 
     void process_frame(const Frame_info &info){
-        cout << "Frame " << info.absolute_frame << " time " << info.absolute_time << endl;
+        if(info.valid_frame==0){
+            sel.modify(system,sel_text);
+            cout << "Working on selection " << sel.get_text() << endl;
+        }
+        cout << "There are " << sel.size() << " atoms in selection" << endl;
+        cout << "Frame " << info.absolute_frame
+             << " time " << info.absolute_time << endl;
         cout << "Selection center: " << sel.center(use_mass).transpose() << endl;        
     }
 
     void post_process(const Frame_info &info){
         cout << "Finished" << endl;
     }
+
 private:
     Selection sel;
     bool use_mass;
@@ -611,12 +614,14 @@ private:
 CREATE_COMPILED_PLUGIN(PLUGIN_NAME)
 \endcode
 
-We inherit a class from Compiled_plugin_base and override the same methods pre_process(), post_process() and process_frame(). In C++ we need to put an explicit constructor, which will initialize the base class. The rest of the code is almost 1-to-1 translation of the Python example given above.
+We inherit a class from \b Compiled_plugin_base and override the same methods pre_process(), post_process() and process_frame(). In C++ we need to put an explicit constructor, which will initialize the base class. The rest of the code is almost 1-to-1 translation of the Python example given above.
 
-The crucial point is the macro CREATE_COMPILED_PLUGIN(PLUGIN_NAME), which does all the magic for us. Behind the scene is creates the code for compiled Python extension module. After compilation and linking into the shared library we get center.so file, which is loaded by the driver program at the same way as our pure Python plugin. The macro PLUGIN_NAME comes from the CMake build script, but you can define your own name in the code (in this case you whould also make sure that the build system produces shared library with appropriate name!).
+The crucial point is the macro <b>CREATE_COMPILED_PLUGIN(PLUGIN_NAME)</b>, which does all the magic for us. Behind the scene it creates the code for compiled Python extension module. After compilation and linking we get \b center.so file, which is loaded by the driver program at the same way as our pure Python plugin.
+
+\note
+In the case of the stand-alone plugin this macro will create an independent \b pteros_center executable instead.
+
+The macro PLUGIN_NAME comes from the CMake build script, but you can define your own name in the code (in this case you whould also make sure that the build system produces shared library with appropriate name!).
 
 The simplest way to build and install your plugin is using the template CMake project located at the /template_plugin directory of the Pteros source tree.
 */
-
-
-

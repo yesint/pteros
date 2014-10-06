@@ -48,7 +48,7 @@ Pteros contains bindings for Python language. They come handy when one need smal
 
 \section features	Features
 
-- Reading/writing several popular molecular data formats (PDB, GRO, XTC, TRR, TPR, DCD).
+- Reading/writing several popular molecular data formats (PDB, GRO, XTC, TRR, TPR, DCD, TNG).
 - Very powerful and simple syntax for selecting groups of atoms similar to one used in VMD, but more powerfull.
 - Selections can be manipulated in many different ways and various properties could be queried.
 - RMSD fitting and alignment.
@@ -89,7 +89,7 @@ Intel ICC compiles Pteros on Linux, but gives poor performance. Compiling with I
 \subsection depend 	Dependencies 
 The prerequisites for compilation of Pteros are the following:
 
-- Standard-conforming C and C++11 compileres (tested with gcc>=4.8, clang>=3.1).
+- Standard-conforming C and C++11 compilers (tested with gcc>=4.8, clang>=3.1).
 - <a href="http://www.cmake.org/">cmake</a> build system.
 - <a href="http://www.boost.org/">boost</a> 1.48 or higher.
 - <a href="http://git-scm.com/">Git</a> for getting the source code.
@@ -157,7 +157,7 @@ export PATH="$PATH:<path to Pteros>/bin"
 
 Copy suggested lines and add them to your .bashrc file (it is assumed that bash shell is used. If it is not the case use the syntax of your actual shell instead).
 
-If you want to compile with alternative compiler (for example Clang), add the collowing flags to cmake invocation:
+If you want to compile with alternative compiler (for example Clang), add the following flags to cmake invocation:
 \code{.unparsed}
 -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
 \endcode
@@ -171,7 +171,7 @@ pteros_analysis.py --help all
 
 If you see any error then Pteros can't load plugins or something elese went wrong.
 
-\note This will only work if you are building with Python support!
+\note This is only applicable if you are building with Python support!
 
 \subsection trouble Troubleshooting
 
@@ -187,12 +187,11 @@ The list of known problems:
 Pteros can perform the Solvent Accesible Surface Area (SASA) computatations using POWERSASA code developed in the Karlsruhe Institute of Technology. POWERSASA is licensed by specific and rather restrictive "Academic/Non-Profit SASA software license agreement".
 See the comment in the file src/core/sasa/power_sasa.h for details.
 This license is NOT Open Source and imply many restrictions!
-Please read it carefully. If you agree with this license and performed all required steps
-than use the following flag when invoking cmake: 
+Please read it carefully. If you agree with this license and performed all required steps use the following flag when invoking cmake:
 \code{.unparsed}
 -DPOWERSASA="ON"
 \endcode
-By default this code is NOT compiled. Pteros dosn't support SASA computations without it.
+By default this code is NOT compiled. Pteros doesn't support SASA computations without it.
 
 \subsection linking 	Linking with Pteros
 
@@ -209,25 +208,22 @@ If the Python is installed, but you don't want to use it add the following flag 
 Compiled analysis plugins, which are written in C++, will be also missing in this case because they are built as Python extensions by default. However, it is possible to build each plugin as a separate standalone program, which does not depend on Python, by adding the following flag to CMake invocation:
 \code{.unparsed} -DSTANDALONE_PLUGINS="ON" \endcode
 
-If you want to build plugins as the standalone programs AND as python extensions at the same time you'll need to compile twice:
+If you want to build plugins as the standalone programs AND as python extensions at the same time use the following flags:
 \code{.unparsed}
-cmake <usual options> -DSTANDALONE_PLUGINS="OFF"
-make
-make install
-
-cmake <usual options> -DSTANDALONE_PLUGINS="ON"
+cmake <usual options> -DPYTHON_BINDINGS="ON" -DSTANDALONE_PLUGINS="ON"
 make
 make install
 \endcode
 
-The first compilation will build and install plugins as python extensions, while the second one will compile them as the standalone programs.
+\note
+In this case each plugin will be compiled twice, so expect longer compilation time.
 
 \section third 	Third-party software integrated into Pteros
 - <a href="http://www.gromacs.org/Developer_Zone/Programming_Guide/XTC_Library">xdrfile</a> library from <a href="http://www.gromacs.org/">GROMACS</a>. 
-- Highly optimized vector/matrix library <a href="http://eigen.tuxfamily.org/index.php?title=Main_Page">Eigen</a>.
+- <a href="http://eigen.tuxfamily.org/index.php?title=Main_Page">Eigen</a> - highly optimized vector/matrix library.
 - POWERSASA code for Solvent Accesible Surface Area (SASA) computatations. Now inclided into <a href="http://www.int.kit.edu/1636.php">SIMONA</a> package.
 - <a href="http://swift.cmbi.ru.nl/gv/dssp/">dssp 2.0</a> code for secondary structure computations.
-- <a href="http://www.ks.uiuc.edu/Research/vmd/plugins/molfile/">Molfile plugins</a> for reading PDB and DCD files.
+- <a href="http://www.ks.uiuc.edu/Research/vmd/plugins/molfile/">Molfile plugins</a> from VMD for reading PDB, DCD and TNG files.
 
 The sources of all these libraries are included into the source tree of Pteros, so you don't need to install them separately.
 
