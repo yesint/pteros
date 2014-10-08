@@ -1262,33 +1262,16 @@ void Selection::atoms_delete(){
     system->atoms_delete(index);
 }
 
-void Selection::distribute(Vector3i_const_ref ncopies, Vector3f_const_ref shift){
-    Selection tmp(*system);
-    Selection res;
-    int b,e;
-    // Distribute over X
-    b = system->num_atoms(); // First added atom
-    e = b;
-    for(int i = 1; i<ncopies(0); ++i){
-        res = atoms_dup();
-        e += index.size()-1;
-        res.translate(Vector3f(shift(0)*i,0,0));
-    }
-    // Distribute over Y
-    tmp.modify(b,e);
-    tmp.append(*this); // Add this selection to tmp
-    for(int i = 1; i<ncopies(1); ++i){
-        res = tmp.atoms_dup();
-        e += tmp.size()-1;
-        res.translate(Vector3f(0,shift(1)*i,0));
-    }
-    // Distribute over Z
-    tmp.modify(b,e);
-    tmp.append(*this); // Add this selection to tmp
-    for(int i = 1; i<ncopies(2); ++i){
-        tmp.atoms_dup();
-        res.translate(Vector3f(0,0,shift(2)*i));
-    }
+void Selection::distribute(Vector3i_const_ref ncopies, Vector3f_const_ref shift){   
+    Selection tmp;
+    for(int x=0; x<ncopies(0); ++x)
+        for(int y=0; y<ncopies(1); ++y)
+            for(int z=0; z<ncopies(2); ++z){
+                if(x>0 || y>0 || z>0){
+                    tmp = system->append(*this);
+                    tmp.translate(Vector3f(shift(0)*x,shift(1)*y,shift(2)*z));
+                }
+            }
 }
 
 void Selection::split_by_connectivity(float d, std::vector<Selection> &res) {
