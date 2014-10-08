@@ -105,6 +105,7 @@ void parse_command_line(int argc, char** argv,
     }
 
     //TODO: last task without options doesn't work...
+    // Hm, not sure if this is still the case...
 
     // At the end see where to put last option
     if(o.name!=""){

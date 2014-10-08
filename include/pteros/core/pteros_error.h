@@ -29,8 +29,6 @@
 
 namespace pteros {
 
-using namespace std;
-
 /// Represents an error in the Pteros code. Used for all Pteros-related exceptions.
 class Pteros_error {
 public:
@@ -44,7 +42,7 @@ public:
     }
 
     /// Constructs an exception object with text message
-    Pteros_error(string s){
+    Pteros_error(std::string s){
         text.str(s);
     }
 
@@ -63,8 +61,8 @@ public:
 
     /// Print error message
     void print() const {
-        cout << endl << "PTEROS terminated due to the following error:"
-             << endl << text.str() << endl;
+        std::cout << std::endl << "PTEROS terminated due to the following error:"
+             << std::endl << text.str() << std::endl;
     }
 
     /// Return error message as string

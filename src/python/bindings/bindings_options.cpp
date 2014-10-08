@@ -24,6 +24,7 @@
 #include "pteros/python/bindings_util.h"
 #include "pteros/analysis/options.h"
 
+using namespace std;
 using namespace pteros;
 using namespace Eigen;
 using namespace boost::python;

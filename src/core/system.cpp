@@ -434,6 +434,28 @@ Selection System::append(const Selection &sel){
     return Selection(*this,first_added,num_atoms()-1);
 }
 
+Selection System::append(const Atom &at, const Vector3f_const_ref coord)
+{
+    // If no frames create one
+    if(num_frames()==0){
+        traj.resize(1);
+    }
+
+    int first_added = num_atoms();
+
+    // Add atom
+    atoms.push_back(at);
+
+    // Merge coordinates
+    for(int fr=0; fr<num_frames(); ++fr){
+        traj[fr].coord.push_back(coord);
+    }
+    // Reassign resindex
+    assign_resindex(first_added-1);
+
+    return Selection(*this,first_added,num_atoms()-1);
+}
+
 Selection System::select(string str){
     return Selection(*this,str);
 }

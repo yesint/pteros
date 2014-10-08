@@ -20,7 +20,15 @@
  *
 */
 
-//#define VMD_PDB
+// Remove this define to use internal PDB reader.
+/*
+Internal reader is currently broken!
+On write very large files fail to align coordinate records correctly
+For now VMD molfile plugin is used for PDB files
+*/
+
+#define VMD_PDB
+
 
 #ifndef PDB_FILE_H
 #define PDB_FILE_H

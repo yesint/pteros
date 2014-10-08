@@ -73,9 +73,9 @@ struct Selections_pair {
     Res_contacts_t res_contacts;
     Per_atom_t per_atom_stats;
     Per_res_t per_res_stats;
-    vector<int> atom_contacts_num;
-    vector<int> res_contacts_num;
-    vector<float> energy;
+    std::vector<int> atom_contacts_num;
+    std::vector<int> res_contacts_num;
+    std::vector<float> energy;
     float mean_energy;
 };
 

@@ -1,6 +1,7 @@
 #include "pteros/python/compiled_plugin.h"
 #include <fstream>
 
+using namespace std;
 using namespace pteros;
 
 class center: public Compiled_plugin_base {

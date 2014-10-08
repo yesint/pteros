@@ -17,7 +17,7 @@ struct Compiled_plugin_base: public Consumer {
     /// Set by driver program
     std::string label;
 
-    virtual string help(){
+    virtual std::string help(){
         return "\n\tThis plugin does not define any help information.\n\tDig into the sources. Good luck :)";
     }
 
@@ -32,8 +32,9 @@ protected:
         try {
             Consumer::pre_process_handler();
         } catch(const Pteros_error& e){
-            cout << endl << "(ERROR) Compiled plugin method: '" << BOOST_CURRENT_FUNCTION << "'" << endl;
-            cout << "(ERROR) in plugin instance: " << label << endl;
+            std::cout << std::endl << "(ERROR) Compiled plugin method: '"
+                      << BOOST_CURRENT_FUNCTION << "'" << std::endl;
+            std::cout << "(ERROR) in plugin instance: " << label << std::endl;
             e.print();
             exit(1);
         }
@@ -43,8 +44,9 @@ protected:
         try {
             Consumer::post_process_handler(info);
         } catch(const Pteros_error& e){
-            cout << endl << "(ERROR) Compiled plugin method: '" << BOOST_CURRENT_FUNCTION << "'" << endl;
-            cout << "(ERROR) in plugin instance: " << label << endl;
+            std::cout << std::endl << "(ERROR) Compiled plugin method: '"
+                      << BOOST_CURRENT_FUNCTION << "'" << std::endl;
+            std::cout << "(ERROR) in plugin instance: " << label << std::endl;
             e.print();
             exit(1);
         }
@@ -54,9 +56,10 @@ protected:
         try {
             Consumer::process_frame_handler(info);
         } catch(const Pteros_error& e){
-            cout << endl << "(ERROR) Compiled plugin method: '" << BOOST_CURRENT_FUNCTION << "'" << endl;
-            cout << "(ERROR) Occured on frame " << info.valid_frame << endl;
-            cout << "(ERROR) in plugin instance: " << label << endl;
+            std::cout << std::endl << "(ERROR) Compiled plugin method: '"
+                      << BOOST_CURRENT_FUNCTION << "'" << std::endl;
+            std::cout << "(ERROR) Occured on frame " << info.valid_frame << std::endl;
+            std::cout << "(ERROR) in plugin instance: " << label << std::endl;
             e.print();
             exit(1);
         }
@@ -66,9 +69,10 @@ protected:
         try {
             Consumer::window_started_handler(info);
         } catch(const Pteros_error& e){
-            cout << endl << "(ERROR) Compiled plugin method: '" << BOOST_CURRENT_FUNCTION << "'" << endl;
-            cout << "(ERROR) Occured on frame " << info.valid_frame << endl;
-            cout << "(ERROR) in plugin instance: " << label << endl;
+            std::cout << std::endl << "(ERROR) Compiled plugin method: '"
+                      << BOOST_CURRENT_FUNCTION << "'" << std::endl;
+            std::cout << "(ERROR) Occured on frame " << info.valid_frame << std::endl;
+            std::cout << "(ERROR) in plugin instance: " << label << std::endl;
             e.print();
             exit(1);
         }
@@ -79,9 +83,10 @@ protected:
         try {
             Consumer::window_finished_handler(info);
         } catch(const Pteros_error& e){
-            cout << endl << "(ERROR) Compiled plugin method: '" << BOOST_CURRENT_FUNCTION << "'" << endl;
-            cout << "(ERROR) Occured on frame " << info.valid_frame << endl;
-            cout << "(ERROR) in plugin instance: " << label << endl;
+            std::cout << std::endl << "(ERROR) Compiled plugin method: '"
+                      << BOOST_CURRENT_FUNCTION << "'" << std::endl;
+            std::cout << "(ERROR) Occured on frame " << info.valid_frame << std::endl;
+            std::cout << "(ERROR) in plugin instance: " << label << std::endl;
             e.print();
             exit(1);
         }

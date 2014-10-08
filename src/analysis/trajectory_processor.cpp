@@ -41,14 +41,16 @@ Trajectory_processor::~Trajectory_processor(){
 string Trajectory_processor::help(){
     return  "Trajectory processing options:\n"
             "General usage:\n"
-            "\t-t filename1 filename2 ... <processing options>\n"
+            "\t-f filename1 filename2 ... <processing options>\n"
             "Files:\n"
             "\t* Exactly one structure file (PDB or GRO)\n"
             "\t  If not specified, topology PTTOP file must be given instead.\n"
             "\t* Topology PTTOP file (converted from Gromacs .tpr by tpr2pteros.py)\n"
             "\t  If structure file is also present only topology is read from this file.\n"
             "\t  If structure file is not present the coordinates are also read.\n"
-            "\t* One or more trajectory files (TRR, XTC of DCD).\n"
+            "\t* One or more trajectory files (TRR, XTC, TNG or DCD).\n"
+            "\t  TNG files also contain the structure, so if no structure file\n"
+            "\t  is given the structure is read from the first TNG file.\n"
             "\n"
             "\tFiles may appear in any order, but trajectory files will be processed\n"
             "\tin the order of their appearance.\n\n"
@@ -74,7 +76,7 @@ string Trajectory_processor::help(){
             "\t\tIf set and dt is not given sets dt to 1.0!\n"
 
             "\t-dt <t[suffix]>\n"
-            "\t\tCutom time stap, default: -1 (use value from trajectory)\n"
+            "\t\tCutom time step, default: -1 (use value from trajectory)\n"
             "\t\tUseful if trajectory does not contain time stamps.\n"
             "\t\tIf set and start is not given sets start to 0.0!\n"
 

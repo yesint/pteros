@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 2.6)
 project(pteros)
 
 OPTION(PYTHON_BINDINGS "Build python bindings and compiled analysis plugins as Python modules" ON)
-OPTION(VMD_PDB "Use VMD molfile plugin for reading PDB files (if OFF - internal reader is used)" ON)
 OPTION(POWERSASA "Use POWERSASA code. This implies severe license restrictions! \n Read the comment in src/core/sasa/power_sasa.h carefully before enabling this option!" OFF)
 OPTION(STANDALONE_PLUGINS "Compile analysis plugins as stand-alone executables" OFF)
 
@@ -50,7 +49,7 @@ SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -msse2")
 # Enable C++11 everywhere
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
 
-# Find Python
+# Find Python only if we need bindings
 if(PYTHON_BINDINGS)
     find_package(PythonInterp)
     find_package(PythonLibs)    
@@ -59,8 +58,7 @@ if(PYTHON_BINDINGS)
         SET(WITH_PYTHON 1) # Compile python wrappers
         #For conditional compilation
         add_definitions(-DWRAP_PYTHON)
-        # Also add boost.python library to the list
-        LIST(APPEND BOOST_NEEDED_LIBS python)
+
         # Set python includes globally
         include_directories(${PYTHON_INCLUDE_PATH})
 

@@ -127,6 +127,10 @@ public:
     /// Append atoms from selection to this system
     /// Returns selection corresponding to appended atoms
     Selection append(const Selection& sel);
+
+    /// Append single atom to this system
+    ////// Returns selection corresponding to appended atom
+    Selection append(const Atom& at, const Vector3f_const_ref coord);
     /// @}
 
 
