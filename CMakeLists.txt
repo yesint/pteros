@@ -72,7 +72,12 @@ if(PYTHON_BINDINGS)
 endif()
 
 # Find Boost
-find_package(Boost 1.48.0 REQUIRED system filesystem date_time)
+find_package(Boost 1.48.0 REQUIRED system date_time)
+
+# For boost>1.50 and on windows also add filesystem to compile normally
+if(${Boost_MINOR_VERSION} GREATER 50 AND ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    find_package(Boost 1.48.0 REQUIRED filesystem)
+endif()
 
 # Add Boost includes and libs globally - they are needed everywhere
 include_directories(${Boost_INCLUDE_DIRS})
