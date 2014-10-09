@@ -131,6 +131,8 @@ public:
     /// Append single atom to this system
     ////// Returns selection corresponding to appended atom
     Selection append(const Atom& at, const Vector3f_const_ref coord);
+
+    System rearrange(std::vector<std::string> sel_strings);
     /// @}
 
 
