@@ -46,39 +46,36 @@ GRO_file::~GRO_file(){
 
 bool GRO_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
 
-    stringstream ss;
-    string dum,line;
+    string line;
+
     int N,i,j;
     float v;
     // tmp atom
     Atom tmp_atom;
     // Temporary coordinates
     Vector3f tmp_coor;
+    // Buffers for scanf
+    char resname_buf[5], name_buf[5];
 
     // Skip header line
-    getline(f,line);
-    ss.str(line);
-    ss >> dum;
+    getline(f,line);    
+
     // Read number of atoms
     getline(f,line);
-    ss.str(line);
-    ss >> N;
+    sscanf(line.c_str(),"%d",&N);
 
     frame->coord.resize(N);
 
     // Read coordinates
     for(i=0;i<N;++i){
         getline(f,line);
-        // Insert space between name and index so that HZ310000 => HZ3 10000
-        line.insert(15,1,' ');
-        //insert space such as 33PHE => 33 PHE
-        line.insert(line.find_first_not_of("1234567890"),1,' ');
-        // Now read everything
-        ss.clear();
-        ss.str(line);
 
-        ss >> tmp_atom.resid >> tmp_atom.resname  >> tmp_atom.name >> j
-           >> tmp_coor[0] >> tmp_coor[1] >> tmp_coor[2];
+        sscanf(line.c_str(),"%5d%5c%5c%5d%8f%8f%8f",
+                &tmp_atom.resid, resname_buf, name_buf, &j,
+                &tmp_coor(0), &tmp_coor(1), &tmp_coor(2));
+
+        tmp_atom.resname = resname_buf;
+        tmp_atom.name = name_buf;
 
         // Coordinates are in nm, so no need to convert
 
@@ -100,8 +97,9 @@ bool GRO_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
         }
     }
 
-    if(what.coordinates){
+    if(what.coordinates){        
         // Read box. Adapted form VMD.
+        stringstream ss;
         getline(f,line);
         ss.clear();
         ss.str(line);
@@ -139,7 +137,7 @@ void GRO_file::do_write(const Selection &sel, const Mol_file_content &what){
     f << n << endl;
     int ind;
     for(int i=0;i<n;i++){
-        ind = (i%100000)+1; // Prevents overflow of indec field. It's not used anyway.
+        ind = (i%100000)+1; // Prevents overflow of index field. It's not used anyway.
         sprintf(ch,"%5d%-5s%5s%5d%8.3f%8.3f%8.3f",
                 sel.Resid(i), sel.Resname(i).c_str(), sel.Name(i).c_str(), ind,
                 sel.X(i), sel.Y(i), sel.Z(i));
@@ -156,14 +154,20 @@ void GRO_file::do_write(const Selection &sel, const Mol_file_content &what){
         b.fill(0.0);
     }
     // We are writing dimensions in nm to be compatible with Gromacs
+    // Write diagonal anyway
     f << b(0,0) << " "
       << b(1,1) << " "
-      << b(2,2) << " "
-      << b(0,1) << " "
-      << b(0,2) << " "
-      << b(1,0) << " "
-      << b(1,2) << " "
-      << b(2,0) << " "
-      << b(2,1) << " "
-      << endl; // Mandatory endline at the end of file!
+      << b(2,2);
+    // Write off-diagonal only for triclinic boxes
+    if(sel.get_system()->Box(sel.get_frame()).is_triclinic()){
+        f << " "
+          << b(0,1) << " "
+          << b(0,2) << " "
+          << b(1,0) << " "
+          << b(1,2) << " "
+          << b(2,0) << " "
+          << b(2,1);
+    }
+    // Mandatory endline at the end of file!
+    f << endl;
 }
