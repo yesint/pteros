@@ -50,7 +50,7 @@ IF(WITH_PYTHON)
         LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/python"
         PREFIX ""
         SUFFIX "${SHARED_LIB_EXT}"
-        OUTPUT_NAME pteros
+        OUTPUT_NAME _pteros
     )
 
     #Installation

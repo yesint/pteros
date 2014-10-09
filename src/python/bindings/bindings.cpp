@@ -54,7 +54,7 @@ void Pteros_error_translator(const pteros::Pteros_error& e) {
   PyErr_SetString(PyExc_UserWarning, const_cast<pteros::Pteros_error&>(e).what().c_str());
 }
 
-BOOST_PYTHON_MODULE(pteros)
+BOOST_PYTHON_MODULE(_pteros)
 {
     using namespace pteros;
     using namespace boost::python;
