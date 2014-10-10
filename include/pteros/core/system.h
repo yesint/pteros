@@ -103,7 +103,7 @@ public:
     //EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    /// @name Constructors, operators and modification functions
+    /// @name Constructors and operators
     /// @{
 
     /// Default constructor
@@ -120,6 +120,12 @@ public:
     /// Destructor
     ~System();
 
+    /// @}
+
+    /// @name Adding, deleting and ordering groups of atoms
+    /// These methods update resindexes automatically.
+    /// @{
+
     /// Append other system to this one
     /// Returns selection corresponding to appended atoms
     Selection append(const System& sys);
@@ -129,8 +135,31 @@ public:
     Selection append(const Selection& sel);
 
     /// Append single atom to this system
-    ////// Returns selection corresponding to appended atom
+    /// Returns selection corresponding to appended atom
     Selection append(const Atom& at, const Vector3f_const_ref coord);
+
+    /// Rearranges the atoms in the order of provided selection strings.
+    /// Atom, which are not selected are appended at the end in their previous order.
+    /// Selections should not overlap (exception is thrown if they are).
+    void rearrange(const std::vector<std::string>& sel_strings);
+
+    /// Rearranges the atoms in the order of provided selections.
+    /// Atom, which are not selected are appended at the end in their previous order.
+    /// Selections should not overlap (exception is thrown if they are).
+    void rearrange(const std::vector<Selection>& sel_vec);
+
+    /// Keep only atoms given by selection string
+    void keep(const std::string& sel_str);
+
+    /// Keep only atoms from given selection
+    void keep(const Selection& sel);
+
+    /// Remove atoms given by selection string
+    void remove(const std::string& sel_str);
+
+    /// Remove atoms from given selection
+    void remove(const Selection& sel);
+
     /// @}
 
 
@@ -153,9 +182,14 @@ public:
      sys = System("structure.pdb");
      Selection sel(s,"name CA");
 
-     // "Fancy" way:
+     // Convenient way:
      sys = System("structure.pdb");
      auto sel = sys.select("name CA");
+     \endcode
+
+     It also allows to write "one-liners" like this:
+     \code
+     System("file.pdb").select("name CA").write("ca.pdb");
      \endcode
     **/
     /// @{
@@ -198,7 +232,7 @@ public:
     /// Duplicates given frame and adds it to the end of frame vector
     int frame_dup(int);
 
-    /// Adds new frame to trajectory
+    /// Adds provided frame to trajectory
     void frame_append(const Frame& fr);
 
     /// Copy all frame data from fr1 to fr2
@@ -296,7 +330,8 @@ public:
 
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    /// @name Manipulating atoms
+    /// @name Manipulating sets of atoms by indexes.
+    /// These methods <b>do not</b> update resindexes automatically.
     /// @{
 
     /// Adds new atoms, which are duplicates of existing ones by index
@@ -306,7 +341,7 @@ public:
     Selection atoms_add(const std::vector<Atom>& atm,
                    const std::vector<Eigen::Vector3f>& crd);
 
-    /// Delete the set of atoms
+    /// Delete the set of atoms by indexes
     void atoms_delete(const std::vector<int>& ind);
     /// @}
 

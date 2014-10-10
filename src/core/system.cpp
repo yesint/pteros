@@ -456,6 +456,66 @@ Selection System::append(const Atom &at, const Vector3f_const_ref coord)
     return Selection(*this,first_added,num_atoms()-1);
 }
 
+void System::rearrange(const std::vector<string> &sel_strings){
+    vector<Selection> sel_vec(sel_strings.size());
+    for (int i=0; i<sel_strings.size(); ++i){
+        sel_vec[i].modify(*this, sel_strings[i]);
+    }
+
+    rearrange(sel_vec);
+}
+
+void System::rearrange(const std::vector<Selection> &sel_vec){
+    // Sanity check
+    vector<int> inters;
+    for (int i=0; i<sel_vec.size()-1; ++i){
+        for (int j=i+1; j<sel_vec.size(); ++j){
+            set_intersection(sel_vec[i].index_begin(), sel_vec[i].index_end(),
+                             sel_vec[j].index_begin(), sel_vec[j].index_end(),
+                             back_inserter(inters));
+            if (!inters.empty()) throw Pteros_error("Selections for rearrange should not overlap!");
+        }
+    }
+
+    Selection rest(*this);
+    for (auto &s: sel_vec) rest.append(s);
+    rest = ~rest;
+
+    System result;
+    for (auto &s: sel_vec) result.append(s);
+    result.append(rest);
+
+    *this = result;
+}
+
+void System::keep(const string &sel_str)
+{
+    Selection sel(*this,sel_str);
+    keep(sel);
+}
+
+void System::keep(const Selection &sel)
+{
+    System tmp;
+    tmp.append(sel);
+    *this = tmp;
+}
+
+void System::remove(const string &sel_str)
+{
+    Selection sel(*this,"not ("+sel_str+")");
+    keep(sel);
+}
+
+void System::remove(const Selection &sel)
+{
+    System tmp;
+    tmp.append(~sel);
+    *this = tmp;
+}
+
+
+
 Selection System::select(string str){
     return Selection(*this,str);
 }
