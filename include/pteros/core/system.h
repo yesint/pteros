@@ -123,6 +123,7 @@ public:
     /// @}
 
     /// @name Adding, deleting and ordering groups of atoms
+    /// These methods update resindexes automatically.
     /// @{
 
     /// Append other system to this one
@@ -181,9 +182,14 @@ public:
      sys = System("structure.pdb");
      Selection sel(s,"name CA");
 
-     // "Fancy" way:
+     // Convenient way:
      sys = System("structure.pdb");
      auto sel = sys.select("name CA");
+     \endcode
+
+     It also allows to write "one-liners" like this:
+     \code
+     System("file.pdb").select("name CA").write("ca.pdb");
      \endcode
     **/
     /// @{
@@ -226,7 +232,7 @@ public:
     /// Duplicates given frame and adds it to the end of frame vector
     int frame_dup(int);
 
-    /// Adds new frame to trajectory
+    /// Adds provided frame to trajectory
     void frame_append(const Frame& fr);
 
     /// Copy all frame data from fr1 to fr2
@@ -324,7 +330,8 @@ public:
 
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    /// @name Manipulating atoms
+    /// @name Manipulating sets of atoms by indexes.
+    /// These methods <b>do not</b> update resindexes automatically.
     /// @{
 
     /// Adds new atoms, which are duplicates of existing ones by index
