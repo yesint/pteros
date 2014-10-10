@@ -100,6 +100,12 @@ Selection System_append(System* s, const Atom& atm, PyObject* crd){
     return s->append(atm,coord);
 }
 
+System System_rearrange(System* s, boost::python::list& data){
+    vector<string> sels(len(data));
+    for(int i=0;i<sels.size();++i) sels[i] = extract<string>(data[i]);
+    return s->rearrange(sels);
+}
+
 
 void System_load_callback(System* sys, string fname, int b, int e, int skip, boost::python::object obj){
     // Create a callback from obj
@@ -163,6 +169,7 @@ void make_bindings_System(){
         .def("append", static_cast<Selection(System::*)(const Selection&)>(&System::append))
         .def("append", static_cast<Selection(System::*)(const System&)>(&System::append))
         .def("append", &System_append)
+        .def("rearrange", &System_rearrange)
 
         .def("dssp", static_cast<void(System::*)(std::string)const>(&System::dssp))
         .def("dssp", static_cast<std::string(System::*)()const>(&System::dssp))

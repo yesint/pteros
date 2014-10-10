@@ -456,8 +456,7 @@ Selection System::append(const Atom &at, const Vector3f_const_ref coord)
     return Selection(*this,first_added,num_atoms()-1);
 }
 
-System System::rearrange(std::vector<string> sel_strings)
-{
+System System::rearrange(const std::vector<string> &sel_strings){
     vector<Selection> sel_vec(sel_strings.size());
     for (int i=0; i<sel_strings.size(); ++i){
         sel_vec[i].modify(*this, sel_strings[i]);
@@ -468,8 +467,9 @@ System System::rearrange(std::vector<string> sel_strings)
     for (int i=0; i<sel_vec.size()-1; ++i){
         for (int j=i+1; j<sel_vec.size(); ++j){
             set_intersection(sel_vec[i].index_begin(), sel_vec[i].index_end(),
-                             sel_vec[j].index_begin(), sel_vec[j].index_end(), back_inserter(inters));
-            if (!inters.empty()) throw Pteros_error("Selections should not intersect");
+                             sel_vec[j].index_begin(), sel_vec[j].index_end(),
+                             back_inserter(inters));
+            if (!inters.empty()) throw Pteros_error("Selections for rearrange should not overlap!");
         }
     }
 

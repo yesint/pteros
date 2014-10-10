@@ -129,10 +129,13 @@ public:
     Selection append(const Selection& sel);
 
     /// Append single atom to this system
-    ////// Returns selection corresponding to appended atom
+    /// Returns selection corresponding to appended atom
     Selection append(const Atom& at, const Vector3f_const_ref coord);
 
-    System rearrange(std::vector<std::string> sel_strings);
+    /// Rearranges the atoms in the order of provided selections.
+    /// Atom, which are not selected are appended at the end in their previous order.
+    /// Selections should not overlap (exception is thrown if they are).
+    System rearrange(const std::vector<std::string>& sel_strings);
     /// @}
 
 
