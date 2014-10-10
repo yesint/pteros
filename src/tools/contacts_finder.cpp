@@ -20,7 +20,7 @@
  *
 */
 
-#include "pteros/analysis/contacts_finder.h"
+#include "contacts_finder.h"
 #include <sstream>
 
 #include "json_spirit/json_spirit_reader_template.h"

@@ -20,7 +20,7 @@
  *
 */
 
-#include "pteros/analysis/rmsf.h"
+#include "rmsf.h"
 #include "pteros/analysis/options.h"
 #include "pteros/core/pteros_error.h"
 

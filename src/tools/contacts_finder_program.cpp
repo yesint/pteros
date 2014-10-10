@@ -20,7 +20,7 @@
  *
 */
 
-#include "pteros/analysis/contacts_finder.h"
+#include "contacts_finder.h"
 
 using namespace pteros;
 using namespace std;
