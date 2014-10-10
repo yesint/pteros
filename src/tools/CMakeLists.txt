@@ -24,17 +24,21 @@ target_link_libraries(pteros_contacts_finder pteros pteros_analysis ${Boost_LIBR
 # pteros_solvate
 #------------------------
 
-#add_executable(pteros_solvate
-#    solvate.cpp
-#)
-#target_link_libraries(pteros_solvate pteros ${Boost_LIBRARIES})
+add_executable(pteros_solvate
+    solvate.cpp
+)
+target_link_libraries(pteros_solvate pteros pteros_analysis ${Boost_LIBRARIES})
 
 
 #--------------
 # Installation
 #--------------
 
-install(TARGETS pteros_rmsf pteros_contacts_finder
+install(TARGETS
+    pteros_rmsf
+    pteros_contacts_finder
+    pteros_solvate
+
     RUNTIME DESTINATION bin/tools
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib

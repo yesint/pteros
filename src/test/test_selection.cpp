@@ -37,10 +37,8 @@ int main(int argc, char** argv)
 
     try{
 
-        System sys("/home/semen/work/temp/structure1.pml.pdb");
-        Selection sel(sys,"name C2");
-        cout << sys.num_atoms() << endl;
-        cout<<sel.XYZ(0).transpose()<<endl;
+        System sys("/home/semen/temp/b/spc216.gro");
+        cout<<sys.select_all().Name(0)<< endl;
 
         /*
         tng_trajectory_t trj;
