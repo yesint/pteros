@@ -71,12 +71,13 @@ bool GRO_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
     for(i=0;i<N;++i){
         getline(f,line);
 
-        sscanf(line.c_str(),"%5d%5[^\n]%5[^\n]%5d%8f%8f%8f",
-                &tmp_atom.resid, resname_buf, name_buf, &j,
-                &tmp_coor(0), &tmp_coor(1), &tmp_coor(2));
-
-        tmp_atom.resname = resname_buf;
-        tmp_atom.name = name_buf;
+        tmp_atom.resid = atoi(line.substr(0,5).c_str());
+        tmp_atom.resname = line.substr(5,5);
+        tmp_atom.name = line.substr(10,5);
+        // dum - 5 chars
+        tmp_coor(0) = atof(line.substr(20,8).c_str());
+        tmp_coor(1) = atof(line.substr(28,8).c_str());
+        tmp_coor(2) = atof(line.substr(36,8).c_str());
 
         boost::algorithm::trim(tmp_atom.resname);
         boost::algorithm::trim(tmp_atom.name);
