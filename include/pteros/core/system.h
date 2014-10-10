@@ -103,7 +103,7 @@ public:
     //EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    /// @name Constructors, operators and modification functions
+    /// @name Constructors and operators
     /// @{
 
     /// Default constructor
@@ -120,6 +120,11 @@ public:
     /// Destructor
     ~System();
 
+    /// @}
+
+    /// @name Adding, deleting and ordering groups of atoms
+    /// @{
+
     /// Append other system to this one
     /// Returns selection corresponding to appended atoms
     Selection append(const System& sys);
@@ -132,10 +137,28 @@ public:
     /// Returns selection corresponding to appended atom
     Selection append(const Atom& at, const Vector3f_const_ref coord);
 
+    /// Rearranges the atoms in the order of provided selection strings.
+    /// Atom, which are not selected are appended at the end in their previous order.
+    /// Selections should not overlap (exception is thrown if they are).
+    void rearrange(const std::vector<std::string>& sel_strings);
+
     /// Rearranges the atoms in the order of provided selections.
     /// Atom, which are not selected are appended at the end in their previous order.
     /// Selections should not overlap (exception is thrown if they are).
-    System rearrange(const std::vector<std::string>& sel_strings);
+    void rearrange(const std::vector<Selection>& sel_vec);
+
+    /// Keep only atoms given by selection string
+    void keep(const std::string& sel_str);
+
+    /// Keep only atoms from given selection
+    void keep(const Selection& sel);
+
+    /// Remove atoms given by selection string
+    void remove(const std::string& sel_str);
+
+    /// Remove atoms from given selection
+    void remove(const Selection& sel);
+
     /// @}
 
 
@@ -311,7 +334,7 @@ public:
     Selection atoms_add(const std::vector<Atom>& atm,
                    const std::vector<Eigen::Vector3f>& crd);
 
-    /// Delete the set of atoms
+    /// Delete the set of atoms by indexes
     void atoms_delete(const std::vector<int>& ind);
     /// @}
 
