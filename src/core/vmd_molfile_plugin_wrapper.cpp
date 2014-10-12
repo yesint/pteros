@@ -33,35 +33,6 @@ using namespace std;
 using namespace pteros;
 using namespace Eigen;
 
-/*
-    // Internal stuff
-    void* file_handle; // Returned by open_file
-
-    // Low-level stuff from VMD molfile_plugin
-    std::vector<std::string> extensions;
-    void* open_file_read(const char *filepath, const char *filetype, int *natoms);
-    int read_structure(void *mydata, int *optflags, molfile_atom_t *atoms);
-    int read_bonds(void *v, int *nbonds, int **fromptr, int **toptr,
-                          float ** bondorder,int **bondtype,
-                          int *nbondtypes, char ***bondtypename);
-    int read_next_timestep(void *v, int natoms, molfile_timestep_t *ts);
-    void close_read(void *v);
-
-    void *open_file_write(const char *filename, const char *filetype, int natoms);
-    int write_structure(void *v, int optflags, const molfile_atom_t *atoms);
-    int write_timestep(void *v, const molfile_timestep_t *ts);
-    void close_file_write(void *v);
-    int read_molecule_metadata(void *v, molfile_metadata_t **metadata);
-
-#include <iostream>
-#include <vector>
-#include "molfile_plugin.h"
-#include "molfile_plugin.h"
-#include "readpdb.h"
-*/
-
-//extern molfile_plugin_t pdb_plugin;
-
 void box_from_vmd_rep(float fa, float fb, float fc,
                               float alpha, float beta, float gamma, Eigen::Matrix3f& box){
 #define XX 0
@@ -189,9 +160,9 @@ bool VMD_molfile_plugin_wrapper::do_read(System *sys, Frame *frame, const Mol_fi
 
             // pdb_plugin guesses mass based on element record, which is
             // often absent. So it is likely that mass will be zero here!
-            // Check and guess ourself!
+            // Check and guess ourself if there is no mass!
             // We can't use functions from VMD here since atom CA will be
-            // treated as calcium for example. Out technique is more primitive
+            // treated as calcium for example. Our technique is more primitive
             // and only recognizes few most common elements
             if(atoms[i].mass>0){
                 at.mass = atoms[i].mass;
@@ -208,9 +179,7 @@ bool VMD_molfile_plugin_wrapper::do_read(System *sys, Frame *frame, const Mol_fi
 
     if(what.coordinates || what.trajectory){
         // READ FRAME:
-        molfile_timestep_t ts;
-        //vector<float> buffer(natoms*3);
-        //ts.coords = &buffer.front();
+        molfile_timestep_t ts;        
 
         frame->coord.resize(natoms);
         ts.coords = (float*)&frame->coord.front();
@@ -233,19 +202,6 @@ bool VMD_molfile_plugin_wrapper::do_read(System *sys, Frame *frame, const Mol_fi
         frame->time = ts.physical_time;
 
         return true;
-
-        // Copy coordinates from buffer to our frame and convert to nm
-        /*
-        frame.coord.resize(natoms);
-        int k = 0;
-        for(int i=0; i<natoms*3; i+=3){
-            frame.coord[k](0) = ts.coords[i]/10.0;
-            frame.coord[k](1) = ts.coords[i+1]/10.0;
-            frame.coord[k](2) = ts.coords[i+2]/10.0;
-            //cout << k << " " <<  frame.coord[k].transpose() << endl;
-            ++k;
-        }
-        */
     }       
 
     // If we are here than something is wrong
