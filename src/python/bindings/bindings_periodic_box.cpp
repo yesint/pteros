@@ -132,6 +132,11 @@ PyObject* Periodic_box_shortest_vector(Periodic_box* b, PyObject* point1, PyObje
 BOOST_PYTHON_FUNCTION_OVERLOADS(Periodic_box_shortest_vector_overloads,Periodic_box_shortest_vector,3,4);
 
 
+bool Periodic_box_in_box(Periodic_box* b, PyObject* point){
+    MAP_EIGEN_TO_PYTHON_F(Vector3f,p,point)
+    return b->in_box(p);
+}
+
 void make_bindings_Periodic_box(){
     import_array();
 
@@ -151,5 +156,6 @@ void make_bindings_Periodic_box(){
         .def("get_closest_image",&Periodic_box_get_closest_image, Periodic_box_get_closest_image_overloads())
         .def("shortest_vector",&Periodic_box_shortest_vector, Periodic_box_shortest_vector_overloads())
         .def("is_periodic",&Periodic_box::volume)
+        .def("in_box",&Periodic_box_in_box)
     ;
 }

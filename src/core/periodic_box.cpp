@@ -106,6 +106,16 @@ void Periodic_box::wrap_point(Vector3f_ref point, Vector3i_const_ref dims_to_wra
     if(is_triclinic()) point = (_to_lab*point).eval();
 }
 
+bool Periodic_box::in_box(Vector3f_const_ref point)
+{
+    Vector3f p = is_triclinic() ? _to_box*point : point;
+
+    for(int i=0; i<3; ++i)
+        if(p(i)<0 || p(i)>_extents(i)) return false;
+
+    return true;
+}
+
 Eigen::Vector3f Periodic_box::get_closest_image(Vector3f_const_ref point, Vector3f_const_ref target, bool do_wrapping, Vector3i_const_ref dims_to_wrap) const
 {
     if(_is_periodic){

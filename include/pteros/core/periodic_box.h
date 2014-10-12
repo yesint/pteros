@@ -109,6 +109,10 @@ public:
     void wrap_point(Vector3f_ref point,
                     Vector3i_const_ref dims_to_wrap = Eigen::Vector3i::Ones()) const;
 
+    /// Determine if the point is inside the box
+    /// Origin of the box coordinates is assumed to be {0,0,0}.
+    bool in_box(Vector3f_const_ref point);
+
     /// Finds a periodic image of point, which is closest in space to target and returns it
     /// This method wraps both point and targer to periodic box internally (this is usually what you want).
     /// If this is not needed set @param do_wrapping to false, but in this case make sure
