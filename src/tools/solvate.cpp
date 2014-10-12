@@ -87,9 +87,6 @@ int main(int argc, char* argv[]){
         cout << "Removing " << bad_sel.size() << " atoms outside the solute box..." << endl;
         solvent.remove(bad_sel);
 
-        //solvent.Box(0) = solute.Box(0);
-        //solvent.select_all().write("box.pdb");
-
         // Find last index of solute
         int last_solute_ind = solute.num_atoms()-1;
 

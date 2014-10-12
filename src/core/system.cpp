@@ -571,6 +571,42 @@ float System::distance(int i, int j, int fr, bool is_periodic, Vector3i_const_re
     }
 }
 
+#define RAD_TO_DEG 57.295779513082320876798154814105
+
+float System::angle(int i, int j, int k, int fr, bool is_periodic, Vector3i_const_ref dims) const
+{
+    Vector3f v1,v2;
+    if(is_periodic){
+        v1 = Box(fr).shortest_vector(XYZ(i,fr),XYZ(j,fr),dims);
+        v2 = Box(fr).shortest_vector(XYZ(k,fr),XYZ(j,fr),dims);
+    } else {
+        v1 = XYZ(i,fr)-XYZ(j,fr);
+        v2 = XYZ(k,fr)-XYZ(j,fr);
+    }
+    return acos(v1.dot(v2)/(v1.norm()*v2.norm())) * RAD_TO_DEG;
+}
+
+float System::dihedral(int i, int j, int k, int l, int fr, bool is_periodic, Vector3i_const_ref dims) const
+{
+    Vector3f v1,v2,n;
+    if(is_periodic){
+        v1 = Box(fr).shortest_vector(XYZ(i,fr),XYZ(j,fr),dims);
+        v2 = Box(fr).shortest_vector(XYZ(l,fr),XYZ(k,fr),dims);
+        n =  Box(fr).shortest_vector(XYZ(k,fr),XYZ(j,fr),dims);
+    } else {
+        v1 = XYZ(i,fr)-XYZ(j,fr);
+        v2 = XYZ(l,fr)-XYZ(k,fr);
+        n =  XYZ(k,fr)-XYZ(j,fr);
+    }
+
+    // Project v1 and v2 to a plane with normal n
+    v1 = v1 - ((v1.dot(n))/(n.dot(n)))*n;
+    v2 = v2 - ((v2.dot(n))/(n.dot(n)))*n;
+
+    // Dihedral is now an angle between them
+    return acos(v1.dot(v2)/(v1.norm()*v2.norm())) * RAD_TO_DEG;
+}
+
 void System::wrap_all(int fr, Vector3i_const_ref dims_to_wrap){
     for(int i=0;i<num_atoms();++i){
         traj[fr].box.wrap_point(XYZ(i,fr),dims_to_wrap);

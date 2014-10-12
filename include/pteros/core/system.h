@@ -348,15 +348,30 @@ public:
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     /// @name Periodicity-related functions
-    /// @{
-
-    /// Get distance between two atoms for given frame (periodic in given dimensions if needed).
-    float distance(int i, int j, int fr, bool is_periodic = true, Vector3i_const_ref dims = Eigen::Vector3i::Ones()) const;
+    /// @{    
 
     /// Wrap all system to the periodic box for given frame
     void wrap_all(int fr, Vector3i_const_ref dims_to_wrap = Eigen::Vector3i::Ones());
+
     /// @}
 
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    /// @name Measuring functions
+    /// @{
+
+    /// Get distance between two atoms for given frame (periodic in given dimensions if needed).
+    float distance(int i, int j, int fr, bool is_periodic = true,
+                   Vector3i_const_ref dims = Eigen::Vector3i::Ones()) const;
+
+    /// Get angle in degrees between three atoms for given frame (periodic in given dimensions if needed).
+    float angle(int i, int j, int k, int fr, bool is_periodic = true,
+                Vector3i_const_ref dims = Eigen::Vector3i::Ones()) const;
+
+    /// Get dihedral angle in degrees between three atoms for given frame (periodic in given dimensions if needed).
+    float dihedral(int i, int j, int k, int l, int fr, bool is_periodic = true,
+                Vector3i_const_ref dims = Eigen::Vector3i::Ones()) const;
+
+    /// @}
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     /// @name Energy functions

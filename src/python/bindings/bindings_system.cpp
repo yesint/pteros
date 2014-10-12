@@ -128,6 +128,47 @@ void System_wrap_all2(System* sys, int fr){
     sys->wrap_all(fr);
 }
 
+float System_distance1(System* sys, int i, int j, int fr, bool pbc, PyObject* dims){
+    MAP_EIGEN_TO_PYTHON_I(Vector3i,dim,dims)
+    return sys->distance(i,j,fr,pbc,dim);
+}
+
+float System_distance2(System* sys, int i, int j,  int fr, bool pbc){
+    return sys->distance(i,j,fr,pbc);
+}
+
+float System_distance3(System* sys, int i, int j, int fr){
+    return sys->distance(i,j,fr);
+}
+
+float System_angle1(System* sys, int i, int j, int k,  int fr, bool pbc, PyObject* dims){
+    MAP_EIGEN_TO_PYTHON_I(Vector3i,dim,dims)
+    return sys->angle(i,j,k,fr,pbc,dim);
+}
+
+float System_angle2(System* sys, int i, int j, int k,  int fr, bool pbc){
+    return sys->angle(i,j,k,fr,pbc);
+}
+
+float System_angle3(System* sys, int i, int j, int k, int fr){
+    return sys->angle(i,j,k,fr);
+}
+
+float System_dihedral1(System* sys, int i, int j, int k, int l, int fr, bool pbc, PyObject* dims){
+    MAP_EIGEN_TO_PYTHON_I(Vector3i,dim,dims)
+    return sys->dihedral(i,j,k,l,fr,pbc,dim);
+}
+
+float System_dihedral2(System* sys, int i, int j, int k, int l, int fr, bool pbc){
+    return sys->dihedral(i,j,k,l,fr,pbc);
+}
+
+float System_dihedral3(System* sys, int i, int j, int k, int l, int fr){
+    return sys->dihedral(i,j,k,l,fr);
+}
+
+//==================================================================
+
 void make_bindings_System(){
     import_array();
 
@@ -185,5 +226,17 @@ void make_bindings_System(){
         .def("dssp", static_cast<std::string(System::*)()const>(&System::dssp))
 
         .def("sort_by_resindex",&System::sort_by_resindex)
+
+        .def("distance",&System_distance1)
+        .def("distance",&System_distance2)
+        .def("distance",&System_distance3)
+
+        .def("angle",&System_angle1)
+        .def("angle",&System_angle2)
+        .def("angle",&System_angle3)
+
+        .def("dihedral",&System_dihedral1)
+        .def("dihedral",&System_dihedral2)
+        .def("dihedral",&System_dihedral3)
     ;
 }
