@@ -1412,6 +1412,21 @@ float Selection::gyration(bool periodic) const {
     return sqrt(a/b);
 }
 
+float Selection::distance(int i, int j, bool is_periodic, Vector3i_const_ref dims) const
+{
+    return system->distance(Index(i),Index(j),frame,is_periodic,dims);
+}
+
+float Selection::angle(int i, int j, int k, bool is_periodic, Vector3i_const_ref dims) const
+{
+    return system->angle(Index(i),Index(j),Index(k),frame,is_periodic,dims);
+}
+
+float Selection::dihedral(int i, int j, int k, int l, bool is_periodic, Vector3i_const_ref dims) const
+{
+    return system->dihedral(Index(i),Index(j),Index(k),Index(l),frame,is_periodic,dims);
+}
+
 void Selection::wrap(Vector3i_const_ref dims){
     for(int i=0;i<size();++i){
         system->Box(frame).wrap_point(XYZ(i),dims);

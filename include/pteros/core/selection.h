@@ -382,6 +382,22 @@ class Selection {
 
     /// Computes radius of gyration for selection
     float gyration(bool periodic = false) const;
+
+    /// Get distance between two atoms (periodic in given dimensions if needed).
+    /// This function takes selection indexes, not absolute indexes.
+    float distance(int i, int j, bool is_periodic = true,
+                   Vector3i_const_ref dims = Eigen::Vector3i::Ones()) const;
+
+    /// Get angle in degrees between three atoms (periodic in given dimensions if needed).
+    /// This function takes selection indexes, not absolute indexes.
+    float angle(int i, int j, int k, bool is_periodic = true,
+                Vector3i_const_ref dims = Eigen::Vector3i::Ones()) const;
+
+    /// Get dihedral angle in degrees between three atoms (periodic in given dimensions if needed).
+    /// This function takes selection indexes, not absolute indexes.
+    float dihedral(int i, int j, int k, int l, bool is_periodic = true,
+                Vector3i_const_ref dims = Eigen::Vector3i::Ones()) const;
+
     /// @}
 
 

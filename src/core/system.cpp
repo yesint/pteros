@@ -588,23 +588,22 @@ float System::angle(int i, int j, int k, int fr, bool is_periodic, Vector3i_cons
 
 float System::dihedral(int i, int j, int k, int l, int fr, bool is_periodic, Vector3i_const_ref dims) const
 {
-    Vector3f v1,v2,n;
+    Vector3f b1,b2,b3;
     if(is_periodic){
-        v1 = Box(fr).shortest_vector(XYZ(i,fr),XYZ(j,fr),dims);
-        v2 = Box(fr).shortest_vector(XYZ(l,fr),XYZ(k,fr),dims);
-        n =  Box(fr).shortest_vector(XYZ(k,fr),XYZ(j,fr),dims);
+        b1 = Box(fr).get_closest_image(XYZ(j,fr),XYZ(i,fr)) - XYZ(i,fr);
+        b2 = Box(fr).get_closest_image(XYZ(k,fr),XYZ(i,fr)) -
+               Box(fr).get_closest_image(XYZ(j,fr),XYZ(i,fr));
+        b3 = Box(fr).get_closest_image(XYZ(l,fr),XYZ(i,fr)) -
+               Box(fr).get_closest_image(XYZ(k,fr),XYZ(i,fr));
     } else {
-        v1 = XYZ(i,fr)-XYZ(j,fr);
-        v2 = XYZ(l,fr)-XYZ(k,fr);
-        n =  XYZ(k,fr)-XYZ(j,fr);
-    }
+        b1 = XYZ(j,fr)-XYZ(i,fr);
+        b2 = XYZ(k,fr)-XYZ(j,fr);
+        b3 = XYZ(l,fr)-XYZ(k,fr);
+    }    
 
-    // Project v1 and v2 to a plane with normal n
-    v1 = v1 - ((v1.dot(n))/(n.dot(n)))*n;
-    v2 = v2 - ((v2.dot(n))/(n.dot(n)))*n;
-
-    // Dihedral is now an angle between them
-    return acos(v1.dot(v2)/(v1.norm()*v2.norm())) * RAD_TO_DEG;
+    // Dihedral
+    return atan2( ((b1.cross(b2)).cross(b2.cross(b3))).dot(b2/b2.norm()) ,
+                  (b1.cross(b2)).dot(b2.cross(b3)) ) * RAD_TO_DEG;
 }
 
 void System::wrap_all(int fr, Vector3i_const_ref dims_to_wrap){

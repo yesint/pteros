@@ -423,6 +423,45 @@ void Selection_modify_list2(Selection* sel, const System& sys, const bp::list& l
     sel->modify(sys,v);
 }
 
+float Selection_distance1(Selection* s, int i, int j, bool pbc, PyObject* dims){
+    MAP_EIGEN_TO_PYTHON_I(Vector3i,dim,dims)
+    return s->distance(i,j,pbc,dim);
+}
+
+float Selection_distance2(Selection* s, int i, int j, bool pbc){
+    return s->distance(i,j,pbc);
+}
+
+float Selection_distance3(Selection* s, int i, int j, int fr){
+    return s->distance(i,j);
+}
+
+float Selection_angle1(Selection* s, int i, int j, int k, bool pbc, PyObject* dims){
+    MAP_EIGEN_TO_PYTHON_I(Vector3i,dim,dims)
+    return s->angle(i,j,k,pbc,dim);
+}
+
+float Selection_angle2(Selection* s, int i, int j, int k, bool pbc){
+    return s->angle(i,j,k,pbc);
+}
+
+float Selection_angle3(Selection* s, int i, int j, int k, int fr){
+    return s->angle(i,j,k,fr);
+}
+
+float Selection_dihedral1(Selection* s, int i, int j, int k, int l, bool pbc, PyObject* dims){
+    MAP_EIGEN_TO_PYTHON_I(Vector3i,dim,dims)
+    return s->dihedral(i,j,k,l,pbc,dim);
+}
+
+float Selection_dihedral2(Selection* s, int i, int j, int k, int l, bool pbc){
+    return s->dihedral(i,j,k,l,pbc);
+}
+
+float Selection_dihedral3(Selection* s, int i, int j, int k, int l){
+    return s->dihedral(i,j,k,l);
+}
+
 //-------------------------------------------------------
 
 // Macros to wrap an inline accessor function
@@ -585,6 +624,18 @@ void make_bindings_Selection(){
         .def("center",&Selection_center, (bp::arg("mass_weighted")=false,bp::arg("periodic")=false) )
 
         .def("minmax",&Selection_minmax)
+
+        .def("distance",&Selection_distance1)
+        .def("distance",&Selection_distance2)
+        .def("distance",&Selection_distance3)
+
+        .def("angle",&Selection_angle1)
+        .def("angle",&Selection_angle2)
+        .def("angle",&Selection_angle3)
+
+        .def("dihedral",&Selection_dihedral1)
+        .def("dihedral",&Selection_dihedral2)
+        .def("dihedral",&Selection_dihedral3)
 
         .def("translate",&Selection_translate)
 
