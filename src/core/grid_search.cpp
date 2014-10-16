@@ -429,7 +429,7 @@ Grid_searcher::Grid_searcher(float d,
         max = box.extents();
     }
 
-    set_grid_size(min,max, src.size()+target.size(),box);
+    set_grid_size(min,max, std::max(src.size(),target.size()),box);
 
     // Allocate both grids
     grid1.resize( boost::extents[NgridX][NgridY][NgridZ] );
