@@ -53,11 +53,13 @@ int main(int argc, char** argv)
         */
         //-----------
         auto t_start = std::chrono::high_resolution_clock::now();
-        Selection w(s,"within 2.0 pbc of resname DOPC");
+        Selection w;
+        for(int i=0;i<50;++i)
+            w.modify(s,"within 3.0 nopbc of resname DOPC");
         auto t_end = std::chrono::high_resolution_clock::now();
 
         cout << w.size() << " elapsed: "
-             << std::chrono::duration<double>(t_end-t_start).count() << endl;
+             << std::chrono::duration<double>(t_end-t_start).count()/50.0 << endl;
 
         /*
         tng_trajectory_t trj;

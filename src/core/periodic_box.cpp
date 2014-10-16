@@ -53,7 +53,7 @@ void Periodic_box::modify(Matrix3f_const_ref box)
     _is_triclinic = (_box(0,1)||_box(0,2)||_box(1,0)||_box(1,2)||_box(2,0)||_box(2,1));
 }
 
-float Periodic_box::distance(Vector3f_const_ref point1, Vector3f_const_ref point2, bool do_wrapping, Vector3i_const_ref periodic_dims) const
+float Periodic_box::distance_squared(Vector3f_const_ref point1, Vector3f_const_ref point2, bool do_wrapping, Vector3i_const_ref periodic_dims) const
 {
     if(_is_periodic){
         Vector3f p1 = point1, p2 = point2;
@@ -78,11 +78,15 @@ float Periodic_box::distance(Vector3f_const_ref point1, Vector3f_const_ref point
         // If triclinic convert back to lab coords
         if(_is_triclinic) d = (_to_lab*d).eval();
 
-        return d.norm();
+        return d.squaredNorm();
     } else {
         // Non-periodic variant
-        return (point2-point1).norm();
+        return (point2-point1).squaredNorm();
     }
+}
+
+float Periodic_box::distance(Vector3f_const_ref point1, Vector3f_const_ref point2, bool do_wrapping, Vector3i_const_ref periodic_dims) const {
+    return sqrt(distance_squared(point1,point2,do_wrapping,periodic_dims));
 }
 
 float Periodic_box::volume(){

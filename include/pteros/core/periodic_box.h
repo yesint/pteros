@@ -105,6 +105,11 @@ public:
                    bool do_wrapping = true,
                    Vector3i_const_ref periodic_dims = Eigen::Vector3i::Ones()) const;
 
+    float distance_squared(Vector3f_const_ref point1,
+                   Vector3f_const_ref point2,
+                   bool do_wrapping = true,
+                   Vector3i_const_ref periodic_dims = Eigen::Vector3i::Ones()) const;
+
     /// Wrap point to the box for given set of dimensions
     void wrap_point(Vector3f_ref point,
                     Vector3i_const_ref dims_to_wrap = Eigen::Vector3i::Ones()) const;

@@ -26,7 +26,6 @@
 #include <vector>
 #include <map>
 #include <algorithm>
-#include <boost/multi_array.hpp>
 #include "time.h"
 #include <iostream>
 #include <thread>
@@ -296,7 +295,6 @@ void Grid_searcher::search_within(const Selection &target, std::vector<int> &bon
 void Grid_searcher::do_part_within(int dim, int _b, int _e,
                              const Selection &src,
                              const Selection &target,
-                             std::vector<int>& bon,
                              std::vector<atomwrapper<bool>>& used
                              ){
 
@@ -309,6 +307,8 @@ void Grid_searcher::do_part_within(int dim, int _b, int _e,
     float d;
     Vector3f coor1;
     vector<Vector3i> nlist; // Local nlist
+
+    float cutoff2 = cutoff*cutoff;
 
     for(i=b(0);i<e(0);++i){
         for(j=b(1);j<e(1);++j){
@@ -354,25 +354,24 @@ void Grid_searcher::do_part_within(int dim, int _b, int _e,
 
                         coor1 = src.XYZ(ind); // Coord of source point
 
-                        for(n2=0;n2<N2;++n2){ //over target atoms of current cell
-
-                            if(!is_periodic)
-                                d = (pre.col(n2) - coor1).norm();
-                            else
-                                d = box.distance(pre.col(n2), coor1);
-
-                            if(d<=cutoff){
-                                if(abs_index){
-                                    bon.push_back( src.Index(ind) );
-                                } else {
-                                    bon.push_back( ind );
+                        if(is_periodic){
+                            for(n2=0;n2<N2;++n2){ //over target atoms of current cell
+                                d = box.distance_squared(pre.col(n2), coor1);
+                                if(d<=cutoff2){
+                                    used[ind].store(true);
+                                    break;
                                 }
-                                // Mark atom in grid1 as already added
-                                used[ind].store(true);
-                                // And break from cycle over n2 since atom is added already
-                                break;
+                            }
+                        } else {
+                            for(n2=0;n2<N2;++n2){ //over target atoms of current cell
+                                d = (pre.col(n2) - coor1).squaredNorm();
+                                if(d<=cutoff2){
+                                    used[ind].store(true);
+                                    break;
+                                }
                             }
                         }
+
                     }
 
                     //--
@@ -477,9 +476,6 @@ Grid_searcher::Grid_searcher(float d,
         //for(int i=0;i<nt;++i) cout << b[i] << ":" << e[i] << " ";
         //cout << endl;
 
-        // Prepare arrays per each thread
-        vector< vector<int> > _bon(nt);
-
         // Launch threads
         vector<thread> threads;
         for(int i=0;i<nt;++i){
@@ -490,9 +486,8 @@ Grid_searcher::Grid_searcher(float d,
                                        max_dim,
                                        b[i],
                                        e[i],
-                                       src,
-                                       target,
-                                       ref(_bon[i]),
+                                       ref(src),
+                                       ref(target),
                                        ref(used)
                                    )
                                 )
@@ -502,14 +497,19 @@ Grid_searcher::Grid_searcher(float d,
         // Wait for threads
         for(auto& t: threads) t.join();
 
-        // Collect results
-        for(int i=0;i<nt;++i){
-            copy(_bon[i].begin(),_bon[i].end(), back_inserter(bon));
-        }
-
     } else {
         // Serial search, no need to launch separate thread
-        do_part_within(max_dim,0,dims(max_dim),src,target,bon,used);
+        do_part_within(max_dim,0,dims(max_dim),src,target,used);
+    }
+
+
+    // Convert used array to indexes
+    if(abs_index){
+        for(int i=0;i<used.size();++i)
+            if(used[i].load()) bon.push_back(src.Index(i));
+    } else {
+        for(int i=0;i<used.size();++i)
+            if(used[i].load()) bon.push_back(i);
     }
 
     if(include_self){
@@ -532,6 +532,7 @@ Grid_searcher::Grid_searcher(float d,
         bon.clear();
         set_difference(dum.begin(),dum.end(),target.index_begin(),target.index_end(),back_inserter(bon));
     }
+
 }
 
 

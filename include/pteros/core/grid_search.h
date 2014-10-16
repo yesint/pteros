@@ -23,12 +23,14 @@
 #ifndef GRID_SEARCH_H_INCLUDED
 #define GRID_SEARCH_H_INCLUDED
 
-#include "pteros/core/selection.h"
-#include "boost/multi_array.hpp"
-
 #include <Eigen/Core>
 #include <vector>
 #include <atomic>
+#include "pteros/core/selection.h"
+
+#define BOOST_DISABLE_ASSERTS
+#include "boost/multi_array.hpp"
+
 
 namespace pteros {    
 
@@ -203,7 +205,6 @@ namespace pteros {
             void do_part_within(int dim, int _b, int _e,
                                 const Selection &src,
                                 const Selection &target,
-                                std::vector<int>& bon,
                                 std::vector<atomwrapper<bool>>& used);
 
             // Min and max of the bounding box
