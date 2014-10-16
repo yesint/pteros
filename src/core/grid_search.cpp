@@ -240,6 +240,7 @@ void Grid_searcher::search_within(const Selection &target, std::vector<int> &bon
                         for(n1=0;n1<N1;++n1){
                             // Skip already used points
                             if(grid1[m1][m2][m3][n1]<0) continue;
+
                             coor2 = p_sel->XYZ(grid1[m1][m2][m3][n1]);
 
                             if(!is_periodic)
@@ -288,6 +289,101 @@ void Grid_searcher::search_within(const Selection &target, std::vector<int> &bon
         set_difference(dum.begin(),dum.end(),target.index_begin(),target.index_end(),back_inserter(bon));
     }
 }
+
+
+
+// Search over part of space. To be called in a thread.
+void Grid_searcher::do_part_within(int dim, int _b, int _e,
+                             const Selection &src,
+                             const Selection &target,
+                             std::vector<int>& bon,
+                             std::vector<atomwrapper<bool>>& used
+                             ){
+
+    Vector3i b(0,0,0);
+    Vector3i e(NgridX,NgridY,NgridZ);
+    int dim_max = e(dim);
+    b(dim)= _b;
+    e(dim)= _e;
+    int i,j,k,i1,nlist_size,N1,N2,m1,m2,m3,c,n1,n2,ind;
+    float d;
+    Vector3f coor1;
+    vector<Vector3i> nlist; // Local nlist
+
+    for(i=b(0);i<e(0);++i){
+        for(j=b(1);j<e(1);++j){
+            for(k=b(2);k<e(2);++k){
+                // Get number of atoms in current target cell
+                N2 = grid2[i][j][k].size();
+                // If no atoms than just skip this cell
+                if(N2==0) continue;
+
+                // Matrix of pre-computed coordinates for target points in this cell
+                // Saves access to grid and computing XYZ in place. Makes a big
+                // difference for large cutoffs!
+                MatrixXf pre(3,N2);
+                for(n2=0;n2<N2;++n2){ //over target atoms
+                    pre.col(n2) = target.XYZ(grid2[i][j][k][n2]);
+                }
+
+                // Get neighbour list
+                get_nlist_local(i,j,k,nlist);
+                // Add central cell to the list
+                nlist.push_back(Vector3i(i,j,k));
+
+                nlist_size = nlist.size();
+                // Cycle over neighbouring cells
+                for(c=0;c<nlist_size;++c){
+
+                    m1 = nlist[c](0);
+                    m2 = nlist[c](1);
+                    m3 = nlist[c](2);
+
+                    // Get number of atoms in neighbour grid1 cell
+                    N1 = grid1[m1][m2][m3].size();
+
+                    // Skip empty cells
+                    if(N1==0) continue;
+
+                    // Cycle over N1
+                    for(n1=0;n1<N1;++n1){ // Over source atoms
+
+                        ind = grid1[m1][m2][m3][n1];
+                        // Skip already used source points
+                        if(used[ind].load()) continue;
+
+                        coor1 = src.XYZ(ind); // Coord of source point
+
+                        for(n2=0;n2<N2;++n2){ //over target atoms of current cell
+
+                            if(!is_periodic)
+                                d = (pre.col(n2) - coor1).norm();
+                            else
+                                d = box.distance(pre.col(n2), coor1);
+
+                            if(d<=cutoff){
+                                if(abs_index){
+                                    bon.push_back( src.Index(ind) );
+                                } else {
+                                    bon.push_back( ind );
+                                }
+                                // Mark atom in grid1 as already added
+                                used[ind].store(true);
+                                // And break from cycle over n2 since atom is added already
+                                break;
+                            }
+                        }
+                    }
+
+                    //--
+                }
+
+
+            }
+        }
+    }
+}
+
 
 // Search is around target, atoms from src are returned
 Grid_searcher::Grid_searcher(float d,
@@ -344,6 +440,10 @@ Grid_searcher::Grid_searcher(float d,
     populate_grid(grid1,src);
     populate_grid(grid2,target);
 
+    // Array of atomic bools for used source points
+    std::vector<atomwrapper<bool>> used(src.size());
+    for(int i=0;i<used.size();++i) used[i].store(false);
+
     //------------
     // Search part
     //------------
@@ -353,77 +453,63 @@ Grid_searcher::Grid_searcher(float d,
 
     Vector3f coor1;
 
-    // Cycle over all cells of grid2 (target)
-    for(i=0;i<NgridX;++i){
-        for(j=0;j<NgridY;++j){
-            for(k=0;k<NgridZ;++k){
-                // Get number of atoms in current target cell
-                N2 = grid2[i][j][k].size();
-                // If no atoms than just skip this cell
-                if(N2==0) continue;                
+    // See if we need parallelization
+    int max_N, max_dim;
+    Vector3i dims(NgridX,NgridY,NgridZ);
+    max_N = dims.maxCoeff(&max_dim);
 
-                // Matrix of pre-computed coordinates for target points in this cell
-                // Saves access to grid and computing XYZ in place. Makes a big
-                // difference for large cutoffs!
-                MatrixXf pre(3,N2);
-                for(n2=0;n2<N2;++n2){ //over target atoms
-                    pre.col(n2) = target.XYZ(grid2[i][j][k][n2]);
-                }
+    int nt = std::min(max_N, int(std::thread::hardware_concurrency()));
 
-                // Get neighbour list
-                get_nlist(i,j,k);
-                // Add central cell to the list
-                nlist.push_back(Vector3i(i,j,k));
+    if(nt>1){
+        // Parallel search
 
-                nlist_size = nlist.size();
-                // Cycle over neighbouring cells                
-                for(c=0;c<nlist_size;++c){
-
-                    m1 = nlist[c](0);
-                    m2 = nlist[c](1);
-                    m3 = nlist[c](2);
-
-                    // Get number of atoms in neighbour grid1 cell
-                    N1 = grid1[m1][m2][m3].size();
-
-                    // Skip empty cells
-                    if(N1==0) continue;
-
-                    // Cycle over N1
-                    for(n1=0;n1<N1;++n1){ // Over source atoms
-
-                        ind = grid1[m1][m2][m3][n1];
-                        // Skip already used source points
-                        if(ind<0) continue;
-
-                        coor1 = src.XYZ(ind); // Coord of source point
-
-                        for(n2=0;n2<N2;++n2){ //over target atoms of current cell
-
-                            if(!is_periodic)
-                                d = (pre.col(n2) - coor1).norm();
-                            else
-                                d = box.distance(pre.col(n2), coor1);
-
-                            if(d<=cutoff){
-                                if(abs_index){
-                                    bon.push_back( src.Index(ind) );
-                                } else {
-                                    bon.push_back( ind );
-                                }
-                                // Mark atom in grid1 as already added
-                                grid1[m1][m2][m3][n1] = -ind;
-                                // And break from cycle over n2 since atom is added already
-                                break;
-                            }
-                        }
-                    }
-
-
-                    //--
-                }
-            }
+        // Determine parts for each thread
+        vector<int> b(nt),e(nt);
+        int cur=0;
+        for(int i=0;i<nt-1;++i){
+            b[i]=cur;
+            cur += dims(max_dim)/nt;
+            e[i]=cur;
         }
+        b[nt-1]=cur;
+        e[nt-1]=dims(max_dim);
+
+        //for(int i=0;i<nt;++i) cout << b[i] << ":" << e[i] << " ";
+        //cout << endl;
+
+        // Prepare arrays per each thread
+        vector< vector<int> > _bon(nt);
+
+        // Launch threads
+        vector<thread> threads;
+        for(int i=0;i<nt;++i){
+            threads.push_back( thread(
+                                   std::bind(
+                                       &Grid_searcher::do_part_within,
+                                       this,
+                                       max_dim,
+                                       b[i],
+                                       e[i],
+                                       src,
+                                       target,
+                                       ref(_bon[i]),
+                                       ref(used)
+                                   )
+                                )
+                             );
+        }
+
+        // Wait for threads
+        for(auto& t: threads) t.join();
+
+        // Collect results
+        for(int i=0;i<nt;++i){
+            copy(_bon[i].begin(),_bon[i].end(), back_inserter(bon));
+        }
+
+    } else {
+        // Serial search, no need to launch separate thread
+        do_part_within(max_dim,0,dims(max_dim),src,target,bon,used);
     }
 
     if(include_self){
@@ -742,8 +828,8 @@ void Grid_searcher::do_search(const Selection &sel, std::vector<Eigen::Vector2i>
         b[nt-1]=cur;
         e[nt-1]=dims(max_dim);
 
-        for(int i=0;i<nt;++i) cout << b[i] << ":" << e[i] << " ";
-        cout << endl;
+        //for(int i=0;i<nt;++i) cout << b[i] << ":" << e[i] << " ";
+        //cout << endl;
 
         // Prepare arrays per each thread
         vector< vector<Vector2i> > _bon(nt);
@@ -894,8 +980,8 @@ void Grid_searcher::do_search(const Selection &sel1, const Selection &sel2, std:
         b[nt-1]=cur;
         e[nt-1]=dims(max_dim);
 
-        for(int i=0;i<nt;++i) cout << b[i] << ":" << e[i] << " ";
-        cout << endl;
+        //for(int i=0;i<nt;++i) cout << b[i] << ":" << e[i] << " ";
+        //cout << endl;
 
         // Prepare arrays per each thread
         vector< vector<Vector2i> > _bon(nt);

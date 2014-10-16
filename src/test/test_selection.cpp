@@ -39,16 +39,24 @@ int main(int argc, char** argv)
     try{
 
         System s("/media/semen/data/semen/trajectories/asymmetric_hexagonal/with_c60/last.gro");
-        Selection sel1(s,"all");
+        Selection sel1(s,"resname DOPC");
         Selection sel2(s,"all");
         vector<Vector2i> bon;
+
+        /*
         auto t_start = std::chrono::high_resolution_clock::now();
-
-        Grid_searcher(1.0,sel1,sel2,bon,true,true);
-
+        Grid_searcher(2.0,sel1,sel2,bon,true,true);
         auto t_end = std::chrono::high_resolution_clock::now();
 
         cout << bon.size() << " elapsed: "
+             << std::chrono::duration<double>(t_end-t_start).count() << endl;
+        */
+        //-----------
+        auto t_start = std::chrono::high_resolution_clock::now();
+        Selection w(s,"within 2.0 pbc of resname DOPC");
+        auto t_end = std::chrono::high_resolution_clock::now();
+
+        cout << w.size() << " elapsed: "
              << std::chrono::duration<double>(t_end-t_start).count() << endl;
 
         /*
