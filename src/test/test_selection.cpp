@@ -25,7 +25,8 @@
 #include <Eigen/Core>
 #include "pteros/core/pteros_error.h"
 #include "pteros/core/selection.h"
-#include "../core/tng_io/include/tng/tng_io.h"
+#include "pteros/core/grid_search.h"
+#include <chrono>
 
 using namespace std;
 using namespace pteros;
@@ -37,8 +38,18 @@ int main(int argc, char** argv)
 
     try{
 
-        System sys("/home/semen/temp/b/spc216.gro");
-        cout<<sys.select_all().Name(0)<< endl;
+        System s("/media/semen/data/semen/trajectories/asymmetric_hexagonal/with_c60/last.gro");
+        Selection sel1(s,"all");
+        Selection sel2(s,"all");
+        vector<Vector2i> bon;
+        auto t_start = std::chrono::high_resolution_clock::now();
+
+        Grid_searcher(1.0,sel1,sel2,bon,true,true);
+
+        auto t_end = std::chrono::high_resolution_clock::now();
+
+        cout << bon.size() << " elapsed: "
+             << std::chrono::duration<double>(t_end-t_start).count() << endl;
 
         /*
         tng_trajectory_t trj;

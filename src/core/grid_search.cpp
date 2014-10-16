@@ -29,6 +29,7 @@
 #include <boost/multi_array.hpp>
 #include "time.h"
 #include <iostream>
+#include <thread>
 
 using namespace std;
 using namespace pteros;
@@ -630,6 +631,57 @@ void Grid_searcher::populate_grid(Grid_t& grid, const Selection &sel){
     }
 }
 
+// Search over part of space. To be called in a thread.
+void Grid_searcher::do_part1(int dim, int _b, int _e,
+                             const Selection &sel,
+                             std::vector<Eigen::Vector2i>& bon,
+                             std::vector<float>* dist_vec){
+
+    Vector3i b(0,0,0);
+    Vector3i e(NgridX,NgridY,NgridZ);
+    int dim_max = e(dim);
+    b(dim)= _b;
+    e(dim)= _e;
+    int i,j,k,i1,nlist_size;
+    vector<Vector3i> nlist; // Local nlist
+
+    for(i=b(0);i<e(0);++i){
+        for(j=b(1);j<e(1);++j){
+            for(k=b(2);k<e(2);++k){
+                // Search in central cell
+                get_central_1(i,j,k, sel, bon, dist_vec);
+                visited[i][j][k] = true;
+                // Get neighbour list locally
+                get_nlist_local(i,j,k,nlist);
+                nlist_size = nlist.size();
+                // Search between this and neighbouring cells
+                for(i1=0;i1<nlist_size;++i1){
+                    // If the neighbour is "at left" from the boundary of this part,
+                    // ignore it. Only consider dim dimension.
+
+                    //if(nlist[i1](dim)<b(dim) || (b(dim)==0 && nlist[i1](dim)==dim_max-1)){
+                    if(nlist[i1](dim)<b(dim)){
+                        continue;
+                    }
+
+                    // We only check for visited cells inside local part, not in the "halo"
+                    if(    nlist[i1](dim)>=b(dim)
+                        && nlist[i1](dim)<e(dim) ){
+                        // cell is inside the partition
+                        if( !visited[nlist[i1](0)][nlist[i1](1)][nlist[i1](2)] )
+                            get_side_1(i,j,k, nlist[i1](0),nlist[i1](1),nlist[i1](2),sel, bon, dist_vec);
+                    } else {
+                        // cell is in halo
+                        get_side_1(i,j,k, nlist[i1](0),nlist[i1](1),nlist[i1](2),sel, bon, dist_vec);
+                    }
+
+
+                }
+
+            }
+        }
+    }
+}
 
 // Search inside one selection
 void Grid_searcher::do_search(const Selection &sel, std::vector<Eigen::Vector2i>& bon,
@@ -647,26 +699,140 @@ void Grid_searcher::do_search(const Selection &sel, std::vector<Eigen::Vector2i>
             for(k=0;k<NgridZ;++k)
                 visited[i][j][k] = false;
 
-    // Searching
-    for(i=0;i<NgridX;++i){
-        for(j=0;j<NgridY;++j){
-            for(k=0;k<NgridZ;++k){                
-                // Search in central cell
-                get_central_1(i,j,k, sel, bon, dist_vec);
-                visited[i][j][k] = true;
-                // Get neighbour list
-                get_nlist(i,j,k);
-                nlist_size = nlist.size();
-                // Searh between this and neighbouring cells
-                for(i1=0;i1<nlist_size;++i1){
-                    //cout << nlist[i1].transpose() << endl;
-                    if( !visited[nlist[i1](0)][nlist[i1](1)][nlist[i1](2)] )
-                        get_side_1(i,j,k, nlist[i1](0),nlist[i1](1),nlist[i1](2),sel, bon, dist_vec);
+    // See if we need parallelization
+    int max_N, max_dim;
+    Vector3i dims(NgridX,NgridY,NgridZ);
+    max_N = dims.maxCoeff(&max_dim);
+
+    int nt = std::min(max_N, int(std::thread::hardware_concurrency()));
+
+    if(nt==1){
+    //if(nt>0){
+        // Serial searching
+        for(i=0;i<NgridX;++i){
+            for(j=0;j<NgridY;++j){
+                for(k=0;k<NgridZ;++k){
+                    // Search in central cell
+                    get_central_1(i,j,k, sel, bon, dist_vec);
+                    visited[i][j][k] = true;
+                    // Get neighbour list
+                    get_nlist(i,j,k);
+                    nlist_size = nlist.size();
+                    // Searh between this and neighbouring cells
+                    for(i1=0;i1<nlist_size;++i1){
+                        //cout << nlist[i1].transpose() << endl;
+                        if( !visited[nlist[i1](0)][nlist[i1](1)][nlist[i1](2)] )
+                            get_side_1(i,j,k, nlist[i1](0),nlist[i1](1),nlist[i1](2),sel, bon, dist_vec);
+                    }
                 }
             }
         }
+
+    } else {
+        // Parallel searching
+
+        // Determine parts for each thread
+        vector<int> b(nt),e(nt);
+        int cur=0;
+        for(int i=0;i<nt-1;++i){
+            b[i]=cur;
+            cur += dims(max_dim)/nt;
+            e[i]=cur;
+        }
+        b[nt-1]=cur;
+        e[nt-1]=dims(max_dim);
+
+        for(int i=0;i<nt;++i) cout << b[i] << ":" << e[i] << " ";
+        cout << endl;
+
+        // Prepare arrays per each thread
+        vector< vector<Vector2i> > _bon(nt);
+        vector< vector<float> > _dist_vec(nt);
+        vector< vector<float>* > _dist_vec_ptr(nt);
+        for(int i=0;i<nt;++i) _dist_vec_ptr[i] = dist_vec ? &_dist_vec[i] : nullptr;
+
+        // Launch threads
+        vector<thread> threads;
+        for(int i=0;i<nt;++i){
+            threads.push_back( thread(
+                                   std::bind(
+                                       &Grid_searcher::do_part1,
+                                       this,
+                                       max_dim,
+                                       b[i],
+                                       e[i],
+                                       sel,
+                                       ref(_bon[i]),
+                                       ref(_dist_vec_ptr[i])
+                                   )
+                                )
+                             );
+        }
+
+        // Wait for threads
+        for(auto& t: threads) t.join();
+
+        // Collect results
+        for(int i=0;i<nt;++i){
+            copy(_bon[i].begin(),_bon[i].end(), back_inserter(bon));
+        }
+        if(dist_vec){
+            for(int i=0;i<nt;++i)
+                copy(_dist_vec[i].begin(),_dist_vec[i].end(), back_inserter(*dist_vec));
+        }
     }
-    //cout << "Searcher has: " << bonds.size() << " pairs" << endl;
+}
+
+// Search over part of space for two selections. To be called in a thread.
+void Grid_searcher::do_part2(int dim, int _b, int _e,
+                             const Selection &sel1, const Selection &sel2,
+                             std::vector<Eigen::Vector2i>& bon,
+                             std::vector<float>* dist_vec){
+
+    Vector3i b(0,0,0);
+    Vector3i e(NgridX,NgridY,NgridZ);
+    int dim_max = e(dim);
+    b(dim)= _b;
+    e(dim)= _e;
+    int i,j,k,i1,nlist_size;
+    vector<Vector3i> nlist; // Local nlist
+
+    for(i=b(0);i<e(0);++i){
+        for(j=b(1);j<e(1);++j){
+            for(k=b(2);k<e(2);++k){
+                // Search in central cell
+                get_central_2(i,j,k, sel1, sel2, bon, dist_vec);
+                visited[i][j][k] = true;
+                // Get neighbour list locally
+                get_nlist_local(i,j,k,nlist);
+                nlist_size = nlist.size();
+                // Search between this and neighbouring cells
+                for(i1=0;i1<nlist_size;++i1){
+                    // If the neighbour is "at left" from the boundary of this part,
+                    // ignore it. Only consider dim dimension.
+
+                    //if(nlist[i1](dim)<b(dim) || (b(dim)==0 && nlist[i1](dim)==dim_max-1)){
+                    if(nlist[i1](dim)<b(dim)){
+                        continue;
+                    }
+
+                    // We only check for visited cells inside local part, not in the "halo"
+                    if(    nlist[i1](dim)>=b(dim)
+                        && nlist[i1](dim)<e(dim) ){
+                        // cell is inside the partition
+                        if( !visited[nlist[i1](0)][nlist[i1](1)][nlist[i1](2)] )
+                            get_side_2(i,j,k, nlist[i1](0),nlist[i1](1),nlist[i1](2),sel1, sel2, bon, dist_vec);
+                    } else {
+                        // cell is in halo
+                        get_side_2(i,j,k, nlist[i1](0),nlist[i1](1),nlist[i1](2),sel1, sel2, bon, dist_vec);
+                    }
+
+
+                }
+
+            }
+        }
+    }
 }
 
 // Search between two selections
@@ -685,29 +851,91 @@ void Grid_searcher::do_search(const Selection &sel1, const Selection &sel2, std:
             for(k=0;k<NgridZ;++k)
                 visited[i][j][k] = false;
 
+    // See if we need parallelization
+    int max_N, max_dim;
+    Vector3i dims(NgridX,NgridY,NgridZ);
+    max_N = dims.maxCoeff(&max_dim);
 
-    for(i=0;i<NgridX;++i){
-        for(j=0;j<NgridY;++j){
-            for(k=0;k<NgridZ;++k){
-                // Search in central cell
-                get_central_2(i,j,k, sel1, sel2, bon, dist_vec);
-                visited[i][j][k] = true;
-                // Get neighbour list
-                get_nlist(i,j,k);
-                nlist_size = nlist.size();
-                // Searh between this and neighbouring cells
-                for(i1=0;i1<nlist_size;++i1){
-                    //cout << nlist[i1].transpose()<<endl;
-                    if( !visited[nlist[i1](0)][nlist[i1](1)][nlist[i1](2)] )
-                        get_side_2(i,j,k, nlist[i1](0),nlist[i1](1),nlist[i1](2),
-                                   sel1, sel2, bon, dist_vec);
+    int nt = std::min(max_N, int(std::thread::hardware_concurrency()));
+
+    if(nt==1){
+    //if(nt>0){
+        // Serial search
+        for(i=0;i<NgridX;++i){
+            for(j=0;j<NgridY;++j){
+                for(k=0;k<NgridZ;++k){
+                    // Search in central cell
+                    get_central_2(i,j,k, sel1, sel2, bon, dist_vec);
+                    visited[i][j][k] = true;
+                    // Get neighbour list
+                    get_nlist(i,j,k);
+                    nlist_size = nlist.size();
+                    // Searh between this and neighbouring cells
+                    for(i1=0;i1<nlist_size;++i1){
+                        //cout << nlist[i1].transpose()<<endl;
+                        if( !visited[nlist[i1](0)][nlist[i1](1)][nlist[i1](2)] )
+                            get_side_2(i,j,k, nlist[i1](0),nlist[i1](1),nlist[i1](2),
+                                       sel1, sel2, bon, dist_vec);
+                    }
+
                 }
-
             }
         }
+    } else {
+        // Search in parallel
+        // Determine parts for each thread
+        vector<int> b(nt),e(nt);
+        int cur=0;
+        for(int i=0;i<nt-1;++i){
+            b[i]=cur;
+            cur += dims(max_dim)/nt;
+            e[i]=cur;
+        }
+        b[nt-1]=cur;
+        e[nt-1]=dims(max_dim);
+
+        for(int i=0;i<nt;++i) cout << b[i] << ":" << e[i] << " ";
+        cout << endl;
+
+        // Prepare arrays per each thread
+        vector< vector<Vector2i> > _bon(nt);
+        vector< vector<float> > _dist_vec(nt);
+        vector< vector<float>* > _dist_vec_ptr(nt);
+        for(int i=0;i<nt;++i) _dist_vec_ptr[i] = dist_vec ? &_dist_vec[i] : nullptr;
+
+        // Launch threads
+        vector<thread> threads;
+        for(int i=0;i<nt;++i){
+            threads.push_back( thread(
+                                   std::bind(
+                                       &Grid_searcher::do_part2,
+                                       this,
+                                       max_dim,
+                                       b[i],
+                                       e[i],
+                                       sel1,
+                                       sel2,
+                                       ref(_bon[i]),
+                                       ref(_dist_vec_ptr[i])
+                                   )
+                                )
+                             );
+        }
+
+        // Wait for threads
+        for(auto& t: threads) t.join();
+
+        // Collect results
+        for(int i=0;i<nt;++i){
+            copy(_bon[i].begin(),_bon[i].end(), back_inserter(bon));
+        }
+        if(dist_vec){
+            for(int i=0;i<nt;++i)
+                copy(_dist_vec[i].begin(),_dist_vec[i].end(), back_inserter(*dist_vec));
+        }
     }
-    //cout << "Searcher has: " << bonds.size() << " pairs" << endl;
 }
+
 
 // Search in central cell inside 1 selection
 void Grid_searcher::get_central_1(int i1, int j1, int k1, const Selection &sel,
@@ -818,6 +1046,71 @@ void Grid_searcher::get_nlist(int i,int j,int k){
 
         // If the number of cells in dimension is 2 this is a special case
         // when only one neighbour is need. Otherwise add both.        
+        if(NgridX>1) bX = -1;
+        if(NgridY>1) bY = -1;
+        if(NgridZ>1) bZ = -1;
+
+        if(NgridX>2) eX = 1;
+        if(NgridY>2) eY = 1;
+        if(NgridZ>2) eZ = 1;
+
+        int c1,c2,c3;
+
+        for(c1 = bX; c1<=eX; ++c1){
+            coor(0) = i+c1;
+            if(coor(0)==NgridX) coor(0) = 0;
+            if(coor(0)==-1) coor(0) = NgridX-1;
+            for(c2 = bY; c2<=eY; ++c2){
+                coor(1) = j+c2;
+                if(coor(1)==NgridY) coor(1) = 0;
+                if(coor(1)==-1) coor(1) = NgridY-1;
+                for(c3 = bZ; c3<=eZ; ++c3){
+                    coor(2) = k+c3;
+                    if(coor(2)==NgridZ) coor(2) = 0;
+                    if(coor(2)==-1) coor(2) = NgridZ-1;
+                    //Exclude central cell
+                    if(coor(0) == i && coor(1) == j && coor(2) == k) continue;
+                    // Add cell
+                    nlist.push_back(coor);
+                }
+            }
+        }
+    }
+}
+
+void Grid_searcher::get_nlist_local(int i,int j,int k, std::vector<Eigen::Vector3i>& nlist){
+
+    nlist.clear();
+
+    Vector3i coor;
+
+    if(!is_periodic){
+        int c1,c2,c3;
+        // Non-periodic variant
+        for(c1=-1; c1<=1; ++c1){
+            coor(0) = i+c1;
+            if(coor(0)<0 || coor(0)>=NgridX) continue; // Bounds check
+            for(c2=-1; c2<=1; ++c2){
+                coor(1) = j+c2;
+                if(coor(1)<0 || coor(1)>=NgridY) continue; // Bounds check
+                for(c3=-1; c3<=1; ++c3){
+                    coor(2) = k+c3;
+                    if(coor(2)<0 || coor(2)>=NgridZ) continue; // Bounds check
+                    //Exclude central cell
+                    if(coor(0) == i && coor(1) == j && coor(2) == k ) continue;
+                    // Add cell
+                    nlist.push_back(coor);
+                }
+            }
+        }
+    } else {
+        // Periodic variant
+        int bX = 0, eX = 0;
+        int bY = 0, eY = 0;
+        int bZ = 0, eZ = 0;
+
+        // If the number of cells in dimension is 2 this is a special case
+        // when only one neighbour is need. Otherwise add both.
         if(NgridX>1) bX = -1;
         if(NgridY>1) bY = -1;
         if(NgridZ>1) bZ = -1;

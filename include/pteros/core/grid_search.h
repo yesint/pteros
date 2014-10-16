@@ -164,6 +164,17 @@ namespace pteros {
             /// Search function for contacts between two groups
             void do_search(const Selection& sel1, const Selection& sel2, std::vector<Eigen::Vector2i>& bon,
                            std::vector<float>* dist_vec);
+
+            void do_part1(int dim, int _b, int _e,
+                          const Selection &sel,
+                          std::vector<Eigen::Vector2i>& bon,
+                          std::vector<float>* dist_vec);
+
+            void do_part2(int dim, int _b, int _e,
+                          const Selection &sel1, const Selection &sel2,
+                          std::vector<Eigen::Vector2i>& bon,
+                          std::vector<float>* dist_vec);
+
             // Min and max of the bounding box
             Eigen::Vector3f min,max;
             // Grid dimensions
@@ -191,6 +202,7 @@ namespace pteros {
                                int Natoms, const Periodic_box& box);
 
             void get_nlist(int i,int j,int k);            
+            void get_nlist_local(int i,int j,int k, std::vector<Eigen::Vector3i>& nlist);
 
             void get_central_1(int i1, int j1, int k1, const Selection& sel,
                                 std::vector<Eigen::Vector2i>& bonds,
