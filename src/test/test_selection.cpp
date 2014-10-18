@@ -55,7 +55,7 @@ int main(int argc, char** argv)
         auto t_start = std::chrono::high_resolution_clock::now();
         Selection w;
         for(int i=0;i<50;++i)
-            w.modify(s,"within 1.0 nopbc of resname DOPC");
+            w.modify(s,"within 2.0 nopbc of resname DOPC");
         auto t_end = std::chrono::high_resolution_clock::now();
 
         cout << w.size() << " elapsed: "

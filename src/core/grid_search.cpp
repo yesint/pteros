@@ -29,6 +29,7 @@
 #include "time.h"
 #include <iostream>
 #include <thread>
+#include <array>
 
 using namespace std;
 using namespace pteros;
@@ -293,8 +294,8 @@ void Grid_searcher::search_within(const Selection &target, std::vector<int> &bon
 
 // Search over part of space. To be called in a thread.
 void Grid_searcher::do_part_within(int dim, int _b, int _e,
-                             const Selection &src,
-                             const Selection &target,
+                             const Selection &src,    //grid1
+                             const Selection &target, //grid2
                              std::vector<atomwrapper<bool>>& used
                              ){
 
@@ -305,7 +306,7 @@ void Grid_searcher::do_part_within(int dim, int _b, int _e,
     e(dim)= _e;
     int i,j,k,i1,nlist_size,N1,N2,m1,m2,m3,c,n1,n2,ind;
     float d;
-    Vector3f coor1;
+
     vector<Vector3i> nlist; // Local nlist
 
     float cutoff2 = cutoff*cutoff;
@@ -313,34 +314,34 @@ void Grid_searcher::do_part_within(int dim, int _b, int _e,
     for(i=b(0);i<e(0);++i){
         for(j=b(1);j<e(1);++j){
             for(k=b(2);k<e(2);++k){
+
+                const vector<int>& vt = grid2[i][j][k];
+
                 // Get number of atoms in current target cell
-                N2 = grid2[i][j][k].size();
+                N2 = vt.size();
                 // If no atoms than just skip this cell
                 if(N2==0) continue;
 
                 // Matrix of pre-computed coordinates for target points in this cell
                 // Saves access to grid and computing XYZ in place. Makes a big
-                // difference for large cutoffs!
+                // difference for large cutoffs!                
                 MatrixXf pre(3,N2);
                 for(n2=0;n2<N2;++n2){ //over target atoms
-                    pre.col(n2) = target.XYZ(grid2[i][j][k][n2]);
-                }
+                    pre.col(n2) = target.XYZ(vt[n2]);
+                }                
 
                 // Get neighbour list
                 get_nlist_local(i,j,k,nlist);
                 // Add central cell to the list
                 nlist.push_back(Vector3i(i,j,k));
 
-                nlist_size = nlist.size();
                 // Cycle over neighbouring cells
-                for(c=0;c<nlist_size;++c){
+                for(c=0;c<nlist.size();++c){
 
-                    m1 = nlist[c](0);
-                    m2 = nlist[c](1);
-                    m3 = nlist[c](2);
+                    const vector<int>& vs = grid1[nlist[c](0)][nlist[c](1)][nlist[c](2)];
 
                     // Get number of atoms in neighbour grid1 cell
-                    N1 = grid1[m1][m2][m3].size();
+                    N1 = vs.size();
 
                     // Skip empty cells
                     if(N1==0) continue;
@@ -348,15 +349,15 @@ void Grid_searcher::do_part_within(int dim, int _b, int _e,
                     // Cycle over N1
                     for(n1=0;n1<N1;++n1){ // Over source atoms
 
-                        ind = grid1[m1][m2][m3][n1];
+                        ind = vs[n1];
                         // Skip already used source points
                         if(used[ind].load()) continue;
 
-                        coor1 = src.XYZ(ind); // Coord of source point
+                        const Vector3f coor = src.XYZ(ind); // Coord of source point
 
                         if(is_periodic){
                             for(n2=0;n2<N2;++n2){ //over target atoms of current cell
-                                d = box.distance_squared(pre.col(n2), coor1);
+                                d = box.distance_squared(pre.col(n2), coor);
                                 if(d<=cutoff2){
                                     used[ind].store(true);
                                     break;
@@ -364,7 +365,7 @@ void Grid_searcher::do_part_within(int dim, int _b, int _e,
                             }
                         } else {
                             for(n2=0;n2<N2;++n2){ //over target atoms of current cell
-                                d = (pre.col(n2) - coor1).squaredNorm();
+                                d = (pre.col(n2) - coor).squaredNorm();
                                 if(d<=cutoff2){
                                     used[ind].store(true);
                                     break;
@@ -383,6 +384,102 @@ void Grid_searcher::do_part_within(int dim, int _b, int _e,
     }
 }
 
+
+void search_in_pair_of_cells(int sx, int sy, int sz, // src cell
+                             int tx, int ty, int tz, // target cell                             
+                             const boost::multi_array<std::vector<Grid_element>,3>& grid1,
+                             const boost::multi_array<std::vector<Grid_element>,3>& grid2,
+                             std::vector<atomwrapper<bool>>& used,
+                             const Periodic_box& box,
+                             float cutoff2, bool is_periodic)
+{
+    int Ns,Nt,ind,s,t;    
+    float d;
+
+    Ns = grid1[sx][sy][sz].size(); //src
+    Nt = grid2[tx][ty][tz].size(); //target
+
+    if(Ns*Nt==0) return; // Nothing to do
+
+    const vector<Grid_element>& sv = grid1[sx][sy][sz];
+    const vector<Grid_element>& tv = grid2[tx][ty][tz];
+
+    for(s=0;s<Ns;++s){
+        ind = sv[s].index;
+        // Skip already used source points
+        if(used[ind].load()) continue;
+
+        Vector3f* p = sv[s].coor_ptr; // Coord of source point
+
+        if(is_periodic){
+            for(t=0;t<Nt;++t){
+                d = box.distance_squared(*(tv[t].coor_ptr),*p);
+                if(d<=cutoff2){
+                    used[ind].store(true);
+                    break;
+                }
+            }
+        } else {
+            for(t=0;t<Nt;++t){
+                d = (*(tv[t].coor_ptr)-*p).squaredNorm();
+                if(d<=cutoff2){
+                    used[ind].store(true);
+                    break;
+                }
+            }
+        }
+
+    }
+}
+
+
+
+void Grid_searcher::do_part_within_fast(int dim, int _b, int _e,
+                             const Selection &src,    //grid1
+                             const Selection &target, //grid2
+                             std::vector<atomwrapper<bool>>& used
+                             ){
+    Vector3i b(0,0,0);
+    Vector3i e(NgridX,NgridY,NgridZ);
+    int dim_max = e(dim);
+    b(dim)= _b;
+    e(dim)= _e;
+
+    int i,j,k,c,sx,sy,sz,t,ind;
+    vector<Vector3i> nlist; // Local nlist
+    nlist.reserve(27);
+
+    float cutoff2 = cutoff*cutoff;
+
+    for(i=b(0);i<e(0);++i){
+        for(j=b(1);j<e(1);++j){
+            for(k=b(2);k<e(2);++k){
+
+                // Search in central cell
+                search_in_pair_of_cells(i,j,k, //src cell
+                                        i,j,k, //target cell
+                                        grid_coor1, grid_coor2,
+                                        used, box, cutoff2, is_periodic);
+                // Get nlist                
+                get_nlist_local(i,j,k,nlist);
+
+                // Cycle over nlist
+                for(c=0;c<nlist.size();++c){
+                    sx = nlist[c](0);
+                    sy = nlist[c](1);
+                    sz = nlist[c](2);
+
+                    search_in_pair_of_cells(i,j,k, //src cell
+                                            sx,sy,sz, //target cell                                            
+                                            grid_coor1, grid_coor2,
+                                            used, box, cutoff2, is_periodic);
+                }
+
+            }
+        }
+    }
+
+}
 
 // Search is around target, atoms from src are returned
 Grid_searcher::Grid_searcher(float d,
@@ -432,12 +529,12 @@ Grid_searcher::Grid_searcher(float d,
     set_grid_size(min,max, std::max(src.size(),target.size()),box);
 
     // Allocate both grids
-    grid1.resize( boost::extents[NgridX][NgridY][NgridZ] );
-    grid2.resize( boost::extents[NgridX][NgridY][NgridZ] );
+    grid_coor1.resize( boost::extents[NgridX][NgridY][NgridZ] );
+    grid_coor2.resize( boost::extents[NgridX][NgridY][NgridZ] );
 
     // Fill grids
-    populate_grid(grid1,src);
-    populate_grid(grid2,target);
+    populate_coor_grid(grid_coor1,src);
+    populate_coor_grid(grid_coor2,target);
 
     // Array of atomic bools for used source points
     std::vector<atomwrapper<bool>> used(src.size());
@@ -446,9 +543,7 @@ Grid_searcher::Grid_searcher(float d,
     //------------
     // Search part
     //------------
-    bon.clear();
-
-    int i,j,k,c,n1,n2,nlist_size,m1,m2,m3,N1,N2,ind;
+    bon.clear();    
 
     Vector3f coor1;
 
@@ -481,7 +576,8 @@ Grid_searcher::Grid_searcher(float d,
         for(int i=0;i<nt;++i){
             threads.push_back( thread(
                                    std::bind(
-                                       &Grid_searcher::do_part_within,
+                                       &Grid_searcher::do_part_within_fast,
+                                       //&Grid_searcher::do_part_within,
                                        this,
                                        max_dim,
                                        b[i],
@@ -499,7 +595,7 @@ Grid_searcher::Grid_searcher(float d,
 
     } else {
         // Serial search, no need to launch separate thread
-        do_part_within(max_dim,0,dims(max_dim),src,target,used);
+        do_part_within_fast(max_dim,0,dims(max_dim),src,target,used);
     }
 
 
@@ -714,6 +810,65 @@ void Grid_searcher::populate_grid(Grid_t& grid, const Selection &sel){
 
             // Assign to grid
             grid[n1][n2][n3].push_back(i);
+        }
+    }
+}
+
+void Grid_searcher::populate_coor_grid(Grid_searcher::Grid_coor_t &grid, const Selection &sel)
+{
+    int Natoms = sel.size();
+    int n1,n2,n3,i,j,k;
+
+    // Clear grid
+    for(i=0;i<NgridX;++i)
+        for(j=0;j<NgridY;++j)
+            for(k=0;k<NgridZ;++k){
+                grid[i][j][k].clear();
+            }
+
+    // Assigning atoms to grid
+
+    if(!is_periodic){
+        // Non-periodic variant
+        Vector3f* coor;
+        for(i=0;i<Natoms;++i){
+            // Get coordinates of atom
+            coor = sel.XYZ_ptr(i);
+
+            n1 = floor((NgridX-0)*((*coor)(0)-min(0))/(max(0)-min(0)));
+            if(n1<0 || n1>=NgridX) continue;
+
+            n2 = floor((NgridY-0)*((*coor)(1)-min(1))/(max(1)-min(1)));
+            if(n2<0 || n2>=NgridY) continue;
+
+            n3 = floor((NgridZ-0)*((*coor)(2)-min(2))/(max(2)-min(2)));
+            if(n3<0 || n3>=NgridZ) continue;
+
+            grid[n1][n2][n3].push_back(Grid_element(i,coor));
+        }
+    } else {
+        // Periodic variant
+        Vector3f coor;
+        for(i=0;i<Natoms;++i){
+            // Get coordinates of atom
+            coor = sel.XYZ(i);
+            // Get coordinates in triclinic basis if needed
+            if(box.is_triclinic()) coor = box.lab_to_box(coor);
+            // Assign to non-periodic grid first
+            n1 = floor((NgridX-0)*(coor(0)-min(0))/(max(0)-min(0)));
+            n2 = floor((NgridY-0)*(coor(1)-min(1))/(max(1)-min(1)));
+            n3 = floor((NgridZ-0)*(coor(2)-min(2))/(max(2)-min(2)));
+
+            // Wrap if extends over the grid dimensions
+            while(n1>=NgridX || n1<0)
+                n1>=0 ? n1 %= NgridX : n1 = NgridX + n1%NgridX;
+            while(n2>=NgridY || n2<0)
+                n2>=0 ? n2 %= NgridY : n2 = NgridY + n2%NgridY;
+            while(n3>=NgridZ || n3<0)
+                n3>=0 ? n3 %= NgridZ : n3 = NgridZ + n3%NgridZ;
+
+            // Assign to grid
+            grid[n1][n2][n3].push_back(Grid_element(i,sel.XYZ_ptr(i)));
         }
     }
 }
@@ -1165,6 +1320,43 @@ void Grid_searcher::get_nlist(int i,int j,int k){
     }
 }
 
+std::array<Eigen::Vector3i,13> directions = {
+    Vector3i{1,1,1},    //1
+    Vector3i{1,1,0},    //2
+    Vector3i{1,1,-1},   //3
+    Vector3i{1,0,1},    //4
+    Vector3i{1,0,0},    //5
+    Vector3i{1,-1,1},   //6
+    Vector3i{0,0,1},    //7
+    Vector3i{0,1,1},    //8
+    Vector3i{0,1,0},    //9
+    Vector3i{0,-1,1},   //10    
+    Vector3i{-1,1,0},  //11
+    Vector3i{-1,0,1},   //12
+    Vector3i{-1,1,1}    //13
+};
+
+// Get 13 directions, which are 1/2 of the whole 27-cube without central cell
+void Grid_searcher::get_nlist_13(int x,int y,int z, std::vector<Eigen::Vector3i>& nlist){
+    nlist.clear();
+
+    if(!is_periodic){
+        int px,py,pz;
+
+        for(int i=0;i<directions.size();++i){
+            px = x+directions[i](0);
+            py = y+directions[i](1);
+            pz = z+directions[i](2);
+            if(px>=0 && px<NgridX && py>=0 && py<NgridY && pz>=0 && pz<NgridZ)
+                nlist.push_back( Vector3i(px,py,pz) );
+        }
+
+    } else {
+
+    }
+}
+
+
 void Grid_searcher::get_nlist_local(int i,int j,int k, std::vector<Eigen::Vector3i>& nlist){
 
     nlist.clear();
@@ -1229,110 +1421,6 @@ void Grid_searcher::get_nlist_local(int i,int j,int k, std::vector<Eigen::Vector
         }
     }
 }
-
-/*
-// Get list of neighbouring cells. Depends on cutoff!
-void Grid_searcher::get_nlist(int i,int j,int k){
-    Vector3i coor;
-    int c1,c2,c3;
-    float x,y,z;
-
-    nlist.clear();
-
-    // Determine how many cells the cutoff span in directions X, Y and Z
-    int spanX = ceil(cutoff/dX);
-    int spanY = ceil(cutoff/dY);
-    int spanZ = ceil(cutoff/dZ);    
-
-    // In degenerate cases of one cell for some dimension we need to
-    // suppress this dimension by leaving only central cell
-    if(NgridX==1) spanX = 0;
-    if(NgridY==1) spanY = 0;
-    if(NgridZ==1) spanZ = 0;
-
-    //cout << "Spans " << spanX << " " << spanY << " " << spanZ << endl;
-
-    if(is_periodic){
-        // If number of cells is small some funny cases may appear when
-        // wrapped cells in periodic variant overlap with each other from other side.
-        // This leads to double appearance of the same cell in the list.
-        // In this case we just need to include all cells along this dimension manually
-
-        if(spanX*2+1 > NgridX){
-            coor(1) = j;
-            coor(2) = k;
-            for(c1=0; c1<NgridX; ++c1){
-                if(c1 == i) continue;
-                coor(0) = c1;
-                nlist.push_back(coor); // Add cell
-            }
-            spanX = 0; // Suppress dimension - it added manually
-        }
-
-        if(spanY*2+1 > NgridY){
-            coor(0) = i;
-            coor(2) = k;
-            for(c1=0; c1<NgridY; ++c1){
-                if(c1 == j) continue;
-                coor(1) = c1;
-                nlist.push_back(coor); // Add cell
-            }
-            spanY = 0; // Suppress dimension - it added manually
-        }
-
-        if(spanZ*2+1 > NgridZ){
-            coor(0) = i;
-            coor(1) = j;
-            for(c1=0; c1<NgridZ; ++c1){
-                if(c1 == k) continue;
-                coor(2) = c1;
-                nlist.push_back(coor); // Add cell
-            }
-            spanZ = 0; // Suppress dimension - it added manually
-        }
-
-
-        // Periodic variant of filling
-        for(c1=-spanX;c1<=spanX;++c1)
-            for(c2=-spanY;c2<=spanY;++c2)
-                for(c3=-spanZ;c3<=spanZ;++c3){
-                    coor(0) = i+c1;
-                    coor(1) = j+c2;
-                    coor(2) = k+c3;                                       
-
-                    //Exclude central cell
-                    if(coor(0) == i && coor(1) == j && coor(2) == k ) continue;                    
-
-                    // Periodic variant: wrap cells around
-                    while(coor(0)>=NgridX || coor(0)<0)
-                        coor(0)>=0 ? coor(0) %= NgridX : coor(0) = NgridX + coor(0)%NgridX;
-                    while(coor(1)>=NgridY || coor(1)<0)
-                        coor(1)>=0 ? coor(1) %= NgridY : coor(1) = NgridY + coor(1)%NgridY;
-                    while(coor(2)>=NgridZ || coor(2)<0)
-                        coor(2)>=0 ? coor(2) %= NgridZ : coor(2) = NgridZ + coor(2)%NgridZ;
-
-                    nlist.push_back(coor); // Add cell
-                }
-    } else {
-        // Non-periodic variant
-        for(c1=-spanX;c1<=spanX;++c1)
-            for(c2=-spanY;c2<=spanY;++c2)
-                for(c3=-spanZ;c3<=spanZ;++c3){
-                    coor(0) = i+c1;
-                    coor(1) = j+c2;
-                    coor(2) = k+c3;
-
-                    //Bounds check
-                    if(coor(0)<0 || coor(1)<0 || coor(2)<0 ||
-                        coor(0)>=NgridX || coor(1)>=NgridY || coor(2)>=NgridZ) continue;
-
-                    if(coor(0) == i && coor(1) == j && coor(2) == k ) continue; //Exclude central cell
-
-                    nlist.push_back(coor); // Add cell
-                }
-    }
-}
-*/
 
 // Add bonds inside one cell for two selections
 void Grid_searcher::get_central_2(int i1, int j1, int k1, const Selection &sel1, const Selection &sel2,

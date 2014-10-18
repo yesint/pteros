@@ -58,6 +58,12 @@ namespace pteros {
       }
     };
 
+    struct Grid_element {
+        int index;
+        Eigen::Vector3f* coor_ptr;
+        Grid_element(int i, Eigen::Vector3f* ptr): index(i),coor_ptr(ptr) {}
+    };
+
     /** @brief Implements grid search algorithm
     Grid_searcher class subdivides the volume of the system into number of
     cells and computes which atoms appear in each cell. After that the pairs of
@@ -177,6 +183,7 @@ namespace pteros {
 
         protected:
             typedef boost::multi_array<std::vector<int>,3> Grid_t;
+            typedef boost::multi_array<std::vector<Grid_element>,3> Grid_coor_t;
 
             // Create one grid from single selection
             void create_grid(Grid_t& grid, const Selection& sel);
@@ -184,6 +191,7 @@ namespace pteros {
             void create_grid2(const Selection& sel1, const Selection& sel2);
 
             void populate_grid(Grid_t& grid, const Selection& sel);
+            void populate_coor_grid(Grid_coor_t &grid, const Selection& sel);
 
             /// Search function for contacts inside one group
             void do_search(const Selection& sel, std::vector<Eigen::Vector2i>& bon,
@@ -207,6 +215,12 @@ namespace pteros {
                                 const Selection &target,
                                 std::vector<atomwrapper<bool>>& used);
 
+            void do_part_within_fast(int dim, int _b, int _e,
+                                const Selection &src,
+                                const Selection &target,
+                                std::vector<atomwrapper<bool>>& used);
+
+
             // Min and max of the bounding box
             Eigen::Vector3f min,max;
             // Grid dimensions
@@ -214,6 +228,11 @@ namespace pteros {
 
             // Grids
             Grid_t grid1, grid2;
+
+            // Grid with coordinate pointers
+            Grid_coor_t grid_coor1,grid_coor2;
+
+
             boost::multi_array<bool, 3> visited;
             // Neighbour list for cells
             std::vector<Eigen::Vector3i> nlist;
@@ -235,6 +254,7 @@ namespace pteros {
 
             void get_nlist(int i,int j,int k);            
             void get_nlist_local(int i,int j,int k, std::vector<Eigen::Vector3i>& nlist);
+            void get_nlist_13(int i,int j,int k, std::vector<Eigen::Vector3i>& nlist);
 
             void get_central_1(int i1, int j1, int k1, const Selection& sel,
                                 std::vector<Eigen::Vector2i>& bonds,

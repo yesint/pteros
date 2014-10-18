@@ -665,6 +665,10 @@ class Selection {
 
     inline const Eigen::Vector3f& XYZ(int ind) const {
         return system->traj[frame].coord[index[ind]];
+    }        
+
+    inline Eigen::Vector3f* XYZ_ptr(int ind) const {
+        return &(system->traj[frame].coord[index[ind]]);
     }
 
     /// Extracts X,Y and Z for given frame frame fr
