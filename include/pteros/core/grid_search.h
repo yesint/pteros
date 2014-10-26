@@ -193,7 +193,7 @@ namespace pteros {
             void create_coor_grid2(const Selection& sel1, const Selection& sel2);
 
             void populate_grid(Grid_t& grid, const Selection& sel);
-            void populate_coor_grid(Grid_coor_t &grid, const Selection& sel);
+            void populate_coor_grid(Grid_coor_t &grid, const Selection& sel, bool abs_index);
 
             /// Search function for contacts inside one group
             void do_search(const Selection& sel, std::vector<Eigen::Vector2i>& bon,

@@ -67,7 +67,7 @@ Grid_searcher::Grid_searcher(float d, const Selection &sel,
     box = sel.get_system()->Box(sel.get_frame());
 
     create_coor_grid(grid_coor1,sel);
-    populate_coor_grid(grid_coor1,sel);
+    populate_coor_grid(grid_coor1,sel,abs_index);
     do_search(sel,bon,dist_vec);
 }
 
@@ -82,8 +82,8 @@ Grid_searcher::Grid_searcher(float d, const Selection &sel1, const Selection &se
     box = sel1.get_system()->Box(sel1.get_frame());
 
     create_coor_grid2(sel1,sel2);
-    populate_coor_grid(grid_coor1,sel1);
-    populate_coor_grid(grid_coor2,sel2);
+    populate_coor_grid(grid_coor1,sel1,abs_index);
+    populate_coor_grid(grid_coor2,sel2,abs_index);
     do_search(sel1,sel2,bon,dist_vec);
 }
 
@@ -307,13 +307,15 @@ void search_in_cell(int x, int y, int z,
 
     const vector<Grid_element>& v = grid[x][y][z];
 
-    if(is_periodic && global_index){
+    // Absolute or local index is filled during filling the grid before
+
+    if(is_periodic){
 
         for(i1=0;i1<N-1;++i1){
-            ind1 = v[i1].index; //Global index
+            ind1 = v[i1].index; //index
             Vector3f* p = v[i1].coor_ptr; // Coord of point in grid1
             for(i2=i1+1;i2<N;++i2){
-                ind2 = v[i2].index; //Global index
+                ind2 = v[i2].index; //index
                 d = box.distance_squared(*(v[i2].coor_ptr),*p);
                 if(d<=cutoff2){
                     bon.push_back(Vector2i(ind1,ind2));
@@ -322,20 +324,7 @@ void search_in_cell(int x, int y, int z,
             }
         }
 
-    } else if(is_periodic && !global_index) {
-
-        for(i1=0;i1<N-1;++i1){
-            Vector3f* p = v[i1].coor_ptr; // Coord of point in grid1
-            for(i2=i1+1;i2<N;++i2){
-                d = box.distance_squared(*(v[i2].coor_ptr),*p);
-                if(d<=cutoff2){
-                    bon.push_back(Vector2i(i1,i2));
-                    if(dist_vec) dist_vec->push_back(sqrt(d));
-                }
-            }
-        }
-
-    } else if(!is_periodic && global_index) {
+    } else {
 
         for(i1=0;i1<N-1;++i1){
             ind1 = v[i1].index; //Global index
@@ -345,19 +334,6 @@ void search_in_cell(int x, int y, int z,
                 d = (*(v[i2].coor_ptr)-*p).squaredNorm();
                 if(d<=cutoff2){
                     bon.push_back(Vector2i(ind1,ind2));
-                    if(dist_vec) dist_vec->push_back(sqrt(d));
-                }
-            }
-        }
-
-    } else { // !is_periodic && !global_index
-
-        for(i1=0;i1<N-1;++i1){
-            Vector3f* p = v[i1].coor_ptr; // Coord of point in grid1
-            for(i2=i1+1;i2<N;++i2){
-                d = (*(v[i2].coor_ptr)-*p).squaredNorm();
-                if(d<=cutoff2){
-                    bon.push_back(Vector2i(i1,i2));
                     if(dist_vec) dist_vec->push_back(sqrt(d));
                 }
             }
@@ -387,7 +363,7 @@ void search_in_pair_of_cells(int x1, int y1, int z1, // cell 1
     const vector<Grid_element>& v1 = grid1[x1][y1][z1];
     const vector<Grid_element>& v2 = grid2[x2][y2][z2];
 
-    if(is_periodic && global_index){
+    if(is_periodic){
 
         for(i1=0;i1<N1;++i1){
             ind1 = v1[i1].index; //Global index
@@ -402,20 +378,7 @@ void search_in_pair_of_cells(int x1, int y1, int z1, // cell 1
             }
         }
 
-    } else if(is_periodic && !global_index) {
-
-        for(i1=0;i1<N1;++i1){
-            Vector3f* p = v1[i1].coor_ptr; // Coord of point in grid1
-            for(i2=0;i2<N2;++i2){
-                d = box.distance_squared(*(v2[i2].coor_ptr),*p);
-                if(d<=cutoff2){
-                    bon.push_back(Vector2i(i1,i2));
-                    if(dist_vec) dist_vec->push_back(sqrt(d));
-                }
-            }
-        }
-
-    } else if(!is_periodic && global_index) {
+    } else {
 
         for(i1=0;i1<N1;++i1){
             ind1 = v1[i1].index; //Global index
@@ -425,19 +388,6 @@ void search_in_pair_of_cells(int x1, int y1, int z1, // cell 1
                 d = (*(v2[i2].coor_ptr)-*p).squaredNorm();
                 if(d<=cutoff2){
                     bon.push_back(Vector2i(ind1,ind2));
-                    if(dist_vec) dist_vec->push_back(sqrt(d));
-                }
-            }
-        }
-
-    } else { // !is_periodic && !global_index
-
-        for(i1=0;i1<N1;++i1){
-            Vector3f* p = v1[i1].coor_ptr; // Coord of point in grid1
-            for(i2=0;i2<N2;++i2){
-                d = (*(v2[i2].coor_ptr)-*p).squaredNorm();
-                if(d<=cutoff2){
-                    bon.push_back(Vector2i(i1,i2));
                     if(dist_vec) dist_vec->push_back(sqrt(d));
                 }
             }
@@ -466,7 +416,7 @@ void search_in_pair_of_cells_for_within(int sx, int sy, int sz, // src cell
     const vector<Grid_element>& tv = grid2[tx][ty][tz];
 
     for(s=0;s<Ns;++s){
-        ind = sv[s].index;
+        ind = sv[s].index; // Local index here
         // Skip already used source points
         if(used[ind].load()) continue;
 
@@ -592,9 +542,9 @@ Grid_searcher::Grid_searcher(float d,
     grid_coor1.resize( boost::extents[NgridX][NgridY][NgridZ] );
     grid_coor2.resize( boost::extents[NgridX][NgridY][NgridZ] );
 
-    // Fill grids
-    populate_coor_grid(grid_coor1,src);
-    populate_coor_grid(grid_coor2,target);
+    // Fill grids (with local indexes!)
+    populate_coor_grid(grid_coor1,src,false);
+    populate_coor_grid(grid_coor2,target,false);
 
     // Array of atomic bools for used source points
     std::vector<atomwrapper<bool>> used(src.size());
@@ -929,7 +879,8 @@ void Grid_searcher::populate_grid(Grid_t& grid, const Selection &sel){
     }
 }
 
-void Grid_searcher::populate_coor_grid(Grid_searcher::Grid_coor_t &grid, const Selection &sel)
+// In this grid we can put local or absolute index in the grid itself already here
+void Grid_searcher::populate_coor_grid(Grid_searcher::Grid_coor_t &grid, const Selection &sel, bool abs_index)
 {
     int Natoms = sel.size();
     int n1,n2,n3,i,j,k;
@@ -959,7 +910,11 @@ void Grid_searcher::populate_coor_grid(Grid_searcher::Grid_coor_t &grid, const S
             n3 = floor((NgridZ-0)*((*coor)(2)-min(2))/(max(2)-min(2)));
             if(n3<0 || n3>=NgridZ) continue;
 
-            grid[n1][n2][n3].push_back(Grid_element(i,coor));
+            if(abs_index){
+                grid[n1][n2][n3].push_back(Grid_element(sel.Index(i),coor));
+            } else {
+                grid[n1][n2][n3].push_back(Grid_element(i,coor));
+            }
         }
     } else {
         // Periodic variant
@@ -983,7 +938,11 @@ void Grid_searcher::populate_coor_grid(Grid_searcher::Grid_coor_t &grid, const S
                 n3>=0 ? n3 %= NgridZ : n3 = NgridZ + n3%NgridZ;
 
             // Assign to grid
-            grid[n1][n2][n3].push_back(Grid_element(i,sel.XYZ_ptr(i)));
+            if(abs_index){
+                grid[n1][n2][n3].push_back(Grid_element(sel.Index(i),sel.XYZ_ptr(i)));
+            } else {
+                grid[n1][n2][n3].push_back(Grid_element(i,sel.XYZ_ptr(i)));
+            }
         }
     }
 }
