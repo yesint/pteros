@@ -176,7 +176,7 @@ namespace pteros {
             void fill_custom_grid(const Selection sel,
                                   bool absolute_index = false);
             /// Read/write acces to the cells of custom grid
-            std::vector<int>& cell_of_custom_grid(int x, int y, int z);
+            std::vector<int> &cell_of_custom_grid(int x, int y, int z);
 
             /// @}
 
@@ -187,8 +187,10 @@ namespace pteros {
 
             // Create one grid from single selection
             void create_grid(Grid_t& grid, const Selection& sel);
+            void create_coor_grid(Grid_coor_t& grid, const Selection& sel);
             // Create two grids from two selections
             void create_grid2(const Selection& sel1, const Selection& sel2);
+            void create_coor_grid2(const Selection& sel1, const Selection& sel2);
 
             void populate_grid(Grid_t& grid, const Selection& sel);
             void populate_coor_grid(Grid_coor_t &grid, const Selection& sel);
@@ -211,11 +213,6 @@ namespace pteros {
                           std::vector<float>* dist_vec);
 
             void do_part_within(int dim, int _b, int _e,
-                                const Selection &src,
-                                const Selection &target,
-                                std::vector<atomwrapper<bool>>& used);
-
-            void do_part_within_fast(int dim, int _b, int _e,
                                 const Selection &src,
                                 const Selection &target,
                                 std::vector<atomwrapper<bool>>& used);
@@ -255,21 +252,6 @@ namespace pteros {
             void get_nlist(int i,int j,int k);            
             void get_nlist_local(int i,int j,int k, std::vector<Eigen::Vector3i>& nlist);
             void get_nlist_13(int i,int j,int k, std::vector<Eigen::Vector3i>& nlist);
-
-            void get_central_1(int i1, int j1, int k1, const Selection& sel,
-                                std::vector<Eigen::Vector2i>& bonds,
-                                std::vector<float>* dist_vec);
-            void get_side_1(int i1,int j1,int k1, int i2,int j2,int k2, const Selection& sel,
-                                std::vector<Eigen::Vector2i>& bonds,
-                                std::vector<float>* dist_vec);
-            void get_central_2(int i1, int j1, int k1, const Selection& sel1, const Selection& sel2,
-                                std::vector<Eigen::Vector2i>& bonds,
-                                std::vector<float>* dist_vec);
-            void get_side_2(int i1,int j1,int k1, int i2,int j2,int k2,
-                                const Selection& sel1,
-                                const Selection& sel2,
-                                std::vector<Eigen::Vector2i>& bonds,
-                                std::vector<float>* dist_vec);
     };
 
 }

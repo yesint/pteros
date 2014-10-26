@@ -38,9 +38,8 @@ int main(int argc, char** argv)
 
     try{
 
-        System s("/media/semen/data/semen/trajectories/asymmetric_hexagonal/with_c60/last.gro");
-        Selection sel1(s,"resname DOPC");
-        Selection sel2(s,"all");
+        //System s("/media/semen/data/semen/trajectories/asymmetric_hexagonal/with_c60/last.gro");
+        System s("/media/semen/data/semen/trajectories/2lao/after_em.gro");
         vector<Vector2i> bon;
 
         /*
@@ -52,14 +51,22 @@ int main(int argc, char** argv)
              << std::chrono::duration<double>(t_end-t_start).count() << endl;
         */
         //-----------
+        /*
         auto t_start = std::chrono::high_resolution_clock::now();
         Selection w;
-        for(int i=0;i<50;++i)
-            w.modify(s,"within 2.0 nopbc of resname DOPC");
+        for(int i=0;i<100;++i)
+            w.modify(s,"within 2.5 of name CA");
         auto t_end = std::chrono::high_resolution_clock::now();
 
         cout << w.size() << " elapsed: "
-             << std::chrono::duration<double>(t_end-t_start).count()/50.0 << endl;
+             << std::chrono::duration<double>(t_end-t_start).count()/100.0 << endl;
+
+        */
+
+        Selection sel(s,"not name CA");
+        Selection sel2(s,"name CA");
+        Grid_searcher(1.0,sel,sel2,bon,true,false);
+        cout << bon.size() << endl;
 
         /*
         tng_trajectory_t trj;
