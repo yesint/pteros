@@ -804,5 +804,9 @@ float Selection_parser::eval_numeric(AstNode_ptr& node, int at){
         } else {
             return (atom-v).norm();
         }
+    } else if(node->code == TOK_INDEX){
+        return at;
+    } else if(node->code == TOK_RESINDEX){
+        return sys->atoms[at].resindex;
     }
 }

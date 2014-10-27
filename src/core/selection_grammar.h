@@ -484,7 +484,8 @@ public:
 
     RULE_REDUCE(NUM_EXPR)
 
-        _ok_ = NUM_TERM() && ZeroOrMore( (PLUS() || MINUS()) && SP_() && NUM_EXPR() );
+        //_ok_ = NUM_TERM() && ZeroOrMore( (PLUS() || MINUS()) && SP_() && NUM_EXPR() );
+        _ok_ = NUM_TERM() && ZeroOrMore( (PLUS() || MINUS()) && SP_() && NUM_TERM() );
 
         if(_ok_){
             if(NUM_SUBRULES()>1){ // Some operations present
@@ -536,6 +537,8 @@ public:
                 || Comb( Z() && SP_() )
                 || Comb( BETA() && SP_() )
                 || Comb( OCCUPANCY() && SP_() )
+                || Comb( RESINDEX() && SP_() )
+                || Comb( INDEX() && SP_() )
                 || UNARY_MINUS()
                 || DIST_POINT()
                 || DIST_VECTOR()
@@ -656,12 +659,15 @@ public:
         _ok_ = (EQ() || NEQ() || LEQ() || GEQ() || LT() || GT()) && SP_();        
     END_RULE
 
+
     RULE_REDUCE(NUM_COMPARISON)
+
         _ok_ = NUM_EXPR();
 
         Comb( COMPARISON_OPERATOR() && NUM_EXPR() && COMPARISON_OPERATOR() && NUM_EXPR()) //chained
         ||
         Comb( COMPARISON_OPERATOR() && NUM_EXPR() ); // normal
+
 
         if(_ok_){
             // single NUM_EXPR will pass through and will be reduced. No action needed.
