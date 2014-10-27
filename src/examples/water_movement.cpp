@@ -68,7 +68,7 @@ protected:
                     // Get waters in this cell
                     n = searcher.cell_of_custom_grid(i,j,k).size();
                     for(w=0;w<n;++w){
-                        ind = searcher.cell_of_custom_grid(i,j,k)[w];
+                        ind = searcher.cell_of_custom_grid(i,j,k)[w].index;
                         // For current water get delta of prev and cur coorfinates
                         // And add it to result grid
 

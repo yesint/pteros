@@ -176,7 +176,7 @@ namespace pteros {
             void fill_custom_grid(const Selection sel,
                                   bool absolute_index = false);
             /// Read/write acces to the cells of custom grid
-            std::vector<int> &cell_of_custom_grid(int x, int y, int z);
+            std::vector<Grid_element> &cell_of_custom_grid(int x, int y, int z);
 
             /// @}
 
@@ -196,25 +196,23 @@ namespace pteros {
             void populate_coor_grid(Grid_coor_t &grid, const Selection& sel, bool abs_index);
 
             /// Search function for contacts inside one group
-            void do_search(const Selection& sel, std::vector<Eigen::Vector2i>& bon,
+            void do_search1(std::vector<Eigen::Vector2i>& bon,
                            std::vector<float>* dist_vec);
             /// Search function for contacts between two groups
-            void do_search(const Selection& sel1, const Selection& sel2, std::vector<Eigen::Vector2i>& bon,
+            void do_search2(std::vector<Eigen::Vector2i>& bon,
                            std::vector<float>* dist_vec);
 
+            void do_search_within(std::vector<int>& bon, const Selection& src);
+
             void do_part1(int dim, int _b, int _e,
-                          const Selection &sel,
                           std::vector<Eigen::Vector2i>& bon,
                           std::vector<float>* dist_vec);
 
             void do_part2(int dim, int _b, int _e,
-                          const Selection &sel1, const Selection &sel2,
                           std::vector<Eigen::Vector2i>& bon,
                           std::vector<float>* dist_vec);
 
             void do_part_within(int dim, int _b, int _e,
-                                const Selection &src,
-                                const Selection &target,
                                 std::vector<atomwrapper<bool>>& used);
 
 

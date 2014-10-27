@@ -190,6 +190,7 @@ void search_within3(Grid_searcher* g, Selection& target, boost::python::list& bo
     search_within2(g,target,bon,true);
 }
 
+/*
 boost::python::list cell_of_custom_grid(Grid_searcher* g, int x, int y, int z){
     vector<int> l;
     l = g->cell_of_custom_grid(x,y,z);
@@ -199,6 +200,7 @@ boost::python::list cell_of_custom_grid(Grid_searcher* g, int x, int y, int z){
     }
     return ret;
 }
+*/
 
 //------------------------------------------------------
 
@@ -219,6 +221,6 @@ void make_bindings_grid_search(){
             .def("search_within",&search_within3)
             .def("create_custom_grid",&Grid_searcher::create_custom_grid)
             .def("fill_custom_grid",&Grid_searcher::fill_custom_grid,fill_custom_grid_overloads())
-            .def("cell_of_custom_grid",&cell_of_custom_grid)
+            //.def("cell_of_custom_grid",&cell_of_custom_grid)
     ;
 }
