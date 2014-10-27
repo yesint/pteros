@@ -102,11 +102,15 @@ namespace pteros {
     \code
     Grid_searcher g;
     g.create_custom_grid(NX,NY,NZ);
-    g.fill_custom_grid(sel,true);
+    for(...){ // Accumulate some data in the grid
+        g.add_to_custom_grid(sel,true);
+    }
+    // Print number of atoms accumulated in the grid cells
     for(i=0;i<NX;++i)
         for(j=0;j<NY;++j)
             for(k=0;k<NZ;++k)
                 cout << g.cell_of_custom_grid(i,j,k).size() << endl;
+    g.clear_custom_grid(); // Ready for new data
     \endcode
     */
 
@@ -172,28 +176,28 @@ namespace pteros {
 
             /// Creates custom periodic grid with given dimensions
             void create_custom_grid(int nX, int nY, int nZ);
-            /// Populate custom grid created by create_custom_grid() from given selection
-            void fill_custom_grid(const Selection sel,
-                                  bool absolute_index = false);
+            /// Clear custom grid without changing its dimensions
+            void clear_custom_grid();
+            /// Add atoms from given selection to custom grid created by create_custom_grid()
+            void add_to_custom_grid(const Selection sel,
+                                  bool absolute_index = false,
+                                  bool periodic = false);
             /// Read/write acces to the cells of custom grid
             std::vector<Grid_element> &cell_of_custom_grid(int x, int y, int z);
 
             /// @}
 
 
-        protected:
-            typedef boost::multi_array<std::vector<int>,3> Grid_t;
-            typedef boost::multi_array<std::vector<Grid_element>,3> Grid_coor_t;
+        protected:            
+            typedef boost::multi_array<std::vector<Grid_element>,3> Grid_t;
 
-            // Create one grid from single selection
+            // Create one grid from single selection            
             void create_grid(Grid_t& grid, const Selection& sel);
-            void create_coor_grid(Grid_coor_t& grid, const Selection& sel);
-            // Create two grids from two selections
+            // Create two grids from two selections            
             void create_grid2(const Selection& sel1, const Selection& sel2);
-            void create_coor_grid2(const Selection& sel1, const Selection& sel2);
 
-            void populate_grid(Grid_t& grid, const Selection& sel);
-            void populate_coor_grid(Grid_coor_t &grid, const Selection& sel, bool abs_index);
+            void populate_grid(Grid_t &grid, const Selection& sel,
+                                    bool abs_index, bool do_clear=true);
 
             /// Search function for contacts inside one group
             void do_search1(std::vector<Eigen::Vector2i>& bon,
@@ -221,16 +225,11 @@ namespace pteros {
             // Grid dimensions
             int NgridX, NgridY, NgridZ;
 
-            // Grids
-            Grid_t grid1, grid2;
-
             // Grid with coordinate pointers
-            Grid_coor_t grid_coor1,grid_coor2;
-
+            Grid_t grid1,grid2;
 
             boost::multi_array<bool, 3> visited;
-            // Neighbour list for cells
-            std::vector<Eigen::Vector3i> nlist;
+
             // Cut-off
             float cutoff;
 
@@ -247,9 +246,7 @@ namespace pteros {
             void set_grid_size(const Eigen::Vector3f& min, const Eigen::Vector3f& max,
                                int Natoms, const Periodic_box& box);
 
-            void get_nlist(int i,int j,int k);            
-            void get_nlist_local(int i,int j,int k, std::vector<Eigen::Vector3i>& nlist);
-            void get_nlist_13(int i,int j,int k, std::vector<Eigen::Vector3i>& nlist);
+            void get_nlist(int i,int j,int k, std::vector<Eigen::Vector3i>& nlist);
     };
 
 }

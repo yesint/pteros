@@ -32,7 +32,7 @@ using namespace pteros;
 using namespace Eigen;
 
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(assign_to_grid_overloads, assign_to_grid, 2, 4)
-BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(fill_custom_grid_overloads, fill_custom_grid, 1, 2)
+BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(add_to_custom_grid_overloads, add_to_custom_grid, 1, 3)
 
 /* Here we are forced to work with boost::shared_ptr.
  * We can't use std::shared_ptr since boost.python doesn't wrap it correctly for now...
@@ -220,7 +220,8 @@ void make_bindings_grid_search(){
             .def("search_within",&search_within2)
             .def("search_within",&search_within3)
             .def("create_custom_grid",&Grid_searcher::create_custom_grid)
-            .def("fill_custom_grid",&Grid_searcher::fill_custom_grid,fill_custom_grid_overloads())
+            .def("clear_custom_grid",&Grid_searcher::clear_custom_grid)
+            .def("add_to_custom_grid",&Grid_searcher::add_to_custom_grid,add_to_custom_grid_overloads())
             //.def("cell_of_custom_grid",&cell_of_custom_grid)
     ;
 }

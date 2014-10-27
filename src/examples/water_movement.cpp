@@ -60,7 +60,7 @@ protected:
         }
 
         // Assign waters to grid
-        searcher.fill_custom_grid(water,false);
+        searcher.add_to_custom_grid(water,false);
         // Cycle over grid cells
         for(i=0;i<NgridX;++i)
             for(j=0;j<NgridY;++j)
