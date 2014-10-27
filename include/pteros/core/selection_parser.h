@@ -61,8 +61,8 @@ enum Codes {
     // Prefixes
     TOK_NOT,
     TOK_WITHIN,    
-    //TOK_PERIODIC,
-    //TOK_OF,
+    TOK_SELF,
+    //TOK_NOSELF,
     TOK_BY,
     TOK_RESIDUE,
     // text keywords

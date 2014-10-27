@@ -410,6 +410,16 @@ public:
     LITERAL_RULE(OF,"of")
     END_RULE
 
+    LITERAL_RULE(SELF_ON,"self")
+        _this_rule_->code = TOK_SELF;
+        _this_rule_->children.push_back(1);
+    END_RULE
+
+    LITERAL_RULE(SELF_OFF,"noself")
+        _this_rule_->code = TOK_SELF;
+        _this_rule_->children.push_back(0);
+    END_RULE
+
     LITERAL_RULE(PBC_ON1,"pbc")
         _this_rule_->code = TOK_UINT;
         _this_rule_->children.push_back(1);
@@ -684,18 +694,47 @@ public:
 
     RULE(WITHIN)
         _ok_ = WITHIN_(false) && SP_() && FLOAT() && SP_()
-                && Opt(PBC()) && OF(false)
+                && Opt(Comb(PBC() && SELF()) || Comb(SELF() && PBC()) || PBC() || SELF())
+                && OF(false)
                 && (SP()||Check(LPAREN(false))) && LOGICAL_OPERAND();
 
         if(_ok_){
             _this_rule_->code = TOK_WITHIN;
-            if(NUM_SUBRULES()==2){ // no pbc given only (d,operand)
-                _this_rule_->children.push_back(0); // add pbc at the end
-            } else { // with pbc (d,pbc,operand)
-                SUBRULE(1).swap( SUBRULE(2) ); // Move pbc to the end
-                // Reduce pbc node to number 0 or 1
+            if(NUM_SUBRULES()==2){ // no pbc, no self given only (d,operand)
+                _this_rule_->children.push_back(0); // add nopbc at the end
+                _this_rule_->children.push_back(1); // add self at the end
+            } else if(NUM_SUBRULES()==3) { // (d,pbc,operand) or (d,self,operand)
+                if(SUBRULE(1)->code == TOK_SELF){
+                    // We have (d,self,op)
+                    SUBRULE(1).swap( SUBRULE(2) ); // now: (d,op,self)
+                    // insert nopbc before self
+                    _this_rule_->children.insert(_this_rule_->children.begin()+2, 0);
+                    // And reduce self to int
+                    _this_rule_->children[3] = _this_rule_->child_as_int(3);
+                } else {
+                    // We have (d,pbc,op)
+                    SUBRULE(1).swap( SUBRULE(2) ); // now: (d,op,pbc)
+                    // Reduce pbc node to number 0 or 1
+                    _this_rule_->children[2] = _this_rule_->child_as_int(2);
+                    // Add default self
+                    _this_rule_->children.push_back(1);
+                }
+
+            } else {
+                // We have (d,self,pbc,op) OR (d,pbc,self,op)
+                if(SUBRULE(1)->code == TOK_SELF){
+                    // We have (d,self,pbc,op)
+                    SUBRULE(1).swap( SUBRULE(3) ); // now: (d,op,pbc,self)
+                } else {
+                    // We have (d,pbc,self,op)
+                    SUBRULE(1).swap( SUBRULE(3) ); // now: (d,op,self,pbc)
+                    SUBRULE(2).swap( SUBRULE(3) ); // now: (d,op,pbc,pbc)
+                }
+                // Reduce both pbc and self
                 _this_rule_->children[2] = _this_rule_->child_as_int(2);
+                _this_rule_->children[3] = _this_rule_->child_as_int(3);
             }
+
             // Reduce dist node to float
             _this_rule_->children[0] = _this_rule_->child_as_float(0);
         } // _ok_
@@ -703,6 +742,10 @@ public:
 
     RULE_REDUCE(PBC)
         _ok_ = (PBC_ON1() || PBC_ON2() || PBC_OFF1() || PBC_OFF2()) && SP_();
+    END_RULE
+
+    RULE_REDUCE(SELF)
+        _ok_ = (SELF_ON() || SELF_OFF()) && SP_();
     END_RULE
 
     RULE(BY_RESIDUE)
