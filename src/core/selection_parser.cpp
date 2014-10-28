@@ -732,6 +732,10 @@ float Selection_parser::eval_numeric(AstNode_ptr& node, int at){
         return sys->atoms[at].beta;
     } else if(node->code == TOK_OCC){
         return sys->atoms[at].occupancy;
+    } else if(node->code == TOK_INDEX){
+        return at;
+    } else if(node->code == TOK_RESINDEX){
+        return sys->atoms[at].resindex;
     } else if(node->code == TOK_UNARY_MINUS){
         return -eval_numeric(node->child_node(0),at);
     } else if(node->code == TOK_PLUS){
@@ -804,9 +808,5 @@ float Selection_parser::eval_numeric(AstNode_ptr& node, int at){
         } else {
             return (atom-v).norm();
         }
-    } else if(node->code == TOK_INDEX){
-        return at;
-    } else if(node->code == TOK_RESINDEX){
-        return sys->atoms[at].resindex;
     }
 }

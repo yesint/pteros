@@ -43,7 +43,7 @@ using namespace pteros;
     AstNode_ptr _this_rule_(new AstNode); \
     DEBUG(_this_rule_->name = #_name;)\
     AstNode_ptr saved_parent = current_parent; \
-    current_parent = _this_rule_; \    
+    current_parent = _this_rule_; \
     const int rule_id = __LINE__;\
     int n = std::distance(beg,_pos_); \
     DEBUG(for(int i=0;i<level;++i) cout <<"  ";) \

@@ -211,8 +211,11 @@ void Selection::clear(){
 // Modify selection with new selection string
 void Selection::modify(string str){
     if(system==nullptr) throw Pteros_error("Selection does not belong to any system!");
-    sel_text = str;    
+    sel_text = str;
     boost::trim(sel_text);
+    // Expand macro-definitions in the string
+    for(int i=0;i<Nmacro;++i)
+        boost::replace_all(sel_text,macro[2*i],macro[2*i+1]);
     index.clear();    
     allocate_parser();    
 }
