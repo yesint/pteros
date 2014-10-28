@@ -667,6 +667,8 @@ class Selection {
         return system->traj[frame].coord[index[ind]];
     }        
 
+    /// Returns pointer to the coordinates of given atom for current frame.
+    /// Used internally in Grid_searcher.
     inline Eigen::Vector3f* XYZ_ptr(int ind) const {
         return &(system->traj[frame].coord[index[ind]]);
     }

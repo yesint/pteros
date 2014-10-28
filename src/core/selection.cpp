@@ -794,6 +794,7 @@ Vector3f Selection::center(bool mass_weighted, bool periodic) const {
 // Plain translation
 void Selection::translate(Vector3f_const_ref v){
     int i,n = index.size();
+    #pragma omp parallel for
     for(i=0; i<n; ++i) XYZ(i) += v;
 }
 
