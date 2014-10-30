@@ -756,13 +756,24 @@ Vector3f Selection::center(bool mass_weighted, bool periodic) const {
 
     if(periodic==false){
         if(mass_weighted){
-            float m = 0.0;
-            for(i=0; i<n; ++i){                
-                res += XYZ(i)*Mass(i);
-                m += Mass(i);
+            float mass = 0.0;
+            #pragma omp parallel
+            {
+                float m = 0.0;
+                Vector3f r(Vector3f::Zero());
+                #pragma omp for nowait
+                for(i=0; i<n; ++i){
+                    r += XYZ(i)*Mass(i);
+                    m += Mass(i);
+                }
+                #pragma omp critical
+                {
+                    res += r;
+                    mass += m;
+                }
             }
-            if(m==0) throw Pteros_error("Zero mass in mass-weighted center calculation!");
-            return res/m;
+            if(mass==0) throw Pteros_error("Zero mass in mass-weighted center calculation!");
+            return res/mass;
         } else {
             #pragma omp parallel
             {
@@ -783,17 +794,36 @@ Vector3f Selection::center(bool mass_weighted, bool periodic) const {
         // using first point as a reference
         Vector3f ref_point = XYZ(0);
         if(mass_weighted){
-            float m = 0.0;
-            for(i=0; i<n; ++i){
-                res += system->Box(frame).get_closest_image(XYZ(i),ref_point) * Mass(i);
-                m += Mass(i);
+            float mass = 0.0;
+            #pragma omp parallel
+            {
+                float m = 0.0;
+                Vector3f r(Vector3f::Zero());
+                #pragma omp for nowait
+                for(i=0; i<n; ++i){
+                    r += system->Box(frame).get_closest_image(XYZ(i),ref_point) * Mass(i);
+                    m += Mass(i);
+                }
+                #pragma omp critical
+                {
+                    res += r;
+                    mass += m;
+                }
             }
-            if(m==0) throw Pteros_error("Zero mass in mass-weighted center calculation!");
-            return res/m;
+            if(mass==0) throw Pteros_error("Zero mass in mass-weighted center calculation!");
+            return res/mass;
         } else {
-            for(i=0; i<n; ++i)
-                res += system->Box(frame).get_closest_image(XYZ(i),ref_point);
-
+            #pragma omp parallel
+            {
+                Vector3f r(Vector3f::Zero()); // local to omp thread
+                #pragma omp for nowait
+                for(i=0; i<n; ++i)
+                    r += system->Box(frame).get_closest_image(XYZ(i),ref_point);
+                #pragma omp critical
+                {
+                    res += r;
+                }
+            }
             return res/n;
         }
     }
@@ -1192,15 +1222,29 @@ void Selection::minmax(Vector3f_ref min, Vector3f_ref max) const {
     int i,n,j;
     Vector3f xyz;
     n = index.size();
-    min.fill(1e10);
-    max.fill(-1e10);
+
+    float x_min, y_min, z_min, x_max, y_max, z_max;
+    x_min = y_min = z_min = -1e10;
+    x_max = y_max = z_max = 1e10;
+
+    #pragma omp parallel for reduction(min:x_min,y_min,z_min) reduction(max:x_max,y_max,z_max)
     for(i=0; i<n; ++i){
         xyz = XYZ(i);
-        for(j=0; j<3; ++j){
-            if(xyz(j)<min(j)) min(j) = xyz(j);
-            if(xyz(j)>max(j)) max(j) = xyz(j);
-        }
+        if(xyz(0)<x_min) x_min = xyz(0);
+        if(xyz(0)>x_max) x_max = xyz(0);
+        if(xyz(1)<y_min) y_min = xyz(1);
+        if(xyz(1)>y_max) y_max = xyz(1);
+        if(xyz(2)<z_min) z_min = xyz(2);
+        if(xyz(2)>z_max) z_max = xyz(2);
     }
+
+    min(0) = x_min;
+    min(1) = y_min;
+    min(2) = z_min;
+
+    max(0) = x_max;
+    max(1) = y_max;
+    max(2) = z_max;
 }
 
 //###############################################
