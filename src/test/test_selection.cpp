@@ -52,26 +52,7 @@ int main(int argc, char** argv)
         */
         //-----------
 
-        Selection sel(s,"all");
-        int N=100000;
-
-        Vector3f v(1,2,3);
-
-        VectorXi mask(s.num_atoms());
-        mask.fill(0);
-        for(int i=0;i<sel.size();++i) mask(sel.Index(i))=1;
-
-
-
-        auto t_start = std::chrono::high_resolution_clock::now();
-        for(int i=0;i<N;++i){
-            sel.translate(v);
-        }
-        auto t_end = std::chrono::high_resolution_clock::now();
-        cout << " elapsed: "
-             << std::chrono::duration<double>(t_end-t_start).count()/double(N) << endl;
-
-        /*
+       /*
         auto t_start = std::chrono::high_resolution_clock::now();
         Selection w;
         for(int i=0;i<100;++i)
@@ -83,17 +64,29 @@ int main(int argc, char** argv)
 
         */
 
-        int N = 100000;
+        int N = 10000;
         Selection sel(s,"all");
 
+        // Benchmarking fit transform
+        s.frame_dup(0);
+        sel.set_frame(1);
+        sel.rotate(0,0.5);
+
         auto t_start = std::chrono::high_resolution_clock::now();
-        Selection w;
-        for(int i=0;i<N;++i)
-            sel.center();
+
+        for(int i=0;i<N;++i){
+            sel.rotate(0,0.5);
+            sel.fit_transform(0,1);
+            //sel.center(true);
+        }
+
         auto t_end = std::chrono::high_resolution_clock::now();
 
         cout << " elapsed: "
-             << std::chrono::duration<double>(t_end-t_start).count()/float(N) << endl;
+             << 1000000.0*std::chrono::duration<double>(t_end-t_start).count()/float(N) << endl;
+
+
+
 
 
 
