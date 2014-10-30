@@ -1068,6 +1068,7 @@ float rmsd(const Selection& sel1, int fr1, const Selection& sel2, int fr2){
         throw e;
     }
 
+    #pragma omp parallel for reduction(+:res)
     for(int i=0; i<n1; ++i)
         res += (sel1.XYZ(i,fr1)-sel2.XYZ(i,fr2)).squaredNorm();
 
@@ -1109,8 +1110,6 @@ Affine3f fit_transform(const Selection& sel1, const Selection& sel2){
     int i,j,N,r,c;
     Matrix<float,6,6> omega,om;
     Matrix3f u,vh,vk;
-    float xnr,xpc,max_d;
-    int nrot;
 
     omega.fill(0.0);
     om.fill(0.0);
@@ -1118,8 +1117,17 @@ Affine3f fit_transform(const Selection& sel1, const Selection& sel2){
 
     //Calculate the matrix U
     u.fill(0.0);
-    for(i=0;i<N;++i) // Over atoms in selection
-        u += sel1.XYZ(i)*sel2.XYZ(i).transpose()*sel1.Mass(i);
+    #pragma omp parallel
+    {
+        Matrix3f _u(Matrix3f::Zero());
+        #pragma omp for nowait
+        for(i=0;i<N;++i) // Over atoms in selection
+            _u += sel1.XYZ(i)*sel2.XYZ(i).transpose()*sel1.Mass(i);
+        #pragma omp critical
+        {
+            u += _u;
+        }
+    }
 
     //Construct omega
     for(r=0; r<6; r++){
