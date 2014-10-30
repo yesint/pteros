@@ -840,6 +840,7 @@ void Selection::translate(Vector3f_const_ref v){
 // Rotation with given rotation matrix around 0
 void Selection::rotate(Matrix3f_const_ref m){
     int n = index.size();
+    #pragma omp parallel for
     for(int i=0; i<n; ++i){
         XYZ(i) = m * XYZ(i);
     }
@@ -864,6 +865,7 @@ void Selection::rotate(int axis, float angle){
     Vector3f cm = center();
     // Translate to 0
     translate(-cm);
+    #pragma omp parallel for
     for(int i=0; i<n; ++i){
         XYZ(i) = m * XYZ(i);
     }
@@ -880,6 +882,7 @@ void Selection::rotate(Vector3f_const_ref angles, Vector3f_const_ref pivot){
 
     // Translate to pivot
     translate(-pivot);
+    #pragma omp parallel for
     for(int i=0; i<n; ++i){
         XYZ(i) = m * XYZ(i);
     }
@@ -908,6 +911,7 @@ void Selection::rotate(int axis, float angle, Vector3f_const_ref pivot){
 
     // Translate to 0
     translate(-pivot);
+    #pragma omp parallel for
     for(int i=0; i<n; ++i){
         XYZ(i) = m * XYZ(i);
     }
@@ -924,6 +928,7 @@ void Selection::rotate(Vector3f_const_ref direction, float angle, Vector3f_const
 
     // Translate to pivot
     translate(-pivot);
+    #pragma omp parallel for
     for(int i=0; i<n; ++i){
         XYZ(i) = m * XYZ(i);
     }
