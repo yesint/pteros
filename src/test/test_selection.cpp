@@ -75,20 +75,27 @@ int main(int argc, char** argv)
         auto t_start = std::chrono::high_resolution_clock::now();
         Selection w;
         for(int i=0;i<100;++i)
-            w.modify(s,"within 4.0 noself nopbc of name CA");
+            w.modify(s,"within 2.5 of name CA");
         auto t_end = std::chrono::high_resolution_clock::now();
 
         cout << w.size() << " elapsed: "
              << std::chrono::duration<double>(t_end-t_start).count()/100.0 << endl;
+
         */
 
+        int N = 100000;
+        Selection sel(s,"all");
 
-        /*
-        Selection sel(s,"not name CA");
-        Selection sel2(s,"name CA");
-        Grid_searcher(1.0,sel,sel2,bon,true,false);
-        cout << bon.size() << endl;
-        */
+        auto t_start = std::chrono::high_resolution_clock::now();
+        Selection w;
+        for(int i=0;i<N;++i)
+            sel.center();
+        auto t_end = std::chrono::high_resolution_clock::now();
+
+        cout << " elapsed: "
+             << std::chrono::duration<double>(t_end-t_start).count()/float(N) << endl;
+
+
 
         /*
         tng_trajectory_t trj;

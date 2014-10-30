@@ -764,8 +764,16 @@ Vector3f Selection::center(bool mass_weighted, bool periodic) const {
             if(m==0) throw Pteros_error("Zero mass in mass-weighted center calculation!");
             return res/m;
         } else {
-            for(i=0; i<n; ++i)
-                res += XYZ(i);
+            #pragma omp parallel
+            {
+                Vector3f r(Vector3f::Zero()); // local to omp thread
+                #pragma omp for nowait
+                for(i=0; i<n; ++i) r += XYZ(i);
+                #pragma omp critical
+                {
+                    res += r;
+                }
+            }
 
             return res/n;
         }
