@@ -1409,40 +1409,56 @@ void Selection::inertia(Vector3f_ref moments, Matrix3f_ref axes, bool periodic) 
     int n = size();
     int i;
     // Compute the central tensor of inertia. Place it into axes
-    axes.fill(0.0);
 
-    Vector3f c = center(true,periodic);
+    float axes00=0.0, axes11=0.0, axes22=0.0, axes01=0.0, axes02=0.0, axes12=0.0;
 
-    Vector3f p,d;
+    Vector3f c = center(true,periodic);    
 
     if(periodic){
-        for(i=0;i<n;++i){
-            // 0 point was used as an anchor in periodic center calculation,
-            // so we have to use it as an anchor here as well!
-            p = system->Box(frame).get_closest_image(XYZ(i),XYZ(0));
-
-            d = p-c;
-            axes(0,0) += Mass(i)*( d(1)*d(1) + d(2)*d(2) );
-            axes(1,1) += Mass(i)*( d(0)*d(0) + d(2)*d(2) );
-            axes(2,2) += Mass(i)*( d(0)*d(0) + d(1)*d(1) );
-            axes(0,1) -= Mass(i)*d(0)*d(1);
-            axes(0,2) -= Mass(i)*d(0)*d(2);
-            axes(1,2) -= Mass(i)*d(1)*d(2);
+        Vector3f anchor = XYZ(0);
+        #pragma omp parallel
+        {
+            Vector3f p,d;
+            float m;
+            #pragma omp for reduction(+:axes00,axes11,axes22,axes01,axes02,axes12)
+            for(i=0;i<n;++i){
+                // 0 point was used as an anchor in periodic center calculation,
+                // so we have to use it as an anchor here as well!
+                p = system->Box(frame).get_closest_image(XYZ(i),anchor);
+                d = p-c;
+                m = Mass(i);
+                axes00 += m*( d(1)*d(1) + d(2)*d(2) );
+                axes11 += m*( d(0)*d(0) + d(2)*d(2) );
+                axes22 += m*( d(0)*d(0) + d(1)*d(1) );
+                axes01 += m*d(0)*d(1);
+                axes02 += m*d(0)*d(2);
+                axes12 += m*d(1)*d(2);
+            }
         }
     } else {
-        for(i=0;i<n;++i){
-            d = XYZ(i)-c;
-            axes(0,0) += Mass(i)*( d(1)*d(1) + d(2)*d(2) );
-            axes(1,1) += Mass(i)*( d(0)*d(0) + d(2)*d(2) );
-            axes(2,2) += Mass(i)*( d(0)*d(0) + d(1)*d(1) );
-            axes(0,1) -= Mass(i)*d(0)*d(1);
-            axes(0,2) -= Mass(i)*d(0)*d(2);
-            axes(1,2) -= Mass(i)*d(1)*d(2);
+        #pragma omp parallel
+        {
+            Vector3f d;
+            float m;
+            #pragma omp for reduction(+:axes00,axes11,axes22,axes01,axes02,axes12)
+            for(i=0;i<n;++i){
+                d = XYZ(i)-c;
+                m = Mass(i);
+                axes00 += m*( d(1)*d(1) + d(2)*d(2) );
+                axes11 += m*( d(0)*d(0) + d(2)*d(2) );
+                axes22 += m*( d(0)*d(0) + d(1)*d(1) );
+                axes01 += m*d(0)*d(1);
+                axes02 += m*d(0)*d(2);
+                axes12 += m*d(1)*d(2);
+            }
         }
     }
-    axes(1,0) = axes(0,1);
-    axes(2,0) = axes(0,2);
-    axes(2,1) = axes(1,2);
+    axes(0,0) = axes00;
+    axes(1,1) = axes11;
+    axes(2,2) = axes22;
+    axes(0,1) = axes(1,0) = -axes01;
+    axes(0,2) = axes(2,0) = -axes02;
+    axes(1,2) = axes(2,1) = -axes12;
 
     // Now diagonalize inertia tensor
     Eigen::SelfAdjointEigenSolver<Matrix3f> solver(axes);
@@ -1456,12 +1472,14 @@ float Selection::gyration(bool periodic) const {
     int i;
     float d, a = 0.0, b = 0.0;
     Vector3f c = center(true,periodic);
+
+    #pragma omp parallel for private(d) reduction(+:a,b)
     for(i=0;i<n;++i){
         if(periodic){
             d = system->Box(frame).distance(XYZ(i),c);
         } else {
             d = (XYZ(i)-c).norm();
-        }
+        }        
         a += Mass(i)*d*d;
         b += Mass(i);
     }
