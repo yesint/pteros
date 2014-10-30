@@ -39,8 +39,8 @@ int main(int argc, char** argv)
     try{
 
         //System s("/media/semen/data/semen/trajectories/asymmetric_hexagonal/with_c60/last.gro");
-        System s("/media/semen/data/semen/trajectories/2lao/after_em.gro");
-        vector<Vector2i> bon;
+        System s("/home/semen/work/Projects/kornelyuk/dimer/md/frame_last.pdb");
+
 
         /*
         auto t_start = std::chrono::high_resolution_clock::now();
@@ -63,10 +63,19 @@ int main(int argc, char** argv)
 
         */
 
-        Selection sel(s,"not name CA");
-        Selection sel2(s,"name CA");
-        Grid_searcher(1.0,sel,sel2,bon,true,false);
-        cout << bon.size() << endl;
+        int N = 100000;
+        Selection sel(s,"all");
+
+        auto t_start = std::chrono::high_resolution_clock::now();
+        Selection w;
+        for(int i=0;i<N;++i)
+            sel.center();
+        auto t_end = std::chrono::high_resolution_clock::now();
+
+        cout << " elapsed: "
+             << std::chrono::duration<double>(t_end-t_start).count()/float(N) << endl;
+
+
 
         /*
         tng_trajectory_t trj;
