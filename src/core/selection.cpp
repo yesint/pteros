@@ -953,6 +953,7 @@ float Selection::rmsd(int fr1, int fr2) const{
         throw e;
     }
 
+    #pragma omp parallel for reduction(+:res)
     for(int i=0; i<n; ++i)
         res += (XYZ(i,fr1)-XYZ(i,fr2)).squaredNorm();
 
@@ -973,6 +974,7 @@ float Selection::rmsd(int fr) const {
 // Apply transformation
 void Selection::apply_transform(const Affine3f &t){
     int n = size();    
+    #pragma omp parallel for
     for(int i=0; i<n; ++i){        
         XYZ(i) = (t * XYZ(i)).eval();
     }
