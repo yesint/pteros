@@ -609,8 +609,8 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
     }
     //---------------------------------------------------------------------------
     case  TOK_ALL:
-        result.reserve(Natoms);
-        for(at=0;at<Natoms;++at) result.push_back(at);
+        result.resize(Natoms);
+        for(at=0;at<Natoms;++at) result[at] = at;
         return;          
     //---------------------------------------------------------------------------
     // Math logical nodes
