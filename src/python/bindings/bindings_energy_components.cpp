@@ -35,5 +35,7 @@ void make_bindings_Energy_components(){
         .def_readwrite("q_14",&Energy_components::q_14)
         .def_readwrite("lj_sr",&Energy_components::lj_sr)
         .def_readwrite("q_sr",&Energy_components::q_sr)
+        .def(self + self)
+        .def(self += self)
     ;
 }

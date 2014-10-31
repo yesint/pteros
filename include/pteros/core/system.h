@@ -48,16 +48,15 @@ struct Energy_components {
     /// Short-range Coloumb energy (within cut-off)
     float q_sr;
 
-    Energy_components(){
-        total = 0.0;
-        lj_14 = 0.0;
-        q_14 = 0.0;
-        lj_sr = 0.0;
-        q_sr = 0.0;
-    }
+    Energy_components(): total(0.0), lj_14(0.0), q_14(0.0), lj_sr(0.0), q_sr(0.0) {}
+
     /// Writes all energy components to string in the following order:
     /// total, lj_sr, lj_14, q_sr, q_14
     std::string to_str();
+
+    /// Addition of energies
+    Energy_components operator+(const Energy_components& other);
+    Energy_components& operator+=(const Energy_components& other);
 };
 
 /// Definition of single trajectory frame.
@@ -377,10 +376,8 @@ public:
     /// @name Energy functions
     /// @{
 
-    /// Compute non-bond energy between two atoms
-    /// The result is ADDED to e
-    /// Intended mainly to be called from other functions, which take care of initializing e
-    void add_non_bond_energy(Energy_components& e, int a1, int a2, int frame, bool is_periodic = true) const;
+    /// Compute non-bond energy between two atoms        
+    Energy_components non_bond_energy(int a1, int a2, int frame, bool is_periodic = true) const;
 
     /// Non-bond energy for given list of atom pairs
     Energy_components non_bond_energy(const std::vector<Eigen::Vector2i>& nlist, int fr, bool is_periodic=true) const;

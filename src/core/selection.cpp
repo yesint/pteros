@@ -994,7 +994,7 @@ Energy_components Selection::non_bond_energy(float cutoff, bool periodic) const
         n = size();
         for(i=0; i<n-1; ++i)
             for(j=i+1; j<n; ++j)
-                system->add_non_bond_energy(e,Index(i),Index(j),frame,periodic);
+                e += system->non_bond_energy(Index(i),Index(j),frame,periodic);
         return e;
     }
 }
@@ -1040,7 +1040,7 @@ Energy_components non_bond_energy(const Selection& sel1,
 
         for(i=0;i<n1;++i)
             for(j=0;j<n2;++j)
-                sel1.get_system()->add_non_bond_energy(e,sel1.Index(i),sel2.Index(j),fr,periodic);
+                e += sel1.get_system()->non_bond_energy(sel1.Index(i),sel2.Index(j),fr,periodic);
 
         return e;
     }

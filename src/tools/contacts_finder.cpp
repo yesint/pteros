@@ -204,7 +204,7 @@ void Contacts_finder::process_frame(const Frame_info &info){
                 //Frame* fp = &system.Frame_data(sel_pairs[0].sel1.get_frame());
                 //at_pair_energy = simulation->non_bond_energy(at_pair.first,at_pair.second,*fp).total;
                 Energy_components e;
-                system.add_non_bond_energy(e,at_pair.first, at_pair.second,
+                e += system.non_bond_energy(at_pair.first, at_pair.second,
                                            sel_pairs[0].sel1.get_frame(),true);
                 at_pair_energy = e.total;
             } else

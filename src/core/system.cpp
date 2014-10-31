@@ -633,8 +633,30 @@ string Energy_components::to_str(){
             + to_string(q_14);
 }
 
-void System::add_non_bond_energy(Energy_components &e, int a1, int a2, int frame, bool is_periodic) const
+Energy_components Energy_components::operator+(const Energy_components& other){
+    Energy_components ret;
+    ret.total = total+other.total;
+    ret.lj_14 = lj_14+other.lj_14;
+    ret.q_14 = q_14+other.q_14;
+    ret.lj_sr = lj_sr+other.lj_sr;
+    ret.q_sr = q_sr+other.q_sr;
+    return ret;
+}
+
+Energy_components &Energy_components::operator+=(const Energy_components &other)
 {
+    total += other.total;
+    lj_14 += other.lj_14;
+    q_14 += other.q_14;
+    lj_sr += other.lj_sr;
+    q_sr += other.q_sr;
+    return *this;
+}
+
+Energy_components System::non_bond_energy(int a1, int a2, int frame, bool is_periodic) const
+{
+    Energy_components e;
+
     // First check if this pair is not in exclusions
     if( force_field.exclusions[a1].count(a2) == 0 ){
         // Required at1 < at2
@@ -650,8 +672,8 @@ void System::add_non_bond_energy(Energy_components &e, int a1, int a2, int frame
         float e1,e2;
 
         int N = force_field.LJ14_interactions.size();
-        //float r = distance(XYZ(at1,frame),XYZ(at2,frame),frame,is_periodic);
-        float r = distance(at1,at2,frame);
+
+        float r = distance(at1,at2,frame,is_periodic);
 
         // Check if this is 1-4 pair
         std::unordered_map<int,int>::iterator it = const_cast<System&>(*this).force_field.LJ14_pairs.find(at1*N+at2);
@@ -681,6 +703,8 @@ void System::add_non_bond_energy(Energy_components &e, int a1, int a2, int frame
             e.total += (e1 + e2);
         }
     }
+
+    return e;
 }
 
 Energy_components System::non_bond_energy(const std::vector<Eigen::Vector2i> &nlist, int fr, bool is_periodic) const
@@ -688,8 +712,17 @@ Energy_components System::non_bond_energy(const std::vector<Eigen::Vector2i> &nl
     Energy_components e;
     int n = nlist.size();
 
-    for(int i=0;i<n;++i){
-        add_non_bond_energy(e,nlist[i](0),nlist[i](1),fr,is_periodic);
+    #pragma omp parallel
+    {
+        Energy_components _e;
+        #pragma omp for nowait
+        for(int i=0;i<n;++i){
+            _e += non_bond_energy(nlist[i](0),nlist[i](1),fr,is_periodic);
+        }
+        #pragma omp critical
+        {
+            e += _e;
+        }
     }
 
     return e;
