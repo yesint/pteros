@@ -117,7 +117,7 @@ public:
     System& operator=(System other);
 
     /// Destructor
-    ~System();
+    virtual ~System();
 
     /// @}
 

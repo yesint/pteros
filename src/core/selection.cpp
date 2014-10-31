@@ -111,7 +111,7 @@ Selection::Selection(const System &sys, int ind1, int ind2){
     parser.reset();
 
     // Populate selection directly
-    index.clear();
+    index.reserve(ind2-ind1+1);
     for(int i=ind1; i<=ind2; ++i) index.push_back(i);
 
     // Show warning if empty selection is created
@@ -129,6 +129,7 @@ Selection::Selection(const System &sys, const std::vector<int> &ind){
     // No parser needed
     parser.reset();
 
+    index.reserve(ind.size());
     // populate selection
     for(int i=0; i<ind.size(); ++i){
         index.push_back(ind[i]);
@@ -148,6 +149,7 @@ Selection::Selection(const System &sys, std::vector<int>::iterator it1, std::vec
     // No parser needed
     parser.reset();
 
+    index.reserve(std::distance(it1,it2)+1);
     // Populate
     while(it1!=it2){
         index.push_back(*it1);
@@ -159,10 +161,8 @@ Selection::Selection(const System &sys, std::vector<int>::iterator it1, std::vec
 }
 
 // Destructor
-Selection::~Selection(){
-    // Delete parser if it is persistent
-    parser.reset();
-    // All the rest will be destroyed automatically
+Selection::~Selection(){    
+    // All (including parser) will be destroyed automatically
 }
 
 void Selection::append(const Selection &sel){

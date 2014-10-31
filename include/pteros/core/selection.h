@@ -103,7 +103,7 @@ class Selection {
     Selection(const Selection& sel);
 
     /// Destructor
-    ~Selection();
+    virtual ~Selection();
 
     /// Assignment operator
     Selection& operator=(Selection sel);

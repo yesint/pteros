@@ -533,7 +533,7 @@ Selection System::select(std::vector<int>::iterator it1, std::vector<int>::itera
 }
 
 Selection System::select_all(){
-    return Selection(*this,"all");
+    return Selection(*this,0,num_atoms()-1);
 }
 
 inline void wrap_coord(Vector3f& point, const Matrix3f& box,
