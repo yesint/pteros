@@ -758,18 +758,16 @@ Vector3f Selection::center(bool mass_weighted, bool periodic) const {
         if(mass_weighted){
             float mass = 0.0;
             #pragma omp parallel
-            {
-                float m = 0.0;
+            {                
                 Vector3f r(Vector3f::Zero());
-                #pragma omp for nowait
+                #pragma omp for nowait reduction(+:mass)
                 for(i=0; i<n; ++i){
-                    r += XYZ(i)*Mass(i);
-                    m += Mass(i);
+                    res += XYZ(i)*Mass(i);
+                    mass += Mass(i);
                 }
                 #pragma omp critical
                 {
                     res += r;
-                    mass += m;
                 }
             }
             if(mass==0) throw Pteros_error("Zero mass in mass-weighted center calculation!");
@@ -796,18 +794,16 @@ Vector3f Selection::center(bool mass_weighted, bool periodic) const {
         if(mass_weighted){
             float mass = 0.0;
             #pragma omp parallel
-            {
-                float m = 0.0;
+            {                
                 Vector3f r(Vector3f::Zero());
-                #pragma omp for nowait
+                #pragma omp for nowait reduction(+:mass)
                 for(i=0; i<n; ++i){
                     r += system->Box(frame).get_closest_image(XYZ(i),ref_point) * Mass(i);
-                    m += Mass(i);
+                    mass += Mass(i);
                 }
                 #pragma omp critical
                 {
-                    res += r;
-                    mass += m;
+                    res += r;                    
                 }
             }
             if(mass==0) throw Pteros_error("Zero mass in mass-weighted center calculation!");
