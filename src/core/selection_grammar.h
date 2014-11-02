@@ -539,6 +539,7 @@ public:
                 || Comb( OCCUPANCY() && SP_() )
                 || Comb( RESINDEX() && SP_() )
                 || Comb( INDEX() && SP_() )
+                || Comb( RESID() && SP_() )
                 || UNARY_MINUS()
                 || DIST_POINT()
                 || DIST_VECTOR()

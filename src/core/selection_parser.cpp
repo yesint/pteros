@@ -214,6 +214,9 @@ void Selection_parser::do_optimization(AstNode_ptr& node){
         || node->code == TOK_BETA
         || node->code == TOK_OCC
         || node->code == TOK_TO
+        || node->code == TOK_INDEX
+        || node->code == TOK_RESINDEX
+        || node->code == TOK_RESID
        ) return;
 
     // Now check if this node does not contain coord-dependent children
@@ -736,6 +739,8 @@ float Selection_parser::eval_numeric(AstNode_ptr& node, int at){
         return at;
     } else if(node->code == TOK_RESINDEX){
         return sys->atoms[at].resindex;
+    } else if(node->code == TOK_RESID){
+        return sys->atoms[at].resid;
     } else if(node->code == TOK_UNARY_MINUS){
         return -eval_numeric(node->child_node(0),at);
     } else if(node->code == TOK_PLUS){
