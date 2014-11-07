@@ -500,14 +500,20 @@ Grid_searcher::Grid_searcher(float d,
             // If no overlap just exit
             if(max(i)==min(i)) return;
         }
+
     } else {
         // Set dimensions of the current unit cell
         min.fill(0.0);
         max = box.extents();
     }
 
-    set_grid_size(min,max, std::min(src.size(),target.size()),box);
-    //set_grid_size(min,max, 1,box);
+    if(src.size()<10 || target.size()<10){
+        set_grid_size(min,max, std::max(src.size(),target.size()),box);
+    } else {
+        set_grid_size(min,max, std::min(src.size(),target.size()),box);
+    }
+
+    //set_grid_size(min,max, std::min(src.size(),target.size()),box);
 
     // Allocate both grids
     grid1.resize( boost::extents[NgridX][NgridY][NgridZ] );
@@ -595,6 +601,7 @@ void Grid_searcher::set_grid_size(const Vector3f& min, const Vector3f& max,
     */
 
     // See if some of grid vectors projected to lab axes larger than 2*cutoff
+/*
     while(box.box_to_lab(Vector3f(dX,0.0,0.0))(0) > 2.0*cutoff){
         ++NgridX;
         dX = (max(0)-min(0))/NgridX;
@@ -607,6 +614,7 @@ void Grid_searcher::set_grid_size(const Vector3f& min, const Vector3f& max,
         ++NgridZ;
         dZ = (max(2)-min(2))/NgridZ;
     }
+    */
 
 }
 
