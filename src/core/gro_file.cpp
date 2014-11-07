@@ -142,7 +142,7 @@ void GRO_file::do_write(const Selection &sel, const Mol_file_content &what){
     f << n << endl;
     int ind;
     for(int i=0;i<n;i++){
-        ind = (i%100000)+1; // Prevents overflow of index field. It's not used anyway.
+        ind = (i%99999)+1; // Prevents overflow of index field. It's not used anyway.
         sprintf(ch,"%5d%-5s%5s%5d%8.3f%8.3f%8.3f",
                 sel.Resid(i), sel.Resname(i).c_str(), sel.Name(i).c_str(), ind,
                 sel.X(i), sel.Y(i), sel.Z(i));
