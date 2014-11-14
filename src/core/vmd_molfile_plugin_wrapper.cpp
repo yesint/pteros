@@ -211,25 +211,26 @@ bool VMD_molfile_plugin_wrapper::do_read(System *sys, Frame *frame, const Mol_fi
 void VMD_molfile_plugin_wrapper::do_write(const Selection &sel, const Mol_file_content &what) {
 
     if(what.structure){
-        // WRITE STRUCTURE:
+        // WRITE STRUCTURE:        
         if(!w_handle)
             w_handle = plugin->open_file_write(stored_write_name.c_str(), plugin->name, sel.size());
 
-        vector<molfile_atom_t> atoms(sel.size());
-        for(int i=0; i<sel.size(); ++i){
-            strcpy( atoms[i].name, sel.Name(i).c_str() );
-            strcpy( atoms[i].resname, sel.Resname(i).c_str() );
+        vector<molfile_atom_t> atoms(sel.size());        
+        for(int i=0; i<sel.size(); ++i){            
+            strcpy( atoms[i].name, sel.Name(i).c_str() );            
+            strcpy( atoms[i].resname, sel.Resname(i).c_str() );            
             atoms[i].resid = sel.Resid(i);
-            strcpy( atoms[i].chain, &sel.Chain(i) );
+            stringstream ss;
+            ss << sel.Chain(i);
+            strcpy( atoms[i].chain, ss.str().c_str() );
             atoms[i].occupancy = sel.Occupancy(i);
             atoms[i].bfactor = sel.Beta(i);
             atoms[i].mass = sel.Mass(i);
             // Try to deduce an element number from tag field
             atoms[i].atomicnumber = get_pte_idx_from_string(sel.Tag(i).c_str());
         }
-
         int flags = MOLFILE_OCCUPANCY | MOLFILE_BFACTOR | MOLFILE_ATOMICNUMBER;
-        plugin->write_structure(w_handle,flags,&atoms.front());
+        plugin->write_structure(w_handle,flags,&atoms.front());        
     }
 
     if(what.coordinates || what.trajectory){
