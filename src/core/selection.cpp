@@ -1235,10 +1235,11 @@ void Selection::minmax(Vector3f_ref min, Vector3f_ref max) const {
     n = index.size();
 
     float x_min, y_min, z_min, x_max, y_max, z_max;
-    x_min = y_min = z_min = -1e10;
-    x_max = y_max = z_max = 1e10;
+    x_min = y_min = z_min = 1e10;
+    x_max = y_max = z_max = -1e10;
 
     #pragma omp parallel for reduction(min:x_min,y_min,z_min) reduction(max:x_max,y_max,z_max)
+
     for(i=0; i<n; ++i){
         xyz = XYZ(i);
         if(xyz(0)<x_min) x_min = xyz(0);
@@ -1256,6 +1257,7 @@ void Selection::minmax(Vector3f_ref min, Vector3f_ref max) const {
     max(0) = x_max;
     max(1) = y_max;
     max(2) = z_max;
+
 }
 
 //###############################################
