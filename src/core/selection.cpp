@@ -1231,7 +1231,7 @@ void Selection::fit(int fr1, int fr2){
 
 void Selection::minmax(Vector3f_ref min, Vector3f_ref max) const {
     int i,n,j;
-    Vector3f xyz;
+    Vector3f* p;
     n = index.size();
 
     float x_min, y_min, z_min, x_max, y_max, z_max;
@@ -1239,15 +1239,14 @@ void Selection::minmax(Vector3f_ref min, Vector3f_ref max) const {
     x_max = y_max = z_max = -1e10;
 
     #pragma omp parallel for reduction(min:x_min,y_min,z_min) reduction(max:x_max,y_max,z_max)
-
     for(i=0; i<n; ++i){
-        xyz = XYZ(i);
-        if(xyz(0)<x_min) x_min = xyz(0);
-        if(xyz(0)>x_max) x_max = xyz(0);
-        if(xyz(1)<y_min) y_min = xyz(1);
-        if(xyz(1)>y_max) y_max = xyz(1);
-        if(xyz(2)<z_min) z_min = xyz(2);
-        if(xyz(2)>z_max) z_max = xyz(2);
+        p = XYZ_ptr(i);
+        if((*p)(0)<x_min) x_min = (*p)(0);
+        if((*p)(0)>x_max) x_max = (*p)(0);
+        if((*p)(1)<y_min) y_min = (*p)(1);
+        if((*p)(1)>y_max) y_max = (*p)(1);
+        if((*p)(2)<z_min) z_min = (*p)(2);
+        if((*p)(2)>z_max) z_max = (*p)(2);
     }
 
     min(0) = x_min;
