@@ -533,7 +533,8 @@ class Selection {
 
     /** Write structure or trajectory for selection. Type is determined by extension.
     *   Frames from b to e are written.
-    *   If b and e are not set they default to current frame
+    *   If @param b is not set or -1 it means current frame
+    *   If @param e is not set or -1 it means the last frame
     */
     // Can't be made const because of internal calls
     void write(std::string fname,int b=-1,int e=-1);
