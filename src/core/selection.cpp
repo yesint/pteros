@@ -1263,12 +1263,14 @@ void Selection::minmax(Vector3f_ref min, Vector3f_ref max) const {
 //###############################################
 
 void Selection::write(string fname, int b, int e) {
+    // -1 has special meaning
+    if(b==-1) b=get_frame(); // current frame
+    if(e==-1) e=system->num_frames()-1; // last frame
+
     if(b<-1 || b>=get_system()->num_frames()) throw Pteros_error("Invalid first frame for writing!");
     if(e<-1 || e>=get_system()->num_frames()) throw Pteros_error("Invalid last frame for writing!");
     if(e<b) throw Pteros_error("Invalid frame range for writing!");
-    // -1 is special meaning current frame
-    if(b==-1) b=get_frame();
-    if(e==-1) e=get_frame();
+
     cout << "Writing the range of frames "<<b<<":"<<e<< endl;
 
     auto f = io_factory(fname,'w');
