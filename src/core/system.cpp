@@ -91,7 +91,7 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
         // We don't have atoms yet, so we will read everything possible except trajectory
         Mol_file_content c = f->get_content_type();
 
-        if(f->get_content_type().coordinates && !f->get_content_type().trajectory){
+        if(c.coordinates && !c.trajectory){
             // If we have single frame read it directly here
             Frame fr;
             frame_append(fr);

@@ -251,6 +251,13 @@ boost::python::list Selection_get_unique_resid(Selection* s){
     return l;
 }
 
+boost::python::list Selection_get_unique_resindex(Selection* s){
+    boost::python::list l;
+    vector<int> r = s->get_unique_resindex();
+    for(int i=0;i<r.size();++i) l.append(r[i]);
+    return l;
+}
+
 
 boost::python::list Selection_get_resid(Selection* s){
     boost::python::list l;    
@@ -597,12 +604,10 @@ void make_bindings_Selection(){
         .def("set_resid",&Selection_set_resid1)
         .def("set_resid",&Selection_set_resid2)
 
-        .def("get_unique_resid",&Selection_get_unique_resid)
+        .def("get_unique_resid",&Selection_get_unique_resid)        
 
-        .def("set_resid1",static_cast<void(Selection::*)(const vector<int>&)>(&Selection::set_resid))
-
-        .def("get_resindex",&Selection_get_resindex)
-        .def("get_resindex1",&Selection::get_resindex)
+        .def("get_resindex",&Selection_get_resindex)                    
+        .def("get_unique_resindex",&Selection_get_unique_resindex)
 
         .def("get_name",&Selection_get_name)
         .def("set_name",&Selection_set_name1)
