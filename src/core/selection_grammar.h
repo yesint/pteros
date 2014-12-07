@@ -571,7 +571,7 @@ public:
                             _this_rule_->children.begin()+1,
                             _this_rule_->children.end());
                 // Reduce pbc node to number 0 or 1
-                _this_rule_->children[3] = _this_rule_->child_as_int(3);
+                _this_rule_->children[3] = _this_rule_->child_as_int(3);                
             }
         } // _ok_
     END_RULE
@@ -592,7 +592,7 @@ public:
                             _this_rule_->children.begin()+1,
                             _this_rule_->children.end());
                 // Reduce pbc node to number 0 or 1
-                _this_rule_->children[5] = _this_rule_->child_as_int(5);
+                _this_rule_->children[6] = _this_rule_->child_as_int(6);
             }
         } // _ok_
     END_RULE
@@ -613,7 +613,7 @@ public:
                             _this_rule_->children.begin()+1,
                             _this_rule_->children.end());
                 // Reduce pbc node to number 0 or 1
-                _this_rule_->children[5] = _this_rule_->child_as_int(5);
+                _this_rule_->children[6] = _this_rule_->child_as_int(6);
             }
         } // _ok_
     END_RULE
