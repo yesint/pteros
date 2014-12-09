@@ -216,7 +216,7 @@ void make_bindings_System(){
         .def("append", static_cast<Selection(System::*)(const System&)>(&System::append))
         .def("append", &System_append)
         .def("rearrange", &System_rearrange1)
-        .def("rearrange", &System_rearrange2)
+        .def("rearrange_sel", &System_rearrange2)
         .def("keep", static_cast<void(System::*)(const Selection&)>(&System::keep))
         .def("keep", static_cast<void(System::*)(const string&)>(&System::keep))
         .def("remove", static_cast<void(System::*)(const Selection&)>(&System::remove))
