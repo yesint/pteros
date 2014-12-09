@@ -1,0 +1,4 @@
++ distance vector/plane are broked on the level of applying parser
++ "by residue" selection is broken if the residue contains single atom
++ system.rearrange() bindings should determine internally if selection 
+    or string is passed and shiuld be able to take the mixture of both
