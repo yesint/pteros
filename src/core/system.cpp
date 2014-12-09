@@ -466,7 +466,11 @@ void System::rearrange(const std::vector<string> &sel_strings){
 }
 
 void System::rearrange(const std::vector<Selection> &sel_vec){
-    // Sanity check
+    // Empty selections check
+    for(auto &s: sel_vec){
+        if(s.size()==0) throw Pteros_error("Empty selections are not permitted in rearrange!");
+    }
+    // Overlap check
     vector<int> inters;
     for (int i=0; i<sel_vec.size()-1; ++i){
         for (int j=i+1; j<sel_vec.size(); ++j){

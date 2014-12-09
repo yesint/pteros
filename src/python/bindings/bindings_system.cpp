@@ -100,16 +100,22 @@ Selection System_append(System* s, const Atom& atm, PyObject* crd){
     return s->append(atm,coord);
 }
 
-void System_rearrange1(System* s, boost::python::list& data){
-    vector<string> sels(len(data));
-    for(int i=0;i<sels.size();++i) sels[i] = extract<string>(data[i]);
-    s->rearrange(sels);
-}
 
-void System_rearrange2(System* s, boost::python::list& data){
-    vector<Selection> sels(len(data));
-    for(int i=0;i<sels.size();++i) sels[i] = extract<Selection>(data[i]);
-    s->rearrange(sels);
+void System_rearrange(System* s, boost::python::list& data){
+    // Try to extract string from the first element
+    if(len(data)==0) throw Pteros_error("Need a list of selection or the list of selection strings!");
+    extract<string> get_str(data[0]);
+    if (get_str.check()){
+        // Work with strings
+        vector<string> sels(len(data));
+        for(int i=0;i<sels.size();++i) sels[i] = extract<string>(data[i]);
+        s->rearrange(sels);
+    } else {
+        // Work with selections
+        vector<Selection> sels(len(data));
+        for(int i=0;i<sels.size();++i) sels[i] = extract<Selection>(data[i]);
+        s->rearrange(sels);
+    }
 }
 
 void System_load_callback(System* sys, string fname, int b, int e, int skip, boost::python::object obj){
@@ -215,8 +221,8 @@ void make_bindings_System(){
         .def("append", static_cast<Selection(System::*)(const Selection&)>(&System::append))
         .def("append", static_cast<Selection(System::*)(const System&)>(&System::append))
         .def("append", &System_append)
-        .def("rearrange", &System_rearrange1)
-        .def("rearrange_sel", &System_rearrange2)
+        .def("rearrange", &System_rearrange)
+
         .def("keep", static_cast<void(System::*)(const Selection&)>(&System::keep))
         .def("keep", static_cast<void(System::*)(const string&)>(&System::keep))
         .def("remove", static_cast<void(System::*)(const Selection&)>(&System::remove))
