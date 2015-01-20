@@ -762,7 +762,7 @@ Vector3f Selection::center(bool mass_weighted, bool periodic) const {
                 Vector3f r(Vector3f::Zero());
                 #pragma omp for nowait reduction(+:mass)
                 for(i=0; i<n; ++i){
-                    res += XYZ(i)*Mass(i);
+                    r += XYZ(i)*Mass(i);
                     mass += Mass(i);
                 }
                 #pragma omp critical
