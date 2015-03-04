@@ -83,8 +83,7 @@ class Trajectory_processor {
         int first_frame, last_frame;
         float first_time, last_time;
         int skip;
-        int window_size_frames;
-        float window_size_time;
+
         float custom_start_time;
         float custom_dt;
 

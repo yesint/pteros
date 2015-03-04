@@ -62,10 +62,6 @@ string Trajectory_processor::help(){
             "\t-e <value[suffix]>\n"
             "\t\tend of processing (end frame or time), default: -1 (up to the end)\n"
 
-            "\t-w <value[suffix]>\n"
-            "\t\tprocess by windows of given size in frames or time.\n"
-            "\t\tdefault: -1 (no windows)\n"
-
             "\t-skip <n>\n"
             "\t\tProcess only each n'th frame, default: -1 (process each frame)\n"
 
@@ -244,10 +240,7 @@ void Trajectory_processor::run(){
         }
     }    
 
-    // Get parameters
-    // See if window processing is requested    
-    process_value_with_suffix(options("w","-1").as_string(),
-                              &window_size_frames, &window_size_time);
+    // Get parameters    
     // Determine range for this group
     process_value_with_suffix(options("b","-1").as_string(),
                               &first_frame, &first_time);
@@ -337,7 +330,8 @@ void Trajectory_processor::run(){
         // Try block here does not catch exceptions inside pre_process
         // because this could be called from externally loaded compiled plugin!
         // errors should be catched in the Consumer itself!
-        consumers[0]->pre_process_handler();
+
+        //pre_process_handler() will be called inside first call to consume_frame()
 
         std::shared_ptr<Data_container> data;
         while(channel.recieve(data)){
@@ -426,9 +420,7 @@ void Trajectory_processor::reader_thread_body(){
                 // Fill data container, which will be sent to the queue
                 data->frame_info.absolute_time = data->frame.time;
                 data->frame_info.absolute_frame = abs_frame;
-                data->frame_info.valid_frame = valid_frame;
-                data->frame_info.win_size_frames = window_size_frames;
-                data->frame_info.win_size_time = window_size_time;
+                data->frame_info.valid_frame = valid_frame;                
                 data->frame_info.first_frame = saved_first_frame;
                 data->frame_info.first_time = saved_first_time;
                 data->frame_info.last_frame = abs_frame;

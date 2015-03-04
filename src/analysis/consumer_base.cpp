@@ -34,8 +34,7 @@ Consumer_base::Consumer_base(Trajectory_processor* pr){
 }
 
 void Consumer_base::run_in_thread(std::shared_ptr<Message_channel<std::shared_ptr<pteros::Data_container> > > &chan){
-    // Call user pre-process
-    pre_process_handler();
+    // pre-process is called on very first valid frame in consume_frame()
 
     std::shared_ptr<Data_container> data;
 
@@ -59,7 +58,11 @@ void Consumer_base::consume_frame(std::shared_ptr<Data_container> &data){
     if(data->frame.coord.size()!=system.num_atoms()){
         throw Pteros_error("Wrong number of atoms in the trajectory frame!");
     }
-    process_window_info(data->frame_info);
+    // If this is the very first valid frame call pre_process
+    if(data->frame_info.valid_frame==0){
+        pre_process_handler();
+    }
+
     process_frame_data(data->frame);
     process_frame_handler(data->frame_info);
 }
@@ -81,54 +84,3 @@ void Consumer_base::window_started(const Frame_info& info){
 void Consumer_base::window_finished(const Frame_info& info){
 }
 
-
-void Consumer_base::process_window_info(Frame_info& info){
-    if(info.valid_frame==0){
-        // This is the start of the very first window
-        win_num = 0; // Set counter
-        win_start_time = info.absolute_time;;
-        win_start_frame = info.valid_frame;;
-        info.win_num = 0;
-        info.win_start_frame = info.valid_frame;
-        info.win_start_time = info.absolute_time;
-        info.win_last_frame = info.valid_frame;
-        info.win_last_time = info.absolute_time;
-        // Call function for processing
-        window_started_handler(info);
-    } else {
-        // Check the end of window
-        if(
-            (info.win_size_frames>=0 && info.valid_frame-win_start_frame>=info.win_size_frames)
-            ||
-            (info.win_size_time>=0 && info.absolute_time-win_start_time>=info.win_size_time)
-        ){                        
-            info.win_last_frame = info.valid_frame;
-            info.win_last_time = info.absolute_time;
-
-            // Previous window finished! Call function for processing.
-            // It will see old win_start_time and win_num as needed.
-            info.win_num = win_num;
-            info.win_start_frame = win_start_frame;
-            info.win_start_time = win_start_time;
-            window_finished_handler(info);
-            // Start new window
-            ++win_num;
-            // Update window start time
-            win_start_frame = info.valid_frame;
-            win_start_time = info.absolute_time;
-
-            // Call function for processing
-            info.win_num = win_num;
-            info.win_start_frame = win_start_frame;
-            info.win_start_time = win_start_time;
-            window_started_handler(info);
-        } else {
-            // Window if not finished yet. Just update last_time
-            info.win_num = win_num;
-            info.win_start_frame = win_start_frame;
-            info.win_start_time = win_start_time;
-            info.win_last_frame = info.valid_frame;
-            info.win_last_time = info.absolute_time;            
-        }
-    }
-}

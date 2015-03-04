@@ -36,13 +36,5 @@ void make_bindings_Frame_info(){
         .def_readonly("last_frame",&Frame_info::last_frame)
         .def_readonly("last_time",&Frame_info::last_time)
         .def_readonly("valid_frame",&Frame_info::valid_frame)
-
-        .def_readonly("win_size_frames",&Frame_info::win_size_frames)
-        .def_readonly("win_size_time",&Frame_info::win_size_time)
-        .def_readonly("win_start_time",&Frame_info::win_start_time)
-        .def_readonly("win_start_frame",&Frame_info::win_start_frame)
-        .def_readonly("win_last_time",&Frame_info::win_last_time)
-        .def_readonly("win_last_frame",&Frame_info::win_last_frame)
-        .def_readonly("win_num",&Frame_info::win_num)
     ;
 }

@@ -2,12 +2,12 @@
 # pteros_rmsf
 #------------------
 
-add_executable(pteros_rmsf
-    rmsf_program.cpp
-    rmsf.h
-    rmsf.cpp
-)
-target_link_libraries(pteros_rmsf pteros pteros_analysis ${Boost_LIBRARIES})
+#add_executable(pteros_rmsf
+#    rmsf_program.cpp
+#    rmsf.h
+#    rmsf.cpp
+#)
+#target_link_libraries(pteros_rmsf pteros pteros_analysis ${Boost_LIBRARIES})
 
 #------------------------
 # pteros_contacts_finder
@@ -35,7 +35,7 @@ target_link_libraries(pteros_solvate pteros pteros_analysis ${Boost_LIBRARIES})
 #--------------
 
 install(TARGETS
-    pteros_rmsf
+    #pteros_rmsf
     pteros_contacts_finder
     pteros_solvate
 

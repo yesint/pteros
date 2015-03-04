@@ -29,38 +29,21 @@ namespace pteros {
 /// Information about current frame, which is passed to Consumer for analysis
 /// along with the frame itself
 struct Frame_info {
-    /// Counts *all* frames in trajectory group starting from 0
+    /// Counts *all* frames in trajectory starting from 0
     int absolute_frame;
     /// Current time stamp
     int absolute_time;
     /// Counts only valid frames (the frames, which fall into specified time and frame range)
     /// and are sent to processing. Starts from 0.
     int valid_frame;
-    /// Time of the first valid frame
+    /// Time of the first processed valid frame
     int first_time;
     /// Time of the last processed valid frame
     float last_time;
-    /// First valid frame (this is absolute value!)
+    /// First processed valid frame (this is an absolute value!)
     int first_frame;
-    /// Last processed valid frame (this is absolute value!)
+    /// Last processed valid frame (this is an absolute value!)
     int last_frame;
-    /// @name Window information
-    /// {@
-    /// Number of the current window
-    int win_num;
-    /// Size of window in time
-    float win_size_time;
-    /// Size of window in frames
-    int win_size_frames;
-    /// Valid frame when window started
-    int win_start_frame;
-    /// Time when window started
-    float win_start_time;
-    /// Valid frame when window finished (current if not finished yet)
-    int win_last_frame;
-    /// time when window finished (current if not finished yet)
-    int win_last_time;
-    /// @}
 };
 
 }
