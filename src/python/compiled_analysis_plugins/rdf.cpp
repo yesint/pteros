@@ -63,16 +63,14 @@ protected:
 
         data.resize(n_bins);
         data.fill(0.0);
+
+        max_dist = 0.5*options("max",
+                           boost::lexical_cast<string>(system.Box(0).extents().minCoeff())
+                          ).as_float();
+        bin_sz = (max_dist-min_dist)/float(n_bins);
     }     
 
-    void process_frame(const pteros::Frame_info &info){
-        if(info.valid_frame==0){
-            max_dist = 0.5*options("max",
-                               boost::lexical_cast<string>(system.Box(0).extents().minCoeff())
-                              ).as_float();
-            bin_sz = (max_dist-min_dist)/float(n_bins);
-        }
-
+    void process_frame(const pteros::Frame_info &info){        
         float d;
 
         sel1.apply();

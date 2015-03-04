@@ -30,15 +30,13 @@ protected:
         string fname = label+".dat";
         f.open(fname.c_str());
         f << "# time center_x center_y center_z" << endl;
+
+        string sel_text = options("selection").as_string();
+        sel.modify(system,sel_text);
     }
 
-    void process_frame(const Frame_info &info){        
-        if(info.valid_frame==0){
-            string sel_text = options("selection").as_string();
-            sel.modify(system,sel_text);
-        } else {
-            sel.apply();
-        }
+    void process_frame(const Frame_info &info){                
+        sel.apply();
         f << info.absolute_time << " " << sel.center(use_mass).transpose() << endl;        
     }
 

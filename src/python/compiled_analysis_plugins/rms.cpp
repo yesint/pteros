@@ -68,14 +68,12 @@ protected:
         // Add our selections to nojump list
         add_no_jump_atoms(fit_sel);
         add_no_jump_atoms(rms_sel);
+
+        // Create frame 1 for fitting
+        system.frame_dup(0);
     }     
 
     void process_frame(const pteros::Frame_info &info){                
-
-        if(info.valid_frame==0){
-            // Create frame 1 for fitting
-            system.frame_dup(0);
-        }
 
         // Compute RMSD with fixed reference in frame 1
         if(fit_sel.size()>2){

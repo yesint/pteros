@@ -58,12 +58,14 @@ void Consumer_base::consume_frame(std::shared_ptr<Data_container> &data){
     if(data->frame.coord.size()!=system.num_atoms()){
         throw Pteros_error("Wrong number of atoms in the trajectory frame!");
     }
+
+    process_frame_data(data->frame);
+
     // If this is the very first valid frame call pre_process
     if(data->frame_info.valid_frame==0){
         pre_process_handler();
     }
 
-    process_frame_data(data->frame);
     process_frame_handler(data->frame_info);
 }
 
