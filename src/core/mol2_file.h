@@ -20,20 +20,27 @@
  *
 */
 
-#ifndef FORMAT_RECOGNITION_H_INCLUDED
-#define FORMAT_RECOGNITION_H_INCLUDED
+#ifndef MOL2_FILE_H
+#define MOL2_FILE_H
+
 #include <string>
+#include "vmd_molfile_plugin_wrapper.h"
 
 namespace pteros {
 
-/// List of supported file formats identified by extension
-enum FILE_FORMATS {PDB_FILE, GRO_FILE, TRR_FILE, XTC_FILE, DCD_FILE,
-                   PTTOP_FILE, TNG_FILE, MOL2_FILE};
+/// Use VMD plugin for MOL2
+class MOL2_file: public VMD_molfile_plugin_wrapper {
+public:
+    MOL2_file(std::string fname, char openmode);
 
-/// Takes file name and returns code of the file format.
-/// Throws error if format is not recognized
-FILE_FORMATS recognize_format(std::string& fname);
+    virtual Mol_file_content get_content_type() const {
+        Mol_file_content c;
+        c.structure = true;
+        c.coordinates = true;
+        return c;
+    }
+
+};
 
 }
-
-#endif // FORMAT_RECOGNITION_H_INCLUDED
+#endif /* MOL_FILE_H */

@@ -24,7 +24,6 @@
 #define TNG_FILE_H
 
 #include <string>
-//#include "pteros/core/mol_file.h"
 #include "vmd_molfile_plugin_wrapper.h"
 #include "tng_io.h"
 

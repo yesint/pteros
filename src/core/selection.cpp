@@ -93,7 +93,7 @@ Selection::Selection(const System &sys, string str){
 
 // Constructor without immediate parsing
 Selection::Selection(const System &sys){
-    // Add selection to sys and save self-pointer
+    // Add selection to sys
     system = const_cast<System*>(&sys);
     sel_text = "";
     frame = 0;

@@ -177,6 +177,7 @@ void Trajectory_processor::run(){
         switch(recognize_format(s)){
         case PDB_FILE:
         case GRO_FILE:
+        case MOL2_FILE:
             if(structure_file!="") throw Pteros_error("Only one structure file is allowed!");
             structure_file = s;
             break;
@@ -323,8 +324,7 @@ void Trajectory_processor::run(){
             ch->send_stop();
         }
     } else {
-        // There is only one consumer, no need for multiple threads
-        // Run pre-process
+        // There is only one consumer, no need for multiple threads        
 
         // Important !!
         // Try block here does not catch exceptions inside pre_process

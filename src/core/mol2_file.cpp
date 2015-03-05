@@ -20,20 +20,16 @@
  *
 */
 
-#ifndef FORMAT_RECOGNITION_H_INCLUDED
-#define FORMAT_RECOGNITION_H_INCLUDED
-#include <string>
+#include "mol2_file.h"
 
-namespace pteros {
+using namespace std;
+using namespace pteros;
+using namespace Eigen;
 
-/// List of supported file formats identified by extension
-enum FILE_FORMATS {PDB_FILE, GRO_FILE, TRR_FILE, XTC_FILE, DCD_FILE,
-                   PTTOP_FILE, TNG_FILE, MOL2_FILE};
+extern molfile_plugin_t mol2_plugin;
 
-/// Takes file name and returns code of the file format.
-/// Throws error if format is not recognized
-FILE_FORMATS recognize_format(std::string& fname);
-
+MOL2_file::MOL2_file(string fname, char open_mode): VMD_molfile_plugin_wrapper(fname,open_mode){
+    plugin = &mol2_plugin;
+    accepted_format = MOL2_FILE;
+    open(fname,open_mode);
 }
-
-#endif // FORMAT_RECOGNITION_H_INCLUDED

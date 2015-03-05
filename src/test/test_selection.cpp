@@ -39,8 +39,9 @@ int main(int argc, char** argv)
     try{
 
         //System s("/media/semen/data/semen/trajectories/asymmetric_hexagonal/with_c60/last.gro");
-        System s("/media/semen/data/semen/trajectories/2lao/after_em.gro");
+        System s("/media/semen/data/semen/trajectories/2lao/average.pdb");
         vector<Vector2i> bon;
+        s.select_all().write("/media/semen/data/semen/trajectories/2lao/average.mol2");
 
         /*
         auto t_start = std::chrono::high_resolution_clock::now();
@@ -63,7 +64,7 @@ int main(int argc, char** argv)
              << std::chrono::duration<double>(t_end-t_start).count()/100.0 << endl;
 
         */
-
+/*
         int N = 10000;
         Selection sel(s,"all");
 
@@ -85,7 +86,7 @@ int main(int argc, char** argv)
         cout << " elapsed: "
              << 1000000.0*std::chrono::duration<double>(t_end-t_start).count()/float(N) << endl;
 
-
+*/
 
 
 

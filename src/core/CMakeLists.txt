@@ -85,6 +85,9 @@ add_library(pteros SHARED
     pttop_file.cpp
     tng_file.h
     tng_file.cpp
+    mol2_file.h
+    mol2_file.cpp
+
 
     # xdrfile
     ${PROJECT_SOURCE_DIR}/src/core/xdrfile/xdrfile.c
@@ -95,6 +98,7 @@ add_library(pteros SHARED
     ${PROJECT_SOURCE_DIR}/src/core/xdrfile/xdrfile_xtc.h
 
     # molfile_plugins
+    # required headers
     ${PROJECT_SOURCE_DIR}/src/core/molfile_plugins/molfile_plugin.h
     ${PROJECT_SOURCE_DIR}/src/core/molfile_plugins/periodic_table.h
     ${PROJECT_SOURCE_DIR}/src/core/molfile_plugins/vmdplugin.h
@@ -102,9 +106,11 @@ add_library(pteros SHARED
     ${PROJECT_SOURCE_DIR}/src/core/molfile_plugins/endianswap.h
     ${PROJECT_SOURCE_DIR}/src/core/molfile_plugins/libmolfile_plugin.h
     ${PROJECT_SOURCE_DIR}/src/core/molfile_plugins/readpdb.h
-    ${PROJECT_SOURCE_DIR}/src/core/molfile_plugins/pdbplugin.c
     ${PROJECT_SOURCE_DIR}/src/core/molfile_plugins/fastio.h
-    ${PROJECT_SOURCE_DIR}/src/core/molfile_plugins/dcdplugin.c
+    # plugins
+    ${PROJECT_SOURCE_DIR}/src/core/molfile_plugins/pdbplugin.c    
+    ${PROJECT_SOURCE_DIR}/src/core/molfile_plugins/dcdplugin.c    
+    ${PROJECT_SOURCE_DIR}/src/core/molfile_plugins/mol2plugin.c
     ${PROJECT_SOURCE_DIR}/src/core/molfile_plugins/tngplugin.cpp
 
     #SASA (will be empty if not used)

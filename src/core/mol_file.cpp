@@ -31,6 +31,7 @@
 #include "xtc_file.h"
 #include "pttop_file.h"
 #include "tng_file.h"
+#include "mol2_file.h"
 
 using namespace std;
 using namespace pteros;
@@ -137,5 +138,7 @@ unique_ptr<Mol_file> pteros::io_factory(string fname, char open_mode){
         return unique_ptr<Mol_file>(new PTTOP_file(fname,open_mode));
     case TNG_FILE:
         return unique_ptr<Mol_file>(new TNG_file(fname,open_mode));
+    case MOL2_FILE:
+        return unique_ptr<Mol_file>(new MOL2_file(fname,open_mode));
     }
 }
