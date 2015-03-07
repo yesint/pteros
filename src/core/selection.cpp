@@ -35,7 +35,7 @@
 #include "pteros/core/pteros_error.h"
 #include "pteros/core/grid_search.h"
 #include "pteros/core/mol_file.h"
-#include "pteros/core/format_recognition.h"
+
 #ifdef USE_POWERSASA
 #include "power_sasa.h"
 #endif
@@ -1274,7 +1274,8 @@ void Selection::write(string fname, int b, int e) {
 
     cout << "Writing the range of frames "<<b<<":"<<e<< endl;
 
-    auto f = io_factory(fname,'w');
+    auto f = Mol_file::recognize(fname);
+    f->open('w');
 
     if(!f->get_content_type().trajectory && e!=b){
         throw Pteros_error("Can't write the range of frames to structure file!");

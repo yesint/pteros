@@ -26,7 +26,6 @@
 #include <string>
 #include "pteros/core/system.h"
 #include "pteros/core/selection.h"
-#include "pteros/core/format_recognition.h"
 
 namespace pteros {
 
@@ -36,6 +35,7 @@ struct Mol_file_content {
     bool coordinates; // Single frame
     bool trajectory; // Many frames
     bool topology; // Molecular topology
+    std::string extension; // File extension
 
     Mol_file_content(): structure(false), coordinates(false),
                         trajectory(false), topology(false){}
@@ -44,8 +44,11 @@ struct Mol_file_content {
 /// Generic API for reading and writing any molecule file formats
 class Mol_file {
 public:
-    // High-level API    
-    Mol_file(std::string fname, char open_mode);
+    // Recognizes file extension and returns a handler object
+    static std::unique_ptr<Mol_file> recognize(std::string fname);
+    // Opens a file with given access mode. Need to be defined by derived classes.
+    virtual void open(char open_mode) = 0;
+
     virtual ~Mol_file();
 
     /// Reads data, which are specified by what.
@@ -59,6 +62,11 @@ public:
     virtual Mol_file_content get_content_type() const = 0;
 
 protected:    
+    Mol_file(std::string& file_name);
+
+    // Stores file name
+    std::string fname;
+    // Number of atoms
     int natoms;    
     // Functions called to update System on file reading
     // Mol_file is a friend of System and can access it's internals
@@ -79,8 +87,6 @@ protected:
     /// User-overriden method for writing
     virtual void do_write(const Selection& sel, const Mol_file_content& what) = 0;
 };
-
-std::unique_ptr<Mol_file> io_factory(std::string fname, char open_mode);
 
 float get_mass_from_atom_name(std::string& name);
 

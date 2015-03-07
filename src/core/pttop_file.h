@@ -33,8 +33,8 @@ namespace pteros {
 
 class PTTOP_file: public Mol_file {
 public:
-
-    PTTOP_file(std::string fname, char mode);
+    PTTOP_file(std::string& fname): Mol_file(fname) {}
+    void open(char open_mode);
     ~PTTOP_file();
 
     virtual Mol_file_content get_content_type() const {
@@ -45,7 +45,7 @@ public:
         return c;
     }
 
-protected:    
+protected:        
 
     virtual void do_write(const Selection &sel, const Mol_file_content& what) {
         throw Pteros_error("PTTOP files could be produced by the dedicated script only!");

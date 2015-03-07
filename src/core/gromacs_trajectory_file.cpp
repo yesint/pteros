@@ -28,12 +28,7 @@
 using namespace std;
 using namespace pteros;
 
-Gromacs_trajectory_file::Gromacs_trajectory_file(std::string fname, char openmode):
-    Mol_file(fname,openmode)
-{    
-}
-
-void Gromacs_trajectory_file::open(std::string fname, char openmode){
+void Gromacs_trajectory_file::open(char openmode){
     mode = openmode;
     if(mode=='r')
         cout << "Opening trajectory file " << fname << " for reading..." << endl;

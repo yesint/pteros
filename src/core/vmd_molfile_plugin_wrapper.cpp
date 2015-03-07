@@ -79,8 +79,7 @@ void box_from_vmd_rep(float fa, float fb, float fc,
     box /= 10.0; // Convert to nm
 }
 
-VMD_molfile_plugin_wrapper::VMD_molfile_plugin_wrapper(string fname, char open_mode):
-    Mol_file(fname,open_mode){    
+VMD_molfile_plugin_wrapper::VMD_molfile_plugin_wrapper(string& fname): Mol_file(fname){
     handle = NULL;
     w_handle = NULL;
 }
@@ -102,32 +101,24 @@ VMD_molfile_plugin_wrapper::~VMD_molfile_plugin_wrapper(){
     }
 }
 
-void VMD_molfile_plugin_wrapper::open(string fname, char open_mode){
+void VMD_molfile_plugin_wrapper::open(char open_mode){
     mode = open_mode;
-    FILE_FORMATS fmt = recognize_format(fname);    
-    if(fmt==accepted_format){
 
-        if(mode=='r'){
-            if(handle) throw Pteros_error("Can't open file for reading twice - handle busy!");
-            cout << "Opening file '" << fname << "' for reading "
-                 << "using VMD plugin '" << plugin->name << "'..." << endl;
-            handle = NULL;
-            handle = plugin->open_file_read(fname.c_str(), &open_mode, &natoms);
-            if(!handle) throw Pteros_error("Can't open file '"+fname + "'!");
-            cout << "Number of atoms: " <<natoms << endl;
-        } else {
-            if(w_handle) throw Pteros_error("Can't open file for writing twice - handle busy!");
-            cout << "Opening file '" << fname << "' for writing "
-                 << "using VMD plugin '" << plugin->name << "'..." << endl;
-            w_handle = NULL;
-            // For writing we don't know number of coordinates in selection here
-            // so we remember file name and later call open_file_write
-            // in write_frame
-            stored_write_name = fname;
-        }
+    if(mode=='r'){
+        if(handle) throw Pteros_error("Can't open file for reading twice - handle busy!");
+        cout << "Opening file '" << fname << "' for reading "
+             << "using VMD plugin '" << plugin->name << "'..." << endl;
+        handle = NULL;
+        handle = plugin->open_file_read(fname.c_str(), &open_mode, &natoms);
+        if(!handle) throw Pteros_error("Can't open file '"+fname + "'!");
+        cout << "Number of atoms: " <<natoms << endl;
     } else {
-        throw Pteros_error("Format of file "+fname+" is not compatible with selected IO class!");
+        if(w_handle) throw Pteros_error("Can't open file for writing twice - handle busy!");
+        cout << "Opening file '" << fname << "' for writing "
+             << "using VMD plugin '" << plugin->name << "'..." << endl;
+        w_handle = NULL;
     }
+
 }
 
 bool VMD_molfile_plugin_wrapper::do_read(System *sys, Frame *frame, const Mol_file_content &what){
@@ -213,7 +204,7 @@ void VMD_molfile_plugin_wrapper::do_write(const Selection &sel, const Mol_file_c
     if(what.structure){
         // WRITE STRUCTURE:        
         if(!w_handle)
-            w_handle = plugin->open_file_write(stored_write_name.c_str(), plugin->name, sel.size());
+            w_handle = plugin->open_file_write(fname.c_str(), plugin->name, sel.size());
 
         vector<molfile_atom_t> atoms(sel.size());        
         for(int i=0; i<sel.size(); ++i){            
@@ -239,7 +230,7 @@ void VMD_molfile_plugin_wrapper::do_write(const Selection &sel, const Mol_file_c
     if(what.coordinates || what.trajectory){
         // WRITE COORDINATES:
         if(!w_handle)
-            w_handle = plugin->open_file_write(stored_write_name.c_str(), plugin->name, sel.size());
+            w_handle = plugin->open_file_write(fname.c_str(), plugin->name, sel.size());
 
         molfile_timestep_t ts;
         int n = sel.size();

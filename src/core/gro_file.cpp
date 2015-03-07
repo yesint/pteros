@@ -28,7 +28,7 @@ using namespace std;
 using namespace pteros;
 using namespace Eigen;
 
-GRO_file::GRO_file(string fname, char open_mode): Mol_file(fname, open_mode)
+void GRO_file::open(char open_mode)
 {
     if(open_mode=='r'){
         f.open(fname.c_str(),ios_base::in);

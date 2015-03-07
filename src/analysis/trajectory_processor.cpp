@@ -26,7 +26,6 @@
 
 #include "pteros/analysis/trajectory_processor.h"
 #include "pteros/core/pteros_error.h"
-#include "pteros/core/format_recognition.h"
 #include "pteros/core/mol_file.h"
 
 #include <boost/algorithm/string.hpp> // For to_lower
@@ -173,24 +172,24 @@ void Trajectory_processor::run(){
     // and arrange them structure->topology->traj
     string top_file = "";
     string structure_file = "";    
+
+
+
     for(string& s: file_list){
-        switch(recognize_format(s)){
-        case PDB_FILE:
-        case GRO_FILE:
-        case MOL2_FILE:
+        Mol_file_content c = Mol_file::recognize(s)->get_content_type();
+
+        if(c.structure && !c.trajectory){
             if(structure_file!="") throw Pteros_error("Only one structure file is allowed!");
-            structure_file = s;
-            break;
-        case PTTOP_FILE:
+            structure_file = s;            
+        }
+
+        if(c.topology){
             if(top_file!="") throw Pteros_error("Only one topology file is allowed!");
             top_file = s;
-            break;
-        case TRR_FILE:
-        case XTC_FILE:
-        case DCD_FILE:
-        case TNG_FILE:
-            traj_files.push_back(s);
-            break;
+        }
+
+        if(c.trajectory){
+            traj_files.push_back(s);            
         }
     }
 
@@ -213,21 +212,23 @@ void Trajectory_processor::run(){
         sys1->load(top_file); // No coordinates from top!
     } else {                
         // No topology and no structure!
-        // try using first TNG file as structure
-        for(auto& s: traj_files)
-            if(recognize_format(s)==TNG_FILE){
+        // try using first TNG traj file as structure
+        for(auto& s: traj_files){
+            auto trj = Mol_file::recognize(s);
+            auto c = trj->get_content_type();
+            if(c.structure && c.trajectory){
                 structure_file = s;
                 // We only need to load structure and first frame from TNG here
-                cout << "Uning TNG file " << s << " to read structure..." << endl;
-                auto f = io_factory(structure_file,'r');
+                cout << "Uning file " << s << " to read structure..." << endl;
+                trj->open('r');
                 Mol_file_content c;
                 c.structure = true;
                 Frame fr;
-                f->read(sys1,&fr,c);
+                trj->read(sys1,&fr,c);
                 sys1->frame_append(fr);
                 break;
             }
-
+        }
         // If still no structure give up
         if(structure_file=="")
             Pteros_error("Structure AND/OR topology file is required!");
@@ -371,7 +372,8 @@ void Trajectory_processor::reader_thread_body(){
         for(string& fname: traj_files){
             cout << "==> Reading trajectory " << fname << endl;
 
-            auto trj = io_factory(fname,'r');
+            auto trj = Mol_file::recognize(fname);
+            trj->open('r');
 
             // Main loop over trajectory frames
             while(true){

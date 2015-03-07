@@ -28,8 +28,6 @@ using namespace Eigen;
 
 extern molfile_plugin_t mol2_plugin;
 
-MOL2_file::MOL2_file(string fname, char open_mode): VMD_molfile_plugin_wrapper(fname,open_mode){
-    plugin = &mol2_plugin;
-    accepted_format = MOL2_FILE;
-    open(fname,open_mode);
+MOL2_file::MOL2_file(string &fname): VMD_molfile_plugin_wrapper(fname){
+    plugin = &mol2_plugin;    
 }

@@ -25,11 +25,6 @@
 using namespace std;
 using namespace pteros;
 
-TRR_file::TRR_file(std::string fname, char openmode):
-    Gromacs_trajectory_file(fname,openmode)
-{
-    open(fname,openmode);
-}
 
 int TRR_file::read_num_atoms(char* fname, int* num){
     return read_trr_natoms(fname, num);

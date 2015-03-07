@@ -27,7 +27,6 @@
 #include "pteros/core/system.h"
 #include "pteros/core/selection.h"
 #include "pteros/core/mol_file.h"
-#include "pteros/core/format_recognition.h"
 #include "molfile_plugin.h"
 
 namespace pteros {
@@ -35,16 +34,15 @@ namespace pteros {
 /// Generic API for reading and writing any molecule file formats
 class VMD_molfile_plugin_wrapper: public Mol_file {
 public:
-    // High-level API    
-    VMD_molfile_plugin_wrapper(std::string fname, char open_mode);
+    // High-level API        
+    VMD_molfile_plugin_wrapper(std::string& fname);
+    virtual void open(char open_mode);
     virtual ~VMD_molfile_plugin_wrapper();
 
-protected:
-    virtual void open(std::string fname, char open_mode);
+protected:       
     void* handle; // Handle for reading
     void* w_handle; // Handle for writing
-    std::string stored_write_name;
-    FILE_FORMATS accepted_format; // Recognized format
+
     molfile_plugin_t* plugin;
     char mode;
 

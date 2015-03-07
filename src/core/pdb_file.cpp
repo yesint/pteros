@@ -33,11 +33,9 @@ using namespace Eigen;
 
 extern molfile_plugin_t pdb_plugin;
 
-PDB_file::PDB_file(string fname, char open_mode): VMD_molfile_plugin_wrapper(fname, open_mode)
+PDB_file::PDB_file(string &fname): VMD_molfile_plugin_wrapper(fname)
 {
     plugin = &pdb_plugin;
-    accepted_format = PDB_FILE;
-    open(fname,open_mode);
 }
 
 

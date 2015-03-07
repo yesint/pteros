@@ -25,12 +25,6 @@
 using namespace std;
 using namespace pteros;
 
-XTC_file::XTC_file(std::string fname, char openmode):
-    Gromacs_trajectory_file(fname,openmode)
-{
-    open(fname,openmode);
-}
-
 int XTC_file::read_num_atoms(char* fname, int* num){
     return read_xtc_natoms(fname, num);
 }

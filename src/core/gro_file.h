@@ -28,15 +28,15 @@
 #include "pteros/core/system.h"
 #include "pteros/core/selection.h"
 #include "pteros/core/mol_file.h"
-#include "pteros/core/format_recognition.h"
 
 namespace pteros {
 
 /// Reader for GRO files. It doesn't use VMD plugins because it doesn't support writing
 class GRO_file: public Mol_file {
 public:
-    // High-level API    
-    GRO_file(std::string fname, char open_mode);
+    // High-level API        
+    GRO_file(std::string& fname): Mol_file(fname) {}
+    void open(char open_mode);
     virtual ~GRO_file();
 
     virtual Mol_file_content get_content_type() const {
@@ -47,6 +47,7 @@ public:
     }
 
 protected:
+
     std::fstream f;
 
     virtual bool do_read(System *sys, Frame *frame, const Mol_file_content& what);

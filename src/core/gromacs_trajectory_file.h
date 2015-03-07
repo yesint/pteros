@@ -30,7 +30,6 @@
 #include <ctime>
 
 #include "pteros/core/system.h"
-#include "pteros/core/format_recognition.h"
 #include "pteros/core/mol_file.h"
 #include <Eigen/Core>
 
@@ -41,7 +40,9 @@ namespace pteros {
 class Gromacs_trajectory_file: public Mol_file {
     public:      
 
-        Gromacs_trajectory_file(std::string fname, char openmode);
+        Gromacs_trajectory_file(std::string& fname): Mol_file(fname) {}
+
+        virtual void open(char openmode);
 
         virtual ~Gromacs_trajectory_file();        
 
@@ -61,9 +62,7 @@ class Gromacs_trajectory_file: public Mol_file {
         char mode;
         int fr;
 
-        clock_t time_per_frame;
-
-        virtual void open(std::string fname, char openmode);
+        clock_t time_per_frame;        
 
         virtual int read_num_atoms(char* fname, int* num) = 0;
         virtual int read_record(XDRFILE *xd, int natoms, int *step,

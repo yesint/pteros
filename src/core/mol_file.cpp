@@ -22,7 +22,6 @@
 
 #include "pteros/core/mol_file.h"
 #include "pteros/core/pteros_error.h"
-#include "pteros/core/format_recognition.h"
 
 #include "pdb_file.h"
 #include "dcd_file.h"
@@ -36,8 +35,8 @@
 using namespace std;
 using namespace pteros;
 
-Mol_file::Mol_file(string fname, char open_mode){
-    natoms = 0;
+Mol_file::Mol_file(string& file_name){
+    fname = file_name;
 }
 
 Mol_file::~Mol_file(){    
@@ -121,24 +120,16 @@ float pteros::get_mass_from_atom_name(string& name){
     else return 1.0; //default
 }
 
-unique_ptr<Mol_file> pteros::io_factory(string fname, char open_mode){
-    FILE_FORMATS fmt = recognize_format(fname);
-    switch(fmt){
-    case PDB_FILE:
-        return unique_ptr<Mol_file>(new PDB_file(fname,open_mode));
-    case DCD_FILE:
-        return unique_ptr<Mol_file>(new DCD_file(fname,open_mode));
-    case GRO_FILE:
-        return unique_ptr<Mol_file>(new GRO_file(fname,open_mode));
-    case TRR_FILE:
-        return unique_ptr<Mol_file>(new TRR_file(fname,open_mode));
-    case XTC_FILE:
-        return unique_ptr<Mol_file>(new XTC_file(fname,open_mode));    
-    case PTTOP_FILE:
-        return unique_ptr<Mol_file>(new PTTOP_file(fname,open_mode));
-    case TNG_FILE:
-        return unique_ptr<Mol_file>(new TNG_file(fname,open_mode));
-    case MOL2_FILE:
-        return unique_ptr<Mol_file>(new MOL2_file(fname,open_mode));
-    }
+unique_ptr<Mol_file> Mol_file::recognize(string fname){
+    std::string ext = fname.substr(fname.find_last_of(".") + 1);
+
+         if(ext=="xtc") return unique_ptr<Mol_file>(new XTC_file(fname));
+    else if(ext=="trr") return unique_ptr<Mol_file>(new TRR_file(fname));
+    else if(ext=="pdb") return unique_ptr<Mol_file>(new PDB_file(fname));
+    else if(ext=="gro") return unique_ptr<Mol_file>(new GRO_file(fname));
+    else if(ext=="dcd") return unique_ptr<Mol_file>(new DCD_file(fname));
+    else if(ext=="pttop") return unique_ptr<Mol_file>(new PTTOP_file(fname));
+    else if(ext=="tng") return unique_ptr<Mol_file>(new TNG_file(fname));
+    else if(ext=="mol2") return unique_ptr<Mol_file>(new MOL2_file(fname));
+    else throw Pteros_error("File extension " + ext + " not recognized!");
 }

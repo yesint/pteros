@@ -28,8 +28,6 @@ using namespace Eigen;
 
 extern molfile_plugin_t tng_plugin;
 
-TNG_file::TNG_file(string fname, char open_mode): VMD_molfile_plugin_wrapper(fname,open_mode){
+TNG_file::TNG_file(string &fname): VMD_molfile_plugin_wrapper(fname){
     plugin = &tng_plugin;
-    accepted_format = TNG_FILE;
-    open(fname,open_mode);
 }

@@ -30,17 +30,15 @@ namespace pteros {
 /** TRR reader
   */
 class XTC_file: public Gromacs_trajectory_file {
-    public:      
+public:
+    XTC_file(std::string fname): Gromacs_trajectory_file(fname) {}
 
-        XTC_file(std::string fname, char openmode);
-
-    protected:
-
-        virtual int read_num_atoms(char* fname, int* num);
-        virtual int read_record(XDRFILE *xd, int natoms, int *step,
-                                float *time, matrix box,rvec *x);
-        virtual int write_record(XDRFILE *xd, int natoms, int step,
-                                 float time, matrix box, rvec *x);
+protected:
+    virtual int read_num_atoms(char* fname, int* num);
+    virtual int read_record(XDRFILE *xd, int natoms, int *step,
+                            float *time, matrix box,rvec *x);
+    virtual int write_record(XDRFILE *xd, int natoms, int step,
+                             float time, matrix box, rvec *x);
 };
 
 }

@@ -31,7 +31,7 @@ namespace pteros {
 /// Use VMD plugin for MOL2
 class MOL2_file: public VMD_molfile_plugin_wrapper {
 public:
-    MOL2_file(std::string fname, char openmode);
+    MOL2_file(std::string& fname);
 
     virtual Mol_file_content get_content_type() const {
         Mol_file_content c;

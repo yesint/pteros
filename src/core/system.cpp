@@ -28,7 +28,6 @@
 #include "pteros/core/selection.h"
 #include "pteros/core/pteros_error.h"
 #include "pteros/core/grid_search.h"
-#include "pteros/core/format_recognition.h"
 #include "pteros/core/mol_file.h"
 // DSSP
 #include "pteros_dssp_wrapper.h"
@@ -82,8 +81,10 @@ void System::check_num_atoms_in_last_frame(){
 
 // Load structure or trajectory
 void System::load(string fname, int b, int e, int skip, std::function<bool(System*,int)> on_frame){
-    // Create an IO file reader
-    auto f = io_factory(fname,'r');
+    // Create an IO handler
+    auto f = Mol_file::recognize(fname);
+    // Open file for reading
+    f->open('r');
 
     int num_stored = 0;    
 
