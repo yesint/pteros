@@ -26,12 +26,8 @@
 #include "xdrfile.h"
 #include "xdrfile_xtc.h"
 #include "xdrfile_trr.h"
-#include <string>
-#include <ctime>
 
-#include "pteros/core/system.h"
 #include "pteros/core/mol_file.h"
-#include <Eigen/Core>
 
 namespace pteros {
 
@@ -46,10 +42,11 @@ class Gromacs_trajectory_file: public Mol_file {
 
         virtual ~Gromacs_trajectory_file();        
 
-        virtual Mol_file_content get_content_type() const {
-            Mol_file_content c;
-            c.trajectory = true;
-            return c;
+        virtual Mol_file_content get_content_type() const {            
+            return { false,   // structure
+                     false,   // single frame
+                     true,    // trajectory
+                     false }; // topology
         }
 
     protected:
@@ -60,9 +57,7 @@ class Gromacs_trajectory_file: public Mol_file {
         matrix box;
         rvec* x;
         char mode;
-        int fr;
-
-        clock_t time_per_frame;        
+        int fr;        
 
         virtual int read_num_atoms(char* fname, int* num) = 0;
         virtual int read_record(XDRFILE *xd, int natoms, int *step,

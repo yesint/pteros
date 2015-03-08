@@ -30,26 +30,16 @@ using namespace pteros;
 
 void Gromacs_trajectory_file::open(char openmode){
     mode = openmode;
-    if(mode=='r')
-        cout << "Opening trajectory file " << fname << " for reading..." << endl;
-    else
-        cout << "Opening trajectory file " << fname << " for writing..." << endl;
 
     xd = xdrfile_open(fname.c_str(),&mode);
-    if(!xd) throw Pteros_error("Can't open trajectory file "+fname+" with mode "+mode);
+    if(!xd) throw Pteros_error("Can't open trajectory file "+fname+" in mode '"+mode+"'");
 
     if(mode == 'r'){ //READING
         // Get number of atoms
         ret = read_num_atoms(const_cast<char*>(fname.c_str()), &natoms);
 
-        if(ret == exdrOK)
-            cout << "There are " << natoms << " atoms in this trajectory" << endl;
-        else
+        if(ret != exdrOK)
             throw Pteros_error("Failed to get number of atoms in trajectory file "+fname);
-
-        // Allocate data for trajectory frame
-        //x = (rvec*) calloc(natoms,sizeof(*x));
-        //cout << "Memory buffer allocated"<<endl;
 
     } else {
         // For writing number of atoms will be supplied later on first write operation
@@ -62,35 +52,23 @@ void Gromacs_trajectory_file::open(char openmode){
     }
 
     fr = 0; //First frame
-    x = NULL;
-    time_per_frame = 0;
+    x = nullptr;
 }
 
 Gromacs_trajectory_file::~Gromacs_trajectory_file(){
     if(x){
         free(x);
-        x = NULL;
+        x = nullptr;
     }
 
     if(xd){
         xdrfile_close(xd);
-        xd = NULL;
+        xd = nullptr;
     }
-
-    if(mode=='r')
-        cout << "Raw number of frames read from file: " << fr
-             << ". Each frame takes " << time_per_frame/(float)CLOCKS_PER_SEC/(float)fr << " s."
-             <<  " Total reading time " << time_per_frame/(float)CLOCKS_PER_SEC << " s." <<endl;
-    else
-        cout << "Raw number of frames written to file: " << fr
-             << ". Each frame takes " << time_per_frame/(float)CLOCKS_PER_SEC/(float)fr << " s."
-             <<  " Total writing time " << time_per_frame/(float)CLOCKS_PER_SEC << " s." <<endl;
 }
 
 bool Gromacs_trajectory_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
-    clock_t t1 = clock();
-    int i;
-    float lambda;    
+    int i;    
 
     frame->coord.resize(natoms);
     ret = read_record(xd,natoms,&step,&frame->time, box, (rvec*)&frame->coord.front());
@@ -113,14 +91,10 @@ bool Gromacs_trajectory_file::do_read(System *sys, Frame *frame, const Mol_file_
         return false; // End of file
     }
 
-
-    time_per_frame += clock()-t1;    
     return true; // Allows to proceed to next frame
 }
 
 void Gromacs_trajectory_file::do_write(const Selection &sel, const Mol_file_content &what){
-    clock_t t1 = clock();
-
     if(!x){
         // Do initialization on first step
         natoms = sel.size();        
@@ -129,14 +103,11 @@ void Gromacs_trajectory_file::do_write(const Selection &sel, const Mol_file_cont
         fr = 0;
     }
 
-    // Copy data to internal storage
-    //cout << "----------------------------"<<endl;
+    // Copy data to internal storage    
     for(int i=0;i<natoms;++i){
         x[i][0] = sel.X(i);
         x[i][1] = sel.Y(i);
         x[i][2] = sel.Z(i);
-
-        //cout << i << ": " << sel.XYZ(i).transpose() << endl;
     }
 
     // Set box
@@ -150,6 +121,4 @@ void Gromacs_trajectory_file::do_write(const Selection &sel, const Mol_file_cont
 
     if(ret!=0) throw Pteros_error("Unable to write frame!");
     ++fr;
-
-    time_per_frame += clock()-t1;
 }

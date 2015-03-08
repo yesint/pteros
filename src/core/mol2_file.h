@@ -34,10 +34,10 @@ public:
     MOL2_file(std::string& fname);
 
     virtual Mol_file_content get_content_type() const {
-        Mol_file_content c;
-        c.structure = true;
-        c.coordinates = true;
-        return c;
+        return { true,    // structure
+                 true,    // single frame
+                 false,   // trajectory
+                 false }; // topology
     }
 
 };

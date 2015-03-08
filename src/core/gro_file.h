@@ -39,11 +39,11 @@ public:
     void open(char open_mode);
     virtual ~GRO_file();
 
-    virtual Mol_file_content get_content_type() const {
-        Mol_file_content c;
-        c.coordinates = true;
-        c.structure = true;
-        return c;
+    virtual Mol_file_content get_content_type() const {                
+        return { true,    // structure
+                 true,    // single frame
+                 false,   // trajectory
+                 false }; // topology
     }
 
 protected:

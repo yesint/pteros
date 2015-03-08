@@ -35,10 +35,12 @@ struct Mol_file_content {
     bool coordinates; // Single frame
     bool trajectory; // Many frames
     bool topology; // Molecular topology
-    std::string extension; // File extension
 
     Mol_file_content(): structure(false), coordinates(false),
-                        trajectory(false), topology(false){}
+                        trajectory(false), topology(false) {}
+
+    Mol_file_content(bool str, bool coor, bool trj, bool top): structure(str),
+        coordinates(coor), trajectory(trj), topology(top) {}
 };
 
 /// Generic API for reading and writing any molecule file formats
