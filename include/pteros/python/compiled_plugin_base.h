@@ -63,34 +63,7 @@ protected:
             e.print();
             exit(1);
         }
-    }
-
-    virtual void window_started_handler(const Frame_info &info){
-        try {
-            Consumer::window_started_handler(info);
-        } catch(const Pteros_error& e){
-            std::cout << std::endl << "(ERROR) Compiled plugin method: '"
-                      << BOOST_CURRENT_FUNCTION << "'" << std::endl;
-            std::cout << "(ERROR) Occured on frame " << info.valid_frame << std::endl;
-            std::cout << "(ERROR) in plugin instance: " << label << std::endl;
-            e.print();
-            exit(1);
-        }
-    }
-
-
-    virtual void window_finished_handler(const Frame_info &info){
-        try {
-            Consumer::window_finished_handler(info);
-        } catch(const Pteros_error& e){
-            std::cout << std::endl << "(ERROR) Compiled plugin method: '"
-                      << BOOST_CURRENT_FUNCTION << "'" << std::endl;
-            std::cout << "(ERROR) Occured on frame " << info.valid_frame << std::endl;
-            std::cout << "(ERROR) in plugin instance: " << label << std::endl;
-            e.print();
-            exit(1);
-        }
-    }
+    }    
 
 };
 

@@ -1270,9 +1270,7 @@ void Selection::write(string fname, int b, int e) {
 
     if(b<-1 || b>=get_system()->num_frames()) throw Pteros_error("Invalid first frame for writing!");
     if(e<-1 || e>=get_system()->num_frames()) throw Pteros_error("Invalid last frame for writing!");
-    if(e<b) throw Pteros_error("Invalid frame range for writing!");
-
-    cout << "Writing the range of frames "<<b<<":"<<e<< endl;
+    if(e<b) throw Pteros_error("Invalid frame range for writing!");    
 
     auto f = Mol_file::recognize(fname);
     f->open('w');
@@ -1281,7 +1279,6 @@ void Selection::write(string fname, int b, int e) {
         throw Pteros_error("Can't write the range of frames to structure file!");
     }    
 
-    cout << "Writing to file '" << fname << "'..." << endl;
     for(int fr=b;fr<=e;++fr){
         set_frame(fr);
         f->write(*this,f->get_content_type());

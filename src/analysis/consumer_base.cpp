@@ -38,15 +38,23 @@ void Consumer_base::run_in_thread(std::shared_ptr<Message_channel<std::shared_pt
 
     std::shared_ptr<Data_container> data;
 
-    while(chan->recieve(data)){
-        consume_frame(data);
-    }
+    try{
 
-    // If we are here than dispatcher thread sent a stop to the queue
-    // Consume all remaining frames
-    while(!chan->empty()){
-        chan->recieve(data);
-        consume_frame(data);
+        while(chan->recieve(data)){
+            consume_frame(data);
+        }
+
+        // If we are here than dispatcher thread sent a stop to the queue
+        // Consume all remaining frames
+        while(!chan->empty()){
+            chan->recieve(data);
+            consume_frame(data);
+        }
+
+    } catch(const Pteros_error& e) {
+        cout << "(ERROR) In consumer #" << id << ":" << endl;
+        cout << e.what() << endl;
+        exit(1);
     }
 
     // Call user post-process
@@ -54,9 +62,13 @@ void Consumer_base::run_in_thread(std::shared_ptr<Message_channel<std::shared_pt
 }
 
 void Consumer_base::consume_frame(std::shared_ptr<Data_container> &data){
-    // Check number of atoms
+    // Check number of atoms    
     if(data->frame.coord.size()!=system.num_atoms()){
-        throw Pteros_error("Wrong number of atoms in the trajectory frame!");
+        throw Pteros_error("System contains "
+                           +to_string(system.num_atoms())
+                           +" atoms while trajectory has "
+                           +to_string(data->frame.coord.size())
+                          );
     }
 
     process_frame_data(data->frame);

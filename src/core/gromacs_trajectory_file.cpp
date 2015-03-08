@@ -28,6 +28,12 @@
 using namespace std;
 using namespace pteros;
 
+Gromacs_trajectory_file::Gromacs_trajectory_file(string &fname): Mol_file(fname)
+{
+    x = nullptr;
+    xd = nullptr;
+}
+
 void Gromacs_trajectory_file::open(char openmode){
     mode = openmode;
 

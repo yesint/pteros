@@ -87,15 +87,13 @@ VMD_molfile_plugin_wrapper::VMD_molfile_plugin_wrapper(string& fname): Mol_file(
 VMD_molfile_plugin_wrapper::~VMD_molfile_plugin_wrapper(){
     if(mode=='r'){
         if(handle){
-            plugin->close_file_read(handle);
-            cout << "Closing file in mode r" << endl;
+            plugin->close_file_read(handle);            
             handle = NULL;
         }
 
     } else {
         if(w_handle){
-            plugin->close_file_write(w_handle);
-            cout << "Closing file in mode w" << endl;
+            plugin->close_file_write(w_handle);            
             w_handle = NULL;
         }
     }

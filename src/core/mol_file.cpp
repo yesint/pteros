@@ -35,7 +35,7 @@
 using namespace std;
 using namespace pteros;
 
-Mol_file::Mol_file(string& file_name){
+Mol_file::Mol_file(string& file_name){    
     fname = file_name;
 }
 

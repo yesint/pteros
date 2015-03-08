@@ -36,13 +36,13 @@ namespace pteros {
 class Gromacs_trajectory_file: public Mol_file {
     public:      
 
-        Gromacs_trajectory_file(std::string& fname): Mol_file(fname) {}
+        Gromacs_trajectory_file(std::string& fname);
 
         virtual void open(char openmode);
 
         virtual ~Gromacs_trajectory_file();        
 
-        virtual Mol_file_content get_content_type() const {            
+        virtual Mol_file_content get_content_type() const {
             return { false,   // structure
                      false,   // single frame
                      true,    // trajectory

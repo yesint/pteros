@@ -173,8 +173,9 @@ void Trajectory_processor::run(){
     string top_file = "";
     string structure_file = "";    
 
-    for(string& s: file_list){
-        Mol_file_content c = Mol_file::recognize(s)->get_content_type();
+    for(string& s: file_list){                
+        auto h = Mol_file::recognize(s);
+        Mol_file_content c = h->get_content_type();
 
         if(c.structure && !c.trajectory){
             if(structure_file!="") throw Pteros_error("Only one structure file is allowed!");
@@ -188,7 +189,7 @@ void Trajectory_processor::run(){
 
         if(c.trajectory){
             traj_files.push_back(s);            
-        }
+        }        
     }
 
     if(traj_files.empty()) throw Pteros_error("At least one trajectory file is required!");
@@ -331,13 +332,23 @@ void Trajectory_processor::run(){
         //pre_process_handler() will be called inside first call to consume_frame()
 
         std::shared_ptr<Data_container> data;
-        while(channel.recieve(data)){
-            consumers[0]->consume_frame(data);
+
+        try {
+
+            while(channel.recieve(data)){
+                consumers[0]->consume_frame(data);
+            }
+            while(!channel.empty()){
+                channel.recieve(data);
+                consumers[0]->consume_frame(data);
+            }
+
+        } catch(const Pteros_error& e) {
+            cout << "(ERROR) In consumer #0:" << endl;
+            cout << e.what() << endl;
+            exit(1);
         }
-        while(!channel.empty()){
-            channel.recieve(data);
-            consumers[0]->consume_frame(data);
-        }
+
         // Run post-process with last supplied data
         consumers[0]->post_process_handler(data->frame_info);
     }
