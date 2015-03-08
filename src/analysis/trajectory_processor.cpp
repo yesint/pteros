@@ -217,7 +217,7 @@ void Trajectory_processor::run(){
             if(c.structure && c.trajectory){
                 structure_file = s;
                 // We only need to load structure and first frame from TNG here
-                cout << "Uning file " << s << " to read structure..." << endl;
+                cout << "Uning trajectory file " << s << " to read structure..." << endl;
                 trj->open('r');
                 Mol_file_content c;
                 c.structure = true;
@@ -233,8 +233,7 @@ void Trajectory_processor::run(){
     }
 
     // Copy system to other consumers if needed
-    if(consumers.size()>1){
-        cout << "Copying system data to consumers..." << endl;
+    if(consumers.size()>1){        
         for(int i=1; i<consumers.size(); ++i){
             *(consumers[i]->get_system()) = *sys1; // deep copy
         }
@@ -271,8 +270,7 @@ void Trajectory_processor::run(){
     typedef std::shared_ptr<Data_channel> Data_channel_ptr;
 
     // Set buffer size
-    int buf_size = options("buffer","10").as_int();
-    cout << "Using frame buffers of size " << buf_size << endl;
+    int buf_size = options("buffer","10").as_int();    
 
     channel.set_buffer_size(buf_size);
 
@@ -388,7 +386,7 @@ void Trajectory_processor::reader_thread_body(){
                 ++abs_frame; // Next absolute frame
 
                 if(log_interval>0 && abs_frame%log_interval==0)
-                    cout << "Loaded frame " << abs_frame << endl;
+                    cout << "At frame " << abs_frame << endl;
 
                 // If time stamps are overriden, use overrides
                 if(custom_dt>=0){
@@ -433,7 +431,7 @@ void Trajectory_processor::reader_thread_body(){
                 channel.send(data);                
             } // Over frames
 
-            cout << "==> reading done" << endl;
+            cout << "==> trajectory done" << endl;
 
             // If end reached break here too
             if(finished) break;
@@ -446,7 +444,7 @@ void Trajectory_processor::reader_thread_body(){
     } catch(Pteros_error e) {
         // Send stop if exception raised
         channel.send_stop();        
-        cout << "(ERROR) Execution of the reading thread stopped due to exception!" << endl;
+        cout << "(ERROR) Execution of the reading thread stopped due to exception:" << endl;
         cout << e.what() << endl;
     }
 }

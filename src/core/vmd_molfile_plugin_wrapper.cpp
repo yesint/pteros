@@ -105,17 +105,12 @@ void VMD_molfile_plugin_wrapper::open(char open_mode){
     mode = open_mode;
 
     if(mode=='r'){
-        if(handle) throw Pteros_error("Can't open file for reading twice - handle busy!");
-        cout << "Opening file '" << fname << "' for reading "
-             << "using VMD plugin '" << plugin->name << "'..." << endl;
+        if(handle) throw Pteros_error("Can't open file for reading twice - handle busy!");        
         handle = NULL;
         handle = plugin->open_file_read(fname.c_str(), &open_mode, &natoms);
-        if(!handle) throw Pteros_error("Can't open file '"+fname + "'!");
-        cout << "Number of atoms: " <<natoms << endl;
+        if(!handle) throw Pteros_error("Can't open file '"+fname + "'!");        
     } else {
-        if(w_handle) throw Pteros_error("Can't open file for writing twice - handle busy!");
-        cout << "Opening file '" << fname << "' for writing "
-             << "using VMD plugin '" << plugin->name << "'..." << endl;
+        if(w_handle) throw Pteros_error("Can't open file for writing twice - handle busy!");        
         w_handle = NULL;
     }
 
@@ -239,8 +234,7 @@ void VMD_molfile_plugin_wrapper::do_write(const Selection &sel, const Mol_file_c
         for(int i=0; i<n; ++i){
             buffer[k] = sel.X(i)*10.0;
             buffer[k+1] = sel.Y(i)*10.0;
-            buffer[k+2] = sel.Z(i)*10.0;
-            //cout << k << " " <<  buffer[k] << " " << buffer[k+1] << " " << buffer[k+2] << endl;
+            buffer[k+2] = sel.Z(i)*10.0;            
             k+=3;
         }
         ts.coords = &buffer.front();
