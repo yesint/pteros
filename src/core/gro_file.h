@@ -25,8 +25,6 @@
 
 #include <string>
 #include <fstream>
-#include "pteros/core/system.h"
-#include "pteros/core/selection.h"
 #include "pteros/core/mol_file.h"
 
 namespace pteros {

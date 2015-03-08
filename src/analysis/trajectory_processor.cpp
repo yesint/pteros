@@ -173,8 +173,6 @@ void Trajectory_processor::run(){
     string top_file = "";
     string structure_file = "";    
 
-
-
     for(string& s: file_list){
         Mol_file_content c = Mol_file::recognize(s)->get_content_type();
 

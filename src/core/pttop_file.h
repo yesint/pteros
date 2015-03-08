@@ -23,10 +23,7 @@
 #ifndef PTTOP_FILE_H
 #define PTTOP_FILE_H
 
-#include <string>
-#include <fstream>
 #include "pteros/core/mol_file.h"
-#include "pteros/core/pteros_error.h"
 
 namespace pteros {
 
@@ -46,9 +43,7 @@ public:
 
 protected:        
 
-    virtual void do_write(const Selection &sel, const Mol_file_content& what) {
-        throw Pteros_error("PTTOP files could be produced by the dedicated script only!");
-    }
+    virtual void do_write(const Selection &sel, const Mol_file_content& what) {}
 
     virtual bool do_read(System *sys, Frame *frame, const Mol_file_content& what);
 

@@ -29,12 +29,9 @@ For now VMD molfile plugin is used for PDB files
 
 #define VMD_PDB
 
-
 #ifndef PDB_FILE_H
 #define PDB_FILE_H
 
-#include <string>
-#include <fstream>
 #include "vmd_molfile_plugin_wrapper.h"
 
 namespace pteros {

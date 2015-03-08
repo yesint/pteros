@@ -22,6 +22,7 @@
 
 #include "pttop_file.h"
 #include "pteros/core/pteros_error.h"
+#include <fstream>
 
 using namespace std;
 using namespace pteros;
@@ -31,7 +32,7 @@ using namespace Eigen;
 void PTTOP_file::open(char open_mode)
 {
     if(open_mode=='w')
-        throw Pteros_error("PTTOP files could not be written from Pteros!");
+        throw Pteros_error("PTTOP files could be produced by the dedicated script only!");
 }
 
 PTTOP_file::~PTTOP_file(){
