@@ -4,7 +4,7 @@ from pteros import *
 import sys, pkgutil, copy, os, imp
 
 import pteros_analysis_plugins
-import types
+import types, signal
 
 #--------------------------------------
 # Create processor class
@@ -74,6 +74,11 @@ def general_help():
 print "+--------------------------------+"
 print "+ This is pteros_analysis script +"
 print "+--------------------------------+"
+
+# Dirty hack - set special SIGINT handler, which kills the whole program
+# instead of raising KeyboardInterrupt in Python.
+# This allows to kill the process if it runs heavy compiled extension at background
+signal.signal(signal.SIGINT, signal.SIG_DFL)
 
 # Check if we have at least one command-line argument
 if len(sys.argv)==1:
