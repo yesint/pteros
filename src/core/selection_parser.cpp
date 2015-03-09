@@ -68,6 +68,7 @@ char* tok_names[] = {
     // Prefixes
     "TOK_NOT",
     "TOK_WITHIN",
+    "TOK_SELF",
     //"TOK_PERIODIC",
     //"TOK_OF",
     "TOK_BY",
