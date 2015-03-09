@@ -57,7 +57,8 @@ int main(int argc, char** argv)
         auto t_start = std::chrono::high_resolution_clock::now();
         Selection w;
         for(int i=0;i<1;++i)
-            w.modify(s,"x>1");
+            w.modify(s,"x<1 or within 0.25 of name CA CB");
+
         auto t_end = std::chrono::high_resolution_clock::now();
 
         cout << w.size() << " elapsed: "

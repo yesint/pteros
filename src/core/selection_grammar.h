@@ -30,6 +30,7 @@
 
 //===========================================================
 using namespace std;
+using namespace std::placeholders;
 using namespace pteros;
 
 #ifdef _DEBUG_PARSER
@@ -38,105 +39,97 @@ using namespace pteros;
 #define DEBUG(code)
 #endif
 
-#define HEADER(_name) \
-    if(_pos_==end) return false; \
-    AstNode_ptr _this_rule_(new AstNode); \
-    DEBUG(_this_rule_->name = #_name;)\
-    AstNode_ptr saved_parent = current_parent; \
-    current_parent = _this_rule_; \
-    const int rule_id = __LINE__;\
-    int n = std::distance(beg,_pos_); \
-    DEBUG(for(int i=0;i<level;++i) cout <<"  ";) \
-    DEBUG(cout << "Trying " << _this_rule_->name << " id: " << rule_id << " at: " << n << endl;) \
-    DEBUG(num_tried++;)\
-    /* variables for rule body */\
-    std::string::iterator _old_ = _pos_; \
-    bool _ok_ = false; \
-    /* check memotable */ \
-    bool restored = false; \
-    if(do_memo && memo[rule_id].count(n)==1){ \
-        DEBUG(for(int i=0;i<level;++i) cout <<"  ";) \
-        DEBUG(cout << "-- from memo: " << _this_rule_->name << " at: " << n << endl;) \
-        Memo_data& m = memo[rule_id][n]; \
-        _this_rule_ = m.tree; \
-        _pos_ = m.pos; \
-        _ok_ = m.ok; \
-        restored = true; \
-        DEBUG(num_restored++;)\
-    } \
-    DEBUG(level++;)\
-    DEBUG(if(max_level<level) max_level = level;)\
-    if(!restored){ \
 
+#ifdef _DEBUG_PARSER
+/*===================================================*/
+/*   Rule macros for debug mode - with rule names    */
+/*===================================================*/
+
+// Variant of
 
 // Rule
 #define RULE(_name) \
 bool _name(bool add_to_tree = true, bool do_memo = true){ \
-    bool do_reduce = false;\
-    HEADER(_name) \
+    return rule_proxy(__LINE__, /*rule_id*/ \
+                      add_to_tree, do_memo, \
+                      false,  /* do_reduce */ \
+                      "",     /* literal */ \
+                      std::bind(&Grammar::_name##_body,this,_1,_2,_3), \
+                      #_name);   /* rule_name */ \
+}\
+void _name##_body(AstNode_ptr& _this_rule_, bool& _ok_, const std::string::iterator& _old_) \
 
+// Reduction rule
 #define RULE_REDUCE(_name) \
 bool _name(bool add_to_tree = true, bool do_memo = true){ \
-    bool do_reduce = true;\
-    HEADER(_name) \
+    return rule_proxy(__LINE__, /*rule_id*/ \
+                      add_to_tree, do_memo, \
+                      true,  /* do_reduce */ \
+                      "",     /* literal */ \
+                      std::bind(&Grammar::_name##_body,this,_1,_2,_3), \
+                      #_name);   /* rule_name */ \
+}\
+void _name##_body(AstNode_ptr& _this_rule_, bool& _ok_, const std::string::iterator& _old_) \
 
-#define END_RULE \
-    } /*if not restored*/ \
-    if(_ok_){\
-        if(_pos_>last_success) last_success = _pos_;\
-        DEBUG(for(int i=0;i<level-1;++i) cout <<"  ";) \
-        DEBUG(cout<<"Matched "<< _this_rule_->name << " at: " << n << endl;)\
-        if(add_to_tree) { \
-            if(do_reduce && _this_rule_->children.size()==1){\
-                saved_parent->children.push_back(_this_rule_->children[0]); \
-                DEBUG(for(int i=0;i<level-1;++i) cout <<"  ";) \
-                DEBUG(cout << "-- simplifying node "<<_this_rule_->name << " to parent " << saved_parent->name << endl;) \
-            } else {\
-                saved_parent->children.push_back(_this_rule_); \
-                DEBUG(for(int i=0;i<level-1;++i) cout <<"  ";) \
-                DEBUG(cout << "-- adding node "<<_this_rule_->name << " to parent " << saved_parent->name << endl;) \
-            }\
-        } \
-    } else { \
-        DEBUG(for(int i=0;i<level-1;++i) cout <<"  ";) \
-        DEBUG(cout<<"Failed "<< _this_rule_->name << " at: " << n << endl;)\
-        _pos_ = _old_; \
-        _this_rule_->children.clear(); \
-        DEBUG(num_failed++;)\
-    } \
-    current_parent = saved_parent; \
-    /* Add to memotable */ \
-    if(do_memo && !restored) { \
-       DEBUG(for(int i=0;i<level-1;++i) cout <<"  ";) \
-       DEBUG(cout << "-- to memo: " << _this_rule_->name << " at: " << n << endl;) \
-       memo[rule_id][n] = Memo_data(_ok_,_this_rule_,_pos_); \
-       DEBUG(num_stored++;)\
-    } \
-    DEBUG(level--;)\
-    DEBUG(cout << endl;)\
-    return _ok_; \
-}
-
-// Literla rule
-#define LITERAL_RULE(_name, _v) \
+// Literal rule
+#define LITERAL_RULE(_name, _lit) \
 bool _name(bool add_to_tree = true, bool do_memo = false){ \
-    bool do_reduce = false;\
-    HEADER(_name) \
-    string _arg_(_v); \
-    if(_arg_.size()>3) do_memo = true; /*cache only 'large' literals*/ \
-    for(auto ch: _arg_){ \
-        if(*_pos_==ch){ \
-            _pos_++; \
-        } else { \
-            break; \
-        } \
-    } \
-    if(_pos_-_old_==_arg_.size()) _ok_ = true; \
+    return rule_proxy(__LINE__, /*rule_id*/ \
+                      add_to_tree, do_memo, \
+                      false,  /* do_reduce */ \
+                      _lit,     /* literal */ \
+                      std::bind(&Grammar::_name##_body,this,_1,_2,_3), \
+                      #_name);   /* rule_name */ \
+}\
+void _name##_body(AstNode_ptr& _this_rule_, bool& _ok_, const std::string::iterator& _old_) \
+
+#else
+
+/*========================================================*/
+/*   Rule macros for release mode - without rule names    */
+/*========================================================*/
+
+// Rule
+#define RULE(_name) \
+bool _name(bool add_to_tree = true, bool do_memo = true){ \
+    return rule_proxy(__LINE__, /*rule_id*/ \
+                      add_to_tree, do_memo, \
+                      false,  /* do_reduce */ \
+                      "",     /* literal */ \
+                      std::bind(&Grammar::_name##_body,this,_1,_2,_3) ); \
+}\
+void _name##_body(AstNode_ptr& _this_rule_, bool& _ok_, const std::string::iterator& _old_) \
+
+// Reduction rule
+#define RULE_REDUCE(_name) \
+bool _name(bool add_to_tree = true, bool do_memo = true){ \
+    return rule_proxy(__LINE__, /*rule_id*/ \
+                      add_to_tree, do_memo, \
+                      true,  /* do_reduce */ \
+                      "",     /* literal */ \
+                      std::bind(&Grammar::_name##_body,this,_1,_2,_3) ); \
+}\
+void _name##_body(AstNode_ptr& _this_rule_, bool& _ok_, const std::string::iterator& _old_) \
+
+// Literal rule
+#define LITERAL_RULE(_name, _lit) \
+bool _name(bool add_to_tree = true, bool do_memo = false){ \
+    return rule_proxy(__LINE__, /*rule_id*/ \
+                      add_to_tree, do_memo, \
+                      false,  /* do_reduce */ \
+                      _lit,     /* literal */ \
+                      std::bind(&Grammar::_name##_body,this,_1,_2,_3) ); \
+}\
+void _name##_body(AstNode_ptr& _this_rule_, bool& _ok_, const std::string::iterator& _old_) \
+
+#endif
+
 
 
 #define SUBRULE(n) (_this_rule_->child_node(n))
 
 #define NUM_SUBRULES() (_this_rule_->children.size())
+
 /*===================================*/
 /*           PREDICATES              */
 /*===================================*/
@@ -191,14 +184,14 @@ bool _name(bool add_to_tree = true, bool do_memo = false){ \
     }() \
     )
 
+/*===================================*/
+/*           Memo table              */
+/*===================================*/
 
 struct Memo_data {
     Memo_data(){}
-    Memo_data(bool _ok, const AstNode_ptr& _tree, const string::iterator& _pos){
-        ok = _ok;
-        tree = _tree;
-        pos = _pos;
-    }
+    Memo_data(bool _ok, const AstNode_ptr& _tree, const string::iterator& _pos):
+        ok(_ok), tree(_tree), pos(_pos) {}
 
     bool ok; // Rule evaluation result
     AstNode_ptr tree;  // Subtree
@@ -214,7 +207,7 @@ struct Memo_data {
 class Grammar {
 private:
     std::string::iterator _pos_,beg,end,last_success;
-    AstNode_ptr current_parent;    
+    AstNode_ptr current_parent;
     // Memo table
     map<int, map<int,Memo_data> > memo;
 
@@ -241,22 +234,120 @@ public:
 #endif
     }
 
+#ifdef _DEBUG_PARSER
+    bool rule_proxy(const int rule_id, bool add_to_tree, bool do_memo, bool do_reduce, const string& literal,
+                    std::function<void(AstNode_ptr&,bool&,const std::string::iterator&)> user_defined_body,
+                    std::string rule_name=""){
+#else
+    bool rule_proxy(const int rule_id, bool add_to_tree, bool do_memo, bool do_reduce, const string& literal,
+                    std::function<void(AstNode_ptr&,bool&,const std::string::iterator&)> user_defined_body){
+#endif
+        if(_pos_==end) return false;
+
+        bool _ok_ = false;
+
+        AstNode_ptr _this_rule_(new AstNode);
+
+        AstNode_ptr saved_parent = current_parent;
+        current_parent = _this_rule_;
+
+        DEBUG(_this_rule_->name = rule_name;)
+
+        int n = std::distance(beg,_pos_);
+
+        DEBUG(for(int i=0;i<level;++i) cout <<"  ";)
+        DEBUG(cout << "Trying " << _this_rule_->name << " id: " << rule_id << " at: " << n << endl;)
+        DEBUG(num_tried++;)
+
+        /* check memotable */
+        bool restored = false;
+        if(literal!="") do_memo = (literal.size()>3) ? true : false; /*cache only 'large' literals*/
+        if(do_memo && memo[rule_id].count(n)==1){
+            DEBUG(for(int i=0;i<level;++i) cout <<"  ";)
+            DEBUG(cout << "-- from memo: " << _this_rule_->name << " at: " << n << endl;)
+            Memo_data& m = memo[rule_id][n];
+            _this_rule_ = m.tree;
+            _pos_ = m.pos;
+            _ok_ = m.ok;
+            restored = true;
+            DEBUG(num_restored++;)
+        }
+        DEBUG(level++;)
+        DEBUG(if(max_level<level) max_level = level;)
+
+        /* variables for rule body */
+        std::string::iterator _old_ = _pos_;
+
+        if(!restored){
+
+            // For literals
+            if(literal!=""){
+                for(auto ch: literal){
+                    if(*_pos_==ch){
+                        _pos_++;
+                    } else {
+                        break;
+                    }
+                }
+                if(_pos_-_old_== literal.size()) _ok_ = true;
+                if(!_ok_) _pos_ = _old_;
+            }
+
+            // Call user-defined rule body
+            user_defined_body(_this_rule_,_ok_,_old_);
+        }
+
+        if(_ok_){
+            if(_pos_>last_success) last_success = _pos_;
+            DEBUG(for(int i=0;i<level-1;++i) cout <<"  ";)
+            DEBUG(cout<<"Matched "<< _this_rule_->name << " at: " << n << endl;)
+            if(add_to_tree) {
+                if(do_reduce && _this_rule_->children.size()==1){
+                    saved_parent->children.push_back(_this_rule_->children[0]);
+                    DEBUG(for(int i=0;i<level-1;++i) cout <<"  ";)
+                    DEBUG(cout << "-- simplifying node "<<_this_rule_->name << " to parent " << saved_parent->name << endl;)
+                } else {
+                    saved_parent->children.push_back(_this_rule_);
+                    DEBUG(for(int i=0;i<level-1;++i) cout <<"  ";)
+                    DEBUG(cout << "-- adding node "<<_this_rule_->name << " to parent " << saved_parent->name << endl;)
+                }
+            }
+        } else {
+            DEBUG(for(int i=0;i<level-1;++i) cout <<"  ";)
+            DEBUG(cout<<"Failed "<< _this_rule_->name << " at: " << n << endl;)
+            _pos_ = _old_;
+            _this_rule_->children.clear();
+            DEBUG(num_failed++;)
+        }
+        current_parent = saved_parent;
+        /* Add to memotable */
+        if(do_memo && !restored) {
+           DEBUG(for(int i=0;i<level-1;++i) cout <<"  ";)
+           DEBUG(cout << "-- to memo: " << _this_rule_->name << " at: " << n << endl;)
+           memo[rule_id][n] = Memo_data(_ok_,_this_rule_,_pos_);
+           DEBUG(num_stored++;)
+        }
+        DEBUG(level--;)
+        DEBUG(cout << endl;)
+        return _ok_;
+    }
+
     /*===================================*/
     /*           TERMINALS               */
     /*===================================*/
 
 
-    RULE(SPACE)
+    RULE(SPACE){
         while(isspace(*_pos_)) _pos_++;
         if(_old_!=_pos_) _ok_ = true;
-    END_RULE
+    }
 
 // Optional space
 #define SP_() (SPACE(false,false)||true)
 // Mandatory space
 #define SP() (SPACE(false,false))
 
-    RULE(UINT)
+    RULE(UINT){
         char* e;
         int val = strtoul(&*_old_, &e, 0);
         _pos_ += e-&*_old_;
@@ -267,9 +358,9 @@ public:
             _this_rule_->code = TOK_UINT;
             _this_rule_->children.push_back(val);
         } // _ok_
-    END_RULE
+    }
 
-    RULE(INT)
+    RULE(INT){
         char* e;
         int val = strtol(&*_old_, &e, 0);
         _pos_ += e-&*_old_;
@@ -280,9 +371,9 @@ public:
             _this_rule_->code = TOK_INT;
             _this_rule_->children.push_back(val);
         } // _ok_
-    END_RULE
+    }
 
-    RULE(FLOAT)
+    RULE(FLOAT){
         char* e;
         float val = strtod(&*_old_, &e);
         _pos_ += e-&*_old_;
@@ -293,198 +384,184 @@ public:
             _this_rule_->code = TOK_FLOAT;
             _this_rule_->children.push_back(val);
         } // _ok_
-    END_RULE
+    }
 
 
     /*===================================*/
     /*           LITERALS                */
     /*===================================*/
 
-    LITERAL_RULE(PLUS,"+")
+    LITERAL_RULE(PLUS,"+"){
         _this_rule_->code = TOK_PLUS;
-    END_RULE
+    }
 
-    LITERAL_RULE(MINUS,"-")
+    LITERAL_RULE(MINUS,"-"){
         _this_rule_->code = TOK_MINUS;
-    END_RULE
+    }
 
-    LITERAL_RULE(STAR,"*")
+    LITERAL_RULE(STAR,"*"){
         _this_rule_->code = TOK_MULT;
-    END_RULE
+    }
 
-    LITERAL_RULE(SLASH,"/")
+    LITERAL_RULE(SLASH,"/"){
         _this_rule_->code = TOK_DIV;
-    END_RULE
+    }
 
-    LITERAL_RULE(CAP,"^")
+    LITERAL_RULE(CAP,"^"){
         _this_rule_->code = TOK_POWER;
-    END_RULE
+    }
 
-    LITERAL_RULE(DOUBLE_STAR,"**")
+    LITERAL_RULE(DOUBLE_STAR,"**"){
         _this_rule_->code = TOK_POWER;
-    END_RULE
+    }
 
-    LITERAL_RULE(LPAREN,"(")
-    END_RULE
+    LITERAL_RULE(LPAREN,"("){}
 
-    LITERAL_RULE(RPAREN,")")
-    END_RULE
+    LITERAL_RULE(RPAREN,")"){}
 
-    LITERAL_RULE(X,"x")
-        _this_rule_->code = TOK_X;
-    END_RULE
+    LITERAL_RULE(X,"x"){
+        _this_rule_->code = TOK_X;        
+    }
 
-    LITERAL_RULE(Y,"y")
+    LITERAL_RULE(Y,"y"){
         _this_rule_->code = TOK_Y;
-    END_RULE
+    }
 
-    LITERAL_RULE(Z,"z")
+    LITERAL_RULE(Z,"z"){
         _this_rule_->code = TOK_Z;
-    END_RULE
+    }
 
-    LITERAL_RULE(BETA,"beta")
+    LITERAL_RULE(BETA,"beta"){
         _this_rule_->code = TOK_BETA;
-    END_RULE
+    }
 
-    LITERAL_RULE(OCCUPANCY,"occupancy")
+    LITERAL_RULE(OCCUPANCY,"occupancy"){
         _this_rule_->code = TOK_OCC;
-    END_RULE
+    }
 
-    LITERAL_RULE(DIST1,"distance")
-    END_RULE
+    LITERAL_RULE(DIST1,"distance"){}
 
-    LITERAL_RULE(DIST2,"dist")
-    END_RULE
+    LITERAL_RULE(DIST2,"dist"){}
 
-    LITERAL_RULE(POINT,"point")
-    END_RULE
+    LITERAL_RULE(POINT,"point"){}
 
-    LITERAL_RULE(VECTOR,"vector")
-    END_RULE
+    LITERAL_RULE(VECTOR,"vector"){}
 
-    LITERAL_RULE(PLANE,"plane")
-    END_RULE
+    LITERAL_RULE(PLANE,"plane"){}
 
-    LITERAL_RULE(OR,"or")
+    LITERAL_RULE(OR,"or"){
         _this_rule_->code = TOK_OR;
-    END_RULE
+    }
 
-    LITERAL_RULE(AND,"and")
+    LITERAL_RULE(AND,"and"){
         _this_rule_->code = TOK_AND;
-    END_RULE
+    }
 
-    LITERAL_RULE(ALL,"all")
+    LITERAL_RULE(ALL,"all"){
         _this_rule_->code = TOK_ALL;
-    END_RULE
+    }
 
-    LITERAL_RULE(EQ,"==")
+    LITERAL_RULE(EQ,"=="){
         _this_rule_->code = TOK_EQ;
-    END_RULE
+    }
 
-    LITERAL_RULE(NEQ,"!=")
+    LITERAL_RULE(NEQ,"!="){
         _this_rule_->code = TOK_NEQ;
-    END_RULE
+    }
 
-    LITERAL_RULE(GEQ,">=")
+    LITERAL_RULE(GEQ,">="){
         _this_rule_->code = TOK_GEQ;
-    END_RULE
+    }
 
-    LITERAL_RULE(LEQ,"<=")
+    LITERAL_RULE(LEQ,"<="){
         _this_rule_->code = TOK_LEQ;
-    END_RULE
+    }
 
-    LITERAL_RULE(GT,">")
+    LITERAL_RULE(GT,">"){
         _this_rule_->code = TOK_GT;
-    END_RULE
+    }
 
-    LITERAL_RULE(LT,"<")
-        _this_rule_->code = TOK_LT;
-    END_RULE
+    LITERAL_RULE(LT,"<"){
+        _this_rule_->code = TOK_LT;     
+    }
 
-    LITERAL_RULE(NOT,"not")
-    END_RULE
+    LITERAL_RULE(NOT,"not"){}
 
-    LITERAL_RULE(WITHIN_,"within")
-    END_RULE
+    LITERAL_RULE(WITHIN_,"within"){}
 
-    LITERAL_RULE(OF,"of")
-    END_RULE
+    LITERAL_RULE(OF,"of"){}
 
-    LITERAL_RULE(SELF_ON,"self")
+    LITERAL_RULE(SELF_ON,"self"){
         _this_rule_->code = TOK_SELF;
         _this_rule_->children.push_back(1);
-    END_RULE
+    }
 
-    LITERAL_RULE(SELF_OFF,"noself")
+    LITERAL_RULE(SELF_OFF,"noself"){
         _this_rule_->code = TOK_SELF;
         _this_rule_->children.push_back(0);
-    END_RULE
+    }
 
-    LITERAL_RULE(PBC_ON1,"pbc")
+    LITERAL_RULE(PBC_ON1,"pbc"){
         _this_rule_->code = TOK_UINT;
         _this_rule_->children.push_back(1);
-    END_RULE
+    }
 
-    LITERAL_RULE(PBC_ON2,"periodic")
+    LITERAL_RULE(PBC_ON2,"periodic"){
         _this_rule_->code = TOK_UINT;
         _this_rule_->children.push_back(1);
-    END_RULE
+    }
 
-    LITERAL_RULE(PBC_OFF1,"nopbc")
+    LITERAL_RULE(PBC_OFF1,"nopbc"){
         _this_rule_->code = TOK_UINT;
         _this_rule_->children.push_back(0);
-    END_RULE
+    }
 
-    LITERAL_RULE(PBC_OFF2,"noperiodic")
+    LITERAL_RULE(PBC_OFF2,"noperiodic"){
         _this_rule_->code = TOK_UINT;
         _this_rule_->children.push_back(0);
-    END_RULE
+    }
 
-    LITERAL_RULE(BY,"by")
-    END_RULE
+    LITERAL_RULE(BY,"by"){}
 
-    LITERAL_RULE(TO,"to")
-    END_RULE
+    LITERAL_RULE(TO,"to"){}
 
-    LITERAL_RULE(RESIDUE,"residue")
-    END_RULE
+    LITERAL_RULE(RESIDUE,"residue"){}
 
-    LITERAL_RULE(NAME,"name")
+    LITERAL_RULE(NAME,"name"){
         _this_rule_->code = TOK_NAME;
-    END_RULE
+    }
 
-    LITERAL_RULE(RESNAME,"resname")
+    LITERAL_RULE(RESNAME,"resname"){
         _this_rule_->code = TOK_RESNAME;
-    END_RULE
+    }
 
-    LITERAL_RULE(TAG,"tag")
+    LITERAL_RULE(TAG,"tag"){
         _this_rule_->code = TOK_TAG;
-    END_RULE
+    }
 
-    LITERAL_RULE(CHAIN,"chain")
+    LITERAL_RULE(CHAIN,"chain"){
         _this_rule_->code = TOK_CHAIN;
-    END_RULE
+    }
 
-    LITERAL_RULE(RESID,"resid")
+    LITERAL_RULE(RESID,"resid"){
         _this_rule_->code = TOK_RESID;
-    END_RULE
+    }
 
-    LITERAL_RULE(RESINDEX,"resindex")
+    LITERAL_RULE(RESINDEX,"resindex"){
         _this_rule_->code = TOK_RESINDEX;
-    END_RULE
+    }
 
-    LITERAL_RULE(INDEX,"index")
+    LITERAL_RULE(INDEX,"index"){
         _this_rule_->code = TOK_INDEX;
-    END_RULE
+    }
 
     /*===================================*/
     /*           NON-TERMINALS           */
     /*===================================*/
 
 
-    RULE_REDUCE(NUM_EXPR)
+    RULE_REDUCE(NUM_EXPR){
 
-        //_ok_ = NUM_TERM() && ZeroOrMore( (PLUS() || MINUS()) && SP_() && NUM_EXPR() );
         _ok_ = NUM_TERM() && ZeroOrMore( (PLUS() || MINUS()) && SP_() && NUM_TERM() );
 
         if(_ok_){
@@ -498,9 +575,9 @@ public:
                 _this_rule_ = tmp;
             }
         } // _ok_
-    END_RULE
+    }
 
-    RULE_REDUCE(NUM_TERM)
+    RULE_REDUCE(NUM_TERM){
 
         _ok_ = NUM_POWER() && ZeroOrMore( (STAR() || SLASH()) && SP_() && NUM_POWER() );
 
@@ -515,10 +592,10 @@ public:
                 _this_rule_ = tmp;
             }
         } // _ok_
-    END_RULE
+    }
 
 
-    RULE_REDUCE(NUM_POWER)
+    RULE_REDUCE(NUM_POWER){
 
         _ok_ = NUM_FACTOR() && Opt( (CAP(false) || DOUBLE_STAR(false)) && SP_()&& NUM_FACTOR() );
 
@@ -527,9 +604,9 @@ public:
                 _this_rule_->code = TOK_POWER; // Set operation, no other actions needed
             }
         } // _ok_
-    END_RULE
+    }
 
-    RULE_REDUCE(NUM_FACTOR)
+    RULE_REDUCE(NUM_FACTOR){
         _ok_ = Comb( LPAREN(false) && SP_() && NUM_EXPR() && RPAREN(false) && SP_() )
                 || FLOAT()                
                 || Comb( X() && SP_() )
@@ -545,17 +622,17 @@ public:
                 || DIST_VECTOR()
                 || DIST_PLANE()
                 ;        
-    END_RULE    
+    }
 
-    RULE(UNARY_MINUS)
+    RULE(UNARY_MINUS){
         _ok_ = MINUS(false) && NUM_FACTOR();
 
         if(_ok_){
             _this_rule_->code = TOK_UNARY_MINUS;
         } // _ok_
-    END_RULE
+    }
 
-    RULE(DIST_POINT)
+    RULE(DIST_POINT){
         _ok_ = (DIST1(false) || DIST2(false)) && SP()
                 && POINT(false) && SP()
                 && Opt(PBC())
@@ -574,9 +651,9 @@ public:
                 _this_rule_->children[3] = _this_rule_->child_as_int(3);                
             }
         } // _ok_
-    END_RULE
+    }
 
-    RULE(DIST_VECTOR)
+    RULE(DIST_VECTOR){
         _ok_ = (DIST1(false) || DIST2(false)) && SP()
                 && VECTOR(false) && SP()
                 && Opt(PBC())
@@ -595,9 +672,9 @@ public:
                 _this_rule_->children[6] = _this_rule_->child_as_int(6);
             }
         } // _ok_
-    END_RULE
+    }
 
-    RULE(DIST_PLANE)
+    RULE(DIST_PLANE){
         _ok_ = (DIST1(false) || DIST2(false)) && SP()
                 && PLANE(false) && SP()
                 && Opt(PBC())
@@ -616,9 +693,9 @@ public:
                 _this_rule_->children[6] = _this_rule_->child_as_int(6);
             }
         } // _ok_
-    END_RULE
+    }
 
-    RULE_REDUCE(LOGICAL_EXPR)
+    RULE_REDUCE(LOGICAL_EXPR){
 
         _ok_ = LOGICAL_OPERAND() && ZeroOrMore( (OR() || AND()) && SP_() && LOGICAL_OPERAND() );
 
@@ -633,9 +710,9 @@ public:
                 _this_rule_ = tmp;
             }
         } // _ok_
-    END_RULE
+    }
 
-    RULE_REDUCE(LOGICAL_OPERAND)
+    RULE_REDUCE(LOGICAL_OPERAND){
         _ok_ = Comb( LPAREN(false) && SP_() && LOGICAL_EXPR() && RPAREN(false) && SP_() )
                 ||
                Comb( !Check(NUM_EXPR(false) && !COMPARISON_OPERATOR(false)) && NUM_COMPARISON() )
@@ -654,14 +731,14 @@ public:
                 ||
                RESID_RULE()
                 ;        
-    END_RULE
+    }
 
-    RULE_REDUCE(COMPARISON_OPERATOR)
+    RULE_REDUCE(COMPARISON_OPERATOR){
         _ok_ = (EQ() || NEQ() || LEQ() || GEQ() || LT() || GT()) && SP_();        
-    END_RULE
+    }
 
 
-    RULE_REDUCE(NUM_COMPARISON)
+    RULE_REDUCE(NUM_COMPARISON){
 
         _ok_ = NUM_EXPR();
 
@@ -689,17 +766,17 @@ public:
                 _this_rule_->children.push_back(op2);
             }
         } // _ok_;
-    END_RULE    
+    }
 
-    RULE(LOGICAL_NOT)
+    RULE(LOGICAL_NOT){
         _ok_ = NOT(false) && SP_() && LOGICAL_OPERAND();
 
         if(_ok_){
             _this_rule_->code = TOK_NOT;
         } // _ok_
-    END_RULE
+    }
 
-    RULE(WITHIN)
+    RULE(WITHIN){
         _ok_ = WITHIN_(false) && SP_() && FLOAT() && SP_()
                 && Opt(Comb(PBC() && SELF()) || Comb(SELF() && PBC()) || PBC() || SELF())
                 && OF(false)
@@ -745,25 +822,25 @@ public:
             // Reduce dist node to float
             _this_rule_->children[0] = _this_rule_->child_as_float(0);
         } // _ok_
-    END_RULE
+    }
 
-    RULE_REDUCE(PBC)
+    RULE_REDUCE(PBC){
         _ok_ = (PBC_ON1() || PBC_ON2() || PBC_OFF1() || PBC_OFF2()) && SP_();
-    END_RULE
+    }
 
-    RULE_REDUCE(SELF)
+    RULE_REDUCE(SELF){
         _ok_ = (SELF_ON() || SELF_OFF()) && SP_();
-    END_RULE
+    }
 
-    RULE(BY_RESIDUE)
+    RULE(BY_RESIDUE){
         _ok_ = BY(false) && SP() && RESIDUE(false) && SP_() && LOGICAL_OPERAND();
 
         if(_ok_){
             _this_rule_->code = TOK_BY;
         } // _ok_
-    END_RULE
+    }
 
-    RULE(KEYWORD_LIST_STR)
+    RULE(KEYWORD_LIST_STR){
         _ok_ = STR_KEYWORD() && SP() && OneOrMore( STR()||REGEX() );
 
         if(_ok_){
@@ -772,9 +849,9 @@ public:
             }
             _this_rule_ = SUBRULE(0);
         } // _ok_
-    END_RULE
+    }
 
-    RULE(KEYWORD_INT_STR)
+    RULE(KEYWORD_INT_STR){
         _ok_ = INT_KEYWORD() && SP() && OneOrMore( RANGE()||UINT() && SP_() );
 
         if(_ok_){
@@ -783,10 +860,10 @@ public:
             }
             _this_rule_ = SUBRULE(0);
         } // _ok_
-    END_RULE
+    }
 
     // resid could be negative in some funny structures, so INT, not UINT
-    RULE(RESID_RULE)
+    RULE(RESID_RULE){
         _ok_ = RESID() && SP() && OneOrMore( RANGE_SIGNED()||INT() && SP_() );
 
         if(_ok_){
@@ -795,17 +872,17 @@ public:
             }
             _this_rule_ = SUBRULE(0);
         } // _ok_
-    END_RULE
+    }
 
-    RULE_REDUCE(STR_KEYWORD)
+    RULE_REDUCE(STR_KEYWORD){
         _ok_ = NAME() || RESNAME() || TAG() || CHAIN();
-    END_RULE
+    }
 
-    RULE_REDUCE(INT_KEYWORD)
+    RULE_REDUCE(INT_KEYWORD){
         _ok_ = RESINDEX() || INDEX();
-    END_RULE
+    }
 
-    RULE(STR)
+    RULE(STR){
         _ok_ = !Check( OR(false) || AND(false) );
         if(_ok_){
             while(isalnum(*_pos_) && _pos_!=end){
@@ -826,9 +903,9 @@ public:
             _this_rule_->code = TOK_STR;
             _this_rule_->children.push_back(s);
         } // _ok_
-    END_RULE
+    }
 
-    RULE(REGEX)
+    RULE(REGEX){
         _ok_ = (*_pos_=='\'');
         if(_ok_){
             _pos_++;
@@ -858,28 +935,28 @@ public:
             _this_rule_->code = TOK_REGEX;
             _this_rule_->children.push_back(string(b,e));
         } // _ok_
-    END_RULE
+    }
 
-    RULE(RANGE)
+    RULE(RANGE){
         _ok_ = UINT() && SP_() && (TO(false)||MINUS(false)) && SP_() && UINT();
         if(_ok_){
             _this_rule_->code = TOK_TO;
         } // _ok_
-    END_RULE
+    }
 
-    RULE(RANGE_SIGNED)
+    RULE(RANGE_SIGNED){
         _ok_ = INT() && SP_() && (TO(false)||MINUS(false)) && SP_() && INT();
         if(_ok_){
             _this_rule_->code = TOK_TO;
         } // _ok_
-    END_RULE
+    }
 
 
-    RULE_REDUCE(START)
+    RULE_REDUCE(START){
         _ok_ = SP_() && LOGICAL_EXPR();        
-    END_RULE
+    }
 
-    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     AstNode_ptr run(){
         current_parent.reset(new AstNode); // Hierarchy root
 
@@ -913,7 +990,6 @@ public:
 
 };
 
-//int Grammar::rule_counter = 0;
 
 //===========================================================
 
