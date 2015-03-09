@@ -39,58 +39,97 @@ using namespace pteros;
 #define DEBUG(code)
 #endif
 
-// name-related stuff
-#define _NAME_DEPENDENT_VARS(_name)\
-    const int rule_id = __LINE__;\
-    string rule_name = "";\
-    DEBUG(rule_name = #_name;)
+
+#ifdef _DEBUG_PARSER
+/*===================================================*/
+/*   Rule macros for debug mode - with rule names    */
+/*===================================================*/
+
+// Variant of
 
 // Rule
 #define RULE(_name) \
 bool _name(bool add_to_tree = true, bool do_memo = true){ \
-    _NAME_DEPENDENT_VARS(_name)\
-    bool do_reduce = false;\    
-    bool _ok_ = false;\
-    return rule_proxy(rule_id, add_to_tree, do_memo, do_reduce, _ok_, std::bind(&Grammar::_name##_body,this,_1,_2,_3), rule_name); \
+    return rule_proxy(__LINE__, /*rule_id*/ \
+                      add_to_tree, do_memo, \
+                      false,  /* do_reduce */ \
+                      "",     /* literal */ \
+                      std::bind(&Grammar::_name##_body,this,_1,_2,_3), \
+                      #_name);   /* rule_name */ \
 }\
 void _name##_body(AstNode_ptr& _this_rule_, bool& _ok_, const std::string::iterator& _old_) \
 
-
+// Reduction rule
 #define RULE_REDUCE(_name) \
 bool _name(bool add_to_tree = true, bool do_memo = true){ \
-    _NAME_DEPENDENT_VARS(_name)\
-    bool do_reduce = true;\
-    bool _ok_ = false;\
-    return rule_proxy(rule_id, add_to_tree, do_memo, do_reduce, _ok_, std::bind(&Grammar::_name##_body,this,_1,_2,_3), rule_name); \
+    return rule_proxy(__LINE__, /*rule_id*/ \
+                      add_to_tree, do_memo, \
+                      true,  /* do_reduce */ \
+                      "",     /* literal */ \
+                      std::bind(&Grammar::_name##_body,this,_1,_2,_3), \
+                      #_name);   /* rule_name */ \
 }\
 void _name##_body(AstNode_ptr& _this_rule_, bool& _ok_, const std::string::iterator& _old_) \
-
 
 // Literal rule
-#define LITERAL_RULE(_name, _v) \
+#define LITERAL_RULE(_name, _lit) \
 bool _name(bool add_to_tree = true, bool do_memo = false){ \
-    _NAME_DEPENDENT_VARS(_name)\
-    bool do_reduce = false;\
-    std::string::iterator _old_ = _pos_;\
-    string _arg_(_v); \
-    if(_arg_.size()>3) do_memo = true; /*cache only 'large' literals*/ \
-    for(auto ch: _arg_){ \
-        if(*_pos_==ch){ \
-            _pos_++; \
-        } else { \
-            break; \
-        } \
-    } \
-    bool _ok_ = false;\
-    if(_pos_-_old_==_arg_.size()) _ok_ = true; \
-    return rule_proxy(rule_id, add_to_tree, do_memo, do_reduce, _ok_, std::bind(&Grammar::_name##_body,this,_1,_2,_3)); \
+    return rule_proxy(__LINE__, /*rule_id*/ \
+                      add_to_tree, do_memo, \
+                      false,  /* do_reduce */ \
+                      _lit,     /* literal */ \
+                      std::bind(&Grammar::_name##_body,this,_1,_2,_3), \
+                      #_name);   /* rule_name */ \
 }\
 void _name##_body(AstNode_ptr& _this_rule_, bool& _ok_, const std::string::iterator& _old_) \
+
+#else
+
+/*========================================================*/
+/*   Rule macros for release mode - without rule names    */
+/*========================================================*/
+
+// Rule
+#define RULE(_name) \
+bool _name(bool add_to_tree = true, bool do_memo = true){ \
+    return rule_proxy(__LINE__, /*rule_id*/ \
+                      add_to_tree, do_memo, \
+                      false,  /* do_reduce */ \
+                      "",     /* literal */ \
+                      std::bind(&Grammar::_name##_body,this,_1,_2,_3) ); \
+}\
+void _name##_body(AstNode_ptr& _this_rule_, bool& _ok_, const std::string::iterator& _old_) \
+
+// Reduction rule
+#define RULE_REDUCE(_name) \
+bool _name(bool add_to_tree = true, bool do_memo = true){ \
+    return rule_proxy(__LINE__, /*rule_id*/ \
+                      add_to_tree, do_memo, \
+                      true,  /* do_reduce */ \
+                      "",     /* literal */ \
+                      std::bind(&Grammar::_name##_body,this,_1,_2,_3) ); \
+}\
+void _name##_body(AstNode_ptr& _this_rule_, bool& _ok_, const std::string::iterator& _old_) \
+
+// Literal rule
+#define LITERAL_RULE(_name, _lit) \
+bool _name(bool add_to_tree = true, bool do_memo = false){ \
+    return rule_proxy(__LINE__, /*rule_id*/ \
+                      add_to_tree, do_memo, \
+                      false,  /* do_reduce */ \
+                      _lit,     /* literal */ \
+                      std::bind(&Grammar::_name##_body,this,_1,_2,_3) ); \
+}\
+void _name##_body(AstNode_ptr& _this_rule_, bool& _ok_, const std::string::iterator& _old_) \
+
+#endif
+
 
 
 #define SUBRULE(n) (_this_rule_->child_node(n))
 
 #define NUM_SUBRULES() (_this_rule_->children.size())
+
 /*===================================*/
 /*           PREDICATES              */
 /*===================================*/
@@ -145,6 +184,9 @@ void _name##_body(AstNode_ptr& _this_rule_, bool& _ok_, const std::string::itera
     }() \
     )
 
+/*===================================*/
+/*           Memo table              */
+/*===================================*/
 
 struct Memo_data {
     Memo_data(){}
@@ -192,12 +234,18 @@ public:
 #endif
     }
 
-
-    bool rule_proxy(const int rule_id, bool add_to_tree, bool do_memo, bool do_reduce, bool _ok_,
+#ifdef _DEBUG_PARSER
+    bool rule_proxy(const int rule_id, bool add_to_tree, bool do_memo, bool do_reduce, const string& literal,
                     std::function<void(AstNode_ptr&,bool&,const std::string::iterator&)> user_defined_body,
                     std::string rule_name=""){
-
+#else
+    bool rule_proxy(const int rule_id, bool add_to_tree, bool do_memo, bool do_reduce, const string& literal,
+                    std::function<void(AstNode_ptr&,bool&,const std::string::iterator&)> user_defined_body){
+#endif
         if(_pos_==end) return false;
+
+        bool _ok_ = false;
+
         AstNode_ptr _this_rule_(new AstNode);
 
         AstNode_ptr saved_parent = current_parent;
@@ -213,6 +261,7 @@ public:
 
         /* check memotable */
         bool restored = false;
+        if(literal!="") do_memo = (literal.size()>3) ? true : false; /*cache only 'large' literals*/
         if(do_memo && memo[rule_id].count(n)==1){
             DEBUG(for(int i=0;i<level;++i) cout <<"  ";)
             DEBUG(cout << "-- from memo: " << _this_rule_->name << " at: " << n << endl;)
@@ -230,6 +279,20 @@ public:
         std::string::iterator _old_ = _pos_;
 
         if(!restored){
+
+            // For literals
+            if(literal!=""){
+                for(auto ch: literal){
+                    if(*_pos_==ch){
+                        _pos_++;
+                    } else {
+                        break;
+                    }
+                }
+                if(_pos_-_old_== literal.size()) _ok_ = true;
+                if(!_ok_) _pos_ = _old_;
+            }
+
             // Call user-defined rule body
             user_defined_body(_this_rule_,_ok_,_old_);
         }
@@ -352,14 +415,12 @@ public:
         _this_rule_->code = TOK_POWER;
     }
 
-    LITERAL_RULE(LPAREN,"("){
-    }
+    LITERAL_RULE(LPAREN,"("){}
 
-    LITERAL_RULE(RPAREN,")"){
-    }
+    LITERAL_RULE(RPAREN,")"){}
 
     LITERAL_RULE(X,"x"){
-        _this_rule_->code = TOK_X;
+        _this_rule_->code = TOK_X;        
     }
 
     LITERAL_RULE(Y,"y"){
@@ -378,20 +439,15 @@ public:
         _this_rule_->code = TOK_OCC;
     }
 
-    LITERAL_RULE(DIST1,"distance"){
-    }
+    LITERAL_RULE(DIST1,"distance"){}
 
-    LITERAL_RULE(DIST2,"dist"){
-    }
+    LITERAL_RULE(DIST2,"dist"){}
 
-    LITERAL_RULE(POINT,"point"){
-    }
+    LITERAL_RULE(POINT,"point"){}
 
-    LITERAL_RULE(VECTOR,"vector"){
-    }
+    LITERAL_RULE(VECTOR,"vector"){}
 
-    LITERAL_RULE(PLANE,"plane"){
-    }
+    LITERAL_RULE(PLANE,"plane"){}
 
     LITERAL_RULE(OR,"or"){
         _this_rule_->code = TOK_OR;
@@ -426,17 +482,14 @@ public:
     }
 
     LITERAL_RULE(LT,"<"){
-        _this_rule_->code = TOK_LT;
+        _this_rule_->code = TOK_LT;     
     }
 
-    LITERAL_RULE(NOT,"not"){
-    }
+    LITERAL_RULE(NOT,"not"){}
 
-    LITERAL_RULE(WITHIN_,"within"){
-    }
+    LITERAL_RULE(WITHIN_,"within"){}
 
-    LITERAL_RULE(OF,"of"){
-    }
+    LITERAL_RULE(OF,"of"){}
 
     LITERAL_RULE(SELF_ON,"self"){
         _this_rule_->code = TOK_SELF;
@@ -468,14 +521,11 @@ public:
         _this_rule_->children.push_back(0);
     }
 
-    LITERAL_RULE(BY,"by"){
-    }
+    LITERAL_RULE(BY,"by"){}
 
-    LITERAL_RULE(TO,"to"){
-    }
+    LITERAL_RULE(TO,"to"){}
 
-    LITERAL_RULE(RESIDUE,"residue"){
-    }
+    LITERAL_RULE(RESIDUE,"residue"){}
 
     LITERAL_RULE(NAME,"name"){
         _this_rule_->code = TOK_NAME;
@@ -512,7 +562,6 @@ public:
 
     RULE_REDUCE(NUM_EXPR){
 
-        //_ok_ = NUM_TERM() && ZeroOrMore( (PLUS() || MINUS()) && SP_() && NUM_EXPR() );
         _ok_ = NUM_TERM() && ZeroOrMore( (PLUS() || MINUS()) && SP_() && NUM_TERM() );
 
         if(_ok_){
@@ -907,7 +956,7 @@ public:
         _ok_ = SP_() && LOGICAL_EXPR();        
     }
 
-    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     AstNode_ptr run(){
         current_parent.reset(new AstNode); // Hierarchy root
 
@@ -941,7 +990,6 @@ public:
 
 };
 
-//int Grammar::rule_counter = 0;
 
 //===========================================================
 
