@@ -20,7 +20,7 @@
  *
 */
 
-//#define _DEBUG_PARSER
+#define _DEBUG_PARSER
 
 #ifndef SELECTION_PARSER_H
 #define SELECTION_PARSER_H

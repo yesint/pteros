@@ -53,17 +53,17 @@ int main(int argc, char** argv)
         */
         //-----------
 
-       /*
+
         auto t_start = std::chrono::high_resolution_clock::now();
         Selection w;
-        for(int i=0;i<100;++i)
-            w.modify(s,"within 2.5 of name CA");
+        for(int i=0;i<1;++i)
+            w.modify(s,"x<1");
         auto t_end = std::chrono::high_resolution_clock::now();
 
         cout << w.size() << " elapsed: "
              << std::chrono::duration<double>(t_end-t_start).count()/100.0 << endl;
 
-        */
+
 /*
         int N = 10000;
         Selection sel(s,"all");
