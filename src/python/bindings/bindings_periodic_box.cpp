@@ -33,13 +33,19 @@ void Periodic_box_modify(Periodic_box* b, PyObject* arr){
     b->modify(m);
 }
 
-PyObject* Periodic_box_get_box(Periodic_box* b){
+PyObject* Periodic_box_get_matrix(Periodic_box* b){
     CREATE_PYARRAY_2D_AND_MAP(p,Matrix3f,m,3,3)
-    m = b->get_box();
+    m = b->get_matrix();
     return boost::python::incref(p);
 }
 
-PyObject* Periodic_box_to_box(Periodic_box* b, PyObject* point){
+PyObject* Periodic_box_get_vector(Periodic_box* b, int i){
+    CREATE_PYARRAY_1D_AND_MAP(vec,Vector3f,v,3)
+    v = b->get_vector(i);
+    return boost::python::incref(vec);
+}
+
+PyObject* Periodic_lab_to_box(Periodic_box* b, PyObject* point){
     CREATE_PYARRAY_1D_AND_MAP(ret,Vector3f,v,3)
     MAP_EIGEN_TO_PYTHON_F(Vector3f,p,point)
     v = b->lab_to_box(p);
@@ -53,15 +59,15 @@ PyObject* Periodic_box_to_lab(Periodic_box* b, PyObject* point){
     return boost::python::incref(ret);
 }
 
-PyObject* Periodic_box_to_box_matrix(Periodic_box* b){
+PyObject* Periodic_lab_to_box_transform(Periodic_box* b){
     CREATE_PYARRAY_2D_AND_MAP(ret,Matrix3f,m,3,3)
-    m = b->lab_to_box_matrix();
+    m = b->lab_to_box_transform();
     return boost::python::incref(ret);
 }
 
-PyObject* Periodic_box_to_lab_matrix(Periodic_box* b){
+PyObject* Periodic_box_to_lab_transform(Periodic_box* b){
     CREATE_PYARRAY_2D_AND_MAP(ret,Matrix3f,m,3,3)
-    m = b->box_to_lab_matrix();
+    m = b->box_to_lab_transform();
     return boost::python::incref(ret);
 }
 
@@ -142,11 +148,12 @@ void make_bindings_Periodic_box(){
 
     class_<Periodic_box>("Periodic_box", init<>())
         .def("modify",&Periodic_box_modify)
-        .def("get_box",&Periodic_box_get_box)
-        .def("lab_to_box",&Periodic_box_to_box)
-        .def("lab_to_box_matrix",&Periodic_box_to_box_matrix)
+        .def("get_matrix",&Periodic_box_get_matrix)
+        .def("get_vector",&Periodic_box_get_vector)
+        .def("lab_to_box",&Periodic_lab_to_box)
+        .def("lab_to_box_transform",&Periodic_lab_to_box_transform)
         .def("box_to_lab",&Periodic_box_to_lab)
-        .def("box_to_lab_matrix",&Periodic_box_to_lab_matrix)
+        .def("box_to_lab_transform",&Periodic_box_to_lab_transform)
         .def("extent",&Periodic_box::extent)
         .def("extents",&Periodic_box_extents)
         .def("is_triclinic",&Periodic_box::is_triclinic)

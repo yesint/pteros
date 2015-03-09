@@ -159,7 +159,7 @@ void GRO_file::do_write(const Selection &sel, const Mol_file_content &what){
     if(sel.get_system()->Box(sel.get_frame()).is_periodic()){
         // We store box as column-vectors, while the code below hacked from VMD use row vectors,
         // so, transpose
-        b = sel.get_system()->Box(sel.get_frame()).get_box().transpose();
+        b = sel.get_system()->Box(sel.get_frame()).get_matrix().transpose();
     } else {
         b.fill(0.0);
     }

@@ -66,20 +66,23 @@ public:
     /// Modify the box
     void modify(Matrix3f_const_ref box);       
 
-    /// Get stored periodic box
-    Eigen::Matrix3f get_box() const {return _box;}
+    /// Get i-th box vector
+    Eigen::Vector3f get_vector(int i){ return _box.col(i); }
+
+    /// Get stored matrix of box vectors
+    Eigen::Matrix3f get_matrix() const {return _box;}
 
     /// Convert point from lab coordinates to box coordinates
     Eigen::Vector3f lab_to_box(Vector3f_const_ref point) const { return _to_box*point; }
 
-    /// Return the transformation matrix from lab coordinates to box coordinates
-    const Eigen::Matrix3f& lab_to_box_matrix() const {return _to_box;}
+    /// Return the transformation from lab coordinates to box coordinates
+    const Eigen::Matrix3f& lab_to_box_transform() const {return _to_box;}
 
     /// Convert point from box coordinates to lab coordinates
     Eigen::Vector3f box_to_lab(Vector3f_const_ref point) const { return _to_lab*point; }
 
-    /// Return the transformation matrix from box coordinates to lab coordinates
-    const Eigen::Matrix3f& box_to_lab_matrix() const {return _to_lab;}
+    /// Return the transformation from box coordinates to lab coordinates
+    const Eigen::Matrix3f& box_to_lab_transform() const {return _to_lab;}
 
     /// Return i-th extent of the box
     float extent(int i) const {return _extents(i);}
@@ -105,6 +108,7 @@ public:
                    bool do_wrapping = true,
                    Vector3i_const_ref periodic_dims = Eigen::Vector3i::Ones()) const;
 
+    /// The same as distance but returns squared distance
     float distance_squared(Vector3f_const_ref point1,
                    Vector3f_const_ref point2,
                    bool do_wrapping = true,
@@ -132,7 +136,7 @@ public:
                                     Vector3f_const_ref point2,
                                     Vector3i_const_ref dims = Eigen::Vector3i::Ones()) const;
 
-    /// Return box volume
+    /// Returns box volume
     float volume();
 
     /// Read box from CRYST string in PDB format

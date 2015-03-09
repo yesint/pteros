@@ -119,7 +119,7 @@ void Gromacs_trajectory_file::do_write(const Selection &sel, const Mol_file_cont
     // Set box
     for(int i=0;i<3;++i)
         for(int j=0;j<3;++j)
-            box[i][j] = sel.get_system()->Box(sel.get_frame()).get_box()(i,j);
+            box[i][j] = sel.get_system()->Box(sel.get_frame()).get_matrix()(i,j);
 
 
     // Write

@@ -49,7 +49,7 @@ void Frame_set_coord(Frame* f, boost::python::list l){
 
 PyObject* Frame_get_box(Frame* f){
     CREATE_PYARRAY_2D_AND_MAP(p,Matrix3f,m,3,3)
-    m = f->box.get_box();
+    m = f->box.get_matrix();
     return boost::python::incref(p);
 }
 

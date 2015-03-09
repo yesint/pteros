@@ -44,8 +44,7 @@ void Periodic_box::modify(Matrix3f_const_ref box)
 
     if(!_is_periodic) return;
 
-    int i;
-    for(i=0;i<3;++i){
+    for(int i=0;i<3;++i){
         _to_lab.col(i) = _box.col(i).normalized();
         _extents(i) = _box.col(i).norm();
     }

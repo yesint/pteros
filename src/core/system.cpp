@@ -110,7 +110,7 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
             // We have not a single frame, so read only structure here
             // Clear flags for trajectory and coordinates
             c.coordinates = c.trajectory = false;
-            f->read(this,NULL,c);
+            f->read(this,nullptr,c);
             assign_resindex();
         }        
     }
@@ -122,7 +122,7 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
             throw Pteros_error("File reader for file '"+fname
                                +"' is not capable of appending frames to the system!");
 
-        // Check if we can read multiple coordinates
+        // Check if we can read trajectory
         if(f->get_content_type().trajectory){
 
             Mol_file_content c;
@@ -139,7 +139,7 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
                 cout << "Skipping " << b << " frames..." << endl;
                 Frame skip_fr;
                 for(int i=0;i<b;++i){
-                    f->read(NULL,&skip_fr,c);
+                    f->read(nullptr,&skip_fr,c);
                     cur++;
                 }
             }
@@ -160,7 +160,7 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
                 Frame fr;
                 frame_append(fr);
                 // Try to read into it
-                bool ok = f->read(NULL,&Frame_data(num_frames()-1),c);
+                bool ok = f->read(nullptr,&Frame_data(num_frames()-1),c);
                 if(!ok){
                     frame_delete(num_frames()-1); // Remove last frame - it's invalid
                     break; // end of trajectory
@@ -194,7 +194,7 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
             Frame fr;
             frame_append(fr);
             // Read it
-            f->read(NULL,&Frame_data(num_frames()-1),c);
+            f->read(nullptr,&Frame_data(num_frames()-1),c);
             check_num_atoms_in_last_frame();
             ++num_stored;
             // Call a callback if asked

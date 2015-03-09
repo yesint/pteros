@@ -18,7 +18,8 @@ struct Compiled_plugin_base: public Consumer {
     std::string label;
 
     virtual std::string help(){
-        return "\n\tThis plugin does not define any help information.\n\tDig into the sources. Good luck :)";
+        return "\n\tThis plugin does not define any help information."
+               "\n\tDig into the sources. Good luck :)";
     }
 
     void remove_jumps(Selection& sel, const Frame_info &info);
