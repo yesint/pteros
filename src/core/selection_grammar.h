@@ -45,8 +45,6 @@ using namespace pteros;
 /*   Rule macros for debug mode - with rule names    */
 /*===================================================*/
 
-// Variant of
-
 // Rule
 #define RULE(_name) \
 bool _name(bool add_to_tree = true, bool do_memo = true){ \

@@ -60,9 +60,6 @@ class Selection {
   friend class Grid_searcher;
 
   public:
-    // Ensure correct 16-bytes-alignment for Eigen sse2 optimizations
-    //EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     /// @name Constructors and operators
     /// @{
@@ -118,13 +115,31 @@ class Selection {
         return !(*this == other);
     }
 
-    /// Indexing operator. Returns an Atom_proxy object,
-    /// which incapsulates atom and its coordinates for current frame
-    /// Can only be used as r-value (can not be assigned to).
+    /** Indexing operator. Returns an Atom_proxy object,
+     which incapsulates atom and its coordinates for current frame
+     Can only be used as r-value (can not be assigned to)
+     however individual fields of the proxy object are writable
+
+     \code
+     Selection sel(sys,"name CA");
+     sel[1] = sel[0]; // ERROR! Can't assign to proxy object returned by []!
+     sel[0].Name() = "A"; // OK to write fields of proxy object
+     \endcode
+
+     Main goal of [] operator is usage in range-based for loops:
+     \code
+     Selection sel(sys,"name CA");
+     for(auto a: sel){
+        cout << a.Name() << " " << a.X() << endl;
+     }
+     \endcode
+
+     Otherwise it is slower than conventional syntax like sel.Name(i)
+     */
     Atom_proxy operator[](int ind) const;
 
     // Writing selection to stream.
-    // Outputs index as a space separated list
+    // Outputs indexes as a space separated list
     friend std::ostream& operator<<(std::ostream& os, const Selection& sel);
 
     /// Creates new Selection, which is the logical OR of two parent selections.
@@ -352,11 +367,14 @@ class Selection {
     /// @{
 
     /** Get the center of selection.
-    * @param mass_weighted Use mass-weighting
-    * @param periodic Account for periodic boundary conditions.
-    * Please note that if the size of selection is larger than 1/2 of the box size in
-    * any dimension you will get incorrect results if periodic is set to true.
-    * In this case use one of the unwrapping options first.
+     @param mass_weighted Use mass-weighting
+     @param periodic Account for periodic boundary conditions.
+
+     \warning
+     If the size of selection is larger than 1/2 of the box size in
+     any dimension you will get incorrect results if periodic is set to true.
+     This is not checked automatically!
+     In this case use one of unwrapping options first.
     */
     Eigen::Vector3f center(bool mass_weighted = false, bool periodic = false) const;
 
@@ -377,23 +395,38 @@ class Selection {
     */
     Eigen::MatrixXf atom_traj(int ind, int b=0, int e=-1) const;
 
-    /// Computes the central momens of inertia and principal axes of inertia
+    /** Computes the central momens of inertia and principal axes of inertia
+     \warning
+     If the size of selection is larger than 1/2 of the box size in
+     any dimension you will get incorrect results if periodic is set to true.
+     This is not checked automatically!
+     In this case use one of unwrapping options first.
+    */
     void inertia(Vector3f_ref moments, Matrix3f_ref axes, bool periodic = false) const;
 
-    /// Computes radius of gyration for selection
+    /** Computes radius of gyration for selection
+     \warning
+     If the size of selection is larger than 1/2 of the box size in
+     any dimension you will get incorrect results if periodic is set to true.
+     This is not checked automatically!
+     In this case use one of unwrapping options first.
+    */
     float gyration(bool periodic = false) const;
 
     /// Get distance between two atoms (periodic in given dimensions if needed).
+    /// \note
     /// This function takes selection indexes, not absolute indexes.
     float distance(int i, int j, bool is_periodic = true,
                    Vector3i_const_ref dims = Eigen::Vector3i::Ones()) const;
 
     /// Get angle in degrees between three atoms (periodic in given dimensions if needed).
+    /// \note
     /// This function takes selection indexes, not absolute indexes.
     float angle(int i, int j, int k, bool is_periodic = true,
                 Vector3i_const_ref dims = Eigen::Vector3i::Ones()) const;
 
     /// Get dihedral angle in degrees between three atoms (periodic in given dimensions if needed).
+    /// \note
     /// This function takes selection indexes, not absolute indexes.
     float dihedral(int i, int j, int k, int l, bool is_periodic = true,
                 Vector3i_const_ref dims = Eigen::Vector3i::Ones()) const;
@@ -435,21 +468,23 @@ class Selection {
     void wrap(Vector3i_const_ref dims = Eigen::Vector3i::Ones());
 
     /** Unwraps selection to make it whole if possible (without jumps over periodic box boundary).
-     * The periodic center of mass is used as an anchor point.
-     * Please note that if the size of selection is larger than 1/2 of the box size in
-     * any dimension unwrap() will not work as expected and will not make selection "compact"!
+      The periodic center of mass is used as an anchor point.
+      \warning
+      If the size of selection is larger than 1/2 of the box size in
+      any dimension unwrap() will not work as expected and will not make selection "compact"!
     */
     void unwrap(Vector3i_const_ref dims = Eigen::Vector3i::Ones());
 
     /** Unwraps selection to make it whole (without jumps over periodic box boundary).
-     * based on preserving all bonds. The maximal bond length is given by d.
+     * based on preserving all bonds. The maximal bond length is given by @param d.
      * This method works reliably in any case, but is much slower than unwrap()
      */
     void unwrap_bonds(float d = 0.2, Vector3i_const_ref dims = Eigen::Vector3i::Ones());
 
     /** Get transform for orienting selection by principal axes.
-     * Please note that if the size of selection is larger than 1/2 of the box size in
-     * any dimension you will get funny results if is_periodic is set to true.
+     * \warning
+     * If the size of selection is larger than 1/2 of the box size in
+     * any dimension you will get funny results if @param is_periodic is set to true.
      */    
     Eigen::Affine3f principal_transform(bool is_periodic = false) const;
 
@@ -851,7 +886,8 @@ public:
     Atom_proxy(){}
     Atom_proxy(Selection* s, int i): sel(s), ind(i) {}        
 
-    /// Accessors. Const and non-const versions.
+    /// @name Inline accessors. Const and non-const versions.
+    /// @{
     inline int& Resid(){ return sel->Resid(ind); }
     inline const int& Resid() const { return sel->Resid(ind); }
 
@@ -917,6 +953,8 @@ public:
 
     inline Atom& Atom_data(){ return sel->Atom_data(ind); }
     inline const Atom& Atom_data() const { return sel->Atom_data(ind); }
+
+    /// @}
 
     /// Equality operator
     bool operator==(const Atom_proxy& other) const {

@@ -770,7 +770,8 @@ Vector3f Selection::center(bool mass_weighted, bool periodic) const {
                     res += r;
                 }
             }
-            if(mass==0) throw Pteros_error("Zero mass in mass-weighted center calculation!");
+            if(mass==0) throw Pteros_error("Atom ") << Index(i)
+                                                    << " has zero mass! Center of mass failed!";
             return res/mass;
         } else {
             #pragma omp parallel
@@ -806,7 +807,8 @@ Vector3f Selection::center(bool mass_weighted, bool periodic) const {
                     res += r;                    
                 }
             }
-            if(mass==0) throw Pteros_error("Zero mass in mass-weighted center calculation!");
+            if(mass==0) throw Pteros_error("Atom ") << Index(i)
+                                                    << " has zero mass! Center of mass failed!";
             return res/mass;
         } else {
             #pragma omp parallel

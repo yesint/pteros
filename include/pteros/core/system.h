@@ -97,10 +97,7 @@ class System {
     friend class Selection_parser;
     // Mol_file needs an access too
     friend class Mol_file;
-public:
-    // Ensure correct 16-bytes-alignment for Eigen vectorization
-    //EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
+public:    
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     /// @name Constructors and operators
     /// @{
@@ -175,7 +172,7 @@ public:
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     /** @name Selecting atoms.
-     This functions are just convenience adaptors for constructors of Selection class:
+     These functions are just convenience adaptors for constructors of Selection class:
      \code
      // Conventional way:
      sys = System("structure.pdb");
@@ -234,7 +231,7 @@ public:
     /// Adds provided frame to trajectory
     void frame_append(const Frame& fr);
 
-    /// Copy all frame data from fr1 to fr2
+    /// Copy all frame data from fr1 to fr2. Fr2 is overwritten!
     void frame_copy(int fr1, int fr2);
 
     /** Delete specified range of frames.
@@ -347,7 +344,7 @@ public:
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     /// @name Periodicity-related functions
-    /// @{    
+    /// @{
 
     /// Wrap all system to the periodic box for given frame
     void wrap_all(int fr, Vector3i_const_ref dims_to_wrap = Eigen::Vector3i::Ones());

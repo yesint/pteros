@@ -4,7 +4,6 @@
 - \ref tutorial
 - \ref what_is_pteros
 - \ref is_it_for_you
-- \ref motivation
 - \ref features
 - \ref status
 - \ref install
@@ -12,6 +11,7 @@
 - \ref cpp_level
 - \ref third
 - \ref design
+- \ref motivation
 - \ref bench
 - <a href="python/_build/html/index.html"> <b>Python bindings</b> </a>
 
@@ -37,53 +37,41 @@ Pteros is <i>not</i> for you if:
 - Your task requires extensive usage of molecular visualizer. Pteros doesn't have one currently.
 - You have no programming skills at all, or you don't want to learn C++ or Python.
 
-\section motivation 	Motivation
-
-So, why yet another molecular modeling library? First of all because I didn't find any C++ library for
-molecular modeling which satisfies my needs. Existing libraries are either too complicated or has clumsy and counterintuitive API. Of course all this is the matter of personal preference, but I have a feeling that many other researchers also desperately look for simple and clear library, which can simplify tedious routine tasks in molecular modeling.
-
-There are several molecular modeling programs, which could be controlled by the scripting languages. Such scripting is often used to perform non-standard analysis tasks. This is perfectly acceptable if the execution time is not an issue, however any computationally intensive algorithm will run ridiculously slow in the scripting language like Python or TCL. Pteros is designed as a replacement of such scripting extentions to existing molecular modeling software. With Pteros one can easily write very fast compiled programs in C++ using the same high-level concepts, which are provided by the scripting extentions.
-
-Pteros contains bindings for Python language. They come handy when one need small throw-away program or in prototyping the algorithms.
-
 \section features	Features
 
-- Reading/writing several popular molecular data formats (PDB, GRO, XTC, TRR, TPR, DCD, TNG).
-- Very powerful and simple syntax for selecting groups of atoms similar to one used in VMD, but more powerfull.
-- Selections can be manipulated in many different ways and various properties could be queried.
+- Reading/writing popular molecular structure and trajectory formats (PDB, GRO, MOL2, XTC, TRR, TPR, DCD, TNG).
+- Very simple and expressive syntax for selecting groups of atoms similar to one used in <a href="http://www.ks.uiuc.edu/Research/vmd/vmd-1.3/ug/node132.html">VMD</a>, but more powerfull.
+- Selections can be manipulated in many different ways from simple translation to orientation by principal axes.
+- Various properties of selections could be queried ranging from center of masses to radius of gyration.
 - RMSD fitting and alignment.
+- Full support for arbitrary periodic boxes - periodic selections and distances, wrapping/unwrapping, removing jumps over boundaries, computing closest images and shortest vectors, etc.
 - Computing non-bonded interactions with <i>any</i> force field available in Gromacs format (GROMOS, CHARMM, AMBER, OPLS and more).
 - Ability to work with very large trajectories, which does not fit into the memory.
 - Asynchronous processing made easy. Many different analysis tasks could be run in parallel and simulataneously with trajectory reading.
 - Very powerful and flexible syntax of the command-line options for custom analysis programs and scripts.
 - Easy to use. API is very simple and intuitive.
-- Easy to extend. Pteros is writen in 100% standard high-level C++.
-- Oriented to reserachers and students, not to programming gurus. The code is well structured and well documented.
-- Bindings for Python language (<a href="python/_build/html/index.html"> bindings documentation </a>)
-- The plugin architecture, which makes writing C++ or Python code for asynchronous trajectory analysis trivial. You concentrate on the analysis algorithm itself, not on the technical details of managing files and trajectories.
+- Easy to extend. Pteros is writen in high-level C++.
+- Oriented to human beings (reserachers and students), not to programming gurus. The code is very well structured and documented.
+- (<a href="python/_build/html/index.html">Bindings</a>) for Python language.
+- Plugin architecture, which makes writing C++ or Python code for asynchronous trajectory analysis trivial. You concentrate on the analysis algorithm itself, not on the technical details of managing files and trajectories.
 
-Some less widely used features include:
+Some less widely used features:
 
 - Elastic network model calculations.
 - Support for residue-level DFIRE potentials.
 
 \section status		Development status
-Pteros is currently very close to what could be called a stable release. The librray is quite stable and usable, but API (especially in the part of Python bindings) is still subject to small changes, error reporting is still incomplete and many features are not implemented yet. You are wellcome to participate in pteros development - there are a lot of things to do!
-
-In its final form Pteros will consist of the following components:
-- Core library. <i> Already usable and stable. </i>
-- Analysis framework. <i> Stable and usable, expanding continuously </i>
-- Python bindings. <i> Usable, but evolving </i>
-- Interface for <a href="http://www.ks.uiuc.edu/Research/vmd/">VMD</a> for easy visualization. <i> Planned. </i>
+Pteros is a mature but evolving library. The librray is stable, but API (especially in the part of Python bindings) is still subject to small changes. There are bugs here and there, error reporting is still incomplete and many features are not implemented yet. You are wellcome to participate in pteros development - there are a lot of things to do!
 
 \section install 	Installation and linking with pteros
 
 \subsection port 	Portability
-Pteros is being developed on Linux with gcc and clang compilers. New versions are tested periodically on Windows under MinGW gcc compiler (see \ref install_win). Other compilers and operating systems are not tested because we have no other systems in possession. Design decisions are made with portability to Windows and MacOS in mind. Other systems are not considered. The code itself should be 100% portable providing that the dependencies are available for your system, but expect platform-dependent quirks and issues, which are common to all complex C++ programs, not only to Pteros.
+Pteros is being developed on Linux with gcc and clang compilers. New versions are tested periodically on Windows under MinGW gcc compiler (see \ref install_win). Other compilers and operating systems are not tested because we have no other systems in possession. Design decisions are made with portability to Linux, Windows and MacOS in mind. Other systems are not considered. The code itself should be 100% portable providing that the dependencies are available for your system, but expect platform-dependent quirks and issues, which are common to all complex C++ programs, not only to Pteros.
 
+\note
 If you managed to compile Pteros on MacOS, please share your experience because we have no Mac machines to perform the tests.
-
-Intel ICC compiles Pteros on Linux, but gives poor performance. Compiling with Intel MKL works, but gives broken Python bindings. Any help in these issues is appreciated!
+\warning
+Intel ICC compiles Pteros on Linux, but gives poor performance. Compiling with Intel MKL works, but gives broken Python bindings. Any help with these issues is appreciated!
 
 
 \subsection depend 	Dependencies 
@@ -93,7 +81,7 @@ The prerequisites for compilation of Pteros are the following:
 - <a href="http://www.cmake.org/">cmake</a> build system.
 - <a href="http://www.boost.org/">boost</a> 1.48 or higher.
 - <a href="http://git-scm.com/">Git</a> for getting the source code.
-- <a href="https://www.python.org/">Python</a> 2.5 of higher (optional if you don't use dynamic plugins and python bindings)
+- <a href="https://www.python.org/">Python</a> 2.5 or higher (optional if you don't use dynamic plugins and python bindings)
 - <a href="www.doxygen.org">Doxygen</a> (only if you want to build documentation yourself)
 - <a href="http://sphinx-doc.org/">Sphinx</a> (only if you want to build documentation for python bindings yourself)
 
@@ -112,28 +100,30 @@ Starting from May 2014 Pteros has moved to C++11 standard. As a result it can on
 
 \subsubsection get Getting the code
 
-Get the latest source code could from the Git repository. If you want the stable branch use the following command:
-\code{.unparsed}
-git clone git://git.code.sf.net/p/pteros/code pteros-code
-\endcode
-This will create a directory named "pteros-code" in you current working directory and will download the latest stable branch of Pteros source code into it.
-
-You can also get the latest development branch (named "experimental"), which is the bleading-age of Pteros development but may contain some bugs and unstable features:
+Get the latest source code from the Git repository:
 \code{.unparsed}
 git clone -b experimental git://git.code.sf.net/p/pteros/code pteros-code
 \endcode
+This will create a directory named "pteros-code" in you current working directory and will download the source code into it.
 
-If you need older version, which does not contain C++11 features, use the "optional_cpp11" branch:
+You can also get the "stable" branch:
+\code{.unparsed}
+git clone git://git.code.sf.net/p/pteros/code pteros-code
+\endcode
+
+\warning
+Currently the *stable* branch is significantly outdated and not as stable as it should be. It is advised to use *experimental* branch for all projects. This may change in the future.
+
+If you need an older version, which does not contain C++11 features, use the "optional_cpp11" branch:
 \code{.unparsed}
 git clone -b optional_cpp11 git://git.code.sf.net/p/pteros/code pteros-code
 \endcode
 
 \warning
-Currently the *stable* branch is considered significantly outdated and it is advised to use *experimental* branch for new projects. This may change in the future.
-The *optional_cpp11* branch is completely outdated and will \b never get new features. It is preserved only for compatibility with ancient compilers.
+The *optional_cpp11* branch is completely outdated and will \b never get new features! It is preserved only for compatibility with ancient compilers.
 
 \subsubsection compile Compiling
-Create a build directory (for example 'pteros_build'). Go to this directory and issue the following commands:
+Create a separate build directory (for example 'pteros_build'). Go to this directory and issue the following commands:
 
 \code{.unparsed}
 cmake <path to Pteros source directory> -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=<where to install Pteros>
@@ -141,6 +131,7 @@ make
 make install
 \endcode
 
+\warning
 The 'make install' command may require root access if you are installing into the system-wide location.
 
 The first cmake command will print something like this:
@@ -169,43 +160,46 @@ Run the following command:
 pteros_analysis.py --help all
 \endcode
 
-If you see any error then Pteros can't load plugins or something elese went wrong.
+If you see any errors then Pteros can't load plugins or something elese went wrong.
 
 \note This is only applicable if you are building with Python support!
 
 \subsection trouble Troubleshooting
 
-The most common problems during installation arise from bugs in Boost or in the compilers and from the wrong versions of the libraries, which are found by CMake. In general <a href="www.google.com">Google</a> is your best friend in solving any problem. If you are stuck write to <i>yesint4(AT)yahoo.com</i> and attach error messages and the system configuration (versions of all required libraries and compiler).
+The most common problems during installation arise from bugs in Boost or in the compilers and from the wrong versions of the libraries, which are found by CMake. In general <a href="http://www.google.com">Google</a> is your best friend in solving any problem. If you are stuck completely write to <i>yesint4(AT)yahoo.com</i> and attach error messages and the system configuration (versions of all required libraries and compiler).
 
-The list of known problems:
-- clang compiler doesn't work with Boost < 1.52
+\subsubsection known_problems Known problems
+- Clang compiler doesn't work with Boost < 1.52
 - If there are several Boost versions in the system CMake may find the right one for one library (say, Boost.threads) but the wrong one for the other (say, Boost.python), which causes very strange errors. The solution is to include the following flags to CMake invocation: 
 \code{.unparsed} -DBoost_NO_SYSTEM_PATHS=ON -DBOOST_ROOT="Correct path to boost" \endcode
+- All Pteros plugins have to be up to date with the main library, but CMake doesn't always ensure this if you pull new updates from the repository. If plugins suddenly stop working after update delete CMakeCache.txt and CMakeFiles and recompile.
 
 \subsection sasa Enabling SASA code
 
-Pteros can perform the Solvent Accesible Surface Area (SASA) computatations using POWERSASA code developed in the Karlsruhe Institute of Technology. POWERSASA is licensed by specific and rather restrictive "Academic/Non-Profit SASA software license agreement".
-See the comment in the file src/core/sasa/power_sasa.h for details.
+Pteros can perform the Solvent Accesible Surface Area (SASA) computatations using POWERSASA code developed in the <a href="http://www.kit.edu/english/">Karlsruhe Institute of Technology</a>. POWERSASA is licensed by specific and rather restrictive "Academic/Non-Profit SASA software license agreement".
+See the comment in the file *src/core/sasa/power_sasa.h* for details.
 This license is NOT Open Source and imply many restrictions!
 Please read it carefully. If you agree with this license and performed all required steps use the following flag when invoking cmake:
 \code{.unparsed}
 -DPOWERSASA="ON"
 \endcode
 By default this code is NOT compiled. Pteros doesn't support SASA computations without it.
+\note
+I contacted the authors of POWERSASA several times to ask for official permision to use their code but got no reply. It seems that nobody is concerned about the licensing of POWERSASA now. But you are warned :)
 
 \subsection linking 	Linking with Pteros
 
-It is recommended to use CMake for all projects, which use Pteros. You \e can use autoconf/automake or custom Makefiles, but this will never be officially supported. The "template" subdirectory of the source tree contains the skeleton of CMake project, which could be used to link you own program with pteros libraries.
+It is recommended to use CMake. You \e can use autoconf/automake or custom Makefiles, but this will never be officially supported. The "template" subdirectory of the source tree contains the skeleton of CMake project, which could be used to link your own program with pteros libraries.
 
 \subsection no_python 	Building Pteros without Python
 
-Pteros could be build without Python. If now Python libraries are found in the System the compilation of Python bindings and plugins is disabled and only the core libraries are built. 
+Pteros could be build without Python. If no Python libraries are found in the System the compilation of Python bindings and plugins is disabled and only the core libraries are built.
 
 If the Python is installed, but you don't want to use it add the following flag to CMake invocation:
 
 \code{.unparsed} -DPYTHON_BINDINGS="OFF" \endcode
 
-Compiled analysis plugins, which are written in C++, will be also missing in this case because they are built as Python extensions by default. However, it is possible to build each plugin as a separate standalone program, which does not depend on Python, by adding the following flag to CMake invocation:
+Compiled analysis plugins, which are written in C++, will be also missing in this case because they are built as Python extensions by default. However, it is possible to build each plugin as a separate standalone program, which does not depend on Python, by adding the following flag to CMake:
 \code{.unparsed} -DSTANDALONE_PLUGINS="ON" \endcode
 
 If you want to build plugins as the standalone programs AND as python extensions at the same time use the following flags:
@@ -223,7 +217,7 @@ In this case each plugin will be compiled twice, so expect longer compilation ti
 - <a href="http://eigen.tuxfamily.org/index.php?title=Main_Page">Eigen</a> - highly optimized vector/matrix library.
 - POWERSASA code for Solvent Accesible Surface Area (SASA) computatations. Now inclided into <a href="http://www.int.kit.edu/1636.php">SIMONA</a> package.
 - <a href="http://swift.cmbi.ru.nl/gv/dssp/">dssp 2.0</a> code for secondary structure computations.
-- <a href="http://www.ks.uiuc.edu/Research/vmd/plugins/molfile/">Molfile plugins</a> from VMD for reading PDB, DCD and TNG files.
+- <a href="http://www.ks.uiuc.edu/Research/vmd/plugins/molfile/">Molfile plugins</a> from VMD for reading PDB, DCD, MOL2 and TNG files.
 
 The sources of all these libraries are included into the source tree of Pteros, so you don't need to install them separately.
 
@@ -237,6 +231,15 @@ In order to develop you own programs with Pteros you need to know C++ reasonably
 In addition you should be familiar with Eigen vector/matrix library. Fortunately, it has <a href="http://eigen.tuxfamily.org/dox/">an excelent documentation</a>. 
 
 In order to modify internals of Pteros you should also be familiar with some Boost libraries, namely Boost.thread, Boost.bind, Boost.signals2, Boost.multiarray and Boost.python.
+
+\section motivation 	Motivation
+
+So, why yet another molecular modeling library? First of all because I didn't find any C++ library for
+molecular modeling which satisfies my needs. Existing libraries are either too complicated or has clumsy and counterintuitive API. Of course all this is the matter of personal preference, but I have a feeling that many other researchers also desperately look for simple and clear library, which can simplify tedious routine tasks in molecular modeling.
+
+There are several molecular modeling programs, which could be controlled by the scripting languages. Such scripting is often used to perform non-standard analysis tasks. This is perfectly acceptable if the execution time is not an issue, however any computationally intensive algorithm will run ridiculously slow in the scripting language like Python or TCL. Pteros is designed as a replacement of such scripting extentions to existing molecular modeling software. With Pteros one can easily write very fast compiled programs in C++ using the same high-level concepts, which are provided by the scripting extentions.
+
+Pteros contains bindings for Python language. They come handy when one need small throw-away program or in prototyping the algorithms.
 
 \section bench Benchmarks
 

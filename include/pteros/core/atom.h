@@ -34,9 +34,10 @@ class Atom {
   public:
     /// @name General fields
     /// @{
+
     /// Residue ID (unique only inside given chain)
     int  resid;
-    /// Atom name (CA, O, N, etc.)
+    /// %Atom name (CA, O, N, etc.)
     std::string  name;
     /// Chain. Single letter (A,B,Z)
     char  chain;
@@ -56,30 +57,31 @@ class Atom {
 
     /// @name Force-field related fields
     /// @{
-    /// Atom mass
+
+    /// %Atom mass
     float mass;
-    /// Atom charge
+    /// %Atom charge
     float charge;
-    /// Atom type code. -1 means unknown.
+    /// %Atom type code. -1 means unknown.
     int type;
-    /// Atom type name - textual representation of the atom type
+    /// %Atom type name - textual representation of the atom type
     std::string type_name;
     /// @}
 
-    Atom(){
-        resid = -1;
-        name = "";
-        chain = ' ';
-        resname = "";
-        tag = "";
-        occupancy = 0;
-        beta = 0;
-        resindex = -1;
-        mass = 0;
-        charge = 0;
-        type = -1;
-        type_name = "";        
-    }
+    Atom():
+        resid(-1),
+        name(""),
+        chain(' '),
+        resname(""),
+        tag(""),
+        occupancy(0),
+        beta(0),
+        resindex(-1),
+        mass(0),
+        charge(0),
+        type(-1),
+        type_name("")
+    {}
 };
 
 }

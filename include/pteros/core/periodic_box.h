@@ -39,7 +39,7 @@ namespace pteros {
  whole box, modify the component and set it back:
  \code
  Periodic_box box(some_data);
- Matrix3f b = box.get_box();
+ Matrix3f b = box.get_matrix();
  b(1,2) *= 2.0; // Modify the box element
  box.modify(b); // Set new box. This will recompute internal matrices
  \endcode
@@ -124,7 +124,7 @@ public:
 
     /// Finds a periodic image of point, which is closest in space to target and returns it
     /// This method wraps both point and targer to periodic box internally (this is usually what you want).
-    /// If this is not needed set @param do_wrapping to false, but in this case make sure
+    /// If this is not needed set do_wrapping to false, but in this case make sure
     /// that wrapping is done manually before! Otherwise results would be incorrect.
     Eigen::Vector3f get_closest_image(Vector3f_const_ref point,
                                       Vector3f_const_ref target,
