@@ -552,7 +552,7 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
         // Get PBC
         bool periodic = (boost::get<int>(node->children[2])) ? true : false;
         // Get self
-        bool include_self = (boost::get<int>(node->children[3])) ? true : false;
+        bool include_self = (boost::get<int>(node->children[3])) ? true : false;               
 
 #ifdef _DEBUG_PARSER
         if(subspace)

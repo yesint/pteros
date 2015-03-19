@@ -502,6 +502,9 @@ Grid_searcher::Grid_searcher(float d,
         }
 
     } else {
+        // Check if we have periodicity
+        if(!box.is_periodic())
+            throw Pteros_error("Asked for pbc in within selection, but there is no periodic box!");
         // Set dimensions of the current unit cell
         min.fill(0.0);
         max = box.extents();
@@ -628,6 +631,9 @@ void Grid_searcher::create_grid(Grid_t &grid, const Selection &sel)
         min.array() -= cutoff;
         max.array() += cutoff;
     } else {
+        // Check if we have periodicity
+        if(!box.is_periodic())
+            throw Pteros_error("Asked for pbc in within selection, but there is no periodic box!");
         // Set dimensions of the current unit cell
         min.fill(0.0);
         max = box.extents();
@@ -662,6 +668,9 @@ void Grid_searcher::create_grid2(const Selection &sel1, const Selection &sel2)
             if(max(i)==min(i)) return;
         }
     } else {
+        // Check if we have periodicity
+        if(!box.is_periodic())
+            throw Pteros_error("Asked for pbc in within selection, but there is no periodic box!");
         // Set dimensions of the current unit cell
         min.fill(0.0);
         max = box.extents();

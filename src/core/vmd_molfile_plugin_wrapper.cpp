@@ -164,6 +164,8 @@ bool VMD_molfile_plugin_wrapper::do_read(System *sys, Frame *frame, const Mol_fi
     if(what.coordinates || what.trajectory){
         // READ FRAME:
         molfile_timestep_t ts;        
+        // Set zeros to box variables
+        ts.A = ts.B = ts.C = ts.alpha = ts.beta = ts.gamma = 0.0;
 
         frame->coord.resize(natoms);
         ts.coords = (float*)&frame->coord.front();
@@ -180,7 +182,10 @@ bool VMD_molfile_plugin_wrapper::do_read(System *sys, Frame *frame, const Mol_fi
         // Convert box to our format
         Matrix3f b;
         b.fill(0.0);
-        box_from_vmd_rep(ts.A,ts.B,ts.C,ts.alpha,ts.beta,ts.gamma,b);
+        if(ts.A*ts.B*ts.C){
+            // Only convert if all three vectors are non-zero
+            box_from_vmd_rep(ts.A,ts.B,ts.C,ts.alpha,ts.beta,ts.gamma,b);
+        }
         frame->box.modify(b);
 
         frame->time = ts.physical_time;
