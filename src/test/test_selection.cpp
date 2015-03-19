@@ -25,13 +25,15 @@
 #include <Eigen/Core>
 #include "pteros/core/pteros_error.h"
 #include "pteros/core/selection.h"
-#include "pteros/core/grid_search.h"
 #include <chrono>
+//#include "pteros/core/peg_parser.h"
+
+#include <boost/variant.hpp>
+#include <functional>
 
 using namespace std;
 using namespace pteros;
 using namespace Eigen;
-
 
 int main(int argc, char** argv)
 {

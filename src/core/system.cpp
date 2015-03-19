@@ -415,11 +415,11 @@ Selection System::append(const Selection &sel){
     int first_added = num_atoms();
 
     // Merge atoms
-    atoms.reserve(atoms.size()+sel.size());
+    //atoms.reserve(atoms.size()+sel.size());
     for(int i=0;i<sel.size();++i) atoms.push_back(sel.Atom_data(i));
     // Merge coordinates    
     for(int fr=0; fr<num_frames(); ++fr){
-        traj[fr].coord.reserve(atoms.size()+sel.size());
+        //traj[fr].coord.reserve(atoms.size()+sel.size());
         if(transfer_time_box){
             traj[fr].time = sel.get_system()->Time(fr);
             traj[fr].box = sel.get_system()->Box(fr);
