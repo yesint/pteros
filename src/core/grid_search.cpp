@@ -284,13 +284,13 @@ void search_in_cell(int x, int y, int z,
 
     if(is_periodic){
 
-        for(i1=0;i1<N-1;++i1){
-            ind1 = v[i1].index; //index
+        for(i1=0;i1<N-1;++i1){            
             Vector3f* p = v[i1].coor_ptr; // Coord of point in grid1
-            for(i2=i1+1;i2<N;++i2){
-                ind2 = v[i2].index; //index
+            for(i2=i1+1;i2<N;++i2){                
                 d = box.distance_squared(*(v[i2].coor_ptr),*p);
                 if(d<=cutoff2){
+                    ind1 = v[i1].index; //index
+                    ind2 = v[i2].index; //index
                     bon.push_back(Vector2i(ind1,ind2));
                     if(dist_vec) dist_vec->push_back(sqrt(d));
                 }
@@ -299,13 +299,13 @@ void search_in_cell(int x, int y, int z,
 
     } else {
 
-        for(i1=0;i1<N-1;++i1){
-            ind1 = v[i1].index; //Global index
+        for(i1=0;i1<N-1;++i1){            
             Vector3f* p = v[i1].coor_ptr; // Coord of point in grid1
-            for(i2=i1+1;i2<N;++i2){
-                ind2 = v[i2].index; //Global index
+            for(i2=i1+1;i2<N;++i2){                
                 d = (*(v[i2].coor_ptr)-*p).squaredNorm();
                 if(d<=cutoff2){
+                    ind1 = v[i1].index; //index
+                    ind2 = v[i2].index; //index
                     bon.push_back(Vector2i(ind1,ind2));
                     if(dist_vec) dist_vec->push_back(sqrt(d));
                 }
@@ -338,13 +338,13 @@ void search_in_pair_of_cells(int x1, int y1, int z1, // cell 1
 
     if(is_periodic){
 
-        for(i1=0;i1<N1;++i1){
-            ind1 = v1[i1].index; //index
+        for(i1=0;i1<N1;++i1){            
             Vector3f* p = v1[i1].coor_ptr; // Coord of point in grid1
-            for(i2=0;i2<N2;++i2){
-                ind2 = v2[i2].index; //index
+            for(i2=0;i2<N2;++i2){                
                 d = box.distance_squared(*(v2[i2].coor_ptr),*p);
                 if(d<=cutoff2){
+                    ind1 = v1[i1].index; //index
+                    ind2 = v2[i2].index; //index
                     bon.push_back(Vector2i(ind1,ind2));
                     if(dist_vec) dist_vec->push_back(sqrt(d));
                 }
@@ -353,13 +353,13 @@ void search_in_pair_of_cells(int x1, int y1, int z1, // cell 1
 
     } else {
 
-        for(i1=0;i1<N1;++i1){
-            ind1 = v1[i1].index; //index
+        for(i1=0;i1<N1;++i1){            
             Vector3f* p = v1[i1].coor_ptr; // Coord of point in grid1
-            for(i2=0;i2<N2;++i2){
-                ind2 = v2[i2].index; //index
+            for(i2=0;i2<N2;++i2){                
                 d = (*(v2[i2].coor_ptr)-*p).squaredNorm();
                 if(d<=cutoff2){
+                    ind1 = v1[i1].index; //index
+                    ind2 = v2[i2].index; //index
                     bon.push_back(Vector2i(ind1,ind2));
                     if(dist_vec) dist_vec->push_back(sqrt(d));
                 }
