@@ -39,6 +39,12 @@ PyObject* Periodic_box_get_matrix(Periodic_box* b){
     return boost::python::incref(p);
 }
 
+PyObject* Periodic_box_get_inv_matrix(Periodic_box* b){
+    CREATE_PYARRAY_2D_AND_MAP(p,Matrix3f,m,3,3)
+    m = b->get_inv_matrix();
+    return boost::python::incref(p);
+}
+
 PyObject* Periodic_box_get_vector(Periodic_box* b, int i){
     CREATE_PYARRAY_1D_AND_MAP(vec,Vector3f,v,3)
     v = b->get_vector(i);
@@ -78,18 +84,18 @@ PyObject* Periodic_box_extents(Periodic_box* b){
 }
 
 float Periodic_box_distance(Periodic_box* b, PyObject* point1, PyObject* point2,
-                             bool do_wrap=true, PyObject* periodic_dims=nullptr){
+                             PyObject* periodic_dims=nullptr){
     MAP_EIGEN_TO_PYTHON_F(Vector3f,p1,point1)
     MAP_EIGEN_TO_PYTHON_F(Vector3f,p2,point2)
     if(periodic_dims){
         MAP_EIGEN_TO_PYTHON_I(Vector3i,dim,periodic_dims)
-        return b->distance(p1,p2,do_wrap,dim);
+        return b->distance(p1,p2,dim);
     } else {
-        return b->distance(p1,p2,do_wrap);
+        return b->distance(p1,p2);
     }
 }
 
-BOOST_PYTHON_FUNCTION_OVERLOADS(Periodic_box_distance_overloads,Periodic_box_distance,3,5);
+BOOST_PYTHON_FUNCTION_OVERLOADS(Periodic_box_distance_overloads,Periodic_box_distance,3,4);
 
 void Periodic_box_wrap_point(Periodic_box* b, PyObject* point, PyObject* dims_to_wrap=nullptr){
     MAP_EIGEN_TO_PYTHON_F(Vector3f,p,point)
@@ -104,21 +110,21 @@ void Periodic_box_wrap_point(Periodic_box* b, PyObject* point, PyObject* dims_to
 BOOST_PYTHON_FUNCTION_OVERLOADS(Periodic_box_wrap_point_overloads,Periodic_box_wrap_point,2,3);
 
 PyObject* Periodic_box_get_closest_image(Periodic_box* b, PyObject* point, PyObject* target,
-                             bool do_wrap=true, PyObject* dims_to_wrap=nullptr){
+                             PyObject* dims_to_wrap=nullptr){
     MAP_EIGEN_TO_PYTHON_F(Vector3f,p,point)
     MAP_EIGEN_TO_PYTHON_F(Vector3f,t,target)   
     CREATE_PYARRAY_1D_AND_MAP(ret,Vector3f,v,3)
     if(dims_to_wrap){
         MAP_EIGEN_TO_PYTHON_I(Vector3i,dim,dims_to_wrap)
-        v = b->get_closest_image(p,t,do_wrap,dim);
+        v = b->get_closest_image(p,t,dim);
         return boost::python::incref(ret);
     } else {
-        v = b->get_closest_image(p,t,do_wrap);
+        v = b->get_closest_image(p,t);
         return boost::python::incref(ret);
     }
 }
 
-BOOST_PYTHON_FUNCTION_OVERLOADS(Periodic_box_get_closest_image_overloads,Periodic_box_get_closest_image,3,5);
+BOOST_PYTHON_FUNCTION_OVERLOADS(Periodic_box_get_closest_image_overloads,Periodic_box_get_closest_image,3,4);
 
 PyObject* Periodic_box_shortest_vector(Periodic_box* b, PyObject* point1, PyObject* point2,
                                         PyObject* dims_to_wrap=nullptr){
@@ -149,6 +155,7 @@ void make_bindings_Periodic_box(){
     class_<Periodic_box>("Periodic_box", init<>())
         .def("modify",&Periodic_box_modify)
         .def("get_matrix",&Periodic_box_get_matrix)
+        .def("get_inv_matrix",&Periodic_box_get_inv_matrix)
         .def("get_vector",&Periodic_box_get_vector)
         .def("lab_to_box",&Periodic_lab_to_box)
         .def("lab_to_box_transform",&Periodic_lab_to_box_transform)

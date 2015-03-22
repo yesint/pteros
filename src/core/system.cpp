@@ -570,7 +570,7 @@ inline void wrap_coord(Vector3f& point, const Matrix3f& box,
 
 float System::distance(int i, int j, int fr, bool is_periodic, Vector3i_const_ref dims) const {
     if(is_periodic){
-        return traj[fr].box.distance(traj[fr].coord[i], traj[fr].coord[j], true, dims);
+        return traj[fr].box.distance(traj[fr].coord[i], traj[fr].coord[j], dims);
     } else {
         return (traj[fr].coord[i] - traj[fr].coord[j]).norm();
     }

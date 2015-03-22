@@ -55,6 +55,32 @@ void overlap_1d(float a1, float a2, float b1, float b2, float& res1, float& res2
     }
 }
 
+// Local version of periodic squared distance, less universal but faster
+float distance_squared(const Periodic_box& box,
+                       Vector3f_const_ref point1,
+                       Vector3f_const_ref point2,
+                       Vector3i_const_ref periodic_dims = Vector3i::Ones())
+{
+
+    // For each dimension measure periodic distance
+    Vector3f d = (point2-point1).array().abs();
+
+    // If triclinic convert to box coords
+    if(box.is_triclinic()) d = box.lab_to_box(d);
+
+    // Now see if these projections > 0.5 of box size
+    for(int i=0;i<3;++i){
+        if(periodic_dims(i) && d(i)>0.5*box.extent(i))
+            d(i) = box.extent(i)-d(i);
+    }
+
+    // If triclinic convert back to lab coords
+    if(box.is_triclinic()) d = box.box_to_lab(d);
+
+    return d.squaredNorm();
+}
+
+
 
 Grid_searcher::Grid_searcher(float d, const Selection &sel,
                             std::vector<Eigen::Vector2i>& bon,
@@ -287,7 +313,7 @@ void search_in_cell(int x, int y, int z,
         for(i1=0;i1<N-1;++i1){            
             Vector3f* p = v[i1].coor_ptr; // Coord of point in grid1
             for(i2=i1+1;i2<N;++i2){                
-                d = box.distance_squared(*(v[i2].coor_ptr),*p);
+                d = distance_squared(box,*(v[i2].coor_ptr),*p);
                 if(d<=cutoff2){
                     ind1 = v[i1].index; //index
                     ind2 = v[i2].index; //index
@@ -341,7 +367,7 @@ void search_in_pair_of_cells(int x1, int y1, int z1, // cell 1
         for(i1=0;i1<N1;++i1){            
             Vector3f* p = v1[i1].coor_ptr; // Coord of point in grid1
             for(i2=0;i2<N2;++i2){                
-                d = box.distance_squared(*(v2[i2].coor_ptr),*p);
+                d = distance_squared(box,*(v2[i2].coor_ptr),*p);
                 if(d<=cutoff2){
                     ind1 = v1[i1].index; //index
                     ind2 = v2[i2].index; //index
@@ -397,7 +423,7 @@ void search_in_pair_of_cells_for_within(int sx, int sy, int sz, // src cell
 
         if(is_periodic){
             for(t=0;t<Nt;++t){
-                d = box.distance_squared(*(tv[t].coor_ptr),*p);
+                d = distance_squared(box,*(tv[t].coor_ptr),*p);
                 if(d<=cutoff2){
                     used[ind].store(true);
                     break;
@@ -728,16 +754,14 @@ void Grid_searcher::populate_grid(Grid_searcher::Grid_t &grid, const Selection &
         // Periodic variant
         Vector3f coor;
         for(i=0;i<Natoms;++i){
-            // Get coordinates of atom
-            coor = sel.XYZ(i);
-            // Get coordinates in triclinic basis if needed
-            if(box.is_triclinic()) coor = box.lab_to_box(coor);
+            // Get relative coordinates in box [0:1)
+            coor = box.get_inv_matrix()*sel.XYZ(i);
             // Assign to non-periodic grid first
-            n1 = floor((NgridX-0)*(coor(0)-min(0))/(max(0)-min(0)));
-            n2 = floor((NgridY-0)*(coor(1)-min(1))/(max(1)-min(1)));
-            n3 = floor((NgridZ-0)*(coor(2)-min(2))/(max(2)-min(2)));
+            n1 = floor(NgridX*coor(0));
+            n2 = floor(NgridY*coor(1));
+            n3 = floor(NgridZ*coor(2));
 
-            // Wrap if extends over the grid dimensions
+            // If point was not wrapped initially wrap to needed cell
             while(n1>=NgridX || n1<0)
                 n1>=0 ? n1 %= NgridX : n1 = NgridX + n1%NgridX;
             while(n2>=NgridY || n2<0)

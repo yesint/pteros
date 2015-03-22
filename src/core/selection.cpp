@@ -1524,7 +1524,7 @@ void Selection::wrap(Vector3i_const_ref dims){
 void Selection::unwrap(Vector3i_const_ref dims){
     Vector3f c = center(true,true);
     for(int i=0;i<size();++i){
-        XYZ(i) = system->Box(frame).get_closest_image(XYZ(i),c,true,dims);
+        XYZ(i) = system->Box(frame).get_closest_image(XYZ(i),c,dims);
     }
 }
 
@@ -1564,10 +1564,8 @@ void Selection::unwrap_bonds(float d, Vector3i_const_ref dims){
             // Unwrap all atoms bound to cur to position near cur
             for(int i=0; i<con[cur].size(); ++i){
                 // We only move atoms, which were not yet moved
-                if(moved(con[cur][i])==0){
-                    // We don't do wrapping here (passing false) since this will bring atoms back!
-                    // We intentially want atoms to be unwrapped                                        
-                    XYZ(con[cur][i]) = system->Box(frame).get_closest_image(XYZ(con[cur][i]),XYZ(cur),false,dims);                    
+                if(moved(con[cur][i])==0){                    
+                    XYZ(con[cur][i]) = system->Box(frame).get_closest_image(XYZ(con[cur][i]),XYZ(cur),dims);
                     // Add moved atom to centers queue
                     todo.insert(con[cur][i]);                    
                     ++Nmoved;                    

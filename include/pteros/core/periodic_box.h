@@ -72,17 +72,22 @@ public:
     /// Get stored matrix of box vectors
     Eigen::Matrix3f get_matrix() const {return _box;}
 
+    /// Get stored inverted matrix of box vectors
+    Eigen::Matrix3f get_inv_matrix() const {return _box_inv;}
+
     /// Convert point from lab coordinates to box coordinates
-    Eigen::Vector3f lab_to_box(Vector3f_const_ref point) const { return _to_box*point; }
+    Eigen::Vector3f lab_to_box(Vector3f_const_ref point) const
+    { return _box_inv.colwise().normalized()*point; }
 
     /// Return the transformation from lab coordinates to box coordinates
-    const Eigen::Matrix3f& lab_to_box_transform() const {return _to_box;}
+    const Eigen::Matrix3f& lab_to_box_transform() const {return _box_inv.colwise().normalized();}
 
     /// Convert point from box coordinates to lab coordinates
-    Eigen::Vector3f box_to_lab(Vector3f_const_ref point) const { return _to_lab*point; }
+    Eigen::Vector3f box_to_lab(Vector3f_const_ref point) const
+    { return _box.colwise().normalized()*point; }
 
     /// Return the transformation from box coordinates to lab coordinates
-    const Eigen::Matrix3f& box_to_lab_transform() const {return _to_lab;}
+    const Eigen::Matrix3f& box_to_lab_transform() const {return _box.colwise().normalized();}
 
     /// Return i-th extent of the box
     float extent(int i) const {return _extents(i);}
@@ -104,19 +109,17 @@ public:
     /// float dist = (point2-point1).norm();
     ///\endcode
     float distance(Vector3f_const_ref point1,
-                   Vector3f_const_ref point2,
-                   bool do_wrapping = true,
-                   Vector3i_const_ref periodic_dims = Eigen::Vector3i::Ones()) const;
+                   Vector3f_const_ref point2,         
+                   Vector3i_const_ref dims = Eigen::Vector3i::Ones()) const;
 
     /// The same as distance but returns squared distance
     float distance_squared(Vector3f_const_ref point1,
-                   Vector3f_const_ref point2,
-                   bool do_wrapping = true,
-                   Vector3i_const_ref periodic_dims = Eigen::Vector3i::Ones()) const;
+                   Vector3f_const_ref point2,                   
+                   Vector3i_const_ref dims = Eigen::Vector3i::Ones()) const;
 
     /// Wrap point to the box for given set of dimensions
     void wrap_point(Vector3f_ref point,
-                    Vector3i_const_ref dims_to_wrap = Eigen::Vector3i::Ones()) const;
+                    Vector3i_const_ref dims = Eigen::Vector3i::Ones()) const;
 
     /// Determine if the point is inside the box
     /// Origin of the box coordinates is assumed to be {0,0,0}.
@@ -128,8 +131,7 @@ public:
     /// that wrapping is done manually before! Otherwise results would be incorrect.
     Eigen::Vector3f get_closest_image(Vector3f_const_ref point,
                                       Vector3f_const_ref target,
-                                      bool do_wrapping = true,
-                                      Vector3i_const_ref dims_to_wrap = Eigen::Vector3i::Ones()) const;
+                                      Vector3i_const_ref dims = Eigen::Vector3i::Ones()) const;
 
     /// Computes shortest vector from point1 to point2 between their closest images
     Eigen::Vector3f shortest_vector(Vector3f_const_ref point1,
@@ -150,8 +152,7 @@ public:
 
 private:
     Eigen::Matrix3f _box;
-    Eigen::Matrix3f _to_box;
-    Eigen::Matrix3f _to_lab;
+    Eigen::Matrix3f _box_inv;
     Eigen::Vector3f _extents;
     bool _is_triclinic;
     bool _is_periodic;

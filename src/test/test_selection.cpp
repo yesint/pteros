@@ -38,8 +38,8 @@ int main(int argc, char** argv)
 
     try{
 
-        //System s("/media/semen/data/semen/trajectories/asymmetric_hexagonal/with_c60/last.gro");
-        System s("/media/semen/data/semen/trajectories/2lao/average.pdb");        
+        System s("/media/semen/data/semen/trajectories/asymmetric_hexagonal/with_c60/last.gro");
+        //System s("/media/semen/data/semen/trajectories/2lao/average.pdb");
 
         /*
         auto t_start = std::chrono::high_resolution_clock::now();
@@ -55,7 +55,7 @@ int main(int argc, char** argv)
         auto t_start = std::chrono::high_resolution_clock::now();
         Selection w;
         for(int i=0;i<1;++i)
-            w.modify(s,"within 0.25 pbc of name CA CB");
+            w.modify(s,"within 0.25 nopbc of name CA CB");
 
         auto t_end = std::chrono::high_resolution_clock::now();
 

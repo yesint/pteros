@@ -44,122 +44,66 @@ void Periodic_box::modify(Matrix3f_const_ref box)
 
     if(!_is_periodic) return;
 
-    for(int i=0;i<3;++i){
-        _to_lab.col(i) = _box.col(i).normalized();
-        _extents(i) = _box.col(i).norm();
-    }
-    _to_box = _to_lab.inverse();
+    _box_inv = _box.inverse();
+
+    _extents = _box.colwise().norm();
+
     _is_triclinic = (_box(0,1)||_box(0,2)||_box(1,0)||_box(1,2)||_box(2,0)||_box(2,1));
 }
 
-float Periodic_box::distance_squared(Vector3f_const_ref point1, Vector3f_const_ref point2, bool do_wrapping, Vector3i_const_ref periodic_dims) const
-{
-    if(_is_periodic){
-        Vector3f p1 = point1, p2 = point2;
-
-        if(do_wrapping){
-            wrap_point(p1,periodic_dims);
-            wrap_point(p2,periodic_dims);
-        }
-
-        // For each dimension measure periodic distance
-        Vector3f d = (p2-p1).array().abs();
-
-        // If triclinic convert to box coords
-        if(_is_triclinic) d = (_to_box*d).eval();
-
-        // Now see if these projections > 0.5 of box size
-        for(int i=0;i<3;++i){
-            if(periodic_dims(i) && d(i)>0.5*_extents(i))
-                d(i) = _extents(i)-d(i);
-        }
-
-        // If triclinic convert back to lab coords
-        if(_is_triclinic) d = (_to_lab*d).eval();
-
-        return d.squaredNorm();
-    } else {
-        // Non-periodic variant
-        return (point2-point1).squaredNorm();
-    }
+float Periodic_box::distance_squared(Vector3f_const_ref point1, Vector3f_const_ref point2, Vector3i_const_ref dims) const
+{    
+    return shortest_vector(point1,point2,dims).squaredNorm();
 }
 
-float Periodic_box::distance(Vector3f_const_ref point1, Vector3f_const_ref point2, bool do_wrapping, Vector3i_const_ref periodic_dims) const {
-    return sqrt(distance_squared(point1,point2,do_wrapping,periodic_dims));
+float Periodic_box::distance(Vector3f_const_ref point1, Vector3f_const_ref point2, Vector3i_const_ref dims) const {
+    return shortest_vector(point1,point2,dims).norm();
 }
 
 float Periodic_box::volume(){
     return _box.col(1).cross( _box.col(2) ).dot( _box.col(0) );
 }
 
-void Periodic_box::wrap_point(Vector3f_ref point, Vector3i_const_ref dims_to_wrap) const
+void Periodic_box::wrap_point(Vector3f_ref point, Vector3i_const_ref dims) const
 {
-    if(is_triclinic()) point = (_to_box*point).eval();
-
-    int i;
-    float intp,fracp;
-    for(i=0;i<3;++i){
-        if(dims_to_wrap(i)!=0){
-            fracp = std::modf(point(i)/_extents(i),&intp);
-            if(fracp<0) fracp = fracp+1;
-            point(i) = _extents(i)*fracp;
+    point = _box_inv*point;
+    for(int i=0;i<3;++i){
+        if(dims(i)!=0){
+            point(i) -= round(point(i));
+            if(point(i)<0) point(i) += 1.0;
         }
     }
-
-    if(is_triclinic()) point = (_to_lab*point).eval();
+    point = _box*point;
 }
 
 bool Periodic_box::in_box(Vector3f_const_ref point)
 {
-    Vector3f p = is_triclinic() ? _to_box*point : point;
+    Vector3f p = _box_inv*point;
 
     for(int i=0; i<3; ++i)
-        if(p(i)<0 || p(i)>_extents(i)) return false;
+        if(p(i)<0 || p(i)>1.0) return false;
 
     return true;
 }
 
-Eigen::Vector3f Periodic_box::get_closest_image(Vector3f_const_ref point, Vector3f_const_ref target, bool do_wrapping, Vector3i_const_ref dims_to_wrap) const
-{
-    if(_is_periodic){
-        Vector3f p = point, t = target;
-
-        // Wrap point and target is asked
-        if(do_wrapping){
-            wrap_point(p, dims_to_wrap);
-            wrap_point(t, dims_to_wrap);
-        }
-
-        // If triclinic convert to box coords
-        if(_is_triclinic){            
-            p = (_to_box*p).eval();
-            t = (_to_box*t).eval();
-        }
-
-        Vector3f d = p-t;
-
-        for(int i=0;i<3;++i){
-            if(dims_to_wrap(i)){
-                while( abs(d(i))>0.5*_extents(i) ){
-                    // Need to translate along this dimension
-                    d(i)>0 ? p(i)-=_extents(i) : p(i)+=_extents(i);
-                    d(i) = p(i)-t(i);
-                }
-            }
-        }
-
-        // If triclinic convert back to lab coords
-        if(_is_triclinic) p = (_to_lab*p).eval();
-
-        return p;
-    } else {
-        return point;
-    }
+Eigen::Vector3f Periodic_box::get_closest_image(Vector3f_const_ref point, Vector3f_const_ref target, Vector3i_const_ref dims) const
+{    
+    return target + shortest_vector(target,point,dims);
 }
 
 Vector3f Periodic_box::shortest_vector(Vector3f_const_ref point1, Vector3f_const_ref point2, Vector3i_const_ref dims) const
 {
-    return point2 - get_closest_image(point1,point2,true,dims);
+    if(_is_periodic){
+        Vector3f d = _box_inv*(point2-point1);
+        for(int i=0;i<3;++i){
+            if(dims(i)!=0){
+                d(i) -= round(d(i));
+            }
+        }
+        return _box*d;
+    } else {
+        return point2-point1;
+    }
 }
 
 // The code below is hacked from Gromacs 3.3.x and modified heavily

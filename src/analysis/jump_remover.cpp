@@ -97,8 +97,7 @@ void Jump_remover::remove_jumps(System& system, const Frame_info &info){
             ind = no_jump_ind[i];
             // Get image closest to running reference
             system.XYZ(ind,0) = system.Box(0).get_closest_image(system.XYZ(ind,0),
-                                                                no_jump_ref.col(i),
-                                                                false);
+                                                                no_jump_ref.col(i));
             // Update running reference
             no_jump_ref.col(i) = system.XYZ(ind,0);
         }
