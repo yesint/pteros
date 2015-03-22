@@ -80,14 +80,14 @@ public:
     { return _box_inv.colwise().normalized()*point; }
 
     /// Return the transformation from lab coordinates to box coordinates
-    const Eigen::Matrix3f& lab_to_box_transform() const {return _box_inv.colwise().normalized();}
+    Eigen::Matrix3f lab_to_box_transform() const {return _box_inv.colwise().normalized();}
 
     /// Convert point from box coordinates to lab coordinates
     Eigen::Vector3f box_to_lab(Vector3f_const_ref point) const
     { return _box.colwise().normalized()*point; }
 
     /// Return the transformation from box coordinates to lab coordinates
-    const Eigen::Matrix3f& box_to_lab_transform() const {return _box.colwise().normalized();}
+    Eigen::Matrix3f box_to_lab_transform() const {return _box.colwise().normalized();}
 
     /// Return i-th extent of the box
     float extent(int i) const {return _extents(i);}
@@ -118,6 +118,7 @@ public:
                    Vector3i_const_ref dims = Eigen::Vector3i::Ones()) const;
 
     /// Wrap point to the box for given set of dimensions
+    /// Origin of the box coordinates is assumed to be {0,0,0}.
     void wrap_point(Vector3f_ref point,
                     Vector3i_const_ref dims = Eigen::Vector3i::Ones()) const;
 
@@ -125,10 +126,7 @@ public:
     /// Origin of the box coordinates is assumed to be {0,0,0}.
     bool in_box(Vector3f_const_ref point);
 
-    /// Finds a periodic image of point, which is closest in space to target and returns it
-    /// This method wraps both point and targer to periodic box internally (this is usually what you want).
-    /// If this is not needed set do_wrapping to false, but in this case make sure
-    /// that wrapping is done manually before! Otherwise results would be incorrect.
+    /// Finds a periodic image of point, which is closest in space to target and returns it    
     Eigen::Vector3f get_closest_image(Vector3f_const_ref point,
                                       Vector3f_const_ref target,
                                       Vector3i_const_ref dims = Eigen::Vector3i::Ones()) const;
