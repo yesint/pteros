@@ -64,6 +64,23 @@ namespace pteros {
         Grid_element(int i, Eigen::Vector3f* ptr): index(i),coor_ptr(ptr) {}
     };
 
+    struct Grid_t {
+        boost::multi_array<std::vector<Grid_element>,3> data;
+        // Array of atomic coordinates, which have to be wrapped if periodic
+        // This is in order not to touch real coordinates of atoms and improve speed
+        std::vector<Eigen::Vector3f> wrapped_atoms;
+
+        void clear(int NgridX, int NgridY, int NgridZ);
+    };
+
+    struct Nlist_t {
+        std::vector<Eigen::Vector3i> data;
+        std::vector<bool> wrapped;
+
+        void clear();
+        void append(Vector3i_const_ref coor, bool wrap = false);
+    };
+
     /** @brief Implements grid search algorithm
     Grid_searcher class subdivides the volume of the system into number of
     cells and computes which atoms appear in each cell. After that the pairs of
@@ -176,8 +193,10 @@ namespace pteros {
 
             /// Creates custom periodic grid with given dimensions
             void create_custom_grid(int nX, int nY, int nZ);
-            /// Clear custom grid without changing its dimensions
+
+            /// Clear custom grid
             void clear_custom_grid();
+
             /// Add atoms from given selection to custom grid created by create_custom_grid()
             void add_to_custom_grid(const Selection sel,
                                   bool absolute_index = false,
@@ -188,8 +207,7 @@ namespace pteros {
             /// @}
 
 
-        protected:            
-            typedef boost::multi_array<std::vector<Grid_element>,3> Grid_t;
+        protected:
 
             // Create one grid from single selection            
             void create_grid(Grid_t& grid, const Selection& sel);
@@ -225,8 +243,8 @@ namespace pteros {
             // Grid dimensions
             int NgridX, NgridY, NgridZ;
 
-            // Grid with coordinate pointers
-            Grid_t grid1,grid2;
+            // Grids with coordinate pointers
+            Grid_t grid1,grid2;                   
 
             boost::multi_array<bool, 3> visited;
 
@@ -246,7 +264,7 @@ namespace pteros {
             void set_grid_size(const Eigen::Vector3f& min, const Eigen::Vector3f& max,
                                int Natoms, const Periodic_box& box);
 
-            void get_nlist(int i,int j,int k, std::vector<Eigen::Vector3i>& nlist);
+            void get_nlist(int i, int j, int k, Nlist_t &nlist);
     };
 
 }
