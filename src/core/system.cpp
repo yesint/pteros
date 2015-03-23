@@ -324,6 +324,10 @@ Selection System::atoms_add(const vector<Atom>& atm, const vector<Vector3f>& crd
     int last_added = atoms.size()+atm.size()-1;
     // Prepare by increasing capacity of vectors
     atoms.reserve(atoms.size()+atm.size());
+
+    // If no frames add one
+    if(traj.size()==0) traj.push_back(Frame());
+
     for(int j=0; j<traj.size(); ++j){
         traj[j].coord.reserve(atoms.size()+atm.size());
     }
