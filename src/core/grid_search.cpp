@@ -223,7 +223,7 @@ void Grid_searcher::search_within(Vector3f_const_ref coord, vector<int> &bon){
     auto target = tmp.select_all();
     // Allocate second grid
     grid2.data.resize( boost::extents[NgridX][NgridY][NgridZ] );
-    populate_grid(grid2,target,false);
+    populate_grid(grid2,target,true);
 
     // Now search
     do_search_within(bon,*p_sel);
@@ -232,8 +232,8 @@ void Grid_searcher::search_within(Vector3f_const_ref coord, vector<int> &bon){
 
 void Grid_searcher::search_within(const Selection &target, std::vector<int> &bon, bool include_self){
     // Allocate second grid
-    grid2.data.resize( boost::extents[NgridX][NgridY][NgridZ] );
-    populate_grid(grid2,target,false);
+    grid2.data.resize( boost::extents[NgridX][NgridY][NgridZ] );    
+    populate_grid(grid2,target,true);
 
     // Now search
     do_search_within(bon,*p_sel);
