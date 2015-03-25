@@ -60,23 +60,16 @@ void Jump_remover::remove_jumps(System& system, const Frame_info &info){
             cout << "Initial unwrapping of atoms with jump removal..." << endl;
             float cutoff = 0.2;
             float min_extent = system.Box(0).extents().minCoeff();
-            while(true){
-                try{
-                    sel.unwrap_bonds(cutoff);
-                }catch(Pteros_error){
-                    cout << "Cutoff " << cutoff << " too small for unwrapping. ";
-                    cutoff *= 2.0;
-                    cout << "Trying " << cutoff << "..." <<endl;
-                    if(cutoff > 0.5*min_extent){
-                        cout << "Reached cutoff > 0.5 of box extents!\n"
-                                "Selection is likely to consist of disconnected parts.\n"
-                                "Continuing as is." << endl;
-                        break;
-                    }
-                    continue;
+            while(sel.unwrap_bonds(cutoff)>1){
+                cout << "Cutoff " << cutoff << " too small for unwrapping. ";
+                cutoff *= 2.0;
+                cout << "Trying " << cutoff << "..." <<endl;
+                if(cutoff > 0.5*min_extent){
+                    cout << "Reached cutoff > 0.5 of box extents!\n"
+                            "Selection is likely to consist of disconnected parts.\n"
+                            "Continuing as is." << endl;
+                    break;
                 }
-                // If we are here unwrapping is successfull
-                break;
             }
             cout << "Unwrapping done." << endl;
         }
