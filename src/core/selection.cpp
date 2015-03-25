@@ -1555,10 +1555,12 @@ void Selection::unwrap(Vector3i_const_ref dims){
     }
 }
 
-int Selection::unwrap_bonds(float d, Vector3i_const_ref dims){
+int Selection::unwrap_bonds(float d, int leading_index, Vector3i_const_ref dims){
+    int Nparts = 1;
+
     // Find all connectivity pairs for given cut-off
     vector<Vector2i> pairs;
-    Grid_searcher(d,*this,pairs,false,true);
+    Grid_searcher(d,*this,pairs,false,true); // Periodic by definition
 
     // Form a connectivity structure in the form con[i]->1,2,5...
     vector<vector<int> > con(size());
@@ -1567,53 +1569,58 @@ int Selection::unwrap_bonds(float d, Vector3i_const_ref dims){
         con[pairs[i](1)].push_back(pairs[i](0));
     }
 
-    // Do all wrapping before    
-    wrap();    
-
-    // Mask of moved atoms
-    VectorXi moved(size());
-    moved.fill(0);
-    int Nmoved = 0;
+    // Mask of used atoms
+    VectorXi used(size());
+    used.fill(0);
 
     // Queue of centers to consider
     set<int> todo;
-    // Add first atom to the queue
-    todo.insert(0);
 
-    int Nparts = 1;
+    // Leading atom coordinates
+    Vector3f leading;
 
-    int cur;
+    todo.insert(leading_index);
+    used[leading_index] = 1;
+    int Nused = 1;
+
     for(;;){
         while(!todo.empty()){
             // Get center from the queue
-            cur = *(todo.begin());
+            int cur = *(todo.begin());
             todo.erase(todo.begin()); // And pop it from the queue
+            leading = XYZ(cur);
 
-            moved[cur] = 1; // Mark as moved
-            // Unwrap all atoms bound to cur to position near cur
+            // Find all atoms connected to this one
             for(int i=0; i<con[cur].size(); ++i){
-                // We only move atoms, which were not yet moved
-                if(moved(con[cur][i])==0){                    
-                    XYZ(con[cur][i]) = system->Box(frame).get_closest_image(XYZ(con[cur][i]),XYZ(cur),dims);
-                    // Add moved atom to centers queue
-                    todo.insert(con[cur][i]);                    
-                    ++Nmoved;                    
+                // We only add atoms, which were not yet used as centers
+                if(used(con[cur][i])==0){
+                    // Unwrap atom
+                    XYZ(con[cur][i]) = system->Box(frame).get_closest_image(XYZ(con[cur][i]),leading,dims);
+                    // Add this atom to centers queue
+                    todo.insert(con[cur][i]);
+                    // Mark as used
+                    used[con[cur][i]] = 1;
+                    ++Nused;
                 }
             }
         }
 
-        if(Nmoved<size()){
-            // More than 1 part in selection
-            Nparts++;
-            // Find next not moved and add to the queue
+        if(Nused<size()){
+            // Find next not used atom and add to the queue
             int i=0;
-            while(moved(i)==1){
+            while(used(i)==1){
                 ++i;
                 if(i>=size()) throw Pteros_error("Wrong connectivity?");
             }
+
             todo.insert(i);
+            used[i] = 1;
+            Nused++;
+
+            Nparts++;
         } else {
-            break; // Done
+            // Done. Exit loop.
+            break;
         }
 
     }

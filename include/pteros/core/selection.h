@@ -479,7 +479,8 @@ class Selection {
      * based on preserving all bonds. The maximal bond length is given by @param d.
      * This method works reliably in any case, but is much slower than unwrap()
      */
-    int unwrap_bonds(float d = 0.2, Vector3i_const_ref dims = Eigen::Vector3i::Ones());
+    int unwrap_bonds(float d = 0.2, int leading_index = 0,
+                     Vector3i_const_ref dims = Eigen::Vector3i::Ones());
 
     /** Get transform for orienting selection by principal axes.
      * \warning
