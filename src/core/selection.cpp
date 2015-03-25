@@ -1344,61 +1344,88 @@ void Selection::distribute(Vector3i_const_ref ncopies, Vector3f_const_ref shift)
             }
 }
 
-void Selection::split_by_connectivity(float d, std::vector<Selection> &res) {
-    //cout << "Splitting by connectivity..." << endl;
-    int i,j,k;
-    // Clear result
-    res.clear();
+void Selection::split_by_connectivity(float d, std::vector<Selection> &res, bool periodic) {
     // Find all connectivity pairs for given cut-off
     vector<Vector2i> pairs;
-    Grid_searcher(d,*this,pairs,false,true);
+    Grid_searcher(d,*this,pairs,false,periodic);
 
     // Form a connectivity structure in the form con[i]->1,2,5...
-    vector<vector<int> > con(this->size());
-    for(i=0; i<pairs.size(); ++i){
+    vector<vector<int> > con(size());
+    for(int i=0; i<pairs.size(); ++i){
         con[pairs[i](0)].push_back(pairs[i](1));
         con[pairs[i](1)].push_back(pairs[i](0));
     }
 
-    // If no connectivity just exit
-    if(con.size()==0) return;
+    // Mask of used atoms
+    VectorXi used(size());
+    used.fill(0);
 
-    // Mask of already used atoms in sel
-    VectorXi mask(size());
-    mask.fill(0);
+    // Queue of centers to consider
+    set<int> todo;
 
-    // Start with first atom in sel and find all connectivity consequtively    
-    int ngr = 0;
-    while(true){
-        // Find first non-used atom, which will be the root for new group
-        i = 0;
-        while(i<mask.size() && mask(i)>0){ ++i; }
-        if(i==mask.size()) break; // All connectivity groups are already found
-        // Start new group
-        ++ngr;        
-        Selection s(*system);
-        res.push_back(s);
-        res.back().sel_text = "";
-        // Atoms to search
-        queue<int> to_search;
-        // Add root atom to search set
-        to_search.push(i);
-        mask(i) = ngr; // mark it as used
-        // Now cycle over search set until it exhausts
-        while(!to_search.empty()){
-            k = to_search.front();
-            to_search.pop();
-            res.back().index.push_back(Index(k)); // add it to current selection            
-            // See all atoms connected to k
-            for(int j=0; j<con[k].size(); ++j){
-                // if atom is not used, add it to search
-                if(mask(con[k][j])==0){
-                    to_search.push(con[k][j]);
-                    mask(con[k][j]) = ngr; // mark it as used
+    // Add first atom to the queue
+    int cur = 0;
+
+    todo.insert(cur);
+    used[cur] = 1;
+    int Nused = 1;
+
+    // Create first selection
+    {
+        Selection tmp(*system);
+        tmp.set_frame(frame);
+        tmp.sel_text = "";
+        tmp.index.push_back(index[cur]);
+        res.push_back(tmp);
+    }
+
+    for(;;){
+        while(!todo.empty()){
+            // Get center from the queue
+            cur = *(todo.begin());
+            todo.erase(todo.begin()); // And pop it from the queue
+
+            // Find all atoms connected to this one
+            for(int i=0; i<con[cur].size(); ++i){
+                // We only add atoms, which were not yet used as centers
+                if(used(con[cur][i])==0){
+                    // Add this atom to selection
+                    //sel_atoms.insert(con[cur][i]);
+                    res.back().index.push_back(index[con[cur][i]]);
+                    // Add this atom to centers queue
+                    todo.insert(con[cur][i]);
+                    // Mark as used
+                    used[con[cur][i]] = 1;
+                    ++Nused;
                 }
             }
         }
-        // No more atoms to search, the group is ready
+
+        if(Nused<size()){
+            // Find next not used and add to the queue
+            int i=0;
+            while(used(i)==1){
+                ++i;
+                if(i>=size()) throw Pteros_error("Wrong connectivity?");
+            }
+
+            todo.insert(i);
+            used[i] = 1;
+            Nused++;
+            // Start new selection
+            Selection tmp(*system);
+            tmp.set_frame(frame);
+            tmp.sel_text = "";
+            tmp.index.push_back(index[i]);
+            res.push_back(tmp);
+        } else {
+            // Done.
+            // Indexes of selections are not sorted sort them
+            for(auto& s: res) sort(s.index.begin(),s.index.end());
+            // And exit
+            break;
+        }
+
     }
 }
 
@@ -1528,7 +1555,7 @@ void Selection::unwrap(Vector3i_const_ref dims){
     }
 }
 
-void Selection::unwrap_bonds(float d, Vector3i_const_ref dims){
+int Selection::unwrap_bonds(float d, Vector3i_const_ref dims){
     // Find all connectivity pairs for given cut-off
     vector<Vector2i> pairs;
     Grid_searcher(d,*this,pairs,false,true);
@@ -1553,6 +1580,8 @@ void Selection::unwrap_bonds(float d, Vector3i_const_ref dims){
     // Add first atom to the queue
     todo.insert(0);
 
+    int Nparts = 1;
+
     int cur;
     for(;;){
         while(!todo.empty()){
@@ -1574,6 +1603,8 @@ void Selection::unwrap_bonds(float d, Vector3i_const_ref dims){
         }
 
         if(Nmoved<size()){
+            // More than 1 part in selection
+            Nparts++;
             // Find next not moved and add to the queue
             int i=0;
             while(moved(i)==1){
@@ -1586,6 +1617,8 @@ void Selection::unwrap_bonds(float d, Vector3i_const_ref dims){
         }
 
     }
+
+    return Nparts;
 }
 
 Eigen::Affine3f Selection::principal_transform(bool is_periodic) const {

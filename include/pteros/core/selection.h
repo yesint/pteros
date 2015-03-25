@@ -479,7 +479,7 @@ class Selection {
      * based on preserving all bonds. The maximal bond length is given by @param d.
      * This method works reliably in any case, but is much slower than unwrap()
      */
-    void unwrap_bonds(float d = 0.2, Vector3i_const_ref dims = Eigen::Vector3i::Ones());
+    int unwrap_bonds(float d = 0.2, Vector3i_const_ref dims = Eigen::Vector3i::Ones());
 
     /** Get transform for orienting selection by principal axes.
      * \warning
@@ -616,7 +616,7 @@ class Selection {
     /// Split current selection into several selections according to
     /// the interatomic distances. Each resulting selection is a group
     /// of atoms connected by distances less than d
-    void split_by_connectivity(float d, std::vector<Selection>& res);
+    void split_by_connectivity(float d, std::vector<Selection>& res, bool periodic=true);
 
     /// Split selection by residue index
     void split_by_residue(std::vector<Selection>& res);
