@@ -476,8 +476,11 @@ class Selection {
     void unwrap(Vector3i_const_ref dims = Eigen::Vector3i::Ones());
 
     /** Unwraps selection to make it whole (without jumps over periodic box boundary).
-     * based on preserving all bonds. The maximal bond length is given by @param d.
+     * based on preserving all bonds.
      * This method works reliably in any case, but is much slower than unwrap()
+     * @param d Maximal bond length.
+     * @param leading_index Index (in selection) of the reference atom, which doesn't move.
+     * Returns number of disconnected pieces after unwrapping. 1 means solid selection.
      */
     int unwrap_bonds(float d = 0.2, int leading_index = 0,
                      Vector3i_const_ref dims = Eigen::Vector3i::Ones());
@@ -616,7 +619,7 @@ class Selection {
 
     /// Split current selection into several selections according to
     /// the interatomic distances. Each resulting selection is a group
-    /// of atoms connected by distances less than d
+    /// of atoms connected by distances less than d.
     void split_by_connectivity(float d, std::vector<Selection>& res, bool periodic=true);
 
     /// Split selection by residue index
