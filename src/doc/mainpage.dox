@@ -3,6 +3,7 @@
 \section contents Contents
 - \ref tutorial
 - \ref what_is_pteros
+- \ref citation
 - \ref is_it_for_you
 - \ref features
 - \ref status
@@ -21,11 +22,17 @@ Pteros is a C++ library for molecular modeling. It is designed to simplify the d
 
 Pteros supports writing analysis programs in either C++ or Python programming languages.
 
+\section citation How to cite Pteros?
+
+Any work, which uses Pteros, should cite the following paper:
+
+- Semen O. Yesylevskyy, "Pteros: Fast and easy to use open-source C++ library for molecular analysis", Journal of Computational Chemistry, 2012, 33(19), 1632–1636. doi: 10.1002/jcc.22989.
+
 \section is_it_for_you	Is Pteros for you?
 
 Pteros library <i>is</i> for you if:
 
-- You want to implement custom non-standard methods of molecular analysis.
+- You want to implement custom non-standard algorithms of molecular analysis.
 - Your task is computationally expensive and potentially reusable.
 - You want to run several "heavy" analysis tasks in parallel.
 - You are not satisfied by the speed and memory consumption of the scripting languages embedded into popular molecular analysis programs, such as PyMol or VMD.
@@ -52,7 +59,7 @@ Pteros is <i>not</i> for you if:
 - Easy to use. API is very simple and intuitive.
 - Easy to extend. Pteros is writen in high-level C++.
 - Oriented to human beings (reserachers and students), not to programming gurus. The code is very well structured and documented.
-- (<a href="python/_build/html/index.html">Bindings</a>) for Python language.
+- <a href="python/_build/html/index.html">Bindings</a> for the Python language.
 - Plugin architecture, which makes writing C++ or Python code for asynchronous trajectory analysis trivial. You concentrate on the analysis algorithm itself, not on the technical details of managing files and trajectories.
 
 Some less widely used features:
@@ -230,7 +237,7 @@ In order to develop you own programs with Pteros you need to know C++ reasonably
 
 In addition you should be familiar with Eigen vector/matrix library. Fortunately, it has <a href="http://eigen.tuxfamily.org/dox/">an excelent documentation</a>. 
 
-In order to modify internals of Pteros you should also be familiar with some Boost libraries, namely Boost.thread, Boost.bind, Boost.signals2, Boost.multiarray and Boost.python.
+In order to modify internals of Pteros you should also be familiar with some Boost libraries.
 
 \section motivation 	Motivation
 
@@ -239,7 +246,7 @@ molecular modeling which satisfies my needs. Existing libraries are either too c
 
 There are several molecular modeling programs, which could be controlled by the scripting languages. Such scripting is often used to perform non-standard analysis tasks. This is perfectly acceptable if the execution time is not an issue, however any computationally intensive algorithm will run ridiculously slow in the scripting language like Python or TCL. Pteros is designed as a replacement of such scripting extentions to existing molecular modeling software. With Pteros one can easily write very fast compiled programs in C++ using the same high-level concepts, which are provided by the scripting extentions.
 
-Pteros contains bindings for Python language. They come handy when one need small throw-away program or in prototyping the algorithms.
+Pteros contains bindings for Python language. They come handy when one need small throw-away program or in prototyping new algorithms.
 
 \section bench Benchmarks
 

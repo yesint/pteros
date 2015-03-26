@@ -388,15 +388,10 @@ virtual void pre_process(){
 	// Prepare our min and max variables for computing averages
 	min_average.fill(0.0);
 	max_average.fill(0.0);	
+        sel.modify(system,sel_text);
 }
 
-virtual void process_frame(const Frame_info& info){
-        // On the very first consumed frame initialize our selection
-        if(info.valid_frame==0){
-            // Make selection for processing
-            // system is internal System object inherited from Consumer
-            sel.modify(system,sel_text);
-        }
+virtual void process_frame(const Frame_info& info){        
 	// Currently loaded frame is stored in internal system in frame 0.
 	// Our selection already points to it by default.
 	// Compute minimal and maximal values
@@ -416,17 +411,6 @@ virtual void post_process(const Frame_info& info){
 	cout << "Averaged maximal value: " << max_average.transpose() << endl;  
 }
 \endcode
-
-\note
-Important thing to note is initialization of selection on the first valid frame:
-\code
-if(info.calid_frame==0){
-    // Make selection for processing
-    // system is internal System object inherited from Consumer
-    sel.modify(system,sel_text);
-}
-\endcode
-The reason of putting this code in process_frame() instead of pre_process() is not so trivial. We are creating selection from the user-supplied string, so we don't know if this selection is coordinate-independent (like "name CA") or coordinate-dependent (like "within 2.5 of name CA"). Coordinate-dependent selections need atom coordinates to exist at the time of parsing, but there are no frames loaded yet in pre_process()! So, if we try to create such selection in pre_process() we'll get a segfault. That is why it's important to initialize all selections in the process_frame() method when the very first frame is loaded.
 
 Now we can write a main program for our small analysis utility:
 \code
@@ -553,12 +537,10 @@ class Task:
 	def pre_process(self):
                 self.sel_text = self.options("selection").as_string()
                 self.use_mass = self.options("mass_weighted","False").as_bool()
+                self.sel = Selection(self.system, self.sel_text )
+                print "Working on selection '%s'" % self.sel.get_text()
 				
-	def process_frame(self,info):
-                if info.valid_frame==0:
-                    self.sel = Selection(self.system, self.sel_text )
-                    print "Working on selection '%s'" % self.sel.get_text()
-
+	def process_frame(self,info):                
                 print "Frame ", info.absolute_frame, " time ", info.absolute_time
                 print "There are %i atoms in selection" % self.sel.size()
                 print "Selection center: ", self.sel.center(self.use_mass)
@@ -589,13 +571,11 @@ protected:
     void pre_process(){
         string sel_text = options("selection").as_string();
         use_mass = options("mass_weighted","false").as_bool();        
+        sel.modify(system,sel_text);
+        cout << "Working on selection " << sel.get_text() << endl;
     }
 
-    void process_frame(const Frame_info &info){
-        if(info.valid_frame==0){
-            sel.modify(system,sel_text);
-            cout << "Working on selection " << sel.get_text() << endl;
-        }
+    void process_frame(const Frame_info &info){        
         cout << "There are " << sel.size() << " atoms in selection" << endl;
         cout << "Frame " << info.absolute_frame
              << " time " << info.absolute_time << endl;

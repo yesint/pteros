@@ -6,17 +6,17 @@
  *                    ******************
  *                 molecular modeling library
  *
- * Copyright (c) 2009-2013, Semen Yesylevskyy
+ * Copyright (c) 2009-2015, Semen Yesylevskyy
+ *
+ * All works, which use Pteros, should cite:
+ *
+ *     Semen O. Yesylevskyy, "Pteros: Fast and easy to use open-source
+ *     C++ library for molecular analysis",
+ *     Journal of Computational Chemistry, 2012, 33(19), 1632–1636.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of Artistic License:
- *
- * Please note, that Artistic License is slightly more restrictive
- * then GPL license in terms of distributing the modified versions
- * of this software (they should be approved first).
  * Read http://www.opensource.org/licenses/artistic-license-2.0.php
- * for details. Such license fits scientific software better then
- * GPL because it prevents the distribution of bugged derivatives.
  *
 */
 
