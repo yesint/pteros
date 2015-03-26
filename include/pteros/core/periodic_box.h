@@ -57,6 +57,9 @@ public:
     /// Constructor from other box
     Periodic_box(Matrix3f_const_ref box);
 
+    /// Constructor from vectors and angles
+    Periodic_box(Vector3f_const_ref vectors, Vector3f_const_ref angles);
+
     /// Copy constructor
     Periodic_box& operator=(Periodic_box other){
         modify(other._box);
@@ -139,7 +142,7 @@ public:
     /// Returns box volume
     float volume();
 
-    /// Read box from CRYST string in PDB format
+    /// Read box from CRYST string in PDB format. Overwrites current box!
     void read_pdb_box(const char *line);
 
     /// Write box as CRYST string in PDB format
@@ -147,6 +150,10 @@ public:
 
     /// Returns representation of the box as direction vectors and angles
     void to_vectors_angles(Vector3f_ref vectors, Vector3f_ref angles) const;
+
+    /// Creates box from vectors and angles. Overwrites current box!
+    void from_vectors_angles(Vector3f_const_ref vectors, Vector3f_const_ref angles);
+
 
 private:
     Eigen::Matrix3f _box;

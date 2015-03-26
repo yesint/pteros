@@ -28,6 +28,13 @@ using namespace pteros;
 using namespace Eigen;
 using namespace boost::python;
 
+boost::shared_ptr<Periodic_box> constructor0(PyObject* vectors, PyObject* angles){
+    MAP_EIGEN_TO_PYTHON_F(Vector3f,v,vectors)
+    MAP_EIGEN_TO_PYTHON_F(Vector3f,a,angles)
+    boost::shared_ptr<Periodic_box> g(new Periodic_box(v,a));
+    return g;
+}
+
 void Periodic_box_modify(Periodic_box* b, PyObject* arr){
     MAP_EIGEN_TO_PYTHON_F(Matrix3f,m,arr)
     b->modify(m);
@@ -97,6 +104,20 @@ float Periodic_box_distance(Periodic_box* b, PyObject* point1, PyObject* point2,
 
 BOOST_PYTHON_FUNCTION_OVERLOADS(Periodic_box_distance_overloads,Periodic_box_distance,3,4);
 
+float Periodic_box_distance_squared(Periodic_box* b, PyObject* point1, PyObject* point2,
+                             PyObject* periodic_dims=nullptr){
+    MAP_EIGEN_TO_PYTHON_F(Vector3f,p1,point1)
+    MAP_EIGEN_TO_PYTHON_F(Vector3f,p2,point2)
+    if(periodic_dims){
+        MAP_EIGEN_TO_PYTHON_I(Vector3i,dim,periodic_dims)
+        return b->distance_squared(p1,p2,dim);
+    } else {
+        return b->distance_squared(p1,p2);
+    }
+}
+
+BOOST_PYTHON_FUNCTION_OVERLOADS(Periodic_box_distance_squared_overloads,Periodic_box_distance_squared,3,4);
+
 void Periodic_box_wrap_point(Periodic_box* b, PyObject* point, PyObject* dims_to_wrap=nullptr){
     MAP_EIGEN_TO_PYTHON_F(Vector3f,p,point)
     if(dims_to_wrap){
@@ -149,10 +170,26 @@ bool Periodic_box_in_box(Periodic_box* b, PyObject* point){
     return b->in_box(p);
 }
 
+
+boost::python::tuple Periodic_box_to_vectors_angles(Periodic_box* b){
+    CREATE_PYARRAY_1D_AND_MAP(vec,Vector3f,v,3)
+    CREATE_PYARRAY_1D_AND_MAP(ang,Vector3f,a,3)
+    b->to_vectors_angles(v,a);
+    return boost::python::make_tuple(handle<>(vec),handle<>(ang));
+}
+
+void Periodic_box_from_vectors_angles(Periodic_box* b, PyObject* vec, PyObject* ang){
+    MAP_EIGEN_TO_PYTHON_F(Vector3f,v,vec)
+    MAP_EIGEN_TO_PYTHON_F(Vector3f,a,ang)
+    b->from_vectors_angles(v,a);
+}
+
+
 void make_bindings_Periodic_box(){
     import_array();
 
     class_<Periodic_box>("Periodic_box", init<>())
+        .def("__init__",make_constructor(&constructor0))
         .def("modify",&Periodic_box_modify)
         .def("get_matrix",&Periodic_box_get_matrix)
         .def("get_inv_matrix",&Periodic_box_get_inv_matrix)
@@ -166,10 +203,13 @@ void make_bindings_Periodic_box(){
         .def("is_triclinic",&Periodic_box::is_triclinic)
         .def("is_periodic",&Periodic_box::is_periodic)
         .def("distance",&Periodic_box_distance, Periodic_box_distance_overloads())
+        .def("distance_squared",&Periodic_box_distance_squared, Periodic_box_distance_squared_overloads())
         .def("wrap_point",&Periodic_box_wrap_point, Periodic_box_wrap_point_overloads())
+        .def("in_box",&Periodic_box_in_box)
+        .def("volume",&Periodic_box::volume)
         .def("get_closest_image",&Periodic_box_get_closest_image, Periodic_box_get_closest_image_overloads())
         .def("shortest_vector",&Periodic_box_shortest_vector, Periodic_box_shortest_vector_overloads())
-        .def("is_periodic",&Periodic_box::volume)
-        .def("in_box",&Periodic_box_in_box)
+        .def("to_vectors_angles",&Periodic_box_to_vectors_angles)
+        .def("from_vectors_angles",&Periodic_box_from_vectors_angles)
     ;
 }

@@ -37,6 +37,11 @@ Periodic_box::Periodic_box(Matrix3f_const_ref box){
     modify(box);
 }
 
+Periodic_box::Periodic_box(Vector3f_const_ref vectors, Vector3f_const_ref angles)
+{
+    from_vectors_angles(vectors,angles);
+}
+
 void Periodic_box::modify(Matrix3f_const_ref box)
 {
     _box = box;
@@ -254,4 +259,48 @@ std::string Periodic_box::write_pdb_box() const {
   }
   */
   return std::string(ch);
+}
+
+void Periodic_box::from_vectors_angles(Vector3f_const_ref vectors, Vector3f_const_ref angles){
+    double cosa,cosb,cosg,sing;
+
+    Matrix3f box;
+
+    box.fill(0.0);
+    box(XX,XX) = vectors(0);
+
+    if ((angles(0)!=90.0) || (angles(1)!=90.0) || (angles(2)!=90.0)) {
+        if (angles(0) != 90.0) {
+            cosa = cos(angles(0)*DEG2RAD);
+        } else {
+            cosa = 0;
+        }
+        if (angles(1) != 90.0) {
+            cosb = cos(angles(1)*DEG2RAD);
+        } else {
+            cosb = 0;
+        }
+        if (angles(2) != 90.0) {
+            cosg = cos(angles(2)*DEG2RAD);
+            sing = sin(angles(2)*DEG2RAD);
+        } else {
+            cosg = 0;
+            sing = 1;
+        }
+        box(YY,XX) = vectors(1)*cosg;
+        box(YY,YY) = vectors(1)*sing;
+        box(ZZ,XX) = vectors(2)*cosb;
+        box(ZZ,YY) = vectors(2)*(cosa - cosb*cosg)/sing;
+        box(ZZ,ZZ) = sqrt(vectors(2)*vectors(2)
+                          - box(ZZ,XX)*box(ZZ,XX) - box(ZZ,YY)*box(ZZ,YY));
+    } else {
+        box(YY,YY) = vectors(1);
+        box(ZZ,ZZ) = vectors(2);
+    }
+
+    // We obtained box as a set of row-vectors. Transform it to column vectors
+    box.transposeInPlace();
+
+    // Recompute internals
+    modify(box);
 }
