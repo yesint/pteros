@@ -736,6 +736,14 @@ void Grid_searcher::populate_grid(Grid_t &grid, const Selection &sel, bool abs_i
             n2 = floor(NgridY*coor(1));
             n3 = floor(NgridZ*coor(2));                        
 
+            // if coor(i) is 1.000001 or -0.00001 due to numerucal errors correct manually
+            if(n1>=NgridX) n1=NgridX-1;
+            if(n1<0) n1=0;
+            if(n2>=NgridY) n2=NgridY-1;
+            if(n2<0) n2=0;
+            if(n3>=NgridZ) n3=NgridZ-1;
+            if(n3<0) n3=0;
+
             // Assign to grid
             if(abs_index){
                 grid.data[n1][n2][n3].push_back(Grid_element(sel.Index(i),ptr));
