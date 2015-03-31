@@ -33,6 +33,8 @@ using namespace std;
 using namespace pteros;
 using namespace Eigen;
 
+Periodic_box::Periodic_box():_is_periodic(false),_is_triclinic(false),_box(Eigen::Matrix3f::Zero()){}
+
 Periodic_box::Periodic_box(Matrix3f_const_ref box){
     modify(box);
 }
@@ -42,26 +44,63 @@ Periodic_box::Periodic_box(Vector3f_const_ref vectors, Vector3f_const_ref angles
     from_vectors_angles(vectors,angles);
 }
 
+Periodic_box& Periodic_box::operator=(Periodic_box other){
+    modify(other._box);
+    return *this;
+}
+
 void Periodic_box::modify(Matrix3f_const_ref box)
 {
     _box = box;
     _is_periodic = (_box.array().abs().sum()>0) ? true : false;
-
     if(!_is_periodic) return;
-
     _box_inv = _box.inverse();
-
-    _extents = _box.colwise().norm();
-
     _is_triclinic = (_box(0,1)||_box(0,2)||_box(1,0)||_box(1,2)||_box(2,0)||_box(2,1));
 }
 
+Vector3f Periodic_box::get_vector(int i){
+    return _box.col(i);
+}
+
+Matrix3f Periodic_box::get_matrix() const {
+    return _box;
+}
+
+Matrix3f Periodic_box::get_inv_matrix() const {
+    return _box_inv;
+}
+
+Vector3f Periodic_box::lab_to_box(Vector3f_const_ref point) const {
+    return _box_inv.colwise().normalized()*point;
+}
+
+Matrix3f Periodic_box::lab_to_box_transform() const {
+    return _box_inv.colwise().normalized();
+}
+
+Vector3f Periodic_box::box_to_lab(Vector3f_const_ref point) const{
+    return _box.colwise().normalized()*point;
+}
+
+Matrix3f Periodic_box::box_to_lab_transform() const {
+    return _box.colwise().normalized();
+}
+
+float Periodic_box::extent(int i) const {
+    return _box.col(i).norm();
+}
+
+const Vector3f &Periodic_box::extents() const {
+    return _box.colwise().norm();
+}
+
 float Periodic_box::distance_squared(Vector3f_const_ref point1, Vector3f_const_ref point2, Vector3i_const_ref dims) const
-{    
+{
     return shortest_vector(point1,point2,dims).squaredNorm();
 }
 
-float Periodic_box::distance(Vector3f_const_ref point1, Vector3f_const_ref point2, Vector3i_const_ref dims) const {
+float Periodic_box::distance(Vector3f_const_ref point1, Vector3f_const_ref point2, Vector3i_const_ref dims) const
+{
     return shortest_vector(point1,point2,dims).norm();
 }
 

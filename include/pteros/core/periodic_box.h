@@ -48,11 +48,7 @@ class Periodic_box {
 public:
 
     /// Default constructor
-    Periodic_box(){
-        _is_periodic = false;
-        _is_triclinic = false;
-        _box.fill(0.0);
-    }
+    Periodic_box();
 
     /// Constructor from other box
     Periodic_box(Matrix3f_const_ref box);
@@ -61,42 +57,37 @@ public:
     Periodic_box(Vector3f_const_ref vectors, Vector3f_const_ref angles);
 
     /// Copy constructor
-    Periodic_box& operator=(Periodic_box other){
-        modify(other._box);
-        return *this;
-    }
+    Periodic_box& operator=(Periodic_box other);
 
     /// Modify the box
     void modify(Matrix3f_const_ref box);       
 
     /// Get i-th box vector
-    Eigen::Vector3f get_vector(int i){ return _box.col(i); }
+    Eigen::Vector3f get_vector(int i);
 
     /// Get stored matrix of box vectors
-    Eigen::Matrix3f get_matrix() const {return _box;}
+    Eigen::Matrix3f get_matrix() const;
 
     /// Get stored inverted matrix of box vectors
-    Eigen::Matrix3f get_inv_matrix() const {return _box_inv;}
+    Eigen::Matrix3f get_inv_matrix() const;
 
     /// Convert point from lab coordinates to box coordinates
-    Eigen::Vector3f lab_to_box(Vector3f_const_ref point) const
-    { return _box_inv.colwise().normalized()*point; }
+    Eigen::Vector3f lab_to_box(Vector3f_const_ref point) const;
 
     /// Return the transformation from lab coordinates to box coordinates
-    Eigen::Matrix3f lab_to_box_transform() const {return _box_inv.colwise().normalized();}
+    Eigen::Matrix3f lab_to_box_transform() const;
 
     /// Convert point from box coordinates to lab coordinates
-    Eigen::Vector3f box_to_lab(Vector3f_const_ref point) const
-    { return _box.colwise().normalized()*point; }
+    Eigen::Vector3f box_to_lab(Vector3f_const_ref point) const;
 
     /// Return the transformation from box coordinates to lab coordinates
-    Eigen::Matrix3f box_to_lab_transform() const {return _box.colwise().normalized();}
+    Eigen::Matrix3f box_to_lab_transform() const;
 
     /// Return i-th extent of the box
-    float extent(int i) const {return _extents(i);}
+    float extent(int i) const;
 
     /// Return the vector of box extents
-    const Eigen::Vector3f& extents() const {return _extents;}
+    const Eigen::Vector3f& extents() const;
 
     /// Is the box triclinic?
     bool is_triclinic() const {return _is_triclinic;}
@@ -152,13 +143,14 @@ public:
     void to_vectors_angles(Vector3f_ref vectors, Vector3f_ref angles) const;
 
     /// Creates box from vectors and angles. Overwrites current box!
+    /// vectors = {a,b,c}
+    /// angles = {a^c, b^c, a^b}
     void from_vectors_angles(Vector3f_const_ref vectors, Vector3f_const_ref angles);
 
 
 private:
     Eigen::Matrix3f _box;
-    Eigen::Matrix3f _box_inv;
-    Eigen::Vector3f _extents;
+    Eigen::Matrix3f _box_inv;    
     bool _is_triclinic;
     bool _is_periodic;
 };
