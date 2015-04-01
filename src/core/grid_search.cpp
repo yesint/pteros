@@ -461,12 +461,11 @@ Grid_searcher::Grid_searcher(float d,
                             const Selection &target,
                             std::vector<int>& bon,
                             bool include_self,
-                            bool absolute_index,
                             bool periodic){
 
     cutoff = d;
     is_periodic = periodic;
-    abs_index = absolute_index;
+    abs_index = true; // Force absolute indexes!
 
     // Get current box
     box = src.get_system()->Box(src.get_frame());
@@ -516,27 +515,20 @@ Grid_searcher::Grid_searcher(float d,
     grid1.data.resize( boost::extents[NgridX][NgridY][NgridZ] );
     grid2.data.resize( boost::extents[NgridX][NgridY][NgridZ] );
 
-    // Fill grids (with local indexes!)
-    populate_grid(grid1,src,false);
-    populate_grid(grid2,target,false);
+    // Fill grids (force absolute indexes!)
+    populate_grid(grid1,src,true);
+    populate_grid(grid2,target,true);
 
-    do_search_within(bon,src);
-
-    if(include_self){
-        // Add all target atoms to result
-        copy(target.index_begin(),target.index_end(),back_inserter(bon));    
-        sort(bon.begin(),bon.end());
-        // Shoud be no duplicates without include_self!
-        // Remove duplicates
-        vector<int>::iterator it = std::unique(bon.begin(), bon.end());
-        // Get rid of the tail with garbage
-        bon.resize( it - bon.begin() );
-    }
+    // bon will contain all atoms from src around target including target itself if they
+    // were initially present in src.
 
     if(!include_self){
-        vector<int> dum = bon;
+        vector<int> dum;
+        do_search_within(dum,src);
         bon.clear();
         set_difference(dum.begin(),dum.end(),target.index_begin(),target.index_end(),back_inserter(bon));
+    } else {
+        do_search_within(bon,src);
     }
 
 }

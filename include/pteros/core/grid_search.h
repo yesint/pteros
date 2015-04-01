@@ -179,12 +179,12 @@ namespace pteros {
             /// Constuctor for very fast immediate search of atoms from src,
             /// which are within given distance from the atoms of target.
             /// Used in internal parsing of within selections.
+            /// Always uses absolute indexes!
             Grid_searcher(  float d,
                             const Selection& src,
                             const Selection& target,
                             std::vector<int>& bon,
-                            bool include_self=true,
-                            bool absolute_index = false,
+                            bool include_self=true,                            
                             bool periodic = false);
             /// @}
 

@@ -584,7 +584,7 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
         dum1.set_frame(frame);
         dum2.set_frame(frame);
 
-        Grid_searcher(dist,dum1,dum2,result,include_self,true,periodic);
+        Grid_searcher(dist,dum1,dum2,result,include_self,periodic);
 
         return;
     }
