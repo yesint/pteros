@@ -144,7 +144,7 @@ vector<Grid_element>& Grid_searcher::cell_of_custom_grid(int x, int y, int z){
 
 void Grid_searcher::do_search_within(vector<int>& bon, const Selection& src){
     // Array of atomic bools for used source points
-    std::vector<atomwrapper<bool>> used(src.size());
+    std::vector<atomic_wrapper<bool>> used(src.size());
     for(int i=0;i<used.size();++i) used[i].store(false);
 
     //------------
@@ -354,7 +354,7 @@ void search_in_pair_of_cells_for_within(int sx, int sy, int sz, // src cell
                              int tx, int ty, int tz, // target cell                             
                              Grid_t& grid1,
                              Grid_t& grid2,
-                             std::vector<atomwrapper<bool>>& used,
+                             std::vector<atomic_wrapper<bool>>& used,
                              const Periodic_box& box,
                              float cutoff2, bool is_periodic)
 {
@@ -397,8 +397,8 @@ void search_in_pair_of_cells_for_within(int sx, int sy, int sz, // src cell
     }
 }
 
-void Grid_searcher::do_part_within(int dim, int _b, int _e,                             
-                             std::vector<atomwrapper<bool>>& used
+void Grid_searcher::do_part_within(int dim, int _b, int _e,
+                             std::vector<atomic_wrapper<bool> > &used
                              ){
     Vector3i b(0,0,0);
     Vector3i e(NgridX,NgridY,NgridZ);

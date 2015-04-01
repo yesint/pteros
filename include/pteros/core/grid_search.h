@@ -25,38 +25,14 @@
 
 #include <Eigen/Core>
 #include <vector>
-#include <atomic>
 #include "pteros/core/selection.h"
+#include "pteros/core/atomic_wrapper.h"
 
 #define BOOST_DISABLE_ASSERTS
 #include "boost/multi_array.hpp"
 
 
 namespace pteros {    
-
-    // Wrapper over std::atomic to make it usable in std::vector
-    template <typename T>
-    struct atomwrapper {
-      std::atomic<T> _a;
-
-      atomwrapper():_a(){}
-
-      atomwrapper(const std::atomic<T> &a):_a(a.load()){}
-
-      atomwrapper(const atomwrapper &other):_a(other._a.load()){}
-
-      atomwrapper &operator=(const atomwrapper &other){
-        _a.store(other._a.load());
-      }
-
-      T load(){
-          return _a.load();
-      }
-
-      void store(const T& v){
-          _a.store(v);
-      }
-    };
 
     struct Grid_element {
         int index;
@@ -234,7 +210,7 @@ namespace pteros {
                           std::vector<float>* dist_vec);
 
             void do_part_within(int dim, int _b, int _e,
-                                std::vector<atomwrapper<bool>>& used);
+                                std::vector<atomic_wrapper<bool>>& used);
 
 
             // Min and max of the bounding box
