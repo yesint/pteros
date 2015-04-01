@@ -66,7 +66,7 @@ Grid_searcher::Grid_searcher(float d, const Selection &sel,
     box = sel.get_system()->Box(sel.get_frame());    
 
     create_grid(grid1,sel);
-    populate_grid(grid1,sel,abs_index);
+    populate_grid(grid1,sel);
     do_search1(bon,dist_vec);
 }
 
@@ -81,8 +81,8 @@ Grid_searcher::Grid_searcher(float d, const Selection &sel1, const Selection &se
     box = sel1.get_system()->Box(sel1.get_frame());    
 
     create_grid2(sel1,sel2);
-    populate_grid(grid1,sel1,abs_index);
-    populate_grid(grid2,sel2,abs_index);
+    populate_grid(grid1,sel1);
+    populate_grid(grid2,sel2);
     do_search2(bon,dist_vec);
 }
 
@@ -99,7 +99,7 @@ void Grid_searcher::assign_to_grid(float d, const Selection &sel,
     box = sel.get_system()->Box(sel.get_frame());    
 
     create_grid(grid1,sel);
-    populate_grid(grid1,sel,false); // Local indexes forced!
+    populate_grid(grid1,sel);
 
     p_sel = const_cast<Selection*>(&sel);
 }
@@ -135,7 +135,7 @@ void Grid_searcher::add_to_custom_grid(const Selection sel, bool absolute_index,
     is_periodic = periodic;
     abs_index = absolute_index;
 
-    populate_grid(grid1,sel,abs_index,false); // Do not clear!
+    populate_grid(grid1,sel,false); // Do not clear grid!
 }
 
 vector<Grid_element>& Grid_searcher::cell_of_custom_grid(int x, int y, int z){
@@ -203,7 +203,6 @@ void Grid_searcher::do_search_within(vector<int>& bon, const Selection& src){
         do_part_within(max_dim,0,dims(max_dim),used);
     }
 
-
     // Convert used array to indexes
     if(abs_index){
         for(int i=0;i<used.size();++i)
@@ -221,9 +220,9 @@ void Grid_searcher::search_within(Vector3f_const_ref coord, vector<int> &bon){
     vector<Atom> atm(1);
     tmp.atoms_add(atm,crd);
     auto target = tmp.select_all();
-    // Allocate second grid
+    // Allocate second grid of the same size
     grid2.data.resize( boost::extents[NgridX][NgridY][NgridZ] );
-    populate_grid(grid2,target,true);
+    populate_grid(grid2,target);
 
     // Now search
     do_search_within(bon,*p_sel);
@@ -231,29 +230,17 @@ void Grid_searcher::search_within(Vector3f_const_ref coord, vector<int> &bon){
 
 
 void Grid_searcher::search_within(const Selection &target, std::vector<int> &bon, bool include_self){
-    // Allocate second grid
+    // Allocate second grid of the same size
     grid2.data.resize( boost::extents[NgridX][NgridY][NgridZ] );    
-    populate_grid(grid2,target,true);
+    populate_grid(grid2,target);
 
-    // Now search
-    do_search_within(bon,*p_sel);
-
-    // Post-processing
-    if(include_self){
-        // Add all target atoms to result
-        copy(target.index_begin(),target.index_end(),back_inserter(bon));
-        sort(bon.begin(),bon.end());
-        // Shoud be no duplicates without include_self!
-        // Remove duplicates
-        vector<int>::iterator it = std::unique(bon.begin(), bon.end());
-        // Get rid of the tail with garbage
-        bon.resize( it - bon.begin() );
-    }
-
-    if(!include_self){
-        vector<int> dum = bon;
+    if(!include_self){        
+        vector<int> dum;
+        do_search_within(dum,*p_sel);
         bon.clear();
         set_difference(dum.begin(),dum.end(),target.index_begin(),target.index_end(),back_inserter(bon));
+    } else {
+        do_search_within(bon,*p_sel);
     }
 }
 
@@ -515,9 +502,9 @@ Grid_searcher::Grid_searcher(float d,
     grid1.data.resize( boost::extents[NgridX][NgridY][NgridZ] );
     grid2.data.resize( boost::extents[NgridX][NgridY][NgridZ] );
 
-    // Fill grids (force absolute indexes!)
-    populate_grid(grid1,src,true);
-    populate_grid(grid2,target,true);
+    // Fill grids (forced absolute indexes above!)
+    populate_grid(grid1,src);
+    populate_grid(grid2,target);
 
     // bon will contain all atoms from src around target including target itself if they
     // were initially present in src.
@@ -672,7 +659,7 @@ void Grid_searcher::create_grid2(const Selection &sel1, const Selection &sel2)
 
 
 // In this grid we can put local or absolute index in the grid itself already here
-void Grid_searcher::populate_grid(Grid_t &grid, const Selection &sel, bool abs_index, bool do_clear)
+void Grid_searcher::populate_grid(Grid_t &grid, const Selection &sel, bool do_clear)
 {
     int Natoms = sel.size();
     int n1,n2,n3,i,j,k;

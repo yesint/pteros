@@ -179,7 +179,7 @@ namespace pteros {
             /// Constuctor for very fast immediate search of atoms from src,
             /// which are within given distance from the atoms of target.
             /// Used in internal parsing of within selections.
-            /// Always uses absolute indexes!
+            /// \warning Returns absolute indexes only!
             Grid_searcher(  float d,
                             const Selection& src,
                             const Selection& target,
@@ -191,7 +191,7 @@ namespace pteros {
             /// @name Assigning the atoms from given selection to the custom periodic grid
             /// @{
 
-            /// Creates custom periodic grid with given dimensions
+            /// Creates custom grid with given dimensions
             void create_custom_grid(int nX, int nY, int nZ);
 
             /// Clear custom grid
@@ -214,8 +214,7 @@ namespace pteros {
             // Create two grids from two selections            
             void create_grid2(const Selection& sel1, const Selection& sel2);
 
-            void populate_grid(Grid_t &grid, const Selection& sel,
-                                    bool abs_index, bool do_clear=true);
+            void populate_grid(Grid_t &grid, const Selection& sel, bool do_clear=true);
 
             /// Search function for contacts inside one group
             void do_search1(std::vector<Eigen::Vector2i>& bon,
