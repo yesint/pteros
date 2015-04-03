@@ -87,7 +87,7 @@ public:
     float extent(int i) const;
 
     /// Return the vector of box extents
-    const Eigen::Vector3f& extents() const;
+    Eigen::Vector3f extents() const;
 
     /// Is the box triclinic?
     bool is_triclinic() const {return _is_triclinic;}

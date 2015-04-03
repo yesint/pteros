@@ -90,7 +90,7 @@ float Periodic_box::extent(int i) const {
     return _box.col(i).norm();
 }
 
-const Vector3f &Periodic_box::extents() const {
+Vector3f Periodic_box::extents() const {
     return _box.colwise().norm();
 }
 
