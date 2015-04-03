@@ -27,6 +27,11 @@ using namespace std;
 using namespace pteros;
 
 
+Jump_remover::Jump_remover()
+{
+    dims = Eigen::Vector3i::Ones();
+}
+
 void Jump_remover::add_no_jump_atoms(const Selection &sel)
 {    
     int ind;
@@ -43,9 +48,15 @@ void Jump_remover::add_no_jump_atoms(const Selection &sel)
     no_jump_ind.resize( it - no_jump_ind.begin() );
 }
 
+void Jump_remover::set_no_jump_dimensions(Vector3i_const_ref dim)
+{
+    dims = dim;
+    if(dims.sum()==0) cout << "(WARNING!) No periodic dimensions, skipping jump removing." << endl;
+}
+
 void Jump_remover::remove_jumps(System& system, const Frame_info &info){
-    // Exit immediately if no atoms
-    if(no_jump_ind.empty()) return;        
+    // Exit immediately if no atoms or no valid dimensions
+    if(no_jump_ind.empty() || dims.sum()==0) return;
     // If not periodic also do nothing
     if(!system.Box(0).is_periodic()) return;
 
@@ -60,7 +71,8 @@ void Jump_remover::remove_jumps(System& system, const Frame_info &info){
             cout << "Initial unwrapping of atoms with jump removal..." << endl;
             float cutoff = 0.2;
             float min_extent = system.Box(0).extents().minCoeff();
-            while(sel.unwrap_bonds(cutoff)>1){
+
+            while(sel.unwrap_bonds(cutoff,0,dims)>1){
                 cout << "Cutoff " << cutoff << " too small for unwrapping. ";
                 cutoff *= 2.0;
                 cout << "Trying " << cutoff << "..." <<endl;
@@ -90,7 +102,8 @@ void Jump_remover::remove_jumps(System& system, const Frame_info &info){
             ind = no_jump_ind[i];
             // Get image closest to running reference
             system.XYZ(ind,0) = system.Box(0).get_closest_image(system.XYZ(ind,0),
-                                                                no_jump_ref.col(i));
+                                                                no_jump_ref.col(i),
+                                                                dims);
             // Update running reference
             no_jump_ref.col(i) = system.XYZ(ind,0);
         }

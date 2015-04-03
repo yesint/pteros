@@ -25,8 +25,10 @@
 #include "consumer_wrapper.h"
 #include "pteros/python/bindings_util.h"
 #include "pteros/analysis/jump_remover.h"
+#include <Eigen/Core>
 
 using namespace pteros;
+using namespace Eigen;
 using namespace boost::python;
 /*
  Bindings to Trajectory_processor could not be direct because
@@ -69,6 +71,11 @@ public:
 
 };
 
+void jump_remover_dims(Jump_remover* r, PyObject* dims_to_wrap){
+    MAP_EIGEN_TO_PYTHON_I(Vector3i,dim,dims_to_wrap)
+    r->set_no_jump_dimensions(dim);
+}
+
 
 void make_bindings_Trajectory_processor(){
 
@@ -90,6 +97,7 @@ void make_bindings_Trajectory_processor(){
     class_<Jump_remover>("Jump_remover",init<>())
         .def("add_no_jump_atoms",&Jump_remover::add_no_jump_atoms)
         .def("remove_jumps",&Jump_remover::remove_jumps)
+        .def("set_no_jump_dimensions",&jump_remover_dims)
     ;
 
 }

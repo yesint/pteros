@@ -32,13 +32,17 @@ namespace pteros {
 
 class Jump_remover {
 public:
+    Jump_remover();
     void add_no_jump_atoms(const Selection &sel);
+    void set_no_jump_dimensions(Vector3i_const_ref dim);
     void remove_jumps(System& system, const Frame_info &info);
 private:
     // Indexes for removing jumps
     std::vector<int> no_jump_ind;
     // Running reference coordinates for removing jumps
     Eigen::MatrixXf no_jump_ref;
+    // Dimensions to consider
+    Eigen::Vector3i dims;
 };
 
 } // namespace
