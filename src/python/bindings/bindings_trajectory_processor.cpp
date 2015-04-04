@@ -73,7 +73,7 @@ public:
 
 void jump_remover_dims(Jump_remover* r, PyObject* dims_to_wrap){
     MAP_EIGEN_TO_PYTHON_I(Vector3i,dim,dims_to_wrap)
-    r->set_no_jump_dimensions(dim);
+    r->set_dimensions(dim);
 }
 
 
@@ -95,9 +95,10 @@ void make_bindings_Trajectory_processor(){
 
     // Also wrap Jump_remover. It will be created for each python plugin on python side
     class_<Jump_remover>("Jump_remover",init<>())
-        .def("add_no_jump_atoms",&Jump_remover::add_no_jump_atoms)
+        .def("add_atoms",&Jump_remover::add_atoms)
+        .def("set_dimensions",&jump_remover_dims)
+        .def("set_unwrap_dist",&Jump_remover::set_unwrap_dist)
         .def("remove_jumps",&Jump_remover::remove_jumps)
-        .def("set_no_jump_dimensions",&jump_remover_dims)
     ;
 
 }

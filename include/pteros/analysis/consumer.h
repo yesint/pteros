@@ -35,21 +35,11 @@ class Consumer: public Consumer_base {
 public:
     Consumer(Trajectory_processor* pr): Consumer_base(pr){}
 
-    void add_no_jump_atoms(const Selection &sel){        
-        remover.add_no_jump_atoms(sel);
-    }
+    Jump_remover jump_remover;
 
 protected:
     virtual void process_frame_data(Frame& data);
-
-    virtual void process_frame_handler(const Frame_info& info){        
-        // Remove jumps
-        remover.remove_jumps(system,info);
-        // Call user callback
-        process_frame(info);
-    }
-
-    Jump_remover remover;
+    virtual void process_frame_handler(const Frame_info& info);
 };
 
 }
