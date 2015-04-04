@@ -43,9 +43,13 @@ public:
                 "Options:\n"
                 "\t-selection <string>\n"
                 "\t\tSelection text\n"
-                "\t-nojump <true|false>. Default: true\n"
+                "\t-nojump <distance>. Default: 0\n"
                 "\t\tRemove jumps of atoms over periodic box boundary.\n"
-                "\t\tSetting this to false is only meaningful is very special cases."
+                "\t\tAtoms, which should not jump, are unwrapped with\n"
+                "\t\given distance on the first frame.\n"
+                "\t\Zero means find unwrap distance automatically.\n"
+                "\t\tDistance -1 means no jump removal\n"
+                "\t\tthis is only meaningful is very special cases!\n"
                 ;
     }
 
@@ -65,9 +69,13 @@ protected:
             throw Pteros_error("Can't fit selection with less than 3 atoms!");
         }
 
-        // Add our selections to nojump list
-        add_no_jump_atoms(fit_sel);
-        add_no_jump_atoms(rms_sel);
+        float d = options("nojump").as_float();
+        if(d>=0){
+            // Add our selections to nojump list
+            jump_remover.add_atoms(fit_sel);
+            jump_remover.add_atoms(rms_sel);
+            jump_remover.set_unwrap_dist(d);
+        }
 
         // Create frame 1 for fitting
         system.frame_dup(0);

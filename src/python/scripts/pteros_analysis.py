@@ -8,12 +8,6 @@ import types, signal
 
 #--------------------------------------
 # Create processor class
-def add_no_jump_atoms_(self,sel):
-    self.jump_remover.add_no_jump_atoms(sel)
-
-def set_no_jump_dimensions_(self,dims):
-    self.jump_remover.set_no_jump_dimensions(dims)
-
 
 class Processor(Trajectory_processor):
         def __init__(self,opt):
@@ -26,9 +20,7 @@ class Processor(Trajectory_processor):
                         # We need to give each task its own system
                         task.system = System(self.get_system())
                         # We also need to give it its own jump remover
-                        task.jump_remover = Jump_remover()
-                        task.add_no_jump_atoms = types.MethodType(add_no_jump_atoms_,task)
-                        task.set_no_jump_dimensions = types.MethodType(set_no_jump_dimensions_,task)
+                        task.jump_remover = Jump_remover()                        
                         # Run pre_process for each task
                         task.pre_process()
 

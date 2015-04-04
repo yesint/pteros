@@ -27,12 +27,9 @@ using namespace std;
 using namespace pteros;
 
 
-Jump_remover::Jump_remover()
-{
-    dims = Eigen::Vector3i::Ones();
-}
+Jump_remover::Jump_remover(): dims(Eigen::Vector3i::Ones()), unwrap_d(-1.0) {}
 
-void Jump_remover::add_no_jump_atoms(const Selection &sel)
+void Jump_remover::add_atoms(const Selection &sel)
 {    
     int ind;
     int n = sel.get_system()->num_atoms();
@@ -48,10 +45,15 @@ void Jump_remover::add_no_jump_atoms(const Selection &sel)
     no_jump_ind.resize( it - no_jump_ind.begin() );
 }
 
-void Jump_remover::set_no_jump_dimensions(Vector3i_const_ref dim)
+void Jump_remover::set_dimensions(Vector3i_const_ref dim)
 {
     dims = dim;
     if(dims.sum()==0) cout << "(WARNING!) No periodic dimensions, skipping jump removing." << endl;
+}
+
+void Jump_remover::set_unwrap_dist(float d)
+{
+    unwrap_d = d;
 }
 
 void Jump_remover::remove_jumps(System& system, const Frame_info &info){
@@ -66,22 +68,34 @@ void Jump_remover::remove_jumps(System& system, const Frame_info &info){
         Selection sel(system);
         sel.modify(no_jump_ind);
 
-        // Do unwrapping if more than 1 atom
-        if(no_jump_ind.size()>1){
+        // Do unwrapping if more than 1 atom and distance >0
+        if(no_jump_ind.size()>1 && unwrap_d>=0){
             cout << "Initial unwrapping of atoms with jump removal..." << endl;
-            float cutoff = 0.2;
-            float min_extent = system.Box(0).extents().minCoeff();
+            if(unwrap_d==0){
+                // Auto find distance
+                unwrap_d = 0.2;
 
-            while(sel.unwrap_bonds(cutoff,0,dims)>1){
-                cout << "Cutoff " << cutoff << " too small for unwrapping. ";
-                cutoff *= 2.0;
-                cout << "Trying " << cutoff << "..." <<endl;
-                if(cutoff > 0.5*min_extent){
-                    cout << "Reached cutoff > 0.5 of box extents!\n"
-                            "Selection is likely to consist of disconnected parts.\n"
-                            "Continuing as is." << endl;
-                    break;
+                // Find minimal box extent in needed dimensions
+                float min_extent = 1e20;
+                for(int i=0;i<3;++i)
+                    if(dims(i))
+                        if(sel.get_system()->Box(0).extent(i)<min_extent)
+                            min_extent = sel.get_system()->Box(0).extent(i);
+
+                while(sel.unwrap_bonds(unwrap_d,0,dims)>1){
+                    cout << "Cutoff " << unwrap_d << " too small for unwrapping. ";
+                    unwrap_d *= 2.0;
+                    cout << "Trying " << unwrap_d << "..." <<endl;
+                    if(unwrap_d > 0.5*min_extent){
+                        cout << "Reached cutoff > 0.5 of box extents!\n"
+                                "Selection is likely to consist of disconnected parts.\n"
+                                "Continuing as is." << endl;
+                        break;
+                    }
                 }
+            } else {
+                // Unwrap with given distance
+                sel.unwrap_bonds(unwrap_d,0,dims);
             }
             cout << "Unwrapping done." << endl;
         }
@@ -92,7 +106,7 @@ void Jump_remover::remove_jumps(System& system, const Frame_info &info){
             no_jump_ref.col(i) = sel.XYZ(i,0);
         }                
 
-        cout << "Removing jumps for " << sel.size() << " atoms" << endl;
+        cout << "Will remove jumps for " << sel.size() << " atoms" << endl;
 
     } else { // For other frames, not first
 

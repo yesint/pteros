@@ -27,3 +27,11 @@ using namespace pteros;
 void Consumer::process_frame_data(Frame &data){
     system.Frame_data(0) = data;
 }
+
+void Consumer::process_frame_handler(const Frame_info &info){
+    // Remove jumps
+    jump_remover.remove_jumps(system,info);
+    // Call user callback
+    process_frame(info);
+}
+
