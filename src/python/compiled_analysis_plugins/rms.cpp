@@ -69,7 +69,7 @@ protected:
             throw Pteros_error("Can't fit selection with less than 3 atoms!");
         }
 
-        float d = options("nojump").as_float();
+        float d = options("nojump","0").as_float();
         if(d>=0){
             // Add our selections to nojump list
             jump_remover.add_atoms(fit_sel);
