@@ -68,7 +68,11 @@ bool PTTOP_file::do_read(System *sys, Frame *frame, const Mol_file_content &what
            ss >> frame->coord[i](0) >> frame->coord[i](1) >> frame->coord[i](2);
         }
         if(what.structure){
+            // Add atoms to system
             append_atom_in_system(*sys,at);
+        } else {
+            // Update atoms in system
+            atom_in_system(*sys,i) = at;
         }
     }
     cout << "\tRead " << natoms << " atoms" << endl;
