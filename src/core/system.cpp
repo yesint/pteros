@@ -626,17 +626,17 @@ void System::wrap_all(int fr, Vector3i_const_ref dims_to_wrap){
     }
 }
 
-inline float LJ_en_kernel(float C6, float C12, float r){
-    float tmp = 1/r;
-    tmp = tmp*tmp; // (1/r)^2
+inline float LJ_en_kernel(float C6, float C12, float r_inv){
+    //float tmp = 1/r;
+    float tmp = r_inv*r_inv; // (1/r)^2
     tmp = tmp*tmp*tmp; // (1/r)^6
     return C12*tmp*tmp-C6*tmp;
 }
 
 #define ONE_4PI_EPS0      138.935456
 
-inline float Coulomb_en_kernel(float q1, float q2, float r){
-    return ONE_4PI_EPS0*q1*q2/r;
+inline float Coulomb_en_kernel(float q1, float q2, float r_inv){
+    return ONE_4PI_EPS0*q1*q2*r_inv;
 }
 
 string Energy_components::to_str(){
@@ -687,7 +687,7 @@ Energy_components System::non_bond_energy(int a1, int a2, int frame, bool is_per
 
         int N = force_field.LJ14_interactions.size();
 
-        float r = distance(at1,at2,frame,is_periodic);
+        float r_inv = 1.0/distance(at1,at2,frame,is_periodic);
 
         // Check if this is 1-4 pair
         std::unordered_map<int,int>::iterator it = const_cast<System&>(*this).force_field.LJ14_pairs.find(at1*N+at2);
@@ -695,10 +695,10 @@ Energy_components System::non_bond_energy(int a1, int a2, int frame, bool is_per
             // Normal, not 1-4
             e1 = LJ_en_kernel(force_field.LJ_C6(atoms[at1].type,atoms[at2].type),
                                    force_field.LJ_C12(atoms[at1].type,atoms[at2].type),
-                                   r);
+                                   r_inv);
             e2 = Coulomb_en_kernel(atoms[at1].charge,
                                        atoms[at2].charge,
-                                       r);
+                                       r_inv);
             e.lj_sr += e1;
             e.q_sr += e2;
             e.total += (e1 + e2);
@@ -706,10 +706,10 @@ Energy_components System::non_bond_energy(int a1, int a2, int frame, bool is_per
             // 1-4
             e1 = LJ_en_kernel(force_field.LJ14_interactions[it->second](0),
                                    force_field.LJ14_interactions[it->second](1),
-                                   r);
+                                   r_inv);
             e2 = Coulomb_en_kernel(atoms[at1].charge,
                                        atoms[at2].charge,
-                                       r)
+                                       r_inv)
                     * force_field.fudgeQQ;
 
             e.lj_14 = e1;
