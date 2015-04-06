@@ -8,6 +8,7 @@ SET(PLUGINS
     distance_matr
     secondary
     rdf
+    contacts
 )
 
 IF(STANDALONE_PLUGINS)
