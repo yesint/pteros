@@ -55,10 +55,10 @@ bool PTTOP_file::do_read(System *sys, Frame *frame, const Mol_file_content &what
     getline(f,line); // Value
     ss.clear(); ss.str(line);
     ss >> natoms;
-    frame->coord.resize(natoms);
+    if(frame) frame->coord.resize(natoms);
     getline(f,line); // Comment
     // Read atoms
-    for(int i=0;i<natoms;++i){
+    for(int i=0;i<natoms;++i){        
         Atom at;
         getline(f,line);
         ss.clear(); ss.str(line);
@@ -78,10 +78,10 @@ bool PTTOP_file::do_read(System *sys, Frame *frame, const Mol_file_content &what
     getline(f,line); // Comment
     getline(f,line); // Value
     ss.clear(); ss.str(line);
-    ss >> nbonds;
-    ff_in_system(*sys).bonds.resize(nbonds);
+    ss >> nbonds;    
+    ff_in_system(*sys).bonds.resize(nbonds);    
     getline(f,line); // Comment
-    for(int i=0;i<nbonds;++i){
+    for(int i=0;i<nbonds;++i){        
         getline(f,line);
         ss.clear(); ss.str(line);
         ss >> ff_in_system(*sys).bonds[i](0) >> ff_in_system(*sys).bonds[i](1);
@@ -98,7 +98,7 @@ bool PTTOP_file::do_read(System *sys, Frame *frame, const Mol_file_content &what
             ss >> b(i,0) >> b(i,1) >> b(i,2);
         }
     }
-    frame->box.modify(b);
+    if(frame) frame->box.modify(b);
 
     // All the rest should be read only if topology is requested
     if(!what.topology) return true;

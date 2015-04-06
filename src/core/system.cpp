@@ -186,7 +186,7 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
                 // If callback returns false stop reading
                 if(!callback_ok) break;
             }
-        } else if(f->get_content_type().coordinates) {
+        } else if(f->get_content_type().coordinates && !f->get_content_type().topology) {
             Mol_file_content c;
             c.coordinates = true;
             // File contains single frame
@@ -199,6 +199,11 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
             ++num_stored;
             // Call a callback if asked
             if(on_frame) on_frame(this,num_frames()-1);
+        } else if(f->get_content_type().topology) {
+            // This is topology file, read only topology
+            Mol_file_content c;
+            c.topology = true;
+            f->read(this,nullptr,c);
         }
     }
 

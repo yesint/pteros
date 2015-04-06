@@ -177,19 +177,33 @@ void Trajectory_processor::run(){
         auto h = Mol_file::recognize(s);
         Mol_file_content c = h->get_content_type();
 
-        if(c.structure && !c.trajectory){
-            if(structure_file!="") throw Pteros_error("Only one structure file is allowed!");
-            structure_file = s;            
+        // traj file are always added as traj even if this is TNG
+        if(c.trajectory){
+            traj_files.push_back(s);
+            continue;
         }
 
         if(c.topology){
-            if(top_file!="") throw Pteros_error("Only one topology file is allowed!");
-            top_file = s;
+            if(top_file=="")
+                top_file = s;
+            else
+                throw Pteros_error("Only one topology file allowed!");
         }
 
-        if(c.trajectory){
-            traj_files.push_back(s);            
-        }        
+        if(c.structure){
+            if(structure_file==""){
+                structure_file = s;
+            } else {
+                // Structure is present already
+                // If this was set to topology file overwrite
+                if(structure_file == top_file){
+                    structure_file = s;
+                } else if(!c.topology) {
+                    throw Pteros_error("Only one structure file allowed!");
+                }
+            }
+
+        }
     }
 
     if(traj_files.empty()) throw Pteros_error("At least one trajectory file is required!");
@@ -199,6 +213,9 @@ void Trajectory_processor::run(){
     System* sys1 = consumers[0]->get_system();
     sys1->clear();
 
+    // To avoid reading top file twice
+    if(structure_file==top_file) structure_file = "";
+
     if(structure_file!="" && top_file==""){
         // we have only structure but no topology
         sys1->load(structure_file);
@@ -206,8 +223,8 @@ void Trajectory_processor::run(){
         // we have only topology but no structure
         sys1->load(top_file); // coordinates from top!
     } else if(structure_file!="" && top_file!=""){
-        // we have both topology and structure
-        sys1->load(structure_file);
+        // we have both topology and structure        
+        sys1->load(structure_file);        
         sys1->load(top_file); // No coordinates from top!
     } else {                
         // No topology and no structure!
