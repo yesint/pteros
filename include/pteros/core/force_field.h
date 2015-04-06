@@ -72,9 +72,7 @@ struct Force_field {
     /// Is the force field properly set up?
     bool ready;
 
-    Force_field(){
-        ready = false;
-    }
+    Force_field(): ready(false) {}
 
     /// Copy constructor
     Force_field(const Force_field& other){
