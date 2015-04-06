@@ -94,7 +94,7 @@ protected:
             e = non_bond_energy(sel1,sel2,cutoff,0,is_periodic);
         }
 
-        out << info.valid_frame << " " << e.to_str() << endl;
+        out << info.absolute_time << " " << e.to_str() << endl;
     }
 
     void post_process(const Frame_info& info){        
