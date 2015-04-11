@@ -1,9 +1,11 @@
 cmake_minimum_required(VERSION 2.6)
+
 project(pteros)
 
 OPTION(PYTHON_BINDINGS "Build python bindings and compiled analysis plugins as Python modules" ON)
 OPTION(POWERSASA "Use POWERSASA code. This implies severe license restrictions! \n Read the comment in src/core/sasa/power_sasa.h carefully before enabling this option!" OFF)
 OPTION(STANDALONE_PLUGINS "Compile analysis plugins as stand-alone executables" OFF)
+OPTION(MAKE_PACKAGE "Generate package" OFF)
 
 # Use shared Boost libraries
 set(Boost_USE_STATIC_LIBS OFF)
@@ -107,6 +109,29 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     SET(SHARED_LIB_EXT ".so") # Use .so on Linux
 ENDIF()
+
+# Set python install dir
+set(PY_INST_DIR python)
+
+#--------------
+# CPack config
+#--------------
+IF(MAKE_PACKAGE)
+    SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Pteros molecular modeling library")
+    SET(CPACK_PACKAGE_VERSION_MAJOR "2")
+    SET(CPACK_PACKAGE_VERSION_MINOR "0")
+    SET(CPACK_PACKAGE_VERSION_PATCH "0")
+    SET(CPACK_PACKAGE_INSTALL_DIRECTORY "CMake ${CMake_VERSION_MAJOR}.${CMake_VERSION_MINOR}")
+    IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+        SET(CPACK_GENERATOR DEB)
+        SET(CPACK_PACKAGE_CONTACT "Semen Yesylevskyy yesint4@yahoo.com")
+        SET(CPACK_DEBIAN_PACKAGE_DEPENDS "g++ (>=4.8), libboost-all-dev (>=1.50), python-dev (>=2.5), python-numpy")
+        execute_process(COMMAND python -c "from distutils.sysconfig import get_python_lib; print get_python_lib()" OUTPUT_VARIABLE PYTHON_SITE_PACKAGES OUTPUT_STRIP_TRAILING_WHITESPACE)
+        set(PY_INST_DIR ${PYTHON_SITE_PACKAGES})
+    ENDIF()
+    INCLUDE(CPack)
+ENDIF()
+#--------------
 
 add_subdirectory(src/core)
 add_subdirectory(src/core/sasa)

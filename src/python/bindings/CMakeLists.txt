@@ -55,8 +55,8 @@ IF(WITH_PYTHON)
 
     #Installation
     install(TARGETS pteros_py
-        LIBRARY DESTINATION python
-        ARCHIVE DESTINATION python
+        LIBRARY DESTINATION ${PY_INST_DIR}
+        ARCHIVE DESTINATION ${PY_INST_DIR}
     )
 
 ENDIF()

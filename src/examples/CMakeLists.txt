@@ -7,7 +7,5 @@ add_executable(chol_counter chol_counter.cpp)
 add_executable(water_movement water_movement.cpp)
 
 install(TARGETS parallel_processing benchmark cg_lipids chol_counter water_movement
-    RUNTIME DESTINATION ${CMAKE_BINARY_DIR}/examples
-    LIBRARY DESTINATION ${CMAKE_BINARY_DIR}/examples
-    ARCHIVE DESTINATION ${CMAKE_BINARY_DIR}/examples
+    RUNTIME DESTINATION bin/examples
 )

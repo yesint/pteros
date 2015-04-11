@@ -59,8 +59,8 @@ IF(WITH_PYTHON)
         )
         #Installation
         install(TARGETS plugin_${plugin}
-            LIBRARY DESTINATION python/pteros_analysis_plugins
-            ARCHIVE DESTINATION python/pteros_analysis_plugins
+            LIBRARY DESTINATION ${PY_INST_DIR}/pteros_analysis_plugins
+            ARCHIVE DESTINATION ${PY_INST_DIR}/pteros_analysis_plugins
         )
     endforeach()
 
