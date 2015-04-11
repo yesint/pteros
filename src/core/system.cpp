@@ -698,7 +698,7 @@ Energy_components System::non_bond_energy(int a1, int a2, int frame, bool is_per
                                    r_inv);
             e2 = Coulomb_en_kernel(atoms[at1].charge,
                                        atoms[at2].charge,
-                                       r_inv);
+                                       r_inv/force_field.epsilon);
             e.lj_sr += e1;
             e.q_sr += e2;
             e.total += (e1 + e2);
@@ -709,7 +709,7 @@ Energy_components System::non_bond_energy(int a1, int a2, int frame, bool is_per
                                    r_inv);
             e2 = Coulomb_en_kernel(atoms[at1].charge,
                                        atoms[at2].charge,
-                                       r_inv)
+                                       r_inv/force_field.epsilon)
                     * force_field.fudgeQQ;
 
             e.lj_14 = e1;

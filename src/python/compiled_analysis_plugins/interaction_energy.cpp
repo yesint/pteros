@@ -42,29 +42,36 @@ public:
                 "\tFile <label>.dat containing the following columns:\n"
                 "\ttime total lj_sr lj_14 q_sr q_14\n"
                 "Options:\n"
-                "\t--cutoff <float>, default: 0.25\n"
-                "\t\tCutoff for energy computation\n";
-                "\t--selections <string> [<string>]\n"
-                "\t\tSelection texts for one or two selections\n";
+                "\t-cutoff <float>, default: 0.25\n"
+                "\t\tCutoff for energy computation\n"
+                "\t-selections <string> [<string>]\n"
+                "\t\tSelection texts for one or two selections\n"
+                "\t-eps <float>, default: 1.0\n"
+                "\t\tDielectric constant for Coulomb interactions\n"
+                "\t-periodic <bool>, default: false\n"
+                "\t\tUse periodicity?\n";
     }
 protected:
 
     void pre_process(){        
         cutoff = options("cutoff","0.25").as_float();
         is_periodic = options("periodic","false").as_bool();
+        eps = options("eps","1.0").as_float();
+
         // Get selections
         std::vector<string> sels = options("selections").as_strings();
         if(sels.size()<1 || sels.size()>2) throw Pteros_error("Either 1 or 2 selections should be passed");
         if(sels.size()==1){            
             sel1.modify(system,sels.front());
-            is_self_energy = true;
+            is_self_energy = true;            
         } else {            
-            sel1.modify(system,sels.front());
-            std::vector<string>::iterator it = sels.begin();
-            it++;            
-            sel2.modify(system,*it);
-            is_self_energy = false;
+            sel1.modify(system,sels[0]);
+            sel2.modify(system,sels[1]);
+            is_self_energy = false;            
         }
+
+        // Apply epsilon if needed
+        if(eps!=0.0) sel1.get_system()->get_force_field()->epsilon = eps;
 
         // Output
         string fname = label+".dat";
@@ -105,6 +112,7 @@ private:
     Selection sel1, sel2;
     bool is_self_energy;
     float cutoff;
+    float eps;
     bool is_periodic;
     ofstream out;
 };

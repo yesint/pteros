@@ -65,6 +65,9 @@ struct Force_field {
     std::unordered_map<int,int> LJ14_pairs;
     /// Scaling factor of 1-4 Coulomb interactions
     float fudgeQQ;
+    /// Global dielectric constant for Coulombic interactions.
+    /// Useful for CG forcfields for example.
+    float epsilon;
 
     /// Topology-related infromation
     std::vector<Eigen::Vector2i> bonds;
@@ -72,7 +75,7 @@ struct Force_field {
     /// Is the force field properly set up?
     bool ready;
 
-    Force_field(): ready(false) {}
+    Force_field(): ready(false), epsilon(1.0) {}
 
     /// Copy constructor
     Force_field(const Force_field& other){
@@ -83,6 +86,7 @@ struct Force_field {
         LJ14_interactions = other.LJ14_interactions;
         LJ14_pairs = other.LJ14_pairs;
         fudgeQQ = other.fudgeQQ;
+        epsilon = other.epsilon;
         ready = other.ready;
     }
 
@@ -96,6 +100,7 @@ struct Force_field {
         LJ14_pairs = other.LJ14_pairs;
         fudgeQQ = other.fudgeQQ;
         ready = other.ready;
+        epsilon = other.epsilon;
         return *this;
     }
 
@@ -107,6 +112,7 @@ struct Force_field {
         LJ14_interactions.clear();
         LJ14_pairs.clear();
         fudgeQQ = 0.0;
+        epsilon = 1.0;
         ready = false;
     }
 };
