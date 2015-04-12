@@ -45,9 +45,7 @@ public:
                 "\t-cutoff <float>, default: 0.25\n"
                 "\t\tCutoff for energy computation\n"
                 "\t-selections <string> [<string>]\n"
-                "\t\tSelection texts for one or two selections\n"
-                "\t-eps <float>, default: 1.0\n"
-                "\t\tDielectric constant for Coulomb interactions\n"
+                "\t\tSelection texts for one or two selections\n"                
                 "\t-periodic <bool>, default: false\n"
                 "\t\tUse periodicity?\n";
     }
@@ -69,9 +67,6 @@ protected:
             sel2.modify(system,sels[1]);
             is_self_energy = false;            
         }
-
-        // Apply epsilon if needed
-        if(eps!=0.0) sel1.get_system()->get_force_field()->epsilon = eps;
 
         // Output
         string fname = label+".dat";

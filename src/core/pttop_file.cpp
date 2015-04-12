@@ -49,6 +49,72 @@ bool PTTOP_file::do_read(System *sys, Frame *frame, const Mol_file_content &what
 
     cout << "Reading Pteros topology file '"<< fname << "'..." << endl;
 
+    // rlist
+    getline(f,line); // Comment
+    getline(f,line); // Value
+    ss.clear(); ss.str(line);
+    if(what.topology) ss >> ff_in_system(*sys).rlist;
+
+    // coulomb_type
+    getline(f,line); // Comment
+    getline(f,line); // Value
+    ss.clear(); ss.str(line);
+    if(what.topology) ss >> ff_in_system(*sys).coulomb_type;
+
+    // coulomb_modifier
+    getline(f,line); // Comment
+    getline(f,line); // Value
+    ss.clear(); ss.str(line);
+    if(what.topology) ss >> ff_in_system(*sys).coulomb_modifier;
+
+    // rcoulomb
+    getline(f,line); // Comment
+    getline(f,line); // Value
+    ss.clear(); ss.str(line);
+    if(what.topology) ss >> ff_in_system(*sys).rcoulomb;
+
+    // epsilon_r
+    getline(f,line); // Comment
+    getline(f,line); // Value
+    ss.clear(); ss.str(line);
+    if(what.topology) ss >> ff_in_system(*sys).epsilon_r;
+
+    // epsilon_rf
+    getline(f,line); // Comment
+    getline(f,line); // Value
+    ss.clear(); ss.str(line);
+    if(what.topology) ss >> ff_in_system(*sys).epsilon_rf;
+
+    // rcoulomb_switch
+    getline(f,line); // Comment
+    getline(f,line); // Value
+    ss.clear(); ss.str(line);
+    if(what.topology) ss >> ff_in_system(*sys).rcoulomb_switch;
+
+    // vdw_type
+    getline(f,line); // Comment
+    getline(f,line); // Value
+    ss.clear(); ss.str(line);
+    if(what.topology) ss >> ff_in_system(*sys).vdw_type;
+
+    // vdw_modifier
+    getline(f,line); // Comment
+    getline(f,line); // Value
+    ss.clear(); ss.str(line);
+    if(what.topology) ss >> ff_in_system(*sys).vdw_modifier;
+
+    // rvdw_switch
+    getline(f,line); // Comment
+    getline(f,line); // Value
+    ss.clear(); ss.str(line);
+    if(what.topology) ss >> ff_in_system(*sys).rvdw_switch;
+
+    // rvdw
+    getline(f,line); // Comment
+    getline(f,line); // Value
+    ss.clear(); ss.str(line);
+    if(what.topology) ss >> ff_in_system(*sys).rvdw;
+
     // Number of atoms
     int natoms;
     getline(f,line); // Comment
@@ -214,6 +280,7 @@ bool PTTOP_file::do_read(System *sys, Frame *frame, const Mol_file_content &what
     }
     cout << "\tRead " << nLJ14pairs << " LJ-14 atom pairs" << endl;
 
+    ff_in_system(*sys).setup_kernels(); // Setup kernels
     ff_in_system(*sys).ready = true; // ff is ready to use
 
     return true;

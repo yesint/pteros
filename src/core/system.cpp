@@ -687,29 +687,29 @@ Energy_components System::non_bond_energy(int a1, int a2, int frame, bool is_per
 
         int N = force_field.LJ14_interactions.size();
 
-        float r_inv = 1.0/distance(at1,at2,frame,is_periodic);
+        float r = distance(at1,at2,frame,is_periodic);
 
         // Check if this is 1-4 pair
         std::unordered_map<int,int>::iterator it = const_cast<System&>(*this).force_field.LJ14_pairs.find(at1*N+at2);
         if( it == force_field.LJ14_pairs.end() ){
             // Normal, not 1-4
-            e1 = LJ_en_kernel(force_field.LJ_C6(atoms[at1].type,atoms[at2].type),
+            e1 = force_field.LJ_kernel_ptr(force_field.LJ_C6(atoms[at1].type,atoms[at2].type),
                                    force_field.LJ_C12(atoms[at1].type,atoms[at2].type),
-                                   r_inv);
-            e2 = Coulomb_en_kernel(atoms[at1].charge,
+                                   r);
+            e2 = force_field.coulomb_kernel_ptr(atoms[at1].charge,
                                        atoms[at2].charge,
-                                       r_inv/force_field.epsilon);
+                                       r);
             e.lj_sr += e1;
             e.q_sr += e2;
             e.total += (e1 + e2);
         } else {
             // 1-4
-            e1 = LJ_en_kernel(force_field.LJ14_interactions[it->second](0),
+            e1 = force_field.LJ_kernel_ptr(force_field.LJ14_interactions[it->second](0),
                                    force_field.LJ14_interactions[it->second](1),
-                                   r_inv);
-            e2 = Coulomb_en_kernel(atoms[at1].charge,
+                                   r);
+            e2 = force_field.coulomb_kernel_ptr(atoms[at1].charge,
                                        atoms[at2].charge,
-                                       r_inv/force_field.epsilon)
+                                       r)
                     * force_field.fudgeQQ;
 
             e.lj_14 = e1;

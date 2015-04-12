@@ -37,9 +37,81 @@ bonded_pairs = []
 fudgeQQ = 0.0
 box = []
 
+rlist = 0.0
+coulombtype = ""
+coulomb_modifier = ""
+rcoulomb = 0.0
+epsilon_r = 0.0
+epsilon_rf = 0.0
+rcoulomb_switch = 0.0
+vdw_type = ""
+vdw_modifier = ""
+rvdw_switch = 0.0
+rvdw = 0.0
+
+
 while True:
 	line = f.readline()
 	if not line: break
+
+        if re.search(" rlist\s",line):
+            m = re.search("=\s*(.+)",line)
+            rlist = float(m.group(1))
+            continue
+
+        if re.search(" coulombtype\s",line):
+            m = re.search("=\s*(.+)",line)
+            coulombtype = m.group(1).lower()
+            continue
+
+        if re.search(" coulomb-modifier\s",line):
+            m = re.search("=\s*(.+)",line)
+            coulomb_modifier = m.group(1).lower()
+            continue
+
+        if re.search(" rcoulomb\s",line):
+            m = re.search("=\s*(.+)",line)
+            rcoulomb = float(m.group(1))
+            continue
+
+        if re.search(" epsilon-r\s",line):
+            m = re.search("=\s*(.+)",line)
+            epsilon_r = float(m.group(1))
+            continue
+
+        if re.search(" epsilon-rf\s",line):
+            m = re.search("=\s*(.+)",line)
+            if m.group(1)=="inf":
+                epsilon_rf = 0.0
+            else:
+                epsilon_rf = float(m.group(1))
+            continue
+
+        if re.search(" rcoulomb-switch\s",line):
+            m = re.search("=\s*(.+)",line)
+            rcoulomb_switch = float(m.group(1))
+            continue
+
+        if re.search(" vdw-type\s",line):
+            m = re.search("=\s*(.+)",line)
+            vdw_type = m.group(1).lower()
+            continue
+
+        if re.search(" vdw-modifier\s",line):
+            m = re.search("=\s*(.+)",line)
+            vdw_modifier = m.group(1).lower()
+            continue
+
+        if re.search(" rvdw-switch\s",line):
+            m = re.search("=\s*(.+)",line)
+            rvdw_switch = float(m.group(1))
+            continue
+
+        if re.search(" rvdw\s",line):
+            m = re.search("=\s*(.+)",line)
+            rvdw = float(m.group(1))
+            continue
+
 	if re.search(" atoms:",line):
 		print "Reading atoms..."
 		line = f.readline()
@@ -271,6 +343,29 @@ while True:
 # Output
 #-----------------------------------------
 f = open(sys.argv[1]+".pttop","w")
+
+f.write("# rlist\n")
+f.write("%f\n" % rlist)
+f.write("# coulombtype\n")
+f.write("%s\n" % coulombtype)
+f.write("# coulomb_modifier\n")
+f.write("%s\n" % coulomb_modifier)
+f.write("# rcoulomb\n")
+f.write("%f\n" % rcoulomb)
+f.write("# epsilon_r\n")
+f.write("%f\n" % epsilon_r)
+f.write("# epsilon_rf\n")
+f.write("%f\n" % epsilon_rf)
+f.write("# rcoulomb_switch\n")
+f.write("%f\n" % rcoulomb_switch)
+f.write("# vdw_type\n")
+f.write("%s\n" % vdw_type)
+f.write("# vdw_modifier\n")
+f.write("%s\n" % vdw_modifier)
+f.write("# rvdw_switch\n")
+f.write("%f\n" % rvdw_switch)
+f.write("# rvdw\n")
+f.write("%f\n" % rvdw)
 
 f.write("# number of atoms\n")
 f.write("%s\n" % len(atoms))

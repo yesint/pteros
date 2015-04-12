@@ -47,6 +47,7 @@ add_library(pteros SHARED
     ${PROJECT_SOURCE_DIR}/include/pteros/core/pteros_error.h
     ${PROJECT_SOURCE_DIR}/include/pteros/core/atom.h
     ${PROJECT_SOURCE_DIR}/include/pteros/core/force_field.h
+    force_field.cpp
     ${PROJECT_SOURCE_DIR}/include/pteros/core/system.h
     system.cpp
     ${PROJECT_SOURCE_DIR}/include/pteros/core/selection.h

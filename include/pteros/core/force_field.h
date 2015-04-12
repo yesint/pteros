@@ -44,7 +44,8 @@ namespace pteros {
 
 */
 
-struct Force_field {
+class Force_field {
+public:
     /// Charge groups. Currently not used and could be deleted later.
     std::vector<Eigen::Vector2i> charge_groups;
     /// Exclusions.
@@ -65,9 +66,9 @@ struct Force_field {
     std::unordered_map<int,int> LJ14_pairs;
     /// Scaling factor of 1-4 Coulomb interactions
     float fudgeQQ;
-    /// Global dielectric constant for Coulombic interactions.
-    /// Useful for CG forcfields for example.
-    float epsilon;
+
+    float rlist, rcoulomb, epsilon_r, epsilon_rf, rcoulomb_switch, rvdw_switch, rvdw;
+    std::string coulomb_type, coulomb_modifier, vdw_type, vdw_modifier;
 
     /// Topology-related infromation
     std::vector<Eigen::Vector2i> bonds;
@@ -75,46 +76,39 @@ struct Force_field {
     /// Is the force field properly set up?
     bool ready;
 
-    Force_field(): ready(false), epsilon(1.0) {}
+    /// Pointer to chosen coulomb kernel
+    std::function<float(float,float,float)> coulomb_kernel_ptr;
+
+    /// Pointer to chosen VDW kernel
+    std::function<float(float,float,float)> LJ_kernel_ptr;
+
+    // Aux constants to be precomputed by set_kernels()
+    float coulomb_prefactor, k_rf, c_rf;
+    // potential shift constants
+    float shift_A_1, shift_B_1, shift_C_1;
+    float shift_A_6, shift_B_6, shift_C_6;
+    float shift_A_12, shift_B_12, shift_C_12;
+
+    /// Constructor
+    Force_field();
 
     /// Copy constructor
-    Force_field(const Force_field& other){
-        charge_groups = other.charge_groups;
-        exclusions = other.exclusions;
-        LJ_C6 = other.LJ_C6;
-        LJ_C12 = other.LJ_C12;
-        LJ14_interactions = other.LJ14_interactions;
-        LJ14_pairs = other.LJ14_pairs;
-        fudgeQQ = other.fudgeQQ;
-        epsilon = other.epsilon;
-        ready = other.ready;
-    }
+    Force_field(const Force_field& other);
 
     /// Assignment operator
-    Force_field& operator=(Force_field other){
-        charge_groups = other.charge_groups;
-        exclusions = other.exclusions;
-        LJ_C6 = other.LJ_C6;
-        LJ_C12 = other.LJ_C12;
-        LJ14_interactions = other.LJ14_interactions;
-        LJ14_pairs = other.LJ14_pairs;
-        fudgeQQ = other.fudgeQQ;
-        ready = other.ready;
-        epsilon = other.epsilon;
-        return *this;
-    }
+    Force_field& operator=(Force_field other);
 
-    void clear(){
-        charge_groups.clear();
-        exclusions.clear();
-        LJ_C6.fill(0.0);
-        LJ_C12.fill(0.0);
-        LJ14_interactions.clear();
-        LJ14_pairs.clear();
-        fudgeQQ = 0.0;
-        epsilon = 1.0;
-        ready = false;
-    }
+    // Clear ff
+    void clear();
+
+    // Setup coulomb and VDW kernel pointers
+    void setup_kernels();
+
+    float LJ_en_kernel(float C6, float C12, float r);
+    float LJ_en_kernel_shifted(float C6, float C12, float r);
+    float Coulomb_en_kernel(float q1, float q2, float r);
+    float Coulomb_en_kernel_rf(float q1, float q2, float r);
+    float Coulomb_en_kernel_shifted(float q1, float q2, float r);
 };
 
 
