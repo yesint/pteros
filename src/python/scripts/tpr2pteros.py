@@ -54,11 +54,6 @@ while True:
 	line = f.readline()
 	if not line: break
 
-        if re.search(" rlist\s",line):
-            m = re.search("=\s*(.+)",line)
-            rlist = float(m.group(1))
-            continue
-
         if re.search(" coulombtype\s",line):
             m = re.search("=\s*(.+)",line)
             coulombtype = m.group(1).lower()
@@ -344,8 +339,6 @@ while True:
 #-----------------------------------------
 f = open(sys.argv[1]+".pttop","w")
 
-f.write("# rlist\n")
-f.write("%f\n" % rlist)
 f.write("# coulombtype\n")
 f.write("%s\n" % coulombtype)
 f.write("# coulomb_modifier\n")

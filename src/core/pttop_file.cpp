@@ -49,12 +49,6 @@ bool PTTOP_file::do_read(System *sys, Frame *frame, const Mol_file_content &what
 
     cout << "Reading Pteros topology file '"<< fname << "'..." << endl;
 
-    // rlist
-    getline(f,line); // Comment
-    getline(f,line); // Value
-    ss.clear(); ss.str(line);
-    if(what.topology) ss >> ff_in_system(*sys).rlist;
-
     // coulomb_type
     getline(f,line); // Comment
     getline(f,line); // Value
