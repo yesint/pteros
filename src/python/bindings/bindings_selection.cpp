@@ -354,13 +354,6 @@ boost::python::tuple Selection_inertia(Selection* s, bool periodic=false){
 
 BOOST_PYTHON_FUNCTION_OVERLOADS(Selection_inertia_overloads, Selection_inertia, 1, 2)
 
-void Selection_distribute(Selection* s, boost::python::list& ncopy, PyObject* shift){
-    MAP_EIGEN_TO_PYTHON_F(Vector3f,sh,shift)
-    Vector3i nc;
-    for(int i=0;i<3;++i) nc(i) = extract<int>(ncopy[i]);
-    s->distribute(nc,sh);
-}
-
 boost::python::list Selection_split_by_connectivity(Selection* s, float d){
     vector<Selection> res;
     s->split_by_connectivity(d,res);
@@ -665,12 +658,6 @@ void make_bindings_Selection(){
         .def("apply_transform",&Selection_apply_transform)
 
         .def("write",&Selection::write, write_overloads())
-
-        .def("atoms_dup",&Selection::atoms_dup)
-
-
-        .def("atoms_delete",&Selection::atoms_delete)
-        .def("distribute",&Selection_distribute)
 
         // inertia return a tuple of (moments,axes)
         .def("inertia",&Selection_inertia, Selection_inertia_overloads())

@@ -528,7 +528,18 @@ void System::remove(const Selection &sel)
     *this = tmp;
 }
 
-
+void System::distribute(const Selection sel, Vector3i_const_ref ncopies, Vector3f_const_ref shift)
+{
+    Selection tmp;
+    for(int x=0; x<ncopies(0); ++x)
+        for(int y=0; y<ncopies(1); ++y)
+            for(int z=0; z<ncopies(2); ++z){
+                if(x>0 || y>0 || z>0){
+                    tmp = append(sel);
+                    tmp.translate(Vector3f(shift(0)*x,shift(1)*y,shift(2)*z));
+                }
+            }
+}
 
 Selection System::select(string str){
     return Selection(*this,str);

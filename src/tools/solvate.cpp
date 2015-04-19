@@ -52,7 +52,10 @@ int main(int argc, char* argv[]){
         cout << "Will use " << nbox.transpose() << " solvent boxes..." << endl;
 
         // Distribute solvent boxes
-        solvent.select_all().distribute(nbox,max_solvent_coord);
+        {
+            Selection all(solvent,"all");
+            solvent.distribute(all,nbox,max_solvent_coord);
+        }
 
         // Move minimal coord solvent box to minimal coord of solute
         Vector3f solvent_min,solvent_max, solute_min, solute_max;

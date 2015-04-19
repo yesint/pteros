@@ -156,6 +156,10 @@ public:
     /// Remove atoms from given selection
     void remove(const Selection& sel);
 
+    /// Creates multiple copies of selection in the system and
+    /// distributes them in a grid
+    void distribute(const Selection sel, Vector3i_const_ref ncopies, Vector3f_const_ref shift);
+
     /// @}
 
 

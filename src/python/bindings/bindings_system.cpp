@@ -173,6 +173,14 @@ float System_dihedral3(System* sys, int i, int j, int k, int l, int fr){
     return sys->dihedral(i,j,k,l,fr);
 }
 
+void System_distribute(System* s, const Selection& sel, boost::python::list& ncopy, PyObject* shift){
+    MAP_EIGEN_TO_PYTHON_F(Vector3f,sh,shift)
+    Vector3i nc;
+    for(int i=0;i<3;++i) nc(i) = extract<int>(ncopy[i]);
+    s->distribute(sel,nc,sh);
+}
+
+
 //==================================================================
 
 void make_bindings_System(){
@@ -227,6 +235,7 @@ void make_bindings_System(){
         .def("keep", static_cast<void(System::*)(const string&)>(&System::keep))
         .def("remove", static_cast<void(System::*)(const Selection&)>(&System::remove))
         .def("remove", static_cast<void(System::*)(const string&)>(&System::remove))
+        .def("distribute",&System_distribute)
 
         .def("dssp", static_cast<void(System::*)(std::string)const>(&System::dssp))
         .def("dssp", static_cast<std::string(System::*)()const>(&System::dssp))

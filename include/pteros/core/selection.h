@@ -580,31 +580,13 @@ class Selection {
     /// @name File IO
     /// @{
 
-    /** Write structure or trajectory for selection. Type is determined by extension.
+    /** Write structure or trajectory for selection. File type is determined by extension.
     *   Frames from b to e are written.
     *   If @param b is not set or -1 it means current frame
     *   If @param e is not set or -1 it means the last frame
     */
     // Can't be made const because of internal calls
     void write(std::string fname,int b=-1,int e=-1);
-    /// @}
-
-
-    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    /// @name Building functions
-    /// @{
-
-    /// Duplicate current selection in the parent system.
-    /// Returns selection corresponding to duplicated atoms.
-    Selection atoms_dup();
-
-    /// Delete all atoms of current selection from the parent system.
-    /// Current selection becomes invalid after this!.
-    void atoms_delete();
-
-    /// Creates multiple copies of selection in the parent system and
-    /// distributes them in a grid
-    void distribute(Vector3i_const_ref ncopies, Vector3f_const_ref shift);
     /// @}
 
 

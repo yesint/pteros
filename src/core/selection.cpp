@@ -186,6 +186,7 @@ void Selection::append(int ind){
 
     if(find(index.begin(),index.end(),ind)==index.end()){
         index.push_back(ind);
+        sort(index.begin(),index.end());
     }
 
     sel_text = "";
@@ -1355,26 +1356,6 @@ MatrixXf Selection::atom_traj(int ind, int b, int e) const {
     for(int fr=b;fr<=e;++fr) ret.col(fr) = system->traj[fr].coord[index[ind]];
 
     return ret;
-}
-
-Selection Selection::atoms_dup(){
-    return system->atoms_dup(index);
-}
-
-void Selection::atoms_delete(){
-    system->atoms_delete(index);
-}
-
-void Selection::distribute(Vector3i_const_ref ncopies, Vector3f_const_ref shift){   
-    Selection tmp;
-    for(int x=0; x<ncopies(0); ++x)
-        for(int y=0; y<ncopies(1); ++y)
-            for(int z=0; z<ncopies(2); ++z){
-                if(x>0 || y>0 || z>0){
-                    tmp = system->append(*this);
-                    tmp.translate(Vector3f(shift(0)*x,shift(1)*y,shift(2)*z));
-                }
-            }
 }
 
 void Selection::split_by_connectivity(float d, std::vector<Selection> &res, bool periodic) {
