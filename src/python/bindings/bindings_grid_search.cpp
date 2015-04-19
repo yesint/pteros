@@ -49,6 +49,7 @@ boost::shared_ptr<Grid_searcher> constructor0(float d, Selection& sel,
     vector<Vector2i> bond;
     vector<float> dist_vec;
     boost::shared_ptr<Grid_searcher> g(new Grid_searcher(d,sel,bond,absolute_index,periodic,&dist_vec));
+
     // Convert list of bonds
     del(bon[slice()]);
     for(int i=0;i<bond.size();++i){

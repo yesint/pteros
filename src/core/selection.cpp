@@ -162,7 +162,7 @@ Selection::Selection(const System &sys, std::vector<int>::iterator it1, std::vec
 
 // Destructor
 Selection::~Selection(){    
-    // All (including parser) will be destroyed automatically
+    // Everything (including parser) will be destroyed automatically
 }
 
 void Selection::append(const Selection &sel){
@@ -188,6 +188,25 @@ void Selection::append(int ind){
         index.push_back(ind);
     }
 
+    sel_text = "";
+    parser.reset();
+}
+
+void Selection::remove(const Selection &sel)
+{
+    vector<int> tmp;
+    set_difference(index.begin(),index.end(),
+                   sel.index_begin(),sel.index_end(),back_inserter(tmp));
+    index = tmp;
+    sel_text = "";
+    parser.reset();
+}
+
+void Selection::remove(int ind)
+{
+    vector<int> tmp;
+    remove_copy(index.begin(),index.end(),back_inserter(tmp),ind);
+    index = tmp;
     sel_text = "";
     parser.reset();
 }
@@ -311,6 +330,7 @@ Atom_proxy Selection::operator[](int ind) const {
     return Atom_proxy(const_cast<Selection*>(this),ind);
 }
 
+
 Selection Selection::operator~() const {
     Selection res(*system);
     res.frame = frame;
@@ -374,7 +394,20 @@ ostream& operator<<(ostream &os, const Selection &sel){
     return os;
 }
 
-} // namespace
+Selection operator-(const Selection &sel1, const Selection &sel2)
+{
+    Selection res(*sel1.system);
+    res.sel_text = "";
+    res.parser.reset();
+    res.frame = sel1.frame;
+    std::set_difference(sel1.index.begin(),sel1.index.end(),
+                        sel2.index.begin(),sel2.index.end(),
+                        back_inserter(res.index));
+    return res;
+}
+
+
+} // namespace pteros
 
 // Copy constructor
 Selection::Selection(const Selection& sel){

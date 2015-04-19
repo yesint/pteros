@@ -144,16 +144,20 @@ class Selection {
 
     /// Creates new Selection, which is the logical OR of two parent selections.
     /// Parent selections are not modified.
-    friend Selection operator|(const Selection& sel1, const Selection& sel2);
+    friend Selection operator|(const Selection& sel1, const Selection& sel2);        
 
     /// Creates new Selection, which is the logical AND of two parent selections.
     /// Parent selections are not modified.
     friend Selection operator&(const Selection& sel1, const Selection& sel2);
 
+    /// Creates new Selection, by removing all atoms of sel2 from sel1.
+    /// Parent selections are not modified.
+    /// This operator is \em not commutative!
+    friend Selection operator-(const Selection& sel1, const Selection& sel2);
+
     /// Creates new Selection, which is a logical negation of existing one.
     /// Parent selection is not modified
-    Selection operator~() const;
-
+    Selection operator~() const;        
     /// @}
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -165,6 +169,12 @@ class Selection {
 
     /// Append absolute index to selection
     void append(int ind);
+
+    /// Remove all atoms of sel from current selection
+    void remove(const Selection& sel);
+
+    /// Remove given absolute index from current selection
+    void remove(int ind);
 
     /// Sets new system for selection. This clears selection index and leaves it empty!
     void set_system(const System& sys);
