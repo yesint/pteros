@@ -67,7 +67,7 @@ public:
     /// Scaling factor of 1-4 Coulomb interactions
     float fudgeQQ;
 
-    float rlist, rcoulomb, epsilon_r, epsilon_rf, rcoulomb_switch, rvdw_switch, rvdw;
+    float rcoulomb, epsilon_r, epsilon_rf, rcoulomb_switch, rvdw_switch, rvdw;
     std::string coulomb_type, coulomb_modifier, vdw_type, vdw_modifier;
 
     /// Topology-related infromation
@@ -85,9 +85,7 @@ public:
     // Aux constants to be precomputed by set_kernels()
     float coulomb_prefactor, k_rf, c_rf;
     // potential shift constants
-    float shift_A_1, shift_B_1, shift_C_1;
-    float shift_A_6, shift_B_6, shift_C_6;
-    float shift_A_12, shift_B_12, shift_C_12;
+    Eigen::Vector3f shift_1, shift_6, shift_12;
 
     /// Constructor
     Force_field();
@@ -105,10 +103,12 @@ public:
     void setup_kernels();
 
     float LJ_en_kernel(float C6, float C12, float r);
+    float LJ_en_kernel_cutoff(float C6, float C12, float r);
     float LJ_en_kernel_shifted(float C6, float C12, float r);
     float Coulomb_en_kernel(float q1, float q2, float r);
     float Coulomb_en_kernel_rf(float q1, float q2, float r);
     float Coulomb_en_kernel_shifted(float q1, float q2, float r);
+    float Coulomb_en_kernel_cutoff(float q1, float q2, float r);
 };
 
 

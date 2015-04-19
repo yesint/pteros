@@ -31,20 +31,26 @@ using namespace std;
 using namespace pteros;
 using namespace Eigen;
 
-float shift_const_A(int alpha, float r1, float rc){
-    return -(( (alpha+4)*rc - (alpha+1)*r1 )/( pow(rc,alpha+2)*pow(rc-r1,2) ));
+Vector3f get_shift_coefs(int alpha, float r1, float rc){
+    Vector3f res;
+    res(0) = -(( (alpha+4)*rc - (alpha+1)*r1 )/( pow(rc,alpha+2)*pow(rc-r1,2) ));
+    res(1) = ( (alpha+3)*rc - (alpha+1)*r1 )/( pow(rc,alpha+2)*pow(rc-r1,3) );
+    res(2) = 1.0/pow(rc,alpha) - (res(0)/3.0)*pow(rc-r1,3) - (res(1)/4.0)*pow(rc-r1,4);
+    return res;
 }
 
-float shift_const_B(int alpha, float r1, float rc){
-    return ( (alpha+3)*rc - (alpha+1)*r1 )/( pow(rc,alpha+2)*pow(rc-r1,3) );
-}
-
-float shift_const_C(int alpha, float r1, float rc, float A, float B){
-    return 1.0/pow(rc,alpha) - (A/3.0)*pow(rc-r1,3) - (B/4.0)*pow(rc-r1,4);
-}
 
 // Plain LJ kernel
-float Force_field::LJ_en_kernel(float C6, float C12, float r){
+float Force_field::LJ_en_kernel(float C6, float C12, float r){    
+    float r_inv = 1.0/r;
+    float tmp = r_inv*r_inv; // (1/r)^2
+    tmp = tmp*tmp*tmp; // (1/r)^6
+    return C12*tmp*tmp-C6*tmp;
+}
+
+// Cutoff LJ kernel
+float Force_field::LJ_en_kernel_cutoff(float C6, float C12, float r){
+    if(r>rvdw) return 0.0;
     float r_inv = 1.0/r;
     float tmp = r_inv*r_inv; // (1/r)^2
     tmp = tmp*tmp*tmp; // (1/r)^6
@@ -53,14 +59,17 @@ float Force_field::LJ_en_kernel(float C6, float C12, float r){
 
 // Shifted LJ kernel
 float Force_field::LJ_en_kernel_shifted(float C6, float C12, float r){
-    float val12 =  pow(r,-12)
-            -(shift_A_12/3.0)*pow(r-rvdw_switch,3)
-            -(shift_B_12/4.0)*pow(r-rvdw_switch,4)
-            -shift_C_12;
-    float val6 =  pow(r,-6)
-            -(shift_A_6/3.0)*pow(r-rvdw_switch,3)
-            -(shift_B_6/4.0)*pow(r-rvdw_switch,4)
-            -shift_C_6;
+    if(r>rvdw) return 0.0;
+
+    float val12 = pow(r,-12)
+            -(shift_12(0)/3.0)*pow(r-rvdw_switch,3)
+            -(shift_12(1)/4.0)*pow(r-rvdw_switch,4)
+            -shift_12(2);
+    float val6 = pow(r,-6)
+            -(shift_6(0)/3.0)*pow(r-rvdw_switch,3)
+            -(shift_6(1)/4.0)*pow(r-rvdw_switch,4)
+            -shift_6(2);
+
     return C12*val12 - C6*val6;
 }
 
@@ -72,6 +81,13 @@ inline float Force_field::Coulomb_en_kernel(float q1, float q2, float r){
     return coulomb_prefactor*q1*q2/r;
 }
 
+// Cutoff Coulomb kernel
+inline float Force_field::Coulomb_en_kernel_cutoff(float q1, float q2, float r){
+    if(r>rcoulomb) return 0.0;
+    return coulomb_prefactor*q1*q2/r;
+}
+
+
 // Reaction field Coulomb kernel
 inline float Force_field::Coulomb_en_kernel_rf(float q1, float q2, float r){
     return coulomb_prefactor*q1*q2*(1.0/r + k_rf*r*r - c_rf);
@@ -80,9 +96,9 @@ inline float Force_field::Coulomb_en_kernel_rf(float q1, float q2, float r){
 // Shifted Coulomb kernel
 inline float Force_field::Coulomb_en_kernel_shifted(float q1, float q2, float r){
     return coulomb_prefactor*q1*q2*( 1.0/r
-                                     -(shift_A_1/3.0)*pow(r-rcoulomb_switch,3)
-                                     -(shift_B_1/4.0)*pow(r-rcoulomb_switch,4)
-                                     -shift_C_1
+                                     -(shift_1(0)/3.0)*pow(r-rcoulomb_switch,3)
+                                     -(shift_1(1)/4.0)*pow(r-rcoulomb_switch,4)
+                                     -shift_1(2)
                                      );
 }
 
@@ -93,6 +109,7 @@ void Force_field::setup_kernels(){
     // Set Coulomb prefactor
     coulomb_prefactor = ONE_4PI_EPS0 / epsilon_r;
 
+    // Set Coulomb kernel
     if(coulomb_type=="reaction-field"){
         // In case of reaction field precompute constanst
         if(epsilon_rf){
@@ -107,34 +124,40 @@ void Force_field::setup_kernels(){
         // Set coulomb kernel pointer
         coulomb_kernel_ptr = bind(&Force_field::Coulomb_en_kernel_rf,this,_1,_2,_3);
         cout << "\tCoulomb kernel: reaction_field" << endl;
-    } else if(coulomb_modifier=="potential-shift") {
+
+    } else if((coulomb_type=="cut-off" && coulomb_modifier=="potential-shift")
+              || coulomb_type=="shift"  || coulomb_type=="pme") {
         // Compute shift constants for power 1
-        shift_A_1 = shift_const_A(1,rcoulomb_switch,rcoulomb);
-        shift_B_1 = shift_const_B(1,rcoulomb_switch,rcoulomb);
-        shift_C_1 = shift_const_C(1,rcoulomb_switch,rcoulomb,shift_A_1,shift_B_1);
+        shift_1 = get_shift_coefs(1,rcoulomb_switch,rcoulomb);
 
         coulomb_kernel_ptr = bind(&Force_field::Coulomb_en_kernel_shifted,this,_1,_2,_3);
         cout << "\tCoulomb kernel: shifted" << endl;
-    } else {
+
+    } else if(coulomb_type=="cut-off") {
         // In other cases set plain Coulomb interaction
+        coulomb_kernel_ptr = bind(&Force_field::Coulomb_en_kernel_cutoff,this,_1,_2,_3);
+        cout << "\tCoulomb kernel: cutoff" << endl;
+    } else {
         coulomb_kernel_ptr = bind(&Force_field::Coulomb_en_kernel,this,_1,_2,_3);
-        cout << "\tCoulomb kernel: plain cutoff" << endl;
+        cout << "\tCoulomb kernel: plain" << endl;
     }
 
-    if(vdw_modifier == "potential-shift"){
+    // Set LJ kernel
+    if(vdw_type== "shift"){
         // Compute shift constants for powers 6 and 12
-        shift_A_6 = shift_const_A(6,rvdw_switch,rvdw);
-        shift_A_12 = shift_const_A(12,rvdw_switch,rvdw);
-        shift_B_6 = shift_const_B(6,rvdw_switch,rvdw);
-        shift_B_12 = shift_const_B(12,rvdw_switch,rvdw);
-        shift_C_6 = shift_const_C(6,rvdw_switch,rvdw,shift_A_6,shift_B_6);
-        shift_C_12 = shift_const_C(12,rvdw_switch,rvdw,shift_A_12,shift_B_12);
+        shift_6 = get_shift_coefs(6,rvdw_switch,rvdw);
+        shift_12 = get_shift_coefs(12,rvdw_switch,rvdw);
 
         LJ_kernel_ptr = bind(&Force_field::LJ_en_kernel_shifted,this,_1,_2,_3);
         cout << "\tLJ kernel: shifted" << endl;
+
+    } else if(vdw_type== "cut-off") {
+        LJ_kernel_ptr = bind(&Force_field::LJ_en_kernel_cutoff,this,_1,_2,_3);
+        cout << "\tLJ kernel: cutoff" << endl;
+
     } else {
         LJ_kernel_ptr = bind(&Force_field::LJ_en_kernel,this,_1,_2,_3);
-        cout << "\tLJ kernel: plain cutoff" << endl;
+        cout << "\tLJ kernel: plain" << endl;
     }
 }
 
@@ -148,8 +171,20 @@ Force_field::Force_field(const Force_field &other){
     LJ14_interactions = other.LJ14_interactions;
     LJ14_pairs = other.LJ14_pairs;
     fudgeQQ = other.fudgeQQ;
+    rcoulomb = other.rcoulomb;
+    epsilon_r = other.epsilon_r;
+    epsilon_rf = other.epsilon_rf;
+    rcoulomb_switch = other.rcoulomb_switch;
+    rvdw_switch = other.rvdw_switch;
+    rvdw = other.rvdw;
+    coulomb_type = other.coulomb_type;
+    coulomb_modifier = other.coulomb_modifier;
+    vdw_type = other.vdw_type;
+    vdw_modifier = other.vdw_modifier;
 
     ready = other.ready;
+
+    setup_kernels();
 }
 
 Force_field &Force_field::operator=(Force_field other){
@@ -160,7 +195,20 @@ Force_field &Force_field::operator=(Force_field other){
     LJ14_interactions = other.LJ14_interactions;
     LJ14_pairs = other.LJ14_pairs;
     fudgeQQ = other.fudgeQQ;
+    rcoulomb = other.rcoulomb;
+    epsilon_r = other.epsilon_r;
+    epsilon_rf = other.epsilon_rf;
+    rcoulomb_switch = other.rcoulomb_switch;
+    rvdw_switch = other.rvdw_switch;
+    rvdw = other.rvdw;
+    coulomb_type = other.coulomb_type;
+    coulomb_modifier = other.coulomb_modifier;
+    vdw_type = other.vdw_type;
+    vdw_modifier = other.vdw_modifier;
+
     ready = other.ready;
+
+    setup_kernels();
 
     return *this;
 }
