@@ -25,6 +25,7 @@
 
 #include <Eigen/Core>
 #include <vector>
+#include <deque>
 #include "pteros/core/selection.h"
 #include "pteros/core/atomic_wrapper.h"
 
@@ -44,7 +45,7 @@ namespace pteros {
         boost::multi_array<std::vector<Grid_element>,3> data;
         // Array of atomic coordinates, which have to be wrapped if periodic
         // This is in order not to touch real coordinates of atoms and improve speed
-        std::vector<Eigen::Vector3f> wrapped_atoms;
+        std::deque<Eigen::Vector3f> wrapped_atoms;
 
         void clear(int NgridX, int NgridY, int NgridZ);
     };

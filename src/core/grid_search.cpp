@@ -327,7 +327,7 @@ void search_in_pair_of_cells(int x1, int y1, int z1, // cell 1
                     ind1 = v1[i1].index; //index
                     ind2 = v2[i2].index; //index
                     bon.push_back(Vector2i(ind1,ind2));
-                    if(dist_vec) dist_vec->push_back(sqrt(d));
+                    if(dist_vec) dist_vec->push_back(sqrt(d));                    
                 }
             }
         }
@@ -698,11 +698,11 @@ void Grid_searcher::populate_grid(Grid_t &grid, const Selection &sel, bool do_cl
 
         for(i=0;i<Natoms;++i){            
             coor = sel.XYZ(i);
-            // See if atom i is in box and wrap if needed
+            // See if atom i is in box and wrap if needed            
             if( !box.in_box(coor) ){
                 box.wrap_point(coor);
                 grid.wrapped_atoms.push_back(coor);
-                ptr = &grid.wrapped_atoms.back();
+                ptr = &*grid.wrapped_atoms.rbegin();
             } else {
                 ptr = sel.XYZ_ptr(i);
             }
@@ -724,12 +724,13 @@ void Grid_searcher::populate_grid(Grid_t &grid, const Selection &sel, bool do_cl
             if(n3<0) n3=0;
 
             // Assign to grid
-            if(abs_index){
+            if(abs_index){                
                 grid.data[n1][n2][n3].push_back(Grid_element(sel.Index(i),ptr));
             } else {
                 grid.data[n1][n2][n3].push_back(Grid_element(i,ptr));
             }
         }
+
     }
 }
 
@@ -810,15 +811,17 @@ void Grid_searcher::do_search1(std::vector<Eigen::Vector2i>& bon,
     // Init visited cells array
     for(i=0;i<NgridX;++i)
         for(j=0;j<NgridY;++j)
-            for(k=0;k<NgridZ;++k)
+            for(k=0;k<NgridZ;++k){
                 visited[i][j][k] = false;
+            }
 
     // See if we need parallelization
     int max_N, max_dim;
     Vector3i dims(NgridX,NgridY,NgridZ);
     max_N = dims.maxCoeff(&max_dim);
 
-    int nt = std::min(max_N, int(std::thread::hardware_concurrency()));
+    //int nt = std::min(max_N, int(std::thread::hardware_concurrency()));
+    int nt=1;
 
     if(nt==1){
     //if(nt>0){
