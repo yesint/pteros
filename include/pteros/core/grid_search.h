@@ -137,12 +137,9 @@ namespace pteros {
             // Create two grids from two selections            
             void create_grid2(const Selection& sel1, const Selection& sel2);            
 
-            /// Search function for contacts inside one group
-            void do_search1(std::vector<Eigen::Vector2i>& bon,
-                           std::vector<float>* dist_vec);
-            /// Search function for contacts between two groups
-            void do_search2(std::vector<Eigen::Vector2i>& bon,
-                           std::vector<float>* dist_vec);
+            /// Search function
+            void do_search(std::vector<Eigen::Vector2i>& bon,
+                           std::vector<float>* dist_vec, int n_gr);
 
             void do_search_within(std::vector<int>& bon, const Selection& src);
 

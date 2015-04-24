@@ -71,7 +71,7 @@ Grid_searcher::Grid_searcher(float d, const Selection &sel,
     } else {
         grid1.populate(sel,min,max,abs_index);
     }
-    do_search1(bon,dist_vec);
+    do_search(bon,dist_vec,1);
 }
 
 Grid_searcher::Grid_searcher(float d, const Selection &sel1, const Selection &sel2,
@@ -94,7 +94,7 @@ Grid_searcher::Grid_searcher(float d, const Selection &sel1, const Selection &se
         grid2.populate(sel2,min,max,abs_index);
     }
 
-    do_search2(bon,dist_vec);
+    do_search(bon,dist_vec,2);
 }
 
 Grid_searcher::Grid_searcher(){
@@ -720,8 +720,8 @@ void Grid_searcher::do_part1(int dim, int _b, int _e,
 }
 
 // Search inside one selection
-void Grid_searcher::do_search1(std::vector<Eigen::Vector2i>& bon,
-                              std::vector<float>* dist_vec){
+void Grid_searcher::do_search(std::vector<Eigen::Vector2i>& bon,
+                              std::vector<float>* dist_vec, int n_gr){
     int i,j,k,i1;
     int nlist_size;
 
@@ -741,13 +741,13 @@ void Grid_searcher::do_search1(std::vector<Eigen::Vector2i>& bon,
     Vector3i dims(NgridX,NgridY,NgridZ);
     max_N = dims.maxCoeff(&max_dim);
 
-    //int nt = std::min(max_N, int(std::thread::hardware_concurrency()));
-    int nt=1;
+    int nt = std::min(max_N, int(std::thread::hardware_concurrency()));
 
     if(nt==1){
     //if(nt>0){
         // Serial searching
-        do_part1(0,0,NgridX,bon,dist_vec);
+        if(n_gr==1) do_part1(0,0,NgridX,bon,dist_vec);
+        if(n_gr==2) do_part2(0,0,NgridX,bon,dist_vec);
     } else {
         // Parallel searching
 
@@ -774,18 +774,35 @@ void Grid_searcher::do_search1(std::vector<Eigen::Vector2i>& bon,
         // Launch threads
         vector<thread> threads;
         for(int i=0;i<nt;++i){
-            threads.push_back( thread(
-                                   std::bind(
-                                       &Grid_searcher::do_part1,
-                                       this,
-                                       max_dim,
-                                       b[i],
-                                       e[i],                                       
-                                       ref(_bon[i]),
-                                       ref(_dist_vec_ptr[i])
-                                   )
-                                )
-                             );
+            if(n_gr==1){
+                threads.push_back( thread(
+                                       std::bind(
+                                           &Grid_searcher::do_part1,
+                                           this,
+                                           max_dim,
+                                           b[i],
+                                           e[i],
+                                           ref(_bon[i]),
+                                           ref(_dist_vec_ptr[i])
+                                       )
+                                    )
+                                 );
+            }
+
+            if(n_gr==2){
+                threads.push_back( thread(
+                                       std::bind(
+                                           &Grid_searcher::do_part2,
+                                           this,
+                                           max_dim,
+                                           b[i],
+                                           e[i],
+                                           ref(_bon[i]),
+                                           ref(_dist_vec_ptr[i])
+                                       )
+                                    )
+                                 );
+            }
         }
 
         // Wait for threads
@@ -884,86 +901,6 @@ void Grid_searcher::do_part2(int dim, int _b, int _e,
                 }
 
             }
-        }
-    }
-}
-
-// Search between two selections
-void Grid_searcher::do_search2(std::vector<Eigen::Vector2i>& bon,
-                              std::vector<float>* dist_vec){
-    int i,j,k,nlist_size,i1;
-    int n1,n2,n3;
-
-    // Search
-    bon.clear();    
-    if(dist_vec) dist_vec->clear();
-
-    // Init visited cells array
-    for(i=0;i<NgridX;++i)
-        for(j=0;j<NgridY;++j)
-            for(k=0;k<NgridZ;++k)
-                visited[i][j][k] = false;
-
-    // See if we need parallelization
-    int max_N, max_dim;
-    Vector3i dims(NgridX,NgridY,NgridZ);
-    max_N = dims.maxCoeff(&max_dim);
-
-    int nt = std::min(max_N, int(std::thread::hardware_concurrency()));
-
-    if(nt==1){
-    //if(nt>0){
-        // Serial search
-        do_part2(0,0,NgridX,bon,dist_vec);
-    } else {
-        // Search in parallel
-        // Determine parts for each thread
-        vector<int> b(nt),e(nt);
-        int cur=0;
-        for(int i=0;i<nt-1;++i){
-            b[i]=cur;
-            cur += dims(max_dim)/nt;
-            e[i]=cur;
-        }
-        b[nt-1]=cur;
-        e[nt-1]=dims(max_dim);
-
-        //for(int i=0;i<nt;++i) cout << b[i] << ":" << e[i] << " ";
-        //cout << endl;
-
-        // Prepare arrays per each thread
-        vector< vector<Vector2i> > _bon(nt);
-        vector< vector<float> > _dist_vec(nt);
-        vector< vector<float>* > _dist_vec_ptr(nt);
-        for(int i=0;i<nt;++i) _dist_vec_ptr[i] = dist_vec ? &_dist_vec[i] : nullptr;
-
-        // Launch threads
-        vector<thread> threads;
-        for(int i=0;i<nt;++i){
-            threads.push_back( thread(
-                                   std::bind(
-                                       &Grid_searcher::do_part2,
-                                       this,
-                                       max_dim,
-                                       b[i],
-                                       e[i],
-                                       ref(_bon[i]),
-                                       ref(_dist_vec_ptr[i])
-                                   )
-                                )
-                             );
-        }
-
-        // Wait for threads
-        for(auto& t: threads) t.join();
-
-        // Collect results
-        for(int i=0;i<nt;++i){
-            copy(_bon[i].begin(),_bon[i].end(), back_inserter(bon));
-        }
-        if(dist_vec){
-            for(int i=0;i<nt;++i)
-                copy(_dist_vec[i].begin(),_dist_vec[i].end(), back_inserter(*dist_vec));
         }
     }
 }
