@@ -232,16 +232,21 @@ void Grid_searcher::search_within(Vector3f_const_ref coord, vector<int> &bon){
 void Grid_searcher::search_within(const Selection &target, std::vector<int> &bon, bool include_self){
     // Allocate second grid of the same size
     grid2.data.resize( boost::extents[NgridX][NgridY][NgridZ] );    
+
+    Selection* ptr;
+    Selection noself; // Only used for noself variant
+
+    if(!include_self){
+        noself = *p_sel;
+        noself.remove(target);
+        ptr = &noself;
+    } else {
+        ptr = p_sel;
+    }
+
     populate_grid(grid2,target);
 
-    if(!include_self){        
-        vector<int> dum;
-        do_search_within(dum,*p_sel);
-        bon.clear();
-        set_difference(dum.begin(),dum.end(),target.index_begin(),target.index_end(),back_inserter(bon));
-    } else {
-        do_search_within(bon,*p_sel);
-    }
+    do_search_within(bon,*ptr);
 }
 
 void search_in_cell(int x, int y, int z,
@@ -506,18 +511,18 @@ Grid_searcher::Grid_searcher(float d,
     populate_grid(grid1,src);
     populate_grid(grid2,target);
 
-    // bon will contain all atoms from src around target including target itself if they
-    // were initially present in src.
+    const Selection* ptr;
+    Selection noself; // Only used for noself variant
 
     if(!include_self){
-        vector<int> dum;
-        do_search_within(dum,src);
-        bon.clear();
-        set_difference(dum.begin(),dum.end(),target.index_begin(),target.index_end(),back_inserter(bon));
+        noself = src;
+        noself.remove(target);
+        ptr = &noself;
     } else {
-        do_search_within(bon,src);
+        ptr = &src;
     }
 
+    do_search_within(bon,*ptr);
 }
 
 
