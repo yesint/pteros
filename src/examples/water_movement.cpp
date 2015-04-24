@@ -36,7 +36,7 @@ protected:
 
         //NgridX = NgridY = NgridZ = 3;
 
-        searcher.create_custom_grid(NgridX, NgridY, NgridZ);
+        searcher.resize(NgridX, NgridY, NgridZ);
 
         // Create grid for result
         grid.resize(boost::extents[NgridX][NgridY][NgridZ]);
@@ -60,15 +60,15 @@ protected:
         }
 
         // Assign waters to grid
-        searcher.add_to_custom_grid(water,false);
+        searcher.populate_periodic(water,false);
         // Cycle over grid cells
         for(i=0;i<NgridX;++i)
             for(j=0;j<NgridY;++j)
                 for(k=0;k<NgridZ;++k){
                     // Get waters in this cell
-                    n = searcher.cell_of_custom_grid(i,j,k).size();
+                    n = searcher.cell(i,j,k).size();
                     for(w=0;w<n;++w){
-                        ind = searcher.cell_of_custom_grid(i,j,k)[w].index;
+                        ind = searcher.cell(i,j,k)[w].index;
                         // For current water get delta of prev and cur coorfinates
                         // And add it to result grid
 
@@ -116,7 +116,7 @@ protected:
     }
 
     Options options;
-    Grid_searcher searcher;
+    Grid searcher;
     boost::multi_array<float,3> grid;
     int NgridX, NgridY, NgridZ;
     Selection water;

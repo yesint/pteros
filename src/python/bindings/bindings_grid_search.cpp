@@ -220,9 +220,5 @@ void make_bindings_grid_search(){
             .def("search_within",&search_within1)
             .def("search_within",&search_within2)
             .def("search_within",&search_within3)
-            .def("create_custom_grid",&Grid_searcher::create_custom_grid)
-            .def("clear_custom_grid",&Grid_searcher::clear_custom_grid)
-            .def("add_to_custom_grid",&Grid_searcher::add_to_custom_grid,add_to_custom_grid_overloads())
-            //.def("cell_of_custom_grid",&cell_of_custom_grid)
     ;
 }
