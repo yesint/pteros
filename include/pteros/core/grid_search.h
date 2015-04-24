@@ -25,30 +25,11 @@
 
 #include <Eigen/Core>
 #include <vector>
-#include <deque>
 #include "pteros/core/selection.h"
 #include "pteros/core/atomic_wrapper.h"
+#include "pteros/core/grid.h"
 
-#define BOOST_DISABLE_ASSERTS
-#include "boost/multi_array.hpp"
-
-
-namespace pteros {    
-
-    struct Grid_element {
-        int index;
-        Eigen::Vector3f* coor_ptr;
-        Grid_element(int i, Eigen::Vector3f* ptr): index(i),coor_ptr(ptr) {}
-    };
-
-    struct Grid_t {
-        boost::multi_array<std::vector<Grid_element>,3> data;
-        // Array of atomic coordinates, which have to be wrapped if periodic
-        // This is in order not to touch real coordinates of atoms and improve speed
-        std::deque<Eigen::Vector3f> wrapped_atoms;
-
-        void clear(int NgridX, int NgridY, int NgridZ);
-    };
+namespace pteros {       
 
     struct Nlist_t {
         std::vector<Eigen::Vector3i> data;
@@ -88,24 +69,7 @@ namespace pteros {
 
     // The same using constructor with immediate searching:
     Grid_searcher(0.2, all, res_of_interest, atoms, false, true, true);
-    \endcode
-    - Sorting the atoms from given selection into the cells of
-    3D grid with given dimensions. Useful for producing volumetric datasets or
-    various 3D histrograms (for examples density or the residence time maps).
-    Typical usage:
-    \code
-    Grid_searcher g;
-    g.create_custom_grid(NX,NY,NZ);
-    for(...){ // Accumulate some data in the grid
-        g.add_to_custom_grid(sel,true);
-    }
-    // Print number of atoms accumulated in the grid cells
-    for(i=0;i<NX;++i)
-        for(j=0;j<NY;++j)
-            for(k=0;k<NZ;++k)
-                cout << g.cell_of_custom_grid(i,j,k).size() << endl;
-    g.clear_custom_grid(); // Ready for new data
-    \endcode
+    \endcode    
     */
 
     class Grid_searcher {
@@ -165,33 +129,13 @@ namespace pteros {
                             bool periodic = false);
             /// @}
 
-            /// @name Assigning the atoms from given selection to the custom periodic grid
-            /// @{
-
-            /// Creates custom grid with given dimensions
-            void create_custom_grid(int nX, int nY, int nZ);
-
-            /// Clear custom grid
-            void clear_custom_grid();
-
-            /// Add atoms from given selection to custom grid created by create_custom_grid()
-            void add_to_custom_grid(const Selection sel,
-                                  bool absolute_index = false,
-                                  bool periodic = false);
-            /// Read/write acces to the cells of custom grid
-            std::vector<Grid_element> &cell_of_custom_grid(int x, int y, int z);
-
-            /// @}
-
 
         protected:
 
             // Create one grid from single selection            
-            void create_grid(Grid_t& grid, const Selection& sel);
+            void create_grid(Grid& grid, const Selection& sel);
             // Create two grids from two selections            
-            void create_grid2(const Selection& sel1, const Selection& sel2);
-
-            void populate_grid(Grid_t &grid, const Selection& sel, bool do_clear=true);
+            void create_grid2(const Selection& sel1, const Selection& sel2);            
 
             /// Search function for contacts inside one group
             void do_search1(std::vector<Eigen::Vector2i>& bon,
@@ -220,7 +164,7 @@ namespace pteros {
             int NgridX, NgridY, NgridZ;
 
             // Grids with coordinate pointers
-            Grid_t grid1,grid2;                   
+            Grid grid1,grid2;
 
             boost::multi_array<bool, 3> visited;
 
