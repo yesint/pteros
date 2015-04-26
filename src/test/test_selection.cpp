@@ -36,7 +36,16 @@ using namespace Eigen;
 int main(int argc, char** argv)
 {
 
-    try{
+    try{        
+
+        //cout << (boost::get<Parse_tree_ptr>(p->children.front())) << endl;
+
+        //std::shared_ptr<Parser> p(new Parser);
+        //p->parse();
+
+//        System s("/home/semen/work/Projects/asymmetric_bilayer/for-diamonds/hexagonal/2x2.gro");
+  //      Selection sel(s,"(y+4)<(x+2) or (1-z)>x");
+
 
         System s("/media/semen/data/semen/trajectories/asymmetric_hexagonal/with_c60/last.gro");
         //System s("/media/semen/data/semen/trajectories/2lao/average.pdb");
