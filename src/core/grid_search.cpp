@@ -216,24 +216,25 @@ void Grid_searcher::search_within(const Selection &target, std::vector<int> &bon
     // Allocate second grid of the same size
     grid2.resize(NgridX,NgridY,NgridZ);
 
-    Selection* ptr;
-    Selection noself; // Only used for noself variant
-
-    if(!include_self){
-        noself = *p_sel;
-        noself.remove(target);
-        ptr = &noself;
-    } else {
-        ptr = p_sel;
-    }
-
     if(is_periodic){
         grid2.populate_periodic(target,box,abs_index);
     } else {
         grid2.populate(target,min,max,abs_index);
     }
 
-    do_search_within(bon,*ptr);
+    if(!include_self){
+        vector<int> dum;
+        do_search_within(dum,*p_sel);
+        bon.clear();
+
+        sort(dum.begin(),dum.end());
+        sort(const_cast<Selection&>(target).index.begin(),const_cast<Selection&>(target).index.end());
+
+        set_difference(dum.begin(),dum.end(),target.index_begin(),target.index_end(),back_inserter(bon));
+    } else {
+        do_search_within(bon,*p_sel);
+    }
+
 }
 
 void search_in_cell(int x, int y, int z,
@@ -503,19 +504,19 @@ Grid_searcher::Grid_searcher(float d,
         grid2.populate(target,min,max,abs_index);
     }
 
-    const Selection* ptr;
-    Selection noself; // Only used for noself variant
-
     if(!include_self){
         vector<int> dum;
         do_search_within(dum,src);
         bon.clear();
-        set_difference(dum.begin(),dum.end(),target.index_begin(),target.index_end(),back_inserter(bon));
+
+        sort(dum.begin(),dum.end());
+        sort(const_cast<Selection&>(target).index.begin(),const_cast<Selection&>(target).index.end());
+
+        set_difference(dum.begin(),dum.end(),target.index.begin(),target.index.end(),back_inserter(bon));
     } else {
-        ptr = &src;
+        do_search_within(bon,src);
     }
 
-    do_search_within(bon,*ptr);
 }
 
 
