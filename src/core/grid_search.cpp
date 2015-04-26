@@ -513,7 +513,11 @@ Grid_searcher::Grid_searcher(float d,
         vector<int> dum;
         do_search_within(dum,src);
         bon.clear();
-        set_difference(dum.begin(),dum.end(),target.index_begin(),target.index_end(),back_inserter(bon));
+
+        sort(dum.begin(),dum.end());
+        sort(const_cast<Selection&>(target).index.begin(),const_cast<Selection&>(target).index.end());
+
+        set_difference(dum.begin(),dum.end(),target.index.begin(),target.index.end(),back_inserter(bon));
     } else {
         do_search_within(bon,src);
     }
