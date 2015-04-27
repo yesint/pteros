@@ -216,9 +216,6 @@ void Grid_searcher::search_within(const Selection &target, std::vector<int> &bon
     // Allocate second grid of the same size
     grid2.resize(NgridX,NgridY,NgridZ);
 
-    Selection* ptr;
-    Selection noself; // Only used for noself variant
-
     if(is_periodic){
         grid2.populate_periodic(target,box,abs_index);
     } else {
