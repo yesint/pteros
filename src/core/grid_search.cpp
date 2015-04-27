@@ -490,7 +490,7 @@ Grid_searcher::Grid_searcher(float d,
 
     // Allocate both grids
     grid1.resize(NgridX,NgridY,NgridZ);
-    grid2.resize(NgridX,NgridY,NgridZ);
+    grid2.resize(NgridX,NgridY,NgridZ); 
 
     // Fill grids (forced absolute indexes above!)
     if(is_periodic){
@@ -501,6 +501,16 @@ Grid_searcher::Grid_searcher(float d,
         grid2.populate(target,min,max,abs_index);
     }
 
+    if(!include_self){
+        vector<int> dum;
+        do_search_within(dum,src);
+        bon.clear();
+        set_difference(dum.begin(),dum.end(),target.index_begin(),target.index_end(),back_inserter(bon));
+    } else {
+        do_search_within(bon,src);
+    }
+
+/*
     const Selection* ptr;
     Selection noself; // Only used for noself variant
 
@@ -512,7 +522,18 @@ Grid_searcher::Grid_searcher(float d,
         ptr = &src;
     }
 
+    // Fill grids (forced absolute indexes above!)
+    if(is_periodic){
+        grid1.populate_periodic(*ptr,box,abs_index);
+        grid2.populate_periodic(target,box,abs_index);
+    } else {
+        grid1.populate(*ptr,min,max,abs_index);
+        grid2.populate(target,min,max,abs_index);
+    }
+
     do_search_within(bon,*ptr);
+*/
+
 }
 
 
