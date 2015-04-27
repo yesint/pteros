@@ -309,7 +309,7 @@ void Selection_parser::apply(System* system, size_t fr, vector<int>& result){
     eval_node(tree,result,NULL);
 
     // Sort result to always get ordered selection index
-    sort(result.begin(),result.end());
+    //sort(result.begin(),result.end());
 
 #ifdef _DEBUG_PARSER
     int n = 0;
@@ -363,8 +363,8 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
         eval_node(node->child_node(1), res2, subspace);
 
         // Sort
-        std::sort(res1.begin(),res1.end());
-        std::sort(res2.begin(),res2.end());
+        //std::sort(res1.begin(),res1.end());
+        //std::sort(res2.begin(),res2.end());
 
         std::set_union(res1.begin(),res1.end(),res2.begin(),res2.end(),back_inserter(result));
         return;
@@ -379,8 +379,8 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
         eval_node(node->child_node(1), res2, &res1);
 
         // Sort
-        std::sort(res1.begin(),res1.end());
-        std::sort(res2.begin(),res2.end());
+        //std::sort(res1.begin(),res1.end());
+        //std::sort(res2.begin(),res2.end());
 
         std::set_intersection(res1.begin(),res1.end(),res2.begin(),res2.end(),back_inserter(result));
         return;
@@ -394,7 +394,6 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
         int Nchildren = node->children.size(); // Get number of children
         string str;
         // Cycle over children
-
         for(i=0;i<Nchildren;++i){
             str = node->child_as_str(i);
             if(node->child_node(i)->code == TOK_STR){
@@ -412,8 +411,8 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
                     }
                 }
             }
-        }
-
+        }        
+        sort(result.begin(),result.end());
         return;
     }
     //---------------------------------------------------------------------------
@@ -438,6 +437,7 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
                 }
             }
         }
+        sort(result.begin(),result.end());
         return;
     }
     //---------------------------------------------------------------------------
@@ -462,6 +462,7 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
                 }
             }
         }
+        sort(result.begin(),result.end());
         return;
     }
     //---------------------------------------------------------------------------
@@ -474,6 +475,7 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
             for(at=0;at<Natoms;++at)
                 if(sys->atoms[at].chain == ch) result.push_back(at);
         }
+        sort(result.begin(),result.end());
         return;
     }
     //---------------------------------------------------------------------------
@@ -497,6 +499,7 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
                         if(sys->atoms[at].resid == k) result.push_back(at);
             }
         }
+        sort(result.begin(),result.end());
         return;
     }
     //---------------------------------------------------------------------------
@@ -520,6 +523,7 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
                         if(sys->atoms[at].resindex == k) result.push_back(at);
             }
         }
+        sort(result.begin(),result.end());
         return;
     }
     //---------------------------------------------------------------------------
@@ -543,6 +547,7 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
                         result.push_back(k);
             }
         }
+        sort(result.begin(),result.end());
         return;
     }
     //---------------------------------------------------------------------------
@@ -619,6 +624,7 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
     //---------------------------------------------------------------------------
     // Math logical nodes
     // All of them benefit from subspace optimization
+    // All give sorted results
     case  TOK_EQ:
         if(!subspace){
             for(at=0;at<Natoms;++at) // over all atoms
