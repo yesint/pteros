@@ -219,21 +219,22 @@ void Grid_searcher::search_within(const Selection &target, std::vector<int> &bon
     Selection* ptr;
     Selection noself; // Only used for noself variant
 
-    if(!include_self){
-        noself = *p_sel;
-        noself.remove(target);
-        ptr = &noself;
-    } else {
-        ptr = p_sel;
-    }
-
     if(is_periodic){
         grid2.populate_periodic(target,box,abs_index);
     } else {
         grid2.populate(target,min,max,abs_index);
     }
 
-    do_search_within(bon,*ptr);
+    // We CAN'T go without set_difference here because src is already set to grid!
+    // We can't modify it here to exclude targte atoms.
+    if(!include_self){
+        vector<int> dum;
+        do_search_within(dum,*p_sel);
+        bon.clear();
+        set_difference(dum.begin(),dum.end(),target.index_begin(),target.index_end(),back_inserter(bon));
+    } else {
+        do_search_within(bon,*p_sel);
+    }
 }
 
 void search_in_cell(int x, int y, int z,
