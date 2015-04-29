@@ -25,8 +25,8 @@ IF(WITH_PYTHON)
         bindings_atom.h
         bindings_atom_proxy.cpp
         bindings_atom_proxy.h
-        bindings_grid_search.cpp
-        bindings_grid_search.h
+        #bindings_grid_search.cpp
+        #bindings_grid_search.h
         bindings_periodic_box.cpp
         bindings_periodic_box.h
         bindings_frame.cpp

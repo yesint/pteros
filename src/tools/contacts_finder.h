@@ -30,7 +30,7 @@
 #include "pteros/pteros.h"
 #include "pteros/analysis/trajectory_processor.h"
 #include "pteros/analysis/options.h"
-#include "pteros/core/grid_search.h"
+#include "pteros/core/distance_search.h"
 
 namespace pteros {
 
@@ -105,8 +105,6 @@ class Contacts_finder: public Consumer {
         void post_process(const Frame_info& info);
         //------------------------------------
 
-        // Grid searcher object
-        Grid_searcher searcher;
         // Aux list of raw contacts
         std::vector<Eigen::Vector2i> clist;
 

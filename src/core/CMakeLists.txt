@@ -60,10 +60,38 @@ add_library(pteros SHARED
     gnm.cpp
     ${PROJECT_SOURCE_DIR}/include/pteros/core/grid.h
     grid.cpp
-    ${PROJECT_SOURCE_DIR}/include/pteros/core/grid_search.h
-    grid_search.cpp    
+
     ${PROJECT_SOURCE_DIR}/include/pteros/core/periodic_box.h
     periodic_box.cpp
+
+    # Distance search
+    ${PROJECT_SOURCE_DIR}/include/pteros/core/distance_search.h
+    ${PROJECT_SOURCE_DIR}/src/core/distance_search/distance_search.cpp
+
+    ${PROJECT_SOURCE_DIR}/src/core/distance_search/search_utils.h
+    ${PROJECT_SOURCE_DIR}/src/core/distance_search/search_utils.cpp
+
+    ${PROJECT_SOURCE_DIR}/include/pteros/core/distance_search_within.h
+    ${PROJECT_SOURCE_DIR}/src/core/distance_search/distance_search_within.cpp
+
+    ${PROJECT_SOURCE_DIR}/src/core/distance_search/distance_search_base.h
+    ${PROJECT_SOURCE_DIR}/src/core/distance_search/distance_search_base.cpp
+
+    ${PROJECT_SOURCE_DIR}/src/core/distance_search/distance_search_within_base.h
+    ${PROJECT_SOURCE_DIR}/src/core/distance_search/distance_search_within_base.cpp
+
+    ${PROJECT_SOURCE_DIR}/src/core/distance_search/distance_search_within_sel.h
+    ${PROJECT_SOURCE_DIR}/src/core/distance_search/distance_search_within_sel.cpp
+
+    ${PROJECT_SOURCE_DIR}/src/core/distance_search/distance_search_contacts.h
+    ${PROJECT_SOURCE_DIR}/src/core/distance_search/distance_search_contacts.cpp
+
+    ${PROJECT_SOURCE_DIR}/src/core/distance_search/distance_search_contacts_1sel.h
+    ${PROJECT_SOURCE_DIR}/src/core/distance_search/distance_search_contacts_1sel.cpp
+
+    ${PROJECT_SOURCE_DIR}/src/core/distance_search/distance_search_contacts_2sel.h
+    ${PROJECT_SOURCE_DIR}/src/core/distance_search/distance_search_contacts_2sel.cpp
+
 
     # IO
     ${PROJECT_SOURCE_DIR}/include/pteros/core/mol_file.h

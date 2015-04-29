@@ -1,6 +1,6 @@
 #include "pteros/analysis/trajectory_processor.h"
 #include "pteros/analysis/consumer.h"
-#include "pteros/core/grid_search.h"
+#include "pteros/core/distance_search.h"
 
 using namespace std;
 using namespace pteros;
@@ -21,7 +21,7 @@ protected:
 
     virtual void process_frame(const Frame_info& info){
         vector<Eigen::Vector2i> contacts;
-        Grid_searcher(dist,sel1,sel2,contacts);
+        search_contacts(dist,sel1,sel2,contacts);
         float en = system.non_bond_energy(contacts,0).total;
         cout << "Energy for time" << info.absolute_time << " is " << en << endl;     
     }

@@ -22,7 +22,7 @@
 
 #include "pteros/core/system.h"
 #include "pteros/core/pteros_error.h"
-#include "pteros/core/grid_search.h"
+#include "pteros/core/distance_search.h"
 #include "pteros/core/force_field.h"
 #include <cmath>
 #include <functional>
@@ -184,7 +184,7 @@ Force_field::Force_field(const Force_field &other){
 
     ready = other.ready;
 
-    setup_kernels();
+    if(ready) setup_kernels();
 }
 
 Force_field &Force_field::operator=(Force_field other){
@@ -208,7 +208,7 @@ Force_field &Force_field::operator=(Force_field other){
 
     ready = other.ready;
 
-    setup_kernels();
+    if(ready) setup_kernels();
 
     return *this;
 }

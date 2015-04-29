@@ -82,8 +82,7 @@ namespace pteros {
         void populate_periodic(const Selection& sel,
                       const Periodic_box& box,
                       bool abs_index);
-    private:
-        Eigen::Vector3f* add_wrapped_atom(Vector3f_const_ref coor);
+    private:        
         boost::multi_array<std::vector<Grid_element>,3> data;
         // Array of atomic coordinates, which have to be wrapped if periodic.
         // This is in order not to touch real coordinates of atoms and improve speed.

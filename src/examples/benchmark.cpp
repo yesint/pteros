@@ -1,6 +1,6 @@
 #include "pteros/analysis/trajectory_processor.h"
 #include "pteros/analysis/consumer.h"
-#include "pteros/core/grid_search.h"
+#include "pteros/core/distance_search.h"
 #include "pteros/core/pteros_error.h"
 
 using namespace std;
@@ -43,7 +43,7 @@ protected:
     virtual void process_frame(const Frame_info& info){
         vector<Eigen::Vector2i> bon;
         bon.clear();
-        Grid_searcher(0.5,sel1,sel2,bon,true);
+        search_contacts(0.5,sel1,sel2,bon,true);
 
         cout << "frame " << info.valid_frame << " bonds: " << bon.size() << endl;        
     }

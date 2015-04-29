@@ -33,7 +33,7 @@
 #include "pteros/core/selection.h"
 #include "pteros/core/system.h"
 #include "pteros/core/pteros_error.h"
-#include "pteros/core/grid_search.h"
+#include "pteros/core/distance_search.h"
 #include "pteros/core/mol_file.h"
 
 #ifdef USE_POWERSASA
@@ -455,10 +455,12 @@ void Selection::set_frame(int fr){
         throw e;
     }
 
-    frame = fr;
-    // If parser is persistent, do quick update
-    // This will only work for coordinate-dependent selections
-    apply();
+    if(fr!=frame){
+        frame = fr;
+        // If parser is persistent, do quick update
+        // This will only work for coordinate-dependent selections
+        apply();
+    }
 }
 
 
@@ -1017,7 +1019,7 @@ Energy_components Selection::non_bond_energy(float cutoff, bool periodic) const
     if(cutoff>0){
         // Perform grid search
         vector<Vector2i> bon;
-        Grid_searcher(cutoff,*this,bon,true,periodic);
+        search_contacts(cutoff,*this,bon,true,periodic);
         return system->non_bond_energy(bon,frame, periodic);
     } else {
         // Compute all-with-all
@@ -1055,7 +1057,7 @@ Energy_components non_bond_energy(const Selection& sel1,
 
         // Perform grid search
         vector<Vector2i> bon;
-        Grid_searcher(cutoff,sel1,sel2,bon,true,periodic);
+        search_contacts(cutoff,sel1,sel2,bon,true,periodic);
 
         // Restore frames
         const_cast<Selection&>(sel1).set_frame(fr1);
@@ -1299,7 +1301,7 @@ void Selection::minmax(Vector3f_ref min, Vector3f_ref max) const {
 // IO functions
 //###############################################
 
-void Selection::write(string fname, int b, int e) {
+void Selection::write(string fname, int b, int e) {    
     // -1 has special meaning
     if(b==-1) b=get_frame(); // current frame
     if(e==-1) e=system->num_frames()-1; // last frame
@@ -1315,10 +1317,10 @@ void Selection::write(string fname, int b, int e) {
         throw Pteros_error("Can't write the range of frames to structure file!");
     }    
 
-    for(int fr=b;fr<=e;++fr){
+    for(int fr=b;fr<=e;++fr){        
         set_frame(fr);
         f->write(*this,f->get_content_type());
-    }
+    }    
 }
 
 void Selection::each_residue(std::vector<Selection>& sel) const {
@@ -1361,7 +1363,7 @@ MatrixXf Selection::atom_traj(int ind, int b, int e) const {
 void Selection::split_by_connectivity(float d, std::vector<Selection> &res, bool periodic) {
     // Find all connectivity pairs for given cut-off
     vector<Vector2i> pairs;
-    Grid_searcher(d,*this,pairs,false,periodic);
+    search_contacts(d,*this,pairs,false,periodic);
 
     // Form a connectivity structure in the form con[i]->1,2,5...
     vector<vector<int> > con(size());
@@ -1574,7 +1576,7 @@ int Selection::unwrap_bonds(float d, int leading_index, Vector3i_const_ref dims)
 
     // Find all connectivity pairs for given cut-off
     vector<Vector2i> pairs;
-    Grid_searcher(d,*this,pairs,false,true); // Periodic by definition
+    search_contacts(d,*this,pairs,false,true); // Periodic by definition
 
     // Form a connectivity structure in the form con[i]->1,2,5...
     vector<vector<int> > con(size());

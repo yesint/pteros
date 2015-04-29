@@ -45,11 +45,6 @@ void Grid::resize(int X, int Y, int Z)
     clear();
 }
 
-Vector3f* Grid::add_wrapped_atom(Vector3f_const_ref coor){
-    wrapped_atoms.push_back(coor);
-    return &*wrapped_atoms.rbegin();
-}
-
 void Grid::populate(const Selection &sel, bool abs_index)
 {
     Vector3f min,max;
@@ -111,7 +106,8 @@ void Grid::populate_periodic(const Selection &sel, const Periodic_box &box, bool
         // See if atom i is in box and wrap if needed
         if( !box.in_box(coor) ){
             box.wrap_point(coor);
-            ptr = add_wrapped_atom(coor);
+            wrapped_atoms.push_back(coor);
+            ptr = &*wrapped_atoms.rbegin();
         } else {
             ptr = sel.XYZ_ptr(i);
         }

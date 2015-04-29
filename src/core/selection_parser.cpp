@@ -25,7 +25,7 @@
 #include "pteros/core/system.h"
 #include "pteros/core/selection.h"
 #include "pteros/core/pteros_error.h"
-#include "pteros/core/grid_search.h"
+#include "pteros/core/distance_search.h"
 #include <Eigen/Core>
 #include <algorithm>
 #include <boost/algorithm/string.hpp>
@@ -584,7 +584,7 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
         dum1.set_frame(frame);
         dum2.set_frame(frame);
 
-        Grid_searcher(dist,dum1,dum2,result,include_self,periodic);
+        search_within(dist,dum1,dum2,result,include_self,periodic);
 
         return;
     }

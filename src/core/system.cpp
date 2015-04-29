@@ -27,7 +27,7 @@
 #include "pteros/core/system.h"
 #include "pteros/core/selection.h"
 #include "pteros/core/pteros_error.h"
-#include "pteros/core/grid_search.h"
+#include "pteros/core/distance_search.h"
 #include "pteros/core/mol_file.h"
 // DSSP
 #include "pteros_dssp_wrapper.h"
@@ -411,17 +411,17 @@ Selection System::append(const System &sys){
     return Selection(*this,first_added,num_atoms()-1);
 }
 
-Selection System::append(const Selection &sel){
+Selection System::append(const Selection &sel){    
     //Sanity check
     if(num_frames()>0 && num_frames()!=sel.get_system()->num_frames()) throw Pteros_error("Can't merge systems with different number of frames!");
     // If no frames create needed ammount
     bool transfer_time_box = false;
     if(num_frames()==0){
         transfer_time_box = true;
-        traj.resize(sel.get_system()->num_frames());
+        traj.resize(sel.get_system()->num_frames());        
     }
 
-    int first_added = num_atoms();
+    int first_added = num_atoms();    
 
     // Merge atoms
     //atoms.reserve(atoms.size()+sel.size());
@@ -516,7 +516,7 @@ void System::keep(const Selection &sel)
 }
 
 void System::remove(const string &sel_str)
-{
+{    
     Selection sel(*this,"not ("+sel_str+")");
     keep(sel);
 }
@@ -535,7 +535,7 @@ void System::distribute(const Selection sel, Vector3i_const_ref ncopies, Vector3
         for(int y=0; y<ncopies(1); ++y)
             for(int z=0; z<ncopies(2); ++z){
                 if(x>0 || y>0 || z>0){
-                    tmp = append(sel);
+                    tmp = append(sel);                    
                     tmp.translate(Vector3f(shift(0)*x,shift(1)*y,shift(2)*z));
                 }
             }

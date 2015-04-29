@@ -26,7 +26,7 @@
 
 #include "pteros/core/system.h"
 #include "pteros/core/selection.h"
-#include "pteros/core/grid_search.h"
+#include "pteros/core/distance_search.h"
 
 namespace pteros {
 

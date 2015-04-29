@@ -22,7 +22,7 @@
 
 #include "pteros/python/compiled_plugin.h"
 #include "pteros/core/pteros_error.h"
-#include "pteros/core/grid_search.h"
+#include "pteros/core/distance_search.h"
 #include <fstream>
 #include <map>
 
@@ -112,7 +112,7 @@ protected:
         // Search for contacts
         vector<Vector2i> bon;
         vector<float> dist_vec;
-        Grid_searcher(cutoff,sel1,sel2,bon,false,periodic,&dist_vec); // Local indexes returned
+        search_contacts(cutoff,sel1,sel2,bon,false,periodic,&dist_vec); // Local indexes returned
         // Analyze contacts
         float total_en = 0.0;
         for(auto c: bon){

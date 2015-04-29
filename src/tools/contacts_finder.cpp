@@ -160,7 +160,7 @@ void Contacts_finder::process_frame(const Frame_info &info){
             // If VDW radii are used we should filter the list first
             // We make aux list and then filter it into clist
             vector<Vector2i> aux;
-            Grid_searcher(dist, sel_pairs[i].sel1, sel_pairs[i].sel2, aux, true, is_periodic);
+            search_contacts(dist, sel_pairs[i].sel1, sel_pairs[i].sel2, aux, true, is_periodic);
             clist.reserve(aux.size());
             for(int k=0;k<aux.size();++k){
                 // See if this contact falls into VDW1+VDW2+gap. If so add to clist
@@ -173,7 +173,7 @@ void Contacts_finder::process_frame(const Frame_info &info){
         } else {
             // Otherwise just call searcher and form clist directly
             //searcher.search(sel_pairs[i].sel1, sel_pairs[i].sel2, clist);
-            Grid_searcher(dist, sel_pairs[i].sel1, sel_pairs[i].sel2, clist, true, is_periodic);
+            search_contacts(dist, sel_pairs[i].sel1, sel_pairs[i].sel2, clist, true, is_periodic);
         }
 
         // Add time to the list
