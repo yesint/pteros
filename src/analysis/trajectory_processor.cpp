@@ -25,6 +25,7 @@
 #include <functional>
 
 #include "pteros/analysis/trajectory_processor.h"
+#include "message_channel.h"
 #include "pteros/core/pteros_error.h"
 #include "pteros/core/mol_file.h"
 
@@ -290,10 +291,11 @@ void Trajectory_processor::run(){
     // Set buffer size
     int buf_size = options("buffer","10").as_int();    
 
+    Data_channel channel;
     channel.set_buffer_size(buf_size);
 
     // Start reader thread    
-    std::thread reader_thread( &Trajectory_processor::reader_thread_body, this );
+    std::thread reader_thread( &Trajectory_processor::reader_thread_body, this, ref(channel) );
 
     vector<std::thread> worker_threads;
     vector<Data_channel_ptr> worker_channels;
@@ -379,7 +381,7 @@ void Trajectory_processor::run(){
     cout << "Trajectory processing finished!" << endl;
 }
 
-void Trajectory_processor::reader_thread_body(){
+void Trajectory_processor::reader_thread_body(Data_channel &channel){
     try {
         // Reading content flag
         Mol_file_content content;

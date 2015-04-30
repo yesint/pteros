@@ -28,7 +28,6 @@
 #include "pteros/core/selection.h"
 #include "pteros/analysis/options.h"
 #include "pteros/analysis/consumer_base.h"
-#include "pteros/analysis/message_channel.h"
 
 namespace pteros {
 
@@ -87,9 +86,7 @@ class Trajectory_processor {
         float custom_start_time;
         float custom_dt;
 
-        Data_channel channel;
-
-        void reader_thread_body();
+        void reader_thread_body(Data_channel& channel);
         std::vector<std::string> traj_files;
 };
 

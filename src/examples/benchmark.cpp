@@ -2,6 +2,7 @@
 #include "pteros/analysis/consumer.h"
 #include "pteros/core/distance_search.h"
 #include "pteros/core/pteros_error.h"
+#include <ctime>
 
 using namespace std;
 using namespace pteros;

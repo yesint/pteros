@@ -3,7 +3,7 @@
 #------------------
 
 add_library(pteros_analysis SHARED    
-    ${PROJECT_SOURCE_DIR}/include/pteros/analysis/message_channel.h
+    message_channel.h
     ${PROJECT_SOURCE_DIR}/include/pteros/analysis/trajectory_processor.h
     trajectory_processor.cpp
     ${PROJECT_SOURCE_DIR}/include/pteros/analysis/consumer_base.h

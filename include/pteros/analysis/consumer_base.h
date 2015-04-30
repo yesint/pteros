@@ -25,11 +25,12 @@
 
 #include "pteros/core/system.h"
 #include "pteros/analysis/frame_info.h"
-#include "pteros/analysis/message_channel.h"
-
 #include <fstream>
-
 #include <iostream>
+#include <memory>
+
+template<class T>
+class Message_channel;
 
 namespace pteros {
 
@@ -41,7 +42,7 @@ struct Data_container {
     Frame_info frame_info;
 };
 
-// Forward declaration
+// Forward declarations
 class Trajectory_processor;
 
 /** Base class for asynchronous data analysis.
