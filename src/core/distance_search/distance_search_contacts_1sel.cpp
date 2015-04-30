@@ -112,12 +112,14 @@ void Distance_search_contacts_1sel::do_part(int dim, int _b, int _e, std::deque<
                         if( !visited[cell(0)][cell(1)][cell(2)] )
                             search_in_pair_of_cells(i,j,k,
                                                     cell(0),cell(1),cell(2),
+                                                    grid1, grid1,
                                                     bon,dist_vec,
                                                     nlist.wrapped[i1] && is_periodic);
                     } else {
                         // cell is in halo
                         search_in_pair_of_cells(i,j,k,
                                                 cell(0),cell(1),cell(2),
+                                                grid1, grid1,
                                                 bon,dist_vec,
                                                 nlist.wrapped[i1] && is_periodic);
                     }

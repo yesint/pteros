@@ -22,7 +22,7 @@
 
 #include "vmd_molfile_plugin_wrapper.h"
 #include "pteros/core/pteros_error.h"
-#include "molfile_plugins/periodic_table.h"
+#include "../molfile_plugins/periodic_table.h"
 #include <Eigen/Core>
 
 // General molfile_plugin includes

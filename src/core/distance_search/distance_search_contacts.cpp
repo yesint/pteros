@@ -127,6 +127,8 @@ void Distance_search_contacts::do_search(){
 
 void Distance_search_contacts::search_in_pair_of_cells(int x1, int y1, int z1, // cell 1
                              int x2, int y2, int z2, // cell 2
+                             Grid& grid1,
+                             Grid& grid2,
                              deque<Vector2i>& bon,
                              deque<float>* dist_vec, bool is_periodic)
 {

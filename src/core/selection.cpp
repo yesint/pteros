@@ -455,7 +455,7 @@ void Selection::set_frame(int fr){
         throw e;
     }
 
-    if(fr!=frame){
+    if(frame!=fr){
         frame = fr;
         // If parser is persistent, do quick update
         // This will only work for coordinate-dependent selections

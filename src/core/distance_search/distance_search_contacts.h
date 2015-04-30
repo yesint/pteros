@@ -43,6 +43,8 @@ protected:
 
     void search_in_pair_of_cells(int x1, int y1, int z1,
                                  int x2, int y2, int z2,
+                                 Grid &grid1,
+                                 Grid &grid2,
                                  std::deque<Eigen::Vector2i> &bon,
                                  std::deque<float> *dist_vec,
                                  bool is_periodic);

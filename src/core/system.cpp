@@ -43,7 +43,7 @@ System::System() {
 }
 
 // Construnt system from file
-System::System(string fname) {    
+System::System(string fname) {
     clear();
     load(fname);
 }

@@ -32,7 +32,7 @@ using namespace Eigen;
 namespace pteros {
 
 void search_contacts(float d, const Selection &sel, std::vector<Vector2i> &pairs, bool absolute_index, bool periodic, std::vector<float> *dist_vec)
-{
+{    
     Distance_search_contacts_1sel(d,sel,pairs,absolute_index,periodic,dist_vec);
 }
 

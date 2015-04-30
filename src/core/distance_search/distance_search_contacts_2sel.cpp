@@ -113,6 +113,7 @@ void Distance_search_contacts_2sel::do_part(int dim, int _b, int _e, std::deque<
                 // Search in central cell
                 // Central cell is always non-periodic
                 search_in_pair_of_cells(i,j,k, i,j,k,
+                                        grid1,grid2,
                                         bon,dist_vec,
                                         false);
                 visited[i][j][k] = true;
@@ -140,10 +141,12 @@ void Distance_search_contacts_2sel::do_part(int dim, int _b, int _e, std::deque<
                         if( !visited[s1][s2][s3] ){
                             search_in_pair_of_cells(i,j,k,
                                                     s1,s2,s3,
+                                                    grid1, grid2,
                                                     bon,dist_vec,
                                                     nlist.wrapped[i1] && is_periodic);
                             search_in_pair_of_cells(s1,s2,s3,
                                                     i,j,k,
+                                                    grid1, grid2,
                                                     bon,dist_vec,
                                                     nlist.wrapped[i1] && is_periodic);
                         }
@@ -151,10 +154,12 @@ void Distance_search_contacts_2sel::do_part(int dim, int _b, int _e, std::deque<
                         // cell is in halo
                         search_in_pair_of_cells(i,j,k,
                                                 s1,s2,s3,
+                                                grid1, grid2,
                                                 bon,dist_vec,
                                                 nlist.wrapped[i1] && is_periodic);
                         search_in_pair_of_cells(s1,s2,s3,
                                                 i,j,k,
+                                                grid1, grid2,
                                                 bon,dist_vec,
                                                 nlist.wrapped[i1] && is_periodic);
                     }

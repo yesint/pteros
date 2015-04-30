@@ -66,56 +66,56 @@ add_library(pteros SHARED
 
     # Distance search
     ${PROJECT_SOURCE_DIR}/include/pteros/core/distance_search.h
-    ${PROJECT_SOURCE_DIR}/src/core/distance_search/distance_search.cpp
-
-    ${PROJECT_SOURCE_DIR}/src/core/distance_search/search_utils.h
-    ${PROJECT_SOURCE_DIR}/src/core/distance_search/search_utils.cpp
+    distance_search/distance_search.cpp
 
     ${PROJECT_SOURCE_DIR}/include/pteros/core/distance_search_within.h
-    ${PROJECT_SOURCE_DIR}/src/core/distance_search/distance_search_within.cpp
+    distance_search/distance_search_within.cpp
 
-    ${PROJECT_SOURCE_DIR}/src/core/distance_search/distance_search_base.h
-    ${PROJECT_SOURCE_DIR}/src/core/distance_search/distance_search_base.cpp
+    distance_search/search_utils.h
+    distance_search/search_utils.cpp
 
-    ${PROJECT_SOURCE_DIR}/src/core/distance_search/distance_search_within_base.h
-    ${PROJECT_SOURCE_DIR}/src/core/distance_search/distance_search_within_base.cpp
+    distance_search/distance_search_base.h
+    distance_search/distance_search_base.cpp
 
-    ${PROJECT_SOURCE_DIR}/src/core/distance_search/distance_search_within_sel.h
-    ${PROJECT_SOURCE_DIR}/src/core/distance_search/distance_search_within_sel.cpp
+    distance_search/distance_search_within_base.h
+    distance_search/distance_search_within_base.cpp
 
-    ${PROJECT_SOURCE_DIR}/src/core/distance_search/distance_search_contacts.h
-    ${PROJECT_SOURCE_DIR}/src/core/distance_search/distance_search_contacts.cpp
+    distance_search/distance_search_within_sel.h
+    distance_search/distance_search_within_sel.cpp
 
-    ${PROJECT_SOURCE_DIR}/src/core/distance_search/distance_search_contacts_1sel.h
-    ${PROJECT_SOURCE_DIR}/src/core/distance_search/distance_search_contacts_1sel.cpp
+    distance_search/distance_search_contacts.h
+    distance_search/distance_search_contacts.cpp
 
-    ${PROJECT_SOURCE_DIR}/src/core/distance_search/distance_search_contacts_2sel.h
-    ${PROJECT_SOURCE_DIR}/src/core/distance_search/distance_search_contacts_2sel.cpp
+    distance_search/distance_search_contacts_1sel.h
+    distance_search/distance_search_contacts_1sel.cpp
+
+    distance_search/distance_search_contacts_2sel.h
+    distance_search/distance_search_contacts_2sel.cpp
 
 
     # IO
     ${PROJECT_SOURCE_DIR}/include/pteros/core/mol_file.h
-    mol_file.cpp
-    vmd_molfile_plugin_wrapper.h
-    vmd_molfile_plugin_wrapper.cpp
-    pdb_file.h
-    pdb_file.cpp
-    dcd_file.h
-    dcd_file.cpp
-    gro_file.h
-    gro_file.cpp
-    gromacs_trajectory_file.h
-    gromacs_trajectory_file.cpp
-    trr_file.h
-    trr_file.cpp
-    xtc_file.h
-    xtc_file.cpp
-    pttop_file.h
-    pttop_file.cpp
-    tng_file.h
-    tng_file.cpp
-    mol2_file.h
-    mol2_file.cpp
+    io/mol_file.cpp
+    io/vmd_molfile_plugin_wrapper.h
+    io/vmd_molfile_plugin_wrapper.cpp
+    io/pdb_file.h
+    io/pdb_file.cpp
+    io/dcd_file.h
+    io/dcd_file.cpp
+    io/gro_file.h
+    io/gro_file.cpp
+    io/gromacs_trajectory_file.h
+    io/gromacs_trajectory_file.cpp
+    io/trr_file.h
+    io/trr_file.cpp
+    io/xtc_file.h
+    io/xtc_file.cpp
+    io/pttop_file.h
+    io/pttop_file.cpp
+    io/tng_file.h
+    io/tng_file.cpp
+    io/mol2_file.h
+    io/mol2_file.cpp
 
 
     # xdrfile
