@@ -51,11 +51,11 @@ add_library(pteros SHARED
     ${PROJECT_SOURCE_DIR}/include/pteros/core/system.h
     system.cpp
     ${PROJECT_SOURCE_DIR}/include/pteros/core/selection.h
-    selection_macro.h
-    selection.cpp
-    ${PROJECT_SOURCE_DIR}/include/pteros/core/selection_parser.h
-    ${PROJECT_SOURCE_DIR}/src/core/selection_grammar.h
+    selection_macro.h    
+    selection_parser.h
+    selection_grammar.h
     selection_parser.cpp
+    selection.cpp
     ${PROJECT_SOURCE_DIR}/include/pteros/core/gnm.h
     gnm.cpp
     ${PROJECT_SOURCE_DIR}/include/pteros/core/grid.h

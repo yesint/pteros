@@ -19,9 +19,8 @@
  * GPL because it prevents the distribution of bugged derivatives.
  *
 */
-
-#include "pteros/core/selection_parser.h"
-
+#include "selection_parser.h"
+#include "selection_grammar.h"
 #include "pteros/core/system.h"
 #include "pteros/core/selection.h"
 #include "pteros/core/pteros_error.h"
@@ -31,8 +30,6 @@
 #include <boost/algorithm/string.hpp>
 #include <unordered_set>
 #include <regex>
-
-#include "selection_grammar.h"
 
 //-----------------------------------------------------
 //  Functions for creating actual selection from AST

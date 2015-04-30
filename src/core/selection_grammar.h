@@ -23,7 +23,7 @@
 #ifndef SELECTION_GRAMMAR_H
 #define SELECTION_GRAMMAR_H
 
-#include "pteros/core/selection_parser.h"
+#include "selection_parser.h"
 #include <functional>
 #include <map>
 #include "pteros/core/pteros_error.h"

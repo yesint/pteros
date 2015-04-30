@@ -26,9 +26,9 @@
 #include <iostream>
 
 #include <string>
+#include <memory>
 #include <Eigen/Core>
 #include <Eigen/Geometry>
-#include "pteros/core/selection_parser.h"
 #include "pteros/core/system.h"
 #include "pteros/core/typedefs.h"
 
