@@ -60,6 +60,7 @@ boost::python::list distance_search_within1(Distance_search_within* g, PyObject*
     MAP_EIGEN_TO_PYTHON_F(Vector3f,c,coord)
     vector<int> r;
     g->search_within(c,r);
+
     boost::python::list res;
     for(int i=0;i<r.size();++i){
         res.append(r[i]);
@@ -72,6 +73,7 @@ boost::python::list distance_search_within2(Distance_search_within* g,
                                             bool include_self){
     vector<int> r;
     g->search_within(target,r,include_self);
+
     boost::python::list res;
     for(int i=0;i<r.size();++i){
         res.append(r[i]);
@@ -85,7 +87,7 @@ boost::python::list distance_search_within3(Distance_search_within* g,
     return distance_search_within2(g,target,true);
 }
 
-boost::python::list search_contacts1(float d,
+boost::python::tuple search_contacts1(float d,
                      const Selection& sel,
                      bool absolute_index = false,
                      bool periodic = false,
@@ -98,20 +100,23 @@ boost::python::list search_contacts1(float d,
     } else {
         search_contacts(d,sel,pairs,absolute_index,periodic,nullptr);
     }
-    boost::python::list res;
-    for(int i=0;i<pairs.size();++i){
-        boost::python::list v;
-        v.append(pairs[i](0));
-        v.append(pairs[i](1));
-        if(do_dist) v.append(dist_vec);
-        res.append(v);
+
+    npy_intp dims[2] = {pairs.size(),2};
+    PyObject* p1 = PyArray_SimpleNew(2, dims, PyArray_INT);
+    Map<MatrixXi>((int*)PyArray_DATA(p1),2,pairs.size()) = Map<MatrixXi>((int*)(pairs.data()),2,pairs.size());
+
+    if(do_dist){
+        CREATE_PYARRAY_1D_AND_MAP(p2,VectorXf,v,dist_vec.size())
+        v = Map<VectorXf>(dist_vec.data(),dist_vec.size());
+        return boost::python::make_tuple(handle<>(p1),handle<>(p2));
+    } else {
+        return boost::python::make_tuple(handle<>(p1),boost::python::object());
     }
-    return res;
 }
 
 BOOST_PYTHON_FUNCTION_OVERLOADS(search_contacts1_overloads, search_contacts1, 2, 5)
 
-boost::python::list search_contacts2(float d,
+boost::python::tuple search_contacts2(float d,
                      const Selection& sel1,
                      const Selection& sel2,
                      bool absolute_index = false,
@@ -125,15 +130,18 @@ boost::python::list search_contacts2(float d,
     } else {
         search_contacts(d,sel1,sel2,pairs,absolute_index,periodic,nullptr);
     }
-    boost::python::list res;
-    for(int i=0;i<pairs.size();++i){
-        boost::python::list v;
-        v.append(pairs[i](0));
-        v.append(pairs[i](1));
-        if(do_dist) v.append(dist_vec);
-        res.append(v);
+
+    npy_intp dims[2] = {pairs.size(),2};
+    PyObject* p1 = PyArray_SimpleNew(2, dims, PyArray_INT);
+    Map<MatrixXi>((int*)PyArray_DATA(p1),2,pairs.size()) = Map<MatrixXi>((int*)(pairs.data()),2,pairs.size());
+
+    if(do_dist){
+        CREATE_PYARRAY_1D_AND_MAP(p2,VectorXf,v,dist_vec.size())
+        v = Map<VectorXf>(dist_vec.data(),dist_vec.size());
+        return boost::python::make_tuple(handle<>(p1),handle<>(p2));
+    } else {
+        return boost::python::make_tuple(handle<>(p1),boost::python::object());
     }
-    return res;
 }
 
 BOOST_PYTHON_FUNCTION_OVERLOADS(search_contacts2_overloads, search_contacts2, 3, 6)
@@ -141,6 +149,7 @@ BOOST_PYTHON_FUNCTION_OVERLOADS(search_contacts2_overloads, search_contacts2, 3,
 //------------------------------------------------------
 
 void make_bindings_distance_search(){
+    import_array();
 
     class_<Distance_search_within,boost::shared_ptr<Distance_search_within>,boost::noncopyable >("Distance_search_within", init<>())
             .def("__init__",make_constructor(&distance_search_within_init1))
