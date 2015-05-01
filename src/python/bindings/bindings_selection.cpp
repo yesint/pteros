@@ -564,6 +564,9 @@ void make_bindings_Selection(){
         .def("append", static_cast<void(Selection::*)   (const Selection&)      >(&Selection::append) )
         .def("append", static_cast<void(Selection::*)   (int)                   >(&Selection::append) )        
 
+        .def("remove", static_cast<void(Selection::*)   (const Selection&)      >(&Selection::remove) )
+        .def("remove", static_cast<void(Selection::*)   (int)                   >(&Selection::remove) )
+
         .def("set_system", &Selection::set_system)
 
         .def("modify", static_cast<void(Selection::*)   (string)                >(&Selection::modify) )
