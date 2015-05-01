@@ -126,11 +126,11 @@ boost::python::tuple search_contacts2(float d,
         search_contacts(d,sel1,sel2,pairs,absolute_index,periodic,nullptr);
     }
 
-    CREATE_PYARRAY_2D_AND_MAP_I(p1,MatrixXi,m,2,pairs.size())
+    CREATE_PYARRAY_2D_AND_MAP_I(p1,MatrixXi,m,2,(npy_intp)pairs.size())
     m = Map<MatrixXi>((int*)(pairs.data()),2,pairs.size());
 
     if(do_dist){
-        CREATE_PYARRAY_1D_AND_MAP_F(p2,VectorXf,v,dist_vec.size())
+        CREATE_PYARRAY_1D_AND_MAP_F(p2,VectorXf,v,(npy_intp)dist_vec.size())
         v = Map<VectorXf>(dist_vec.data(),dist_vec.size());
         return boost::python::make_tuple(handle<>(p1),handle<>(p2));
     } else {
