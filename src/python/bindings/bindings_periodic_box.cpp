@@ -41,51 +41,51 @@ void Periodic_box_modify(Periodic_box* b, PyObject* arr){
 }
 
 PyObject* Periodic_box_get_matrix(Periodic_box* b){
-    CREATE_PYARRAY_2D_AND_MAP(p,Matrix3f,m,3,3)
+    CREATE_PYARRAY_2D_AND_MAP_F(p,Matrix3f,m,3,3)
     m = b->get_matrix();
     return boost::python::incref(p);
 }
 
 PyObject* Periodic_box_get_inv_matrix(Periodic_box* b){
-    CREATE_PYARRAY_2D_AND_MAP(p,Matrix3f,m,3,3)
+    CREATE_PYARRAY_2D_AND_MAP_F(p,Matrix3f,m,3,3)
     m = b->get_inv_matrix();
     return boost::python::incref(p);
 }
 
 PyObject* Periodic_box_get_vector(Periodic_box* b, int i){
-    CREATE_PYARRAY_1D_AND_MAP(vec,Vector3f,v,3)
+    CREATE_PYARRAY_1D_AND_MAP_F(vec,Vector3f,v,3)
     v = b->get_vector(i);
     return boost::python::incref(vec);
 }
 
 PyObject* Periodic_lab_to_box(Periodic_box* b, PyObject* point){
-    CREATE_PYARRAY_1D_AND_MAP(ret,Vector3f,v,3)
+    CREATE_PYARRAY_1D_AND_MAP_F(ret,Vector3f,v,3)
     MAP_EIGEN_TO_PYTHON_F(Vector3f,p,point)
     v = b->lab_to_box(p);
     return boost::python::incref(ret);
 }
 
 PyObject* Periodic_box_to_lab(Periodic_box* b, PyObject* point){
-    CREATE_PYARRAY_1D_AND_MAP(ret,Vector3f,v,3)
+    CREATE_PYARRAY_1D_AND_MAP_F(ret,Vector3f,v,3)
     MAP_EIGEN_TO_PYTHON_F(Vector3f,p,point)
     v = b->box_to_lab(p);
     return boost::python::incref(ret);
 }
 
 PyObject* Periodic_lab_to_box_transform(Periodic_box* b){
-    CREATE_PYARRAY_2D_AND_MAP(ret,Matrix3f,m,3,3)
+    CREATE_PYARRAY_2D_AND_MAP_F(ret,Matrix3f,m,3,3)
     m = b->lab_to_box_transform();
     return boost::python::incref(ret);
 }
 
 PyObject* Periodic_box_to_lab_transform(Periodic_box* b){
-    CREATE_PYARRAY_2D_AND_MAP(ret,Matrix3f,m,3,3)
+    CREATE_PYARRAY_2D_AND_MAP_F(ret,Matrix3f,m,3,3)
     m = b->box_to_lab_transform();
     return boost::python::incref(ret);
 }
 
 PyObject* Periodic_box_extents(Periodic_box* b){
-    CREATE_PYARRAY_1D_AND_MAP(ret,Vector3f,v,3)
+    CREATE_PYARRAY_1D_AND_MAP_F(ret,Vector3f,v,3)
     v = b->extents();
     return boost::python::incref(ret);
 }
@@ -134,7 +134,7 @@ PyObject* Periodic_box_get_closest_image(Periodic_box* b, PyObject* point, PyObj
                              PyObject* dims_to_wrap=nullptr){
     MAP_EIGEN_TO_PYTHON_F(Vector3f,p,point)
     MAP_EIGEN_TO_PYTHON_F(Vector3f,t,target)   
-    CREATE_PYARRAY_1D_AND_MAP(ret,Vector3f,v,3)
+    CREATE_PYARRAY_1D_AND_MAP_F(ret,Vector3f,v,3)
     if(dims_to_wrap){
         MAP_EIGEN_TO_PYTHON_I(Vector3i,dim,dims_to_wrap)
         v = b->get_closest_image(p,t,dim);
@@ -151,7 +151,7 @@ PyObject* Periodic_box_shortest_vector(Periodic_box* b, PyObject* point1, PyObje
                                         PyObject* dims_to_wrap=nullptr){
     MAP_EIGEN_TO_PYTHON_F(Vector3f,p1,point1)
     MAP_EIGEN_TO_PYTHON_F(Vector3f,p2,point2)    
-    CREATE_PYARRAY_1D_AND_MAP(ret,Vector3f,v,3)
+    CREATE_PYARRAY_1D_AND_MAP_F(ret,Vector3f,v,3)
     if(dims_to_wrap){
         MAP_EIGEN_TO_PYTHON_I(Vector3i,dim,dims_to_wrap)
         v = b->shortest_vector(p1,p2,dim);
@@ -172,8 +172,8 @@ bool Periodic_box_in_box(Periodic_box* b, PyObject* point){
 
 
 boost::python::tuple Periodic_box_to_vectors_angles(Periodic_box* b){
-    CREATE_PYARRAY_1D_AND_MAP(vec,Vector3f,v,3)
-    CREATE_PYARRAY_1D_AND_MAP(ang,Vector3f,a,3)
+    CREATE_PYARRAY_1D_AND_MAP_F(vec,Vector3f,v,3)
+    CREATE_PYARRAY_1D_AND_MAP_F(ang,Vector3f,a,3)
     b->to_vectors_angles(v,a);
     return boost::python::make_tuple(handle<>(vec),handle<>(ang));
 }

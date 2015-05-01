@@ -118,7 +118,7 @@ PyObject* mapper(PyObject* pyobj, size_t& dim1, size_t& dim2){
     Eigen::Map<T>  matr((int*)PyArray_DATA(__pyobj__for__##matr),__dim1__for__##matr,__dim2__for__##matr);
 
 
-#define CREATE_PYARRAY_1D_AND_MAP(pyobj, T, matr, dim) \
+#define CREATE_PYARRAY_1D_AND_MAP_F(pyobj, T, matr, dim) \
     PyObject* pyobj; \
     { \
         npy_intp sz[1] = {dim};\
@@ -126,14 +126,30 @@ PyObject* mapper(PyObject* pyobj, size_t& dim1, size_t& dim2){
     } \
     Eigen::Map<T> matr((float*)PyArray_DATA(pyobj),dim,1);
 
+#define CREATE_PYARRAY_1D_AND_MAP_I(pyobj, T, matr, dim) \
+    PyObject* pyobj; \
+    { \
+        npy_intp sz[1] = {dim};\
+        pyobj = PyArray_SimpleNew(1, sz, PyArray_INT); \
+    } \
+    Eigen::Map<T> matr((int*)PyArray_DATA(pyobj),dim,1);
 
-#define CREATE_PYARRAY_2D_AND_MAP(pyobj, T, matr, dim1, dim2) \
+
+#define CREATE_PYARRAY_2D_AND_MAP_F(pyobj, T, matr, dim1, dim2) \
     PyObject* pyobj; \
     { \
         npy_intp dims[2] = {dim2,dim1}; \
         pyobj = PyArray_SimpleNew(2, dims, PyArray_FLOAT); \
     } \
     Eigen::Map<T> matr((float*)PyArray_DATA(pyobj),dim1,dim2);
+
+#define CREATE_PYARRAY_2D_AND_MAP_I(pyobj, T, matr, dim1, dim2) \
+    PyObject* pyobj; \
+    { \
+        npy_intp dims[2] = {dim2,dim1}; \
+        pyobj = PyArray_SimpleNew(2, dims, PyArray_INT); \
+    } \
+    Eigen::Map<T> matr((int*)PyArray_DATA(pyobj),dim1,dim2);
 
 
 } // End of namespace Pteros

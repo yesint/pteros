@@ -44,44 +44,40 @@ boost::shared_ptr<Distance_search_within> distance_search_within_init2(float d,
                                                                       const Selection& src,
                                                                       bool absolute_index)
 {
-    boost::shared_ptr<Distance_search_within> g(new Distance_search_within(d,src,absolute_index,false));
-    return g;
+    return distance_search_within_init1(d,src,absolute_index,false);
 }
 
 boost::shared_ptr<Distance_search_within> distance_search_within_init3(float d,
                                                                       const Selection& src)
 {
-    boost::shared_ptr<Distance_search_within> g(new Distance_search_within(d,src,false,false));
-    return g;
+    return distance_search_within_init1(d,src,false,false);
 }
 
 
-boost::python::list distance_search_within1(Distance_search_within* g, PyObject* coord){
+PyObject* distance_search_within1(Distance_search_within* g, PyObject* coord){
     MAP_EIGEN_TO_PYTHON_F(Vector3f,c,coord)
     vector<int> r;
     g->search_within(c,r);
 
-    boost::python::list res;
-    for(int i=0;i<r.size();++i){
-        res.append(r[i]);
-    }
-    return res;
+    CREATE_PYARRAY_1D_AND_MAP_I(p,VectorXi,v,(npy_intp)r.size())
+    v = Map<VectorXi>(r.data(),r.size());
+
+    return incref(p);
 }
 
-boost::python::list distance_search_within2(Distance_search_within* g,
+PyObject* distance_search_within2(Distance_search_within* g,
                                             const Selection& target,
                                             bool include_self){
     vector<int> r;
     g->search_within(target,r,include_self);
 
-    boost::python::list res;
-    for(int i=0;i<r.size();++i){
-        res.append(r[i]);
-    }
-    return res;
+    CREATE_PYARRAY_1D_AND_MAP_I(p,VectorXi,v,(npy_intp)r.size())
+    v = Map<VectorXi>(r.data(),r.size());
+
+    return incref(p);
 }
 
-boost::python::list distance_search_within3(Distance_search_within* g,
+PyObject* distance_search_within3(Distance_search_within* g,
                                             const Selection& target)
 {
     return distance_search_within2(g,target,true);
@@ -101,12 +97,11 @@ boost::python::tuple search_contacts1(float d,
         search_contacts(d,sel,pairs,absolute_index,periodic,nullptr);
     }
 
-    npy_intp dims[2] = {pairs.size(),2};
-    PyObject* p1 = PyArray_SimpleNew(2, dims, PyArray_INT);
-    Map<MatrixXi>((int*)PyArray_DATA(p1),2,pairs.size()) = Map<MatrixXi>((int*)(pairs.data()),2,pairs.size());
+    CREATE_PYARRAY_2D_AND_MAP_I(p1,MatrixXi,m,2,(npy_intp)pairs.size())
+    m = Map<MatrixXi>((int*)(pairs.data()),2,pairs.size());
 
     if(do_dist){
-        CREATE_PYARRAY_1D_AND_MAP(p2,VectorXf,v,dist_vec.size())
+        CREATE_PYARRAY_1D_AND_MAP_F(p2,VectorXf,v,(npy_intp)dist_vec.size())
         v = Map<VectorXf>(dist_vec.data(),dist_vec.size());
         return boost::python::make_tuple(handle<>(p1),handle<>(p2));
     } else {
@@ -131,12 +126,11 @@ boost::python::tuple search_contacts2(float d,
         search_contacts(d,sel1,sel2,pairs,absolute_index,periodic,nullptr);
     }
 
-    npy_intp dims[2] = {pairs.size(),2};
-    PyObject* p1 = PyArray_SimpleNew(2, dims, PyArray_INT);
-    Map<MatrixXi>((int*)PyArray_DATA(p1),2,pairs.size()) = Map<MatrixXi>((int*)(pairs.data()),2,pairs.size());
+    CREATE_PYARRAY_2D_AND_MAP_I(p1,MatrixXi,m,2,pairs.size())
+    m = Map<MatrixXi>((int*)(pairs.data()),2,pairs.size());
 
     if(do_dist){
-        CREATE_PYARRAY_1D_AND_MAP(p2,VectorXf,v,dist_vec.size())
+        CREATE_PYARRAY_1D_AND_MAP_F(p2,VectorXf,v,dist_vec.size())
         v = Map<VectorXf>(dist_vec.data(),dist_vec.size());
         return boost::python::make_tuple(handle<>(p1),handle<>(p2));
     } else {

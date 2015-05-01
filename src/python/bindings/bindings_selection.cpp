@@ -45,7 +45,7 @@ BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(rmsd_overloads, rmsd, 1, 2)
 
 
 PyObject* Selection_get_xyz(Selection* s){    
-    CREATE_PYARRAY_2D_AND_MAP(p,MatrixXf,data,3,s->size())
+    CREATE_PYARRAY_2D_AND_MAP_F(p,MatrixXf,data,3,s->size())
     s->get_xyz(data);
     return boost::python::incref(p);
 }
@@ -56,7 +56,7 @@ void Selection_set_xyz(Selection* s, PyObject* data){
 }
 
 PyObject* Selection_get_average(Selection* s, int b=0, int e=-1){
-    CREATE_PYARRAY_2D_AND_MAP(p,MatrixXf,data,3,s->size())
+    CREATE_PYARRAY_2D_AND_MAP_F(p,MatrixXf,data,3,s->size())
     data = s->average_structure(b,e);
     return boost::python::incref(p);
 }
@@ -121,7 +121,7 @@ void Selection_set_occupancy2(Selection* s, float data){
 }
 
 PyObject* Selection_get_traj(Selection* s, int ind, int b=0, int e=-1){
-    CREATE_PYARRAY_2D_AND_MAP(p,MatrixXf,data,3,s->get_system()->num_frames())
+    CREATE_PYARRAY_2D_AND_MAP_F(p,MatrixXf,data,3,s->get_system()->num_frames())
     data = s->atom_traj(ind,b,e);
     return boost::python::incref(p);
 }
@@ -129,8 +129,8 @@ PyObject* Selection_get_traj(Selection* s, int ind, int b=0, int e=-1){
 BOOST_PYTHON_FUNCTION_OVERLOADS(Selection_get_traj_overloads, Selection_get_traj, 2, 4)
 
 boost::python::tuple Selection_minmax(Selection* s){
-    CREATE_PYARRAY_1D_AND_MAP(pmin,Vector3f,min,3)
-    CREATE_PYARRAY_1D_AND_MAP(pmax,Vector3f,max,3)
+    CREATE_PYARRAY_1D_AND_MAP_F(pmin,Vector3f,min,3)
+    CREATE_PYARRAY_1D_AND_MAP_F(pmax,Vector3f,max,3)
     s->minmax(min,max);
     return boost::python::make_tuple(handle<>(pmin),handle<>(pmax));
 }
@@ -168,13 +168,13 @@ void Selection_rotate_2_arg(Selection* s, PyObject* ar1, PyObject* ar2){
 
 
 PyObject* fit_transform_py(Selection& sel1, Selection& sel2){
-    CREATE_PYARRAY_2D_AND_MAP(p,Matrix4f,m,4,4)
+    CREATE_PYARRAY_2D_AND_MAP_F(p,Matrix4f,m,4,4)
     m = fit_transform(sel1,sel2).matrix();
     return boost::python::incref(p);
 }
 
 PyObject* Selection_principal_transform(Selection* sel, bool periodic=false){
-    CREATE_PYARRAY_2D_AND_MAP(p,Matrix4f,m,4,4)
+    CREATE_PYARRAY_2D_AND_MAP_F(p,Matrix4f,m,4,4)
     m = sel->principal_transform(periodic).matrix();
     return boost::python::incref(p);
 }
@@ -188,13 +188,13 @@ void Selection_apply_transform(Selection* s, PyObject* t){
 }
 
 PyObject* Selection_getXYZ1(Selection* s, int ind){
-    CREATE_PYARRAY_1D_AND_MAP(p,Vector3f,data,3)
+    CREATE_PYARRAY_1D_AND_MAP_F(p,Vector3f,data,3)
     data = s->XYZ(ind);
     return boost::python::incref(p);
 }
 
 PyObject* Selection_getXYZ2(Selection* s, int ind, int fr){
-    CREATE_PYARRAY_1D_AND_MAP(p,Vector3f,data,3)
+    CREATE_PYARRAY_1D_AND_MAP_F(p,Vector3f,data,3)
     data = s->XYZ(ind,fr);
     return boost::python::incref(p);
 }
@@ -321,7 +321,7 @@ void Selection_set_resname2(Selection* s, string data){
 
 
 PyObject* Selection_center(Selection* s, bool mass_weighted, bool periodic){
-    CREATE_PYARRAY_1D_AND_MAP(p,Vector3f,data,3)
+    CREATE_PYARRAY_1D_AND_MAP_F(p,Vector3f,data,3)
     data = s->center(mass_weighted,periodic);
     return boost::python::incref(p);
 }
@@ -346,8 +346,8 @@ Energy_components non_bond_energy_py(const Selection& sel1,
 BOOST_PYTHON_FUNCTION_OVERLOADS(non_bond_energy_overloads_free, non_bond_energy_py, 2, 5)
 
 boost::python::tuple Selection_inertia(Selection* s, bool periodic=false){
-    CREATE_PYARRAY_1D_AND_MAP(m,Vector3f,_m,3)
-    CREATE_PYARRAY_2D_AND_MAP(a,Matrix3f,_a,3,3)
+    CREATE_PYARRAY_1D_AND_MAP_F(m,Vector3f,_m,3)
+    CREATE_PYARRAY_2D_AND_MAP_F(a,Matrix3f,_a,3,3)
     s->inertia(_m,_a,periodic);
     return boost::python::make_tuple(handle<>(m),handle<>(a));
 }
