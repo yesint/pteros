@@ -63,11 +63,10 @@ PyObject* Selection_get_average(Selection* s, int b=0, int e=-1){
 
 BOOST_PYTHON_FUNCTION_OVERLOADS(Selection_get_average_overloads, Selection_get_average, 1, 3)
 
-boost::python::list Selection_get_mass(Selection* s){
-    boost::python::list l;
-    vector<float> r = s->get_mass();
-    for(int i=0;i<r.size();++i) l.append(r[i]);
-    return l;
+PyObject* Selection_get_mass(Selection* s){
+    CREATE_PYARRAY_1D_AND_MAP_F(p,VectorXf,r,s->size())
+    r = Map<VectorXf>(s->get_mass().data(),s->size());
+    return incref(p);
 }
 
 void Selection_set_mass1(Selection* s, boost::python::list& data){
@@ -82,11 +81,10 @@ void Selection_set_mass2(Selection* s, float data){
     s->set_mass(data);
 }
 
-boost::python::list Selection_get_beta(Selection* s){
-    boost::python::list l;
-    vector<float> r = s->get_beta();
-    for(int i=0;i<r.size();++i) l.append(r[i]);
-    return l;
+PyObject* Selection_get_beta(Selection* s){
+    CREATE_PYARRAY_1D_AND_MAP_F(p,VectorXf,r,s->size())
+    r = Map<VectorXf>(s->get_beta().data(),s->size());
+    return incref(p);
 }
 
 void Selection_set_beta1(Selection* s, boost::python::list& data){
@@ -101,11 +99,10 @@ void Selection_set_beta2(Selection* s, float data){
     s->set_beta(data);
 }
 
-boost::python::list Selection_get_occupancy(Selection* s){
-    boost::python::list l;
-    vector<float> r = s->get_occupancy();
-    for(int i=0;i<r.size();++i) l.append(r[i]);
-    return l;
+PyObject* Selection_get_occupancy(Selection* s){
+    CREATE_PYARRAY_1D_AND_MAP_F(p,VectorXf,r,s->size())
+    r = Map<VectorXf>(s->get_occupancy().data(),s->size());
+    return incref(p);
 }
 
 void Selection_set_occupancy1(Selection* s, boost::python::list& data){
@@ -209,14 +206,10 @@ void Selection_setXYZ2(Selection* s, int ind, int fr, PyObject* obj){
     s->XYZ(ind,fr) = data;
 }
 
-System* Selection_get_system(Selection* s){
-    return s->get_system();
-}
-
-boost::python::list Selection_get_index(Selection* s){
-    boost::python::list l;
-    for(int i=0;i<s->size();++i) l.append(s->Index(i));
-    return l;
+PyObject* Selection_get_index(Selection* s){
+    CREATE_PYARRAY_1D_AND_MAP_I(p,VectorXi,r,s->size())
+    r = Map<VectorXi>(s->get_index().data(),s->size());
+    return incref(p);
 }
 
 boost::python::list Selection_get_chain(Selection* s){
@@ -259,10 +252,11 @@ boost::python::list Selection_get_unique_resindex(Selection* s){
 }
 
 
-boost::python::list Selection_get_resid(Selection* s){
-    boost::python::list l;    
-    for(int i=0;i<s->size();++i) l.append(s->Resid(i));
-    return l;
+PyObject* Selection_get_resid(Selection* s){
+    CREATE_PYARRAY_1D_AND_MAP_I(p,VectorXi,r,s->size())
+    r = Map<VectorXi>(s->get_resid().data(),s->size());
+    return incref(p);
+
 }
 
 void Selection_set_resid1(Selection* s, boost::python::list& data){
@@ -277,10 +271,10 @@ void Selection_set_resid2(Selection* s, int data){
     s->set_resid(data);
 }
 
-boost::python::list Selection_get_resindex(Selection* s){
-    boost::python::list l;
-    for(int i=0;i<s->size();++i) l.append(s->Resindex(i));
-    return l;
+PyObject* Selection_get_resindex(Selection* s){
+    CREATE_PYARRAY_1D_AND_MAP_I(p,VectorXi,r,s->size())
+    r = Map<VectorXi>(s->get_resindex().data(),s->size());
+    return incref(p);
 }
 
 boost::python::list Selection_get_name(Selection* s){
@@ -584,7 +578,7 @@ void make_bindings_Selection(){
 
         .def("clear",&Selection::clear)        
 
-        .def("get_system",&Selection_get_system, return_value_policy<reference_existing_object>())
+        .def("get_system",&Selection::get_system, return_value_policy<reference_existing_object>())
 
         .def("get_text",&Selection::get_text)
 
