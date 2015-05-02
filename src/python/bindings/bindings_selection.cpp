@@ -69,11 +69,9 @@ PyObject* Selection_get_mass(Selection* s){
     return incref(p);
 }
 
-void Selection_set_mass1(Selection* s, boost::python::list& data){
-    int n = len(data);
-    vector<float> r;
-    r.resize(n);
-    for(int i=0;i<r.size();++i) r[i] = extract<float>(data[i]);
+void Selection_set_mass1(Selection* s, PyObject* data){
+    MAP_EIGEN_TO_PYTHON_F(VectorXf,v,data)
+    vector<float> r(v.data(),v.data()+v.size());
     s->set_mass(r);
 }
 
@@ -87,11 +85,9 @@ PyObject* Selection_get_beta(Selection* s){
     return incref(p);
 }
 
-void Selection_set_beta1(Selection* s, boost::python::list& data){
-    int n = len(data);
-    vector<float> r;
-    r.resize(n);
-    for(int i=0;i<r.size();++i) r[i] = extract<float>(data[i]);
+void Selection_set_beta1(Selection* s, PyObject* data){
+    MAP_EIGEN_TO_PYTHON_F(VectorXf,v,data)
+    vector<float> r(v.data(),v.data()+v.size());
     s->set_beta(r);
 }
 
@@ -105,11 +101,9 @@ PyObject* Selection_get_occupancy(Selection* s){
     return incref(p);
 }
 
-void Selection_set_occupancy1(Selection* s, boost::python::list& data){
-    int n = len(data);
-    vector<float> r;
-    r.resize(n);
-    for(int i=0;i<r.size();++i) r[i] = extract<float>(data[i]);
+void Selection_set_occupancy1(Selection* s, PyObject* data){
+    MAP_EIGEN_TO_PYTHON_F(VectorXf,v,data)
+    vector<float> r(v.data(),v.data()+v.size());
     s->set_occupancy(r);
 }
 
@@ -259,11 +253,9 @@ PyObject* Selection_get_resid(Selection* s){
 
 }
 
-void Selection_set_resid1(Selection* s, boost::python::list& data){
-    int n = len(data);
-    vector<int> r;
-    r.resize(n);
-    for(int i=0;i<r.size();++i) r[i] = extract<int>(data[i]);
+void Selection_set_resid1(Selection* s, PyObject* data){
+    MAP_EIGEN_TO_PYTHON_I(VectorXi,v,data)
+    vector<int> r(v.data(),v.data()+v.size());
     s->set_resid(r);
 }
 
