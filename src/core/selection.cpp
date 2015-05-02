@@ -493,7 +493,7 @@ vector<char> Selection::get_chain() const {
     vector<char> res;
     int i,n;
     n = index.size();
-    res.resize(n,0);
+    res.resize(n);
     for(i=0; i<n; ++i) res[i] = system->atoms[index[i]].chain;
     return res;
 }
@@ -560,7 +560,7 @@ vector<int> Selection::get_resindex() const {
     vector<int> res;
     int i,n;
     n = index.size();
-    res.resize(n,0);
+    res.resize(n);
     for(i=0; i<n; ++i) res[i] = system->atoms[index[i]].resindex;
     return res;
 }
@@ -578,7 +578,7 @@ vector<int> Selection::get_unique_resid() const{
     vector<int> tmp,res;
     int i,n;
     n = index.size();
-    tmp.resize(n,0);
+    tmp.resize(n);
     for(i=0; i<n; ++i) tmp[i] = system->atoms[index[i]].resid;
     unique_copy(tmp.begin(),tmp.end(), back_inserter(res));
     return res;
@@ -588,7 +588,7 @@ vector<int> Selection::get_unique_resindex() const {
     vector<int> tmp,res;
     int i,n;
     n = index.size();
-    tmp.resize(n,0);
+    tmp.resize(n);
     for(i=0; i<n; ++i) tmp[i] = system->atoms[index[i]].resindex;
     unique_copy(tmp.begin(),tmp.end(), back_inserter(res));
     return res;
