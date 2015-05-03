@@ -66,6 +66,13 @@ Matrix3f Periodic_box::get_matrix() const {
     return _box;
 }
 
+void Periodic_box::scale_vectors(Vector3f_const_ref scale)
+{
+    if(!_is_periodic) throw Pteros_error("No periodicity! Can't scale!");
+    for(int i=0;i<3;i++) _box.col(i) *= scale(i);
+    _box_inv = _box.inverse();
+}
+
 Matrix3f Periodic_box::get_inv_matrix() const {
     return _box_inv;
 }

@@ -58,6 +58,11 @@ PyObject* Periodic_box_get_vector(Periodic_box* b, int i){
     return boost::python::incref(vec);
 }
 
+void Periodic_box_scale_vectors(Periodic_box* b, PyObject* scale){
+    MAP_EIGEN_TO_PYTHON_F(Vector3f,s,scale)
+    b->scale_vectors(s);
+}
+
 PyObject* Periodic_lab_to_box(Periodic_box* b, PyObject* point){
     CREATE_PYARRAY_1D_AND_MAP_F(ret,Vector3f,v,3)
     MAP_EIGEN_TO_PYTHON_F(Vector3f,p,point)
@@ -194,6 +199,7 @@ void make_bindings_Periodic_box(){
         .def("get_matrix",&Periodic_box_get_matrix)
         .def("get_inv_matrix",&Periodic_box_get_inv_matrix)
         .def("get_vector",&Periodic_box_get_vector)
+        .def("scale_vectors",&Periodic_box_scale_vectors)
         .def("lab_to_box",&Periodic_lab_to_box)
         .def("lab_to_box_transform",&Periodic_lab_to_box_transform)
         .def("box_to_lab",&Periodic_box_to_lab)

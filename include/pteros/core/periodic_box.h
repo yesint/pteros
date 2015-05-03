@@ -53,13 +53,13 @@ public:
     /// Constructor from other box
     Periodic_box(Matrix3f_const_ref box);
 
-    /// Constructor from vectors and angles
+    /// Constructor from vector lengths and angles
     Periodic_box(Vector3f_const_ref vectors, Vector3f_const_ref angles);
 
     /// Copy constructor
     Periodic_box& operator=(Periodic_box other);
 
-    /// Modify the box
+    /// Modify the box from 3x3 matrix
     void modify(Matrix3f_const_ref box);       
 
     /// Get i-th box vector
@@ -67,6 +67,10 @@ public:
 
     /// Get stored matrix of box vectors
     Eigen::Matrix3f get_matrix() const;
+
+    /// Scale box vectors by specified factors.
+    /// Causes recomputing internal data.
+    void scale_vectors(Vector3f_const_ref scale);
 
     /// Get stored inverted matrix of box vectors
     Eigen::Matrix3f get_inv_matrix() const;
