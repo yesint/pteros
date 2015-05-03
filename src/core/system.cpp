@@ -248,6 +248,13 @@ void System::frame_delete(int b, int e){
     if(traj.size()==0) cout << "All frames are deleted. All selections are now INVALID!";
 }
 
+void System::frame_swap(int fr1, int fr2)
+{
+    if(fr1<0 || fr1>=traj.size() || fr2<0 || fr2>=traj.size())
+        throw Pteros_error("Invalid frame for swapping!");
+    std::swap(traj[fr1],traj[fr2]);
+}
+
 void System::frame_append(const Frame& fr){
     traj.push_back(fr);
 }
@@ -466,6 +473,11 @@ Selection System::append(const Atom &at, const Vector3f_const_ref coord)
     return Selection(*this,first_added,num_atoms()-1);
 }
 
+Selection System::append(const Atom_proxy &at)
+{
+    append(at.Atom_data(),at.XYZ());
+}
+
 void System::rearrange(const std::vector<string> &sel_strings){
     vector<Selection> sel_vec(sel_strings.size());
     for (int i=0; i<sel_strings.size(); ++i){
@@ -521,11 +533,12 @@ void System::remove(const string &sel_str)
     keep(sel);
 }
 
-void System::remove(const Selection &sel)
+void System::remove(Selection &sel)
 {
     System tmp;
     tmp.append(~sel);
     *this = tmp;
+    sel.clear();
 }
 
 void System::distribute(const Selection sel, Vector3i_const_ref ncopies, Vector3f_const_ref shift)

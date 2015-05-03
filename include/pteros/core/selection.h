@@ -143,7 +143,7 @@ class Selection {
     friend std::ostream& operator<<(std::ostream& os, const Selection& sel);
 
     /// Creates new Selection, which is the logical OR of two parent selections.
-    /// Parent selections are not modified.
+    /// Parent selections are not modified.    
     friend Selection operator|(const Selection& sel1, const Selection& sel2);        
 
     /// Creates new Selection, which is the logical AND of two parent selections.
@@ -176,7 +176,8 @@ class Selection {
     /// Remove given absolute index from current selection
     void remove(int ind);
 
-    /// Sets new system for selection. This clears selection index and leaves it empty!
+    /// Sets new system for selection.
+    /// \warning This clears selection index and leaves it empty!
     void set_system(const System& sys);
 
     /** Modifies selection string in existing selection.

@@ -71,13 +71,12 @@ struct Frame {
     /// Timestamp
     float time;
 
-    Frame(){        
-        time = 0.0;
-    }
+    Frame(): time(0.0) {}
 };
 
 //Forward declarations
 class Selection;
+class Atom_proxy;
 
 /**
 *  The system of atoms.
@@ -92,7 +91,7 @@ class Selection;
 */
 class System {
     // System and Selection are friends because they are closely integrated.
-    friend class Selection;
+    friend class Selection;    
     // Selection_parser must access internals of Selection
     friend class Selection_parser;
     // Mol_file needs an access too
@@ -104,6 +103,7 @@ public:
 
     /// Default constructor
     System();
+
     /// Constructor creating system from file
     System(std::string fname);
 
@@ -134,14 +134,27 @@ public:
     /// Returns selection corresponding to appended atom
     Selection append(const Atom& at, const Vector3f_const_ref coord);
 
+    /** Append Atom_proxy object to this system
+     Returns selection corresponding to appended atom.
+     Usage:
+     \code
+     Selection sel(s,"name CA");
+     System new_s;
+     for(auto& at: sel){
+        new_s.append(at);
+     }
+     \endcode
+    */
+    Selection append(const Atom_proxy& at);
+
     /// Rearranges the atoms in the order of provided selection strings.
     /// Atom, which are not selected are appended at the end in their previous order.
-    /// Selections should not overlap (exception is thrown if they are).
+    /// \note Selections should not overlap (exception is thrown if they are).
     void rearrange(const std::vector<std::string>& sel_strings);
 
     /// Rearranges the atoms in the order of provided selections.
     /// Atom, which are not selected are appended at the end in their previous order.
-    /// Selections should not overlap (exception is thrown if they are).
+    /// \note Selections should not overlap (exception is thrown if they are).
     void rearrange(const std::vector<Selection>& sel_vec);
 
     /// Keep only atoms given by selection string
@@ -153,8 +166,9 @@ public:
     /// Remove atoms given by selection string
     void remove(const std::string& sel_str);
 
-    /// Remove atoms from given selection
-    void remove(const Selection& sel);
+    /// Remove atoms of given selection
+    /// \warning Selection becomes invalid after that and is cleared!
+    void remove(Selection& sel);
 
     /// Creates multiple copies of selection in the system and
     /// distributes them in a grid
@@ -232,7 +246,7 @@ public:
     /// Duplicates given frame and adds it to the end of frame vector
     int frame_dup(int);
 
-    /// Adds provided frame to trajectory
+    /// Appends provided frame to trajectory
     void frame_append(const Frame& fr);
 
     /// Copy all frame data from fr1 to fr2. Fr2 is overwritten!
@@ -242,7 +256,10 @@ public:
     *   If only @param b is supplied deletes all frames from b to the end.
     *   If only @param e is supplied deletes all frames from 0 to e
     */
-    void frame_delete(int b = 0, int e = -1);    
+    void frame_delete(int b = 0, int e = -1);
+
+    /// Swaps two specified frames
+    void frame_swap(int fr1, int fr2);
     /// @}
 
 

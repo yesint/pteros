@@ -204,6 +204,7 @@ void make_bindings_System(){
         .def("frame_append", &System::frame_append)
         .def("frame_dup", &System::frame_dup)
         .def("frame_copy", &System::frame_copy)
+        .def("frame_swap", &System::frame_swap)
         .def("frame_delete", &System::frame_delete, frame_delete_overloads())
 
         .def("getFrame_data", &System_getFrame_data)
@@ -233,7 +234,7 @@ void make_bindings_System(){
 
         .def("keep", static_cast<void(System::*)(const Selection&)>(&System::keep))
         .def("keep", static_cast<void(System::*)(const string&)>(&System::keep))
-        .def("remove", static_cast<void(System::*)(const Selection&)>(&System::remove))
+        .def("remove", static_cast<void(System::*)(Selection&)>(&System::remove))
         .def("remove", static_cast<void(System::*)(const string&)>(&System::remove))
         .def("distribute",&System_distribute)
 
