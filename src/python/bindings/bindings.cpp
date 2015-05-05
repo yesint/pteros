@@ -32,6 +32,7 @@
 #include "bindings_frame.h"
 #include "bindings_periodic_box.h"
 #include "bindings_energy_components.h"
+#include "bindings_utilities.h"
 
 /**********************
   Create python module
@@ -101,5 +102,8 @@ BOOST_PYTHON_MODULE(_pteros)
 
     // Energy components
     make_bindings_Energy_components();
+
+    // Energy components
+    make_bindings_utilities();
 }
 

@@ -9,6 +9,8 @@
 #include "analysis/consumer.h"
 #include "analysis/options.h"
 
+#include "core/utilities.h"
+
 #include <Eigen/Core>
 
 #endif

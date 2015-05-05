@@ -42,6 +42,8 @@ include_directories(${PROJECT_SOURCE_DIR}/src/core/tng_io/include/tng)
 
 add_library(pteros SHARED
     # General
+    ${PROJECT_SOURCE_DIR}/include/pteros/core/utilities.h
+    utilities.cpp
     ${PROJECT_SOURCE_DIR}/include/pteros/pteros.h
     ${PROJECT_SOURCE_DIR}/include/pteros/core/typedefs.h
     ${PROJECT_SOURCE_DIR}/include/pteros/core/pteros_error.h
