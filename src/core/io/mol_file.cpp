@@ -131,5 +131,12 @@ unique_ptr<Mol_file> Mol_file::recognize(string fname){
     else if(ext=="pttop") return unique_ptr<Mol_file>(new PTTOP_file(fname));
     else if(ext=="tng") return unique_ptr<Mol_file>(new TNG_file(fname));
     else if(ext=="mol2") return unique_ptr<Mol_file>(new MOL2_file(fname));
-    else throw Pteros_error("File extension '" + ext + "'' not recognized!");
+         else throw Pteros_error("File extension '" + ext + "'' not recognized!");
+}
+
+std::unique_ptr<Mol_file> Mol_file::open(string fname, char open_mode)
+{
+    auto handle = recognize(fname);
+    handle->open(open_mode);
+    return handle;
 }

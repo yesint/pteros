@@ -398,8 +398,7 @@ void Trajectory_processor::reader_thread_body(Data_channel &channel){
         for(string& fname: traj_files){
             cout << "==> Reading trajectory " << fname << endl;
 
-            auto trj = Mol_file::recognize(fname);
-            trj->open('r');
+            auto trj = Mol_file::open(fname,'r');
 
             // Main loop over trajectory frames
             while(true){

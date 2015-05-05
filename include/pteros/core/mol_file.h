@@ -46,18 +46,28 @@ struct Mol_file_content {
 /// Generic API for reading and writing any molecule file formats
 class Mol_file {
 public:
-    // Recognizes file extension and returns a handler object
+    /// Recognizes file extension and returns a file handler
     static std::unique_ptr<Mol_file> recognize(std::string fname);
+
+    /** Recognize file extension, open file for reading or writing and return a file handler.
+     This function is aquivalent to:
+     \code
+     auto f = Mol_file::recognize(fname);
+     f.open(mode);
+     \endcode
+    */
+    static std::unique_ptr<Mol_file> open(std::string fname, char open_mode);
+
     // Opens a file with given access mode. Need to be defined by derived classes.
     virtual void open(char open_mode) = 0;
 
     virtual ~Mol_file();
 
     /// Reads data, which are specified by what.
-    /// Pointers to System and Frame could be NULL if not used
+    /// Pointers to System and Frame could be nullptr if not used
     bool read(System* sys, Frame* frame, const Mol_file_content& what);
 
-    /// Write given data from selection specidied by what.
+    /// Write data from selection specidied by what.
     void write(const Selection& sel, const Mol_file_content& what);
 
     /// Reports content of this file type

@@ -82,9 +82,7 @@ void System::check_num_atoms_in_last_frame(){
 // Load structure or trajectory
 void System::load(string fname, int b, int e, int skip, std::function<bool(System*,int)> on_frame){
     // Create an IO handler
-    auto f = Mol_file::recognize(fname);
-    // Open file for reading
-    f->open('r');
+    auto f = Mol_file::open(fname,'r');
 
     int num_stored = 0;    
 

@@ -143,10 +143,10 @@ public:
     /// Write box as CRYST string in PDB format
     std::string write_pdb_box() const;
 
-    /// Returns representation of the box as direction vectors and angles
+    /// Returns representation of the box as vector lengths and angles
     void to_vectors_angles(Vector3f_ref vectors, Vector3f_ref angles) const;
 
-    /// Creates box from vectors and angles. Overwrites current box!
+    /// Creates box from vector length and angles. Overwrites current box!
     /// vectors = {a,b,c}
     /// angles = {a^c, b^c, a^b}
     void from_vectors_angles(Vector3f_const_ref vectors, Vector3f_const_ref angles);
