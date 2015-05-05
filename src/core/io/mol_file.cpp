@@ -74,36 +74,36 @@ Force_field &Mol_file::ff_in_system(System &sys){
 }
 
 void Mol_file::sanity_check_read(System *sys, Frame *frame, const Mol_file_content& what) const {
-    if( !get_content_type().structure && what.structure )
+    if( !(get_content_type() & MFC_ATOMS) && what & MFC_ATOMS )
         throw Pteros_error("Can't read structure from this file type!");
-    if( !get_content_type().coordinates && what.coordinates)
+    if( !(get_content_type() & MFC_COORD) && what & MFC_COORD)
         throw Pteros_error("Can't read coordinates from this file type!");
-    if( !get_content_type().trajectory && what.trajectory)
+    if( !(get_content_type() & MFC_TRAJ) && what & MFC_TRAJ)
         throw Pteros_error("Can't read coordinates from this file type!");
-    if( !get_content_type().topology && what.topology)
+    if( !(get_content_type() & MFC_TOP) && what & MFC_TOP)
         throw Pteros_error("Can't read topology from this file type!");
-    if(!what.structure && !what.coordinates && !what.trajectory && !what.topology)
+    if(!(what & MFC_ATOMS) && !(what & MFC_COORD) && !(what & MFC_TRAJ) && !(what & MFC_TOP))
         throw Pteros_error("Nothing to read!");
-    if(what.structure && !sys)
+    if(what & MFC_ATOMS && !sys)
         throw Pteros_error("System should be provided to read structure!");
-    if(what.topology && !sys)
+    if(what & MFC_TOP && !sys)
         throw Pteros_error("System should be provided to read topology!");
-    if((what.coordinates || what.trajectory) && !frame)
+    if((what & MFC_COORD || what & MFC_TRAJ) && !frame)
         throw Pteros_error("Frame should be provided to read coordinates!");
-    if(what.structure && sys && sys->num_atoms()>0)
+    if(what & MFC_ATOMS && sys && sys->num_atoms()>0)
         throw Pteros_error("Can't read structure because system already has atoms!");
 }
 
 void Mol_file::sanity_check_write(const Selection &sel, const Mol_file_content &what) const{
-    if(!what.structure && !what.coordinates && !what.trajectory && !what.topology)
+    if(!(what & MFC_ATOMS) && !(what & MFC_COORD) && !(what & MFC_TRAJ) && !(what & MFC_TOP))
         throw Pteros_error("Nothing to write!");
-    if( !get_content_type().structure && what.structure )
+    if( !(get_content_type() & MFC_ATOMS) && what & MFC_ATOMS)
         throw Pteros_error("Can't write structure from this file type!");
-    if( !get_content_type().coordinates && what.coordinates)
+    if( !(get_content_type() & MFC_COORD) && what & MFC_COORD)
         throw Pteros_error("Can't write coordinates from this file type!");
-    if( !get_content_type().trajectory && what.trajectory)
+    if( !(get_content_type() & MFC_TRAJ) && what & MFC_TRAJ)
         throw Pteros_error("Can't write coordinates from this file type!");
-    if( !get_content_type().topology && what.topology)
+    if( !(get_content_type() & MFC_TOP) && what & MFC_TOP)
         throw Pteros_error("Can't write topology from this file type!");
 }
 

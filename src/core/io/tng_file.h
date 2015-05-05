@@ -34,11 +34,8 @@ class TNG_file: public VMD_molfile_plugin_wrapper {
 public:
     TNG_file(std::string& fname);
 
-    virtual Mol_file_content get_content_type() const {
-        return { true,    // structure
-                 false,   // single frame
-                 true,    // trajectory
-                 false }; // topology
+    virtual Mol_file_content get_content_type() const {        
+        return MFC_ATOMS | MFC_TRAJ;
     }
 
 };

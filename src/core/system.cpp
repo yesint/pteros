@@ -90,7 +90,7 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
         // We don't have atoms yet, so we will read everything possible except trajectory
         Mol_file_content c = f->get_content_type();
 
-        if(c.coordinates && !c.trajectory){
+        if(c & MFC_COORD && !(c & MFC_TRAJ)){
             // If we have single frame read it directly here
             Frame fr;
             frame_append(fr);
@@ -106,8 +106,8 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
             return;
         } else {
             // We have not a single frame, so read only structure here
-            // Clear flags for trajectory and coordinates
-            c.coordinates = c.trajectory = false;
+            // Clear flags for trajectory and coordinates            
+            c &= ~(MFC_COORD | MFC_TRAJ);
             f->read(this,nullptr,c);
             assign_resindex();
         }        
@@ -116,16 +116,12 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
     // Do we have some structure?
     if(num_atoms()>0){                
         // We have atoms already, so read only coordinates
-        if(!f->get_content_type().coordinates && !f->get_content_type().trajectory)
+        if(!(f->get_content_type() & MFC_COORD) && !(f->get_content_type() & MFC_TRAJ))
             throw Pteros_error("File reader for file '"+fname
                                +"' is not capable of appending frames to the system!");
 
         // Check if we can read trajectory
-        if(f->get_content_type().trajectory){
-
-            Mol_file_content c;
-            c.trajectory = true;
-
+        if(f->get_content_type() & MFC_TRAJ){
             // Sanity check for frame range
             if((e<b && e!=-1)|| b<0)
                 throw Pteros_error("Invalid frame range for reading!");
@@ -137,7 +133,7 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
                 cout << "Skipping " << b << " frames..." << endl;
                 Frame skip_fr;
                 for(int i=0;i<b;++i){
-                    f->read(nullptr,&skip_fr,c);
+                    f->read(nullptr, &skip_fr, MFC_TRAJ);
                     cur++;
                 }
             }
@@ -158,7 +154,7 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
                 Frame fr;
                 frame_append(fr);
                 // Try to read into it
-                bool ok = f->read(nullptr,&Frame_data(num_frames()-1),c);
+                bool ok = f->read(nullptr, &Frame_data(num_frames()-1), MFC_TRAJ);
                 if(!ok){
                     frame_delete(num_frames()-1); // Remove last frame - it's invalid
                     break; // end of trajectory
@@ -184,24 +180,20 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
                 // If callback returns false stop reading
                 if(!callback_ok) break;
             }
-        } else if(f->get_content_type().coordinates && !f->get_content_type().topology) {
-            Mol_file_content c;
-            c.coordinates = true;
+        } else if(f->get_content_type() & MFC_COORD && !(f->get_content_type() & MFC_TOP)) {
             // File contains single frame
             // Append new frame where the data will go
             Frame fr;
             frame_append(fr);
             // Read it
-            f->read(nullptr,&Frame_data(num_frames()-1),c);
+            f->read(nullptr, &Frame_data(num_frames()-1), MFC_COORD);
             check_num_atoms_in_last_frame();
             ++num_stored;
             // Call a callback if asked
             if(on_frame) on_frame(this,num_frames()-1);
-        } else if(f->get_content_type().topology) {
-            // This is topology file, read only topology
-            Mol_file_content c;
-            c.topology = true;
-            f->read(this,nullptr,c);
+        } else if(f->get_content_type() & MFC_TOP) {
+            // This is topology file, read only topology                  
+            f->read(this, nullptr, MFC_TOP);
         }
     }
 

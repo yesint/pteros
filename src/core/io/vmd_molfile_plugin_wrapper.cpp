@@ -116,7 +116,7 @@ void VMD_molfile_plugin_wrapper::open(char open_mode){
 
 bool VMD_molfile_plugin_wrapper::do_read(System *sys, Frame *frame, const Mol_file_content &what){
 
-    if(what.structure){
+    if(what & MFC_ATOMS){
         // READ STRUCTURE:
 
         if(sys->num_atoms()>0)
@@ -161,7 +161,7 @@ bool VMD_molfile_plugin_wrapper::do_read(System *sys, Frame *frame, const Mol_fi
 
     }
 
-    if(what.coordinates || what.trajectory){
+    if(what & MFC_COORD || what & MFC_TRAJ){
         // READ FRAME:
         molfile_timestep_t ts;        
         // Set zeros to box variables
@@ -199,7 +199,7 @@ bool VMD_molfile_plugin_wrapper::do_read(System *sys, Frame *frame, const Mol_fi
 
 void VMD_molfile_plugin_wrapper::do_write(const Selection &sel, const Mol_file_content &what) {
 
-    if(what.structure){
+    if(what & MFC_ATOMS){
         // WRITE STRUCTURE:        
         if(!w_handle)
             w_handle = plugin->open_file_write(fname.c_str(), plugin->name, sel.size());
@@ -225,7 +225,7 @@ void VMD_molfile_plugin_wrapper::do_write(const Selection &sel, const Mol_file_c
         plugin->write_structure(w_handle,flags,&atoms.front());        
     }
 
-    if(what.coordinates || what.trajectory){
+    if(what & MFC_COORD || what & MFC_TRAJ){
         // WRITE COORDINATES:
         if(!w_handle)
             w_handle = plugin->open_file_write(fname.c_str(), plugin->name, sel.size());

@@ -34,11 +34,8 @@ public:
     void open(char open_mode);
     ~PTTOP_file();
 
-    virtual Mol_file_content get_content_type() const {        
-        return { true,    // structure
-                 true,    // single frame
-                 false,   // trajectory
-                 true };  // topology
+    virtual Mol_file_content get_content_type() const {
+        return MFC_ATOMS | MFC_COORD | MFC_TOP;
     }
 
 protected:        

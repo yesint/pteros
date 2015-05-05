@@ -1313,7 +1313,7 @@ void Selection::write(string fname, int b, int e) {
 
     auto f = Mol_file::open(fname,'w');
 
-    if(!f->get_content_type().trajectory && e!=b){
+    if(!(f->get_content_type() & MFC_TRAJ) && e!=b){
         throw Pteros_error("Can't write the range of frames to structure file!");
     }    
 

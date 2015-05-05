@@ -42,11 +42,8 @@ class Gromacs_trajectory_file: public Mol_file {
 
         virtual ~Gromacs_trajectory_file();        
 
-        virtual Mol_file_content get_content_type() const {
-            return { false,   // structure
-                     false,   // single frame
-                     true,    // trajectory
-                     false }; // topology
+        virtual Mol_file_content get_content_type() const {            
+            return MFC_TRAJ;
         }
 
     protected:

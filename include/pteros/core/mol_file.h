@@ -29,19 +29,15 @@
 
 namespace pteros {
 
-/// What is stored in this file type?
-struct Mol_file_content {
-    bool structure; // The list of atoms and their properties
-    bool coordinates; // Single frame
-    bool trajectory; // Many frames
-    bool topology; // Molecular topology
-
-    Mol_file_content(): structure(false), coordinates(false),
-                        trajectory(false), topology(false) {}
-
-    Mol_file_content(bool str, bool coor, bool trj, bool top): structure(str),
-        coordinates(coor), trajectory(trj), topology(top) {}
+/// What is stored in file type?
+enum {
+  MFC_ATOMS = 0x01, // The list of atoms and their properties
+  MFC_COORD = 0x02, // Single set of coordinates
+  MFC_TRAJ = 0x04,  // Many frames
+  MFC_TOP = 0x08,   // Molecular topology
+  MFC_RAND = 0x10   // Random access trajectory (for the future)
 };
+typedef unsigned short Mol_file_content;
 
 /// Generic API for reading and writing any molecule file formats
 class Mol_file {
@@ -58,7 +54,7 @@ public:
     */
     static std::unique_ptr<Mol_file> open(std::string fname, char open_mode);
 
-    // Opens a file with given access mode. Need to be defined by derived classes.
+    /// Opens a file with given access mode. Need to be defined by derived classes.
     virtual void open(char open_mode) = 0;
 
     virtual ~Mol_file();

@@ -179,19 +179,19 @@ void Trajectory_processor::run(){
         Mol_file_content c = h->get_content_type();
 
         // traj file are always added as traj even if this is TNG
-        if(c.trajectory){
+        if(c & MFC_TRAJ){
             traj_files.push_back(s);
             continue;
         }
 
-        if(c.topology){
+        if(c & MFC_TOP){
             if(top_file=="")
                 top_file = s;
             else
                 throw Pteros_error("Only one topology file allowed!");
         }
 
-        if(c.structure){
+        if(c & MFC_ATOMS){
             if(structure_file==""){
                 structure_file = s;
             } else {
@@ -199,7 +199,7 @@ void Trajectory_processor::run(){
                 // If this was set to topology file overwrite
                 if(structure_file == top_file){
                     structure_file = s;
-                } else if(!c.topology) {
+                } else if(!(c & MFC_TOP)) {
                     throw Pteros_error("Only one structure file allowed!");
                 }
             }
@@ -233,15 +233,13 @@ void Trajectory_processor::run(){
         for(auto& s: traj_files){
             auto trj = Mol_file::recognize(s);
             auto c = trj->get_content_type();
-            if(c.structure && c.trajectory){
+            if(c & MFC_ATOMS && c & MFC_TRAJ){
                 structure_file = s;
-                // We only need to load structure and first frame from TNG here
+                // We only need to load only atoms from TNG here
                 cout << "Uning trajectory file " << s << " to read structure..." << endl;
-                trj->open('r');
-                Mol_file_content c;
-                c.structure = true;
+                trj->open('r');                
                 Frame fr;
-                trj->read(sys1,&fr,c);
+                trj->read(sys1, &fr, MFC_ATOMS);
                 sys1->frame_append(fr);
                 break;
             }
@@ -382,11 +380,7 @@ void Trajectory_processor::run(){
 }
 
 void Trajectory_processor::reader_thread_body(Data_channel &channel){
-    try {
-        // Reading content flag
-        Mol_file_content content;
-        content.trajectory = true;
-
+    try {        
         int abs_frame = -1;
         int valid_frame = -1;
         // Saved first frame and time
@@ -407,7 +401,7 @@ void Trajectory_processor::reader_thread_body(Data_channel &channel){
                 std::shared_ptr<Data_container> data(new Data_container);
 
                 // Load data to this container
-                bool good = trj->read(NULL,&data->frame,content);
+                bool good = trj->read(NULL, &data->frame, MFC_TRAJ);
 
                 // Check if EOF reached in trajectory
                 if(!good) break;
