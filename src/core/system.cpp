@@ -88,13 +88,13 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
 
     if(num_atoms()==0){
         // We don't have atoms yet, so we will read everything possible except trajectory
-        Mol_file_content c = f->get_content_type();
+        auto c = f->get_content_type();
 
         if(c & MFC_COORD && !(c & MFC_TRAJ)){
-            // If we have single frame read it directly here
+            // We have single frame. Read it directly here
             Frame fr;
             frame_append(fr);
-            f->read(this,&Frame_data(num_frames()-1),c);
+            f->read(this, &Frame_data(num_frames()-1), c);
             check_num_atoms_in_last_frame();
             ++num_stored;
 
@@ -105,23 +105,23 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
             // And now we should just exit
             return;
         } else {
-            // We have not a single frame, so read only structure here
+            // We have not a single frame, so read only atoms here
             // Clear flags for trajectory and coordinates            
             c &= ~(MFC_COORD | MFC_TRAJ);
-            f->read(this,nullptr,c);
+            f->read(this, nullptr, c);
             assign_resindex();
         }        
     }
 
-    // Do we have some structure?
-    if(num_atoms()>0){                
+    if(num_atoms()>0){
         // We have atoms already, so read only coordinates
-        if(!(f->get_content_type() & MFC_COORD) && !(f->get_content_type() & MFC_TRAJ))
+        auto c = f->get_content_type();
+        if(!(c & MFC_COORD) && !(c & MFC_TRAJ))
             throw Pteros_error("File reader for file '"+fname
                                +"' is not capable of appending frames to the system!");
 
         // Check if we can read trajectory
-        if(f->get_content_type() & MFC_TRAJ){
+        if(c & MFC_TRAJ){
             // Sanity check for frame range
             if((e<b && e!=-1)|| b<0)
                 throw Pteros_error("Invalid frame range for reading!");
@@ -180,8 +180,8 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
                 // If callback returns false stop reading
                 if(!callback_ok) break;
             }
-        } else if(f->get_content_type() & MFC_COORD && !(f->get_content_type() & MFC_TOP)) {
-            // File contains single frame
+        } else if(c & MFC_COORD && !(c & MFC_TOP)) {
+            // File contains single frame and no topology
             // Append new frame where the data will go
             Frame fr;
             frame_append(fr);

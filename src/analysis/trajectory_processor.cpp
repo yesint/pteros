@@ -176,12 +176,12 @@ void Trajectory_processor::run(){
 
     for(string& s: file_list){                
         auto h = Mol_file::recognize(s);
-        Mol_file_content c = h->get_content_type();
+        auto c = h->get_content_type();
 
-        // traj file are always added as traj even if this is TNG
+        // traj file is always added as traj even if this is TNG
         if(c & MFC_TRAJ){
             traj_files.push_back(s);
-            continue;
+            continue; // Avoid adding TNG twice also as structure file
         }
 
         if(c & MFC_TOP){
