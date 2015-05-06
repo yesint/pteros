@@ -854,6 +854,22 @@ class Selection {
         }
     }
 
+    /** Returns periodic box of the frame pointed by selection
+        The same as:
+        \code
+        sel.get_system()->Box(sel.get_frame());
+        \endcode
+        This is a convenience method. The same box is returnedby all selection
+        which point to the same system
+    */
+    inline Periodic_box& Box() {
+        return system->traj[frame].box;
+    }
+
+    inline const Periodic_box& Box() const {
+        return system->traj[frame].box;
+    }
+
     /// @}
 
 protected:

@@ -486,6 +486,14 @@ WRAP_ACCESSOR(int,Index)
 WRAP_ACCESSOR(std::string,Tag)
 WRAP_ACCESSOR(int,Resindex)
 
+Periodic_box Selection_getBox(Selection* sel){
+    return sel->Box();
+}
+
+void Selection_setBox(Selection* sel, const Periodic_box& b){
+    sel->Box() = b;
+}
+
 // Iteration support
 // For some unknown reason direct wrapping of Selection::iterator does not work properly
 // So we create custom iterator class, which satisfyes Python iterator protocol
@@ -736,6 +744,9 @@ void make_bindings_Selection(){
         .def("getTag",&Selection_getTag)
         .def("setTag",&Selection_setTag)
 
+        .def("getBox",&Selection_getBox)
+        .def("setBox",&Selection_setBox)
+
         // Iteration protocol support
         .def("__iter__", &Selection_get_iter)
         // Indexing support
@@ -750,6 +761,7 @@ void make_bindings_Selection(){
         .def(self != self)
         .def(self | self)
         .def(self & self)
+        .def(self - self)
         .def(~self)
 
     ;
