@@ -33,3 +33,9 @@ float pteros::angle_between_vectors(Vector3f_const_ref vec1, Vector3f_const_ref 
     if(ang<-1.0) ang = -1.0;
     return acos(ang);
 }
+
+
+Vector3f project_vector(Vector3f_const_ref vec1, Vector3f_const_ref vec2)
+{
+    return (vec1.dot(vec2)/vec2.dot(vec2))*vec2;
+}

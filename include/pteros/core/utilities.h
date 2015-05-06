@@ -20,14 +20,17 @@
  *
 */
 
-#ifndef UTILS_H
-#define UTILS_H
+#ifndef UTILITIES_H
+#define UTILITIES_H
 
 #include "pteros/core/typedefs.h"
 
 namespace pteros {
 
     float angle_between_vectors(Vector3f_const_ref vec1, Vector3f_const_ref vec2);
+
+    Eigen::Vector3f project_vector(Vector3f_const_ref vec1, Vector3f_const_ref vec2);
+
 /*
     float distance_to_vector(Vector3f_const_ref point,
                              Vector3f_const_ref vec_origin,
