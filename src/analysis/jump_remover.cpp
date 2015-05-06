@@ -79,8 +79,8 @@ void Jump_remover::remove_jumps(System& system, const Frame_info &info){
                 float min_extent = 1e20;
                 for(int i=0;i<3;++i)
                     if(dims(i))
-                        if(sel.get_system()->Box(0).extent(i)<min_extent)
-                            min_extent = sel.get_system()->Box(0).extent(i);
+                        if(sel.Box().extent(i)<min_extent)
+                            min_extent = sel.Box().extent(i);
 
                 while(sel.unwrap_bonds(unwrap_d,0,dims)>1){
                     cout << "Cutoff " << unwrap_d << " too small for unwrapping. ";

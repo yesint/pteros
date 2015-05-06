@@ -39,7 +39,7 @@ Distance_search_contacts_1sel::Distance_search_contacts_1sel(float d, const Sele
     cutoff = d;
     is_periodic = periodic;
     abs_index = absolute_index;
-    box = sel.get_system()->Box(sel.get_frame());
+    box = sel.Box();
 
     create_grid(sel);
     if(is_periodic){

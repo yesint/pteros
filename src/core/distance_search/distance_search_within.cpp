@@ -55,7 +55,7 @@ public:
         cutoff = d;
         is_periodic = periodic;
         abs_index = absolute_index;
-        box = src.get_system()->Box(src.get_frame());
+        box = src.Box();
 
         // Grid creation
         if(!is_periodic){

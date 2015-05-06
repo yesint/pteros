@@ -43,7 +43,7 @@ Distance_search_contacts_2sel::Distance_search_contacts_2sel(float d,
     cutoff = d;
     is_periodic = periodic;
     abs_index = absolute_index;
-    box = sel1.get_system()->Box(sel1.get_frame());
+    box = sel1.Box();
 
     create_grids(sel1,sel2);
 

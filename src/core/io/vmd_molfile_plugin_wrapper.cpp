@@ -243,9 +243,9 @@ void VMD_molfile_plugin_wrapper::do_write(const Selection &sel, const Mol_file_c
         ts.coords = &buffer.front();
         ts.velocities = NULL; // No velocities currently supported
         // Only convert periodic box if it is present
-        if(sel.get_system()->Box(sel.get_frame()).is_periodic()){
+        if(sel.Box().is_periodic()){
             Eigen::Vector3f v,a;
-            sel.get_system()->Box(sel.get_frame()).to_vectors_angles(v,a);
+            sel.Box().to_vectors_angles(v,a);
             ts.A = v(0)*10.0;
             ts.B = v(1)*10.0;
             ts.C = v(2)*10.0;

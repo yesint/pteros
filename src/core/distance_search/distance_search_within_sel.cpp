@@ -41,7 +41,7 @@ Distance_search_within_sel::Distance_search_within_sel(float d,
     abs_index = true; // Force absolute indexes!
 
     // Get current box
-    box = src.get_system()->Box(src.get_frame());
+    box = src.Box();
 
     //------------
     // Grid creation part

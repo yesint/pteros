@@ -156,10 +156,10 @@ void GRO_file::do_write(const Selection &sel, const Mol_file_content &what){
 
     // Write periodic box
     Eigen::Matrix3f b;
-    if(sel.get_system()->Box(sel.get_frame()).is_periodic()){
+    if(sel.Box().is_periodic()){
         // We store box as column-vectors, while the code below hacked from VMD use row vectors,
         // so, transpose
-        b = sel.get_system()->Box(sel.get_frame()).get_matrix().transpose();
+        b = sel.Box().get_matrix().transpose();
     } else {
         b.fill(0.0);
     }
@@ -169,7 +169,7 @@ void GRO_file::do_write(const Selection &sel, const Mol_file_content &what){
       << b(1,1) << " "
       << b(2,2);
     // Write off-diagonal only for triclinic boxes
-    if(sel.get_system()->Box(sel.get_frame()).is_triclinic()){
+    if(sel.Box().is_triclinic()){
         f << " "
           << b(0,1) << " "
           << b(0,2) << " "

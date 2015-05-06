@@ -85,7 +85,7 @@ void Grid::populate(const Selection &sel, Vector3f_const_ref min, Vector3f_const
 
 void Grid::populate_periodic(const Selection &sel, bool abs_index)
 {
-    populate_periodic(sel, sel.get_system()->Box(sel.get_frame()), abs_index);
+    populate_periodic(sel, sel.Box(), abs_index);
 }
 
 void Grid::populate_periodic(const Selection &sel, const Periodic_box &box, bool abs_index)
