@@ -15,7 +15,7 @@ from _pteros import *
 #------------------------------------
 # Wrapper for System.select() methods
 #------------------------------------
-def select(self,*args):
+def _select(self,*args):
     sel = Selection(self)
     if len(args)==1:
         sel.modify(args[0]) # For string or index array
@@ -28,15 +28,15 @@ def select(self,*args):
         sel._system = self
         return sel
 
-System.select = select
+System.select = _select
 
 #------------------------------------
 # Wrapper for System.select_all()
 #------------------------------------
-def select_all(self):
+def _select_all(self):
     sel = Selection(self,0,self.num_atoms()-1)
     # keep system alive at the life time of selection
     sel._system = self
     return sel
 
-System.select_all = select_all
+System.select_all = _select_all
