@@ -356,6 +356,15 @@ boost::python::list Selection_split_by_residue(Selection* s){
     return l;
 }
 
+boost::python::list Selection_split_by_chain(Selection* s){
+    vector<Selection> ch;
+    s->split_by_chain(ch);
+    boost::python::list l;
+    for(int i=0;i<ch.size();++i) l.append(ch[i]);
+    return l;
+}
+
+
 boost::python::list Selection_each_residue(Selection* s){
     vector<Selection> res;
     s->each_residue(res);
@@ -674,6 +683,7 @@ void make_bindings_Selection(){
         // Splitting functions
         .def("split_by_connectivity",&Selection_split_by_connectivity)
         .def("split_by_residue",&Selection_split_by_residue)
+        .def("split_by_chain",&Selection_split_by_chain)
         .def("each_residue",&Selection_each_residue)
 
         .def("sasa",&Selection_sasa,Selection_sasa_overloads())
