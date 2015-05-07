@@ -618,6 +618,9 @@ class Selection {
     /// Split selection by residue index
     void split_by_residue(std::vector<Selection>& res);
 
+    /// Split selection by chain
+    void split_by_chain(std::vector<Selection>& chains);
+
     /// Selects each residue, which is referenced by selection.
     /// All selections for residues are placed into supplied vector.
     /// Handles multiple chains correctly.    

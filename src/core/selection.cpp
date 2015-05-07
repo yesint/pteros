@@ -1462,6 +1462,23 @@ void Selection::split_by_residue(std::vector<Selection> &res)
     }
 }
 
+void Selection::split_by_chain(std::vector<Selection> &chains)
+{
+    // We split selection into several by chain
+    chains.clear();
+    // Map of resindexes to indexs in selections
+    map<char,vector<int> > m;
+    for(int i=0; i<size(); ++i){
+        m[Chain(i)].push_back(Index(i));
+    }
+    // Create selections
+    map<char,vector<int> >::iterator it;
+    for(it=m.begin();it!=m.end();it++){
+        chains.push_back(Selection(*system));
+        chains.back().modify( it->second.begin(), it->second.end() );
+    }
+}
+
 void Selection::inertia(Vector3f_ref moments, Matrix3f_ref axes, bool periodic) const{
     int n = size();
     int i;
