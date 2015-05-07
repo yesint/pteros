@@ -4,6 +4,7 @@
 #include "core/system.h"
 #include "core/selection.h"
 #include "core/pteros_error.h"
+#include "core/distance_search.h"
 
 #include "analysis/trajectory_processor.h"
 #include "analysis/consumer.h"
