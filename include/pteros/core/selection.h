@@ -265,9 +265,10 @@ class Selection {
     int get_frame() const {return frame;}
 
     /// Set current frame for selection
+    /// \note If selection is coordinate-dependent it is re-evaluated by calling apply()
     void set_frame(int fr);
 
-    /// Get pointer to the system, which owns this selection
+    /// Get pointer to the system, which is pointed by this selection
     System* get_system() const { return system; }
 
     /// Get selection text
@@ -281,7 +282,7 @@ class Selection {
     std::vector<char> get_chain() const;
 
     /// Set chains from supplied vector.
-    /// Its size must be the save as the size of selection.
+    /// \note Vector size must be the save as the size of selection.
     void set_chain(const std::vector<char>& data);
 
     /// Sets chain of all selected atoms to the same given value.
@@ -291,15 +292,14 @@ class Selection {
     std::vector<char> get_unique_chain() const;
 
     /// Get vector of all resid's in selection
-    /// This works correctly inside one chain only!
-    /// For multiple chains resid's will overlap.
+    /// \warning Same resid's could be present in different chains!
     std::vector<int> get_resid() const;
 
     /// Get vector of unique resid's in selection
     std::vector<int> get_unique_resid() const;
 
     /// Set resid's in selection from supplied vector.
-    /// Its size must be the save as the size of selection.
+    /// \note Vector size must be the save as the size of selection.
     void set_resid(const std::vector<int>& data);
 
     /// Sets resid of all selected atoms to the same given value.
@@ -316,7 +316,7 @@ class Selection {
     std::vector<std::string> get_name() const;
 
     /// Set atom names in selection from supplied vector.
-    /// Its size must be the save as the size of selection.
+    /// \note Vector size must be the save as the size of selection.
     void set_name(const std::vector<std::string>& data);
 
     /// Sets atom names of all selected atoms to the same given value.
@@ -326,7 +326,7 @@ class Selection {
     std::vector<std::string> get_resname() const;
 
     /// Set resnames in selection from supplied vector.
-    /// Its size must be the save as the size of selection.
+    /// \note Vector size must be the save as the size of selection.
     void set_resname(const std::vector<std::string>& data);
 
     /// Sets resnames of all selected atoms to the same given value.
@@ -345,7 +345,7 @@ class Selection {
     std::vector<float> get_mass() const;
 
     /// Set atom masses in selection to the values from supplied vector.
-    /// Its size must be the save as the size of selection.
+    /// \note Vector size must be the save as the size of selection.
     void set_mass(const std::vector<float> m);
 
     /// Sets masses of all selected atoms to the same given value.
@@ -355,7 +355,7 @@ class Selection {
     std::vector<float> get_beta() const;
 
     /// Set beta in selection to the values from supplied vector.
-    /// Its size must be the save as the size of selection.
+    /// \note Vector size must be the save as the size of selection.
     void set_beta(std::vector<float>& data);
 
     /// Sets beta of all selected atoms to the same given value.
@@ -365,7 +365,7 @@ class Selection {
     std::vector<float> get_occupancy() const;
 
     /// Set occupancy in selection to the values from supplied vector.
-    /// Its size must be the save as the size of selection.
+    /// \note Vector size must be the save as the size of selection.
     void set_occupancy(std::vector<float>& data);
 
     /// Sets occupancy of all selected atoms to the same given value.
