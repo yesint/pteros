@@ -1577,14 +1577,14 @@ float Selection::dihedral(int i, int j, int k, int l, bool is_periodic, Vector3i
 
 void Selection::wrap(Vector3i_const_ref dims){
     for(int i=0;i<size();++i){
-        system->Box(frame).wrap_point(XYZ(i),dims);
+        Box().wrap_point(XYZ(i),dims);
     }
 }
 
 void Selection::unwrap(Vector3i_const_ref dims){
     Vector3f c = center(true,true);
     for(int i=0;i<size();++i){
-        XYZ(i) = system->Box(frame).get_closest_image(XYZ(i),c,dims);
+        XYZ(i) = Box().get_closest_image(XYZ(i),c,dims);
     }
 }
 
@@ -1676,7 +1676,7 @@ Eigen::Affine3f Selection::principal_transform(bool is_periodic) const {
     // Normalize axes
     for(int i=0;i<3;++i) axes.col(i).normalize();
     // Now orient
-    // Step 1. Rotate around Z to move projection of axes(0) to X
+    // Step 1. Rotate around Z to move projection of col(0) to X
     m = AngleAxisf(std::atan2(axes.col(0)(0),axes.col(0)(1)), Vector3f::UnitZ());
     // Step 2. Rotate to superimpose col(0) with X
     m = m* AngleAxisf(std::asin(axes.col(0)(2)), Vector3f::UnitY());
