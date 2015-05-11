@@ -618,11 +618,13 @@ float System::dihedral(int i, int j, int k, int l, int fr, bool is_periodic, Vec
 {
     Vector3f b1,b2,b3;
     if(is_periodic){
-        b1 = Box(fr).get_closest_image(XYZ(j,fr),XYZ(i,fr)) - XYZ(i,fr);
-        b2 = Box(fr).get_closest_image(XYZ(k,fr),XYZ(i,fr)) -
-               Box(fr).get_closest_image(XYZ(j,fr),XYZ(i,fr));
-        b3 = Box(fr).get_closest_image(XYZ(l,fr),XYZ(i,fr)) -
-               Box(fr).get_closest_image(XYZ(k,fr),XYZ(i,fr));
+        Vector3f _i = XYZ(i,fr);
+        Vector3f _j = Box(fr).get_closest_image(XYZ(j,fr),_i);
+        Vector3f _k = Box(fr).get_closest_image(XYZ(k,fr),_i);
+        Vector3f _l = Box(fr).get_closest_image(XYZ(l,fr),_i);
+        b1 = _j - _i;
+        b2 = _k - _j;
+        b3 = _l - _k;
     } else {
         b1 = XYZ(j,fr)-XYZ(i,fr);
         b2 = XYZ(k,fr)-XYZ(j,fr);
