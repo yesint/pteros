@@ -599,7 +599,6 @@ float System::distance(int i, int j, int fr, bool is_periodic, Vector3i_const_re
     }
 }
 
-#define RAD_TO_DEG 57.295779513082320876798154814105
 
 float System::angle(int i, int j, int k, int fr, bool is_periodic, Vector3i_const_ref dims) const
 {
@@ -611,7 +610,7 @@ float System::angle(int i, int j, int k, int fr, bool is_periodic, Vector3i_cons
         v1 = XYZ(i,fr)-XYZ(j,fr);
         v2 = XYZ(k,fr)-XYZ(j,fr);
     }
-    return acos(v1.dot(v2)/(v1.norm()*v2.norm())) * RAD_TO_DEG;
+    return acos(v1.dot(v2)/(v1.norm()*v2.norm()));
 }
 
 float System::dihedral(int i, int j, int k, int l, int fr, bool is_periodic, Vector3i_const_ref dims) const
@@ -633,7 +632,7 @@ float System::dihedral(int i, int j, int k, int l, int fr, bool is_periodic, Vec
 
     // Dihedral
     return atan2( ((b1.cross(b2)).cross(b2.cross(b3))).dot(b2/b2.norm()) ,
-                  (b1.cross(b2)).dot(b2.cross(b3)) ) * RAD_TO_DEG;
+                  (b1.cross(b2)).dot(b2.cross(b3)) );
 }
 
 void System::wrap_all(int fr, Vector3i_const_ref dims_to_wrap){
