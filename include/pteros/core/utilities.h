@@ -31,6 +31,8 @@ namespace pteros {
 
     Eigen::Vector3f project_vector(Vector3f_const_ref vec1, Vector3f_const_ref vec2);
 
+    float rad_to_deg(float rad);
+
 /*
     float distance_to_vector(Vector3f_const_ref point,
                              Vector3f_const_ref vec_origin,
