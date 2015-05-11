@@ -61,6 +61,7 @@ public:
 
     /// Reads data, which are specified by what.
     /// Pointers to System and Frame could be nullptr if not used
+    /// Returns true if read operation is succesfull and false if not.
     bool read(System* sys, Frame* frame, const Mol_file_content& what);
 
     /// Write data from selection specidied by what.

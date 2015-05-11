@@ -74,13 +74,14 @@ Force_field &Mol_file::ff_in_system(System &sys){
 }
 
 void Mol_file::sanity_check_read(System *sys, Frame *frame, const Mol_file_content& what) const {
-    if( !(get_content_type() & MFC_ATOMS) && what & MFC_ATOMS )
+    auto c = get_content_type();
+    if( !(c & MFC_ATOMS) && what & MFC_ATOMS )
         throw Pteros_error("Can't read structure from this file type!");
-    if( !(get_content_type() & MFC_COORD) && what & MFC_COORD)
+    if( !(c & MFC_COORD) && what & MFC_COORD)
         throw Pteros_error("Can't read coordinates from this file type!");
-    if( !(get_content_type() & MFC_TRAJ) && what & MFC_TRAJ)
+    if( !(c & MFC_TRAJ) && what & MFC_TRAJ)
         throw Pteros_error("Can't read coordinates from this file type!");
-    if( !(get_content_type() & MFC_TOP) && what & MFC_TOP)
+    if( !(c & MFC_TOP) && what & MFC_TOP)
         throw Pteros_error("Can't read topology from this file type!");
     if(!(what & MFC_ATOMS) && !(what & MFC_COORD) && !(what & MFC_TRAJ) && !(what & MFC_TOP))
         throw Pteros_error("Nothing to read!");
@@ -91,7 +92,7 @@ void Mol_file::sanity_check_read(System *sys, Frame *frame, const Mol_file_conte
     if((what & MFC_COORD || what & MFC_TRAJ) && !frame)
         throw Pteros_error("Frame should be provided to read coordinates!");
     if(what & MFC_ATOMS && sys && sys->num_atoms()>0)
-        throw Pteros_error("Can't read structure because system already has atoms!");
+        throw Pteros_error("Can't read structure because system already has atoms!");    
 }
 
 void Mol_file::sanity_check_write(const Selection &sel, const Mol_file_content &what) const{

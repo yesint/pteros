@@ -342,7 +342,7 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
         vector<int> res1;
         eval_node(node->child_node(0), res1, subspace);
         // Sort
-        std::sort(res1.begin(),res1.end());
+        //std::sort(res1.begin(),res1.end());
         // res1 is sorted, so we can speed up negation a bit by filling only the "gaps"
         n = res1.size();
         for(j=0;j<res1[0];++j) result.push_back(j); //Before first
@@ -383,7 +383,7 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
         return;
     }
 
-    // Coord-independent selections are evaluated only once thus
+    // Coord-independent selections below are evaluated only once thus
     // no need to bother with subspace optimizations
 
     //---------------------------------------------------------------------------
@@ -587,6 +587,7 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
         dum2.set_frame(frame);
 
         search_within(dist,dum1,dum2,result,include_self,periodic);
+        // Returned array is sorted already!
 
         return;
     }
@@ -597,7 +598,7 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
         eval_node(node->child_node(0), res1, subspace);
         int Nsel = res1.size();
         // Select by residue. This respects chain!
-        // First make a set of resids we need to search
+        // First make a set of resinds we need to search
         std::unordered_set<int> resind;
         for(i=0;i<Nsel;++i){ //over found atoms
             resind.insert(sys->atoms[res1[i]].resindex);
