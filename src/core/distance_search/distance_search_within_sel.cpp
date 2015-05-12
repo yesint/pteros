@@ -37,8 +37,7 @@ Distance_search_within_sel::Distance_search_within_sel(float d,
                             bool periodic){
 
     cutoff = d;
-    is_periodic = periodic;
-    abs_index = true; // Force absolute indexes!
+    is_periodic = periodic;    
 
     // Get current box
     box = src.Box();
@@ -88,7 +87,8 @@ Distance_search_within_sel::Distance_search_within_sel(float d,
     grid1.resize(NgridX,NgridY,NgridZ);
     grid2.resize(NgridX,NgridY,NgridZ);
 
-    // Fill grids (forced absolute indexes above!)
+    // Fill grids
+    abs_index = false; // Force local indexes!
     if(is_periodic){
         grid1.populate_periodic(src,box,abs_index);
         grid2.populate_periodic(target,box,abs_index);
@@ -99,5 +99,7 @@ Distance_search_within_sel::Distance_search_within_sel(float d,
 
     do_search(src.size());
 
+    // Here we have to force absolute indexes instead!
+    abs_index = true;
     used_to_result(res,include_self,src,target);
 }
