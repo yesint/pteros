@@ -604,6 +604,17 @@ class Selection {
         return sel_text!="";
     }
 
+    /// Returns true if selection is coordinate-dependent and is able to recompute
+    /// itself on the change of frame
+    bool coord_dependent() const {
+        return (bool)parser;
+    }
+
+    /// "Flattens" selection by removing coordinate dependence and making it not text-based.
+    /// Resulting selection is equivalent to plain set of indexes "index i1 i2 i3..."
+    /// Useful to avoid recomputing selection on frame change when tracking given set of atoms
+    void flatten();
+
     /// @}
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -620,6 +631,12 @@ class Selection {
 
     /// Split selection by chain
     void split_by_chain(std::vector<Selection>& chains);
+
+    /// Split selection into contiguous ranges of indexes
+    void split_by_contiguous_index(std::vector<Selection>& parts);
+
+    /// Split selection into contiguous ranges of resindexes
+    void split_by_contiguous_residue(std::vector<Selection>& parts);
 
     /// Selects each residue, which is referenced by selection.
     /// All selections for residues are placed into supplied vector.

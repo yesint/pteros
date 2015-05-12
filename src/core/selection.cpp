@@ -1120,15 +1120,15 @@ Affine3f fit_transform(const Selection& sel1, const Selection& sel2){
     int n1 = sel1.size();
     int n2 = sel2.size();
 
-    Affine3f rot;
-    Vector3f cm1, cm2;
-
     if(n1!=n2){
         Pteros_error e;
         e << "Incompatible selections for fitting of sizes "
           << n1 << "and" << n2;
         throw e;
     }
+
+    Affine3f rot;
+    Vector3f cm1, cm2;
 
     // Bring centers to zero
     cm1 = sel1.center(true);
@@ -1247,6 +1247,11 @@ void Selection::fit_trajectory(int ref_frame, int b, int e){
 
 // Fitting transformation between two frames of the same selection
 Affine3f Selection::fit_transform(int fr1, int fr2) const {
+    if(parser) cout << "(WARNING) Fitting of the coordinate-dependent selection!" << endl
+                    << "\tThis may crash if the number of selected atoms" << endl
+                    << "\tis different in frames "
+                    << fr1 << " and " << fr2 << "!";
+
     // Save current frame
     int cur_frame = get_frame();
 
@@ -1320,7 +1325,13 @@ void Selection::write(string fname, int b, int e) {
     for(int fr=b;fr<=e;++fr){        
         set_frame(fr);
         f->write(*this,f->get_content_type());
-    }    
+    }
+}
+
+void Selection::flatten()
+{
+    parser.reset();
+    sel_text = "";
 }
 
 void Selection::each_residue(std::vector<Selection>& sel) const {
@@ -1476,6 +1487,36 @@ void Selection::split_by_chain(std::vector<Selection> &chains)
     for(it=m.begin();it!=m.end();it++){
         chains.push_back(Selection(*system));
         chains.back().modify( it->second.begin(), it->second.end() );
+    }
+}
+
+void Selection::split_by_contiguous_index(std::vector<Selection> &parts)
+{
+    parts.clear();
+    // Start first contiguous part
+    int b = 0, i = 0;
+    while(i<size()){
+        while(i+1<size() && index[i+1]==index[i]+1) ++i;
+        // Part finished
+        parts.push_back(Selection(*system));
+        parts.back().modify(index[b],index[i]);
+        b = i+1;
+        i = b;
+    }
+}
+
+void Selection::split_by_contiguous_residue(std::vector<Selection> &parts)
+{
+    parts.clear();
+    // Start first contiguous part
+    int b = 0, i = 0;
+    while(i<size()){
+        while(i+1<size() && (Resindex(i+1)==Resindex(i)+1 || Resindex(i+1)==Resindex(i)) ) ++i;
+        // Part finished
+        parts.push_back(Selection(*system));
+        parts.back().modify(index[b],index[i]);
+        b = i+1;
+        i = b;
     }
 }
 

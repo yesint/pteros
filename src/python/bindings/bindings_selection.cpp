@@ -364,6 +364,22 @@ boost::python::list Selection_split_by_chain(Selection* s){
     return l;
 }
 
+boost::python::list Selection_split_by_contiguous_index(Selection* s){
+    vector<Selection> ch;
+    s->split_by_contiguous_index(ch);
+    boost::python::list l;
+    for(int i=0;i<ch.size();++i) l.append(ch[i]);
+    return l;
+}
+
+boost::python::list Selection_split_by_contiguous_residue(Selection* s){
+    vector<Selection> ch;
+    s->split_by_contiguous_residue(ch);
+    boost::python::list l;
+    for(int i=0;i<ch.size();++i) l.append(ch[i]);
+    return l;
+}
+
 
 boost::python::list Selection_each_residue(Selection* s){
     vector<Selection> res;
@@ -677,6 +693,8 @@ void make_bindings_Selection(){
         .def("unwrap_bonds",&Selection::unwrap_bonds, unwrap_bonds_overloads())
 
         .def("text_based",&Selection::text_based)
+        .def("coord_dependent",&Selection::coord_dependent)
+        .def("flatten",&Selection::flatten)
 
         .def("non_bond_energy",&Selection::non_bond_energy, non_bond_energy_overloads())
 
@@ -684,6 +702,8 @@ void make_bindings_Selection(){
         .def("split_by_connectivity",&Selection_split_by_connectivity)
         .def("split_by_residue",&Selection_split_by_residue)
         .def("split_by_chain",&Selection_split_by_chain)
+        .def("split_by_contiguous_index",&Selection_split_by_contiguous_index)
+        .def("split_by_contiguous_residue",&Selection_split_by_contiguous_residue)
         .def("each_residue",&Selection_each_residue)
 
         .def("sasa",&Selection_sasa,Selection_sasa_overloads())
@@ -755,7 +775,7 @@ void make_bindings_Selection(){
         .def("setTag",&Selection_setTag)
 
         .def("getBox",&Selection_getBox)
-        .def("setBox",&Selection_setBox)
+        .def("setBox",&Selection_setBox)        
 
         // Iteration protocol support
         .def("__iter__", &Selection_get_iter)
