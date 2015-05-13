@@ -78,11 +78,16 @@ public:
         grid1.resize(NgridX,NgridY,NgridZ);
 
         // Populate first grid
+        // We have to force local indexes here in order to allow atomic array to work correctly
+        bool saved_abs = abs_index;
+        abs_index = false;
         if(is_periodic){
             grid1.populate_periodic(src,box,abs_index);
         } else {
             grid1.populate(src,min,max,abs_index);
         }
+        // Restore abs_index
+        abs_index = saved_abs;
 
         src_ptr = const_cast<Selection*>(&src);
     }
@@ -102,11 +107,16 @@ public:
         // Allocate second grid of the same size
         grid2.resize(NgridX,NgridY,NgridZ);
 
+        // We have to force local indexes here in order to allow atomic array to work correctly
+        bool saved_abs = abs_index;
+        abs_index = false;
         if(is_periodic){
             grid2.populate_periodic(target,box,abs_index);
         } else {
             grid2.populate(target,min,max,abs_index);
         }
+        // Restore
+        abs_index = saved_abs;
 
         // Now search
         do_search(src_ptr->size());
