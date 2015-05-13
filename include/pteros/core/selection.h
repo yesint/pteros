@@ -863,7 +863,7 @@ class Selection {
         sel.get_system()->Box(sel.get_frame());
         \endcode
         This is a convenience method. The same box is returnedby all selection
-        which point to the same system
+        which point to the same frame.
     */
     inline Periodic_box& Box() {
         return system->traj[frame].box;
@@ -871,6 +871,22 @@ class Selection {
 
     inline const Periodic_box& Box() const {
         return system->traj[frame].box;
+    }
+
+    /** Returns time stamp of the frame pointed by selection
+        The same as:
+        \code
+        sel.get_system()->Time(sel.get_frame());
+        \endcode
+        This is a convenience method. The same time is returnedby all selection
+        which point to the same frame.
+    */
+    inline float& Time() {
+        return system->traj[frame].time;
+    }
+
+    inline const float& Time() const {
+        return system->traj[frame].time;
     }
 
     /// @}

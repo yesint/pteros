@@ -503,6 +503,14 @@ void Selection_setBox(Selection* sel, const Periodic_box& b){
     sel->Box() = b;
 }
 
+float Selection_getTime(Selection* sel){
+    return sel->Time();
+}
+
+void Selection_setTime(Selection* sel, const float& t){
+    sel->Time() = t;
+}
+
 // Iteration support
 // For some unknown reason direct wrapping of Selection::iterator does not work properly
 // So we create custom iterator class, which satisfyes Python iterator protocol
@@ -756,6 +764,9 @@ void make_bindings_Selection(){
 
         .def("getBox",&Selection_getBox)
         .def("setBox",&Selection_setBox)
+
+        .def("getTime",&Selection_getTime)
+        .def("setTime",&Selection_setTime)
 
         // Iteration protocol support
         .def("__iter__", &Selection_get_iter)
