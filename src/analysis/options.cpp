@@ -127,7 +127,7 @@ void parse_command_line(int argc, char** argv, Options& toplevel){
 
 } // namespece
 
-
+#ifdef DEBUG
 void Options::debug(){
     cout << "task_name = " << task_name << endl;
     for(auto& o: data){
@@ -142,6 +142,7 @@ void Option::debug(){
     }
     cout << endl;
 }
+#endif
 
 const Option& Options::operator()(std::string key) const {
     int ind = -1;
