@@ -572,7 +572,7 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
         // thus no additional copying
         eval_node(node->child_node(1), dum2.index, NULL);
 
-        /*
+
         // Prepare selection dum1
         if(!subspace){
             // We are not limited by subspace
@@ -582,13 +582,6 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
             // We are limited by subspace
             dum1.index = *subspace;
         }
-        */
-
-        // !!!! TEMPORARY FIX FOR MEMORY CORRUPTION! !!!!!
-        // NEED TO FIND OUT WHY CRASHES WITH SUBSPACE!
-        dum1.index.resize(sys->num_atoms());
-        for(int i=0;i<sys->num_atoms();++i) dum1.index[i] = i;
-
 
         // Set frame for both selections
         dum1.set_frame(frame);
