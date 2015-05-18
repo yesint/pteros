@@ -34,7 +34,6 @@ using namespace boost::python;
   Wrappers for System
 ***********************/
 
-BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(load_overloads, load, 1, 4)
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(frame_delete_overloads, frame_delete, 0, 2)
 
 const Periodic_box& System_getBox(System* s, int fr){
@@ -118,6 +117,12 @@ void System_rearrange(System* s, boost::python::list& data){
     }
 }
 
+void System_load_normal(System* sys, string fname, int b=0, int e=-1,int skip=0){
+    sys->load(fname,b,e,skip);
+}
+
+BOOST_PYTHON_FUNCTION_OVERLOADS(system_load_overloads, System_load_normal, 2, 5)
+
 void System_load_callback(System* sys, string fname, int b, int e, int skip, boost::python::object obj){
     // Create a callback from obj
     auto callback = [&obj](System* s, int fr)->bool { return extract<bool>(obj(ptr(s),fr)); };
@@ -198,7 +203,7 @@ void make_bindings_System(){
         // do work. The reason is that C++ destructor of System gets called
         // *before* Python calls write(). In C++ this never happens.
 
-        .def("load", &System::load, load_overloads())
+        .def("load", &System_load_normal, system_load_overloads())
         .def("load", &System_load_callback,(bp::arg("fname"),bp::arg("b")=0,bp::arg("e")=-1,bp::arg("skip")=0,bp::arg("on_frame")))
 
         .def("frame_append", &System::frame_append)

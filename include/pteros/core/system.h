@@ -26,6 +26,7 @@
 #include <string>
 #include <vector>
 #include <functional>
+#include <memory>
 #include <Eigen/Core>
 #include <Eigen/Dense>
 #include "pteros/core/atom.h"
@@ -77,6 +78,8 @@ struct Frame {
 //Forward declarations
 class Selection;
 class Atom_proxy;
+class Mol_file;
+typedef unsigned short Mol_file_content;
 
 /**
 *  The system of atoms.
@@ -244,7 +247,30 @@ public:
      If callback returns false loading stops.
     */
     // Skip functionality suggested by Raul Mera
-    void load(std::string fname, int b=0, int e=-1, int skip = 0,
+    void load(std::string fname,
+              int b=0,
+              int e=-1,
+              int skip = 0,
+              std::function<bool(System*,int)> on_frame = 0);
+
+    /**
+     * @brief Load data into System from the pre-opened file handler.
+     * This is rather low-level method which provides
+     * fine control over what should be read.
+     * It can be called several times to read trajectory frames one by one
+     * from the same pre-opened file.
+     * @param handler
+     * @param what
+     * @param b
+     * @param e
+     * @param skip
+     * @param on_frame
+     */
+    void load(std::unique_ptr<Mol_file> handler,
+              Mol_file_content what,
+              int b=0,
+              int e=-1,
+              int skip = 0,
               std::function<bool(System*,int)> on_frame = 0);
     /// @}
 
