@@ -928,6 +928,7 @@ protected:
     // Holds an instance of selection parser
     std::unique_ptr<Selection_parser> parser;
     void allocate_parser();
+    void sort_and_remove_duplicates();
 };
 
 //==============================================================================
