@@ -407,24 +407,32 @@ bp::tuple Selection_sasa(Selection* s, float probe_r = 0.14,
 
 BOOST_PYTHON_FUNCTION_OVERLOADS(Selection_sasa_overloads,Selection_sasa,1,5)
 
-boost::shared_ptr<Selection> constructor_list(const System& sys, const bp::list& l){
-    vector<int> v(len(l));
-    for(int i=0;i<len(l);++i) v[i] = extract<int>(l[i]);
-    boost::shared_ptr<Selection> g(new Selection(sys,v));
-    return g;
-}
+boost::shared_ptr<Selection> constructor_from_pyobj(const System& sys, PyObject* obj){
+    if( PyCallable_Check(obj) ){
+        // A lambda, which will call Python function
+        auto callback = [&obj](const System& sys, int fr, vector<int>& ind)->void {
+            // Call python function
+            auto py_ind = bp::call<bp::list>(obj, boost::ref(sys), fr);
+            // Convert list to vector
+            for(int i=0;i<len(py_ind);++i) ind.push_back( extract<int>(py_ind[i]) );
+        };
 
-boost::shared_ptr<Selection> constructor_callback(const System& sys, PyObject* obj){
-    // A lambda, which will call Python function
-    auto callback = [&obj](const System& sys, int fr, vector<int>& ind)->void {
-        // Call python function
-        auto py_ind = bp::call<bp::list>(obj, boost::ref(sys), fr);
-        // Convert list to vector
-        for(int i=0;i<len(py_ind);++i) ind.push_back( extract<int>(py_ind[i]) );
-    };
+        boost::shared_ptr<Selection> g(new Selection(sys,callback));
+        return g;
 
-    boost::shared_ptr<Selection> g(new Selection(sys,callback));
-    return g;
+    } else if( PyString_Check(obj) ) {
+        string str = extract<string>(object( handle<>(borrowed(obj)) ));
+        cout << str << endl;
+        boost::shared_ptr<Selection> g(new Selection(sys,str));
+        return g;
+
+    } else if( PySequence_Check(obj) ) {
+        bp::object l( handle<>(borrowed(obj)) );
+        vector<int> v(len(l));
+        for(int i=0;i<len(l);++i) v[i] = extract<int>(l[i]);
+        boost::shared_ptr<Selection> g(new Selection(sys,v));
+        return g;
+    }
 }
 
 
@@ -440,31 +448,33 @@ void Selection_modify_list2(Selection* sel, const System& sys, const bp::list& l
     sel->modify(sys,v);
 }
 
-void Selection_modify_callback1(Selection* sel, PyObject* obj){
-    // A lambda, which will call Python function
-    auto callback = [&obj](const System& sys, int fr, vector<int>& ind)->void {
-        // Call python function
-        auto py_ind = bp::call<bp::list>(obj, boost::ref(sys), fr);
-        // Convert list to vector
-        for(int i=0;i<len(py_ind);++i) ind.push_back( extract<int>(py_ind[i]) );
-    };
+void Selection_modify_from_pyobj2(Selection* sel, const System& sys, PyObject* obj){
+    if( PyCallable_Check(obj) ){
+        // A lambda, which will call Python function
+        auto callback = [&obj](const System& sys, int fr, vector<int>& ind)->void {
+            // Call python function
+            auto py_ind = bp::call<bp::list>(obj, boost::ref(sys), fr);
+            // Convert list to vector
+            for(int i=0;i<len(py_ind);++i) ind.push_back( extract<int>(py_ind[i]) );
+        };
+        sel->modify(sys,callback);
 
-    sel->modify(callback);
+    } else if( PyString_Check(obj) ) {
+        string str = extract<string>(object( handle<>(borrowed(obj)) ));
+        cout << str << endl;
+        sel->modify(sys,str);
+
+    } else if( PySequence_Check(obj) ) {
+        bp::object l( handle<>(borrowed(obj)) );
+        vector<int> v(len(l));
+        for(int i=0;i<len(l);++i) v[i] = extract<int>(l[i]);
+        sel->modify(sys,v);
+    }
 }
 
-
-void Selection_modify_callback2(Selection* sel, const System& sys, PyObject* obj){
-    // A lambda, which will call Python function
-    auto callback = [&obj](const System& sys, int fr, vector<int>& ind)->void {
-        // Call python function
-        auto py_ind = bp::call<bp::list>(obj, boost::ref(sys), fr);
-        // Convert list to vector
-        for(int i=0;i<len(py_ind);++i) ind.push_back( extract<int>(py_ind[i]) );
-    };
-
-    sel->modify(sys,callback);
+void Selection_modify_from_pyobj1(Selection* sel, PyObject* obj){
+    Selection_modify_from_pyobj2(sel,*sel->get_system(),obj);
 }
-
 
 float Selection_distance1(Selection* s, int i, int j, bool pbc, PyObject* dims){
     MAP_EIGEN_TO_PYTHON_I(Vector3i,dim,dims)
@@ -597,13 +607,11 @@ void make_bindings_Selection(){
     def("fit_transform",&fit_transform_py);
     def("non_bond_energy",&non_bond_energy_py,non_bond_energy_overloads_free());
 
-    class_<Selection>("Selection", init<>())
-        .def(init<System&,std::string>() )
+    class_<Selection>("Selection", init<>())        
         .def(init<System&>() )
         .def(init<const Selection&>() )
-        .def(init<System&,int,int>() )
-        .def("__init__",make_constructor(&constructor_list))
-        .def("__init__",make_constructor(&constructor_callback))
+        .def(init<System&,int,int>() )        
+        .def("__init__",make_constructor(&constructor_from_pyobj))
 
         .def("size",&Selection::size)
 
@@ -617,14 +625,10 @@ void make_bindings_Selection(){
 
         .def("set_system", &Selection::set_system)
 
-        .def("modify", static_cast<void(Selection::*)   (string)                >(&Selection::modify) )
-        .def("modify", static_cast<void(Selection::*)   (int,int)               >(&Selection::modify) )
-        .def("modify", &Selection_modify_list1)
-        .def("modify", static_cast<void(Selection::*)   (const System&,string)  >(&Selection::modify) )
-        .def("modify", static_cast<void(Selection::*)   (const System&,int,int) >(&Selection::modify) )
-        .def("modify", &Selection_modify_list2)
-        .def("modify", &Selection_modify_callback1)
-        .def("modify", &Selection_modify_callback2)
+        .def("modify", static_cast<void(Selection::*)   (int,int)               >(&Selection::modify) )                
+        .def("modify", static_cast<void(Selection::*)   (const System&,int,int) >(&Selection::modify) )       
+        .def("modify", &Selection_modify_from_pyobj1)
+        .def("modify", &Selection_modify_from_pyobj2)
 
         .def("apply",&Selection::apply)
         .def("update",&Selection::update)
