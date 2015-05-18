@@ -124,7 +124,7 @@ Selection::Selection(const System &sys, int ind1, int ind2){
     // No parser needed
     parser.reset();
 
-    if(ind2<ind1) std::swap(ind1,ind2);
+    if(ind2<ind1) throw Pteros_error("Wrong order of indexes (") << ind1 << ":" << ind2 << ")";
 
     // Populate selection directly
     index.reserve(ind2-ind1+1);
@@ -261,7 +261,7 @@ void Selection::modify(int ind1, int ind2){
     // not textual
     sel_text = "";    
     // Populate selection directly
-    if(ind2<ind1) std::swap(ind1,ind2);
+    if(ind2<ind1) throw Pteros_error("Wrong order of indexes (") << ind1 << ":" << ind2 << ")";
     index.clear();
     for(int i=ind1; i<=ind2; ++i) index.push_back(i);       
 }

@@ -85,14 +85,16 @@ class Selection {
         to contigous interval of indexes.
         @param sys System pointed by this selection
         @param ind1 First index in interval
-        @param ind2 Last index in interval (inclusive!)
+        @param ind2 Last index in interval (inclusive!)        
      */
     Selection(const System& sys, int ind1, int ind2);
 
     /// Constructor from vector of indexes
+    /// Vector may be in any order and may contain duplicates.
     Selection(const System& sys, const std::vector<int>& ind);
 
     /// Constructor from the pair of iterators to int sequence
+    /// Sequence may be in any order and may contain duplicates.
     Selection(const System& sys,
               std::vector<int>::iterator it1,
               std::vector<int>::iterator it2);
@@ -100,6 +102,7 @@ class Selection {
     /** Constructor which takes user-defined callback
       Callback takes the system as first argument, target frame number as the second
       and the vector to be filled by selected atom indexes.
+      Vector may be filled in any order and may contain duplicates.
       \warning
       Resulting selection is neither coordinate-dependent nor text-based.
       It will not recompute itself on the frame change even if it involves atom coordinates.
@@ -201,14 +204,17 @@ class Selection {
     void modify(int ind1, int ind2);
 
     /// Modifies selection using vector of indexes
+    /// Vector may be in any order and may contain duplicates.
     void modify(const std::vector<int>& ind);
 
     /// Modifies selection using pair of iterators to index vector
+    /// Vector may be in any order and may contain duplicates.
     void modify(std::vector<int>::iterator it1, std::vector<int>::iterator it2);
 
     /** Modifies selection using user-defined callback.
       Callback takes the system as first argument, target frame number as the second
       and the vector to be filled by selected atom indexes.
+      Vector may be filled in any order and may contain duplicates.
       \warning
       Resulting selection is neither coordinate-dependent nor text-based.
       It will not recompute itself on the frame change even if it involves atom coordinates.

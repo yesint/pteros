@@ -203,7 +203,7 @@ public:
      auto sel = sys("name CA");
      \endcode
 
-     It also allows to write "one-liners" like this:
+     It also allows writing "one-liners" like this:
      \code
      System("file.pdb").select("name CA").write("ca.pdb");
      \endcode
