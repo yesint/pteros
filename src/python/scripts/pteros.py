@@ -29,6 +29,7 @@ def _select(self,*args):
         return sel
 
 System.select = _select
+System.__call__ = _select
 
 #------------------------------------
 # Wrapper for System.select_all()

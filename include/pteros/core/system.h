@@ -196,9 +196,11 @@ public:
      sys = System("structure.pdb");
      Selection sel(s,"name CA");
 
-     // Convenient way:
-     sys = System("structure.pdb");
+     // Shorter way:
      auto sel = sys.select("name CA");
+
+     // Even shorter way using operator ():
+     auto sel = sys("name CA");
      \endcode
 
      It also allows to write "one-liners" like this:
@@ -209,15 +211,21 @@ public:
     /// @{
 
     Selection select(std::string str);
+    Selection operator()(std::string str);
 
     Selection select(int ind1, int ind2);
+    Selection operator()(int ind1, int ind2);
 
     Selection select(const std::vector<int>& ind);
+    Selection operator()(const std::vector<int>& ind);
 
     Selection select(std::vector<int>::iterator it1,
                      std::vector<int>::iterator it2);
+    Selection operator()(std::vector<int>::iterator it1,
+                         std::vector<int>::iterator it2);
 
     Selection select(const std::function<void(const System&,int,std::vector<int>&)>& callback);
+    Selection operator()(const std::function<void(const System&,int,std::vector<int>&)>& callback);
 
     /// Convenience function to select all
     Selection select_all();

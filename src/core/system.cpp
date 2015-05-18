@@ -548,7 +548,17 @@ Selection System::select(string str){
     return Selection(*this,str);
 }
 
+Selection System::operator()(string str)
+{
+    return Selection(*this,str);
+}
+
 Selection System::select(int ind1, int ind2){
+    return Selection(*this,ind1,ind2);
+}
+
+Selection System::operator()(int ind1, int ind2)
+{
     return Selection(*this,ind1,ind2);
 }
 
@@ -556,11 +566,26 @@ Selection System::select(const std::vector<int> &ind){
     return Selection(*this,ind);
 }
 
+Selection System::operator()(const std::vector<int> &ind)
+{
+    return Selection(*this,ind);
+}
+
 Selection System::select(std::vector<int>::iterator it1, std::vector<int>::iterator it2){
     return Selection(*this,it1,it2);
 }
 
+Selection System::operator()(vector<int>::iterator it1, vector<int>::iterator it2)
+{
+    return Selection(*this,it1,it2);
+}
+
 Selection System::select(const std::function<void (const System &, int, std::vector<int> &)> &callback)
+{
+    return Selection(*this,callback);
+}
+
+Selection System::operator()(const std::function<void (const System &, int, std::vector<int> &)> &callback)
 {
     return Selection(*this,callback);
 }
