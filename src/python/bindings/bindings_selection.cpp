@@ -36,7 +36,6 @@ using namespace boost::python;
   Wrappers for Selection
 ***********************/
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(fit_trajectory_overloads, fit_trajectory, 0, 3)
-BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(write_overloads, write, 1, 3)
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(get_average_overloads, get_average, 0, 2)
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(principal_orient_overloads, principal_orient, 0, 1)
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(unwrap_bonds_overloads, unwrap_bonds, 0, 1)
@@ -171,6 +170,12 @@ PyObject* Selection_principal_transform(Selection* sel, bool periodic=false){
 }
 
 BOOST_PYTHON_FUNCTION_OVERLOADS(Selection_principal_transform_overloads, Selection_principal_transform, 1, 2)
+
+void Selection_write_normal(Selection* s, std::string fname, int b=-1,int e=-1){
+    s->write(fname,b,e);
+}
+
+BOOST_PYTHON_FUNCTION_OVERLOADS(write_overloads, Selection_write_normal, 2, 4)
 
 void Selection_apply_transform(Selection* s, PyObject* t){
     MAP_EIGEN_TO_PYTHON_F(Matrix4f,m,t)
@@ -714,7 +719,7 @@ void make_bindings_Selection(){
         .def("fit_trajectory",&Selection::fit_trajectory, fit_trajectory_overloads())
         .def("apply_transform",&Selection_apply_transform)
 
-        .def("write",&Selection::write, write_overloads())
+        .def("write",&Selection_write_normal, write_overloads())
 
         // inertia return a tuple of (moments,axes)
         .def("inertia",&Selection_inertia, Selection_inertia_overloads())

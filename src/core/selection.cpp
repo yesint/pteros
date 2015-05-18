@@ -1340,7 +1340,7 @@ void Selection::write(string fname, int b, int e) {
 
     if(b<-1 || b>=get_system()->num_frames()) throw Pteros_error("Invalid first frame for writing!");
     if(e<-1 || e>=get_system()->num_frames()) throw Pteros_error("Invalid last frame for writing!");
-    if(e<b) throw Pteros_error("Invalid frame range for writing!");    
+    if(e<b) throw Pteros_error("Invalid frame range for writing!");
 
     auto f = Mol_file::open(fname,'w');
 
@@ -1351,7 +1351,38 @@ void Selection::write(string fname, int b, int e) {
     for(int fr=b;fr<=e;++fr){        
         set_frame(fr);
         f->write(*this,f->get_content_type());
-    }    
+    }
+}
+
+void Selection::write(const std::unique_ptr<Mol_file> &handler, Mol_file_content what, int b, int e)
+{
+    // -1 has special meaning
+    if(b==-1) b=get_frame(); // current frame
+    if(e==-1) e=system->num_frames()-1; // last frame
+
+    if(b<-1 || b>=get_system()->num_frames()) throw Pteros_error("Invalid first frame for writing!");
+    if(e<-1 || e>=get_system()->num_frames()) throw Pteros_error("Invalid last frame for writing!");
+    if(e<b) throw Pteros_error("Invalid frame range for writing!");
+
+    if(!(handler->get_content_type() & MFC_TRAJ) && e!=b && (what & MFC_TRAJ)){
+        throw Pteros_error("Can't write the range of frames to this file!");
+    }
+
+    // First write all except trajectory (if any)
+    if(what & MFC_ATOMS || what & MFC_COORD){
+        auto c = what;
+        c &= ~MFC_TRAJ;
+        handler->write(*this,c);
+    }
+
+    // Now write trajectory if asked
+    if(what & MFC_TRAJ){
+        for(int fr=b;fr<=e;++fr){
+            set_frame(fr);
+            handler->write(*this,MFC_TRAJ);
+        }
+    }
+
 }
 
 void Selection::each_residue(std::vector<Selection>& sel) const {

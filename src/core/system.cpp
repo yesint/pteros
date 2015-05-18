@@ -200,7 +200,7 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
     cout << "Accepted " << num_stored << " frames. Now " << num_frames() << " frames in the System" << endl;
 }
 
-void System::load(std::unique_ptr<Mol_file> handler, Mol_file_content what, int b, int e, int skip, std::function<bool (System *, int)> on_frame)
+void System::load(const std::unique_ptr<Mol_file>& handler, Mol_file_content what, int b, int e, int skip, std::function<bool (System *, int)> on_frame)
 {        
     // Asked for structure or topology
     if(what & MFC_ATOMS || what & MFC_TOP || what & MFC_COORD){

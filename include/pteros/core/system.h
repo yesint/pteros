@@ -266,7 +266,7 @@ public:
      * @param skip
      * @param on_frame
      */
-    void load(std::unique_ptr<Mol_file> handler,
+    void load(const std::unique_ptr<Mol_file> &handler,
               Mol_file_content what,
               int b=0,
               int e=-1,
