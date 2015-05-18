@@ -560,6 +560,11 @@ Selection System::select(std::vector<int>::iterator it1, std::vector<int>::itera
     return Selection(*this,it1,it2);
 }
 
+Selection System::select(const std::function<void (const System &, int, std::vector<int> &)> &callback)
+{
+    return Selection(*this,callback);
+}
+
 Selection System::select_all(){
     return Selection(*this,0,num_atoms()-1);
 }

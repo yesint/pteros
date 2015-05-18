@@ -27,6 +27,7 @@
 
 #include <string>
 #include <memory>
+#include <functional>
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 #include "pteros/core/system.h"
@@ -96,6 +97,16 @@ class Selection {
               std::vector<int>::iterator it1,
               std::vector<int>::iterator it2);
 
+    /** Constructor which takes user-defined callback
+      Callback takes the system as first argument, target frame number as the second
+      and the vector to be filled by selected atom indexes.
+      \warning
+      Resulting selection is neither coordinate-dependent nor text-based.
+      It will not recompute itself on the frame change even if it involves atom coordinates.
+    */
+    Selection(const System& sys,
+              const std::function<void(const System&,int,std::vector<int>&)>& callback);
+
     /// Copy constructor
     Selection(const Selection& sel);
 
@@ -152,7 +163,7 @@ class Selection {
 
     /// Creates new Selection, by removing all atoms of sel2 from sel1.
     /// Parent selections are not modified.
-    /// This operator is \em not commutative!
+    /// \warning This operator is \em not commutative!
     friend Selection operator-(const Selection& sel1, const Selection& sel2);
 
     /// Creates new Selection, which is a logical negation of existing one.
@@ -195,6 +206,15 @@ class Selection {
     /// Modifies selection using pair of iterators to index vector
     void modify(std::vector<int>::iterator it1, std::vector<int>::iterator it2);
 
+    /** Modifies selection using user-defined callback.
+      Callback takes the system as first argument, target frame number as the second
+      and the vector to be filled by selected atom indexes.
+      \warning
+      Resulting selection is neither coordinate-dependent nor text-based.
+      It will not recompute itself on the frame change even if it involves atom coordinates.
+    */
+    void modify(const std::function<void(const System&,int,std::vector<int>&)>& callback);
+
     /// Convenience function, which combines set_system and modify(str)
     void modify(const System& sys, std::string str);
 
@@ -208,6 +228,9 @@ class Selection {
     void modify(const System& sys,
                 std::vector<int>::iterator it1,
                 std::vector<int>::iterator it2);
+
+    /// Convenience function, which combines set_system and modify(callback)
+    void modify(const System& sys, const std::function<void(const System&,int,std::vector<int>&)>& callback);
 
     /** Recomputes selection without re-parsing selection text.
     *   Only makes sense for coordinate-dependent selections when the coordinates change.

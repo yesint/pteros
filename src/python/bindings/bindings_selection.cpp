@@ -414,6 +414,20 @@ boost::shared_ptr<Selection> constructor_list(const System& sys, const bp::list&
     return g;
 }
 
+boost::shared_ptr<Selection> constructor_callback(const System& sys, PyObject* obj){
+    // A lambda, which will call Python function
+    auto callback = [&obj](const System& sys, int fr, vector<int>& ind)->void {
+        // Call python function
+        auto py_ind = bp::call<bp::list>(obj, boost::ref(sys), fr);
+        // Convert list to vector
+        for(int i=0;i<len(py_ind);++i) ind.push_back( extract<int>(py_ind[i]) );
+    };
+
+    boost::shared_ptr<Selection> g(new Selection(sys,callback));
+    return g;
+}
+
+
 void Selection_modify_list1(Selection* sel, const bp::list& l){
     vector<int> v(len(l));
     for(int i=0;i<len(l);++i) v[i] = extract<int>(l[i]);
@@ -425,6 +439,32 @@ void Selection_modify_list2(Selection* sel, const System& sys, const bp::list& l
     for(int i=0;i<len(l);++i) v[i] = extract<int>(l[i]);
     sel->modify(sys,v);
 }
+
+void Selection_modify_callback1(Selection* sel, PyObject* obj){
+    // A lambda, which will call Python function
+    auto callback = [&obj](const System& sys, int fr, vector<int>& ind)->void {
+        // Call python function
+        auto py_ind = bp::call<bp::list>(obj, boost::ref(sys), fr);
+        // Convert list to vector
+        for(int i=0;i<len(py_ind);++i) ind.push_back( extract<int>(py_ind[i]) );
+    };
+
+    sel->modify(callback);
+}
+
+
+void Selection_modify_callback2(Selection* sel, const System& sys, PyObject* obj){
+    // A lambda, which will call Python function
+    auto callback = [&obj](const System& sys, int fr, vector<int>& ind)->void {
+        // Call python function
+        auto py_ind = bp::call<bp::list>(obj, boost::ref(sys), fr);
+        // Convert list to vector
+        for(int i=0;i<len(py_ind);++i) ind.push_back( extract<int>(py_ind[i]) );
+    };
+
+    sel->modify(sys,callback);
+}
+
 
 float Selection_distance1(Selection* s, int i, int j, bool pbc, PyObject* dims){
     MAP_EIGEN_TO_PYTHON_I(Vector3i,dim,dims)
@@ -563,6 +603,7 @@ void make_bindings_Selection(){
         .def(init<const Selection&>() )
         .def(init<System&,int,int>() )
         .def("__init__",make_constructor(&constructor_list))
+        .def("__init__",make_constructor(&constructor_callback))
 
         .def("size",&Selection::size)
 
@@ -582,6 +623,8 @@ void make_bindings_Selection(){
         .def("modify", static_cast<void(Selection::*)   (const System&,string)  >(&Selection::modify) )
         .def("modify", static_cast<void(Selection::*)   (const System&,int,int) >(&Selection::modify) )
         .def("modify", &Selection_modify_list2)
+        .def("modify", &Selection_modify_callback1)
+        .def("modify", &Selection_modify_callback2)
 
         .def("apply",&Selection::apply)
         .def("update",&Selection::update)

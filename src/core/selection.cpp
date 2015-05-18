@@ -161,6 +161,18 @@ Selection::Selection(const System &sys, std::vector<int>::iterator it1, std::vec
     if(size()==0) cout << "(WARNING) Selection is empty!\n\t\tAny call of its methods (except size()) will crash your program!" << endl;
 }
 
+Selection::Selection(const System& sys,
+                     const std::function<void (const System &, int, std::vector<int> &)>& callback)
+{
+    sel_text = "";
+    parser.reset();
+    frame = 0;
+    // set system
+    system = const_cast<System*>(&sys);
+    // call callback
+    callback(*system,frame,index);
+}
+
 // Destructor
 Selection::~Selection(){    
     // Everything (including parser) will be destroyed automatically
@@ -279,6 +291,19 @@ void Selection::modify(std::vector<int>::iterator it1, std::vector<int>::iterato
     }
 }
 
+void Selection::modify(const std::function<void (const System &, int, std::vector<int> &)>& callback)
+{
+    if(system==nullptr) throw Pteros_error("Selection does not belong to any system!");
+    // no parser needed
+    parser.reset();
+    // not textual
+    sel_text = "";
+    // clear index
+    index.clear();
+    // fill
+    callback(*system,frame,index);
+}
+
 void Selection::modify(const System &sys, string str){    
     set_system(sys);    
     modify(str);    
@@ -297,6 +322,12 @@ void Selection::modify(const System &sys, const std::vector<int> &ind){
 void Selection::modify(const System &sys, std::vector<int>::iterator it1, std::vector<int>::iterator it2){
     set_system(sys);
     modify(it1,it2);
+}
+
+void Selection::modify(const System &sys, const std::function<void (const System &, int, std::vector<int> &)>& callback)
+{
+    set_system(sys);
+    modify(callback);
 }
 
 // Assignment

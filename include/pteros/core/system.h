@@ -217,6 +217,8 @@ public:
     Selection select(std::vector<int>::iterator it1,
                      std::vector<int>::iterator it2);
 
+    Selection select(const std::function<void(const System&,int,std::vector<int>&)>& callback);
+
     /// Convenience function to select all
     Selection select_all();
     /// @}
