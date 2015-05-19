@@ -1,0 +1,48 @@
+/** \page manual Pteros 2.0 user manual
+
+\section contents Contents
+
+- \ref getting_started
+- \ref selections
+- \ref manip
+- \ref transforms
+- \ref rmsd
+- \ref bindings
+- \ref hi_level
+- \ref analysis_plugins
+
+\section structure Library structure
+\subsection include Include files
+
+\section basic Basic principles
+\subsection basic_classes Systems and selections
+\subsection levels Low-level and high-level facilities
+
+\section load Loading molecular system
+
+\subsection formats Supported file formats
+
+\subsection simple_load Simple loading
+Simplest way of loading molecular data file is by using `System.load()` method:
+
+<table border="0">
+<tr><td align="center">C++</td><td align="center">Python</td></tr>
+<tr>
+<td>
+ \code{.cpp}
+System s("somefile.pdb");
+ \endcode
+ </td>
+ <td>
+ \code{.py}
+s = System('somefile.pdb')
+ \endcode
+ </td>
+ </tr>
+</table>
+
+\subsection advanced_load Advanced loading with file handlers
+
+
+
+*/
