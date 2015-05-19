@@ -572,6 +572,7 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
         // thus no additional copying
         eval_node(node->child_node(1), dum2.index, NULL);
 
+
         // Prepare selection dum1
         if(!subspace){
             // We are not limited by subspace
@@ -580,7 +581,7 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
         } else {
             // We are limited by subspace
             dum1.index = *subspace;
-        }        
+        }
 
         // Set frame for both selections
         dum1.set_frame(frame);
@@ -656,7 +657,7 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
         return;
     //---------------------------------------------------------------------------
     case  TOK_LT:
-        if(!subspace){            
+        if(!subspace){
             for(at=0;at<Natoms;++at){ // over all atoms
                 if(eval_numeric(node->child_node(0),at) <
                    eval_numeric(node->child_node(1),at)
@@ -673,7 +674,7 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
         return;
     //---------------------------------------------------------------------------
     case  TOK_GT:        
-        if(!subspace){            
+        if(!subspace){
             for(at=0;at<Natoms;++at) // over all atoms
                 if(eval_numeric(node->child_node(0),at) >
                    eval_numeric(node->child_node(1),at)

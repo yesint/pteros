@@ -36,7 +36,6 @@ using namespace boost::python;
   Wrappers for Selection
 ***********************/
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(fit_trajectory_overloads, fit_trajectory, 0, 3)
-BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(write_overloads, write, 1, 3)
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(get_average_overloads, get_average, 0, 2)
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(principal_orient_overloads, principal_orient, 0, 1)
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(unwrap_bonds_overloads, unwrap_bonds, 0, 1)
@@ -171,6 +170,12 @@ PyObject* Selection_principal_transform(Selection* sel, bool periodic=false){
 }
 
 BOOST_PYTHON_FUNCTION_OVERLOADS(Selection_principal_transform_overloads, Selection_principal_transform, 1, 2)
+
+void Selection_write_normal(Selection* s, std::string fname, int b=-1,int e=-1){
+    s->write(fname,b,e);
+}
+
+BOOST_PYTHON_FUNCTION_OVERLOADS(write_overloads, Selection_write_normal, 2, 4)
 
 void Selection_apply_transform(Selection* s, PyObject* t){
     MAP_EIGEN_TO_PYTHON_F(Matrix4f,m,t)
@@ -423,12 +428,34 @@ bp::tuple Selection_sasa(Selection* s, float probe_r = 0.14,
 
 BOOST_PYTHON_FUNCTION_OVERLOADS(Selection_sasa_overloads,Selection_sasa,1,5)
 
-boost::shared_ptr<Selection> constructor_list(const System& sys, const bp::list& l){
-    vector<int> v(len(l));
-    for(int i=0;i<len(l);++i) v[i] = extract<int>(l[i]);
-    boost::shared_ptr<Selection> g(new Selection(sys,v));
-    return g;
+boost::shared_ptr<Selection> constructor_from_pyobj(const System& sys, PyObject* obj){
+    if( PyCallable_Check(obj) ){
+        // A lambda, which will call Python function
+        auto callback = [&obj](const System& sys, int fr, vector<int>& ind)->void {
+            // Call python function
+            auto py_ind = bp::call<bp::list>(obj, boost::ref(sys), fr);
+            // Convert list to vector
+            for(int i=0;i<len(py_ind);++i) ind.push_back( extract<int>(py_ind[i]) );
+        };
+
+        boost::shared_ptr<Selection> g(new Selection(sys,callback));
+        return g;
+
+    } else if( PyString_Check(obj) ) {
+        string str = extract<string>(object( handle<>(borrowed(obj)) ));
+        cout << str << endl;
+        boost::shared_ptr<Selection> g(new Selection(sys,str));
+        return g;
+
+    } else if( PySequence_Check(obj) ) {
+        bp::object l( handle<>(borrowed(obj)) );
+        vector<int> v(len(l));
+        for(int i=0;i<len(l);++i) v[i] = extract<int>(l[i]);
+        boost::shared_ptr<Selection> g(new Selection(sys,v));
+        return g;
+    }
 }
+
 
 void Selection_modify_list1(Selection* sel, const bp::list& l){
     vector<int> v(len(l));
@@ -440,6 +467,34 @@ void Selection_modify_list2(Selection* sel, const System& sys, const bp::list& l
     vector<int> v(len(l));
     for(int i=0;i<len(l);++i) v[i] = extract<int>(l[i]);
     sel->modify(sys,v);
+}
+
+void Selection_modify_from_pyobj2(Selection* sel, const System& sys, PyObject* obj){
+    if( PyCallable_Check(obj) ){
+        // A lambda, which will call Python function
+        auto callback = [&obj](const System& sys, int fr, vector<int>& ind)->void {
+            // Call python function
+            auto py_ind = bp::call<bp::list>(obj, boost::ref(sys), fr);
+            // Convert list to vector
+            for(int i=0;i<len(py_ind);++i) ind.push_back( extract<int>(py_ind[i]) );
+        };
+        sel->modify(sys,callback);
+
+    } else if( PyString_Check(obj) ) {
+        string str = extract<string>(object( handle<>(borrowed(obj)) ));
+        cout << str << endl;
+        sel->modify(sys,str);
+
+    } else if( PySequence_Check(obj) ) {
+        bp::object l( handle<>(borrowed(obj)) );
+        vector<int> v(len(l));
+        for(int i=0;i<len(l);++i) v[i] = extract<int>(l[i]);
+        sel->modify(sys,v);
+    }
+}
+
+void Selection_modify_from_pyobj1(Selection* sel, PyObject* obj){
+    Selection_modify_from_pyobj2(sel,*sel->get_system(),obj);
 }
 
 float Selection_distance1(Selection* s, int i, int j, bool pbc, PyObject* dims){
@@ -519,6 +574,14 @@ void Selection_setBox(Selection* sel, const Periodic_box& b){
     sel->Box() = b;
 }
 
+float Selection_getTime(Selection* sel){
+    return sel->Time();
+}
+
+void Selection_setTime(Selection* sel, const float& t){
+    sel->Time() = t;
+}
+
 // Iteration support
 // For some unknown reason direct wrapping of Selection::iterator does not work properly
 // So we create custom iterator class, which satisfyes Python iterator protocol
@@ -556,10 +619,6 @@ Atom_proxy Selection_getitem(Selection* sel, int i){
 void make_bindings_Selection(){
     import_array();
 
-    boost::python::class_<std::vector<int> >("VecInt")
-        .def(boost::python::vector_indexing_suite<std::vector<int> >())
-    ;
-
     class_<Selection_iter>("_Selection_iter", no_init)
         .def("next",&Selection_iter::next)
     ;
@@ -569,12 +628,11 @@ void make_bindings_Selection(){
     def("fit_transform",&fit_transform_py);
     def("non_bond_energy",&non_bond_energy_py,non_bond_energy_overloads_free());
 
-    class_<Selection>("Selection", init<>())
-        .def(init<System&,std::string>() )
+    class_<Selection>("Selection", init<>())        
         .def(init<System&>() )
         .def(init<const Selection&>() )
-        .def(init<System&,int,int>() )
-        .def("__init__",make_constructor(&constructor_list))
+        .def(init<System&,int,int>() )        
+        .def("__init__",make_constructor(&constructor_from_pyobj))
 
         .def("size",&Selection::size)
 
@@ -588,12 +646,10 @@ void make_bindings_Selection(){
 
         .def("set_system", &Selection::set_system)
 
-        .def("modify", static_cast<void(Selection::*)   (string)                >(&Selection::modify) )
-        .def("modify", static_cast<void(Selection::*)   (int,int)               >(&Selection::modify) )
-        .def("modify", &Selection_modify_list1)
-        .def("modify", static_cast<void(Selection::*)   (const System&,string)  >(&Selection::modify) )
-        .def("modify", static_cast<void(Selection::*)   (const System&,int,int) >(&Selection::modify) )
-        .def("modify", &Selection_modify_list2)
+        .def("modify", static_cast<void(Selection::*)   (int,int)               >(&Selection::modify) )                
+        .def("modify", static_cast<void(Selection::*)   (const System&,int,int) >(&Selection::modify) )       
+        .def("modify", &Selection_modify_from_pyobj1)
+        .def("modify", &Selection_modify_from_pyobj2)
 
         .def("apply",&Selection::apply)
         .def("update",&Selection::update)
@@ -679,7 +735,7 @@ void make_bindings_Selection(){
         .def("fit_trajectory",&Selection::fit_trajectory, fit_trajectory_overloads())
         .def("apply_transform",&Selection_apply_transform)
 
-        .def("write",&Selection::write, write_overloads())
+        .def("write",&Selection_write_normal, write_overloads())
 
         // inertia return a tuple of (moments,axes)
         .def("inertia",&Selection_inertia, Selection_inertia_overloads())
@@ -776,6 +832,9 @@ void make_bindings_Selection(){
 
         .def("getBox",&Selection_getBox)
         .def("setBox",&Selection_setBox)        
+
+        .def("getTime",&Selection_getTime)
+        .def("setTime",&Selection_setTime)
 
         // Iteration protocol support
         .def("__iter__", &Selection_get_iter)

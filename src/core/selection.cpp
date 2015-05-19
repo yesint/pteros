@@ -62,6 +62,19 @@ void Selection::allocate_parser(){
     }
 }
 
+void Selection::sort_and_remove_duplicates()
+{
+    if(index.size()){
+        sort(index.begin(),index.end());
+        vector<int>::iterator it = unique(index.begin(), index.end());
+        index.resize( it - index.begin() );
+        if(index[0]<0) throw Pteros_error("Negative index present in Selection!");
+    } else {
+        if(size()==0) cout << "(WARNING) Selection '" << sel_text
+                           << "' is empty!\n\t\tAny call of its methods (except size()) will crash your program!" << endl;
+    }
+}
+
 Selection::Selection(){
     system = nullptr;
     parser.reset();
@@ -111,6 +124,8 @@ Selection::Selection(const System &sys, int ind1, int ind2){
     // No parser needed
     parser.reset();
 
+    if(ind2<ind1) throw Pteros_error("Wrong order of indexes (") << ind1 << ":" << ind2 << ")";
+
     // Populate selection directly
     index.reserve(ind2-ind1+1);
     for(int i=ind1; i<=ind2; ++i) index.push_back(i);
@@ -130,14 +145,9 @@ Selection::Selection(const System &sys, const std::vector<int> &ind){
     // No parser needed
     parser.reset();
 
-    index.reserve(ind.size());
-    // populate selection
-    for(int i=0; i<ind.size(); ++i){
-        index.push_back(ind[i]);
-    }
-
-    // Show warning if empty selection is created
-    if(size()==0) cout << "(WARNING) Selection is empty!\n\t\tAny call of its methods (except size()) will crash your program!" << endl;
+    // populate selection    
+    index = ind;
+    sort_and_remove_duplicates();
 }
 
 Selection::Selection(const System &sys, std::vector<int>::iterator it1, std::vector<int>::iterator it2){
@@ -150,15 +160,20 @@ Selection::Selection(const System &sys, std::vector<int>::iterator it1, std::vec
     // No parser needed
     parser.reset();
 
-    index.reserve(std::distance(it1,it2)+1);
-    // Populate
-    while(it1!=it2){
-        index.push_back(*it1);
-        it1++;
-    }
+    copy(it1,it2,back_inserter(index));
+    sort_and_remove_duplicates();
+}
 
-    // Show warning if empty selection is created
-    if(size()==0) cout << "(WARNING) Selection is empty!\n\t\tAny call of its methods (except size()) will crash your program!" << endl;
+Selection::Selection(const System& sys,
+                     const std::function<void (const System &, int, std::vector<int> &)>& callback)
+{
+    sel_text = "";
+    parser.reset();
+    frame = 0;
+    // set system
+    system = const_cast<System*>(&sys);
+    // call callback
+    callback(*system,frame,index);
 }
 
 // Destructor
@@ -173,9 +188,7 @@ void Selection::append(const Selection &sel){
 
     copy(sel.index.begin(),sel.index.end(),back_inserter(index));
 
-    sort(index.begin(),index.end());
-    vector<int>::iterator it = unique(index.begin(), index.end());
-    index.resize( it - index.begin() );
+    sort_and_remove_duplicates();
 
     sel_text = "";
     parser.reset();
@@ -248,6 +261,7 @@ void Selection::modify(int ind1, int ind2){
     // not textual
     sel_text = "";    
     // Populate selection directly
+    if(ind2<ind1) throw Pteros_error("Wrong order of indexes (") << ind1 << ":" << ind2 << ")";
     index.clear();
     for(int i=ind1; i<=ind2; ++i) index.push_back(i);       
 }
@@ -258,11 +272,9 @@ void Selection::modify(const std::vector<int> &ind){
     parser.reset();    
     // not textual
     sel_text = "";
-    // populate selection
-    index.clear();
-    for(int i=0; i<ind.size(); ++i){
-        index.push_back(ind[i]);        
-    }
+    // populate selection    
+    index = ind;
+    sort_and_remove_duplicates();
 }
 
 void Selection::modify(std::vector<int>::iterator it1, std::vector<int>::iterator it2){
@@ -273,10 +285,23 @@ void Selection::modify(std::vector<int>::iterator it1, std::vector<int>::iterato
     sel_text = "";
     // Populate selection
     index.clear();
-    while(it1!=it2){
-        index.push_back(*it1);        
-        it1++;
-    }
+    copy(it1,it2,back_inserter(index));
+    sort_and_remove_duplicates();
+}
+
+void Selection::modify(const std::function<void (const System &, int, std::vector<int> &)>& callback)
+{
+    if(system==nullptr) throw Pteros_error("Selection does not belong to any system!");
+    // no parser needed
+    parser.reset();
+    // not textual
+    sel_text = "";
+    // clear index
+    index.clear();
+    // fill
+    callback(*system,frame,index);
+
+    sort_and_remove_duplicates();
 }
 
 void Selection::modify(const System &sys, string str){    
@@ -297,6 +322,12 @@ void Selection::modify(const System &sys, const std::vector<int> &ind){
 void Selection::modify(const System &sys, std::vector<int>::iterator it1, std::vector<int>::iterator it2){
     set_system(sys);
     modify(it1,it2);
+}
+
+void Selection::modify(const System &sys, const std::function<void (const System &, int, std::vector<int> &)>& callback)
+{
+    set_system(sys);
+    modify(callback);
 }
 
 // Assignment
@@ -1314,7 +1345,7 @@ void Selection::write(string fname, int b, int e) {
 
     if(b<-1 || b>=get_system()->num_frames()) throw Pteros_error("Invalid first frame for writing!");
     if(e<-1 || e>=get_system()->num_frames()) throw Pteros_error("Invalid last frame for writing!");
-    if(e<b) throw Pteros_error("Invalid frame range for writing!");    
+    if(e<b) throw Pteros_error("Invalid frame range for writing!");
 
     auto f = Mol_file::open(fname,'w');
 
@@ -1328,11 +1359,42 @@ void Selection::write(string fname, int b, int e) {
     }
 }
 
+void Selection::write(const std::unique_ptr<Mol_file> &handler, Mol_file_content what, int b, int e)
+{
+    // -1 has special meaning
+    if(b==-1) b=get_frame(); // current frame
+    if(e==-1) e=system->num_frames()-1; // last frame
+
+    if(b<-1 || b>=get_system()->num_frames()) throw Pteros_error("Invalid first frame for writing!");
+    if(e<-1 || e>=get_system()->num_frames()) throw Pteros_error("Invalid last frame for writing!");
+    if(e<b) throw Pteros_error("Invalid frame range for writing!");
+
+    if(!(handler->get_content_type() & MFC_TRAJ) && e!=b && (what & MFC_TRAJ)){
+        throw Pteros_error("Can't write the range of frames to this file!");
+    }
+
+    // First write all except trajectory (if any)
+    if(what & MFC_ATOMS || what & MFC_COORD){
+        auto c = what;
+        c &= ~MFC_TRAJ;
+        handler->write(*this,c);
+    }
+
+    // Now write trajectory if asked
+    if(what & MFC_TRAJ){
+        for(int fr=b;fr<=e;++fr){
+            set_frame(fr);
+            handler->write(*this,MFC_TRAJ);
+        }
+    }
+}
+
 void Selection::flatten()
 {
     parser.reset();
     sel_text = "";
 }
+
 
 void Selection::each_residue(std::vector<Selection>& sel) const {
     int c,r;

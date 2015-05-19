@@ -31,7 +31,7 @@ namespace pteros {
 class PTTOP_file: public Mol_file {
 public:
     PTTOP_file(std::string& fname): Mol_file(fname) {}
-    void open(char open_mode);
+    virtual void open(char open_mode);
     ~PTTOP_file();
 
     virtual Mol_file_content get_content_type() const {

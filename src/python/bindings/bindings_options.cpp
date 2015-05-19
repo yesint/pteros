@@ -133,7 +133,9 @@ void make_bindings_Options(){
     class_<Options>("Options", init<>())
         .def("__call__",&Options_call1, return_value_policy<reference_existing_object>())
         .def("__call__",&Options_call2, return_value_policy<reference_existing_object>())
+#ifdef DEBUG
         .def("debug",&Options::debug)
+#endif
         .def("has",&Options::has)
         .def("get_name",&Options::get_name)
     ;

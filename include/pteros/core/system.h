@@ -26,6 +26,7 @@
 #include <string>
 #include <vector>
 #include <functional>
+#include <memory>
 #include <Eigen/Core>
 #include <Eigen/Dense>
 #include "pteros/core/atom.h"
@@ -77,6 +78,8 @@ struct Frame {
 //Forward declarations
 class Selection;
 class Atom_proxy;
+class Mol_file;
+typedef unsigned short Mol_file_content;
 
 /**
 *  The system of atoms.
@@ -196,12 +199,14 @@ public:
      sys = System("structure.pdb");
      Selection sel(s,"name CA");
 
-     // Convenient way:
-     sys = System("structure.pdb");
+     // Shorter way:
      auto sel = sys.select("name CA");
+
+     // Even shorter way using operator ():
+     auto sel = sys("name CA");
      \endcode
 
-     It also allows to write "one-liners" like this:
+     It also allows writing "one-liners" like this:
      \code
      System("file.pdb").select("name CA").write("ca.pdb");
      \endcode
@@ -209,13 +214,21 @@ public:
     /// @{
 
     Selection select(std::string str);
+    Selection operator()(std::string str);
 
     Selection select(int ind1, int ind2);
+    Selection operator()(int ind1, int ind2);
 
     Selection select(const std::vector<int>& ind);
+    Selection operator()(const std::vector<int>& ind);
 
     Selection select(std::vector<int>::iterator it1,
                      std::vector<int>::iterator it2);
+    Selection operator()(std::vector<int>::iterator it1,
+                         std::vector<int>::iterator it2);
+
+    Selection select(const std::function<void(const System&,int,std::vector<int>&)>& callback);
+    Selection operator()(const std::function<void(const System&,int,std::vector<int>&)>& callback);
 
     /// Convenience function to select all
     Selection select_all();
@@ -234,7 +247,30 @@ public:
      If callback returns false loading stops.
     */
     // Skip functionality suggested by Raul Mera
-    void load(std::string fname, int b=0, int e=-1, int skip = 0,
+    void load(std::string fname,
+              int b=0,
+              int e=-1,
+              int skip = 0,
+              std::function<bool(System*,int)> on_frame = 0);
+
+    /**
+     * @brief Load data into System from the pre-opened file handler.
+     * This is rather low-level method which provides
+     * fine control over what should be read.
+     * It can be called several times to read trajectory frames one by one
+     * from the same pre-opened file.
+     * @param handler
+     * @param what
+     * @param b
+     * @param e
+     * @param skip
+     * @param on_frame
+     */
+    void load(const std::unique_ptr<Mol_file> &handler,
+              Mol_file_content what,
+              int b=0,
+              int e=-1,
+              int skip = 0,
               std::function<bool(System*,int)> on_frame = 0);
     /// @}
 

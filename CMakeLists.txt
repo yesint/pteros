@@ -48,6 +48,8 @@ ENDIF()
 #Sets optmization for Eigen in Release build
 SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -msse2")
 
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_GLIBCXX_DEBUG")
+
 # Enable C++11 and C99 everywhere
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -Wl,--no-as-needed")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99")

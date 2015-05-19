@@ -200,6 +200,97 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
     cout << "Accepted " << num_stored << " frames. Now " << num_frames() << " frames in the System" << endl;
 }
 
+void System::load(const std::unique_ptr<Mol_file>& handler, Mol_file_content what, int b, int e, int skip, std::function<bool (System *, int)> on_frame)
+{        
+    // Asked for structure or topology
+    if(what & MFC_ATOMS || what & MFC_TOP || what & MFC_COORD){
+        // We don't want to read traj here, so disable it even if asked to read it
+        auto c = what;
+        c &= ~MFC_TRAJ;
+
+        // If we are reading new atoms we have to clear the system first
+        if(what & MFC_ATOMS) clear();
+
+        // See if we asked for coordinates
+        if(what & MFC_COORD){
+            Frame fr;
+            frame_append(fr);
+            handler->read(this, &Frame_data(num_frames()-1), c);
+            check_num_atoms_in_last_frame();
+            if(what & MFC_ATOMS) assign_resindex();
+            // Call a callback if asked
+            if(on_frame) on_frame(this,num_frames()-1);
+        } else {
+            // Not asked for coordinates
+            handler->read(this, nullptr, c);
+            if(what & MFC_ATOMS) assign_resindex();
+        }
+    }
+
+    // Asked for trajectory
+    if(what & MFC_TRAJ){
+        // Sanity check for frame range
+        if((e<b && e!=-1)|| b<0)
+            throw Pteros_error("Invalid frame range for reading!");
+
+        int cur = 0; // This holds real frame index in trajectory
+
+        // Skip frames if needed
+        // TODO: Implement random access here when ready!
+        if(b>0){
+            cout << "Skipping " << b << " frames..." << endl;
+            Frame skip_fr;
+            for(int i=0;i<b;++i){
+                bool ok = handler->read(nullptr, &skip_fr, MFC_TRAJ);
+                if(!ok){
+                    cout << "(WARNING) Can't skip " << b << " frames! Trajectory is too short!" << endl;
+                    return;
+                }
+                cur++;
+            }
+        }
+
+        cout << "Reading..."<<endl;
+
+        int actually_read = 0;
+        bool callback_ok = true;
+
+        while(true){
+            // End frame reached?
+            if(cur==e && e!=-1) break;
+
+            // Append new frame where the data will go
+            Frame fr;
+            frame_append(fr);
+            // Try to read into it
+            bool ok = handler->read(nullptr, &Frame_data(num_frames()-1), MFC_TRAJ);
+            if(!ok){
+                frame_delete(num_frames()-1); // Remove last frame - it's invalid
+                break; // end of trajectory
+            }
+
+            check_num_atoms_in_last_frame();
+
+            ++cur;
+            ++actually_read;
+
+            if(skip>0 && actually_read%skip!=0){
+                frame_delete(num_frames()-1); // Remove frame - it's invalid
+                continue;
+            } else {
+                actually_read = 0;
+            }
+
+            // If we are here new frame is accepted
+
+            // Call a callback if asked
+            if(on_frame) callback_ok = on_frame(this,num_frames()-1);
+            // If callback returns false stop reading
+            if(!callback_ok) break;
+        }
+    }
+}
+
 // Destructor of the system class
 System::~System() {}
 
@@ -548,7 +639,17 @@ Selection System::select(string str){
     return Selection(*this,str);
 }
 
+Selection System::operator()(string str)
+{
+    return Selection(*this,str);
+}
+
 Selection System::select(int ind1, int ind2){
+    return Selection(*this,ind1,ind2);
+}
+
+Selection System::operator()(int ind1, int ind2)
+{
     return Selection(*this,ind1,ind2);
 }
 
@@ -556,8 +657,28 @@ Selection System::select(const std::vector<int> &ind){
     return Selection(*this,ind);
 }
 
+Selection System::operator()(const std::vector<int> &ind)
+{
+    return Selection(*this,ind);
+}
+
 Selection System::select(std::vector<int>::iterator it1, std::vector<int>::iterator it2){
     return Selection(*this,it1,it2);
+}
+
+Selection System::operator()(vector<int>::iterator it1, vector<int>::iterator it2)
+{
+    return Selection(*this,it1,it2);
+}
+
+Selection System::select(const std::function<void (const System &, int, std::vector<int> &)> &callback)
+{
+    return Selection(*this,callback);
+}
+
+Selection System::operator()(const std::function<void (const System &, int, std::vector<int> &)> &callback)
+{
+    return Selection(*this,callback);
 }
 
 Selection System::select_all(){

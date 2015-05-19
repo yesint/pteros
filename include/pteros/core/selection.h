@@ -27,6 +27,7 @@
 
 #include <string>
 #include <memory>
+#include <functional>
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 #include "pteros/core/system.h"
@@ -84,17 +85,30 @@ class Selection {
         to contigous interval of indexes.
         @param sys System pointed by this selection
         @param ind1 First index in interval
-        @param ind2 Last index in interval (inclusive!)
+        @param ind2 Last index in interval (inclusive!)        
      */
     Selection(const System& sys, int ind1, int ind2);
 
     /// Constructor from vector of indexes
+    /// Vector may be in any order and may contain duplicates.
     Selection(const System& sys, const std::vector<int>& ind);
 
     /// Constructor from the pair of iterators to int sequence
+    /// Sequence may be in any order and may contain duplicates.
     Selection(const System& sys,
               std::vector<int>::iterator it1,
               std::vector<int>::iterator it2);
+
+    /** Constructor which takes user-defined callback
+      Callback takes the system as first argument, target frame number as the second
+      and the vector to be filled by selected atom indexes.
+      Vector may be filled in any order and may contain duplicates.
+      \warning
+      Resulting selection is neither coordinate-dependent nor text-based.
+      It will not recompute itself on the frame change even if it involves atom coordinates.
+    */
+    Selection(const System& sys,
+              const std::function<void(const System&,int,std::vector<int>&)>& callback);
 
     /// Copy constructor
     Selection(const Selection& sel);
@@ -152,7 +166,7 @@ class Selection {
 
     /// Creates new Selection, by removing all atoms of sel2 from sel1.
     /// Parent selections are not modified.
-    /// This operator is \em not commutative!
+    /// \warning This operator is \em not commutative!
     friend Selection operator-(const Selection& sel1, const Selection& sel2);
 
     /// Creates new Selection, which is a logical negation of existing one.
@@ -190,10 +204,22 @@ class Selection {
     void modify(int ind1, int ind2);
 
     /// Modifies selection using vector of indexes
+    /// Vector may be in any order and may contain duplicates.
     void modify(const std::vector<int>& ind);
 
     /// Modifies selection using pair of iterators to index vector
+    /// Vector may be in any order and may contain duplicates.
     void modify(std::vector<int>::iterator it1, std::vector<int>::iterator it2);
+
+    /** Modifies selection using user-defined callback.
+      Callback takes the system as first argument, target frame number as the second
+      and the vector to be filled by selected atom indexes.
+      Vector may be filled in any order and may contain duplicates.
+      \warning
+      Resulting selection is neither coordinate-dependent nor text-based.
+      It will not recompute itself on the frame change even if it involves atom coordinates.
+    */
+    void modify(const std::function<void(const System&,int,std::vector<int>&)>& callback);
 
     /// Convenience function, which combines set_system and modify(str)
     void modify(const System& sys, std::string str);
@@ -208,6 +234,9 @@ class Selection {
     void modify(const System& sys,
                 std::vector<int>::iterator it1,
                 std::vector<int>::iterator it2);
+
+    /// Convenience function, which combines set_system and modify(callback)
+    void modify(const System& sys, const std::function<void(const System&,int,std::vector<int>&)>& callback);
 
     /** Recomputes selection without re-parsing selection text.
     *   Only makes sense for coordinate-dependent selections when the coordinates change.
@@ -587,7 +616,9 @@ class Selection {
     *   If @param e is not set or -1 it means the last frame
     */
     // Can't be made const because of internal calls
-    void write(std::string fname,int b=-1,int e=-1);
+    void write(std::string fname, int b=-1,int e=-1);
+
+    void write(const std::unique_ptr<Mol_file>& handler, Mol_file_content what,int b=-1,int e=-1);
     /// @}
 
 
@@ -879,7 +910,7 @@ class Selection {
         \code
         sel.get_system()->Box(sel.get_frame());
         \endcode
-        This is a convenience method. The same box is returned by all selections
+        This is a convenience method. The same box is returnedby all selection
         which point to the same frame.
     */
     inline Periodic_box& Box() {
@@ -895,7 +926,7 @@ class Selection {
         \code
         sel.get_system()->Time(sel.get_frame());
         \endcode
-        This is a convenience method. The same time is returned by all selections
+        This is a convenience method. The same time is returnedby all selection
         which point to the same frame.
     */
     inline float& Time() {
@@ -922,6 +953,7 @@ protected:
     // Holds an instance of selection parser
     std::unique_ptr<Selection_parser> parser;
     void allocate_parser();
+    void sort_and_remove_duplicates();
 };
 
 //==============================================================================
