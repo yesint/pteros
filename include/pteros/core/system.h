@@ -259,18 +259,9 @@ public:
      * fine control over what should be read.
      * It can be called several times to read trajectory frames one by one
      * from the same pre-opened file.
-     * @param handler
-     * @param what
-     * @param b
-     * @param e
-     * @param skip
-     * @param on_frame
      */
     void load(const std::unique_ptr<Mol_file> &handler,
-              Mol_file_content what,
-              int b=0,
-              int e=-1,
-              int skip = 0,
+              Mol_file_content what,         
               std::function<bool(System*,int)> on_frame = 0);
     /// @}
 
