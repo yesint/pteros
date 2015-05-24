@@ -2,44 +2,87 @@
 
 \section contents Contents
 
-- \ref getting_started
-- \ref selections
-- \ref manip
-- \ref transforms
-- \ref rmsd
-- \ref bindings
-- \ref hi_level
-- \ref analysis_plugins
+- \ref structure
+- \ref basic
+- \ref load
 
 \section structure Library structure
 \subsection include Include files
 
 \section basic Basic principles
-\subsection basic_classes Systems and selections
-\subsection levels Low-level and high-level facilities
+
+Pteros is developed according to the following principles
+- API should be simple and intuitive to use
+- Low-level detailes should never be exposed to the user
+- Performance should never be compromised
+- C++ and Python APIs should be the same except for the language-specific features
+
+Pteros is C++ library with Python bindings. This means that the Python part is only a wrapper over C++ backend. All new features are implemented in C++ and than exposed to Python.
+
+\subsection basic_classes Basic concepts
+
+\par Atom
+Each atom in Pteros contains the following attributes:
+- <b>Name</b>
+- <b>Residue ID</b> Numbers the residues inside each chain. Atom in different chains may have the same resids.
+- <b>Residue index</b> Numbers the residues in the system consequently regardless of the chain. Residue indexes are alsways unique for each residue.
+- <b>Residue name</b>
+- <b>Chain</b> Corresponds to the polypeptide or nucleic acid chains. For other systems is usually omited.
+- <b>Occupancy</b> Corresponds to PDB occupancy field. Set for zero if read from other file formats. Could be used as custom float point property.
+- <b>Beta</b> Corresponds to PDB B-factor field. Set for zero if read from other file formats. Could be used as custom float point property.
+- <b>Tag</b> Arbitrary textual tag of the atom.
+- <b>Mass</b> If not indicated in the data file the mass is deduced based on the atom name.
+- <b>Charge</b>
+- <b>Type</b> Interger index of the atom type. Used only with MD topology information.
+- <b>Type name</b> Name of MD atom type. Used only with MD topology information.
+
+\par System
+The system is container for atoms, their coordinates and the force field parameters. The coordinates of atoms are stored separately from other attributes in the frames. The system may contain many frames which represent different states (like MD time stamps or NMR structures).
+\par Frame
+The frame is representation of the instanteneous state of the system. It contains coordinates of all atoms, time stamp and the periodic box (if the periodic boundary conditions are used).
+\par Selection
+Selection is a subset of atoms from particular system. Selection <i>do not contain any data</i> but just points to existing atoms in the system. Selection should be considered as a "handle" to certain group of atoms which allows to query their properties and to manipulate their attributes and coordinates in various ways.
+
+\note The system is \em not a representation of the data file! Although attributes of atoms are similar to the fields of PDB files the system is much more general concept. The system could be constructed from a single file (such as PDB), from several files (such as PDB+XTC) or could be built from scratch programmatically by adding individual atoms and frames.
 
 \section load Loading molecular system
 
 \subsection formats Supported file formats
 
-\subsection simple_load Simple loading
-Simplest way of loading molecular data file is by using `System.load()` method:
+Currently the following file formats are supported:
+- Structure files
+    + PDB
+    + GRO
+    + MOL2
+- Trajectories
+    + XTC
+    + TRR
+    + TNG
+    + DCD
+- Topology
+    + PTTOP
+    \note Read only. Produced from Gromacs TPR files by the `tpr2pteros.py` script.
 
-<table border="0">
-<tr><td align="center">C++</td><td align="center">Python</td></tr>
-<tr>
-<td>
- \code{.cpp}
+\subsection types_of_info What is loaded from data files?
+Molecular data formats contain different information about the system. In Pteros all information stored in the data file is subdivided into \em atoms, \em coordinates, \em trajectory and \em topology.
+\par Atoms
+Information about atoms in the system (name, residue name, chain, mass, etc) but without coordinates.
+\par Coordinates
+Single set of coordinates of atoms (not a trajectory) and the periodic box if periodicity is present.
+\par Trajectory
+The number of frames each containing a set of coordinates, time stamp and the periodic box if periodicity is present.
+\par Topology
+MD topology containing connectivity, atom types, non-bond Van-der-Waals parameters, etc.
+
+Particular file format may contain different information. For example PDB files contain atoms and coordinates. XTC files contain the trajectory but no atoms. TNG files contain atoms and trajectory at the same time, etc. There are two ways of loading data files - simple and advanced. When the data file is loaded in Pteros using simple mode the information being loaded depend on the file type and on the current content of the System where the data go. In advanced mode the user specifies explicitly what to read.
+
+\subsection simple_load Simple loading
+
+\col1
 System s("somefile.pdb");
- \endcode
- </td>
- <td>
- \code{.py}
+\col2
 s = System('somefile.pdb')
- \endcode
- </td>
- </tr>
-</table>
+\endcol
 
 \subsection advanced_load Advanced loading with file handlers
 
