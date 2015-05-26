@@ -345,6 +345,7 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
         //std::sort(res1.begin(),res1.end());
         // res1 is sorted, so we can speed up negation a bit by filling only the "gaps"
         n = res1.size();
+        result.reserve(Natoms-n);
         for(j=0;j<res1[0];++j) result.push_back(j); //Before first
         for(i=1;i<n;++i)
             for(j=res1[i-1]+1;j<res1[i];++j) result.push_back(j); // between any two
