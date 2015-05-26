@@ -26,7 +26,7 @@ target_link_libraries(pteros_analysis pteros ${Boost_LIBRARIES})
 #--------------
 
 install(TARGETS pteros_analysis
-    RUNTIME DESTINATION lib
+    RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
 )
