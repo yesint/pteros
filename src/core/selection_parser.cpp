@@ -761,7 +761,7 @@ float Selection_parser::eval_numeric(AstNode_ptr& node, int at){
              * eval_numeric(node->child_node(1),at);
     } else if(node->code == TOK_DIV){
         float v = eval_numeric(node->child_node(0),at);
-        if(v==0.0) throw Pteros_error("Divition by zero in selection!");
+        if(v==0.0) throw Pteros_error("Division by zero in selection!");
         return eval_numeric(node->child_node(1),at) / v;
     } else if(node->code == TOK_POWER) {
         return std::pow( eval_numeric(node->child_node(0),at),
