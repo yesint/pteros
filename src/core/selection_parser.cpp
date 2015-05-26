@@ -303,7 +303,7 @@ void Selection_parser::apply(System* system, size_t fr, vector<int>& result){
     }    
 
     // Eval root node
-    eval_node(tree,result,NULL);
+    eval_node(tree,result,nullptr);
 
     // Sort result to always get ordered selection index
     //sort(result.begin(),result.end());
@@ -657,7 +657,7 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
         // Otherwise the results would be incorrect        
         // Result is returned directly into the index array of selection dum2
         // thus no additional copying
-        eval_node(node->child_node(1), dum2.index, NULL);
+        eval_node(node->child_node(1), dum2.index, nullptr);
 
 
         // Prepare selection dum1
