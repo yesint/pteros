@@ -156,7 +156,7 @@ public:
     /// Destructor
     virtual ~Selection_parser();
     /// Generates AST from selection string
-    void create_ast(std::string&);
+    void create_ast(std::string& sel_str);
 
     /// Apply ast to the system. Fills the vector passed from
     /// enclosing System with selection indexes.
