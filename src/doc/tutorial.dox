@@ -19,30 +19,38 @@ Suppose that the Pteros library is compiled and all linking requirements are sat
 #include "pteros/pteros.h"
 \endcode
 
-This will include basic classes of the library. More advanced usage requires additional includes.
-All classes and function of the Pteros library are defined inside "pteros" namespace. The following line will allow to omit repetitive "pteros::" prefix in your program:
+This will include basic classes of the library. All classes and function of the Pteros library are defined inside "pteros" namespace. The following line will allow to omit repetitive "pteros::" prefix in your program:
 
 \code
 using namespace pteros;
 \endcode
 
-The fundamental objects in Pteros are \e systems and \e selections. System is what its name suggests - the set of atoms. The attributes and the coordinates of atoms are physically stored in the system. Typically the system is loaded from a structure file (such as PDB or GRO). The system can contain several sets of coordinates, called \e frames, which are typically loaded from trajectory files of MD simulations. The system can be created in two ways:
+\note
+More advanced usage requires additional headers. For example: `#include "pteros/core/mol_file.h"`
+
+The fundamental objects in Pteros are \e systems and \e selections. System is what its name suggests - the whole molecular system with atoms and their coordinates. The attributes and the coordinates of atoms are physically stored in the system. Typically the system is loaded from one or several files (such as PDB or GRO). The system can contain several sets of coordinates, called \e frames, which are typically loaded from trajectory files of MD simulations. The system can be created in two ways:
 
 \code
-// Two step method:
+// 1)
 System  sys1; // Empty system
 sys1.load("2lao.pdb"); // Load data into system
 
-// One step method
+// 2)
 System  sys2("2lao.pdb"); // Read the structure file into the system immediately
 \endcode
+
+The method `load` has reach set of additional options and could be called several times to add difference pieces of data from several structure and trajectory files. See \ref advanced_load for details.
 
 Atoms and frames are stored inside the system are usually not accessed directly. The system is only a container for them, while all manipulations are done by means of \e selections.
 
 \section selections 	Selections
 
 Selection is a subset of atoms in the System. Selection does not hold any data, but merely
-point to particular group of atoms. In order to create a selection you must supply the parent system and selection string - textual description of selection. The selection syntax in Pteros is very similar to one used in <a href="http://www.ks.uiuc.edu/Research/vmd/">VMD</a>.
+point to particular group of atoms. There are several ways of creating a selection - from textual description, from the sequence of indexes or using custom selection functions. Every selection is associated with one and only one system. You can't select atoms from several systems simultaneously.
+
+\subsection text_sel Textual selections
+
+In order to create a selection from the textual dexcription you must supply the parent system and selection string. The selection syntax in Pteros is very similar to one used in <a href="http://www.ks.uiuc.edu/Research/vmd/">VMD</a>.
 
 Instead of giving long and boring formal description of the selection syntax, let's learn it by example:
 \code
@@ -66,32 +74,36 @@ Selection sel6(sys,"index 3");
 Selection sel7(sys,"index 20 5 100-600 700 9 0 2");
 
 // Select by residue name(s)
-Selection sel8(sys,"resname ALA");
-Selection sel9(sys,"resname THR MET");
+Selection sel8(sys,"resname ALA"); // Selects all ALA residues
+Selection sel9(sys,"resname THR MET"); // Selects all THR and MET residues
 
 // Select by chain(s)
-Selection sel10(sys,"chain A B");
+Selection sel10(sys,"chain A B"); // Selects chains A and B
 
 // Select by coordinates of atoms (arbitrary arithmetic expressions are supported)
 Selection sel11(sys,"x<10 and y>z*4.5+x");
 
 // This will select all atoms inside a cylinder aligned with Z axis with a radius of 2 Angstroms:
-Selection sel12(sys,"x*x+y*y < 2*2");
+Selection sel12(sys,"x^2+y^2 < 2^2");
 
 // Arbitraraly complex logic with AND, OR  and NOT could be used
 Selection sel13(sys,"((name CA and resid 10 to 100) or (name CB and resname ALA)) or x^2>y^2");
 Selection sel14(sys,"not (name CA and resid 10-100)");
 
 // Select all atoms, which are within given distance (in nm!) from another selection
-Selection sel15(sys,"within 2.5 of (name CA and resid ALA)");
+Selection sel15(sys,"within 2.5 of (name CA and resname ALA)");
 
 // The same as above, but takes care of periodic boundary conditions (try doing this in VMD. Good luck :) )
-Selection sel15periodic(sys,"within 2.5 periodic of (name CA and resid ALA)");
+Selection sel15periodic(sys,"within 2.5 periodic of (name CA and resname ALA)");
 
 // Instead of "periodic" keyword you can use shorter "pbc". "nopbc" and "noperiodic" could also be used but they are used by default and could be omitted.
 
+// Within also takes "noself" keyword which excludes the central selection
+// (those after "of") from result:
+Selection sel15noself(sys,"water and within 0.7 pbc noself of protein"); // Select water around protein without protein itself
+
 // Select whole residue if at least one atom from this residue is found in selection, enclosed into "()"
-Selection sel16(sys,"by residue (name CA and resid ALA)");
+Selection sel16(sys,"by residue (name CA and resname ALA)");
 
 // Select using regular expressions. Will select all atoms with names staring with C - CA, CB, C1H, etc.
 Selection sel17(sys, "name 'C.*'");
@@ -107,6 +119,22 @@ Selection sel19(sys,"distance vector 1.12 4.56 6.7 3.5 5.6 10.1 < 0.5");
 Selection sel19(sys,"distance pbc plane 1.12 4.56 6.7 0 1 1 < 0.5");
 \endcode
 
+Textual selections are "smart" in a way that selection text is analysed and optimized in numerous ways before evaluation. If selection depends on the \em coordinates of atoms it updates automatically if the coordinates change:
+\code
+// Load structure
+System s("some-protein.pdb");
+// Load trajectory with multiple frames
+s.load("traj.xtc");
+
+// Create selection depending on coordinates
+Selection sel(s,"x>10"); // By default points to frame 0
+sel.set_frame(1);
+// Now points to frame 1. Coordinates of atoms change but selection
+// is smart and updates automatically!
+\endcode
+
+\subsection non_text_sel Non-textual selections
+
 It is also possible to make a selection from the pair of indexes or the pair of iterators of some integer sequence:
 
 \code
@@ -118,9 +146,30 @@ vector<int> ind = {5,10,34,1,4,15};
 Selection sel21(sys,ind.begin(),ind.end()); // Select by iterators to integer container
 \endcode
 
-Every selection is associated with one and only one system. You can't select atoms from several systems simultaneously.
+Finally, if you want to implement really complex logic of selecting atoms you can use selection with callbacks:
 
-You can also create empty selections and populate them later using modify() method:
+\code
+// Create a callback function which includes complex selection logic
+// It takes a system, a number of target frame and the vector of selected indexes
+// which have to be filled. These indexes point to selected atoms
+void sel_func(const System& sys,int fr,std::vector<int>& ind){
+    // Some complex logic which fills ind with values goes here
+    // Just for example we selecting all atoms with x>5
+    ind.clear();
+    for(int i=0;i<sys.num_atoms();++i)
+        if(sys.XYZ(i,fr)(0)>5.0) ind.push_back(i);
+}
+
+...
+
+System s("struct.pdb");
+Selection sel(s, &sel_func); // Callback function is called to fill selection
+
+\endcode
+
+\subsection mod_sel Modifying selections
+
+You can also create empty selections and populate them later using modify() methods:
 \code
 Selection sel2; // Empty selection, not associated with the system
 Selection sel3(sys); // Selection bounded to system sys, but selection text is not yet specified
@@ -135,6 +184,10 @@ sel3.modify("name CB"); // The system was set already
 sel3.set_system(other_sys); // This clears selection...
 sel3.modify("name CB"); // ...so we need to create it again
 \endcode
+
+Different `modify()` methods exist, which correspond to other types of selections - for the pair of indexes, for the pair of iterators, for callback function, etc.
+
+\subsection copy_assign Copying and assigning selections
 
 Selections could be copyed and assigned, particularly it is possible to place them to STL containers:
 \code
