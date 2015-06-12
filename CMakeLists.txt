@@ -86,6 +86,10 @@ if(PYTHON_BINDINGS)
         find_package(Boost 1.48.0 REQUIRED python)
         # Save lib location separately from other boost libs
         set(BOOST_PYTHON_LIB ${Boost_LIBRARIES})
+
+        #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DNPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION")
     else()
         message("Can't find Python interpreter of libraries!\nPython bindings and plugins are disabled!")
     endif()
