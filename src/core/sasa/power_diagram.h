@@ -1254,10 +1254,12 @@ private:
 							}
 						}
 					}
+                    /*
 					else //vertex on edge of cube dont have connections through spheres
 					{
 
 					}
+                    */
 
 			for(unsigned int i=fromZero;i<zeros.size();i++)
 			{
