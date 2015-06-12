@@ -453,7 +453,10 @@ boost::shared_ptr<Selection> constructor_from_pyobj(const System& sys, PyObject*
         for(int i=0;i<len(l);++i) v[i] = extract<int>(l[i]);
         boost::shared_ptr<Selection> g(new Selection(sys,v));
         return g;
+    } else {
+        throw Pteros_error("Invalid arguments for Selection constructor!");
     }
+
 }
 
 
