@@ -509,7 +509,7 @@ Selection System::append(const Atom &at, const Vector3f_const_ref coord)
 
 Selection System::append(const Atom_proxy &at)
 {
-    append(at.Atom_data(),at.XYZ());
+    return append(at.Atom_data(),at.XYZ());
 }
 
 void System::rearrange(const std::vector<string> &sel_strings){
