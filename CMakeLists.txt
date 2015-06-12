@@ -6,6 +6,7 @@ OPTION(PYTHON_BINDINGS "Build python bindings and compiled analysis plugins as P
 OPTION(POWERSASA "Use POWERSASA code. This implies severe license restrictions! \n Read the comment in src/core/sasa/power_sasa.h carefully before enabling this option!" OFF)
 OPTION(STANDALONE_PLUGINS "Compile analysis plugins as stand-alone executables" OFF)
 OPTION(MAKE_PACKAGE "Generate package" OFF)
+OPTION(USE_OPENMP "Use OpenMP parallelization if supported" ON)
 
 # Use shared Boost libraries
 set(Boost_USE_STATIC_LIBS OFF)
@@ -48,16 +49,24 @@ ENDIF()
 #Sets optmization for Eigen in Release build
 SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -msse2")
 
+# Enable STL debugging in debug mode
 SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_GLIBCXX_DEBUG")
 
 # Enable C++11 and C99 everywhere
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -Wl,--no-as-needed")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99")
 
-find_package(OpenMP)
-if(OPENMP_FOUND)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+# Set specific options for GCC if used
+if(CMAKE_COMPILER_IS_GNUCXX)
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wl,--no-as-needed")
+endif()
+
+if(USE_OPENMP)
+    find_package(OpenMP)
+    if(OPENMP_FOUND)
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+    endif()
 endif()
 
 # Find Python only if we need bindings
