@@ -454,7 +454,9 @@ Selection System::append(const System &sys){
 
 Selection System::append(const Selection &sel){    
     //Sanity check
+    if(sel.get_system()!=this) throw Pteros_error("append needs selection from the same system!");
     if(num_frames()>0 && num_frames()!=sel.get_system()->num_frames()) throw Pteros_error("Can't merge systems with different number of frames!");
+
     // If no frames create needed ammount
     bool transfer_time_box = false;
     if(num_frames()==0){
@@ -525,6 +527,7 @@ void System::rearrange(const std::vector<Selection> &sel_vec){
     // Empty selections check
     for(auto &s: sel_vec){
         if(s.size()==0) throw Pteros_error("Empty selections are not permitted in rearrange!");
+        if(s.get_system()!=this) throw Pteros_error("rearrange need selections from the same system!");
     }
     // Overlap check
     vector<int> inters;
@@ -556,6 +559,7 @@ void System::keep(const string &sel_str)
 
 void System::keep(const Selection &sel)
 {
+    if(sel.get_system()!=this) throw Pteros_error("keep needs selection from the same system!");
     System tmp;
     tmp.append(sel);
     *this = tmp;
@@ -569,6 +573,7 @@ void System::remove(const string &sel_str)
 
 void System::remove(Selection &sel)
 {
+    if(sel.get_system()!=this) throw Pteros_error("remove needs selection from the same system!");
     System tmp;
     tmp.append(~sel);
     *this = tmp;
@@ -577,6 +582,7 @@ void System::remove(Selection &sel)
 
 void System::distribute(const Selection sel, Vector3i_const_ref ncopies, Vector3f_const_ref shift)
 {
+    if(sel.get_system()!=this) throw Pteros_error("distribute needs selection from the same system!");
     Selection tmp;
     for(int x=0; x<ncopies(0); ++x)
         for(int y=0; y<ncopies(1); ++y)
