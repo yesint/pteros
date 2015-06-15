@@ -129,8 +129,9 @@ public:
     /// Returns selection corresponding to appended atoms
     Selection append(const System& sys);
 
-    /// Append atoms from selection to this system
-    /// Returns selection corresponding to appended atoms
+    /// Append atoms from selection to this system.
+    /// Selection may belong to any system, not necessary current.
+    /// Returns selection corresponding to appended atoms.
     Selection append(const Selection& sel);
 
     /// Append single atom to this system

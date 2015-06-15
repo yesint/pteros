@@ -453,8 +453,7 @@ Selection System::append(const System &sys){
 }
 
 Selection System::append(const Selection &sel){    
-    //Sanity check
-    if(sel.get_system()!=this) throw Pteros_error("append needs selection from the same system!");
+    //Sanity check    
     if(num_frames()>0 && num_frames()!=sel.get_system()->num_frames()) throw Pteros_error("Can't merge systems with different number of frames!");
 
     // If no frames create needed ammount
