@@ -54,7 +54,7 @@ int main(int argc, char* argv[]){
         // Distribute solvent boxes
         {
             Selection all(solvent,"all");
-            solvent.distribute(all,nbox,max_solvent_coord);
+            solvent.distribute(all,nbox,solvent.Box(0).get_matrix());
         }
 
         // Move minimal coord solvent box to minimal coord of solute

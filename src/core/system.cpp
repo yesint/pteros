@@ -579,19 +579,23 @@ void System::remove(Selection &sel)
     sel.clear();
 }
 
-void System::distribute(const Selection sel, Vector3i_const_ref ncopies, Vector3f_const_ref shift)
+
+void System::distribute(const Selection sel, Vector3i_const_ref ncopies, Matrix3f_const_ref shift)
 {
     if(sel.get_system()!=this) throw Pteros_error("distribute needs selection from the same system!");
     Selection tmp;
+    Vector3f v;
     for(int x=0; x<ncopies(0); ++x)
         for(int y=0; y<ncopies(1); ++y)
             for(int z=0; z<ncopies(2); ++z){
                 if(x>0 || y>0 || z>0){
-                    tmp = append(sel);                    
-                    tmp.translate(Vector3f(shift(0)*x,shift(1)*y,shift(2)*z));
+                    tmp = append(sel);
+                    v = shift.col(0)*x + shift.col(1)*y + shift.col(2)*z;
+                    tmp.translate(v);
                 }
             }
 }
+
 
 Selection System::select(string str){
     return Selection(*this,str);
