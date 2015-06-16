@@ -175,7 +175,8 @@ public:
     void remove(Selection& sel);
 
     /// Creates multiple copies of selection in the system and
-    /// distributes them in a grid given by 3 translation vectors
+    /// distributes them in a grid given by 3 translation vectors.
+    /// Vectors are stored column-wise as shift.col(i)
     void distribute(const Selection sel, Vector3i_const_ref ncopies, Matrix3f_const_ref shift);
 
     /// @}
