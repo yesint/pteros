@@ -34,6 +34,8 @@
 #include "bindings_energy_components.h"
 #include "bindings_utilities.h"
 
+#include <boost/cstdint.hpp>
+
 /**********************
   Create python module
 ***********************/
@@ -52,8 +54,58 @@
 
 // Translates Pteros_error to Python exception
 void Pteros_error_translator(const pteros::Pteros_error& e) {
-  PyErr_SetString(PyExc_UserWarning, const_cast<pteros::Pteros_error&>(e).what().c_str());
+    PyErr_SetString(PyExc_UserWarning, const_cast<pteros::Pteros_error&>(e).what().c_str());
 }
+
+// Converter type that enables automatic conversions between NumPy scalars and C++ types.
+
+template <typename T, NPY_TYPES NumPyScalarType>
+struct enable_numpy_scalar_converter
+{
+    enable_numpy_scalar_converter()
+    {
+        // Required NumPy call in order to use the NumPy C API within another
+        // extension module.
+        import_array();
+
+        boost::python::converter::registry::push_back(
+                    &convertible,
+                    &construct,
+                    boost::python::type_id<T>());
+    }
+
+    static void* convertible(PyObject* object)
+    {
+        // The object is convertible if all of the following are true:
+        // - is a valid object.
+        // - is a numpy array scalar.
+        // - its descriptor type matches the type for this converter.
+        return (
+                    object &&                                                    // Valid
+                    PyArray_CheckScalar(object) &&                               // Scalar
+                    PyArray_DescrFromScalar(object)->type_num == NumPyScalarType // Match
+                    )
+                ? object // The Python object can be converted.
+                : NULL;
+    }
+
+    static void construct(
+            PyObject* object,
+            boost::python::converter::rvalue_from_python_stage1_data* data)
+    {
+        // Obtain a handle to the memory block that the converter has allocated
+        // for the C++ type.
+        namespace python = boost::python;
+        typedef python::converter::rvalue_from_python_storage<T> storage_type;
+        void* storage = reinterpret_cast<storage_type*>(data)->storage.bytes;
+
+        // Extract the array scalar type directly into the storage.
+        PyArray_ScalarAsCtype(object, storage);
+
+        // Set convertible to indicate success.
+        data->convertible = storage;
+    }
+};
 
 BOOST_PYTHON_MODULE(_pteros)
 {
@@ -64,6 +116,9 @@ BOOST_PYTHON_MODULE(_pteros)
     // Required!
     import_array();    
     boost::python::numeric::array::set_module_and_type("numpy", "ndarray");
+
+    // Register needed numpy scalar types converters
+    enable_numpy_scalar_converter<boost::int32_t, NPY_INT>();
 
     // Register exception translator
     register_exception_translator<Pteros_error>(&Pteros_error_translator);
