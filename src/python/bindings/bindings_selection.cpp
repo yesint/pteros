@@ -442,8 +442,7 @@ boost::shared_ptr<Selection> constructor_from_pyobj(const System& sys, PyObject*
         return g;
 
     } else if( PyString_Check(obj) ) {
-        string str = extract<string>(object( handle<>(borrowed(obj)) ));
-        cout << str << endl;
+        string str = extract<string>(object( handle<>(borrowed(obj)) ));        
         boost::shared_ptr<Selection> g(new Selection(sys,str));
         return g;
 
