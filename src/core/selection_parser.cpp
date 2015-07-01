@@ -726,17 +726,15 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
 
     else if(node->code == TOK_EQ)
     {
+        auto op1 = get_numeric(node->child_node(0));
+        auto op2 = get_numeric(node->child_node(1));
         if(!subspace){
             for(at=0;at<Natoms;++at) // over all atoms
-                if(eval_numeric(node->child_node(0),at) ==
-                   eval_numeric(node->child_node(1),at)
-                  ) result.push_back(at);
+                if( op1(at) == op2(at) ) result.push_back(at);
         } else {
             for(int i=0;i<subspace->size();++i){ // over subspace
                 at = (*subspace)[i];
-                if(eval_numeric(node->child_node(0),at) ==
-                   eval_numeric(node->child_node(1),at)
-                  ) result.push_back(at);
+                if( op1(at) == op2(at) ) result.push_back(at);
             }
         }
     }
@@ -744,17 +742,15 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
     //---------------------------------------------------------------------------
     else if(node->code == TOK_NEQ)
     {
+        auto op1 = get_numeric(node->child_node(0));
+        auto op2 = get_numeric(node->child_node(1));
         if(!subspace){
             for(at=0;at<Natoms;++at) // over all atoms
-                if(eval_numeric(node->child_node(0),at) !=
-                   eval_numeric(node->child_node(1),at)
-                  ) result.push_back(at);
+                if( op1(at) != op2(at) ) result.push_back(at);
         } else {
             for(int i=0;i<subspace->size();++i){ // over subspace
                 at = (*subspace)[i];
-                if(eval_numeric(node->child_node(0),at) !=
-                   eval_numeric(node->child_node(1),at)
-                  ) result.push_back(at);
+                if( op1(at) != op2(at) ) result.push_back(at);
             }
         }
     }
@@ -762,18 +758,16 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
     //---------------------------------------------------------------------------
     else if(node->code == TOK_LT)
     {
+        auto op1 = get_numeric(node->child_node(0));
+        auto op2 = get_numeric(node->child_node(1));
         if(!subspace){
             for(at=0;at<Natoms;++at){ // over all atoms
-                if(eval_numeric(node->child_node(0),at) <
-                   eval_numeric(node->child_node(1),at)
-                  ) result.push_back(at);
+                if( op1(at) < op2(at) ) result.push_back(at);
             }
         } else {            
             for(int i=0;i<subspace->size();++i){ // over subspace
                 at = (*subspace)[i];
-                if(eval_numeric(node->child_node(0),at) <
-                   eval_numeric(node->child_node(1),at)
-                  ) result.push_back(at);
+                if( op1(at) < op2(at) ) result.push_back(at);
             }
         }
     }
@@ -781,17 +775,16 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
     //---------------------------------------------------------------------------
     else if(node->code == TOK_GT)
     {
+        auto op1 = get_numeric(node->child_node(0));
+        auto op2 = get_numeric(node->child_node(1));
         if(!subspace){
-            for(at=0;at<Natoms;++at) // over all atoms
-                if(eval_numeric(node->child_node(0),at) >
-                   eval_numeric(node->child_node(1),at)
-                  ) result.push_back(at);            
-        } else {            
+            for(at=0;at<Natoms;++at){ // over all atoms
+                if( op1(at) > op2(at) ) result.push_back(at);
+            }
+        } else {
             for(int i=0;i<subspace->size();++i){ // over subspace
                 at = (*subspace)[i];
-                if(eval_numeric(node->child_node(0),at) >
-                   eval_numeric(node->child_node(1),at)
-                  ) result.push_back(at);
+                if( op1(at) > op2(at) ) result.push_back(at);
             }
         }
     }
@@ -799,17 +792,16 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
     //---------------------------------------------------------------------------
     else if(node->code == TOK_LEQ)
     {
+        auto op1 = get_numeric(node->child_node(0));
+        auto op2 = get_numeric(node->child_node(1));
         if(!subspace){
-            for(at=0;at<Natoms;++at) // over all atoms
-                if(eval_numeric(node->child_node(0),at) <=
-                   eval_numeric(node->child_node(1),at)
-                  ) result.push_back(at);
+            for(at=0;at<Natoms;++at){ // over all atoms
+                if( op1(at) <= op2(at) ) result.push_back(at);
+            }
         } else {
             for(int i=0;i<subspace->size();++i){ // over subspace
                 at = (*subspace)[i];
-                if(eval_numeric(node->child_node(0),at) <=
-                   eval_numeric(node->child_node(1),at)
-                  ) result.push_back(at);
+                if( op1(at) <= op2(at) ) result.push_back(at);
             }
         }
     }
@@ -817,17 +809,16 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
     //---------------------------------------------------------------------------
     else if(node->code == TOK_GEQ)
     {
+        auto op1 = get_numeric(node->child_node(0));
+        auto op2 = get_numeric(node->child_node(1));
         if(!subspace){
-            for(at=0;at<Natoms;++at) // over all atoms
-                if(eval_numeric(node->child_node(0),at) >=
-                   eval_numeric(node->child_node(1),at)
-                  ) result.push_back(at);
+            for(at=0;at<Natoms;++at){ // over all atoms
+                if( op1(at) >= op2(at) ) result.push_back(at);
+            }
         } else {
             for(int i=0;i<subspace->size();++i){ // over subspace
                 at = (*subspace)[i];
-                if(eval_numeric(node->child_node(0),at) >=
-                   eval_numeric(node->child_node(1),at)
-                  ) result.push_back(at);
+                if( op1(at) >= op2(at) ) result.push_back(at);
             }
         }
     }
@@ -840,6 +831,125 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
 
 
 }
+
+// Returns callable, which returns value for numeric node for atom at
+std::function<float(int)> Selection_parser::get_numeric(AstNode_ptr& node){
+    if(node->code == TOK_INT || node->code == TOK_UINT){
+        float val = boost::get<int>(node->children[0]);
+        return [val](int at){ return val; };
+    } else if(node->code == TOK_FLOAT){
+        float val = boost::get<float>(node->children[0]);
+        return [val](int at){ return val; };
+    } else if(node->code == TOK_X){
+        return [this](int at){ return sys->traj[frame].coord[at](0); };
+    } else if(node->code == TOK_Y){
+        return [this](int at){ return sys->traj[frame].coord[at](1); };
+    } else if(node->code == TOK_Z){
+        return [this](int at){ return sys->traj[frame].coord[at](2); };
+    } else if(node->code == TOK_BETA){
+        return [this](int at){ return sys->atoms[at].beta; };
+    } else if(node->code == TOK_OCC){
+        return [this](int at){ return sys->atoms[at].occupancy; };
+    } else if(node->code == TOK_INDEX){
+        return [](int at){ return at; };
+    } else if(node->code == TOK_RESINDEX){
+        return [this](int at){ return sys->atoms[at].resindex; };
+    } else if(node->code == TOK_RESID){
+        return [this](int at){ return sys->atoms[at].resid; };
+    } else if(node->code == TOK_UNARY_MINUS){
+        auto func = get_numeric(node->child_node(0));
+        return [&func](int at){ return -func(at); };
+    } else if(node->code == TOK_PLUS){
+        auto func1 = get_numeric(node->child_node(0));
+        auto func2 = get_numeric(node->child_node(1));
+        return [&func1,&func2](int at){ return func1(at)+func2(at); };
+    } else if(node->code == TOK_MINUS){
+        auto func1 = get_numeric(node->child_node(0));
+        auto func2 = get_numeric(node->child_node(1));
+        return [&func1,&func2](int at){ return func1(at)-func2(at); };
+    } else if(node->code == TOK_MULT){
+        auto func1 = get_numeric(node->child_node(0));
+        auto func2 = get_numeric(node->child_node(1));
+        return [&func1,&func2](int at){ return func1(at)*func2(at); };
+    } else if(node->code == TOK_DIV){
+        auto func1 = get_numeric(node->child_node(0));
+        auto func2 = get_numeric(node->child_node(1));
+        return [&func1,&func2](int at){
+            float v = func2(at);
+            if(v==0.0) throw Pteros_error("Division by zero in selection!");
+            return func1(at)/v;
+        };
+    } else if(node->code == TOK_POWER) {
+        auto func1 = get_numeric(node->child_node(0));
+        auto func2 = get_numeric(node->child_node(1));
+        return [&func1,&func2](int at){ return std::pow(func1(at),func2(at)); };
+    } else if(node->code == TOK_POINT){
+        // Extract point
+        Eigen::Vector3f p;
+
+        p(0) = boost::get<float>(node->children[0]);
+        p(1) = boost::get<float>(node->children[1]);
+        p(2) = boost::get<float>(node->children[2]);
+
+        bool pbc = (boost::get<int>(node->children[3])) ? true : false;
+
+        // Return distance
+        if(pbc){
+            return [this,&p](int at){
+                return sys->Box(frame).distance(p, sys->traj[frame].coord[at]);
+            };
+        } else {
+            return [this,&p](int at){
+                return (p - sys->traj[frame].coord[at]).norm();
+            };
+        }
+
+    } else if(node->code == TOK_VECTOR || node->code == TOK_PLANE ){
+        // Extract point
+        Eigen::Vector3f p;
+        p(0) = boost::get<float>(node->children[0]);
+        p(1) = boost::get<float>(node->children[1]);
+        p(2) = boost::get<float>(node->children[2]);
+        // Extract direction vector (or a normal if it's a plane)
+        Eigen::Vector3f dir;
+        dir(0) = boost::get<float>(node->children[3]);
+        dir(1) = boost::get<float>(node->children[4]);
+        dir(2) = boost::get<float>(node->children[5]);
+
+        // pbc
+        bool pbc = (boost::get<int>(node->children[6])) ? true : false;
+
+        bool do_plane = (node->code == TOK_PLANE) ? true : false;
+
+        return [this,&p,&dir,pbc,do_plane](int at){
+            Eigen::Vector3f atom = sys->traj[frame].coord[at];
+
+            // Get vector from p to current atom
+            Eigen::Vector3f v = atom - p;
+
+            // Project v onto dir
+            v = (v.dot(dir)/dir.squaredNorm())*dir;
+
+            if(do_plane){
+                // Get closest point on a plane to atom
+                v = atom-v;
+            } else {
+                // Get the end point of projection
+                v += p;
+            }
+
+            // Return distance between atom and v
+            if(pbc){
+                return sys->Box(frame).distance(atom, v);
+            } else {
+                return (atom-v).norm();
+            }
+        };
+    } else {
+        throw Pteros_error("Wrong numeric node!");
+    }
+}
+
 
 float Selection_parser::eval_numeric(AstNode_ptr& node, int at){    
     if(node->code == TOK_INT){

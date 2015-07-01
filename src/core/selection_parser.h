@@ -173,6 +173,7 @@ private:
 
     void eval_node(AstNode_ptr& node, std::vector<int>& result, std::vector<int>* subspace);
     float eval_numeric(AstNode_ptr& node, int at);
+    std::function<float(int)> get_numeric(AstNode_ptr& node);
     void do_optimization(AstNode_ptr& node);
 
     bool is_optimized;        

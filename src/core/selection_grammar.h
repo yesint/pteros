@@ -648,6 +648,8 @@ public:
                 // Reduce pbc node to number 0 or 1
                 _this_rule_->children[3] = _this_rule_->child_as_int(3);                
             }
+            // Reduce 3 first nodes to floats
+            for(int i=0;i<3;++i) _this_rule_->children[i] = _this_rule_->child_as_float(i);
         } // _ok_
     }
 
@@ -669,6 +671,8 @@ public:
                 // Reduce pbc node to number 0 or 1
                 _this_rule_->children[6] = _this_rule_->child_as_int(6);
             }
+            // Reduce 6 first nodes to floats
+            for(int i=0;i<6;++i) _this_rule_->children[i] = _this_rule_->child_as_float(i);
         } // _ok_
     }
 
@@ -690,6 +694,8 @@ public:
                 // Reduce pbc node to number 0 or 1
                 _this_rule_->children[6] = _this_rule_->child_as_int(6);
             }
+            // Reduce 6 first nodes to floats
+            for(int i=0;i<6;++i) _this_rule_->children[i] = _this_rule_->child_as_float(i);
         } // _ok_
     }
 
