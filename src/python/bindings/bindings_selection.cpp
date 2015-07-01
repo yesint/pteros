@@ -483,8 +483,7 @@ void Selection_modify_from_pyobj2(Selection* sel, const System& sys, PyObject* o
         sel->modify(sys,callback);
 
     } else if( PyString_Check(obj) ) {
-        string str = extract<string>(object( handle<>(borrowed(obj)) ));
-        cout << str << endl;
+        string str = extract<string>(object( handle<>(borrowed(obj)) ));        
         sel->modify(sys,str);
 
     } else if( PySequence_Check(obj) ) {
