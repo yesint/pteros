@@ -38,7 +38,6 @@ using namespace boost::python;
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(fit_trajectory_overloads, fit_trajectory, 0, 3)
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(get_average_overloads, get_average, 0, 2)
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(principal_orient_overloads, principal_orient, 0, 1)
-BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(unwrap_bonds_overloads, unwrap_bonds, 0, 1)
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(non_bond_energy_overloads, non_bond_energy, 0, 2)
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(rmsd_overloads, rmsd, 1, 2)
 
@@ -537,6 +536,41 @@ float Selection_dihedral3(Selection* s, int i, int j, int k, int l){
     return s->dihedral(i,j,k,l);
 }
 
+void Selection_wrap0(Selection* s){
+    s->wrap();
+}
+
+void Selection_wrap1(Selection* s, PyObject* dims){
+    MAP_EIGEN_TO_PYTHON_I(Vector3i,dim,dims)
+    s->wrap(dim);
+}
+
+void Selection_unwrap0(Selection* s){
+    s->unwrap();
+}
+
+void Selection_unwrap1(Selection* s, PyObject* dims){
+    MAP_EIGEN_TO_PYTHON_I(Vector3i,dim,dims)
+    s->unwrap(dim);
+}
+
+void Selection_unwrap_bonds0(Selection* s){
+    s->unwrap_bonds();
+}
+
+void Selection_unwrap_bonds1(Selection* s, float d){
+    s->unwrap_bonds(d);
+}
+
+void Selection_unwrap_bonds2(Selection* s, float d, int leading_index){
+    s->unwrap_bonds(d,leading_index);
+}
+
+void Selection_unwrap_bonds3(Selection* s, float d, int leading_index, PyObject* dims){
+    MAP_EIGEN_TO_PYTHON_I(Vector3i,dim,dims)
+    s->unwrap_bonds(d,leading_index,dim);
+}
+
 //-------------------------------------------------------
 
 // Macros to wrap an inline accessor function
@@ -745,9 +779,14 @@ void make_bindings_Selection(){
 
         .def("principal_orient",&Selection::principal_orient, principal_orient_overloads())
 
-        .def("wrap",&Selection::wrap)
-        .def("unwrap",&Selection::unwrap)
-        .def("unwrap_bonds",&Selection::unwrap_bonds, unwrap_bonds_overloads())
+        .def("wrap",&Selection_wrap0)
+        .def("wrap",&Selection_wrap1)
+        .def("unwrap",&Selection_unwrap0)
+        .def("unwrap",&Selection_unwrap1)
+        .def("unwrap_bonds",&Selection_unwrap_bonds0)
+        .def("unwrap_bonds",&Selection_unwrap_bonds1)
+        .def("unwrap_bonds",&Selection_unwrap_bonds2)
+        .def("unwrap_bonds",&Selection_unwrap_bonds3)
 
         .def("text_based",&Selection::text_based)
         .def("coord_dependent",&Selection::coord_dependent)
