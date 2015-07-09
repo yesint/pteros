@@ -18,15 +18,15 @@ from _pteros import *
 def _select(self,*args):
     sel = Selection(self)
     if len(args)==1:
-        sel.modify(args[0]) # For string or index array
-        # keep system alive at the life time of selection
-        sel._system = self
-        return sel
-    elif len(args)==2:
-        sel.modify(args[0],args[1]) # For pair of indexes
-        # keep system alive at the life time of selection
-        sel._system = self
-        return sel
+        sel.modify(args[0])
+    elif len(args)==2:        
+        sel.modify(args[0],args[1])
+    else:
+        raise RuntimeError("Wrong arguments for selection!")
+
+    # keep system alive at the life time of selection
+    sel._system = self
+    return sel
 
 System.select = _select
 System.__call__ = _select

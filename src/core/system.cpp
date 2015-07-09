@@ -597,13 +597,13 @@ void System::distribute(const Selection sel, Vector3i_const_ref ncopies, Matrix3
 }
 
 
-Selection System::select(string str){
-    return Selection(*this,str);
+Selection System::select(string str, int fr){
+    return Selection(*this,str,fr);
 }
 
-Selection System::operator()(string str)
+Selection System::operator()(string str, int fr)
 {
-    return Selection(*this,str);
+    return Selection(*this,str,fr);
 }
 
 Selection System::select(int ind1, int ind2){
@@ -633,14 +633,14 @@ Selection System::operator()(vector<int>::iterator it1, vector<int>::iterator it
     return Selection(*this,it1,it2);
 }
 
-Selection System::select(const std::function<void (const System &, int, std::vector<int> &)> &callback)
+Selection System::select(const std::function<void (const System &, int, std::vector<int> &)> &callback, int fr)
 {
-    return Selection(*this,callback);
+    return Selection(*this,callback,fr);
 }
 
-Selection System::operator()(const std::function<void (const System &, int, std::vector<int> &)> &callback)
+Selection System::operator()(const std::function<void (const System &, int, std::vector<int> &)> &callback, int fr)
 {
-    return Selection(*this,callback);
+    return Selection(*this,callback,fr);
 }
 
 Selection System::select_all(){

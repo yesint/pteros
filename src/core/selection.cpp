@@ -83,7 +83,7 @@ Selection::Selection(){
 };
 
 // Main constructor
-Selection::Selection(const System &sys, string str){   
+Selection::Selection(const System &sys, string str, int fr){
     // Set selection string
     sel_text = str;
     boost::trim(sel_text);
@@ -95,8 +95,12 @@ Selection::Selection(const System &sys, string str){
     // Add selection to sys
     system = const_cast<System*>(&sys);
 
-    // By default points to frame 0
-    frame = 0;
+    // point to frame
+    frame = fr;
+
+    // Sanity check
+    if(frame<0 || frame>=system->num_frames())
+        throw Pteros_error("Can't make selection for non-existent frame ") << frame << "!";
 
     allocate_parser();
 
@@ -165,11 +169,16 @@ Selection::Selection(const System &sys, std::vector<int>::iterator it1, std::vec
 }
 
 Selection::Selection(const System& sys,
-                     const std::function<void (const System &, int, std::vector<int> &)>& callback)
+                     const std::function<void (const System &, int, std::vector<int> &)>& callback,
+                     int fr)
 {
     sel_text = "";
     parser.reset();
-    frame = 0;
+    frame = fr;
+    // Sanity check
+    if(frame<0 || frame>=system->num_frames())
+        throw Pteros_error("Can't make selection for non-existent frame ") << frame << "!";
+
     // set system
     system = const_cast<System*>(&sys);
     // call callback
@@ -243,14 +252,18 @@ void Selection::clear(){
 }
 
 // Modify selection with new selection string
-void Selection::modify(string str){
+void Selection::modify(string str, int fr){
     if(system==nullptr) throw Pteros_error("Selection does not belong to any system!");
     sel_text = str;
     boost::trim(sel_text);
     // Expand macro-definitions in the string
     for(int i=0;i<Nmacro;++i)
         boost::replace_all(sel_text,macro[2*i],macro[2*i+1]);
-    index.clear();    
+    index.clear();
+    frame = fr;
+    // Sanity check
+    if(frame<0 || frame>=system->num_frames())
+        throw Pteros_error("Can't make selection for non-existent frame ") << frame << "!";
     allocate_parser();    
 }
 
@@ -289,7 +302,7 @@ void Selection::modify(std::vector<int>::iterator it1, std::vector<int>::iterato
     sort_and_remove_duplicates();
 }
 
-void Selection::modify(const std::function<void (const System &, int, std::vector<int> &)>& callback)
+void Selection::modify(const std::function<void (const System &, int, std::vector<int> &)>& callback, int fr)
 {
     if(system==nullptr) throw Pteros_error("Selection does not belong to any system!");
     // no parser needed
@@ -298,15 +311,19 @@ void Selection::modify(const std::function<void (const System &, int, std::vecto
     sel_text = "";
     // clear index
     index.clear();
+    frame = fr;
+    // Sanity check
+    if(frame<0 || frame>=system->num_frames())
+        throw Pteros_error("Can't make selection for non-existent frame ") << frame << "!";
     // fill
     callback(*system,frame,index);
 
     sort_and_remove_duplicates();
 }
 
-void Selection::modify(const System &sys, string str){    
+void Selection::modify(const System &sys, string str, int fr){
     set_system(sys);    
-    modify(str);    
+    modify(str,fr);
 }
 
 void Selection::modify(const System &sys, int ind1, int ind2){
@@ -324,10 +341,10 @@ void Selection::modify(const System &sys, std::vector<int>::iterator it1, std::v
     modify(it1,it2);
 }
 
-void Selection::modify(const System &sys, const std::function<void (const System &, int, std::vector<int> &)>& callback)
+void Selection::modify(const System &sys, const std::function<void (const System &, int, std::vector<int> &)>& callback, int fr)
 {
     set_system(sys);
-    modify(callback);
+    modify(callback,fr);
 }
 
 // Assignment

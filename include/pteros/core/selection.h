@@ -77,7 +77,7 @@ class Selection {
     *   @param sys System pointed by this selection
     *   @param str Selection string    
     */
-    Selection(const System& sys, std::string str);    
+    Selection(const System& sys, std::string str, int fr = 0);
 
     /** Constructor, which creates selection from the interval of indexes
         instead of selection string.
@@ -108,7 +108,8 @@ class Selection {
       It will not recompute itself on the frame change even if it involves atom coordinates.
     */
     Selection(const System& sys,
-              const std::function<void(const System&,int,std::vector<int>&)>& callback);
+              const std::function<void(const System&,int,std::vector<int>&)>& callback,
+              int fr = 0);
 
     /// Copy constructor
     Selection(const Selection& sel);
@@ -198,7 +199,7 @@ class Selection {
     *   @param str New value of selection text. Selection is re-parsed immediately with
     *   this new value.
     */
-    void modify(std::string str);
+    void modify(std::string str, int fr = 0);
 
     /// Modifies selection using the range of indexes
     void modify(int ind1, int ind2);
@@ -219,10 +220,10 @@ class Selection {
       Resulting selection is neither coordinate-dependent nor text-based.
       It will not recompute itself on the frame change even if it involves atom coordinates.
     */
-    void modify(const std::function<void(const System&,int,std::vector<int>&)>& callback);
+    void modify(const std::function<void(const System&,int,std::vector<int>&)>& callback, int fr = 0);
 
     /// Convenience function, which combines set_system and modify(str)
-    void modify(const System& sys, std::string str);
+    void modify(const System& sys, std::string str, int fr = 0);
 
     /// Convenience function, which combines set_system and modify(int,int)
     void modify(const System& sys, int ind1, int ind2);
@@ -236,7 +237,7 @@ class Selection {
                 std::vector<int>::iterator it2);
 
     /// Convenience function, which combines set_system and modify(callback)
-    void modify(const System& sys, const std::function<void(const System&,int,std::vector<int>&)>& callback);
+    void modify(const System& sys, const std::function<void(const System&,int,std::vector<int>&)>& callback, int fr = 0);
 
     /** Recomputes selection without re-parsing selection text.
     *   Only makes sense for coordinate-dependent selections when the coordinates change.

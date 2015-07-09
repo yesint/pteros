@@ -427,12 +427,13 @@ bp::tuple Selection_sasa(Selection* s, float probe_r = 0.14,
 
 BOOST_PYTHON_FUNCTION_OVERLOADS(Selection_sasa_overloads,Selection_sasa,1,5)
 
-boost::shared_ptr<Selection> constructor_from_pyobj(const System& sys, PyObject* obj){
+boost::shared_ptr<Selection> constructor_from_pyobj0(const System& sys, PyObject* obj){
+    cout << "%%% 0" << endl;
     if( PyCallable_Check(obj) ){
         // A lambda, which will call Python function
         auto callback = [&obj](const System& sys, int fr, vector<int>& ind)->void {
             // Call python function
-            auto py_ind = bp::call<bp::list>(obj, boost::ref(sys), fr);
+            auto py_ind = bp::call<bp::list>(obj, boost::ref(sys));
             // Convert list to vector
             for(int i=0;i<len(py_ind);++i) ind.push_back( extract<int>(py_ind[i]) );
         };
@@ -441,7 +442,7 @@ boost::shared_ptr<Selection> constructor_from_pyobj(const System& sys, PyObject*
         return g;
 
     } else if( PyString_Check(obj) ) {
-        string str = extract<string>(object( handle<>(borrowed(obj)) ));        
+        string str = extract<string>(object( handle<>(borrowed(obj)) ));
         boost::shared_ptr<Selection> g(new Selection(sys,str));
         return g;
 
@@ -454,7 +455,43 @@ boost::shared_ptr<Selection> constructor_from_pyobj(const System& sys, PyObject*
     } else {
         throw Pteros_error("Invalid arguments for Selection constructor!");
     }
+}
 
+boost::shared_ptr<Selection> constructor_from_pyobj1(const System& sys, PyObject* obj, int fr){
+    cout << "%%% 1" << endl;
+    if( PyCallable_Check(obj) ){
+        // A lambda, which will call Python function
+        auto callback = [&obj](const System& sys, int fr, vector<int>& ind)->void {
+            // Call python function
+            auto py_ind = bp::call<bp::list>(obj, boost::ref(sys), fr);
+            // Convert list to vector
+            for(int i=0;i<len(py_ind);++i) ind.push_back( extract<int>(py_ind[i]) );
+        };
+
+        boost::shared_ptr<Selection> g(new Selection(sys,callback,fr));
+        return g;
+
+    } else if( PyString_Check(obj) ) {
+        string str = extract<string>(object( handle<>(borrowed(obj)) ));        
+        boost::shared_ptr<Selection> g(new Selection(sys,str,fr));
+        return g;
+
+    } else if( PySequence_Check(obj) ) {
+        throw Pteros_error("Specified target frame for selection from a list of indexes! This doesn't make sense.");
+        bp::object l( handle<>(borrowed(obj)) );
+        vector<int> v(len(l));
+        for(int i=0;i<len(l);++i) v[i] = extract<int>(l[i]);
+        boost::shared_ptr<Selection> g(new Selection(sys,v));
+        return g;
+
+    } else if( PyInt_Check(obj) ) {
+        int i = extract<int>(object( handle<>(borrowed(obj)) ));
+        boost::shared_ptr<Selection> g(new Selection(sys,i,fr));
+        return g;
+
+    } else {
+        throw Pteros_error("Invalid arguments for Selection constructor!");
+    }
 }
 
 
@@ -470,7 +507,37 @@ void Selection_modify_list2(Selection* sel, const System& sys, const bp::list& l
     sel->modify(sys,v);
 }
 
-void Selection_modify_from_pyobj2(Selection* sel, const System& sys, PyObject* obj){
+void Selection_modify_from_pyobj3(Selection* sel, const System& sys, PyObject* obj, int fr){
+    if( PyCallable_Check(obj) ){
+        // A lambda, which will call Python function
+        auto callback = [&obj](const System& sys, int fr, vector<int>& ind)->void {
+            // Call python function
+            auto py_ind = bp::call<bp::list>(obj, boost::ref(sys), fr);
+            // Convert list to vector
+            for(int i=0;i<len(py_ind);++i) ind.push_back( extract<int>(py_ind[i]) );
+        };
+        sel->modify(sys,callback,fr);
+
+    } else if( PyString_Check(obj) ) {
+        string str = extract<string>(object( handle<>(borrowed(obj)) ));
+        sel->modify(sys,str,fr);
+
+    } else if( PySequence_Check(obj) ) {
+        throw Pteros_error("Specified target frame for selection from a list of indexes! This doesn't make sense.");
+        bp::object l( handle<>(borrowed(obj)) );
+        vector<int> v(len(l));
+        for(int i=0;i<len(l);++i) v[i] = extract<int>(l[i]);
+        sel->modify(sys,v);
+    } else if( PyInt_Check(obj) ) {
+        int i = extract<int>(object( handle<>(borrowed(obj)) ));
+        sel->modify(sys,i,fr);
+    } else {
+        throw Pteros_error("Wrong arguments for selection!");
+    }
+}
+
+
+void Selection_modify_from_pyobj2(Selection* sel, const System& sys, PyObject* obj){        
     if( PyCallable_Check(obj) ){
         // A lambda, which will call Python function
         auto callback = [&obj](const System& sys, int fr, vector<int>& ind)->void {
@@ -490,12 +557,19 @@ void Selection_modify_from_pyobj2(Selection* sel, const System& sys, PyObject* o
         vector<int> v(len(l));
         for(int i=0;i<len(l);++i) v[i] = extract<int>(l[i]);
         sel->modify(sys,v);
+    } else {
+        throw Pteros_error("Wrong arguments for selection!");
     }
 }
 
-void Selection_modify_from_pyobj1(Selection* sel, PyObject* obj){
+void Selection_modify_from_pyobj2_def(Selection* sel, PyObject* obj){
     Selection_modify_from_pyobj2(sel,*sel->get_system(),obj);
 }
+
+void Selection_modify_from_pyobj3_def(Selection* sel, PyObject* obj, int fr){
+    Selection_modify_from_pyobj3(sel,*sel->get_system(),obj,fr);
+}
+
 
 float Selection_distance1(Selection* s, int i, int j, bool pbc, PyObject* dims){
     MAP_EIGEN_TO_PYTHON_I(Vector3i,dim,dims)
@@ -666,8 +740,9 @@ void make_bindings_Selection(){
     class_<Selection>("Selection", init<>())        
         .def(init<System&>() )
         .def(init<const Selection&>() )
-        .def(init<System&,int,int>() )        
-        .def("__init__",make_constructor(&constructor_from_pyobj))
+
+        .def("__init__",make_constructor(&constructor_from_pyobj0))
+        .def("__init__",make_constructor(&constructor_from_pyobj1))
 
         .def("size",&Selection::size)
 
@@ -681,10 +756,10 @@ void make_bindings_Selection(){
 
         .def("set_system", &Selection::set_system)
 
-        .def("modify", static_cast<void(Selection::*)   (int,int)               >(&Selection::modify) )                
-        .def("modify", static_cast<void(Selection::*)   (const System&,int,int) >(&Selection::modify) )       
-        .def("modify", &Selection_modify_from_pyobj1)
         .def("modify", &Selection_modify_from_pyobj2)
+        .def("modify", &Selection_modify_from_pyobj2_def)
+        .def("modify", &Selection_modify_from_pyobj3)
+        .def("modify", &Selection_modify_from_pyobj3_def)
 
         .def("apply",&Selection::apply)
         .def("update",&Selection::update)

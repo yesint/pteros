@@ -215,8 +215,8 @@ public:
     **/
     /// @{
 
-    Selection select(std::string str);
-    Selection operator()(std::string str);
+    Selection select(std::string str, int fr = 0);
+    Selection operator()(std::string str, int fr = 0);
 
     Selection select(int ind1, int ind2);
     Selection operator()(int ind1, int ind2);
@@ -229,8 +229,8 @@ public:
     Selection operator()(std::vector<int>::iterator it1,
                          std::vector<int>::iterator it2);
 
-    Selection select(const std::function<void(const System&,int,std::vector<int>&)>& callback);
-    Selection operator()(const std::function<void(const System&,int,std::vector<int>&)>& callback);
+    Selection select(const std::function<void(const System&,int,std::vector<int>&)>& callback, int fr = 0);
+    Selection operator()(const std::function<void(const System&,int,std::vector<int>&)>& callback, int fr = 0);
 
     /// Convenience function to select all
     Selection select_all();
