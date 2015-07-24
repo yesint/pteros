@@ -541,11 +541,14 @@ void System::rearrange(const std::vector<Selection> &sel_vec){
 
     Selection rest(*this);
     for (auto &s: sel_vec) rest.append(s);
+    // Append all explicitly given selections to result
+    System result;
+    result.append(rest);
+    // Invert to get rest
     rest = ~rest;
 
-    System result;
-    for (auto &s: sel_vec) result.append(s);
-    result.append(rest);
+    // Only append rest to result if it is not empty
+    if(rest.size()) result.append(rest);
 
     *this = result;
 }
