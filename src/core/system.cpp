@@ -650,6 +650,11 @@ Selection System::select_all(){
     return Selection(*this,0,num_atoms()-1);
 }
 
+Selection System::operator()()
+{
+    return select_all();
+}
+
 inline void wrap_coord(Vector3f& point, const Matrix3f& box,
                        const Vector3i dims_to_wrap = Vector3i::Ones()){
     Matrix3f b;

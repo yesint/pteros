@@ -231,9 +231,12 @@ public:
 
     Selection select(const std::function<void(const System&,int,std::vector<int>&)>& callback, int fr = 0);
     Selection operator()(const std::function<void(const System&,int,std::vector<int>&)>& callback, int fr = 0);
+    /// @}
 
-    /// Convenience function to select all
+    /// Convenience functions to select all
+    /// @{
     Selection select_all();
+    Selection operator()();
     /// @}
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
