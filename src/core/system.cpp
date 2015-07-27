@@ -200,7 +200,7 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
     cout << "Accepted " << num_stored << " frames. Now " << num_frames() << " frames in the System" << endl;
 }
 
-void System::load(const std::unique_ptr<Mol_file>& handler, Mol_file_content what, std::function<bool (System *, int)> on_frame)
+bool System::load(const std::unique_ptr<Mol_file>& handler, Mol_file_content what, std::function<bool (System *, int)> on_frame)
 {        
     // Asked for structure or topology
     if(what & MFC_ATOMS || what & MFC_TOP || what & MFC_COORD){
@@ -234,7 +234,10 @@ void System::load(const std::unique_ptr<Mol_file>& handler, Mol_file_content wha
         frame_append(fr);
         // Try to read into it
         bool ok = handler->read(nullptr, &Frame_data(num_frames()-1), MFC_TRAJ);
-        if(!ok) frame_delete(num_frames()-1); // Remove last frame - it's invalid
+        if(!ok){
+            frame_delete(num_frames()-1); // Remove last frame - it's invalid
+            return false;
+        }
 
         check_num_atoms_in_last_frame();
 
@@ -242,6 +245,8 @@ void System::load(const std::unique_ptr<Mol_file>& handler, Mol_file_content wha
         if(on_frame) on_frame(this,num_frames()-1);
         // Since we are reading one frame return doesn't matter
     }
+
+    return true;
 }
 
 // Destructor of the system class

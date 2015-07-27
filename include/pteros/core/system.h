@@ -265,7 +265,7 @@ public:
      * It can be called several times to read trajectory frames one by one
      * from the same pre-opened file.
      */
-    void load(const std::unique_ptr<Mol_file> &handler,
+    bool load(const std::unique_ptr<Mol_file> &handler,
               Mol_file_content what,         
               std::function<bool(System*,int)> on_frame = 0);
     /// @}
