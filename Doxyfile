@@ -228,7 +228,7 @@ TAB_SIZE               = 8
 # "Side Effects:". You can put \n's in the value part of an alias to insert
 # newlines.
 
-ALIASES += col1="<table border="0"><tr><td align=\"center\">C++</td><td align=\"center\">Python</td></tr><tr><td>\code{.cpp}"
+ALIASES += col1="<table border="0" width=\"100%\"><tr><td align=\"center\" width=\"50%\">C++</td><td align=\"center\" width=\"50%\">Python</td></tr><tr><td>\code{.cpp}"
 ALIASES += col2="\endcode </td><td> \code{.py}"
 ALIASES += endcol="\endcode </td></tr></table>"
 

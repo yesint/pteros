@@ -1,10 +1,7 @@
+namespace pteros {
 /** \page manual Pteros 2.0 user manual
 
-\section contents Contents
-
-- \ref structure
-- \ref basic
-- \ref load
+\tableofcontents
 
 \section structure Library structure
 \subsection include Include files
@@ -19,31 +16,41 @@ Pteros is developed according to the following principles
 
 Pteros is C++ library with Python bindings. This means that the Python part is only a wrapper over C++ backend. All new features are implemented in C++ and than exposed to Python.
 
-\subsection basic_classes Basic concepts
+\subsection basic_concepts Basic concepts
 
-\par Atom
-Each atom in Pteros contains the following attributes:
-- <b>Name</b>
-- <b>Residue ID</b> Numbers the residues inside each chain. Atom in different chains may have the same resids.
-- <b>Residue index</b> Numbers the residues in the system consequently regardless of the chain. Residue indexes are alsways unique for each residue.
-- <b>Residue name</b>
-- <b>Chain</b> Corresponds to the polypeptide or nucleic acid chains. For other systems is usually omited.
-- <b>Occupancy</b> Corresponds to PDB occupancy field. Set for zero if read from other file formats. Could be used as custom float point property.
-- <b>Beta</b> Corresponds to PDB B-factor field. Set for zero if read from other file formats. Could be used as custom float point property.
-- <b>Tag</b> Arbitrary textual tag of the atom.
-- <b>Mass</b> If not indicated in the data file the mass is deduced based on the atom name.
-- <b>Charge</b>
-- <b>Type</b> Interger index of the atom type. Used only with MD topology information.
-- <b>Type name</b> Name of MD atom type. Used only with MD topology information.
+\subsubsection atoms Atoms
+Pteros treats all particles as atoms. There is no destinction between real atoms and various dummy particles (virtual sites, shell particles, etc.).
+Each atom in Pteros has the following attributes:
 
-\par System
-The system is container for atoms, their coordinates and the force field parameters. The coordinates of atoms are stored separately from other attributes in the frames. The system may contain many frames which represent different states (like MD time stamps or NMR structures).
-\par Frame
-The frame is representation of the instanteneous state of the system. It contains coordinates of all atoms, time stamp and the periodic box (if the periodic boundary conditions are used).
-\par Selection
+Property    |   Data type   |   Description |   Comment |
+--------    |   ----------- |   ----------- |   ------- |
+Name        |   string      |   Atom name   |           |
+Resid       |   integer     |   Residue id  |   Unique within single protein or nucleic acid chain. May start at any value defined in the structure file for each chain. |
+Resindex    |   integer     |   Residue index | Unique within the whole system. Chain boundaries are ignored. Starts at 0. Assigned automatically. |
+Resname     |   string      |   Residue name |          |
+Chain       |   char        |   Chain identifier | Single character. If no chain information is present defaults to single space.  |
+Tag         |   string      |   Arbitrary textual tag |   Defaults to empty string |
+Mass        |   float       |   Atomic mass |   In atomic units. If not given explicitly in the structure file guessed from the atom name. Defaults to 1.0. |
+Charge      |   float       |   Atomic charge | Electron charge units. Defaults to 0.0. Usually read from topology files. |
+Beta        |   float       |   PDB B-factor  | Defaults to 0. |
+Occupancy   |   float       | PDB occupancy facor | Defaults to 0. |
+Type        |   integer     | Numerical index of atom type |    Defaults to -1, only makes sense in MD topologies.|
+Type_name   |   string      | Name of atom type | Defaults to empty string. |
+
+\note Coordinates of atoms are stored separately in \ref frame "frames".
+
+Atoms are represented by the objects of Atom class.
+
+\subsubsection system System
+The system is a container for atoms, coordinate frames and associated force field parameters. The system may contain many coordinate frames which represent different states of the system (MD time steps or NMR structures for example). System is usually read from one or more structure, trajectory or topology files. Systems are represented by the System class.
+
+\note The system is \em not a representation of particular data file! Although attributes of atoms are similar to the fields of PDB files the system is much more general concept. The system could be constructed from a single file (such as PDB), from several files (such as PDB+XTC) or could be built from scratch programmatically by adding individual atoms and frames.
+
+\subsubsection frame Frame
+The frame is representation of the instanteneous state of the system. It contains coordinates of all atoms, time stamp and the periodic box (if the periodic boundary conditions are used). Represented by the Frame class.
+
+\subsubsection selection Selection
 Selection is a subset of atoms from particular system. Selection <i>do not contain any data</i> but just points to existing atoms in the system. Selection should be considered as a "handle" to certain group of atoms which allows to query their properties and to manipulate their attributes and coordinates in various ways.
-
-\note The system is \em not a representation of the data file! Although attributes of atoms are similar to the fields of PDB files the system is much more general concept. The system could be constructed from a single file (such as PDB), from several files (such as PDB+XTC) or could be built from scratch programmatically by adding individual atoms and frames.
 
 \section load Loading molecular system
 
@@ -58,34 +65,246 @@ Currently the following file formats are supported:
     + XTC
     + TRR
     + TNG
+    \note TNG files also contain structure information.
     + DCD
 - Topology
     + PTTOP
     \note Read only. Produced from Gromacs TPR files by the `tpr2pteros.py` script.
 
 \subsection types_of_info What is loaded from data files?
-Molecular data formats contain different information about the system. In Pteros all information stored in the data file is subdivided into \em atoms, \em coordinates, \em trajectory and \em topology.
-\par Atoms
-Information about atoms in the system (name, residue name, chain, mass, etc) but without coordinates.
-\par Coordinates
-Single set of coordinates of atoms (not a trajectory) and the periodic box if periodicity is present.
-\par Trajectory
-The number of frames each containing a set of coordinates, time stamp and the periodic box if periodicity is present.
-\par Topology
-MD topology containing connectivity, atom types, non-bond Van-der-Waals parameters, etc.
+Molecular data formats contain different information about the system. In Pteros all information stored in the data files is classified into \em atoms, \em coordinates, \em trajectory and \em topology. Type of particular piece of information is determined by Mol_file_content enum value MFC_* where MFC is abbreviation for "Molecular File Content".
+\par Atoms (MFC_ATOMS)
+Information about atoms in the system (name, residue name, chain and other attributes) but without coordinates.
+\par Coordinates (MFC_COORD)
+Single set of coordinates of atoms (single frame) and the periodic box if periodicity is present.
+\par Trajectory (MFC_TRAJ)
+The number of coordinate frames each containing a set of coordinates, time stamp and the periodic box if periodicity is present.
+\par Topology (MFC_TOP)
+MD topology containing connectivity, atom types, precise masses, partial charges, non-bond Van-der-Waals parameters, etc.
 
-Particular file format may contain different information. For example PDB files contain atoms and coordinates. XTC files contain the trajectory but no atoms. TNG files contain atoms and trajectory at the same time, etc. There are two ways of loading data files - simple and advanced. When the data file is loaded in Pteros using simple mode the information being loaded depend on the file type and on the current content of the System where the data go. In advanced mode the user specifies explicitly what to read.
+Particular file format may contain different information. For example PDB files contain atoms and coordinates. XTC files contain the trajectory but no atoms. TNG files contain atoms and trajectory at the same time, etc. There are two ways of loading data files - simple and advanced.
+
+Loading is performed by either constructor of the System class or by System::load() method. In both cases the same behavior and parameters are used.
 
 \subsection simple_load Simple loading
 
+When the data file is loaded in Pteros using simple mode the information being loaded depend on the file type and on the current content of the System where the data go. The most "logical" way of adding new data to the system is chosen but there is no fine control about what is read and how. Here is an example:
+
 \col1
+// (1) Initial loading in constructor
 System s("somefile.pdb");
+
+// (2) Adding structure file
+s.load("other-file.pdb");
+
+// (3) Adding trajectory
+s.load("trajectory.xtc",3,20);
+
+// (4) Adding topology
+s.load("topology.pttop");
 \col2
+# Initial loading in constructor
 s = System('somefile.pdb')
+
+# (2) Adding structure file
+s.load('other-file.pdb')
+
+# (3) Adding trajectory
+s.load('trajectory.xtc',3,20)
+
+# (4) Adding topology
+s.load('topology.pttop')
 \endcol
+
+-# In this example we first construct the System from the PDB file "somefile.pdb". File type is \em always determined by extension. Since on step (1) the system is empty all possible information is read from this file, which means that atoms and coordinates would be read.
+
+-# On step (2) we are adding another PDB file "other-file.pdb". Now the system already contains atoms and one coordinate frame, thus Pteros deduces that we just want to \e add another coordinate frame. Thus only coordinates are read from "other-file.pdb". If the number of atoms in this file is the same as in the System another frame is added. No check is performed if "other-file.pdb" actually contains the same set of atoms as the system - everything with matching number of atoms is accepted.
+
+-# On step (3) we are adding an XTC trajectory. The logic is the same as on step (2) - the number of new coordinate frames are added to the System. Additional arguments instruct Pteros to read frames from 3 to 20 inclusive.
+
+-# Finally on step (4) we are adding topology file. Since the System already contain atoms only additional topological information (like atom types, charges, connectivity, etc.) is read.
+
+Since different file types contain different information the logic of adding information to the System becomes rather complicated in no-trivial situations. The following table summarises what is read from different files in different cases.
+
+<b>Initial loading (in constructor or to the empty System)</b>
+File type   |   What is loaded? |   Comment
+----------  |   --------------- |   -------
+PDB, GRO, MOL2    |   Atoms and the single frame |   MOL2 does not contain periodic box! |
+PTTOP   |   Atoms, the single frame, full topology    | PTTOP file is Pteros are not "pure topology" - they also contain the set of starting coordinates.  |
+TNG     |   Atoms and multiple frames   |   |
+XTC, TRR, DCD   |   Failes and raises exception! | In Pteros reading trajectory into the empty system is not allowed (in contrast to VMD for example). |
+
+<b>Adding data to the System which is not empty (by System::load())</b>
+File type   |   What is loaded? |   Comment
+----------  |   --------------- |   -------
+PDB, GRO, MOL2    |   Single frame |  New frame added. The only check is matching number of atoms.  |
+PTTOP   |   Topology    | Adds atom types and charges, updates masses, adds other topology information. No coordinates read, no frames added.  |
+TNG, XTC, TRR, DCD   |   Multiple frames | Adds number of new frames. The only check is matching number of atoms. |
 
 \subsection advanced_load Advanced loading with file handlers
 
+\warning Advanced mode should only be used in specific cases and only if you are absolutely sure that you need fine control. The simple mode is the most convenient in most practical scenarios.
 
+\warning Advanced mode and file handlers are \e not available from Python.
+
+In advanced mode the user specifies explicitly what to read and what to store in the system.
+
+\code
+#include "pteros/core/mol_file.h"
+...
+auto pdb_handler = Mol_file::open("some-pdb-file.pdb",'r');
+auto gro_handler = Mol_file::open("some-gro-file.gro",'r');
+auto xtc_handler = Mol_file::open("some-xtc-file.xtc",'r');
+
+System s;
+s.load(pdb_handler, MFC_ATOMS); // (1)
+s.load(gro_handler, MFC_COORD); // (2)
+// Load frames until the end of trajectory one by one
+bool ok;
+do {
+    ok = s.load(xtc_handler, MFC_TRAJ); // (3)
+} while(ok);
+\endcode
+
+In this example we first create three file handlers for corresponding PDB, GRO and XTC files. File handlers are created by static Mol_file::open() method. Handlers could be created for reading (mode 'r') and for writing (mode 'w'). In our case we open them for reading. After that we create an empty system and load data from handlers.
+
+-# On step (1) we read only atoms (MFC_ATOMS) from PDB file. No coordinates are read.
+-# On step (2) we add coordinates (MFC_COORD) from GRO file.
+-# On step (3) we read frames from XTC file (MFC_TRAJ) one by one in the loop up to the end of trajectory. The load() method returns false on failure to read next frame, which allows to track the end of trajectory.
+
+\warning Behavior of MFC_TRAJ for file handlers is different from what is used in simple mode! Each call of `System::load(handler)` reads the \e single frame. This behavior is intentional and allows reading frames one by one.
+\note If one will use "MFC_ATOMS | MFC_TRAJ" or "MFC_COORD | MFC_TRAJ" on steps (1) and (2) then MFC_TRAJ will be ignored. This is again intentional to separate frame-by-frame trajectory reading from reading other information.
+\warning If MFC_ATOMS is specified the system is cleared before reading even if it already contained some atoms!
+
+
+\section making_selections Selecting atoms
+
+Selections are the most important objects in Pteros which allow manipulating groups of atoms in the System. It is important to understand that selections do not contain any data but merely point to the set of atoms in the System.
+
+\subsection sel_methods Ways of creating selections
+
+In order to select atoms one need to create Selection class in one of the following ways:
+
+-# <b> Direct construction of Selection object</b>
+\col1
+Selection sel(system, <arguments...>);
+\col2
+sel = Selection(system, <arguments...>)
+\endcol
+
+-# <b> Construction by System::select() method</b>
+\col1
+Selection sel = system.select(<arguments...>);
+// Or using type inference:
+auto sel = system.select(<arguments...>);
+\col2
+sel = system.select(<arguments...>)
+\endcol
+
+-# <b> Construction by System::operator()</b> This is exactly the same as the previous one but less verbose.
+\col1
+Selection sel = system(<arguments...>);
+// Or using type inference:
+auto sel = system(<arguments...>);
+\col2
+sel = system(<arguments...>)
+\endcol
+
+\subsection sel_args Arguments of selection methods
+
+The arguments passed to selection could be the following (only method 2 is used for illustration but any method takes the same variants of arguments):
+
+-# <b>Textual selections (using \ref sel_lang "selection language")</b>
+\col1
+// Defaults to 1st frame in the System
+auto sel = system.select("resname ALA GLY and within 3.0 pbc of resid 23-34 45");
+// Explicitly points to frame #3
+auto sel = system.select("resname ALA GLY and within 3.0 pbc of resid 23-34 45", 3);
+\col2
+# Defaults to 1st frame in the System
+sel = system.select('resname ALA GLY and within 3.0 pbc of resid 23-34 45')
+# Explicitly points to frame #3
+sel = system.select('resname ALA GLY and within 3.0 pbc of resid 23-34 45', 3)
+\endcol
+
+-# <b>Pair of atom indexes</b> Selects atoms with indexes in the given range (inclusive).
+\col1
+int ind1 = 10;
+int ind2 = 20;
+sel = system.select(ind1, ind2);
+\col2
+ind1 = 10
+ind2 = 20
+sel = system.select(ind1, ind2)
+\endcol
+
+-# <b>Vector of atom indexes</b>
+\col1
+vector<int> ind = {1,2,3,56,67,100};
+sel = system.select(ind);
+\col2
+ind = [1,2,3,56,67,100]
+sel = system.select(ind)
+\endcol
+
+-# <b>Pair of iterators to integer vector</b>
+\warning This is only available in C++.
+\code
+vector<int> ind = {5,10,34,1,4,15};
+Selection sel21(sys,ind.begin(),ind.end());
+\endcode
+
+-# <b>Custom callback function</b>
+This method allows implementing arbitrary complex logic of selecting atoms by delegating the work to user-provided callback function. The callback function has the following signature:
+\col1
+void selection_callback(const System& sys, int fr, std::vector<int>& ind);
+\col2
+def selection_callback(sys, fr, ind)
+\endcol
+First argument is the parent System, second - is the target frame, and the third is integer vector, which have to be filled with indexes of selected atoms.
+The following example shows selecting atoms with x>5. On practice this is easier to implement using textual selections but callback allows implementing arbitrarily complex logic.
+\col1
+// Callback function
+void sel_func(const System& sys,int fr,std::vector<int>& ind){
+    // Just for example we are selecting all atoms with x>5
+    ind.clear();
+    for(int i=0;i<sys.num_atoms();++i)
+        if(sys.XYZ(i,fr)(0)>5.0) ind.push_back(i);
+}
+
+...
+
+System s("struct.pdb");
+// Callback function is called to fill selection
+Selection sel(s, &sel_func);
+// The same but for specific frame #3
+Selection sel(s, &sel_func, 3);
+\col2
+# Callback function
+def sel_func(sys,fr,ind):
+    # Just for example we are selecting all atoms with x>5
+    ind = []
+    for i in xrange(sys.num_atoms()):
+        if sys.getXYZ(i,fr)[0]>5.0:
+            ind.append(i)
+
+...
+
+s = System('struct.pdb')
+# Callback function is called to fill selection
+sel = s.select(sel_func)
+# The same but for specific frame #3
+sel = s.select(sel_func, 3)
+\endcol
+
+\subsection sel_lang Selection language
+
+%Selection language in Pteros is similar but not identical to one of [VMD](http://www.ks.uiuc.edu/Research/vmd/vmd-1.3/ug/node132.html). Simple selections could be copy-pasted from VMD to Pteros and vice versa, while more complex selections would be different. Particularly Pteros provides much more advanced selections which include periodic boundary conditions, which are not possible in VMD.
+
+The basic elements of selection language are the following:
+
+- <b>Keyword selections</b>
+Consist of the keyword, which represent property of the atom, followed by allowed values of this property. The values are implicitly combined by logical OR. Depending on the keyword the values are either strings, integers or unsigned integers.
 
 */
+}
