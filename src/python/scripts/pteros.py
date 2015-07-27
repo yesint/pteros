@@ -16,13 +16,17 @@ from _pteros import *
 # Wrapper for System.select() methods
 #------------------------------------
 def _select(self,*args):
-    sel = Selection(self)
-    if len(args)==1:
-        sel.modify(args[0])
-    elif len(args)==2:        
-        sel.modify(args[0],args[1])
-    else:
-        raise RuntimeError("Wrong arguments for selection!")
+    if len(args)==0:
+        # Select all
+        sel = Selection(self,0,self.num_atoms()-1)
+    elif:
+        sel = Selection(self)
+        if len(args)==1:
+            sel.modify(args[0])
+        elif len(args)==2:
+            sel.modify(args[0],args[1])
+        else:
+            raise RuntimeError("Wrong arguments for selection!")
 
     # keep system alive at the life time of selection
     sel._system = self
