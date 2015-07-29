@@ -303,8 +303,84 @@ sel = s.select(sel_func, 3)
 
 The basic elements of selection language are the following:
 
-- <b>Keyword selections</b>
-Consist of the keyword, which represent property of the atom, followed by allowed values of this property. The values are implicitly combined by logical OR. Depending on the keyword the values are either strings, integers or unsigned integers.
+\subsubsection all_sel Selecting everything
+The keyword "all" selects all atoms in the system.
 
+\subsubsection keyword_sel Keyword selections
+Consist of the keyword, which represent property of the atom, followed by one or more values of this property. The values are implicitly combined by logical OR. Depending on the keyword the values are either strings, integers or unsigned integers.
+
+For integers in addition to individual values the ranges are allowed in two forms: `1 to 10` and `1-10`. Both forms are equivalent.
+
+For strings regular expressions could be given in single ('') or double ("") quotes. The systnax of the regular expressions is the same [as used in C++11](http://www.cplusplus.com/reference/regex/ECMAScript/).
+
+Keyword | Type of values | Example
+------- | -------------- | -------
+name    | string    | name CA CB "C.*"
+resname | string    | resname ALA GLU '.N.*'
+resid   | int   | resid 1 2 3 4-10 20 to 40
+resindex | unsigned int | resindex 1 2 3 5 to 100 200-211
+chain | single character | chain A B C
+tag | string | tag TAG1 TAG2
+index | unsigned int | index 12 13 45 2-7
+
+
+\subsubsection num_prop Numeric properties
+Consist of a lone keyword, which represent single numeric property of the atom. Numeric properties could be either integer or floats. They could be combined to \ref num_expr "numerical expressions" and compared by \ref num_comp "numeric comparisons".
+
+Keyword | Property
+-----   | -----
+x   | X coordinate of the atom
+y   | Y coordinate of the atom
+z   | Z coordinate of the atom
+beta | B-factor of the atom
+occupancy | Value of the PDB occupancy field for the atom
+index | Index of the atom
+resindex | Residue index of the atom
+resid | Resid of the atom
+
+\note Words \e index, \e resindex and \e resid could be either keywords followed by multiple values or numeric properties depending on the context:
+%Selection string | Interpretation
+---- | ----
+"resid 1 2 3 4-10" | interpreted as \ref keyword_sel "keyword selection"
+"resid > 25" | interpreted as \ref num_prop "numeric property" in \ref num_expr "numerical expression".
+
+\subsubsection num_expr Numeric expressions
+Numerical expressions consist of \ref num_prop "numerical properties", integer of float point literals and common arithmetic operators "+", "-", "*", "/". Raising to any integer or fractional power is possible using either "^" or "**" operators. Unary minus could be used to change the sign of expression. Operator precedence could be changed by parentheses. Numerical expressions are only meaningful as operands of \ref num_comp "numeric comparisons". Single number or single numerical property is also valid numerical expression.
+
+\subsubsection num_comp Numeric comparisons
+
+Numerical expressions are compared to each other by the common operators:
+
+Operator | Meaning | Example
+-------- | ------- | -------
+">" | Greater than | x > 3
+"<" | Lower than | y < 5.6
+"=" | Equal | resid =  45
+"<>" | Not equal | resid <> 14
+">=" | Greater or equal | index >= 15
+"<=" | Lower or equal | resindex <= 100
+
+\subsubsection log_expr Logical expressions
+
+Common logical operators "or", "and" and "not" are supported and could be used to construct arbitrary logical expressions:
+~~~~~
+resid 1-10 or x>15
+name CA CB and resname ALA
+not (name OW and resname SOL and resid > 34)
+~~~~~
+
+\subsubsection within_sel Within selections
+
+\subsubsection by_res By residue selections
+
+\warning The operation "by residue" has lower priority than logical operators thus its operand have to be put into the parentheses if it contains logical operators: `by residue (name CA and resid 1 4 5)`.
+
+\subsubsection dist_sel Distance selections
+
+\subsection text_based_sel Auto-update of text-based selections
+Selections created by means of selection string are a bit special in Pteros. The set of selected may depends on atomic coordinates (for example for selection `x>15` or `within 3.0 of y<34`). These cases are recognized automatically and such coordinate-dependent selection are treated in special manner. If the user calls Selection::set_frame() to change the frame selection points to then selection is recomputed automatically to be consistent with new atomic coordinates.
+
+In most cases this feature is very handy and saves a lot of time allowing not to bother about consistency of the coordinate-dependent selections with the current atomic coordinates. However in certain cases such behavior is not desirable. For example one selects all water molecules around the protein in starting configuration using `resname SOL and within 3.0 of protein` and want to see how they diffuse in the course of MD simulation. Each update of the coordinate frame made by Selection::set_frame() will select new water shell around protein, which is not what we want. In such case one can call Selection::flatten() method. It "flattens" selection to the plain set of indexes without any auto-update magic.
+\warning Flattening is not reversible! New text-based selection have to be created to turn auto-update on again.
 */
 }
