@@ -24,18 +24,18 @@ Each atom in Pteros has the following attributes:
 
 Property    |   Data type   |   Description |   Comment |
 --------    |   ----------- |   ----------- |   ------- |
-Name        |   string      |   Atom name   |           |
-Resid       |   integer     |   Residue id  |   Unique within single protein or nucleic acid chain. May start at any value defined in the structure file for each chain. |
-Resindex    |   integer     |   Residue index | Unique within the whole system. Chain boundaries are ignored. Starts at 0. Assigned automatically. |
-Resname     |   string      |   Residue name |          |
-Chain       |   char        |   Chain identifier | Single character. If no chain information is present defaults to single space.  |
-Tag         |   string      |   Arbitrary textual tag |   Defaults to empty string |
-Mass        |   float       |   Atomic mass |   In atomic units. If not given explicitly in the structure file guessed from the atom name. Defaults to 1.0. |
-Charge      |   float       |   Atomic charge | Electron charge units. Defaults to 0.0. Usually read from topology files. |
-Beta        |   float       |   PDB B-factor  | Defaults to 0. |
-Occupancy   |   float       | PDB occupancy facor | Defaults to 0. |
-Type        |   integer     | Numerical index of atom type |    Defaults to -1, only makes sense in MD topologies.|
-Type_name   |   string      | Name of atom type | Defaults to empty string. |
+name        |   string      |   %Atom name   |           |
+resid       |   integer     |   Residue id  |   Unique within single protein or nucleic acid chain. May start at any value defined in the structure file for each chain. |
+resindex    |   integer     |   Residue index | Unique within the whole system. Chain boundaries are ignored. Starts at 0. Assigned automatically. |
+resname     |   string      |   Residue name |          |
+chain       |   char        |   Chain identifier | Single character. If no chain information is present defaults to single space.  |
+tag         |   string      |   Arbitrary textual tag |   Defaults to empty string |
+mass        |   float       |   Atomic mass |   In atomic units. If not given explicitly in the structure file guessed from the atom name. Defaults to 1.0. |
+charge      |   float       |   Atomic charge | Electron charge units. Defaults to 0.0. Usually read from topology files. |
+beta        |   float       |   PDB B-factor  | Defaults to 0. |
+occupancy   |   float       | PDB occupancy facor | Defaults to 0. |
+type        |   integer     | Numerical index of atom type |    Defaults to -1, only makes sense in MD topologies.|
+type_name   |   string      | Name of atom type | Defaults to empty string. |
 
 \note Coordinates of atoms are stored separately in \ref frame "frames".
 
@@ -297,6 +297,128 @@ sel = s.select(sel_func)
 sel = s.select(sel_func, 3)
 \endcol
 
+\subsection sel_modify Modifying selections
+
+Existing selection objects could be modified in two ways: by changing parent System and by selecting another set of atoms. Parent selection is changed by Selection::set_system() method:
+
+\col1
+System sys1("structure1.pdb");
+System sys2("structure2.pdb");
+// Create empty selection pointing to sys1
+Selection sel(sys1);
+// Make it point to sys2
+sel.set_system(sys2);
+\col2
+sys1 = System('structure1.pdb')
+sys2 = System('structure2.pdb')
+# Create empty selection pointing to sys1
+sel = Selection(sys1)
+# Make it point to sys2
+sel.set_system(sys2)
+\endcol
+
+\warning Selection::set_system() always clears content of selection and leaves it empty even if it contained some data!
+
+In order to modify content of seelction (the set of selected atoms) the number of Selection::modify() methods is present. They accept the same arguments as corresponding constructors of Selection class. Each method also have the variant where new System is passed as the first argument:
+
+-# <b>Textual selections</b>
+\col1
+// Changes selected atoms
+sel.modify("resname ALA GLY");
+// The same but also assigns to other system
+sel.modify(other_system, "resname ALA GLY");
+// The same but also changes the target frame to frame 3
+sel.modify(other_system, "resname ALA GLY", 3);
+\col2
+# Changes selected atoms
+sel.modify('resname ALA GLY')
+# The same but also assigns to other system
+sel.modify(other_system, 'resname ALA GLY')
+# The same but also changes the target frame to frame 3
+sel.modify(other_system, 'resname ALA GLY', 3)
+\endcol
+
+-# <b>Pair of atom indexes</b>
+\col1
+int ind1 = 10;
+int ind2 = 20;
+// Changes selected atoms
+sel.modify(ind1, ind2);
+// The same but also assigns to other system
+sel.modify(other_system, ind1, ind2);
+\col2
+ind1 = 10
+ind2 = 20
+# Changes selected atoms
+sel.modify(ind1, ind2)
+# The same but also assigns to other system
+sel.modify(other_system, ind1, ind2)
+\endcol
+
+-# <b>Vector of atom indexes</b>
+\col1
+vector<int> ind = {1,2,3,56,67,100};
+// Changes selected atoms
+sel.modify(ind);
+// The same but also assigns to other system
+sel.modify(other_system, ind);
+\col2
+ind = [1,2,3,56,67,100]
+# Changes selected atoms
+sel.modify(ind)
+# The same but also assigns to other system
+sel.modify(other_system, ind)
+\endcol
+
+-# <b>Pair of iterators to integer vector</b>
+\warning This is only available in C++.
+
+\code
+vector<int> ind = {5,10,34,1,4,15};
+// Changes selected atoms
+sel.modify(ind.begin(),ind.end());
+// The same but also assigns to other system
+sel.modify(other_system, ind.begin(),ind.end());
+\endcode
+
+-# <b>Custom callback function</b>
+\col1
+// Callback function
+void sel_func(const System& sys,int fr,std::vector<int>& ind){
+    // Just for example we are selecting all atoms with x>5
+    ind.clear();
+    for(int i=0;i<sys.num_atoms();++i)
+        if(sys.XYZ(i,fr)(0)>5.0) ind.push_back(i);
+}
+
+...
+
+
+// Changes selected atoms
+sel.modify(sel_func);
+// The same but also assigns to other system
+sel.modify(other_system, sel_func);
+// The same but also changes the target frame to frame 3
+sel.modify(other_system, sel_func, 3);
+\col2
+# Callback function
+def sel_func(sys,fr,ind):
+    # Just for example we are selecting all atoms with x>5
+    ind = []
+    for i in xrange(sys.num_atoms()):
+        if sys.getXYZ(i,fr)[0]>5.0:
+            ind.append(i)
+
+...
+
+# Changes selected atoms
+sel.modify(sel_func)
+# The same but also assigns to other system
+sel.modify(other_system, sel_func)
+# The same but also changes the target frame to frame 3
+sel.modify(other_system, sel_func, 3)
+\endcol
+
 \subsection sel_lang Selection language
 
 %Selection language in Pteros is similar but not identical to one of [VMD](http://www.ks.uiuc.edu/Research/vmd/vmd-1.3/ug/node132.html). Simple selections could be copy-pasted from VMD to Pteros and vice versa, while more complex selections would be different. Particularly Pteros provides much more advanced selections which include periodic boundary conditions, which are not possible in VMD.
@@ -337,6 +459,7 @@ occupancy | Value of the PDB occupancy field for the atom
 index | Index of the atom
 resindex | Residue index of the atom
 resid | Resid of the atom
+distance | The distance of atom from given point, line or plane. See \ref dist_sel "description of distance selections" for details.
 
 \note Words \e index, \e resindex and \e resid could be either keywords followed by multiple values or numeric properties depending on the context:
 %Selection string | Interpretation
@@ -360,6 +483,14 @@ Operator | Meaning | Example
 ">=" | Greater or equal | index >= 15
 "<=" | Lower or equal | resindex <= 100
 
+The comparisons could be chained to select the ranges:
+
+%Selection text | Meaning
+-------------- | -------
+3 < x < 10  | Open range
+10 > x >= 3 | Semi-closed range
+100 <= resid <= 200 | Closed range
+
 \subsubsection log_expr Logical expressions
 
 Common logical operators "or", "and" and "not" are supported and could be used to construct arbitrary logical expressions:
@@ -371,16 +502,212 @@ not (name OW and resname SOL and resid > 34)
 
 \subsubsection within_sel Within selections
 
+Within selections allow selecting atoms which are within given cutoff distance around other selection, called "central selection". The syntax of within selections in Pteros is the following:
+~~~~
+within <distance> [pbc|nopbc|periodic|noperiodic] [self|noself] of <central selection>
+~~~~
+Distance is in nm.
+
+Optional keywords "pbc" or "periodic" mean that selection takes into account periodic boundary conditions. Keywords "nopbc" or "noperiodic" means that periodicity is switched off. By default periodicity is off.
+
+The optional keyword "self" means that central selection itself is also included into resulting selection. If "noself" is specified the central selection is excluded from result. The default is "self".
+
+Keywords "pbc|nopbc" and "self|noself" can go in any order.
+
+Here are some results:
+
+%Selection text | What is selected
+-------------- | ----------------
+within 3.0 of protein | All atoms within 3.0 nm from any protein atom including the protein itself. Not periodic.
+within 3.0 pbc of protein | Same as above but periodic.
+within 3.0 pbc noself of protein | Same as above but the protein itself is not included.
+
 \subsubsection by_res By residue selections
 
-\warning The operation "by residue" has lower priority than logical operators thus its operand have to be put into the parentheses if it contains logical operators: `by residue (name CA and resid 1 4 5)`.
+The "by residue <central selection>" operator is used to select whole residues, which are referenced by the central selection. This means that if at least one atom of particular residue is present in central selection then the whole residue would be selected.
+
+\warning The "by residue" operation has lower precedence than logical operators thus its operand have to be put into the parentheses if it contains logical operations: "by residue (name CA and resid 1 4 5)".
 
 \subsubsection dist_sel Distance selections
 
-\subsection text_based_sel Auto-update of text-based selections
+Distance selections are unique for Pteros and allow selecting atoms by their distance from given reference point, line or plane. Their syntax is the following:
+~~~~~
+dist|distance point|vector|plane [pbc|nopbc|periodic|noperiodic] x0 y0 z0 [x1 y1 z1]
+~~~~~
+The keyword "dist" and "distance" are synonyms. If "point" is specified than three float point numbers x0, y0, z0 are expected. For "vector" and "distance" six float point numbers x0, y0, z0, x1, y1, z1 are expected.
+
+Optional keywords "pbc" or "periodic" mean that selection takes into account periodic boundary conditions. Keywords "nopbc" or "noperiodic" means that periodicity is switched off. By default periodicity is off.
+
+In the case of "dist vector" (x0,y0,z0) give the point in space and (x1,y1,z1) specify \b direction of the vector originating from this point (direction is normalized automatically). The distance from the atoms to this vector is evaluated.
+
+In the case of "dist plane" (x0,y0,z0) give the point in space and (x1,y1,z1) specify the <b>normal vector</b> of the plane originating in this point (the normal vector is normalized automatically). The distance from the atoms to this plane is evaluated.
+
+Distance keyword operates on per-atom basis and is treated as \ref num_prop "numeric property" of the atom:
+
+%Selection text | What is selected
+-------------- | ----------------
+dist point 12.4 34.3 45.1 < 3.0 | Atoms within 3.0 nm from the point "12.4 34.3 45.1"
+dist point pbc 12.4 34.3 45.1 < 3.0 | The same as above but periodic
+dist vector 2.1 3.3 3.5 1 0 0 < 3.0 | Atoms within the cylinder with radius 3 nm and the axis going from point "2.1 3.3 3.5" along X axis (the direction vector is "1 0 0")
+3.0 < dist plane 2.1 3.3 3.5 1 1 1 < 5.0 | Selects the slabs of atoms which are between 3 and 5 nm from the plane which goes through the point "2.1 3.3 3.5" and has the normal "1 1 1".
+
+\subsection text_based_sel Auto-update and flattening of text-based selections
 Selections created by means of selection string are a bit special in Pteros. The set of selected may depends on atomic coordinates (for example for selection `x>15` or `within 3.0 of y<34`). These cases are recognized automatically and such coordinate-dependent selection are treated in special manner. If the user calls Selection::set_frame() to change the frame selection points to then selection is recomputed automatically to be consistent with new atomic coordinates.
 
 In most cases this feature is very handy and saves a lot of time allowing not to bother about consistency of the coordinate-dependent selections with the current atomic coordinates. However in certain cases such behavior is not desirable. For example one selects all water molecules around the protein in starting configuration using `resname SOL and within 3.0 of protein` and want to see how they diffuse in the course of MD simulation. Each update of the coordinate frame made by Selection::set_frame() will select new water shell around protein, which is not what we want. In such case one can call Selection::flatten() method. It "flattens" selection to the plain set of indexes without any auto-update magic.
 \warning Flattening is not reversible! New text-based selection have to be created to turn auto-update on again.
+
+\subsection sel_comb Combining selections
+
+Selection objects could be combined by logical operations to create new selections:
+
+- <b>Logical AND</b>
+\col1
+auto new_sel = sel1 & sel2;
+\col2
+new_sel = sel1 and sel2;
+\endcol
+
+- <b>Logical OR</b>
+\col1
+auto new_sel = sel1 | sel2;
+\col2
+new_sel = sel1 or sel2;
+\endcol
+
+- <b>Logical NOT</b>
+\col1
+auto new_sel = ~sel1;
+\col2
+new_sel = not sel2;
+\endcol
+
+It is also possible to append one selection to the other using Selection::append() or remove atoms from one selection from the other by Selection::remove(). These methods also work with individual atom indexes.
+\warning In contrast to logical operators Selection::append() and Selection::remove() methods do not create new selection but modify existing one.
+
+\subsection access Accessing properties of selected atoms
+
+If selection contains \e N atoms then they could be accessed by relative indexes from 0 to N-1 inclusive. Relative indexes are \e NOT the same as atomic indexes. Atom with global index 150 may have relative index 0 in one selection and 23 in the other. However relative indexes are very convenient in accessing properties of selected atoms. For this Selection class contains the set of <i>accessor methods</i>.
+
+Accessor methos have the same names as the properties of atoms with the first letter capitalized. For example `sel.Index(i)` returns global index of atom with relative index i, `sel.Name(i)` returns name of this atom, `sel.Resname(i)` returns its residue name, etc.
+
+Accessors `X(i)`, `Y(i)` and `Z(i)` give access to individual atomic coordinates. The method `XYZ(i)` returns the vector of all three coordinates. These accessors also accept frame index as optional second parameter: `Z(i,fr)`, `XYZ(i,fr)`, etc.
+
+There are also accessors for periodic box associated with current frame pointed by selection (`Box()`) and the time stamp of the pointed frame (`Time()`).
+
+There is also special accessor `VDW(i)` which returns the van der Waals radius of <i>i</i>-th atom.
+
+There is a difference in behavior of accessors in C++ and Python. In C++ all of them are inlined l-value functions. This means that they do not add any overhead in accessing atom properties and could be assinged to:
+
+\code
+Selection sel(system,"name CA");
+// Read access
+cout << sel.Name(0) << endl;
+// Write access
+sel.Name(0) = "CB";
+\endcode
+
+In Python each accessor have to be prepended by "get" or "set" prefixes for read and write access respectively, which makes them clumsy and difficult to use:
+
+\code{.py}
+sel = Selection(system, 'name CA')
+# Read access
+print sel.getName(0)
+# Write access
+sel.setName(0, "CB")
+\endcode
+
+Much more covenient way of accessing atom properties in Python is using indexing operator of Selection object:
+
+\code{.py}
+# Recommended way in Python
+
+sel = Selection(system, 'name CA')
+# Read access
+print sel[0].name
+# Write access
+sel[0].name = "CB"
+# Note that 'name' is property, not a method!
+# It is NOT capitalized and no () is needed!
+
+# This also works for coordinates:
+print sel[0].x, sel[0].xyz
+sel[0].xyz = sel[1].xyz + sel[2].xyz
+
+# BUT if you want to access coordinates of OTHER frame
+# you HAVE to use ordinary accessors:
+print sel.getXYZ(0, other_frame)
+sel.setXYZ(0, other_frame) = sel[1].xyz + sel[2].xyz
+\endcode
+
+Indexing is also perfectly usable in C++ but works slower than accessor methods:
+\code
+// Works in C++ but not recommended
+
+Selection sel(system,"name CA");
+// Read access
+cout << sel[0].Name() << endl;
+// Write access
+sel[0].Name() = "CB";
+\endcode
+
+\note The indexing operator of Selection class returns a temporary proxy object Atom_proxy, which has the same set of atom property accessors as Selection itslef. The only difference is that these accessors do not take relative atomic index since Atom_proxy stores it internally. Creation of proxy objects makes iterator access \e slower than access by accessors of selection iteself.
+
+\subsection sel_iter Iterating over selected atoms
+
+There are two ways to iterate over selected atoms - using <i>relative selection indexes</i> and using <i>iterators</i>.
+
+\col1
+Selection sel(system, "name CA CB");
+
+// Usage of accessor methods for each atom property
+for(int i=0; i< sel.size(); ++i){
+    cout << sel.Name(i) << " " << sel.Resname(i) << endl;
+}
+
+// Usage of indexing operator (slower than property accessors and not recommended in C++!)
+for(int i=0; i< sel.size(); ++i){
+    cout << sel[i].name() << " " << sel[i].resname() << endl;
+}
+\col2
+sel = Selection(system, 'name CA CB')
+
+# Usage of accessor methods for each atom property
+# (clumsy syntax in Python, not reccomended despite being a bit faster)
+for i in xrange(sel.size()):
+    print sel.getName(i), sel.getResname(i)
+
+# Usage of indexing operator (still not the best way in Python, see below)
+for i in xrange(sel.size()):
+    print sel[i].name, sel[i].resname
+\endcol
+
+The second way is using built-in iterators of Selection objects:
+\col1
+Selection sel(system, "name CA CB");
+
+// Usage of explicit iterators
+Selection::iterator it;
+for(it=sel.begin(); it!=sel.end(); it++){
+    cout << it->name() << " " << it->resname() << endl;
+}
+
+// Usage of range-based for loop in C++11 and higher
+for(auto& a: sel){
+    cout << a.name() << " " << a.resname() << endl;
+}
+\col2
+sel = Selection(system, 'name CA CB')
+
+# Recommended way in Python
+for a in sel:
+    print a.name, a.resname
+\endcol
+
+\section sys_build Building molecular systems
+\subsection atom_add_del Adding and deleting atoms
+\subsection append_remove Appending and removing systems and selections
+\subsection distib Multiplying selections
+\subsection rearrange Rearranging the order of atoms
 */
 }
