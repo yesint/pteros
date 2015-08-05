@@ -1,12 +1,12 @@
 namespace pteros {
-/** \page manual Pteros 2.0 user manual
+/**
+\page manual Pteros 2.0 user manual
 
-\tableofcontents
+- \subpage basic
+- \subpage core
+- \subpage analysis
 
-\section structure Library structure
-\subsection include Include files
-
-\section basic Basic principles
+\page basic Basic principles
 
 Pteros is developed according to the following principles
 - API should be simple and intuitive to use
@@ -16,7 +16,12 @@ Pteros is developed according to the following principles
 
 Pteros is C++ library with Python bindings. This means that the Python part is only a wrapper over C++ backend. All new features are implemented in C++ and than exposed to Python.
 
-\subsection basic_concepts Basic concepts
+\section structure Library structure
+\subsection include Include files
+
+\page core Core functionality
+
+\tableofcontents
 
 \subsubsection atoms Atoms
 Pteros treats all particles as atoms. There is no destinction between real atoms and various dummy particles (virtual sites, shell particles, etc.).
@@ -585,19 +590,22 @@ new_sel = not sel2;
 It is also possible to append one selection to the other using Selection::append() or remove atoms from one selection from the other by Selection::remove(). These methods also work with individual atom indexes.
 \warning In contrast to logical operators Selection::append() and Selection::remove() methods do not create new selection but modify existing one.
 
-\subsection access Accessing properties of selected atoms
+\section access Accessing properties of selected atoms
 
 If selection contains \e N atoms then they could be accessed by relative indexes from 0 to N-1 inclusive. Relative indexes are \e NOT the same as atomic indexes. Atom with global index 150 may have relative index 0 in one selection and 23 in the other. However relative indexes are very convenient in accessing properties of selected atoms. For this Selection class contains the set of <i>accessor methods</i>.
 
-Accessor methos have the same names as the properties of atoms with the first letter capitalized. For example `sel.Index(i)` returns global index of atom with relative index i, `sel.Name(i)` returns name of this atom, `sel.Resname(i)` returns its residue name, etc.
+\warning Accessing atom properties could be rather confusing due to the differences in C++ and Python. These differences are dictated by very different architectures of C++ and Python languages.
 
-Accessors `X(i)`, `Y(i)` and `Z(i)` give access to individual atomic coordinates. The method `XYZ(i)` returns the vector of all three coordinates. These accessors also accept frame index as optional second parameter: `Z(i,fr)`, `XYZ(i,fr)`, etc.
+\subsection cpp_access Accessor methods in C++
+Accessor methos in C++ have the same names as the properties of atoms with the first letter capitalized. For example `sel.Index(i)` returns global index of atom with relative index i, `sel.Name(i)` returns name of this atom, `sel.Resname(i)` returns its residue name, etc.
 
-There are also accessors for periodic box associated with current frame pointed by selection (`Box()`) and the time stamp of the pointed frame (`Time()`).
+Accessors `X(i)`, `Y(i)` and `Z(i)` give access to individual atomic coordinates of the current frame (the frame pointed by selection). The method `XYZ(i)` returns the vector of all three coordinates. These accessors also accept frame index as optional second parameter: `Z(i,fr)`, `XYZ(i,fr)`, etc.
+
+There are also accessors for periodic box associated with current frame pointed by selection (`Box()`) and the time stamp of the pointed frame (`Time()`). These methods are \e not available for arbitrary frames.
 
 There is also special accessor `VDW(i)` which returns the van der Waals radius of <i>i</i>-th atom.
 
-There is a difference in behavior of accessors in C++ and Python. In C++ all of them are inlined l-value functions. This means that they do not add any overhead in accessing atom properties and could be assinged to:
+In C++ all of them are accessors inlined l-value functions. This means that they do not add any overhead in accessing atom properties and could be assinged to:
 
 \code
 Selection sel(system,"name CA");
@@ -605,9 +613,19 @@ Selection sel(system,"name CA");
 cout << sel.Name(0) << endl;
 // Write access
 sel.Name(0) = "CB";
+
+// Accessing coordinates of the current frame
+cout << sel.X(0) << endl;
+sel.XYZ(0) = sel.XYZ(0) + sel.XYZ(0);
+
+// Accessing coordinates of other frames
+cout << sel.X(0,frame) << endl;
+sel.XYZ(0,frame) = sel.XYZ(1,frame1) + sel.XYZ(2,frame2);
 \endcode
 
-In Python each accessor have to be prepended by "get" or "set" prefixes for read and write access respectively, which makes them clumsy and difficult to use:
+\subsection py_access Accessor methods in Python
+
+Due to language limitations in Python each accessor have to be prepended by "get" or "set" prefixes for read and write access respectively, which makes them rather clumsy and difficult to use:
 
 \code{.py}
 sel = Selection(system, 'name CA')
@@ -615,9 +633,43 @@ sel = Selection(system, 'name CA')
 print sel.getName(0)
 # Write access
 sel.setName(0, "CB")
+
+# Accessing coordinates of the current frame
+print sel.getX(0)
+sel.setXYZ(0, sel.getXYZ(0) + sel.getXYZ(0) )
+
+# Accessing coordinates of other frames
+print sel.getX(0,frame)
+sel.setXYZ(0, frame, sel.getXYZ(1,frame1) + sel.getXYZ(2,frame2));
 \endcode
 
-Much more covenient way of accessing atom properties in Python is using indexing operator of Selection object:
+Much more covenient way of accessing atom properties in Python is using indexing operator of Selection object (see below).
+
+\subsection indexing Indexing operator of Selection object
+
+Selections support indexing by "[]" operator. It returns special Atom_proxy object, which has the same set of atom property accessors as Selection itslef.
+
+In C++ the only difference is that these accessors do not take relative atomic index since Atom_proxy stores it internally.
+
+\code
+// Note that accessors do not take atom index as first argument!
+
+Selection sel(system,"name CA");
+// Read access
+cout << sel[0].Name() << endl;
+// Write access
+sel[0].Name() = "CB";
+
+// Accessing coordinates of the current frame
+cout << sel[0].X() << endl;
+sel[0].XYZ() = sel[1].XYZ() + sel[2].XYZ();
+
+// Accessing coordinates of other frame
+cout << sel[0].X(frame) << endl;
+sel[0].XYZ(frame) = sel[1].XYZ(frame1) + sel[2].XYZ(frame2);
+\endcode
+
+In Python Atom_proxy objects benefit from the Python properties, which makes the usage of indexing much easier than the direct usage of accessors:
 
 \code{.py}
 # Recommended way in Python
@@ -627,36 +679,26 @@ sel = Selection(system, 'name CA')
 print sel[0].name
 # Write access
 sel[0].name = "CB"
-# Note that 'name' is property, not a method!
+# Note that 'name' is a property, not a method!
 # It is NOT capitalized and no () is needed!
 
-# This also works for coordinates:
+# This also works for coordinates of the CURRENT frame:
 print sel[0].x, sel[0].xyz
 sel[0].xyz = sel[1].xyz + sel[2].xyz
 
 # BUT if you want to access coordinates of OTHER frame
 # you HAVE to use ordinary accessors:
 print sel.getXYZ(0, other_frame)
-sel.setXYZ(0, other_frame) = sel[1].xyz + sel[2].xyz
+sel.setXYZ(0, frame, sel.getXYZ(1,frame1) + sel.getXYZ(2,frame2));
 \endcode
 
-Indexing is also perfectly usable in C++ but works slower than accessor methods:
-\code
-// Works in C++ but not recommended
-
-Selection sel(system,"name CA");
-// Read access
-cout << sel[0].Name() << endl;
-// Write access
-sel[0].Name() = "CB";
-\endcode
-
-\note The indexing operator of Selection class returns a temporary proxy object Atom_proxy, which has the same set of atom property accessors as Selection itslef. The only difference is that these accessors do not take relative atomic index since Atom_proxy stores it internally. Creation of proxy objects makes iterator access \e slower than access by accessors of selection iteself.
+\warning Creation of proxy objects makes access by indexing \e slower than direct usage of accessor methods of Selection. The difference is neglegible in most situations but do not use it in performance-critical parts of the code.
 
 \subsection sel_iter Iterating over selected atoms
 
 There are two ways to iterate over selected atoms - using <i>relative selection indexes</i> and using <i>iterators</i>.
 
+The first variant uses either accessor methods or indexing operator to get atom properties:
 \col1
 Selection sel(system, "name CA CB");
 
@@ -704,10 +746,78 @@ for a in sel:
     print a.name, a.resname
 \endcol
 
+\subsection uniform_prop Getting particular property of all selected atoms
+
+There is a set of methods allowing to get particular property of all selected atoms at the same time. These methods have the names `get_<property>()` and 'set_<property>()' where property is name, resname, resid, beta, x, y, z, xyz, etc. In C++ getters return either std::vector for strings and char properties or Eigen::Vector for integer and float properties. Setters accept the same vectors as corresponding getters return. It is also possible to call setterss with simgle value which will "fill" all selected atoms. In Python the lists are used for strings and chars and numpy arrays for ints and floats:
+
+\col1
+auto resids = sel.get_resid();
+resids[5] += 4;
+sel.set_resid(resids);
+
+// Set all atom names to CA
+sel.set_name("CA");
+\col2
+resids = sel.get_resid()
+resids[5] += 4
+sel.set_resid(resids)
+
+# Set all atom names to CA
+sel.set_name('CA')
+\endcol
+
+There are also methods `get_unique_<property>()` which return the vector of unique properties in selection. For example in order to get the list of all residue ids in selection:
+\col1
+sel = system.select_all();
+auto resids = sel.get_resid();
+// May return 1,1,1,1,2,2,2,2,2,3,3,3,3,4,4,4,4,...
+resids = sel.get_unique_resid();
+// Returns 1,2,3,4,5,...
+\col2
+sel = system.select_all()
+resids = sel.get_resid()
+#May return 1,1,1,1,2,2,2,2,2,3,3,3,3,4,4,4,4,...
+resids = sel.get_unique_resid()
+# Returns 1,2,3,4,5,...
+\endcol
+
 \section sys_build Building molecular systems
 \subsection atom_add_del Adding and deleting atoms
 \subsection append_remove Appending and removing systems and selections
 \subsection distib Multiplying selections
-\subsection rearrange Rearranging the order of atoms
+\subsection rearrange Rearranging atoms
+
+\section pbc Working with periodicity
+\subsection pbc_get_set Getting, setting and modifying periodic box
+\subsection wrap Wrapping and unwrapping
+\subsection pbc_measure Periodic distances and closest images
+
+\section dist_search Fast distance search and spatial grids
+\subsection dist_search_variants Different forms of distance search
+\subsection custom_grid Custom spatial grids
+
+\section energy Evaluating non-bond energies
+\subsection get_top Generating and reading Pteros .pttop files
+\subsection top_opt Setting options for energy evaluation
+\subsection get_en Computing non-bond energies
+
+\section dssp Secondary structure of proteins
+
+\section measure_sasa Solvent available surface area
+
+
+\page analysis Analysis of trajectories
+
+\tableofcontents
+
+\section anal_concepts Asynchronous parallel trajectory processing in Pteros
+\section processors_consumers Trajectory processors and consumers
+\subsection options Processing command-line options
+\subsection frame_info Understanding frame metadata
+\subsection magic_vars Magic variables in consumers
+\subsection jump Removing jumps over periodic boundaries
+\section plugins Analysis plugins
+
+\page tools Pteros tools
 */
 }
