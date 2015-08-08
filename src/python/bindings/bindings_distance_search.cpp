@@ -140,6 +140,22 @@ boost::python::tuple search_contacts2(float d,
 
 BOOST_PYTHON_FUNCTION_OVERLOADS(search_contacts2_overloads, search_contacts2, 3, 6)
 
+
+PyObject* search_within_free(float d,
+                     const Selection& src,
+                     const Selection& target,
+                     bool include_self = false,
+                     bool periodic = false)
+{
+    std::vector<int> res;
+    search_within(d,src,target,res,include_self,periodic);
+
+    CREATE_PYARRAY_1D_AND_MAP_I(p,VectorXi,v,(npy_intp)res.size())
+    v = Map<VectorXi>(res.data(),res.size());
+    return boost::python::incref(p);
+}
+
+BOOST_PYTHON_FUNCTION_OVERLOADS(search_within_free_overloads, search_within_free, 3, 5)
 //------------------------------------------------------
 
 void make_bindings_distance_search(){
@@ -157,4 +173,5 @@ void make_bindings_distance_search(){
 
     def("search_contacts",&search_contacts1,search_contacts1_overloads());
     def("search_contacts",&search_contacts2,search_contacts2_overloads());
+    def("search_within",&search_within_free,search_within_free_overloads());
 }
