@@ -559,9 +559,9 @@ class Selection {
 
     /** RMSD between two selections of the same size (for given frames)
     *   @param sel1 First selection
-    *   @param fr1 Frame for first selection
+    *   @param fr1 %Frame for first selection
     *   @param sel2 Second selection
-    *   @param fr2 Frame for second selection
+    *   @param fr2 %Frame for second selection
     */
     friend float rmsd(const Selection& sel1, int fr1, const Selection& sel2, int fr2);
 

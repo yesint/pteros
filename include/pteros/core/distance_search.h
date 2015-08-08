@@ -20,14 +20,19 @@
  *
 */
 
+/// @file
+
 #ifndef DISTANCE_SEARCH_INCLUDED
 #define DISTANCE_SEARCH_INCLUDED
 
 #include "pteros/core/selection.h"
 #include "pteros/core/distance_search_within.h"
 
+/// Pteros namespace
 namespace pteros {       
 
+/// Search contacts within single selection
+/// Optionally returns distances for each pair.
 void search_contacts(float d,
                      const Selection& sel,
                      std::vector<Eigen::Vector2i> &pairs,
@@ -35,6 +40,7 @@ void search_contacts(float d,
                      bool periodic = false,
                      std::vector<float> *dist_vec = nullptr);
 
+/// Search contacts between two selections
 void search_contacts(float d,
                      const Selection& sel1,
                      const Selection& sel2,
@@ -43,6 +49,7 @@ void search_contacts(float d,
                      bool periodic = false,
                      std::vector<float>* dist_vec = nullptr);
 
+/// Search atoms from source selection around the traget selection
 void search_within(float d,
                    const Selection& src,
                    const Selection& target,

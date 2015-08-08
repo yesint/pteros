@@ -27,6 +27,7 @@
 
 namespace pteros {       
 
+/// Class for within searching
 class Distance_search_within {
 public:
     Distance_search_within();
