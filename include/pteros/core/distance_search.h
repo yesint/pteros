@@ -50,6 +50,7 @@ void search_contacts(float d,
                      std::vector<float>* dist_vec = nullptr);
 
 /// Search atoms from source selection around the traget selection
+/// Returns absolute indexes only!
 void search_within(float d,
                    const Selection& src,
                    const Selection& target,

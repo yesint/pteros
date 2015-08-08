@@ -45,7 +45,7 @@ namespace pteros {
     various 3D histrograms (for examples density or the residence time maps).
     Typical usage:
     \code
-    Grid_searcher g;
+    Grid g;
     g.create_custom_grid(NX,NY,NZ);
     for(...){ // Accumulate some data in the grid
         g.add_to_custom_grid(sel,true);

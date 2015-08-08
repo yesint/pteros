@@ -424,7 +424,7 @@ sel.modify(other_system, sel_func)
 sel.modify(other_system, sel_func, 3)
 \endcol
 
-\subsection Selecting everything
+\subsection all_sel Selecting everything
 \col1
 // Using System::select_all() (the most efficient method)
 Selection all = system.select_all();
@@ -815,8 +815,218 @@ resids = sel.get_unique_resid()
 \subsection pbc_measure Periodic distances and closest images
 
 \section dist_search Fast distance search and spatial grids
+
+Pteros uses fast grid search algorithms for finding distances between the atoms. There are several variants of the distance seacrh which return either pairs of atoms within given cut-off distance or the list of atoms within given distance from point in space or other set of atoms.
+
+\note \ref within_sel "Within selections" also use distance search algorithms under the hood.
+
 \subsection dist_search_variants Different forms of distance search
+
+\subsubsection search_1_sel Searching contacts within single selection
+
+Use the \ref pteros::search_contacts(float,const Selection&,std::vector<Eigen::Vector2i>&,bool,bool,std::vector<float>*) "this" function to search all contacts between the atoms within single selection.
+
+\warning In Python the signature of this function is different:
+\code{.py}
+(pairs,distances) search_contacts(cut_off, sel, absolute_index = False, periodic = False, do_dist = False)
+\endcode
+Instead of taking pairs and distance vectors as reference parameters they are returned as a tuple, which Pythonic way of handling multiple return values. If the last parameter "do_dist" is "True" then distances are filled with actual values, otherwise second member of return tuple is "None".
+
+\col1
+// Vector for found pairs
+vector<Vector2i> pairs;
+
+// Cut-off distance in nm
+float cut_off = 3.5;
+
+// Non-periodic search returning local indexes
+search_contacts(cut_off,sel,pairs);
+
+// Periodic search returning global indexes
+search_contacts(cut_off,sel,pairs,true,true);
+
+// Same as above but also return distances for each pair
+vector<float> distances;
+search_contacts(cut_off,sel,pairs,true,true,&distances);
+\col2
+# Cut-off distance in nm
+cut_off = 3.5
+
+# In Python search_contacts() *always*
+# returns a tuple (pairs,distances)
+# If no distances are requested the 'distances'
+# would be equal to None!
+
+# Non-periodic search returning local indexes
+# We only take first member of the tuple (the pairs)
+pairs = search_contacts(cut_off,sel)[0]
+
+# Periodic search returning global indexes
+# We only take first member of the tuple (the pairs)
+pairs = search_contacts(cut_off,sel,True,True)[0]
+
+# Same as above but also return distances for each pair
+# Passing True in last argument instruct to fill distances with
+# values instead of returning it as None.
+pairs,distances = search_contacts(cut_off,sel,True,True,True)
+\endcol
+
+
+\subsubsection search_2_sel Searching contacts between two selections
+
+Use the \ref pteros::search_contacts(float,const Selection&,const Selection&,std::vector<Eigen::Vector2i>&,bool,bool,std::vector<float>*) "this" function to search the contacts between two different selections.
+\warning In Python the signature of this function is different:
+\code{.py}
+(pairs,distances) search_contacts(cut_off, sel1, sel2, absolute_index = False, periodic = False, do_dist = False)
+\endcode
+Instead of taking pairs and distance vectors as reference parameters they are returned as a tuple, which Pythonic way of handling multiple return values. If the last parameter "do_dist" is "True" then distances are filled with actual values, otherwise second member of return tuple is "None".
+
+\col1
+// Vector for found pairs
+vector<Vector2i> pairs;
+
+// Cut-off distance in nm
+float cut_off = 3.5;
+
+// Non-periodic search returning local indexes
+search_contacts(cut_off,sel1,sel2,pairs);
+
+// Periodic search returning global indexes
+search_contacts(cut_off,sel1,sel2,pairs,true,true);
+
+// Same as above but also return distances for each pair
+vector<float> distances;
+search_contacts(cut_off,sel1,sel2,pairs,true,true,&distances);
+\col2
+# Cut-off distance in nm
+cut_off = 3.5
+
+# In Python search_contacts() *always*
+# returns a tuple (pairs,distances)
+# If no distances are requested the 'distances'
+# would be equal to None!
+
+# Non-periodic search returning local indexes
+# We only take first member of the tuple (the pairs)
+pairs = search_contacts(cut_off,sel1,sel2)[0]
+
+# Periodic search returning global indexes
+# We only take first member of the tuple (the pairs)
+pairs = search_contacts(cut_off,sel1,sel2,True,True)[0]
+
+# Same as above but also return distances for each pair
+# Passing True in last argument instruct to fill distances with
+# values instead of returning it as None.
+pairs,distances = search_contacts(cut_off,sel1,sel2,True,True,True)
+\endcol
+
+\subsubsection search_within Searching around given selection
+
+Use pteros::search_within() function to search all atoms from <i>source selection</i> which are within given distance from any atom of <i>target selection</i>.
+
+\warning In Python the signature of this function is different:
+\code{.py}
+indexes = search_contacts(cut_off, source, target, include_self = True, periodic = False)
+\endcode
+Indexes are returned instead of being passed by reference, which is Pythonic way of handling this situation.
+
+\col1
+// Source selection is water
+auto source_sel = system("resname SOL");
+// Target selection is protein
+auto target_sel = system("protein");
+
+// Vector of found atom indexes
+// Absolute indexes are returned!
+vector<int> result;
+
+float cut_off = 3.5; // in nm
+
+// Find all atoms of source in 3.5 nm shell around target
+// not including target itself accounting for periodicity
+search_within(cut_off, source_sel, target_sel, result, false, true);
+\col2
+# Source selection is water
+source_sel = system('resname SOL')
+# Target selection is protein
+target_sel = system('protein')
+
+cut_off = 3.5 # in nm
+
+# Find all atoms of source in 3.nm 5 shell around target
+# not including target itself accounting for periodicity
+# Absolute indexes are returned!
+result = search_within(cut_off, source_sel, target_sel, False, True)
+\endcol
+
+\subsubsection repeated_search Repeated searching around multiple targets
+
+There is a common situation when one needs to find, for example, water molecules around multiple protein residues or around head group of each lipid in the membrane. In this scenario the source selection (water) is always the same, while the target selection changes and multiple searches have to be done. Usage of pteros::search_within() function is not optimal in this case bacause it will redundantly distribute source atoms to the same grid multiple times. In this case the Distance_search_within provides \e much better performance. This class is initialized with source selection and then allows to search around different targets efficiently multple times. It also allows searching around fixed points in space.
+
+\col1
+// Source selection for water
+auto water = system("resname SOL");
+// Multiple target selections for 20 protein residues
+vector<Selection> residues;
+for(int i=1; i<20; i++){
+    residues[i].modify(system,"protein and resid "+to_string(i));
+}
+
+// Vector of vectors for results
+vector<vector<int>> results(20);
+
+// Initialise for periodic search and to return local indexes
+Distance_search_within seacrher(3.5, water, false, true);
+
+// Search for each residue
+for(int i=1; i<20; i++){
+    searcher.seacrh_within(residues[i], results[i]);
+}
+\col2
+# Source selection for water
+water = system('resname SOL')
+# Multiple target selections for 20 protein residues
+residues = []
+for i in xrange(20):
+    sel = system("protein and resid %i" % (i+1))
+    residues.append(sel);
+
+# Storage for results
+results = []
+
+# Initialise for periodic search and to return local indexes
+searcher = Distance_search_within(3.5, water, False, True)
+
+# Search for each residue
+for i in xrange(20):
+    res = searcher.seacrh_within(residues[i+1]);
+    results.append(res);
+\endcol
+
 \subsection custom_grid Custom spatial grids
+
+Sometimes one does not need to do a distance searcg but want to distribute the atoms from given selection into spatial grid. This is useful for computing 3D density distributions, occupancy volumetric hystograms, velocity fields, etc.
+This task is perfromed by Grid class.
+
+\note Grid is used internally by all distance search functions, thus it is rather \e low-level class. Particularly grid cells contain raw pointers to atomic coordinates, which are treated in a complex way internally. In periodic grids they may point not to actual atoms but to temporary wrapped coordinates.
+
+\warning Grid is currently C++ only.
+
+\code
+// Create 100x100x100 grid
+Grid g(100,100,100);
+// Populate it from given selection
+// in periodic manner
+g.populate_periodic(sel);
+
+// Print number of atoms in the grid cells
+for(int i=0;i< 100;++i){
+    for(int j=0;j< 100;++j)
+        for(int k=0;k< 100;++k)
+            cout << g.cell(i,j,k).size() << endl;
+\endcode
+
+Grid cells are of type `vector<Grid_element>` and contain information about indexes and coordinates of atoms in each cell.
 
 \section energy Evaluating non-bond energies
 \subsection get_top Generating and reading Pteros .pttop files
