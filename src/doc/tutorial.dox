@@ -1,15 +1,6 @@
 /** \page tutorial Tutorial
 
-\section contents Contents
-
-- \ref getting_started
-- \ref selections
-- \ref manip
-- \ref transforms
-- \ref rmsd
-- \ref bindings
-- \ref hi_level
-- \ref analysis_plugins
+\tableofcontents
 
 \section getting_started 	Getting started
 

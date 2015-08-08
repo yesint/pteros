@@ -1,5 +1,5 @@
 /**
-\page install_win Installing Pteros on Windows
+\page install_win Installation on Windows
 
 Installing Pteros on Windows is rather tricky task. This is not the fault of Pteros itself, but the general problem of using Open Source tools on Windows, which requires overcoming multiple platform-related issues and bugs. Currently only MinGW gcc compiler is tested on Windows. If you want to use MS Visual Studio or other compilers you'll need to sort the things out yourself.
 

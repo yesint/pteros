@@ -1,10 +1,13 @@
 namespace pteros {
 /**
-\page manual Pteros 2.0 user manual
+\page manual User manual
+
+\warning THIS MANUAL IS NOT COMPLETE! WORK IN PROGRESS.
 
 - \subpage basic
 - \subpage core
 - \subpage analysis
+- \subpage tools
 
 \page basic Basic principles
 
@@ -23,7 +26,8 @@ Pteros is C++ library with Python bindings. This means that the Python part is o
 
 \tableofcontents
 
-\subsubsection atoms Atoms
+\section basic_classes Basic classes
+\subsection atoms Atom
 Pteros treats all particles as atoms. There is no destinction between real atoms and various dummy particles (virtual sites, shell particles, etc.).
 Each atom in Pteros has the following attributes:
 
@@ -46,15 +50,15 @@ type_name   |   string      | Name of atom type | Defaults to empty string. |
 
 Atoms are represented by the objects of Atom class.
 
-\subsubsection system System
+\subsection system System
 The system is a container for atoms, coordinate frames and associated force field parameters. The system may contain many coordinate frames which represent different states of the system (MD time steps or NMR structures for example). System is usually read from one or more structure, trajectory or topology files. Systems are represented by the System class.
 
 \note The system is \em not a representation of particular data file! Although attributes of atoms are similar to the fields of PDB files the system is much more general concept. The system could be constructed from a single file (such as PDB), from several files (such as PDB+XTC) or could be built from scratch programmatically by adding individual atoms and frames.
 
-\subsubsection frame Frame
+\subsection frame Frame
 The frame is representation of the instanteneous state of the system. It contains coordinates of all atoms, time stamp and the periodic box (if the periodic boundary conditions are used). Represented by the Frame class.
 
-\subsubsection selection Selection
+\subsection selection Selection
 Selection is a subset of atoms from particular system. Selection <i>do not contain any data</i> but just points to existing atoms in the system. Selection should be considered as a "handle" to certain group of atoms which allows to query their properties and to manipulate their attributes and coordinates in various ways.
 
 \section load Loading molecular system
@@ -452,7 +456,7 @@ all = Selection('all')
 
 The basic elements of selection language are the following:
 
-\subsubsection all_sel Selecting everything
+\subsubsection select_all Selecting everything
 The keyword "all" selects all atoms in the system.
 
 \subsubsection keyword_sel Keyword selections
