@@ -29,6 +29,7 @@
 #include "pteros/core/pteros_error.h"
 #include "pteros/core/distance_search.h"
 #include "pteros/core/mol_file.h"
+#include "selection_parser.h"
 // DSSP
 #include "pteros_dssp_wrapper.h"
 
@@ -68,6 +69,8 @@ void System::clear(){
     atoms.clear();
     traj.clear();
     force_field.clear();
+    filter.clear();
+    filter_text = "";
 }
 
 void System::check_num_atoms_in_last_frame(){
@@ -77,6 +80,31 @@ void System::check_num_atoms_in_last_frame(){
                            +" atoms while the system has "
                            +to_string(num_atoms())
                            );
+}
+
+void System::filter_atoms()
+{
+    if(filter.empty() && filter_text=="") return; // Do nothing if no filtering
+
+    if(filter_text!="" && filter.empty()){
+        // Parse text-based filter
+        Selection_parser parser;
+        parser.create_ast(filter_text);
+        if(parser.has_coord) throw Pteros_error("Coordinate-dependent selections are not allowed in filters!");
+        parser.apply(this, 0, filter);
+    }
+
+    vector<Atom> tmp = atoms;
+    atoms.resize(filter.size());
+    for(int i=0; i<filter.size(); ++i) atoms[i] = tmp[filter[i]];
+}
+
+void System::filter_coord(int fr)
+{
+    if(filter.empty()) return; // Do nothing if no filtering
+    vector<Vector3f> tmp = traj[fr].coord;
+    traj[fr].coord.resize(filter.size());
+    for(int i=0; i<filter.size(); ++i) traj[fr].coord[i] = tmp[filter[i]];
 }
 
 // Load structure or trajectory
@@ -95,6 +123,10 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
             Frame fr;
             frame_append(fr);
             f->read(this, &Frame_data(num_frames()-1), c);
+
+            filter_atoms();
+            filter_coord(num_frames()-1);
+
             check_num_atoms_in_last_frame();
             ++num_stored;
 
@@ -109,6 +141,7 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
             // Clear flags for trajectory and coordinates            
             c &= ~(MFC_COORD | MFC_TRAJ);
             f->read(this, nullptr, c);
+            filter_atoms();
             assign_resindex();
         }        
     }
@@ -133,7 +166,7 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
                 cout << "Skipping " << b << " frames..." << endl;
                 Frame skip_fr;
                 for(int i=0;i<b;++i){
-                    f->read(nullptr, &skip_fr, MFC_TRAJ);
+                    f->read(nullptr, &skip_fr, MFC_TRAJ);                    ;                    
                     cur++;
                 }
             }
@@ -160,6 +193,7 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
                     break; // end of trajectory
                 }
 
+                filter_coord(num_frames()-1);
                 check_num_atoms_in_last_frame();
 
                 ++cur;
@@ -187,6 +221,7 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
             frame_append(fr);
             // Read it
             f->read(nullptr, &Frame_data(num_frames()-1), MFC_COORD);
+            filter_coord(num_frames()-1);
             check_num_atoms_in_last_frame();
             ++num_stored;
             // Call a callback if asked
@@ -194,6 +229,8 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
         } else if(f->get_content_type() & MFC_TOP) {
             // This is topology file, read only topology                  
             f->read(this, nullptr, MFC_TOP);
+            // For topology filtering is not possible
+            if(!filter.empty() || filter_text!="") throw Pteros_error("Filtering is not possible when reading topology!");
         }
     }
 
@@ -204,6 +241,9 @@ bool System::load(const std::unique_ptr<Mol_file>& handler, Mol_file_content wha
 {        
     // Asked for structure or topology
     if(what & MFC_ATOMS || what & MFC_TOP || what & MFC_COORD){
+        if((what & MFC_TOP) && (!filter.empty() || filter_text!=""))
+            throw Pteros_error("Filtering is not possible when reading topology!");
+
         // We don't want to read traj here, so disable it even if asked to read it
         auto c = what;
         c &= ~MFC_TRAJ;
@@ -216,6 +256,10 @@ bool System::load(const std::unique_ptr<Mol_file>& handler, Mol_file_content wha
             Frame fr;
             frame_append(fr);
             handler->read(this, &Frame_data(num_frames()-1), c);
+
+            filter_atoms();
+            filter_coord(num_frames()-1);
+
             check_num_atoms_in_last_frame();
             if(what & MFC_ATOMS) assign_resindex();
             // Call a callback if asked
@@ -223,6 +267,7 @@ bool System::load(const std::unique_ptr<Mol_file>& handler, Mol_file_content wha
         } else {
             // Not asked for coordinates
             handler->read(this, nullptr, c);
+            filter_coord(num_frames()-1);
             if(what & MFC_ATOMS) assign_resindex();
         }
     }
@@ -239,6 +284,7 @@ bool System::load(const std::unique_ptr<Mol_file>& handler, Mol_file_content wha
             return false;
         }
 
+        filter_coord(num_frames()-1);
         check_num_atoms_in_last_frame();
 
         // Call a callback if asked
@@ -247,6 +293,45 @@ bool System::load(const std::unique_ptr<Mol_file>& handler, Mol_file_content wha
     }
 
     return true;
+}
+
+void System::set_filter(string str)
+{
+    if(atoms.size()) throw Pteros_error("Filter could be set to empty system only!");
+    filter_text = str;
+}
+
+void sort_and_remove_duplicates(std::vector<int>& index)
+{
+    if(index.size()){
+        sort(index.begin(),index.end());
+        vector<int>::iterator it = unique(index.begin(), index.end());
+        index.resize( it - index.begin() );
+        if(index[0]<0) throw Pteros_error("Negative index present in filter!");
+    }
+}
+
+
+void System::set_filter(int ind1, int ind2)
+{
+    if(atoms.size()) throw Pteros_error("Filter could be set to empty system only!");
+    filter.reserve(ind2-ind1+1);
+    for(int i=ind1; i<=ind2; ++i) filter.push_back(i);
+    sort_and_remove_duplicates(filter);
+}
+
+void System::set_filter(const std::vector<int> &ind)
+{
+    if(atoms.size()) throw Pteros_error("Filter could be set to empty system only!");
+    filter = ind;
+    sort_and_remove_duplicates(filter);
+}
+
+void System::set_filter(vector<int>::iterator it1, vector<int>::iterator it2)
+{
+    if(atoms.size()) throw Pteros_error("Filter could be set to empty system only!");
+    copy(it1,it2,back_inserter(filter));
+    sort_and_remove_duplicates(filter);
 }
 
 // Destructor of the system class

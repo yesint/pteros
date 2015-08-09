@@ -267,7 +267,43 @@ public:
      */
     bool load(const std::unique_ptr<Mol_file> &handler,
               Mol_file_content what,         
-              std::function<bool(System*,int)> on_frame = 0);
+              std::function<bool(System*,int)> on_frame = 0);    
+
+
+    /// @name Input filtering
+    /** Filters narrow set of atoms and coordinates which are loaded from data files. Only atoms
+        specified by filter are kept in the system.
+        They follow the same rules as ordinary selections but can't be coordinate-dependent
+        and can't be set by callbacs.
+        \note Filters do not make loading faster. In fact it becomes slower
+        (up to 2 times for very large frames) and consumes
+        twise as much memory \e during loading. However when loading finishes the system will
+        contain only selected atoms. If many frames are stored in the system overall
+        memory consumption will be much smaller.
+
+        Filter could only be set to empty system (it throws an error otherwise),
+        thus the way of using them is the following:
+        \code
+        // Create empty system
+        System sys;
+        // Set filter
+        sys.set_filter("name CA");
+        // All calls to load will use filter now
+        sys.load("some_protein.pdb");
+        sys.load("trajectory.xtc");
+        \endcode
+
+        \warning Filters could not be used when loading topologies! load() throws an error if
+        attempting to load topology with filter.
+    */
+    /// @{
+    void set_filter(std::string str);
+    void set_filter(int ind1, int ind2);
+    void set_filter(const std::vector<int>& ind);
+    void set_filter(std::vector<int>::iterator it1,
+                     std::vector<int>::iterator it2);
+    /// @}
+
     /// @}
 
 
@@ -468,18 +504,26 @@ public:
 
 protected:
 
-    /// Holds all atom attributes except the coordinates
+    // Holds all atom attributes except the coordinates
     std::vector<Atom>  atoms;
 
-    /// Coordinates for any number of frames
+    // Coordinates for any number of frames
     std::vector<Frame> traj;
 
-    /// Force field parameters
+    // Force field parameters
     Force_field force_field;
 
-    /// Supplementary function to check if last added frame contains same number
-    /// of atoms as topology
+    // Supplementary function to check if last added frame contains same number
+    // of atoms as topology
     void check_num_atoms_in_last_frame();
+
+    // Indexes for filtering
+    std::vector<int> filter;
+    // Filter selection text for text-based filters
+    std::string filter_text;
+
+    void filter_atoms();
+    void filter_coord(int fr);
 };
 
 }

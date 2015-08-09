@@ -185,6 +185,19 @@ void System_distribute(System* s, const Selection& sel, boost::python::list& nco
     s->distribute(sel,nc,sh);
 }
 
+void set_filter_from_py_obj(System* s, PyObject* obj){
+    if( PyString_Check(obj) ) {
+        string str = extract<string>(object( handle<>(borrowed(obj)) ));
+        s->set_filter(str);
+    } else if( PySequence_Check(obj) ) {
+        bp::object l( handle<>(borrowed(obj)) );
+        vector<int> v(len(l));
+        for(int i=0;i<len(l);++i) v[i] = extract<int>(l[i]);
+        s->set_filter(v);
+    } else {
+        throw Pteros_error("Invalid arguments for set_filter!");
+    }
+}
 
 //==================================================================
 
@@ -259,5 +272,10 @@ void make_bindings_System(){
         .def("dihedral",&System_dihedral1)
         .def("dihedral",&System_dihedral2)
         .def("dihedral",&System_dihedral3)
+
+        .def("set_filter", static_cast<void(System::*)(int,int)>(&System::set_filter))
+        .def("set_filter", &set_filter_from_py_obj)
+
+        .def("clear",&System::clear)
     ;
 }
