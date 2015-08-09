@@ -61,6 +61,9 @@ The frame is representation of the instanteneous state of the system. It contain
 \subsection selection Selection
 Selection is a subset of atoms from particular system. Selection <i>do not contain any data</i> but just points to existing atoms in the system. Selection should be considered as a "handle" to certain group of atoms which allows to query their properties and to manipulate their attributes and coordinates in various ways.
 
+
+
+
 \section load Loading molecular system
 
 \subsection formats Supported file formats
@@ -185,6 +188,42 @@ In this example we first create three file handlers for corresponding PDB, GRO a
 \note If one will use "MFC_ATOMS | MFC_TRAJ" or "MFC_COORD | MFC_TRAJ" on steps (1) and (2) then MFC_TRAJ will be ignored. This is again intentional to separate frame-by-frame trajectory reading from reading other information.
 \warning If MFC_ATOMS is specified the system is cleared before reading even if it already contained some atoms!
 
+\subsection load_filters Using input filters
+
+Sometimes it is not necessary to read all atoms from the data file. For example if the system contains protein in water quite often only the protein is of interest. However, water may constitute 75% of the whole number of atoms and storing them in the System is redundant. This is especially important if many frames have to be kept in memory. In this case filtering the input may save huge amount of memory.
+
+Pteros has the mechanism of input filtering which helps in such situations. The filter is a special kind of Selection which is set to empty system \e before any loading occures. All subsequent calls to System::load() will be filtered and only selected atoms will be kept in the system.
+
+Filter is set by System::set_filter() method. It takes the same \ref sel_args "arguments" as ordinary selections with two exceptions: filters can't be coordinate-dependent (thay throw an error during loading) and can't be set by callbacs.
+
+\note Filters do not make loading faster. In fact it becomes slower
+(up to 2 times for very large frames) and consumes
+twise as much memory \e during loading. However, when loading finishes the system will
+contain only selected atoms. If many frames are stored overall
+memory consumption will be much smaller. Do not use filters if loading speed is critical.
+
+Filter could only be set to empty system (set_filter() throws an error otherwise),
+thus the correct way of using them is the following:
+\col1
+// Create empty system
+System sys;
+// Set filter
+sys.set_filter("name CA");
+// All calls to load will use filter now
+sys.load("some_protein.pdb");
+sys.load("trajectory.xtc");
+\col2
+# Create empty system
+sys = System()
+# Set filter
+sys.set_filter('name CA')
+# All calls to load will use filter now
+sys.load('some_protein.pdb')
+sys.load('trajectory.xtc')
+\endcol
+
+\warning Filters could not be used for topologies! load() throws an error if
+attempting to load topology with filter.
 
 \section making_selections Selecting atoms
 
@@ -258,6 +297,7 @@ sel = system.select(ind)
 
 -# <b>Pair of iterators to integer vector</b>
 \warning This is only available in C++.
+
 \code
 vector<int> ind = {5,10,34,1,4,15};
 Selection sel21(sys,ind.begin(),ind.end());
@@ -545,7 +585,7 @@ The optional keyword "self" means that central selection itself is also included
 
 Keywords "pbc|nopbc" and "self|noself" can go in any order.
 
-Here are some results:
+Here are some examples:
 
 %Selection text | What is selected
 -------------- | ----------------
@@ -583,9 +623,9 @@ dist vector 2.1 3.3 3.5 1 0 0 < 3.0 | Atoms within the cylinder with radius 3 nm
 3.0 < dist plane 2.1 3.3 3.5 1 1 1 < 5.0 | Selects the slabs of atoms which are between 3 and 5 nm from the plane which goes through the point "2.1 3.3 3.5" and has the normal "1 1 1".
 
 \subsection text_based_sel Auto-update and flattening of text-based selections
-Selections created by means of selection string are a bit special in Pteros. The set of selected may depends on atomic coordinates (for example for selection `x>15` or `within 3.0 of y<34`). These cases are recognized automatically and such coordinate-dependent selection are treated in special manner. If the user calls Selection::set_frame() to change the frame selection points to then selection is recomputed automatically to be consistent with new atomic coordinates.
+Selections created by means of selection string are a bit special in Pteros. The set of selected atoms may depends on atomic coordinates (for example for selection `x>15` or `within 3.0 of y<34`). These cases are recognized automatically and such \e coordinate-dependent selection are treated in special manner. If the user calls Selection::set_frame() to change the frame selection points to then selection is recomputed automatically to be consistent with new atomic coordinates.
 
-In most cases this feature is very handy and saves a lot of time allowing not to bother about consistency of the coordinate-dependent selections with the current atomic coordinates. However in certain cases such behavior is not desirable. For example one selects all water molecules around the protein in starting configuration using `resname SOL and within 3.0 of protein` and want to see how they diffuse in the course of MD simulation. Each update of the coordinate frame made by Selection::set_frame() will select new water shell around protein, which is not what we want. In such case one can call Selection::flatten() method. It "flattens" selection to the plain set of indexes without any auto-update magic.
+In most cases this feature is very handy and saves a lot of time allowing not to bother about consistency of the coordinate-dependent selections with the current atomic coordinates. However in certain cases such behavior is not desirable. For example one selects all water molecules around the protein in starting configuration using "resname SOL and within 3.0 of protein" and want to see how they diffuse in the course of MD simulation. Each update of the coordinate frame made by Selection::set_frame() will select new water shell around protein, which is not what we want. In such case one can call Selection::flatten() method. It "flattens" selection to the plain set of indexes without any auto-update magic.
 \warning Flattening is not reversible! New text-based selection have to be created to turn auto-update on again.
 
 \subsection sel_comb Combining selections
@@ -614,11 +654,11 @@ new_sel = not sel2;
 \endcol
 
 It is also possible to append one selection to the other using Selection::append() or remove atoms from one selection from the other by Selection::remove(). These methods also work with individual atom indexes.
-\warning In contrast to logical operators Selection::append() and Selection::remove() methods do not create new selection but modify existing one.
+\note In contrast to logical operators Selection::append() and Selection::remove() methods do not create new selection but modify existing one.
 
 \section access Accessing properties of selected atoms
 
-If selection contains \e N atoms then they could be accessed by relative indexes from 0 to N-1 inclusive. Relative indexes are \e NOT the same as atomic indexes. Atom with global index 150 may have relative index 0 in one selection and 23 in the other. However relative indexes are very convenient in accessing properties of selected atoms. For this Selection class contains the set of <i>accessor methods</i>.
+If selection contains \e N atoms then they could be accessed by relative indexes from 0 to N-1 inclusive. Relative indexes are \e NOT the same as atomic indexes. Atom with global index 150 may have relative index 0 in one selection and 23 in the other. Relative indexes are very convenient in accessing properties of selected atoms. For this Selection class contains the set of <i>accessor methods</i>.
 
 \warning Accessing atom properties could be rather confusing due to the differences in C++ and Python. These differences are dictated by very different architectures of C++ and Python languages.
 
@@ -774,7 +814,7 @@ for a in sel:
 
 \subsection uniform_prop Getting particular property of all selected atoms
 
-There is a set of methods allowing to get particular property of all selected atoms at the same time. These methods have the names `get_<property>()` and 'set_<property>()' where property is name, resname, resid, beta, x, y, z, xyz, etc. In C++ getters return either std::vector for strings and char properties or Eigen::Vector for integer and float properties. Setters accept the same vectors as corresponding getters return. It is also possible to call setterss with simgle value which will "fill" all selected atoms. In Python the lists are used for strings and chars and numpy arrays for ints and floats:
+There is a set of methods allowing to get particular property of all selected atoms at the same time. These methods have the names "get_<property>()" and "set_<property>()" where property is name, resname, resid, beta, x, y, z, xyz, etc. In C++ getters return either std::vector for strings and char properties or Eigen::Vector for integer and float properties. Setters accept the same vectors as corresponding getters return. It is also possible to call setterss with simgle value which will "fill" all selected atoms. In Python the lists are used for strings and chars and numpy arrays for ints and floats:
 
 \col1
 auto resids = sel.get_resid();
@@ -792,7 +832,7 @@ sel.set_resid(resids)
 sel.set_name('CA')
 \endcol
 
-There are also methods `get_unique_<property>()` which return the vector of unique properties in selection. For example in order to get the list of all residue ids in selection:
+There are also methods "get_unique_<property>()" which return the vector of unique properties in selection. For example in order to get the list of all residue ids in selection:
 \col1
 sel = system.select_all();
 auto resids = sel.get_resid();
@@ -828,7 +868,7 @@ Pteros uses fast grid search algorithms for finding distances between the atoms.
 
 \subsubsection search_1_sel Searching contacts within single selection
 
-Use the \ref pteros::search_contacts(float,const Selection&,std::vector<Eigen::Vector2i>&,bool,bool,std::vector<float>*) "this" function to search all contacts between the atoms within single selection.
+Use \ref pteros::search_contacts(float,const Selection&,std::vector<Eigen::Vector2i>&,bool,bool,std::vector<float>*) "this" function to search all contacts between the atoms within single selection.
 
 \warning In Python the signature of this function is different:
 \code{.py}
@@ -878,7 +918,7 @@ pairs,distances = search_contacts(cut_off,sel,True,True,True)
 
 \subsubsection search_2_sel Searching contacts between two selections
 
-Use the \ref pteros::search_contacts(float,const Selection&,const Selection&,std::vector<Eigen::Vector2i>&,bool,bool,std::vector<float>*) "this" function to search the contacts between two different selections.
+Use \ref pteros::search_contacts(float,const Selection&,const Selection&,std::vector<Eigen::Vector2i>&,bool,bool,std::vector<float>*) "this" function to search the contacts between two different selections.
 \warning In Python the signature of this function is different:
 \code{.py}
 (pairs,distances) search_contacts(cut_off, sel1, sel2, absolute_index = False, periodic = False, do_dist = False)
