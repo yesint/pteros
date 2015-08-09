@@ -628,6 +628,52 @@ Selections created by means of selection string are a bit special in Pteros. The
 In most cases this feature is very handy and saves a lot of time allowing not to bother about consistency of the coordinate-dependent selections with the current atomic coordinates. However in certain cases such behavior is not desirable. For example one selects all water molecules around the protein in starting configuration using "resname SOL and within 3.0 of protein" and want to see how they diffuse in the course of MD simulation. Each update of the coordinate frame made by Selection::set_frame() will select new water shell around protein, which is not what we want. In such case one can call Selection::flatten() method. It "flattens" selection to the plain set of indexes without any auto-update magic.
 \warning Flattening is not reversible! New text-based selection have to be created to turn auto-update on again.
 
+
+\subsection subsel Sub-selections
+
+Sub-selections allow selecting atoms \e inside existing selection
+(narrowing or refining existing selection in other terms).
+Sub-selections could be very useful in the following situation.
+Suppose that we need to create separate selections for N,C,CA and CB atoms
+of particular protein residue. With "normal" selections the following code could be used:
+\code
+Selection sel_N(sys,"protein and resid 1 and name N");
+Selection sel_C(sys,"protein and resid 1 and name C");
+Selection sel_CA(sys,"protein and resid 1 and name CA");
+Selection sel_CB(sys,"protein and resid 1 and name CB");
+\endcode
+The problem with this code is that we are looping over \e all atoms in the system four times,
+ones in each selection. This is very inefficient since we only need to find our
+residue with "protein and resid 1" (one loop over all atoms) and then we need to search
+\e inside this residue four times (looping over ~10 atoms only). This problem is not
+apparent for small system but becomes very painful for the systems with millions of atoms.
+Subselections solve this problem:
+\code
+Selection residue1(sys,"protein and resid 1");
+auto sel_N = residue1.select("name N");
+auto sel_C = residue1.select("name C");
+auto sel_CA = residue1.select("name CA");
+auto sel_CB = residue1.select("name CB");
+\endcode
+
+Subselections inherit the system and frame from the parent. The search in sub-selections
+is performed over selected atoms of the parent only (the only exception from this rule are
+within selections which involve seacrh over all atoms by design).
+
+Subselections can also accept the pair of \e local indexes or the vector of \e local indexes:
+\code
+Selection residue1(sys,"protein and resid 1");
+// Select range of atoms 1-4 inclusive in parent selection
+auto sel_1_4 = residue1.select(1,4);
+// Select atoms 1,4,7 in parent selection
+vector<int> ind = {1,4,7};
+auto sel_1_4_7 = residue1.select(ind);
+\endcode
+
+\note This behavior of sub-selections is different from normal selections. Sub-selections are constructed by \e local indexes of parent selection, while normal selections - by \e global indexes in the system. There no constructors for sub-selections taking iterators or callback functions.
+
+Once sub-selection is created it is not distinguishable from normal one. Particularly it could be modifyed as any other selection, reassigned, etc. Sub-selections are only special by the way of their creation.
+
 \subsection sel_comb Combining selections
 
 Selection objects could be combined by logical operations to create new selections:

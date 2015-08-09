@@ -152,7 +152,7 @@ public:
     */
     bool has_coord;  //There are coordinates in selection
     /// Constructor
-    Selection_parser();
+    Selection_parser(std::vector<int>* subset = nullptr);
     /// Destructor
     virtual ~Selection_parser();
     /// Generates AST from selection string
@@ -176,6 +176,8 @@ private:
     void do_optimization(AstNode_ptr& node);
 
     bool is_optimized;        
+
+    std::vector<int>* starting_subset;
 };
 
 }

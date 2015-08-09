@@ -251,6 +251,81 @@ void Selection::clear(){
     frame = 0;
 }
 
+
+Selection Selection::select(string str)
+{
+    // We create new selection taking full control of its internals
+    // We use empty constructor and than repeat actions of sel_text constructor
+    // but passing our parent index as subspace
+    Selection sub;
+
+    // Set selection string
+    sub.sel_text = str;
+    boost::trim(sub.sel_text);
+
+    // Expand macro-definitions in the string
+    for(int i=0;i<Nmacro;++i)
+        boost::replace_all(sub.sel_text,macro[2*i],macro[2*i+1]);
+
+    // Add selection to sys
+    sub.system = system;
+
+    // point to frame
+    sub.frame = frame;
+
+    // Sanity check
+    if(sub.frame<0 || sub.frame>=sub.system->num_frames())
+        throw Pteros_error("Can't make selection for non-existent frame ") << sub.frame << "!";
+
+    // Manually allocate parser with subset from parent index
+    sub.parser.reset(new Selection_parser(&index));
+    sub.parser->create_ast(sub.sel_text);
+    sub.parser->apply(sub.system, sub.frame, sub.index);
+    if(!sub.parser->has_coord){
+        sub.parser.reset();
+    }
+
+    // Show warning if empty selection is created
+    if(sub.size()==0) cout << "(WARNING) Selection '" << sub.sel_text
+                       << "' is empty!\n\t\tAny call of its methods (except size()) will crash your program!" << endl;
+
+    // And finally return sub
+    return sub;
+}
+
+Selection Selection::operator()(string str)
+{
+    return select(str);
+}
+
+Selection Selection::select(int ind1, int ind2)
+{
+    // ind1 and ind2 are LOCAL indexes, convert them to global and just
+    // use normal range constructor
+    ind1 = index[ind1];
+    ind2 = index[ind2];
+    return Selection(*system,ind1,ind2);
+}
+
+Selection Selection::operator()(int ind1, int ind2)
+{
+    return select(ind1,ind2);
+}
+
+Selection Selection::select(const std::vector<int> &ind)
+{
+    // LOCAL indexes are given, convert them to global and just
+    // use normal range constructor
+    vector<int> glob_ind(ind.size());
+    for(int i=0; i<ind.size(); ++i) glob_ind[i] = index[ind[i]];
+    return Selection(*system,glob_ind);
+}
+
+Selection Selection::operator()(const std::vector<int> &ind)
+{
+    return select(ind);
+}
+
 // Modify selection with new selection string
 void Selection::modify(string str, int fr){
     if(system==nullptr) throw Pteros_error("Selection does not belong to any system!");

@@ -159,9 +159,9 @@ bool AstNode::is_coordinate_dependent(){
 }
 
 
-Selection_parser::Selection_parser(){
-    has_coord = false;
-}
+Selection_parser::Selection_parser(std::vector<int> *subset):
+    has_coord(false),
+    starting_subset(subset) { }
 
 Selection_parser::~Selection_parser(){}
 
@@ -302,8 +302,8 @@ void Selection_parser::apply(System* system, size_t fr, vector<int>& result){
 #endif
     }    
 
-    // Eval root node
-    eval_node(tree,result,nullptr);
+    // Eval root node using staring subset (null by default)
+    eval_node(tree,result,starting_subset);
 
     // Sort result to always get ordered selection index
     //sort(result.begin(),result.end());
@@ -664,7 +664,7 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
         Selection dum1(*sys), dum2(*sys);
 
         // Evaluate enclosed expression
-        // Enclosed expression is independent on any subspace!
+        // Enclosed expression is independent of any subspace!
         // Otherwise the results would be incorrect        
         // Result is returned directly into the index array of selection dum2
         // thus no additional copying

@@ -260,6 +260,50 @@ class Selection {
     void clear();
     /// @}
 
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    /// @name Sub-selections
+    /**
+      Sub-selections allow selecting atoms \e inside existing selection
+      (narrowing or refining existing selection in other terms).
+      Sub-selections could be very useful in the following situation.
+      Suppose that we need to create separate selections for N,C,CA and CB atoms
+      of particular protein residue. With "normal" selections the following code could be used:
+      \code
+      Selection sel_N(sys,"protein and resid 1 and name N");
+      Selection sel_C(sys,"protein and resid 1 and name C");
+      Selection sel_CA(sys,"protein and resid 1 and name CA");
+      Selection sel_CB(sys,"protein and resid 1 and name CB");
+      \endcode
+      The problem with this code is that we are looping over \e all atoms in the system four times,
+      ones in each selection. This is very inefficient since we only need to find our
+      residue with "protein and resid 1" (one loop over all atoms) and then we need to search
+      \e inside this residue four times (looping over ~10 atoms only). This problem is not
+      apparent for small system but becomes very painful for the systems with millions of atoms.
+      Subselections solve this problem:
+      \code
+      Selection residue1(sys,"protein and resid 1");
+      auto sel_N = residue1.select("name N");
+      auto sel_C = residue1.select("name C");
+      auto sel_CA = residue1.select("name CA");
+      auto sel_CB = residue1.select("name CB");
+      \endcode
+
+      Subselections inherit the system and frame from the parent. The search in sub-selections
+      is performed over selected atoms of the parent only (the only exception from this rule are
+      within selections which involve seacrh over all atoms by design).
+    */
+    /// @{
+    Selection select(std::string str);
+    Selection operator()(std::string str);
+
+    /// Local selection indexes are used!
+    Selection select(int ind1, int ind2);
+    Selection operator()(int ind1, int ind2);
+
+    /// Local selection indexes are used!
+    Selection select(const std::vector<int>& ind);
+    Selection operator()(const std::vector<int>& ind);
+    /// @}
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     /// @name Iterator access
