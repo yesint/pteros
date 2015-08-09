@@ -19,7 +19,7 @@ def _select(self,*args):
     if len(args)==0:
         # Select all
         sel = Selection(self,0,self.num_atoms()-1)
-    elif:
+    else:
         sel = Selection(self)
         if len(args)==1:
             sel.modify(args[0])
