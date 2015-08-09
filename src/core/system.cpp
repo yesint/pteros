@@ -299,6 +299,7 @@ void System::set_filter(string str)
 {
     if(atoms.size()) throw Pteros_error("Filter could be set to empty system only!");
     filter_text = str;
+    filter.clear();
 }
 
 void sort_and_remove_duplicates(std::vector<int>& index)
@@ -318,6 +319,7 @@ void System::set_filter(int ind1, int ind2)
     filter.reserve(ind2-ind1+1);
     for(int i=ind1; i<=ind2; ++i) filter.push_back(i);
     sort_and_remove_duplicates(filter);
+    filter_text="";
 }
 
 void System::set_filter(const std::vector<int> &ind)
@@ -325,6 +327,7 @@ void System::set_filter(const std::vector<int> &ind)
     if(atoms.size()) throw Pteros_error("Filter could be set to empty system only!");
     filter = ind;
     sort_and_remove_duplicates(filter);
+    filter_text="";
 }
 
 void System::set_filter(vector<int>::iterator it1, vector<int>::iterator it2)
@@ -332,6 +335,7 @@ void System::set_filter(vector<int>::iterator it1, vector<int>::iterator it2)
     if(atoms.size()) throw Pteros_error("Filter could be set to empty system only!");
     copy(it1,it2,back_inserter(filter));
     sort_and_remove_duplicates(filter);
+    filter_text="";
 }
 
 // Destructor of the system class
