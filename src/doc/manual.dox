@@ -622,12 +622,19 @@ dist point pbc 12.4 34.3 45.1 < 3.0 | The same as above but periodic
 dist vector 2.1 3.3 3.5 1 0 0 < 3.0 | Atoms within the cylinder with radius 3 nm and the axis going from point "2.1 3.3 3.5" along X axis (the direction vector is "1 0 0")
 3.0 < dist plane 2.1 3.3 3.5 1 1 1 < 5.0 | Selects the slabs of atoms which are between 3 and 5 nm from the plane which goes through the point "2.1 3.3 3.5" and has the normal "1 1 1".
 
-\subsection text_based_sel Auto-update and flattening of text-based selections
-Selections created by means of selection string are a bit special in Pteros. The set of selected atoms may depends on atomic coordinates (for example for selection `x>15` or `within 3.0 of y<34`). These cases are recognized automatically and such \e coordinate-dependent selection are treated in special manner. If the user calls Selection::set_frame() to change the frame selection points to then selection is recomputed automatically to be consistent with new atomic coordinates.
+\subsection text_based_sel Text-based selections
+Selections created by means of selection string (\e text-based selections) are a bit special in Pteros. The set of selected atoms may depends on atomic coordinates (for example for selection `x>15` or `within 3.0 of y<34`). These cases are recognized automatically and such \e coordinate-dependent selection are treated in special manner.
 
-In most cases this feature is very handy and saves a lot of time allowing not to bother about consistency of the coordinate-dependent selections with the current atomic coordinates. However in certain cases such behavior is not desirable. For example one selects all water molecules around the protein in starting configuration using "resname SOL and within 3.0 of protein" and want to see how they diffuse in the course of MD simulation. Each update of the coordinate frame made by Selection::set_frame() will select new water shell around protein, which is not what we want. In such case one can call Selection::flatten() method. It "flattens" selection to the plain set of indexes without any auto-update magic.
+Coordinate-dependent selections have to be updated if atomic coordinates change. If the coordinates of atoms were changed manually without changing the current frame this have to be done by hand using Selection::apply() method. If selection is not coordinate-dependent it does nothing.
+
+If the user calls Selection::set_frame() to change the frame selection points to then the coordinate-dependent selection calls apply() automatically to be consistent with new atomic coordinates.
+
+It is also possible to re-parse selection text completely by calling Selection::update(). This is necessary when the number of atoms (not only their coordinate) change. For non-textual selections it does nothing.
+
+In most cases the feature of auto-update is very handy and saves a lot of time allowing not to bother about consistency of the coordinate-dependent selections with the current frame. However in certain cases such behavior is not desirable. For example one selects all water molecules around the protein in starting configuration using "resname SOL and within 3.0 of protein" and want to see how they diffuse in the course of MD simulation. Each update of the coordinate frame made by Selection::set_frame() will select new water shell around protein, which is not what we want. In such case one can call Selection::flatten() method. It "flattens" selection to the plain set of indexes without any auto-update magic.
 \warning Flattening is not reversible! New text-based selection have to be created to turn auto-update on again.
 
+Text-based status of selection is also lost immediately after any operation which modifies it externally (i.e. not by means of parsing selection string) such as using append(), remove() or invert(), using any logical operators with selections, etc. Current status of selection could be queries by Selection::text_based() and Selection::coord_dependent() methods.
 
 \subsection subsel Sub-selections
 
@@ -674,32 +681,35 @@ auto sel_1_4_7 = residue1.select(ind);
 
 Once sub-selection is created it is not distinguishable from normal one. Particularly it could be modifyed as any other selection, reassigned, etc. Sub-selections are only special by the way of their creation.
 
+\note Subselections in Python follow exactly the same syntax as in C++.
+
 \subsection sel_comb Combining selections
 
 Selection objects could be combined by logical operations to create new selections:
 
-- <b>Logical AND</b>
+<ul>
+<li> <b>Logical AND</b>
 \col1
 auto new_sel = sel1 & sel2;
 \col2
 new_sel = sel1 and sel2
 \endcol
 
-- <b>Logical OR</b>
+<li> <b>Logical OR</b>
 \col1
 auto new_sel = sel1 | sel2;
 \col2
 new_sel = sel1 or sel2
 \endcol
 
-- <b>Logical NOT</b>
+<li> <b>Logical NOT</b>
 \col1
 auto new_sel = ~sel1;
 \col2
 new_sel = not sel2
 \endcol
 
-- <b>Removing one selection from the other</b>
+<li> <b>Removing one selection from the other</b>
 \col1
 auto new_sel = sel1 - sel2;
 \col2
@@ -708,6 +718,7 @@ new_sel = sel2 - sel1
 Operator "-" creates new selection, by removing all atoms of sel2 from sel1.
 Parent selections are not modified.
 \warning This operator is \em not commutative!
+</ul>
 
 It is also possible to perform logical operation <i>in place</i> without creating new selections:
 In-place operation | Method
