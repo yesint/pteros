@@ -682,25 +682,41 @@ Selection objects could be combined by logical operations to create new selectio
 \col1
 auto new_sel = sel1 & sel2;
 \col2
-new_sel = sel1 and sel2;
+new_sel = sel1 and sel2
 \endcol
 
 - <b>Logical OR</b>
 \col1
 auto new_sel = sel1 | sel2;
 \col2
-new_sel = sel1 or sel2;
+new_sel = sel1 or sel2
 \endcol
 
 - <b>Logical NOT</b>
 \col1
 auto new_sel = ~sel1;
 \col2
-new_sel = not sel2;
+new_sel = not sel2
 \endcol
 
-It is also possible to append one selection to the other using Selection::append() or remove atoms from one selection from the other by Selection::remove(). These methods also work with individual atom indexes.
-\note In contrast to logical operators Selection::append() and Selection::remove() methods do not create new selection but modify existing one.
+- <b>Removing one selection from the other</b>
+\col1
+auto new_sel = sel1 - sel2;
+\col2
+new_sel = sel2 - sel1
+\endcol
+Operator "-" creates new selection, by removing all atoms of sel2 from sel1.
+Parent selections are not modified.
+\warning This operator is \em not commutative!
+
+It is also possible to perform logical operation <i>in place</i> without creating new selections:
+In-place operation | Method
+------------------ | ------
+Appending one selection to the other | Selection::append()
+Removing atoms from one selection from the other | Selection::remove()
+Invert selection | Selection::invert()
+
+These methods also work with individual atom indexes.
 
 \section access Accessing properties of selected atoms
 

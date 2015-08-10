@@ -235,6 +235,23 @@ void Selection::remove(int ind)
     parser.reset();
 }
 
+void Selection::invert()
+{
+    // Not textual
+    sel_text = "";
+    auto old_ind = index;
+    index.clear();
+    index.reserve(system->num_atoms()-old_ind.size()+1);
+    // Assign index
+    // We can speed up negation a bit by filling only the "gaps"
+    int n = old_ind.size();
+    int i,j;
+    for(j=0;j<old_ind[0];++j) index.push_back(j); //Before first
+    for(i=1;i<n;++i)
+        for(j=old_ind[i-1]+1;j<old_ind[i];++j) index.push_back(j); // between any two
+    for(j=old_ind[n-1]+1;j<system->num_atoms();++j) index.push_back(j); // after last
+}
+
 void Selection::set_system(const System &sys){
     clear();
     system = const_cast<System*>(&sys);
@@ -455,7 +472,6 @@ Atom_proxy Selection::operator[](int ind) const {
     return Atom_proxy(const_cast<Selection*>(this),ind);
 }
 
-
 Selection Selection::operator~() const {
     Selection res(*system);
     res.frame = frame;
@@ -530,7 +546,6 @@ Selection operator-(const Selection &sel1, const Selection &sel2)
                         back_inserter(res.index));
     return res;
 }
-
 
 } // namespace pteros
 

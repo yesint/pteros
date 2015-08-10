@@ -767,6 +767,8 @@ void make_bindings_Selection(){
         .def("remove", static_cast<void(Selection::*)   (const Selection&)      >(&Selection::remove) )
         .def("remove", static_cast<void(Selection::*)   (int)                   >(&Selection::remove) )
 
+        .def("invert", &Selection::invert)
+
         .def("set_system", &Selection::set_system)
 
         .def("modify", &Selection_modify_from_pyobj2)

@@ -191,6 +191,9 @@ class Selection {
     /// Remove given absolute index from current selection
     void remove(int ind);
 
+    /// Inverts selection in place by selection those atoms which were not selected
+    void invert();
+
     /// Sets new system for selection.
     /// \warning This clears selection index and leaves it empty!
     void set_system(const System& sys);
