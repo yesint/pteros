@@ -427,8 +427,7 @@ bp::tuple Selection_sasa(Selection* s, float probe_r = 0.14,
 
 BOOST_PYTHON_FUNCTION_OVERLOADS(Selection_sasa_overloads,Selection_sasa,1,5)
 
-boost::shared_ptr<Selection> constructor_from_pyobj0(const System& sys, PyObject* obj){
-    cout << "%%% 0" << endl;
+boost::shared_ptr<Selection> constructor_from_pyobj0(const System& sys, PyObject* obj){    
     if( PyCallable_Check(obj) ){
         // A lambda, which will call Python function
         auto callback = [&obj](const System& sys, int fr, vector<int>& ind)->void {
@@ -457,8 +456,7 @@ boost::shared_ptr<Selection> constructor_from_pyobj0(const System& sys, PyObject
     }
 }
 
-boost::shared_ptr<Selection> constructor_from_pyobj1(const System& sys, PyObject* obj, int fr){
-    cout << "%%% 1" << endl;
+boost::shared_ptr<Selection> constructor_from_pyobj1(const System& sys, PyObject* obj, int fr){    
     if( PyCallable_Check(obj) ){
         // A lambda, which will call Python function
         auto callback = [&obj](const System& sys, int fr, vector<int>& ind)->void {
@@ -557,6 +555,21 @@ void Selection_modify_from_pyobj2(Selection* sel, const System& sys, PyObject* o
         vector<int> v(len(l));
         for(int i=0;i<len(l);++i) v[i] = extract<int>(l[i]);
         sel->modify(sys,v);
+    } else {
+        throw Pteros_error("Wrong arguments for selection!");
+    }
+}
+
+
+Selection Selection_select_from_pyobj(Selection* sel, PyObject* obj){
+    if( PyString_Check(obj) ) {
+        string str = extract<string>(object( handle<>(borrowed(obj)) ));
+        return sel->select(str);
+    } else if( PySequence_Check(obj) ) {
+        bp::object l( handle<>(borrowed(obj)) );
+        vector<int> v(len(l));
+        for(int i=0;i<len(l);++i) v[i] = extract<int>(l[i]);
+        return sel->select(v);
     } else {
         throw Pteros_error("Wrong arguments for selection!");
     }
@@ -760,6 +773,10 @@ void make_bindings_Selection(){
         .def("modify", &Selection_modify_from_pyobj2_def)
         .def("modify", &Selection_modify_from_pyobj3)
         .def("modify", &Selection_modify_from_pyobj3_def)
+
+        .def("_subselect", static_cast<Selection(Selection::*)(int,int)>(&Selection::select))
+        .def("_subselect", &Selection_select_from_pyobj)
+        // select and __call__ variants are set in pteros.py to keep system alive
 
         .def("apply",&Selection::apply)
         .def("update",&Selection::update)
