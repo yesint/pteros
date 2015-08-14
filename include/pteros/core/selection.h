@@ -27,6 +27,7 @@
 
 #include <string>
 #include <memory>
+#include <map>
 #include <functional>
 #include <Eigen/Core>
 #include <Eigen/Geometry>
@@ -716,6 +717,28 @@ class Selection {
 
     /// Split selection into contiguous ranges of resindexes
     void split_by_contiguous_residue(std::vector<Selection>& parts);
+
+    /// Split selection by the values returned by custom callback function.
+    /// Callback is called for each atom in selection (local index is passed as its second argument)
+    /// and returns an int.
+    /// Selection is split into parts with the same value of this int.
+    template<class F>
+    void split_custom(std::vector<Selection>& parts, F callback){
+        using namespace std;
+        parts.clear();
+        // Map
+        map<decltype(callback(*this,0)),vector<int> > m;
+        for(int i=0; i<size(); ++i){
+            m[callback(*this,i)].push_back(Index(i));
+        }
+        // Create selections
+        typename map<decltype(callback(*this,0)),vector<int> >::iterator it;
+        for(it=m.begin();it!=m.end();it++){
+            parts.push_back(Selection(*system));
+            parts.back().modify( it->second.begin(), it->second.end() );
+        }
+    }
+
 
     /// Selects each residue, which is referenced by selection.
     /// All selections for residues are placed into supplied vector.
