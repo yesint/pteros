@@ -33,6 +33,11 @@ namespace pteros {
 
     float rad_to_deg(float rad);
 
+    constexpr long double operator"" _deg ( long double deg )
+    {
+        return deg*3.141592/180;
+    }
+
 /*
     float distance_to_vector(Vector3f_const_ref point,
                              Vector3f_const_ref vec_origin,
