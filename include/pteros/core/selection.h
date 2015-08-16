@@ -719,20 +719,21 @@ class Selection {
     void split_by_contiguous_residue(std::vector<Selection>& parts);
 
     /// Split selection by the values returned by custom callback function.
-    /// Callback is called for each atom in selection (local index is passed as its second argument)
-    /// and returns an int.
-    /// Selection is split into parts with the same value of this int.
+    /// Callback is called for each atom in selection (local index is passed as its second argument)    
+    /// Callback can return any type usable as a key of std::map.
+    /// Selection is split into parts according to returned value.
     template<class F>
-    void split_custom(std::vector<Selection>& parts, F callback){
+    void split(std::vector<Selection>& parts, F callback){
         using namespace std;
         parts.clear();
+        using Ret = decltype(callback(*this,0));
         // Map
-        map<decltype(callback(*this,0)),vector<int> > m;
+        map<Ret,vector<int> > m;
         for(int i=0; i<size(); ++i){
             m[callback(*this,i)].push_back(Index(i));
         }
         // Create selections
-        typename map<decltype(callback(*this,0)),vector<int> >::iterator it;
+        typename map<Ret,vector<int> >::iterator it;
         for(it=m.begin();it!=m.end();it++){
             parts.push_back(Selection(*system));
             parts.back().modify( it->second.begin(), it->second.end() );
