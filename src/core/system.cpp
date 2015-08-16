@@ -867,21 +867,14 @@ Energy_components &Energy_components::operator+=(const Energy_components &other)
     return *this;
 }
 
-Energy_components System::non_bond_energy(int a1, int a2, int frame, bool is_periodic) const
+Energy_components System::non_bond_energy(int at1, int at2, int frame, bool is_periodic) const
 {
     Energy_components e;
 
     // First check if this pair is not in exclusions
-    if( force_field.exclusions[a1].count(a2) == 0 ){
-        // Required at1 < at2
-        int at1,at2;
-        if(a1<a2){
-            at1 = a1;
-            at2 = a2;
-        } else {
-            at1 = a2;
-            at2 = a1;
-        }
+    if( force_field.exclusions[at1].count(at2) == 0 ){
+        // Required at1 < at2        
+        if(at1>at2) std::swap(at1,at2);
 
         float e1,e2;
 

@@ -616,7 +616,7 @@ class Selection {
     /// Fit two selection of the same size. sel1 is modified to be fit to sel2.
     friend void fit(Selection& sel1, const Selection& sel2);
 
-    /// Fit all frames in the trajectory to reference frame
+    /// Fit specified frames in the trajectory to reference frame
     void fit_trajectory(int ref_frame=0, int b=0, int e=-1);
 
     /// Returns fitting transformation for two given selections of the same size
