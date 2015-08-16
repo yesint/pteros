@@ -72,13 +72,22 @@ int main(int argc, char** argv)
         System s("/home/semen/work/Projects/Besancon-2014/Graphene/gr.pdb");
         vector<Vector2i> bon;
         Selection sel(s,"all");
+
+        vector<Selection> parts;
+        sel.split(parts, [](const Selection& sel, int i){return sel.Index(i);});
+        cout << parts.size() << endl;
+
+        sel.get([](const Selection& sel, int i){return sel.Resindex(i);});
+        for(auto& v: ret) cout << v << endl;
+
+        /*
         vector<float> dist;
         search_contacts(0.143,sel,bon,true,true,&dist);
 
         for(int i=0;i<bon.size();++i){
             cout << bon[i].transpose() << " " << dist[i] << endl;
         }
-
+*/
         //cout << (boost::get<Parse_tree_ptr>(p->children.front())) << endl;
 
         //std::shared_ptr<Parser> p(new Parser);
