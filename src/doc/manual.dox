@@ -142,15 +142,15 @@ Since different file types contain different information the logic of adding inf
 File type   |   What is loaded? |   Comment
 ----------  |   --------------- |   -------
 PDB, GRO, MOL2    |   Atoms and the single frame |   MOL2 does not contain periodic box! |
-PTTOP   |   Atoms, the single frame, full topology    | PTTOP file is Pteros are not "pure topology" - they also contain the set of starting coordinates.  |
+PTTOP   |   Atoms, the single frame, full topology    | PTTOP file in Pteros are not "pure topology" - they also contain the set of starting coordinates.  |
 TNG     |   Atoms and multiple frames   |   |
-XTC, TRR, DCD   |   Failes and raises exception! | In Pteros reading trajectory into the empty system is not allowed (in contrast to VMD for example). |
+XTC, TRR, DCD   |   Fails and raises exception | In Pteros reading trajectory into an empty system is not allowed (in contrast to VMD for example). |
 
 <b>Adding data to the System which is not empty (by System::load())</b>
 File type   |   What is loaded? |   Comment
 ----------  |   --------------- |   -------
 PDB, GRO, MOL2    |   Single frame |  New frame added. The only check is matching number of atoms.  |
-PTTOP   |   Topology    | Adds atom types and charges, updates masses, adds other topology information. No coordinates read, no frames added.  |
+PTTOP   |   Topology    | Adds atom types and charges, updates masses, adds other topology information. No coordinates are read, no frames added.  |
 TNG, XTC, TRR, DCD   |   Multiple frames | Adds number of new frames. The only check is matching number of atoms. |
 
 \subsection advanced_load Advanced loading with file handlers
@@ -194,13 +194,13 @@ Sometimes it is not necessary to read all atoms from the data file. For example 
 
 Pteros has the mechanism of input filtering which helps in such situations. The filter is a special kind of Selection which is set to empty system \e before any loading occures. All subsequent calls to System::load() will be filtered and only selected atoms will be kept in the system.
 
-Filter is set by System::set_filter() method. It takes the same \ref sel_args "arguments" as ordinary selections with two exceptions: filters can't be coordinate-dependent (thay throw an error during loading) and can't be set by callbacs.
+Filter is set by System::set_filter() method. It takes the same \ref sel_args "arguments" as ordinary selections with two exceptions: filters can't be coordinate-dependent (they will throw an error during loading) and can't be set by callbacs.
 
 \note Filters do not make loading faster. In fact it becomes slower
 (up to 2 times for very large frames) and consumes
 twise as much memory \e during loading. However, when loading finishes the system will
 contain only selected atoms. If many frames are stored overall
-memory consumption will be much smaller. Do not use filters if loading speed is critical.
+memory consumption will be much smaller. <i>Do not use filters if loading speed is critical!</i>
 
 Filter could only be set to empty system (set_filter() throws an error otherwise),
 thus the correct way of using them is the following:
@@ -653,7 +653,7 @@ The problem with this code is that we are looping over \e all atoms in the syste
 ones in each selection. This is very inefficient since we only need to find our
 residue with "protein and resid 1" (one loop over all atoms) and then we need to search
 \e inside this residue four times (looping over ~10 atoms only). This problem is not
-apparent for small system but becomes very painful for the systems with millions of atoms.
+apparent for small systems but becomes very painful for the systems with millions of atoms.
 Subselections solve this problem:
 \code
 Selection residue1(sys,"protein and resid 1");
@@ -727,7 +727,7 @@ Appending one selection to the other | Selection::append()
 Removing atoms from one selection from the other | Selection::remove()
 Invert selection | Selection::invert()
 
-These methods also work with individual atom indexes.
+\note append() and remove() methods also work with individual atom indexes.
 
 \section access Accessing properties of selected atoms
 
@@ -1156,9 +1156,118 @@ Treatment of non-bonded interactions in Gromacs is, unfortunately, complex and r
 
 \note Pteros is known to produce correct results for MARTINI coarse grained force field and simple cut-off interactions.
 
-\subsection get_top Generating and reading Pteros .pttop files
-\subsection top_opt Setting options for energy evaluation
+\subsection get_top Generating Pteros .pttop files
+
+Call "tpr2pteros.py" script to convernt Gromacs .tpr binary file to Pteros .pttop topology. The script is doing simple caching - if .tpr file did not change since last call of the script it will do nothing. Currently Pteros uses the same options for short-range energies as set in parent Gromacs .tpr file.
+\note This requires working Gromacs installation.
+
+\subsection en_components Energy components
+
+All energy evaluation methods return an object of type Energy_components which contain separate fields for different energy components:
+
+Field | Energy component
+----- | ----------------
+total | Total energy
+lj_sr | Short-ranhe Lennard-Jones energy
+lj_14 | Lennard-Jones energy of 1-4 pairs
+q_sr | Short-ranhe Coulomb energy
+q_14 | Coulomb energy of 1-4 pairs
+
+Energy_components objects could be added to each other with "+" and "+=" operators.
+
 \subsection get_en Computing non-bond energies
+
+Before evaluating non-bond energies the user should always check if the System has correctly set force field parameters by calling System::force_field_ready(). If it returns `true` than it is safe to call energy functions.
+\warning The Pteros will crash if calling energy functions on system without force field (i.e. without any topology loaded). No check is made in energy functions themselves for efficiency reasons.
+
+\subsubsection en_system Methods of System class
+
+The method System::non_bond_energy() has two forms which evaluate the energy between two atoms or in the list of given atom pairs:
+\col1
+System s("some-structure.pdb");
+s.load("topology.pttop"); // Required!
+
+// Check if system is ready for energy evaluation
+if(s.force_field_ready()){
+   // (1) ENERGY BETWEEN TWO ATOMS
+
+   // Energy between atoms 1 and 2 for frame 0
+   auto en12 = s.non_bond_energy(1,2,0);
+   // The same but accounting for periodicity
+   auto en12pbc = s.non_bond_energy(1,2,0,true);
+   // Print total energies
+   cout << en12.total << " " << en12pbc.total << endl;
+
+   // (2) ENERGY FOR THE LIST OF ATOM PAIRS
+
+   // The list of atom pairs
+   vector<Vector2i> lst = ...;
+   // Non-periodic variant for frame 0
+   auto en = s.non_bond_energy(lst,0);
+   // The same but accounting for periodicity
+   auto en_pbc = s.non_bond_energy(lst,0,true);
+   // Print total energies
+   cout << en.total << " " << en_pbc.total << endl;
+}
+\col2
+s = System('some-structure.pdb')
+s.load('topology.pttop') # Required!
+
+# Check if system is ready for energy evaluation
+if s.force_field_ready():
+   # (1) ENERGY BETWEEN TWO ATOMS
+
+   # Energy between atoms 1 and 2 for frame 0
+   en12 = s.non_bond_energy(1,2,0)
+   # The same but accounting for periodicity
+   en12pbc = s.non_bond_energy(1,2,0,True)
+   # Print total energies
+   print en12.total, en12pbc.total
+
+   # (2) ENERGY FOR THE LIST OF ATOM PAIRS
+
+   # The list of atom pairs
+   lst = [[1,2],[3,4],[5,6]]
+   # Non-periodic variant for frame 0
+   en = s.non_bond_energy(lst,0)
+   # The same but accounting for periodicity
+   en_pbc = s.non_bond_energy(lst,0,True)
+   # Print total energies
+   print en.total, en_pbc.total
+\endcol
+
+\subsubsection en_sel Methods of Selection class
+
+Selection class provides two higher-level methods of energy evaluation. The first one computes self-energy of selection within given distance cut-off. The second computes the energy between two selection of the same size within given cut-off for given frame.
+
+\note If cutoff is zero or negative both methods computes interaction between all atoms (very slow for large selections).
+
+\col1
+Selection sel1(sys,"name CA");
+Selection sel2(sys,"name CB");
+
+// Check if it is safe to compute energies
+if(sys.force_field_ready()){
+    // Energy of all atom pairs within 0.3 nm accounting for periodicity
+    auto self_en = sel1.non_bond_energy(0.3, true);
+
+    // Interaction between two selections within 0.3 nm for frame 3
+    // and accounting for periodicity
+    auto en12 = non_bond_energy(sel1, sel2, 0.3, 3, true);
+}
+\col2
+sel1 = sys("name CA")
+sel2 = sys("name CB")
+
+# Check if it is safe to compute energies
+if sys.force_field_ready():
+    # Energy of all atom pairs within 0.3 nm accounting for periodicity
+    self_en = sel1.non_bond_energy(0.3, True)
+
+    # Interaction between two selections within 0.3 nm for frame 3
+    # and accounting for periodicity
+    en12 = non_bond_energy(sel1, sel2, 0.3, 3, True)
+\endcol
 
 \section dssp Secondary structure of proteins
 
