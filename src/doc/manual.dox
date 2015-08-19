@@ -1131,21 +1131,31 @@ This task is perfromed by Grid class.
 
 \code
 // Create 100x100x100 grid
-Grid g(100,100,100);
+int N = 100;
+Grid g(N,N,N);
 // Populate it from given selection
 // in periodic manner
 g.populate_periodic(sel);
 
 // Print number of atoms in the grid cells
-for(int i=0;i< 100;++i){
-    for(int j=0;j< 100;++j)
-        for(int k=0;k< 100;++k)
+for(int i=0;i<N;++i){
+    for(int j=0;j<N;++j)
+        for(int k=0;k<N;++k)
             cout << g.cell(i,j,k).size() << endl;
 \endcode
 
 Grid cells are of type `vector<Grid_element>` and contain information about indexes and coordinates of atoms in each cell.
 
 \section energy Evaluating non-bond energies
+
+Pteros is able to compute the <i>short-range</i> non-bond energies if topology file is read for the system. Currently Pteros supports special .pttop format of topology files, which have to be generated from Gromacs .tpr run input files using "tpr2pteros.py" script.
+
+\warning Long-range electrostatics with PME or other lattice sum methods are not supported in Pteros.
+
+Treatment of non-bonded interactions in Gromacs is, unfortunately, complex and rather confusing. Coulomb and van-der-Waals interactions have a type and a modifier. The type is the functional form of interaction and the modifier is a special function, which is used to avoid the discontinuity of derivatives at cut-off distance. In practice different combinations of types and modifiers in Gromacs .mdp files lead to non-trivial and confusing choises of actual interaction functions. Pteros is trying to match these complex rule as close as possible but it is not guaranteed that the results would be numerically identical.
+
+\note Pteros is known to produce correct results for MARTINI coarse grained force field and simple cut-off interactions.
+
 \subsection get_top Generating and reading Pteros .pttop files
 \subsection top_opt Setting options for energy evaluation
 \subsection get_en Computing non-bond energies
