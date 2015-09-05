@@ -246,10 +246,17 @@ void Selection::invert()
     // We can speed up negation a bit by filling only the "gaps"
     int n = old_ind.size();
     int i,j;
-    for(j=0;j<old_ind[0];++j) index.push_back(j); //Before first
-    for(i=1;i<n;++i)
-        for(j=old_ind[i-1]+1;j<old_ind[i];++j) index.push_back(j); // between any two
-    for(j=old_ind[n-1]+1;j<system->num_atoms();++j) index.push_back(j); // after last
+
+    if(n!=0){
+
+        for(j=0;j<old_ind[0];++j) index.push_back(j); //Before first
+        for(i=1;i<n;++i)
+            for(j=old_ind[i-1]+1;j<old_ind[i];++j) index.push_back(j); // between any two
+        for(j=old_ind[n-1]+1;j<system->num_atoms();++j) index.push_back(j); // after last
+
+    } else {
+        for(j=0;j<system->num_atoms();++j) index.push_back(j); //All
+    }
 }
 
 void Selection::set_system(const System &sys){
@@ -481,10 +488,14 @@ Selection Selection::operator~() const {
     // We can speed up negation a bit by filling only the "gaps"
     int n = index.size();
     int i,j;
-    for(j=0;j<index[0];++j) res.index.push_back(j); //Before first
-    for(i=1;i<n;++i)
-        for(j=index[i-1]+1;j<index[i];++j) res.index.push_back(j); // between any two
-    for(j=index[n-1]+1;j<system->num_atoms();++j) res.index.push_back(j); // after last
+    if(n!=0){
+        for(j=0;j<index[0];++j) res.index.push_back(j); //Before first
+        for(i=1;i<n;++i)
+            for(j=index[i-1]+1;j<index[i];++j) res.index.push_back(j); // between any two
+        for(j=index[n-1]+1;j<system->num_atoms();++j) res.index.push_back(j); // after last
+    } else {
+        for(j=0;j<system->num_atoms();++j) res.index.push_back(j); //All
+    }
     return res;
 }
 

@@ -31,16 +31,15 @@
 
 namespace pteros {
 
+typedef std::shared_ptr<Frame> Frame_ptr;
+typedef Message_channel<std::shared_ptr<Data_container> > Data_channel;
+
 /** The base class for trajectory processing
 *   It provides facilities for loading large trajectories by frames
 *   and to analyze each frame by user-defined function.
 *   The range of processing could be given
 *   by frame number or by physical time.
 */
-
-typedef std::shared_ptr<Frame> Frame_ptr;
-typedef Message_channel<std::shared_ptr<Data_container> > Data_channel;
-
 class Trajectory_processor {
     friend class Consumer_base;
     public:
