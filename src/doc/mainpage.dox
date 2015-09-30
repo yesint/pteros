@@ -27,9 +27,8 @@ Pteros supports writing analysis programs in either C++ or Python programming la
 
 Any work, which uses Pteros, should cite the following papers:
 
-- Semen O. Yesylevskyy, "Pteros 2.0: Evolution of the fast parallel molecular analysis library for C++ and python", Journal of Computational Chemistry, 2015, 36(19), 1480–1488, doi: 10.1002/jcc.23943.
-- Semen O. Yesylevskyy, "Pteros: Fast and easy to use open-source C++ library for molecular analysis", Journal of Computational Chemistry, 2012, 33(19), 1632–1636. doi: 10.1002/jcc.22989.
-
+- Semen O. Yesylevskyy, "Pteros 2.0: Evolution of the fast parallel molecular analysis library for C++ and python", Journal of Computational Chemistry, 2015, 36(19), 1480–1488, doi: 10.1002/jcc.23943. (<a href="http://onlinelibrary.wiley.com/doi/10.1002/jcc.23943/abstract">link</a>)
+- Semen O. Yesylevskyy, "Pteros: Fast and easy to use open-source C++ library for molecular analysis", Journal of Computational Chemistry, 2012, 33(19), 1632–1636. doi: 10.1002/jcc.22989. (<a href="http://onlinelibrary.wiley.com/doi/10.1002/jcc.22989/abstract">link</a>)
 
 \section is_it_for_you	Is Pteros for you?
 
@@ -89,7 +88,7 @@ The sources of all these libraries are included into the source tree of Pteros, 
 In order to develop you own programs with Pteros you need to know C++ reasonably well. However, you don't need to be a guru. Here is the basic list of things, which you should understand:
 
 - Basic syntax
-- Classes and ingeritance
+- Classes and inheritance
 - STL containers
 
 In addition you should be familiar with Eigen vector/matrix library. Fortunately, it has <a href="http://eigen.tuxfamily.org/dox/">an excelent documentation</a>. 
@@ -121,4 +120,5 @@ Since VMD scripts for these benchmarks are very simple and call low-level built-
 Due to parallel execution of analysis tasks in Pteros running them simultaneously increases execution time only by few percent, while in VMD the execution time of all tasks is summed up (data not shown).
 Source code of the benchmark programs is included into the Pteros distribution and located in “examples” directory.
 
+More benchmars are available in the <a href="http://onlinelibrary.wiley.com/doi/10.1002/jcc.23943/abstract">recent paper</a> on Pteros 2.0.
 */
