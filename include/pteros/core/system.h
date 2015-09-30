@@ -301,7 +301,7 @@ public:
     void set_filter(int ind1, int ind2);
     void set_filter(const std::vector<int>& ind);
     void set_filter(std::vector<int>::iterator it1,
-                     std::vector<int>::iterator it2);
+                    std::vector<int>::iterator it2);
     /// @}
 
     /// @}

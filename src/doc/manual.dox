@@ -1271,8 +1271,28 @@ if sys.force_field_ready():
 
 \section dssp Secondary structure of proteins
 
-\section measure_sasa Solvent available surface area
+Pteros uses <a href="http://www.cmbi.ru.nl/dssp.html">DSSP</a> method for determining secondary structure of proteins. There three methods Selection::dssp(). They write detailed DSSP report to file or to stream if file name of stream object are provided as an argument. If called without arguments the DSSP string is returned with letter-code for secondary structure. The code is the same as in original DSSP program:
 
+Structure | code
+--------- | ----
+alphahelix |	H
+betabridge |	B
+strand |	E
+helix_3 |	G
+helix_5 |	I
+turn |		T
+bend |		S
+loop |		' ' (space)
+
+\note System::dssp() always works with the whole system, not with selection. This is caused by the fact that the algorithm have to see all atoms of the protein backbone in all protein residues while user can easily provide selection where only some of them are present.
+
+\section measure_sasa Solvent accessible surface area
+
+Solvent accessible surface area (SASA) is computed in Pteros using using POWERSASA code developed in the <a href="http://www.kit.edu/english/">Karlsruhe Institute of Technology</a> and inclided into <a href="http://www.int.kit.edu/1636.php">SIMONA</a> package. This is fast algorithm of computing area of the molecules based on rather complex theory of power diagrams (<a href="http://onlinelibrary.wiley.com/doi/10.1002/jcc.21844/abstract">paper</a>).
+The method Selection::sasa() returns the solvent accessible area of atoms in selection. Optional argument could be used to set the probe radius and tu get additional data like total volume, area per atom and volume per atom.
+
+\note
+POWERSASA code is not open source. I contacted the authors of POWERSASA several times to ask for official permision to use their code in Pteros but all requestes were ignored. I concluded that nobody is concerned about the licensing of POWERSASA now. However, compilation of this code is disabled by default. See \ref sasa for details how to enable it.
 
 \page analysis Analysis of trajectories
 

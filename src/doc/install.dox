@@ -3,21 +3,21 @@
 - \subpage install_linux
 - \subpage install_win
 
+\section port 	Portability
+Pteros is being developed on Linux with gcc and clang compilers. New versions are tested periodically on Windows under MinGW gcc compiler (see \ref install_win). Other compilers and operating systems are not tested because we have no other systems in possession. Design decisions are made with portability to Linux, Windows and MacOS in mind. Other systems are not considered. The code itself should be 100% portable providing that the dependencies are available for your system, but expect platform-dependent quirks and issues, which are common to all complex C++ programs, not only to Pteros.
+
+\note
+If you managed to compile Pteros on MacOS, please share your experience because we have no Mac machines to perform the tests.
+
+\warning
+Intel ICC compiles Pteros on Linux, but gives poor performance. Compiling with Intel MKL works, but gives broken Python bindings. Any help with these issues is appreciated!
+
 \note Linux is considered as primary platform for Pteros. Installation on Windows is only tested from time to time and may be very tricky. You are warned.
 
 
 \page install_linux Installation on Linux
 
 \tableofcontents
-
-\section port 	Portability
-Pteros is being developed on Linux with gcc and clang compilers. New versions are tested periodically on Windows under MinGW gcc compiler (see \ref install_win). Other compilers and operating systems are not tested because we have no other systems in possession. Design decisions are made with portability to Linux, Windows and MacOS in mind. Other systems are not considered. The code itself should be 100% portable providing that the dependencies are available for your system, but expect platform-dependent quirks and issues, which are common to all complex C++ programs, not only to Pteros.
-
-\note
-If you managed to compile Pteros on MacOS, please share your experience because we have no Mac machines to perform the tests.
-\warning
-Intel ICC compiles Pteros on Linux, but gives poor performance. Compiling with Intel MKL works, but gives broken Python bindings. Any help with these issues is appreciated!
-
 
 \section depend 	Dependencies
 The prerequisites for compilation of Pteros are the following:
