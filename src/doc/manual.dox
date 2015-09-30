@@ -679,7 +679,7 @@ auto sel_1_4_7 = residue1.select(ind);
 
 \note This behavior of sub-selections is different from normal selections. Sub-selections are constructed by \e local indexes of parent selection, while normal selections - by \e global indexes in the system. There are no constructors for sub-selections taking iterators or callback functions.
 
-Once sub-selection is created it is not distinguishable from the normal one. Particularly it could be modifyed as any other selection, reassigned, etc. Sub-selections are only special by the way of their creation.
+Once sub-selection is created it is not distinguishable from the gnormal one. Particularly it could be modifyed as any other selection, reassigned, etc. Sub-selections are only special by the way of their creation.
 
 \note Subselections in Python follow exactly the same syntax as in C++.
 
