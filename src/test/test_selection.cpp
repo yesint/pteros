@@ -73,14 +73,7 @@ int main(int argc, char** argv)
         vector<Vector2i> bon;
         Selection sel(s,"all");
 
-        vector<Selection> parts;
-        sel.split(parts, [](const Selection& sel, int i){return sel.Index(i);});
-        cout << parts.size() << endl;
-
-        sel.get([](const Selection& sel, int i){return sel.Resindex(i);});
-        for(auto& v: ret) cout << v << endl;
-
-        /*
+    /*
         vector<float> dist;
         search_contacts(0.143,sel,bon,true,true,&dist);
 
