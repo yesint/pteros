@@ -820,7 +820,7 @@ float System::dihedral(int i, int j, int k, int l, int fr, bool is_periodic, Vec
                   (b1.cross(b2)).dot(b2.cross(b3)) );
 }
 
-void System::wrap_all(int fr, Vector3i_const_ref dims_to_wrap){
+void System::wrap(int fr, Vector3i_const_ref dims_to_wrap){
     for(int i=0;i<num_atoms();++i){
         traj[fr].box.wrap_point(XYZ(i,fr),dims_to_wrap);
     }

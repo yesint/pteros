@@ -436,7 +436,7 @@ public:
     /// @{
 
     /// Wrap all system to the periodic box for given frame
-    void wrap_all(int fr, Vector3i_const_ref dims_to_wrap = Eigen::Vector3i::Ones());
+    void wrap(int fr, Vector3i_const_ref dims_to_wrap = Eigen::Vector3i::Ones());
 
     /// @}
 
