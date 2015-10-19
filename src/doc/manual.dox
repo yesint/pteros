@@ -921,15 +921,121 @@ resids = sel.get_unique_resid()
 \endcol
 
 \section sys_build Building molecular systems
+
+Pteros has reach set of methods for building molecular systems. They are not oriented on particular type of molecules like proteins or nucleic acids but allow manipulating atoms and selections in general.
+
 \subsection atom_add_del Adding and deleting atoms
 \subsection append_remove Appending and removing systems and selections
 \subsection distib Multiplying selections
 \subsection rearrange Rearranging atoms
 
+There is a common problem of rearranging the atoms in the system in particular order, which is especially important for preparing MD topologies. In Pteros this is easily acomplished with System::rearrange() method. It takes a vector of selections or the vector of selection strings and arranges the atoms in the order of these selections. The atoms, which do not belong to any of provided selections are placed at the end in their initial order.
+\warning Selections should not overlap (an exception is thrown if they are). Empty selections are not allowed.
+\note This method rearranges the atom indexes only (shuffles the order of atoms). Residue or chain ids are not changed. If you need to reorder atoms by residues look at System::sort_by_resindex() method.
+\warning This method affects all frames and could be slow for very large systems and and/or large number of frames.
+
 \section pbc Working with periodicity
+Pteros is designed to work with arbitrary triclinic periodic boxes. There are several ways of accounting for periodicity:
+
+- Many methods, which are aware of periodicity, have an optional boolean parameter "periodic" that switches on periodic computations.
+- Periodicity could be taken into account explicitly by using Periodic_box class and its methods.
+
+Upon reading the data files Pteros sets the periodic box accordingly in the System if it is present in the data file.
+
 \subsection pbc_get_set Getting, setting and modifying periodic box
+Periodic box could be extracted for each frame by using System::Box() method. Here is how to check if the periodic box is present:
+\col1
+System s("some_file.pdb");
+if( s.Box(0).is_priodic() ) cout << "Box present for frame 0!" << endl;
+\col2
+s = System('some_file.pdb')
+if s.getBox(0).is_periodic():
+    print 'Box present for frame 0!'
+\endcol
+
+An important feature of the Periodic_box is that it stores some internal data (like inverse tranform matrices) and thus individual components of the box are immutable. In order to change the box you have to get it as a 3x3 matrix, edit this matrix and assign it back using Periodic_box::modify() method:
+\col1
+System s("some_file.pdb");
+// Get a box as matrix. Column 0 is vector a, column 1 is b, column 2 is c.
+auto m = s.Box(0).get_matrix();
+// Modify individual box element
+m(0,1) *= 2;
+// Set it back
+s.Box(0).modify(m);
+\col2
+s = System('some_file.pdb')
+# Get a box as matrix. Column 0 is vector a, column 1 is b, column 2 is c.
+box = s.getBox(0).get_matrix()
+# Modify individual matrix element
+m[0][1] *= 2
+# Set modified box object to the System
+s.getBox(0).modify(m)
+\endcol
+
+You can also get lengths of individual box vectors with Periodic_box::get_extent() or the lengths of all vectors with Periodic_box::get_extents().
+It is also possible to extract an individual vector directly with Periodic_box::get_vector().
+
+One common operation is scaling the peridic box without changing the angles between the vectors. This could be achieved with convenience function Periodic_box::scale_vectors():
+\col1
+System s("some_file.pdb");
+// Scale all box vectors by x2
+vector<float> scale = {2,2,2};
+s.Box(0).scale_vectors(scale);
+\col2
+s = System('some_file.pdb')
+# Scale all box vectors by x2
+s.getBox(0).scale_vectors([2,2,2])
+\endcol
+
+It is also possible to get and set the box as a set of vector lengths (a,b,c) and the set of angles between the vectors (a^c, b^c, a^b). This is performed by the Periodic_box::to_vectors_angles() and Periodic_box::from_vectors_angles() methods:
+\col1
+System s("some_file.pdb");
+vector<float> vecs, angles;
+// Get as vectors and angles
+s.Box(0).to_vectors_angles(vecs,angles);
+// Modify a^b angle
+angles[2] *= 2;
+// Set it back
+s.Box(0).from_vectors_angles(vecs,angles);
+\col2
+System s('some_file.pdb')
+# Get as vectors and angles
+vecs,angles = s.getBox(0).to_vectors_angles()
+# Modify a^b angle
+angles[2] *= 2
+# Set it back
+s.getBox(0).from_vectors_angles(vecs,angles)
+\endcol
+
+\note The order of angles  (a^c, b^c, a^b) is the same as in PDB CRYST1 record.
+
 \subsection wrap Wrapping and unwrapping
+
+There are several ways to wrap atoms or points into the box:
+- Wrap an arbitrary point with Periodic_box::wrap_point()
+- Wrap the whole selection with Selection::wrap()
+- Wrap the whole system with System::wrap()
+
+\note All these methods take an optional parameter "dims" which tells which dimentions to wrap.
+
+In contrast to wrapping unwrapping is non-trivial operation which could be done in different ways. Pteros supports two unwrapping methods:
+<ul>
+<li> Simple unwrapping is performed by Selection::unwrap(). It uses the center of masses of selection as an "anchor" and sets all atoms of selection to their periodic images, which are closest to this anchor.
+\warning This method is very fast but only works if selection does not exceed 1/2 of the box size in any dimension! Otherwise it produces unpredictable results.
+<li> Unwrapping by bonds is performed by Selection::unwrap_bonds(). In this method the user supplies the maximal bond length and all atoms of selections which are within this distance are considered as connected by bonds. After that first atom in selection is set as an anchor (the anchor atom could be overriden by optional "leading_index" parameter) and all atoms connected to it are moved to their corresponding closest periodic images. The procedure is continued for all connected atoms.
+\warning This mehtod works for any size of selection but is <b>much</b> slower than simple unwrapping!
+</ul>
+
 \subsection pbc_measure Periodic distances and closest images
+
+In order to compute the periodic distances the following methods could be used:
+- Smallest periodic distance between two arbitrary points could be computed with Periodic_box::distance() and Periodic_box::distance_squared() methods.
+- Smallest periodic distance between two atoms could be computed with System::distance() method when optional parameter "periodic" is set to "true".
+
+Periodic_box::shortest_vector() computes the shortest vector between two arbitrary points. Periodic_box::get_closest_image() returns the periodic image of given point, which is closest to the anchor point.
+
+\note All these methods take an optional parameter "dims" which tells which dimentions to treat as periodic.
+
 
 \section dist_search Fast distance search and spatial grids
 

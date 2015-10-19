@@ -132,11 +132,11 @@ void System_load_callback(System* sys, string fname, int b, int e, int skip, boo
 void System_wrap_all1(System* sys, int fr, bp::list& dims){
     Vector3i d;
     for(int i=0;i<3;++i) d(i) = extract<int>(dims[i]);
-    sys->wrap_all(fr,d);
+    sys->wrap(fr,d);
 }
 
 void System_wrap_all2(System* sys, int fr){
-    sys->wrap_all(fr);
+    sys->wrap(fr);
 }
 
 float System_distance1(System* sys, int i, int j, int fr, bool pbc, PyObject* dims){
@@ -242,8 +242,8 @@ void make_bindings_System(){
         .def("atoms_dup", &System_atoms_dup)
         .def("atoms_add", &System_atoms_add)
 
-        .def("wrap_all", &System_wrap_all1)
-        .def("wrap_all", &System_wrap_all2)
+        .def("wrap", &System_wrap_all1)
+        .def("wrap", &System_wrap_all2)
 
         .def("append", static_cast<Selection(System::*)(const Selection&)>(&System::append))
         .def("append", static_cast<Selection(System::*)(const System&)>(&System::append))
