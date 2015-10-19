@@ -217,5 +217,7 @@ void make_bindings_Periodic_box(){
         .def("shortest_vector",&Periodic_box_shortest_vector, Periodic_box_shortest_vector_overloads())
         .def("to_vectors_angles",&Periodic_box_to_vectors_angles)
         .def("from_vectors_angles",&Periodic_box_from_vectors_angles)
+        .def("read_pdb_box",&Periodic_box::read_pdb_box)
+        .def("write_pdb_box",&Periodic_box::write_pdb_box)
     ;
 }
