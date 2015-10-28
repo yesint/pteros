@@ -409,8 +409,8 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
                         if(sys->atoms[at].name == str) result.push_back(at);
                     }
                 } else {
-                    for(i=0;i<subspace->size();++i){
-                        at = (*subspace)[i];
+                    for(j=0;j<subspace->size();++j){
+                        at = (*subspace)[j];
                         if(sys->atoms[at].name == str) result.push_back(at);
                     }
                 }
@@ -425,8 +425,8 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
                         }
                     }
                 } else {
-                    for(i=0;i<subspace->size();++i){
-                        at = (*subspace)[i];
+                    for(j=0;j<subspace->size();++j){
+                        at = (*subspace)[j];
                         if(std::regex_match(sys->atoms[at].name.c_str(),what,reg)){
                              result.push_back(at);
                         }
@@ -451,8 +451,8 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
                     for(at=0;at<Natoms;++at)
                         if(sys->atoms[at].resname == str) result.push_back(at);
                 } else {
-                    for(i=0;i<subspace->size();++i){
-                        at = (*subspace)[i];
+                    for(j=0;j<subspace->size();++j){
+                        at = (*subspace)[j];
                         if(sys->atoms[at].resname == str) result.push_back(at);
                     }
                 }
@@ -467,8 +467,8 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
                         }
                     }
                 } else {
-                    for(i=0;i<subspace->size();++i){
-                        at = (*subspace)[i];
+                    for(j=0;j<subspace->size();++j){
+                        at = (*subspace)[j];
                         if(std::regex_match(sys->atoms[at].resname.c_str(),what,reg)){
                              result.push_back(at);
                         }
@@ -493,8 +493,8 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
                     for(at=0;at<Natoms;++at)
                         if(sys->atoms[at].tag == str) result.push_back(at);
                 } else {
-                    for(i=0;i<subspace->size();++i){
-                        at = (*subspace)[i];
+                    for(j=0;j<subspace->size();++j){
+                        at = (*subspace)[j];
                         if(sys->atoms[at].tag == str) result.push_back(at);
                     }
                 }
@@ -509,8 +509,8 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
                         }
                     }
                 } else {
-                    for(i=0;i<subspace->size();++i){
-                        at = (*subspace)[i];
+                    for(j=0;j<subspace->size();++j){
+                        at = (*subspace)[j];
                         if(std::regex_match(sys->atoms[at].tag.c_str(),what,reg)){
                              result.push_back(at);
                         }
@@ -533,8 +533,8 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
                 for(at=0;at<Natoms;++at)
                     if(sys->atoms[at].chain == ch) result.push_back(at);
             } else {
-                for(i=0;i<subspace->size();++i){
-                    at = (*subspace)[i];
+                for(j=0;j<subspace->size();++j){
+                    at = (*subspace)[j];
                     if(sys->atoms[at].chain == ch) result.push_back(at);
                 }
             }
@@ -555,8 +555,8 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
                         // Even if k is out of range, nothing will crash here
                         if(sys->atoms[at].resid == k) result.push_back(at);
                 } else {
-                    for(i=0;i<subspace->size();++i){
-                        at = (*subspace)[i];
+                    for(j=0;j<subspace->size();++j){
+                        at = (*subspace)[j];
                         // Even if k is out of range, nothing will crash here
                         if(sys->atoms[at].resid == k) result.push_back(at);
                     }
@@ -572,8 +572,8 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
                             // Even if k is out of range, nothing will crash here
                             if(sys->atoms[at].resid == k) result.push_back(at);
                     } else {
-                        for(i=0;i<subspace->size();++i){
-                            at = (*subspace)[i];
+                        for(j=0;j<subspace->size();++j){
+                            at = (*subspace)[j];
                             // Even if k is out of range, nothing will crash here
                             if(sys->atoms[at].resid == k) result.push_back(at);
                         }
@@ -597,8 +597,8 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
                         // Even if k is out of range, nothing will crash here
                         if(sys->atoms[at].resindex == k) result.push_back(at);
                 } else {
-                    for(i=0;i<subspace->size();++i){
-                        at = (*subspace)[i];
+                    for(j=0;j<subspace->size();++j){
+                        at = (*subspace)[j];
                         // Even if k is out of range, nothing will crash here
                         if(sys->atoms[at].resindex == k) result.push_back(at);
                     }
@@ -614,8 +614,8 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
                             // Even if k is out of range, nothing will crash here
                             if(sys->atoms[at].resindex == k) result.push_back(at);
                     } else {
-                        for(i=0;i<subspace->size();++i){
-                            at = (*subspace)[i];
+                        for(j=0;j<subspace->size();++j){
+                            at = (*subspace)[j];
                             // Even if k is out of range, nothing will crash here
                             if(sys->atoms[at].resindex == k) result.push_back(at);
                         }
@@ -740,7 +740,7 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
                 if( op1(at) == op2(at) ) result.push_back(at);
         } else {
             for(int i=0;i<subspace->size();++i){ // over subspace
-                at = (*subspace)[i];
+                at = (*subspace)[j];
                 if( op1(at) == op2(at) ) result.push_back(at);
             }
         }
@@ -756,7 +756,7 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
                 if( op1(at) != op2(at) ) result.push_back(at);
         } else {
             for(int i=0;i<subspace->size();++i){ // over subspace
-                at = (*subspace)[i];
+                at = (*subspace)[j];
                 if( op1(at) != op2(at) ) result.push_back(at);
             }
         }
@@ -773,7 +773,7 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
             }
         } else {            
             for(int i=0;i<subspace->size();++i){ // over subspace
-                at = (*subspace)[i];
+                at = (*subspace)[j];
                 if( op1(at) < op2(at) ) result.push_back(at);
             }
         }
@@ -790,7 +790,7 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
             }
         } else {
             for(int i=0;i<subspace->size();++i){ // over subspace
-                at = (*subspace)[i];
+                at = (*subspace)[j];
                 if( op1(at) > op2(at) ) result.push_back(at);
             }
         }
@@ -807,7 +807,7 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
             }
         } else {
             for(int i=0;i<subspace->size();++i){ // over subspace
-                at = (*subspace)[i];
+                at = (*subspace)[j];
                 if( op1(at) <= op2(at) ) result.push_back(at);
             }
         }
@@ -824,7 +824,7 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
             }
         } else {
             for(int i=0;i<subspace->size();++i){ // over subspace
-                at = (*subspace)[i];
+                at = (*subspace)[j];
                 if( op1(at) >= op2(at) ) result.push_back(at);
             }
         }
