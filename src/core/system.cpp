@@ -937,18 +937,18 @@ Energy_components System::non_bond_energy(const std::vector<Eigen::Vector2i> &nl
 
 void System::dssp(string fname) const {
     ofstream f(fname.c_str());
-    Selection sel(const_cast<System&>(*this),"all");
+    Selection sel(const_cast<System&>(*this),std::string("all"));
     dssp_wrapper(sel,f);
     f.close();
 }
 
 void System::dssp(ostream& os) const {
-    Selection sel(const_cast<System&>(*this),"all");
+    Selection sel(const_cast<System&>(*this),std::string("all"));
     dssp_wrapper(sel,os);
 }
 
 
 string System::dssp() const{
-    Selection sel(const_cast<System&>(*this),"all");
+    Selection sel(const_cast<System&>(*this),std::string("all"));
     return dssp_string(sel);
 }

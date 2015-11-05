@@ -14,7 +14,7 @@ public:
     }
 protected:
     virtual void pre_process(){        
-        sel.modify(system,"all");
+        sel.modify(system,std::string("all"));
     }
 
     virtual void process_frame(const Frame_info& info){
@@ -37,8 +37,8 @@ public:
     }
 protected:
     virtual void pre_process(){        
-        sel1.modify(system,"resid 1 to 100");
-        sel2.modify(system,"resid 102 to 200");
+        sel1.modify(system,std::string("resid 1 to 100"));
+        sel2.modify(system,std::string("resid 102 to 200"));
     }
 
     virtual void process_frame(const Frame_info& info){
@@ -65,7 +65,7 @@ protected:
 
     virtual void process_frame(const Frame_info& info){
         vector<Selection> sel;
-        Selection all(system,"all");
+        Selection all(system,std::string("all"));
         all.each_residue(sel);
 
         cout << "frame " << info.valid_frame << endl;        
@@ -86,7 +86,7 @@ int main(int argc, char** argv){
     cout << num << endl;
     if(num>3){
         System s("/home/semen/work/Projects/kornelyuk/Sasha/dimer_md/1/dimer_pdb2gmx.gro");
-        Selection sel(s,"all");
+        Selection sel(s,std::string("all"));
 
         std::clock_t start;
         double duration;

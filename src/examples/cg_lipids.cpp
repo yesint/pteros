@@ -16,7 +16,7 @@ int main(int argc, char** argv){
     fname = opt("struct").as_string();
     System sys(fname);
     // Get indexes of ROH atoms of CHOL molecules
-    Selection ROH(sys,"name ROH");
+    Selection ROH(sys,std::string("name ROH"));
     vector<int> ROH_index = ROH.get_index();
 
     // Occupancy of monolayers over time averaged over all trajectories
