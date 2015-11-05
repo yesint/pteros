@@ -387,9 +387,9 @@ boost::python::list Selection_split_by_contiguous_residue(Selection* s){
 
 boost::python::list Selection_each_residue(Selection* s){
     vector<Selection> res;
-    s->each_residue(res);
+    s->each_residue(res);    
     boost::python::list l;
-    for(int i=0;i<res.size();++i) l.append(res[i]);
+    for(int i=0;i<res.size();++i) l.append(res[i]);    
     return l;
 }
 

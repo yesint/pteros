@@ -1515,18 +1515,21 @@ void Selection::flatten()
 
 
 void Selection::each_residue(std::vector<Selection>& sel) const {        
+    sel.clear();
     // get unique resindexes
     vector<int> r = get_unique_resindex();
     // Allocate selections
-    sel.resize(r.size());
+    for(int i=0; i<r.size();++i) sel.push_back(Selection(*system));
     // Map indexes in sel to r
     unordered_map<int,int> m;
     for(int i=0; i<r.size();++i) m[r[i]]=i;
     // Cycle over all atoms
-    for(int i=0; i<index.size();++i){
+    for(int i=0; i<system->num_atoms();++i){
         int val = system->atoms[i].resindex;
         auto it = m.find(val);
-        if(it!=m.end()) sel[it->second].index.push_back(i);
+        if(it!=m.end()){
+            sel[it->second].index.push_back(i);
+        }
     }
 }
 
