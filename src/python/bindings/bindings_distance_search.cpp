@@ -62,7 +62,7 @@ PyObject* distance_search_within1(Distance_search_within* g, PyObject* coord){
     CREATE_PYARRAY_1D_AND_MAP_I(p,VectorXi,v,(npy_intp)r.size())
     v = Map<VectorXi>(r.data(),r.size());
 
-    return incref(p);
+    return p;
 }
 
 PyObject* distance_search_within2(Distance_search_within* g,
@@ -74,7 +74,7 @@ PyObject* distance_search_within2(Distance_search_within* g,
     CREATE_PYARRAY_1D_AND_MAP_I(p,VectorXi,v,(npy_intp)r.size())
     v = Map<VectorXi>(r.data(),r.size());
 
-    return incref(p);
+    return p;
 }
 
 PyObject* distance_search_within3(Distance_search_within* g,
@@ -152,7 +152,7 @@ PyObject* search_within_free(float d,
 
     CREATE_PYARRAY_1D_AND_MAP_I(p,VectorXi,v,(npy_intp)res.size())
     v = Map<VectorXi>(res.data(),res.size());
-    return boost::python::incref(p);
+    return p;
 }
 
 BOOST_PYTHON_FUNCTION_OVERLOADS(search_within_free_overloads, search_within_free, 3, 5)

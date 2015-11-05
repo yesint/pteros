@@ -45,7 +45,7 @@ BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(rmsd_overloads, rmsd, 1, 2)
 PyObject* Selection_get_xyz(Selection* s){    
     CREATE_PYARRAY_2D_AND_MAP_F(p,MatrixXf,data,3,s->size())
     s->get_xyz(data);
-    return boost::python::incref(p);
+    return p;
 }
 
 void Selection_set_xyz(Selection* s, PyObject* data){
@@ -56,7 +56,7 @@ void Selection_set_xyz(Selection* s, PyObject* data){
 PyObject* Selection_get_average(Selection* s, int b=0, int e=-1){
     CREATE_PYARRAY_2D_AND_MAP_F(p,MatrixXf,data,3,s->size())
     data = s->average_structure(b,e);
-    return boost::python::incref(p);
+    return p;
 }
 
 BOOST_PYTHON_FUNCTION_OVERLOADS(Selection_get_average_overloads, Selection_get_average, 1, 3)
@@ -64,7 +64,7 @@ BOOST_PYTHON_FUNCTION_OVERLOADS(Selection_get_average_overloads, Selection_get_a
 PyObject* Selection_get_mass(Selection* s){
     CREATE_PYARRAY_1D_AND_MAP_F(p,VectorXf,r,s->size())
     r = Map<VectorXf>(s->get_mass().data(),s->size());
-    return incref(p);
+    return p;
 }
 
 void Selection_set_mass1(Selection* s, PyObject* data){
@@ -80,7 +80,7 @@ void Selection_set_mass2(Selection* s, float data){
 PyObject* Selection_get_beta(Selection* s){
     CREATE_PYARRAY_1D_AND_MAP_F(p,VectorXf,r,s->size())
     r = Map<VectorXf>(s->get_beta().data(),s->size());
-    return incref(p);
+    return p;
 }
 
 void Selection_set_beta1(Selection* s, PyObject* data){
@@ -96,7 +96,7 @@ void Selection_set_beta2(Selection* s, float data){
 PyObject* Selection_get_occupancy(Selection* s){
     CREATE_PYARRAY_1D_AND_MAP_F(p,VectorXf,r,s->size())
     r = Map<VectorXf>(s->get_occupancy().data(),s->size());
-    return incref(p);
+    return p;
 }
 
 void Selection_set_occupancy1(Selection* s, PyObject* data){
@@ -112,7 +112,7 @@ void Selection_set_occupancy2(Selection* s, float data){
 PyObject* Selection_get_traj(Selection* s, int ind, int b=0, int e=-1){
     CREATE_PYARRAY_2D_AND_MAP_F(p,MatrixXf,data,3,s->get_system()->num_frames())
     data = s->atom_traj(ind,b,e);
-    return boost::python::incref(p);
+    return p;
 }
 
 BOOST_PYTHON_FUNCTION_OVERLOADS(Selection_get_traj_overloads, Selection_get_traj, 2, 4)
@@ -159,13 +159,13 @@ void Selection_rotate_2_arg(Selection* s, PyObject* ar1, PyObject* ar2){
 PyObject* fit_transform_py(Selection& sel1, Selection& sel2){
     CREATE_PYARRAY_2D_AND_MAP_F(p,Matrix4f,m,4,4)
     m = fit_transform(sel1,sel2).matrix();
-    return boost::python::incref(p);
+    return p;
 }
 
 PyObject* Selection_principal_transform(Selection* sel, bool periodic=false){
     CREATE_PYARRAY_2D_AND_MAP_F(p,Matrix4f,m,4,4)
     m = sel->principal_transform(periodic).matrix();
-    return boost::python::incref(p);
+    return p;
 }
 
 BOOST_PYTHON_FUNCTION_OVERLOADS(Selection_principal_transform_overloads, Selection_principal_transform, 1, 2)
@@ -185,13 +185,13 @@ void Selection_apply_transform(Selection* s, PyObject* t){
 PyObject* Selection_getXYZ1(Selection* s, int ind){
     CREATE_PYARRAY_1D_AND_MAP_F(p,Vector3f,data,3)
     data = s->XYZ(ind);
-    return boost::python::incref(p);
+    return p;
 }
 
 PyObject* Selection_getXYZ2(Selection* s, int ind, int fr){
     CREATE_PYARRAY_1D_AND_MAP_F(p,Vector3f,data,3)
     data = s->XYZ(ind,fr);
-    return boost::python::incref(p);
+    return p;
 }
 
 void Selection_setXYZ1(Selection* s, int ind, PyObject* obj){
@@ -207,7 +207,7 @@ void Selection_setXYZ2(Selection* s, int ind, int fr, PyObject* obj){
 PyObject* Selection_get_index(Selection* s){
     CREATE_PYARRAY_1D_AND_MAP_I(p,VectorXi,r,s->size())
     r = Map<VectorXi>(s->get_index().data(),s->size());
-    return incref(p);
+    return p;
 }
 
 boost::python::list Selection_get_chain(Selection* s){
@@ -253,7 +253,7 @@ boost::python::list Selection_get_unique_resindex(Selection* s){
 PyObject* Selection_get_resid(Selection* s){
     CREATE_PYARRAY_1D_AND_MAP_I(p,VectorXi,r,s->size())
     r = Map<VectorXi>(s->get_resid().data(),s->size());
-    return incref(p);
+    return p;
 
 }
 
@@ -270,7 +270,7 @@ void Selection_set_resid2(Selection* s, int data){
 PyObject* Selection_get_resindex(Selection* s){
     CREATE_PYARRAY_1D_AND_MAP_I(p,VectorXi,r,s->size())
     r = Map<VectorXi>(s->get_resindex().data(),s->size());
-    return incref(p);
+    return p;
 }
 
 boost::python::list Selection_get_name(Selection* s){
@@ -313,7 +313,7 @@ void Selection_set_resname2(Selection* s, string data){
 PyObject* Selection_center(Selection* s, bool mass_weighted, bool periodic){
     CREATE_PYARRAY_1D_AND_MAP_F(p,Vector3f,data,3)
     data = s->center(mass_weighted,periodic);
-    return boost::python::incref(p);
+    return p;
 }
 
 

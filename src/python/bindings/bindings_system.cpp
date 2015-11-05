@@ -55,7 +55,7 @@ void System_setTime(System* s, int fr, float t){
 PyObject* System_getXYZ(System* s, int ind, int fr){
     CREATE_PYARRAY_1D_AND_MAP_F(p,Vector3f,v,3)
     v = s->XYZ(ind,fr);
-    return boost::python::incref(p);
+    return p;
 }
 
 void System_setXYZ(System* s, PyObject* arr, int ind, int fr){

@@ -33,13 +33,13 @@ using namespace boost::python;
 PyObject* Atom_proxy_getXYZ1(Atom_proxy* s){    
     CREATE_PYARRAY_1D_AND_MAP_F(p,Vector3f,data,3)
     data = s->XYZ();
-    return boost::python::incref(p);
+    return p;
 }
 
 PyObject* Atom_proxy_getXYZ2(Atom_proxy* s, int fr){
     CREATE_PYARRAY_1D_AND_MAP_F(p,Vector3f,data,3)
     data = s->XYZ(fr);
-    return boost::python::incref(p);
+    return p;
 }
 
 void Atom_proxy_setXYZ1(Atom_proxy* s, PyObject* obj){
