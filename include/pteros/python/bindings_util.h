@@ -38,6 +38,15 @@ namespace pteros {
 
 // Some helper functions and macros
 
+// Class for releasing resources
+class Decrementer {
+public:
+    Decrementer(PyObject* pyobj): m_obj(pyobj) {}
+    ~Decrementer(){ Py_XDECREF(m_obj); }
+private:
+    PyObject* m_obj;
+};
+
 template<class T, int PyT>
 PyObject* mapper(PyObject* pyobj, size_t& dim1, size_t& dim2){
     PyObject* aux = nullptr;    
@@ -67,6 +76,9 @@ PyObject* mapper(PyObject* pyobj, size_t& dim1, size_t& dim2){
         // Check array type
         if(PyArray_TYPE((PyArrayObject*)pyobj)==PyT){
             // The best case! Direct mapping
+            // We need to increase reference counter of initial object
+            // since it will be decreased later by Decrementer!
+            Py_XINCREF((PyObject*)pyobj);
             return (PyObject*)pyobj;
         } else {
             // Wrong type :( Need to cast.
@@ -84,6 +96,7 @@ PyObject* mapper(PyObject* pyobj, size_t& dim1, size_t& dim2){
         } else {
             py_dim2 = 1;
         }
+        Py_XDECREF(item0);
 
         dim1 = (py_dim2==1) ? py_dim1 : py_dim2;
         dim2 = (py_dim2==1) ? 1 : py_dim1;
@@ -111,11 +124,13 @@ PyObject* mapper(PyObject* pyobj, size_t& dim1, size_t& dim2){
 #define MAP_EIGEN_TO_PYTHON_F(T,matr,pyobj) \
     size_t __dim1__for__##matr, __dim2__for__##matr; \
     PyObject* __pyobj__for__##matr = mapper<T,NPY_FLOAT>(pyobj,__dim1__for__##matr,__dim2__for__##matr);\
+    Decrementer __dec__for__##matr(__pyobj__for__##matr);\
     Eigen::Map<T>  matr((float*)PyArray_DATA((PyArrayObject*)__pyobj__for__##matr),__dim1__for__##matr,__dim2__for__##matr);
 
 #define MAP_EIGEN_TO_PYTHON_I(T,matr,pyobj) \
     size_t __dim1__for__##matr, __dim2__for__##matr; \
     PyObject* __pyobj__for__##matr = mapper<T,NPY_INT>(pyobj,__dim1__for__##matr,__dim2__for__##matr);\
+    Decrementer __dec__for__##matr(__pyobj__for__##matr);\
     Eigen::Map<T>  matr((int*)PyArray_DATA((PyArrayObject*)__pyobj__for__##matr),__dim1__for__##matr,__dim2__for__##matr);
 
 
