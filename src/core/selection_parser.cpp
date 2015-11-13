@@ -740,7 +740,7 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
                 if( op1(at) == op2(at) ) result.push_back(at);
         } else {
             for(int i=0;i<subspace->size();++i){ // over subspace
-                at = (*subspace)[j];
+                at = (*subspace)[i];
                 if( op1(at) == op2(at) ) result.push_back(at);
             }
         }
@@ -756,7 +756,7 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
                 if( op1(at) != op2(at) ) result.push_back(at);
         } else {
             for(int i=0;i<subspace->size();++i){ // over subspace
-                at = (*subspace)[j];
+                at = (*subspace)[i];
                 if( op1(at) != op2(at) ) result.push_back(at);
             }
         }
@@ -773,7 +773,7 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
             }
         } else {            
             for(int i=0;i<subspace->size();++i){ // over subspace
-                at = (*subspace)[j];
+                at = (*subspace)[i];
                 if( op1(at) < op2(at) ) result.push_back(at);
             }
         }
@@ -790,7 +790,7 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
             }
         } else {
             for(int i=0;i<subspace->size();++i){ // over subspace
-                at = (*subspace)[j];
+                at = (*subspace)[i];
                 if( op1(at) > op2(at) ) result.push_back(at);
             }
         }
@@ -807,7 +807,7 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
             }
         } else {
             for(int i=0;i<subspace->size();++i){ // over subspace
-                at = (*subspace)[j];
+                at = (*subspace)[i];
                 if( op1(at) <= op2(at) ) result.push_back(at);
             }
         }
@@ -824,7 +824,7 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
             }
         } else {
             for(int i=0;i<subspace->size();++i){ // over subspace
-                at = (*subspace)[j];
+                at = (*subspace)[i];
                 if( op1(at) >= op2(at) ) result.push_back(at);
             }
         }
