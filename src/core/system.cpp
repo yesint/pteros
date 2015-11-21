@@ -610,7 +610,7 @@ Selection System::append(const Atom_proxy &at)
 void System::rearrange(const std::vector<string> &sel_strings){
     vector<Selection> sel_vec(sel_strings.size());
     for (int i=0; i<sel_strings.size(); ++i){
-        sel_vec[i].modify(*this, sel_strings[i]);
+        sel_vec[i].modify(*this, sel_strings[i]);        
     }
 
     rearrange(sel_vec);
@@ -634,10 +634,13 @@ void System::rearrange(const std::vector<Selection> &sel_vec){
     }
 
     Selection rest(*this);
-    for (auto &s: sel_vec) rest.append(s);
+
     // Append all explicitly given selections to result
     System result;
-    result.append(rest);
+    for (auto &s: sel_vec){
+        result.append(s);
+        rest.append(s);
+    }
     // Invert to get rest
     rest = ~rest;
 
@@ -682,6 +685,7 @@ void System::distribute(const Selection sel, Vector3i_const_ref ncopies, Matrix3
     if(sel.get_system()!=this) throw Pteros_error("distribute needs selection from the same system!");
     Selection tmp;
     Vector3f v;
+    int n = sel.Resindex(sel.size()-1)+1;
     for(int x=0; x<ncopies(0); ++x)
         for(int y=0; y<ncopies(1); ++y)
             for(int z=0; z<ncopies(2); ++z){
@@ -689,6 +693,9 @@ void System::distribute(const Selection sel, Vector3i_const_ref ncopies, Matrix3
                     tmp = append(sel);
                     v = shift.col(0)*x + shift.col(1)*y + shift.col(2)*z;
                     tmp.translate(v);
+                    // Increment all resindexes of added selection
+                    for(int i=0;i<tmp.size();++i) tmp.Resindex(i) += n;
+                    //++n;
                 }
             }
 }
