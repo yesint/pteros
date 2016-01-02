@@ -427,7 +427,7 @@ bp::tuple Selection_sasa(Selection* s, float probe_r = 0.14,
 
 BOOST_PYTHON_FUNCTION_OVERLOADS(Selection_sasa_overloads,Selection_sasa,1,5)
 
-boost::shared_ptr<Selection> constructor_from_pyobj0(const System& sys, PyObject* obj){    
+boost::shared_ptr<Selection> constructor_from_pyobj0(const System& sys, PyObject* obj){        
     if( PyCallable_Check(obj) ){
         // A lambda, which will call Python function
         auto callback = [&obj](const System& sys, int fr, vector<int>& ind)->void {
@@ -456,7 +456,7 @@ boost::shared_ptr<Selection> constructor_from_pyobj0(const System& sys, PyObject
     }
 }
 
-boost::shared_ptr<Selection> constructor_from_pyobj1(const System& sys, PyObject* obj, int fr){    
+boost::shared_ptr<Selection> constructor_from_pyobj1(const System& sys, PyObject* obj, int fr){
     if( PyCallable_Check(obj) ){
         // A lambda, which will call Python function
         auto callback = [&obj](const System& sys, int fr, vector<int>& ind)->void {
@@ -709,9 +709,9 @@ void Selection_setTime(Selection* sel, const float& t){
 // So we create custom iterator class, which satisfyes Python iterator protocol
 // and expose it
 struct Selection_iter {
-    Selection_iter(Selection& sel): it(sel.begin()), it_end(sel.end()) {}
+    Selection_iter(boost::shared_ptr<Selection>& sel): it(sel->begin()), it_end(sel->end()), saved(sel) { }
 
-    Atom_proxy next(){
+    Atom_proxy next(){        
         Selection::iterator i = it;
         if(i==it_end){
             PyErr_SetString(PyExc_StopIteration, "No more data");
@@ -722,10 +722,15 @@ struct Selection_iter {
     }
 
     Selection::iterator it, it_end;
+    // Used to keep reference to sel during lifetime of Selection_iter object
+    // Otherwise destructor of sel will be called too early and will crash at code like this:
+    // for a in sys():
+    //    print a.name
+    boost::shared_ptr<Selection> saved;
 };
 
 // Returns an iterator object from __iter__
-Selection_iter Selection_get_iter(Selection& sel){
+Selection_iter Selection_get_iter(boost::shared_ptr<Selection>& sel){
     return Selection_iter(sel);
 }
 

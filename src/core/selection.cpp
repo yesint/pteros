@@ -475,7 +475,7 @@ bool Selection::operator==(const Selection &other) const {
     return index == other.index;
 }
 
-Atom_proxy Selection::operator[](int ind) const {
+Atom_proxy Selection::operator[](int ind) const {    
     return Atom_proxy(const_cast<Selection*>(this),ind);
 }
 
@@ -614,7 +614,7 @@ void Selection::set_frame(int fr){
 }
 
 
-Selection::iterator Selection::begin(){
+Selection::iterator Selection::begin(){    
     return iterator(this,0);
 }
 

@@ -29,7 +29,7 @@ def _system_select(self,*args):
             raise RuntimeError("Wrong arguments for selection!")
 
     # keep system alive at the life time of selection
-    sel._system = self
+    sel._system = self    
     return sel
 
 System.select = _system_select
