@@ -282,7 +282,7 @@ class Selection {
       ones in each selection. This is very inefficient since we only need to find our
       residue with "protein and resid 1" (one loop over all atoms) and then we need to search
       \e inside this residue four times (looping over ~10 atoms only). This problem is not
-      apparent for small system but becomes very painful for the systems with millions of atoms.
+      apparent for small systems but becomes very painful for the systems with millions of atoms.
       Subselections solve this problem:
       \code
       Selection residue1(sys,"protein and resid 1");

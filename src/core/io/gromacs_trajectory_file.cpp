@@ -90,7 +90,7 @@ bool Gromacs_trajectory_file::do_read(System *sys, Frame *frame, const Mol_file_
             Eigen::Matrix3f b;
             for(int i=0;i<3;++i)
                 for(int j=0;j<3;++j)
-                    b(i,j) = box[i][j];
+                    b(i,j) = box[j][i];
             frame->box.modify(b);
         }
     } else {
@@ -119,7 +119,7 @@ void Gromacs_trajectory_file::do_write(const Selection &sel, const Mol_file_cont
     // Set box
     for(int i=0;i<3;++i)
         for(int j=0;j<3;++j)
-            box[i][j] = sel.Box().get_matrix()(i,j);
+            box[i][j] = sel.Box().get_matrix()(j,i);
 
 
     // Write
