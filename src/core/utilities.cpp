@@ -35,13 +35,13 @@ float pteros::angle_between_vectors(Vector3f_const_ref vec1, Vector3f_const_ref 
 }
 
 
-Vector3f project_vector(Vector3f_const_ref vec1, Vector3f_const_ref vec2)
+Vector3f pteros::project_vector(Vector3f_const_ref vec1, Vector3f_const_ref vec2)
 {
     return (vec1.dot(vec2)/vec2.dot(vec2))*vec2;
 }
 
 
-float rad_to_deg(float rad)
+float pteros::rad_to_deg(float rad)
 {
     return rad * 57.295779513082320876798154814105;
 }
