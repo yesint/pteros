@@ -54,30 +54,26 @@ int main(int argc, char* argv[]){
         // Distribute solvent boxes
         {
             Selection all(solvent,"all");
-            solvent.distribute(all,nbox,solvent.Box(0).get_matrix());
+            Matrix3f m = solvent.Box(0).get_matrix();
+            solvent.distribute(all,nbox,m);
         }
 
-        // Move minimal coord solvent box to minimal coord of solute
+        // Move min coords of solvent and solute to zero
         Vector3f solvent_min,solvent_max, solute_min, solute_max;
         Selection solute_all(solute,"all");
         Selection solvent_all(solvent,"all");
         solute_all.minmax(solute_min,solute_max);
         solvent_all.minmax(solvent_min,solvent_max);
 
-        solvent_all.translate(solute_min-solvent_min);
+        solvent_all.translate(-solvent_min);
+        solute_all.translate(-solute_min);
 
         cout << "Finding solvent atoms outside the solute box..." << endl;
 
         // Cut solvent atoms outside the solute box
-        vector<int> bad;
-        Vector3f v;
-        for(int i=0; i<solvent_all.size(); ++i){
-            v = solute.Box(0).lab_to_box( solvent_all.XYZ(i)-solute_min );
-            if(   v(0)>solute.Box(0).extent(0)
-               || v(1)>solute.Box(0).extent(1)
-               || v(2)>solute.Box(0).extent(2)
-               || v(0)<0 || v(1)<0 || v(2) <0
-              ) bad.push_back(solvent_all.Index(i));
+        vector<int> bad;        
+        for(int i=0; i<solvent_all.size(); ++i){            
+            if( !solute.Box(0).in_box(solvent_all.XYZ(i)) ) bad.push_back(solvent_all.Index(i));
         }
 
         cout << "Finding solvent residues outside the solute box..." << endl;
@@ -121,8 +117,12 @@ int main(int argc, char* argv[]){
             solute.remove(sel);
         }
 
+        // Translate back to initial box center
+        solute_all.modify("all");
+        solute_all.translate(solute_min);
+
         // Writing output
-        solute.select_all().write( opt("o","solvated.pdb").as_string() );
+        solute_all.write( opt("o","solvated.pdb").as_string() );
 
     } catch(const Pteros_error& e) {
         e.print();
