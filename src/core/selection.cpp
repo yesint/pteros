@@ -1514,22 +1514,30 @@ void Selection::flatten()
 }
 
 
-void Selection::each_residue(std::vector<Selection>& sel) const {        
+void Selection::each_residue(std::vector<Selection>& sel) const {            
     sel.clear();
-    // get unique resindexes
-    vector<int> r = get_unique_resindex();
-    // Allocate selections
-    for(int i=0; i<r.size();++i) sel.push_back(Selection(*system));
-    // Map indexes in sel to r
-    unordered_map<int,int> m;
-    for(int i=0; i<r.size();++i) m[r[i]]=i;
-    // Cycle over all atoms
-    for(int i=0; i<system->num_atoms();++i){
-        int val = system->atoms[i].resindex;
-        auto it = m.find(val);
-        if(it!=m.end()){
-            sel[it->second].index.push_back(i);
-        }
+
+    // Resindexes are contigous, so for each atom we search forward and backward to find
+    // all atoms of enclosing residue.
+
+    // Set of residues, which are already searched
+    set<int> used;
+
+    int b,e; // Beging and end of current residue
+    int ind;
+    for(int i=0; i<size(); ++i){
+        // Skip used
+        if(used.count(Resindex(i))) continue;
+        // Starting global index
+        ind = b = e = Index(i);
+        // Go backward
+        while( b-1>=0 && Index(b-1)==ind){ --b; };
+        // Go forward
+        while( e+1<size() && Index(e+1)==ind){ ++e; };
+        sel.push_back(Selection(*system));
+        sel.back().modify(b,e);
+        // Mark as used
+        used.insert(Resindex(i));
     }
 }
 
