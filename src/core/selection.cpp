@@ -1523,21 +1523,23 @@ void Selection::each_residue(std::vector<Selection>& sel) const {
     // Set of residues, which are already searched
     set<int> used;
 
-    int b,e; // Beging and end of current residue
+    int b,e; // Begin and end of current residue
     int ind;
     for(int i=0; i<size(); ++i){
         // Skip used
-        if(used.count(Resindex(i))) continue;
+        ind = Resindex(i);
+        if(used.count(ind)) continue;
         // Starting global index
-        ind = b = e = Index(i);
+        b = e = Index(i);
         // Go backward
-        while( b-1>=0 && Index(b-1)==ind){ --b; };
+        while( b-1>=0 && system->atoms[b-1].resindex == ind){ --b; };
         // Go forward
-        while( e+1<size() && Index(e+1)==ind){ ++e; };
+        while( e+1<system->atoms.size() && system->atoms[e+1].resindex == ind){ ++e; };
         sel.push_back(Selection(*system));
+
         sel.back().modify(b,e);
         // Mark as used
-        used.insert(Resindex(i));
+        used.insert(ind);
     }
 }
 
