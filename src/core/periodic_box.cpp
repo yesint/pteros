@@ -127,15 +127,16 @@ void Periodic_box::wrap_point(Vector3f_ref point, Vector3i_const_ref dims) const
     point = _box*point;
 }
 
-bool Periodic_box::in_box(Vector3f_const_ref point) const
+bool Periodic_box::in_box(Vector3f_const_ref point, Vector3f_const_ref origin) const
 {
-    Vector3f p = _box_inv*point;
+    Vector3f p = _box_inv*(point-origin);
 
     for(int i=0; i<3; ++i)
         if(p(i)<0 || p(i)>1.0) return false;
 
     return true;
 }
+
 
 Eigen::Vector3f Periodic_box::get_closest_image(Vector3f_const_ref point, Vector3f_const_ref target, Vector3i_const_ref dims) const
 {    

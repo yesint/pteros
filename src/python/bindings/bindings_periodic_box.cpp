@@ -170,7 +170,13 @@ PyObject* Periodic_box_shortest_vector(Periodic_box* b, PyObject* point1, PyObje
 BOOST_PYTHON_FUNCTION_OVERLOADS(Periodic_box_shortest_vector_overloads,Periodic_box_shortest_vector,3,4);
 
 
-bool Periodic_box_in_box(Periodic_box* b, PyObject* point){
+bool Periodic_box_in_box1(Periodic_box* b, PyObject* point, PyObject* origin){
+    MAP_EIGEN_TO_PYTHON_F(Vector3f,p,point)
+    MAP_EIGEN_TO_PYTHON_F(Vector3f,o,origin)
+    return b->in_box(p,o);
+}
+
+bool Periodic_box_in_box2(Periodic_box* b, PyObject* point){
     MAP_EIGEN_TO_PYTHON_F(Vector3f,p,point)
     return b->in_box(p);
 }
@@ -211,7 +217,8 @@ void make_bindings_Periodic_box(){
         .def("distance",&Periodic_box_distance, Periodic_box_distance_overloads())
         .def("distance_squared",&Periodic_box_distance_squared, Periodic_box_distance_squared_overloads())
         .def("wrap_point",&Periodic_box_wrap_point, Periodic_box_wrap_point_overloads())
-        .def("in_box",&Periodic_box_in_box)
+        .def("in_box",&Periodic_box_in_box1)
+        .def("in_box",&Periodic_box_in_box2)
         .def("volume",&Periodic_box::volume)
         .def("get_closest_image",&Periodic_box_get_closest_image, Periodic_box_get_closest_image_overloads())
         .def("shortest_vector",&Periodic_box_shortest_vector, Periodic_box_shortest_vector_overloads())

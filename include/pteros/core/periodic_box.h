@@ -121,8 +121,8 @@ public:
                     Vector3i_const_ref dims = Eigen::Vector3i::Ones()) const;
 
     /// Determine if the point is inside the box
-    /// Origin of the box coordinates is assumed to be {0,0,0}.
-    bool in_box(Vector3f_const_ref point) const;
+    /// Origin of the box coordinates defaults to {0,0,0}.
+    bool in_box(Vector3f_const_ref point, Vector3f_const_ref origin = Eigen::Vector3f::Zero()) const;
 
     /// Finds a periodic image of point, which is closest in space to target and returns it    
     Eigen::Vector3f get_closest_image(Vector3f_const_ref point,
