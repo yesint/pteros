@@ -76,25 +76,26 @@ int main(int argc, char* argv[]){
             if( !solute.Box(0).in_box(solvent_all.XYZ(i)) ) bad.push_back(solvent_all.Index(i));
         }
 
-        cout << "Finding solvent residues outside the solute box..." << endl;
+        // Select bad atoms
+        Selection bad_sel(solvent,bad);
+        // Select whole bad residues
+        vector<Selection> bad_res;
+        bad_sel.each_residue(bad_res);
 
-        // Select by residue for bad atoms
-        string s("by residue index ");
-        for(int i=0; i<bad.size(); ++i) s += to_string(bad[i])+" ";
-        Selection bad_sel(solvent,s);
-
-        cout << "Removing " << bad_sel.size() << " atoms outside the solute box..." << endl;
-        solvent.remove(bad_sel);
+        cout << "Marking " << bad_res.size() << " solvent molecules outside the solute box..." << endl;
+        for(auto& sel: bad_res){
+            sel.set_beta(-1000);
+        }
 
         // Find last index of solute
         int last_solute_ind = solute.num_atoms()-1;
 
-        // append solvent to solute
-        solute.append(solvent);
+        // append good solvent to solute
+        solute.append(solvent("beta > -1000"));
 
-        // select bad water
+        // select overlapping water
         float d = opt("d","0.25").as_float();
-        s = "by residue (index " + to_string(last_solute_ind+1)
+        string s = "by residue (index " + to_string(last_solute_ind+1)
                 + "-" + to_string(solute.num_atoms()-1)
                 + " and within "
                 + to_string(d)+ " pbc of index 0-"
@@ -102,23 +103,23 @@ int main(int argc, char* argv[]){
 
         Selection sel(solute, s);
 
-        cout << "Removing " << sel.size() << " overlaping solvent atoms at cutoff="
+        cout << "Marking " << sel.size() << " overlaping solvent atoms at cutoff="
              << d <<"..."<< endl;
 
-        // Remove bad water
-        solute.remove(sel);
+        // Remove overlapping water
+        sel.set_beta(-1000);
 
         // If we have custom selection use it
-        if(opt.has("sel")){
+        if(opt.has("sel")){            
             s = opt("sel").as_string();
-            sel.modify(solute, s);
-            cout << "Removing custom selection '" + s
+            Selection sel(solute, s);
+            cout << "Marking atoms from custom selection '" + s
                     + "' ("+to_string(sel.size())+" atoms)..." << endl;
-            solute.remove(sel);
+            sel.set_beta(-1000);
         }
 
         // Translate back to initial box center
-        solute_all.modify("all");
+        solute_all.modify("beta > -1000");
         solute_all.translate(solute_min);
 
         // Writing output
