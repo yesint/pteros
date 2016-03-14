@@ -1400,17 +1400,140 @@ The method Selection::sasa() returns the solvent accessible area of atoms in sel
 \note
 POWERSASA code is not open source. I contacted the authors of POWERSASA several times to ask for official permision to use their code in Pteros but all requestes were ignored. I concluded that nobody is concerned about the licensing of POWERSASA now. However, compilation of this code is disabled by default. See \ref sasa for details how to enable it.
 
+
+
 \page analysis Analysis of trajectories
 
 \tableofcontents
 
 \section anal_concepts Asynchronous parallel trajectory processing in Pteros
+
+Although System and Selection classes already provide quite high-level tools for building custom analysis programs, Pteros contains even more advanced facilities for rapid implementation of complex analysis algorithms. When you build your custom analysis program, it is usually painful and repetitive to implement the following things:
+- Read only specified range of frames from trajectory based on time stamp or frame number.
+- Read the trajectory, stored by pieces in several files.
+- Read very large trajectory, which doen't fit into the memory frame by frame.
+- Implement parallel execution of several analysis tasks, to keep all processor cores busy.
+- Implement processing of the command line arguments, which set all options of trajectory processing and represent custom flags for your analysis.
+
+It is necessary to emphasize an importance of parallel processing. MD trajectories are often huge (up to ~100Gb) and reading them from disk tipically takes many minutes, especially if the storage is slow or even non-local. If you have 5 different anaysis tasks, which should be applied to the same trajectory it is very wasteful to run them sequntially and to read the whole trajectory five times. It is much more logical to read the trajectory only ones and execute all your tasks in parallel for each frame. By doing this you will also utilize the power of you modern multi-core processor effectively.
+
+All these routine operations in Pteros are incapsulated into the Trajectory_processor class. The logic of using this class is the following. You supply it with the set of options (the trajectory to read, which frames to include into the analysis, etc). In addition you create a number of Consumer objects, which represent separated analysis tasks, and connect them to the Trajectory_processor. After that you run the processor. It launches all supplied tasks in separate parallel threads, read the trajectory frame by frame in yet another thread and passes the frames to each of the tasks for user-defined processing. In such scenario the speed of trajectory processing is limited by either the slowest consumer or the trajectory file IO (whatever is slower).
+
+Although the framework of trajectory processor and consumers is a high-level concept by itself it is used to provide even higher-level abstractions - the \ref plugins.
+
+\note Trajectory processors and consumers, as the lower-level concepts, are available in C++ only. In Python only analysis plugins are supported.
+
 \section processors_consumers Trajectory processors and consumers
+
+Trajectory_processor class incapsulates all low-level details of reading trajectories including reading intervals of frames of times, skipping frames, etc. Its typical usage is the following:
+\code
+// We derive our analysis class from Consumer
+// The details will be covered later
+class My_consumer: public Consumer {
+    My_consumer(Trajectory_processor* pr, string sel_str): Consumer(pr){
+    ...
+    }
+    ...
+}
+
+int main(int argc, char** argv){
+    // Represents built-in and custom command line options
+    Options options;
+    // Parse options from the command line
+    parse_command_line(argc,argv,options);
+    // Create an instance of trajectory processor
+    Trajectory_processor engine(options);
+
+    // Create several consumers with different parameters.
+    // They will be linked to engine authomatically
+    My_consumer task1(&engine,"name CA");
+    My_consumer task2(&engine,"name CB");
+    My_consumer task3(&engine,"name N O");
+
+    // Start trajectory processing
+    engine.run();
+}
+\endcode
+
 \subsection options Processing command-line options
+
+Trajectory_processor takes an Options object, which provides mandatory built-in command-line options that specify which trajectory to read and which frames from it to accept. Default options are the following:
+
+<table>
+<tr><th>Option flag</th><th>Meaning</th><th>Comment</th></tr>
+<tr>
+<td>-help</td> <td>Show help on usage and options </td>
+<td> Could be extended for custom options </td>
+</tr>
+
+<tr>
+<td> -f </td> <td> List of files to read </td>
+<td>
+\i Example: -f sturcture.pdb traj1.xtc traj2.xtc
+
+The list may include
+- Exactly one structure file (PDB or GRO). If not specified, topology PTTOP file must be given instead.
+- Topology PTTOP file (converted from Gromacs .tpr by tpr2pteros.py). If structure file is also present only topology is read from this file. If structure file is not present the coordinates are also read.
+- One or more trajectory files (TRR, XTC, TNG or DCD). TNG files also contain the structure, so if no structure file is given the structure is read from the first TNG file.
+
+Files may appear in any order, but trajectory files will be processed in the order of their appearance.
+</tr>
+
+<tr>
+<td> -b </td> <td> Beginning of processing (starting frame or time)</td>
+<td>Default: 0 (fisrt frame of trajectory). \ref suffix accepted.</td>
+</tr>
+
+<tr>
+<td> -e </td> <td> End of processing (end frame or time)</td>
+<td>Default: -1 (last frame of trajectory). \ref suffix accepted.</td>
+</tr>
+
+
+<tr>
+<td> -t0 </td> <td>Custom starting time </td>
+<td>Default: -1 (use value from the first frame). \ref suffix accepted. Useful when trajectory does not contain time stamps or if the starting time is incorrect.
+\warning If this flag is set and \em dt is not given sets \em dt to 1.0! </td>
+</tr>
+
+
+<tr>
+<td> -dt </td> <td>Custom time step</td>
+<td>Default: -1 (use value from trajectory). Useful when trajectory does not contain time stamps.
+\warning If this flag is set and \em t0 is not given sets \em t0 to 0! </td>
+</tr>
+
+<tr>
+<td> -log </td> <td>Prints logging information on each n-th processed frame</td>
+<td>Default: -1 (no logging).
+</tr>
+
+<tr>
+<td> -buffer </td> <td>Number of frames, which are kept in memory of Trajectory_processor</td>
+<td>Default: 10. You only need to decrease this if individual frames are very large.
+</tr>
+</table>
+
+\subsubsection suffix Value suffixes
+
+%Options -b, -e and -t0 could be specified with the following convenience suffixes:
+
+Suffix | Example value | Meaning
+-------|-------------- |---------
+(no suffix)| | value is in frames
+fr | 10fr | value is in frames
+t | 10t | value is time in picoseconds (value used as is)
+ps | 15ps | value is time in picoseconds (value used as is)
+ns | 100ns | value is time in nanoseconds (value multiplied by 10^3)
+us | 2us | value is time in microseconds (value multiplied by 10^6)
+ms | 4ms | value is time in milliseconds (value multiplied by 10^9)
+
 \subsection frame_info Understanding frame metadata
 \subsection magic_vars Magic variables in consumers
 \subsection jump Removing jumps over periodic boundaries
 \section plugins Analysis plugins
+
+
 
 \page tools Pteros tools
 */
