@@ -710,6 +710,7 @@ void Selection_setTime(Selection* sel, const float& t){
 // and expose it
 struct Selection_iter {
     Selection_iter(boost::shared_ptr<Selection>& sel): it(sel->begin()), it_end(sel->end()), saved(sel) { }
+    Selection_iter(Selection* sel): it(sel->begin()), it_end(sel->end()) { }
 
     Atom_proxy next(){        
         Selection::iterator i = it;
@@ -730,7 +731,11 @@ struct Selection_iter {
 };
 
 // Returns an iterator object from __iter__
-Selection_iter Selection_get_iter(boost::shared_ptr<Selection>& sel){
+Selection_iter Selection_get_iter1(boost::shared_ptr<Selection>& sel){
+    return Selection_iter(sel);
+}
+
+Selection_iter Selection_get_iter2(Selection* sel){
     return Selection_iter(sel);
 }
 
@@ -976,7 +981,8 @@ void make_bindings_Selection(){
         .def("setTime",&Selection_setTime)
 
         // Iteration protocol support
-        .def("__iter__", &Selection_get_iter)
+        .def("__iter__", &Selection_get_iter1)
+        .def("__iter__", &Selection_get_iter2)
         // Indexing support
         .def("__len__",&Selection::size)
         .def("__getitem__",&Selection_getitem)
