@@ -410,9 +410,15 @@ void System::sort_by_resindex()
     vector<int> ind(atoms.size());
     for(int i=0;i<ind.size();++i) ind[i] = i;
     // Sort indexes
-    sort(ind.begin(),ind.end(), [this](int i, int j){
-                                    return (Atom_data(i).resindex < Atom_data(j).resindex);
-                                } );
+    sort(ind.begin(),ind.end(),
+       [this](int i, int j){
+        if(Atom_data(i).resindex == Atom_data(j).resindex){
+            return (i<j);
+        } else {
+            return (Atom_data(i).resindex < Atom_data(j).resindex);
+        }
+       }
+    );
     // Now shuffle atoms and coordinates according to indexes
     vector<Atom> tmp(atoms); //temporary
     for(int i=0;i<ind.size();++i) atoms[i] = tmp[ind[i]];
