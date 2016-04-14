@@ -1513,6 +1513,25 @@ void Selection::flatten()
     sel_text = "";
 }
 
+string Selection::gromacs_ndx(string name)
+{
+    stringstream s;
+    s << "[ " << name << " ]" << endl;
+    int n=0;
+    for(int ind: index){
+        s << ind+1;
+        ++n;
+        if(n==15){
+            n=0;
+            s << endl;
+        } else {
+            s << " ";
+        }
+    }
+    s << endl;
+    return s.str();
+}
+
 
 void Selection::each_residue(std::vector<Selection>& sel) const {            
     sel.clear();

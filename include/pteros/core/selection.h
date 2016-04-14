@@ -154,8 +154,8 @@ class Selection {
      */
     Atom_proxy operator[](int ind) const;
 
-    // Writing selection to stream.
-    // Outputs indexes as a space separated list
+    /// Writing selection to stream.
+    /// Outputs indexes as a space separated list
     friend std::ostream& operator<<(std::ostream& os, const Selection& sel);
 
     /// Creates new Selection, which is the logical OR of two parent selections.
@@ -667,7 +667,7 @@ class Selection {
     // Can't be made const because of internal calls
     void write(std::string fname, int b=-1,int e=-1);
 
-    void write(const std::unique_ptr<Mol_file>& handler, Mol_file_content what,int b=-1,int e=-1);
+    void write(const std::unique_ptr<Mol_file>& handler, Mol_file_content what,int b=-1,int e=-1);    
     /// @}
 
 
@@ -694,6 +694,10 @@ class Selection {
     /// Resulting selection is equivalent to plain set of indexes "index i1 i2 i3..."
     /// Useful to avoid recomputing selection on frame change when tracking given set of atoms
     void flatten();
+
+    /// Returns a string formatted as Gromacs ndx file containing the current selection with given name.
+    /// \warning Indexex in Gromacs ndx are starting from 1! Thus one is added to all pteros indexes!
+    std::string gromacs_ndx(std::string name);
 
     /// @}
 
