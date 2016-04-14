@@ -990,6 +990,8 @@ void make_bindings_Selection(){
         // String conversion
         .def(self_ns::str(self_ns::self))
 
+        .def("gromacs_ndx",&Selection::gromacs_ndx)
+
         // Operators
         .def(self == self)
         .def(self != self)

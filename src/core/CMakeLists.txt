@@ -118,6 +118,8 @@ add_library(pteros SHARED
     io/tng_file.cpp
     io/mol2_file.h
     io/mol2_file.cpp
+    io/xyz_file.h
+    io/xyz_file.cpp
 
 
     # xdrfile
@@ -143,6 +145,7 @@ add_library(pteros SHARED
     ${PROJECT_SOURCE_DIR}/src/core/molfile_plugins/dcdplugin.c    
     ${PROJECT_SOURCE_DIR}/src/core/molfile_plugins/mol2plugin.c
     ${PROJECT_SOURCE_DIR}/src/core/molfile_plugins/tngplugin.cpp
+    ${PROJECT_SOURCE_DIR}/src/core/molfile_plugins/xyzplugin.c
 
     #SASA (will be empty if not used)
     ${SASA_FILES}

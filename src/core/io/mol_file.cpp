@@ -31,6 +31,7 @@
 #include "pttop_file.h"
 #include "tng_file.h"
 #include "mol2_file.h"
+#include "xyz_file.h"
 
 using namespace std;
 using namespace pteros;
@@ -132,6 +133,7 @@ unique_ptr<Mol_file> Mol_file::recognize(string fname){
     else if(ext=="pttop") return unique_ptr<Mol_file>(new PTTOP_file(fname));
     else if(ext=="tng") return unique_ptr<Mol_file>(new TNG_file(fname));
     else if(ext=="mol2") return unique_ptr<Mol_file>(new MOL2_file(fname));
+    else if(ext=="xyz") return unique_ptr<Mol_file>(new XYZ_file(fname));
          else throw Pteros_error("File extension '" + ext + "'' not recognized!");
 }
 
