@@ -137,6 +137,7 @@ bool VMD_molfile_plugin_wrapper::do_read(System *sys, Frame *frame, const Mol_fi
             at.chain = atoms[i].chain[0];
             at.occupancy = atoms[i].occupancy;
             at.beta = atoms[i].bfactor;
+            at.charge = atoms[i].charge;
             // VMD gets element as an atomic number. We convert it back
             // to textual representation and store in tag field
             if(atoms[i].atomicnumber > 0)
@@ -215,13 +216,15 @@ void VMD_molfile_plugin_wrapper::do_write(const Selection &sel, const Mol_file_c
             atoms[i].occupancy = sel.Occupancy(i);
             atoms[i].bfactor = sel.Beta(i);
             atoms[i].mass = sel.Mass(i);
+            atoms[i].charge = sel.Charge(i);
             // Try to deduce an element number from tag field
             atoms[i].atomicnumber = get_pte_idx_from_string(sel.Tag(i).c_str());
             // For MOL2 we also need to set atom type as a string
             // We just set it to "?"
             sprintf(atoms[i].type,"?");
         }
-        int flags = MOLFILE_OCCUPANCY | MOLFILE_BFACTOR | MOLFILE_ATOMICNUMBER;
+        int flags = MOLFILE_OCCUPANCY | MOLFILE_BFACTOR | MOLFILE_ATOMICNUMBER
+                    | MOLFILE_CHARGE | MOLFILE_MASS;
         plugin->write_structure(w_handle,flags,&atoms.front());        
     }
 
