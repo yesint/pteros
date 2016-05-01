@@ -38,6 +38,7 @@ void make_bindings_Atom(){
         .def_readwrite("beta",&Atom::beta)
         .def_readwrite("resindex",&Atom::resindex)
         .def_readwrite("mass",&Atom::mass)
+        .def_readwrite("charge",&Atom::charge)
         .def_readwrite("type",&Atom::type)
         .def_readwrite("type_name",&Atom::type_name)
     ;
