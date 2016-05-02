@@ -32,6 +32,7 @@
 #include "tng_file.h"
 #include "mol2_file.h"
 #include "xyz_file.h"
+#include "nwchem_q_file.h"
 
 using namespace std;
 using namespace pteros;
@@ -125,16 +126,17 @@ float pteros::get_mass_from_atom_name(string& name){
 unique_ptr<Mol_file> Mol_file::recognize(string fname){
     std::string ext = fname.substr(fname.find_last_of(".") + 1);
 
-         if(ext=="xtc") return unique_ptr<Mol_file>(new XTC_file(fname));
-    else if(ext=="trr") return unique_ptr<Mol_file>(new TRR_file(fname));
-    else if(ext=="pdb") return unique_ptr<Mol_file>(new PDB_file(fname));
-    else if(ext=="gro") return unique_ptr<Mol_file>(new GRO_file(fname));
-    else if(ext=="dcd") return unique_ptr<Mol_file>(new DCD_file(fname));
-    else if(ext=="pttop") return unique_ptr<Mol_file>(new PTTOP_file(fname));
-    else if(ext=="tng") return unique_ptr<Mol_file>(new TNG_file(fname));
-    else if(ext=="mol2") return unique_ptr<Mol_file>(new MOL2_file(fname));
-    else if(ext=="xyz") return unique_ptr<Mol_file>(new XYZ_file(fname));
-         else throw Pteros_error("File extension '" + ext + "'' not recognized!");
+         if(ext=="xtc")     return unique_ptr<Mol_file>(new XTC_file(fname));
+    else if(ext=="trr")     return unique_ptr<Mol_file>(new TRR_file(fname));
+    else if(ext=="pdb")     return unique_ptr<Mol_file>(new PDB_file(fname));
+    else if(ext=="gro")     return unique_ptr<Mol_file>(new GRO_file(fname));
+    else if(ext=="dcd")     return unique_ptr<Mol_file>(new DCD_file(fname));
+    else if(ext=="pttop")   return unique_ptr<Mol_file>(new PTTOP_file(fname));
+    else if(ext=="tng")     return unique_ptr<Mol_file>(new TNG_file(fname));
+    else if(ext=="mol2")    return unique_ptr<Mol_file>(new MOL2_file(fname));
+    else if(ext=="xyz")     return unique_ptr<Mol_file>(new XYZ_file(fname));
+    else if(ext=="q")       return unique_ptr<Mol_file>(new Q_file(fname));
+    else throw Pteros_error("File extension '" + ext + "'' not recognized!");
 }
 
 std::unique_ptr<Mol_file> Mol_file::open(string fname, char open_mode)
