@@ -427,7 +427,68 @@ bp::tuple Selection_sasa(Selection* s, float probe_r = 0.14,
 
 BOOST_PYTHON_FUNCTION_OVERLOADS(Selection_sasa_overloads,Selection_sasa,1,5)
 
-boost::shared_ptr<Selection> constructor_from_pyobj0(const System& sys, PyObject* obj){        
+/*
+
+bp::object constructor_raw(bp::tuple args, bp::dict kwargs){
+    cout << "(1) raw ctor" << endl;
+
+    object self = args[0];
+    args = bp::tuple(args.slice(1,_));
+    self.attr("_saved") = args[0]; // Save parent system
+
+    // Extract system
+    System* sys = extract<System*>(args[0]);
+
+    // See what is the first argument
+    object o = args[1];
+    PyObject* obj = o.ptr();
+
+    if( PyCallable_Check(obj) ){
+        // A lambda, which will call Python function
+        auto callback = [&obj](const System& sys, int fr, vector<int>& ind)->void {
+            // Call python function
+            auto py_ind = bp::call<bp::list>(obj, boost::ref(sys));
+            // Convert list to vector
+            for(int i=0;i<len(py_ind);++i) ind.push_back( extract<int>(py_ind[i]) );
+        };
+        // Check if we have frame argument
+        if(len(args)>2){
+            int fr = extract<int>(args[2]);
+            return self.attr("__init__")(*sys,callback,fr);
+        } else {
+            return self.attr("__init__")(*sys,callback);
+        }
+
+    } else if( PyString_Check(obj) ) {
+
+        string str = extract<string>(o);
+        // Check if we have frame argument
+        if(len(args)>2){
+            int fr = extract<int>(args[2]);
+            return self.attr("__init__")(*sys,str,fr);
+        } else {
+            cout << "(2) raw ctor" << sys->num_atoms() << endl;
+            return self.attr("__init__")(*sys,str);
+        }
+
+    } else if( PySequence_Check(obj) ) {
+        vector<int> v(len(o));
+        for(int i=0;i<len(o);++i) v[i] = extract<int>(o[i]);
+        return self.attr("__init__")(*sys,v);
+
+    } else if( PyInt_Check(obj) ) {
+        int i = extract<int>(args[1]);
+        int j = extract<int>(args[2]);
+        return self.attr("__init__")(*sys,i,j);
+
+    } else {
+        throw Pteros_error("Invalid arguments for Selection constructor!");
+    }
+}
+
+ */
+
+boost::shared_ptr<Selection> constructor_from_pyobj0(const System& sys, PyObject* obj){
     if( PyCallable_Check(obj) ){
         // A lambda, which will call Python function
         auto callback = [&obj](const System& sys, int fr, vector<int>& ind)->void {
@@ -470,7 +531,7 @@ boost::shared_ptr<Selection> constructor_from_pyobj1(const System& sys, PyObject
         return g;
 
     } else if( PyString_Check(obj) ) {
-        string str = extract<string>(object( handle<>(borrowed(obj)) ));        
+        string str = extract<string>(object( handle<>(borrowed(obj)) ));
         boost::shared_ptr<Selection> g(new Selection(sys,str,fr));
         return g;
 
@@ -760,7 +821,7 @@ void make_bindings_Selection(){
     def("fit_transform",&fit_transform_py);
     def("non_bond_energy",&non_bond_energy_py,non_bond_energy_overloads_free());
 
-    class_<Selection>("Selection", init<>())        
+    class_<Selection>("Selection", init<>())
         .def(init<System&>() )
         .def(init<const Selection&>() )
 
