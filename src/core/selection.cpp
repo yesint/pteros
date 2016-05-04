@@ -733,6 +733,17 @@ vector<int> Selection::get_unique_resid() const{
     return res;
 }
 
+vector<string> Selection::get_unique_resname() const{
+    vector<string> tmp,res;
+    int i,n;
+    n = index.size();
+    tmp.resize(n);
+    for(i=0; i<n; ++i) tmp[i] = system->atoms[index[i]].resname;
+    unique_copy(tmp.begin(),tmp.end(), back_inserter(res));
+    return res;
+}
+
+
 vector<int> Selection::get_unique_resindex() const {
     vector<int> tmp,res;
     int i,n;

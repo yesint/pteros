@@ -376,6 +376,9 @@ class Selection {
     /// Get vector of unique resid's in selection
     std::vector<int> get_unique_resid() const;
 
+    /// Get vector of unique resnames in selection
+    std::vector<std::string> get_unique_resname() const;
+
     /// Set resid's in selection from supplied vector.
     /// \note Vector size must be the save as the size of selection.
     void set_resid(const std::vector<int>& data);
