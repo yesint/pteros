@@ -27,7 +27,7 @@ using namespace std;
 using namespace pteros;
 
 
-Jump_remover::Jump_remover(): dims(Eigen::Vector3i::Ones()), unwrap_d(-1.0) {}
+Jump_remover::Jump_remover(): dims(Eigen::Vector3i::Ones()), unwrap_d(-1.0), leading_index(0) {}
 
 void Jump_remover::add_atoms(const Selection &sel)
 {    
@@ -56,6 +56,11 @@ void Jump_remover::set_unwrap_dist(float d)
     unwrap_d = d;
 }
 
+void Jump_remover::set_leading_index(int ind)
+{
+    leading_index = ind;
+}
+
 void Jump_remover::remove_jumps(System& system, const Frame_info &info){
     // Exit immediately if no atoms or no valid dimensions
     if(no_jump_ind.empty() || dims.sum()==0) return;
@@ -82,7 +87,7 @@ void Jump_remover::remove_jumps(System& system, const Frame_info &info){
                         if(sel.Box().extent(i)<min_extent)
                             min_extent = sel.Box().extent(i);
 
-                while(sel.unwrap_bonds(unwrap_d,0,dims)>1){
+                while(sel.unwrap_bonds(unwrap_d,leading_index,dims)>1){
                     cout << "Cutoff " << unwrap_d << " too small for unwrapping. ";
                     unwrap_d *= 2.0;
                     cout << "Trying " << unwrap_d << "..." <<endl;
@@ -95,7 +100,7 @@ void Jump_remover::remove_jumps(System& system, const Frame_info &info){
                 }
             } else {
                 // Unwrap with given distance
-                sel.unwrap_bonds(unwrap_d,0,dims);
+                sel.unwrap_bonds(unwrap_d,leading_index,dims);
             }
             cout << "Unwrapping done." << endl;
         }

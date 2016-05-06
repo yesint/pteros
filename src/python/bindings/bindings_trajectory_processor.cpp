@@ -99,6 +99,7 @@ void make_bindings_Trajectory_processor(){
         .def("set_dimensions",&jump_remover_dims)
         .def("set_unwrap_dist",&Jump_remover::set_unwrap_dist)
         .def("remove_jumps",&Jump_remover::remove_jumps)
+        .def("set_leading_index",&Jump_remover::set_leading_index)
     ;
 
 }
