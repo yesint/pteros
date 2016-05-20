@@ -451,6 +451,16 @@ class Selection {
 
     /// Sets occupancy of all selected atoms to the same given value.
     void set_occupancy(float data);
+
+    /// Get tags
+    std::vector<std::string> get_tag() const;
+
+    /// Set tags in selection to the values from supplied vector.
+    /// \note Vector size must be the save as the size of selection.
+    void set_tag(std::vector<std::string>& data);
+
+    /// Set tags of all selected atoms to the same given value.
+    void set_tag(std::string data);
     /// @}
 
 

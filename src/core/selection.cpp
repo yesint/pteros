@@ -936,6 +936,36 @@ void Selection::set_occupancy(float data){
     for(i=0; i<n; ++i) system->atoms[index[i]].occupancy = data;
 }
 
+std::vector<string> Selection::get_tag() const
+{
+    vector<string> res;
+    int i,n;
+    n = index.size();
+    res.resize(n);
+    for(i=0; i<n; ++i) res[i] = system->atoms[index[i]].tag;
+    return res;
+}
+
+void Selection::set_tag(std::vector<string> &data)
+{
+    int i,n;
+    n = index.size();
+    // Sanity check
+    if(data.size()!=n){
+        Pteros_error e;
+        e << "Invalid data size "<< data.size()
+          << " for selection of size " << n;
+        throw e;
+    }
+    for(i=0; i<n; ++i) system->atoms[index[i]].tag = data[i];
+}
+
+void Selection::set_tag(string data)
+{
+    for(int i=0; i<index.size(); ++i) system->atoms[index[i]].tag = data;
+}
+
+
 
 ////////////////////////////////////////////
 // Transformations and inquery functions

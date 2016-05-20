@@ -109,6 +109,25 @@ void Selection_set_occupancy2(Selection* s, float data){
     s->set_occupancy(data);
 }
 
+boost::python::list Selection_get_tag(Selection* s){
+    boost::python::list l;
+    for(int i=0;i<s->size();++i) l.append(s->Tag(i).c_str());
+    return l;
+}
+
+void Selection_set_tag1(Selection* s, boost::python::list& data){
+    int n = len(data);
+    vector<string> r;
+    r.resize(n);
+    for(int i=0;i<r.size();++i) r[i] = extract<string>(data[i]);
+    s->set_tag(r);
+}
+
+void Selection_set_tag2(Selection* s, string data){
+    s->set_tag(data);
+}
+
+
 PyObject* Selection_get_traj(Selection* s, int ind, int b=0, int e=-1){
     CREATE_PYARRAY_2D_AND_MAP_F(p,MatrixXf,data,3,s->get_system()->num_frames())
     data = s->atom_traj(ind,b,e);
@@ -913,6 +932,11 @@ void make_bindings_Selection(){
         .def("get_occupancy",&Selection_get_occupancy)
         .def("set_occupancy",&Selection_set_occupancy1)
         .def("set_occupancy",&Selection_set_occupancy2)
+
+        .def("get_tag",&Selection_get_tag)
+        .def("set_tag",&Selection_set_tag1)
+        .def("set_tag",&Selection_set_tag2)
+
 
         .def("get_traj",&Selection_get_traj, Selection_get_traj_overloads())
 
