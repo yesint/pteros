@@ -586,7 +586,7 @@ Selection System::append(const Selection &sel){
     return Selection(*this,first_added,num_atoms()-1);
 }
 
-Selection System::append(const Atom &at, const Vector3f_const_ref coord)
+Selection System::append(const Atom &at, Vector3f_const_ref coord)
 {
     // If no frames create one
     if(num_frames()==0){

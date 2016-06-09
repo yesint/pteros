@@ -136,7 +136,7 @@ public:
 
     /// Append single atom to this system
     /// Returns selection corresponding to appended atom
-    Selection append(const Atom& at, const Vector3f_const_ref coord);
+    Selection append(const Atom& at, Vector3f_const_ref coord);
 
     /** Append Atom_proxy object to this system
      Returns selection corresponding to appended atom.
