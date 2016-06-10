@@ -649,20 +649,6 @@ void Selection_modify_from_pyobj2(Selection* sel, const System& sys, PyObject* o
 }
 
 
-Selection Selection_select_from_pyobj(Selection* sel, PyObject* obj){
-    if( PyString_Check(obj) ) {
-        string str = extract<string>(object( handle<>(borrowed(obj)) ));
-        return sel->select(str);
-    } else if( PySequence_Check(obj) ) {
-        bp::object l( handle<>(borrowed(obj)) );
-        vector<int> v(len(l));
-        for(int i=0;i<len(l);++i) v[i] = extract<int>(l[i]);
-        return sel->select(v);
-    } else {
-        throw Pteros_error("Wrong arguments for selection!");
-    }
-}
-
 void Selection_modify_from_pyobj2_def(Selection* sel, PyObject* obj){
     Selection_modify_from_pyobj2(sel,*sel->get_system(),obj);
 }
@@ -796,11 +782,10 @@ void Selection_setTime(Selection* sel, const float& t){
 // For some unknown reason direct wrapping of Selection::iterator does not work properly
 // So we create custom iterator class, which satisfyes Python iterator protocol
 // and expose it
-struct Selection_iter {
-    Selection_iter(boost::shared_ptr<Selection>& sel): it(sel->begin()), it_end(sel->end()), saved(sel) { }
-    Selection_iter(Selection* sel): it(sel->begin()), it_end(sel->end()) { }
+struct Selection_iter {    
+    Selection_iter(Selection* sel): it(sel->begin()), it_end(sel->end()) {}
 
-    Atom_proxy next(){        
+    Atom_proxy next(){
         Selection::iterator i = it;
         if(i==it_end){
             PyErr_SetString(PyExc_StopIteration, "No more data");
@@ -815,25 +800,36 @@ struct Selection_iter {
     // Otherwise destructor of sel will be called too early and will crash at code like this:
     // for a in sys():
     //    print a.name
-    boost::shared_ptr<Selection> saved;
+    //boost::shared_ptr<Selection> saved;
 };
 
 // Returns an iterator object from __iter__
-Selection_iter Selection_get_iter1(boost::shared_ptr<Selection>& sel){
-    return Selection_iter(sel);
-}
-
-Selection_iter Selection_get_iter2(Selection* sel){
+Selection_iter Selection_get_iter(Selection* sel){
     return Selection_iter(sel);
 }
 
 //-------------------
 // Indexing
 
-Atom_proxy Selection_getitem(Selection* sel, int i){
+Atom_proxy Selection_getitem(Selection* sel, int i){    
     return (*sel)[i];
 }
 
+
+// Subselections
+Selection select_str(Selection* sel, string st){
+    return sel->select(st);
+}
+
+Selection select_range(Selection* sel, int ind1, int ind2){
+    return sel->select(ind1,ind2);
+}
+
+Selection select_list(Selection* sel, bp::list l){
+    vector<int> ind(len(l));
+    for(int i=0;i<len(l);++i) ind[i] = extract<int>(l[i]);
+    return sel->select(ind);
+}
 
 
 void make_bindings_Selection(){
@@ -874,9 +870,12 @@ void make_bindings_Selection(){
         .def("modify", &Selection_modify_from_pyobj3)
         .def("modify", &Selection_modify_from_pyobj3_def)
 
-        .def("_subselect", static_cast<Selection(Selection::*)(int,int)>(&Selection::select))
-        .def("_subselect", &Selection_select_from_pyobj)
-        // select and __call__ variants are set in pteros.py to keep system alive
+        .def("select", &select_str, with_custodian_and_ward_postcall<0,1>())
+        .def("__call__", &select_str, with_custodian_and_ward_postcall<0,1>())
+        .def("select", &select_range, with_custodian_and_ward_postcall<0,1>())
+        .def("__call__", &select_range, with_custodian_and_ward_postcall<0,1>())
+        .def("select", &select_list, with_custodian_and_ward_postcall<0,1>())
+        .def("__call__", &select_list, with_custodian_and_ward_postcall<0,1>())
 
         .def("apply",&Selection::apply)
         .def("update",&Selection::update)
@@ -1075,11 +1074,10 @@ void make_bindings_Selection(){
         .def("setTime",&Selection_setTime)
 
         // Iteration protocol support
-        .def("__iter__", &Selection_get_iter1)
-        .def("__iter__", &Selection_get_iter2)
+        .def("__iter__", &Selection_get_iter,with_custodian_and_ward_postcall<0,1>())
         // Indexing support
         .def("__len__",&Selection::size)
-        .def("__getitem__",&Selection_getitem)
+        .def("__getitem__",&Selection_getitem,with_custodian_and_ward_postcall<0,1>())
 
         // String conversion
         .def(self_ns::str(self_ns::self))

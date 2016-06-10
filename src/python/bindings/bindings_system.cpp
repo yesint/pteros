@@ -199,6 +199,46 @@ void set_filter_from_py_obj(System* s, PyObject* obj){
     }
 }
 
+
+Selection system_select_2_args(System* sys, PyObject* obj, int fr){
+    if(PyCallable_Check(obj)){
+        // Create a callback from obj
+        auto callback = [&obj](const System& s, int fr, vector<int>& ind)->void {
+            auto l = bp::call<bp::list>(obj,boost::ref(s),fr);
+            ind.resize(len(l));
+            for(int i=0;i<len(l);++i) ind[i] = extract<int>(l[i]);
+        };
+        return sys->select(callback,fr);
+    } else if(PyString_Check(obj)) {
+        string s = bp::extract<string>( object(handle<>(borrowed(obj))) );
+        return sys->select(s,fr);
+    } else if(PyInt_Check(obj)) {
+        int i = bp::extract<int>( object(handle<>(borrowed(obj))) );
+        return sys->select(i,fr);
+    }
+}
+
+Selection system_select_1_arg(System* sys, PyObject* obj){
+    if(PyCallable_Check(obj)){
+        // Create a callback from obj
+        auto callback = [&obj](const System& s, int fr, vector<int>& ind)->void {
+            auto l = bp::call<bp::list>(obj,boost::ref(s),fr);
+            ind.resize(len(l));
+            for(int i=0;i<len(l);++i) ind[i] = extract<int>(l[i]);
+        };
+        return sys->select(callback);
+    } else if(PyString_Check(obj)) {
+        string s = bp::extract<string>( object(handle<>(borrowed(obj))) );
+        return sys->select(s);
+    } else if(PySequence_Check(obj)) {
+        bp::object l( handle<>(borrowed(obj)) );
+        vector<int> ind(len(l));
+        for(int i=0;i<len(l);++i) ind[i] = extract<int>(l[i]);
+        return sys->select(ind);
+    }
+}
+
+
 //==================================================================
 
 void make_bindings_System(){
@@ -210,11 +250,14 @@ void make_bindings_System(){
         .def("num_atoms", &System::num_atoms)
         .def("num_frames", &System::num_frames)
 
-        // bindings for select() are implemented on Python side because
-        // otherwise expressions like
-        // System('file.pdb').select('name CA').write('res.gro')
-        // do work. The reason is that C++ destructor of System gets called
-        // *before* Python calls write(). In C++ this never happens.
+        .def("select",&system_select_1_arg,with_custodian_and_ward_postcall<0,1>())
+        .def("__call__",&system_select_1_arg,with_custodian_and_ward_postcall<0,1>())
+
+        .def("select",&system_select_2_args,with_custodian_and_ward_postcall<0,1>())
+        .def("__call__",&system_select_2_args,with_custodian_and_ward_postcall<0,1>())
+
+        .def("select_all",&System::select_all,with_custodian_and_ward_postcall<0,1>())
+        .def("__call__",&System::select_all,with_custodian_and_ward_postcall<0,1>())
 
         .def("load", &System_load_normal, system_load_overloads())
         .def("load", &System_load_callback,(bp::arg("fname"),bp::arg("b")=0,bp::arg("e")=-1,bp::arg("skip")=0,bp::arg("on_frame")))

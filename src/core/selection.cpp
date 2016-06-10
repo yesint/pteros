@@ -176,7 +176,7 @@ Selection::Selection(const System& sys,
     parser.reset();
     frame = fr;
     // Sanity check
-    if(frame<0 || frame>=system->num_frames())
+    if(frame<0 || frame>=sys.num_frames())
         throw Pteros_error("Can't make selection for non-existent frame ") << frame << "!";
 
     // set system
