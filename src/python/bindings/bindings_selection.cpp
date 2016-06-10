@@ -992,12 +992,12 @@ void make_bindings_Selection(){
         .def("non_bond_energy",&Selection::non_bond_energy, non_bond_energy_overloads())
 
         // Splitting functions
-        .def("split_by_connectivity",&Selection_split_by_connectivity)
-        .def("split_by_residue",&Selection_split_by_residue)
-        .def("split_by_chain",&Selection_split_by_chain)
-        .def("split_by_contiguous_index",&Selection_split_by_contiguous_index)
-        .def("split_by_contiguous_residue",&Selection_split_by_contiguous_residue)
-        .def("each_residue",&Selection_each_residue)
+        .def("split_by_connectivity",&Selection_split_by_connectivity, with_custodian_and_ward_postcall<0,1>())
+        .def("split_by_residue",&Selection_split_by_residue, with_custodian_and_ward_postcall<0,1>())
+        .def("split_by_chain",&Selection_split_by_chain, with_custodian_and_ward_postcall<0,1>())
+        .def("split_by_contiguous_index",&Selection_split_by_contiguous_index, with_custodian_and_ward_postcall<0,1>())
+        .def("split_by_contiguous_residue",&Selection_split_by_contiguous_residue, with_custodian_and_ward_postcall<0,1>())
+        .def("each_residue",&Selection_each_residue, with_custodian_and_ward_postcall<0,1>())
 
         .def("sasa",&Selection_sasa,Selection_sasa_overloads())
 
