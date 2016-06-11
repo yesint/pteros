@@ -29,18 +29,20 @@
 using namespace pteros;
 using namespace std;
 using namespace Eigen;
-namespace bp = boost::python;
 using namespace boost::python;
 
-/**********************
+/***********************
   Wrappers for Selection
 ***********************/
+
+// Overloads for methods which are bound directrly without custom wrappers
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(fit_trajectory_overloads, fit_trajectory, 0, 3)
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(get_average_overloads, get_average, 0, 2)
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(principal_orient_overloads, principal_orient, 0, 1)
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(non_bond_energy_overloads, non_bond_energy, 0, 2)
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(rmsd_overloads, rmsd, 1, 2)
 
+//------------------------------
 
 PyObject* Selection_get_xyz(Selection* s){    
     CREATE_PYARRAY_2D_AND_MAP_F(p,MatrixXf,data,3,s->size())
@@ -48,10 +50,14 @@ PyObject* Selection_get_xyz(Selection* s){
     return p;
 }
 
+//------------------------------
+
 void Selection_set_xyz(Selection* s, PyObject* data){
     MAP_EIGEN_TO_PYTHON_F(MatrixXf,m,data)
     s->set_xyz(m);
 }
+
+//------------------------------
 
 PyObject* Selection_get_average(Selection* s, int b=0, int e=-1){
     CREATE_PYARRAY_2D_AND_MAP_F(p,MatrixXf,data,3,s->size())
@@ -60,6 +66,8 @@ PyObject* Selection_get_average(Selection* s, int b=0, int e=-1){
 }
 
 BOOST_PYTHON_FUNCTION_OVERLOADS(Selection_get_average_overloads, Selection_get_average, 1, 3)
+
+//------------------------------
 
 PyObject* Selection_get_mass(Selection* s){
     CREATE_PYARRAY_1D_AND_MAP_F(p,VectorXf,r,s->size())
@@ -77,6 +85,8 @@ void Selection_set_mass2(Selection* s, float data){
     s->set_mass(data);
 }
 
+//------------------------------
+
 PyObject* Selection_get_beta(Selection* s){
     CREATE_PYARRAY_1D_AND_MAP_F(p,VectorXf,r,s->size())
     r = Map<VectorXf>(s->get_beta().data(),s->size());
@@ -93,6 +103,8 @@ void Selection_set_beta2(Selection* s, float data){
     s->set_beta(data);
 }
 
+//------------------------------
+
 PyObject* Selection_get_occupancy(Selection* s){
     CREATE_PYARRAY_1D_AND_MAP_F(p,VectorXf,r,s->size())
     r = Map<VectorXf>(s->get_occupancy().data(),s->size());
@@ -108,6 +120,8 @@ void Selection_set_occupancy1(Selection* s, PyObject* data){
 void Selection_set_occupancy2(Selection* s, float data){
     s->set_occupancy(data);
 }
+
+//------------------------------
 
 boost::python::list Selection_get_tag(Selection* s){
     boost::python::list l;
@@ -127,6 +141,7 @@ void Selection_set_tag2(Selection* s, string data){
     s->set_tag(data);
 }
 
+//------------------------------
 
 PyObject* Selection_get_traj(Selection* s, int ind, int b=0, int e=-1){
     CREATE_PYARRAY_2D_AND_MAP_F(p,MatrixXf,data,3,s->get_system()->num_frames())
@@ -136,6 +151,8 @@ PyObject* Selection_get_traj(Selection* s, int ind, int b=0, int e=-1){
 
 BOOST_PYTHON_FUNCTION_OVERLOADS(Selection_get_traj_overloads, Selection_get_traj, 2, 4)
 
+//------------------------------
+
 boost::python::tuple Selection_minmax(Selection* s){
     CREATE_PYARRAY_1D_AND_MAP_F(pmin,Vector3f,min,3)
     CREATE_PYARRAY_1D_AND_MAP_F(pmax,Vector3f,max,3)
@@ -143,21 +160,14 @@ boost::python::tuple Selection_minmax(Selection* s){
     return boost::python::make_tuple(handle<>(pmin),handle<>(pmax));
 }
 
+//------------------------------
+
 void Selection_translate(Selection* s, PyObject* vec){
     MAP_EIGEN_TO_PYTHON_F(Vector3f,v,vec)
     s->translate(v);
 }
 
-void Selection_rotate_3_arg(Selection* s, PyObject* ar1, PyObject* ar2, PyObject* ar3){
-    if(PyArray_Check(ar1)){
-        MAP_EIGEN_TO_PYTHON_F(Vector3f,dir,ar1)
-        MAP_EIGEN_TO_PYTHON_F(Vector3f,piv,ar3)
-        s->rotate(dir,extract<float>(ar2),piv);
-    } else {
-        MAP_EIGEN_TO_PYTHON_F(Vector3f,piv,ar3)
-        s->rotate(extract<int>(ar2),extract<float>(ar2),piv);
-    }
-}
+//------------------------------
 
 void Selection_rotate_1_arg(Selection* s, PyObject* ar1){
     MAP_EIGEN_TO_PYTHON_F(Matrix3f,matr,ar1)
@@ -174,12 +184,26 @@ void Selection_rotate_2_arg(Selection* s, PyObject* ar1, PyObject* ar2){
     }
 }
 
+void Selection_rotate_3_arg(Selection* s, PyObject* ar1, PyObject* ar2, PyObject* ar3){
+    if(PyArray_Check(ar1)){
+        MAP_EIGEN_TO_PYTHON_F(Vector3f,dir,ar1)
+        MAP_EIGEN_TO_PYTHON_F(Vector3f,piv,ar3)
+        s->rotate(dir,extract<float>(ar2),piv);
+    } else {
+        MAP_EIGEN_TO_PYTHON_F(Vector3f,piv,ar3)
+        s->rotate(extract<int>(ar2),extract<float>(ar2),piv);
+    }
+}
+
+//------------------------------
 
 PyObject* fit_transform_py(Selection& sel1, Selection& sel2){
     CREATE_PYARRAY_2D_AND_MAP_F(p,Matrix4f,m,4,4)
     m = fit_transform(sel1,sel2).matrix();
     return p;
 }
+
+//------------------------------
 
 PyObject* Selection_principal_transform(Selection* sel, bool periodic=false){
     CREATE_PYARRAY_2D_AND_MAP_F(p,Matrix4f,m,4,4)
@@ -189,17 +213,23 @@ PyObject* Selection_principal_transform(Selection* sel, bool periodic=false){
 
 BOOST_PYTHON_FUNCTION_OVERLOADS(Selection_principal_transform_overloads, Selection_principal_transform, 1, 2)
 
+//------------------------------
+
 void Selection_write_normal(Selection* s, std::string fname, int b=-1,int e=-1){
     s->write(fname,b,e);
 }
 
 BOOST_PYTHON_FUNCTION_OVERLOADS(write_overloads, Selection_write_normal, 2, 4)
 
+//------------------------------
+
 void Selection_apply_transform(Selection* s, PyObject* t){
     MAP_EIGEN_TO_PYTHON_F(Matrix4f,m,t)
     Affine3f tr(m);
     s->apply_transform(tr);
 }
+
+//------------------------------
 
 PyObject* Selection_getXYZ1(Selection* s, int ind){
     CREATE_PYARRAY_1D_AND_MAP_F(p,Vector3f,data,3)
@@ -223,11 +253,15 @@ void Selection_setXYZ2(Selection* s, int ind, int fr, PyObject* obj){
     s->XYZ(ind,fr) = data;
 }
 
+//------------------------------
+
 PyObject* Selection_get_index(Selection* s){
     CREATE_PYARRAY_1D_AND_MAP_I(p,VectorXi,r,s->size())
     r = Map<VectorXi>(s->get_index().data(),s->size());
     return p;
 }
+
+//------------------------------
 
 boost::python::list Selection_get_chain(Selection* s){
     boost::python::list l;    
@@ -247,12 +281,16 @@ void Selection_set_chain2(Selection* s, char data){
     s->set_chain(data);
 }
 
+//------------------------------
+
 boost::python::list Selection_get_unique_chain(Selection* s){
     boost::python::list l;
     vector<char> r = s->get_unique_chain();
     for(int i=0;i<r.size();++i) l.append(r[i]);
     return l;
 }
+
+//------------------------------
 
 boost::python::list Selection_get_unique_resid(Selection* s){
     boost::python::list l;
@@ -261,6 +299,8 @@ boost::python::list Selection_get_unique_resid(Selection* s){
     return l;
 }
 
+//------------------------------
+
 boost::python::list Selection_get_unique_resname(Selection* s){
     boost::python::list l;
     vector<string> r = s->get_unique_resname();
@@ -268,6 +308,7 @@ boost::python::list Selection_get_unique_resname(Selection* s){
     return l;
 }
 
+//------------------------------
 
 boost::python::list Selection_get_unique_resindex(Selection* s){
     boost::python::list l;
@@ -276,12 +317,12 @@ boost::python::list Selection_get_unique_resindex(Selection* s){
     return l;
 }
 
+//------------------------------
 
 PyObject* Selection_get_resid(Selection* s){
     CREATE_PYARRAY_1D_AND_MAP_I(p,VectorXi,r,s->size())
     r = Map<VectorXi>(s->get_resid().data(),s->size());
     return p;
-
 }
 
 void Selection_set_resid1(Selection* s, PyObject* data){
@@ -294,11 +335,15 @@ void Selection_set_resid2(Selection* s, int data){
     s->set_resid(data);
 }
 
+//------------------------------
+
 PyObject* Selection_get_resindex(Selection* s){
     CREATE_PYARRAY_1D_AND_MAP_I(p,VectorXi,r,s->size())
     r = Map<VectorXi>(s->get_resindex().data(),s->size());
     return p;
 }
+
+//------------------------------
 
 boost::python::list Selection_get_name(Selection* s){
     boost::python::list l;    
@@ -318,6 +363,8 @@ void Selection_set_name2(Selection* s, string& data){
     s->set_name(data);
 }
 
+//------------------------------
+
 boost::python::list Selection_get_resname(Selection* s){
     boost::python::list l;    
     for(int i=0;i<s->size();++i) l.append(s->Resname(i).c_str());
@@ -336,6 +383,7 @@ void Selection_set_resname2(Selection* s, string data){
     s->set_resname(data);
 }
 
+//------------------------------
 
 PyObject* Selection_center(Selection* s, bool mass_weighted, bool periodic){
     CREATE_PYARRAY_1D_AND_MAP_F(p,Vector3f,data,3)
@@ -343,14 +391,19 @@ PyObject* Selection_center(Selection* s, bool mass_weighted, bool periodic){
     return p;
 }
 
+//------------------------------
 
 float rmsd_py(Selection& sel1, int fr1, Selection& sel2, int fr2){
     return rmsd(sel1,fr1,sel2,fr2);
 }
 
+//------------------------------
+
 void fit_py(Selection& sel1, Selection& sel2){
     fit(sel1,sel2);    
 }
+
+//------------------------------
 
 Energy_components non_bond_energy_py(const Selection& sel1,
                                      const Selection& sel2,
@@ -362,6 +415,8 @@ Energy_components non_bond_energy_py(const Selection& sel1,
 
 BOOST_PYTHON_FUNCTION_OVERLOADS(non_bond_energy_overloads_free, non_bond_energy_py, 2, 5)
 
+//------------------------------
+
 boost::python::tuple Selection_inertia(Selection* s, bool periodic=false){
     CREATE_PYARRAY_1D_AND_MAP_F(m,Vector3f,_m,3)
     CREATE_PYARRAY_2D_AND_MAP_F(a,Matrix3f,_a,3,3)
@@ -371,6 +426,8 @@ boost::python::tuple Selection_inertia(Selection* s, bool periodic=false){
 
 BOOST_PYTHON_FUNCTION_OVERLOADS(Selection_inertia_overloads, Selection_inertia, 1, 2)
 
+//------------------------------
+
 boost::python::list Selection_split_by_connectivity(Selection* s, float d){
     vector<Selection> res;
     s->split_by_connectivity(d,res);
@@ -378,6 +435,8 @@ boost::python::list Selection_split_by_connectivity(Selection* s, float d){
     for(int i=0;i<res.size();++i) l.append(res[i]);
     return l;
 }
+
+//------------------------------
 
 boost::python::list Selection_split_by_residue(Selection* s){
     vector<Selection> res;
@@ -387,6 +446,8 @@ boost::python::list Selection_split_by_residue(Selection* s){
     return l;
 }
 
+//------------------------------
+
 boost::python::list Selection_split_by_chain(Selection* s){
     vector<Selection> ch;
     s->split_by_chain(ch);
@@ -394,6 +455,8 @@ boost::python::list Selection_split_by_chain(Selection* s){
     for(int i=0;i<ch.size();++i) l.append(ch[i]);
     return l;
 }
+
+//------------------------------
 
 boost::python::list Selection_split_by_contiguous_index(Selection* s){
     vector<Selection> ch;
@@ -403,6 +466,8 @@ boost::python::list Selection_split_by_contiguous_index(Selection* s){
     return l;
 }
 
+//------------------------------
+
 boost::python::list Selection_split_by_contiguous_residue(Selection* s){
     vector<Selection> ch;
     s->split_by_contiguous_residue(ch);
@@ -411,6 +476,7 @@ boost::python::list Selection_split_by_contiguous_residue(Selection* s){
     return l;
 }
 
+//------------------------------
 
 boost::python::list Selection_each_residue(Selection* s){
     vector<Selection> res;
@@ -420,6 +486,8 @@ boost::python::list Selection_each_residue(Selection* s){
     return l;
 }
 
+//------------------------------
+
 float Selection_rmsd1(Selection* s, int fr){
     return s->rmsd(fr);
 }
@@ -428,7 +496,9 @@ float Selection_rmsd2(Selection* s, int fr1, int fr2){
     return s->rmsd(fr1,fr2);
 }
 
-bp::tuple Selection_sasa(Selection* s, float probe_r = 0.14,
+//------------------------------
+
+boost::python::tuple Selection_sasa(Selection* s, float probe_r = 0.14,
                      bool do_total_volume = false,
                      bool do_area_per_atom = false,
                      bool do_volume_per_atom = false)
@@ -436,8 +506,8 @@ bp::tuple Selection_sasa(Selection* s, float probe_r = 0.14,
     float total_v,ret;
     std::vector<float> area_per_atom;
     std::vector<float> volume_per_atom;
-    bp::list a_list, v_list;
-    bp::object tot_obj; //Defaults to None
+    boost::python::list a_list, v_list;
+    boost::python::object tot_obj; //Defaults to None
 
     float* tot_ptr = do_total_volume ? &total_v : nullptr;
     std::vector<float>* a_ptr = do_area_per_atom ? &area_per_atom : nullptr;
@@ -445,82 +515,23 @@ bp::tuple Selection_sasa(Selection* s, float probe_r = 0.14,
 
     ret = s->sasa(probe_r,tot_ptr,a_ptr,v_ptr);
 
-    if(tot_ptr) tot_obj = bp::object(total_v);
+    if(tot_ptr) tot_obj = boost::python::object(total_v);
     if(a_ptr) for(int i=0;i<area_per_atom.size();++i) a_list.append(area_per_atom[i]);
     if(v_ptr) for(int i=0;i<volume_per_atom.size();++i) v_list.append(volume_per_atom[i]);
 
-    return boost::python::make_tuple(bp::object(ret),tot_obj,a_list,v_list);
+    return boost::python::make_tuple(boost::python::object(ret),tot_obj,a_list,v_list);
 }
 
 BOOST_PYTHON_FUNCTION_OVERLOADS(Selection_sasa_overloads,Selection_sasa,1,5)
 
-/*
-
-bp::object constructor_raw(bp::tuple args, bp::dict kwargs){
-    cout << "(1) raw ctor" << endl;
-
-    object self = args[0];
-    args = bp::tuple(args.slice(1,_));
-    self.attr("_saved") = args[0]; // Save parent system
-
-    // Extract system
-    System* sys = extract<System*>(args[0]);
-
-    // See what is the first argument
-    object o = args[1];
-    PyObject* obj = o.ptr();
-
-    if( PyCallable_Check(obj) ){
-        // A lambda, which will call Python function
-        auto callback = [&obj](const System& sys, int fr, vector<int>& ind)->void {
-            // Call python function
-            auto py_ind = bp::call<bp::list>(obj, boost::ref(sys));
-            // Convert list to vector
-            for(int i=0;i<len(py_ind);++i) ind.push_back( extract<int>(py_ind[i]) );
-        };
-        // Check if we have frame argument
-        if(len(args)>2){
-            int fr = extract<int>(args[2]);
-            return self.attr("__init__")(*sys,callback,fr);
-        } else {
-            return self.attr("__init__")(*sys,callback);
-        }
-
-    } else if( PyString_Check(obj) ) {
-
-        string str = extract<string>(o);
-        // Check if we have frame argument
-        if(len(args)>2){
-            int fr = extract<int>(args[2]);
-            return self.attr("__init__")(*sys,str,fr);
-        } else {
-            cout << "(2) raw ctor" << sys->num_atoms() << endl;
-            return self.attr("__init__")(*sys,str);
-        }
-
-    } else if( PySequence_Check(obj) ) {
-        vector<int> v(len(o));
-        for(int i=0;i<len(o);++i) v[i] = extract<int>(o[i]);
-        return self.attr("__init__")(*sys,v);
-
-    } else if( PyInt_Check(obj) ) {
-        int i = extract<int>(args[1]);
-        int j = extract<int>(args[2]);
-        return self.attr("__init__")(*sys,i,j);
-
-    } else {
-        throw Pteros_error("Invalid arguments for Selection constructor!");
-    }
-}
-
- */
+//------------------------------
 
 boost::shared_ptr<Selection> constructor_from_pyobj0(const System& sys, PyObject* obj){
     if( PyCallable_Check(obj) ){
         // A lambda, which will call Python function
         auto callback = [&obj](const System& sys, int fr, vector<int>& ind)->void {
             // Call python function
-            auto py_ind = bp::call<bp::list>(obj, boost::ref(sys));
+            auto py_ind = boost::python::call<boost::python::list>(obj, boost::ref(sys));
             // Convert list to vector
             for(int i=0;i<len(py_ind);++i) ind.push_back( extract<int>(py_ind[i]) );
         };
@@ -534,9 +545,7 @@ boost::shared_ptr<Selection> constructor_from_pyobj0(const System& sys, PyObject
         return g;
 
     } else if( PySequence_Check(obj) ) {
-        bp::object l( handle<>(borrowed(obj)) );
-        vector<int> v(len(l));
-        for(int i=0;i<len(l);++i) v[i] = extract<int>(l[i]);
+        PYOBJECT_TO_VECTOR(obj,int,v)
         boost::shared_ptr<Selection> g(new Selection(sys,v));
         return g;
     } else {
@@ -549,7 +558,7 @@ boost::shared_ptr<Selection> constructor_from_pyobj1(const System& sys, PyObject
         // A lambda, which will call Python function
         auto callback = [&obj](const System& sys, int fr, vector<int>& ind)->void {
             // Call python function
-            auto py_ind = bp::call<bp::list>(obj, boost::ref(sys), fr);
+            auto py_ind = boost::python::call<boost::python::list>(obj, boost::ref(sys), fr);
             // Convert list to vector
             for(int i=0;i<len(py_ind);++i) ind.push_back( extract<int>(py_ind[i]) );
         };
@@ -562,14 +571,6 @@ boost::shared_ptr<Selection> constructor_from_pyobj1(const System& sys, PyObject
         boost::shared_ptr<Selection> g(new Selection(sys,str,fr));
         return g;
 
-    } else if( PySequence_Check(obj) ) {
-        throw Pteros_error("Specified target frame for selection from a list of indexes! This doesn't make sense.");
-        bp::object l( handle<>(borrowed(obj)) );
-        vector<int> v(len(l));
-        for(int i=0;i<len(l);++i) v[i] = extract<int>(l[i]);
-        boost::shared_ptr<Selection> g(new Selection(sys,v));
-        return g;
-
     } else if( PyInt_Check(obj) ) {
         int i = extract<int>(object( handle<>(borrowed(obj)) ));
         boost::shared_ptr<Selection> g(new Selection(sys,i,fr));
@@ -580,25 +581,14 @@ boost::shared_ptr<Selection> constructor_from_pyobj1(const System& sys, PyObject
     }
 }
 
-
-void Selection_modify_list1(Selection* sel, const bp::list& l){
-    vector<int> v(len(l));
-    for(int i=0;i<len(l);++i) v[i] = extract<int>(l[i]);
-    sel->modify(v);
-}
-
-void Selection_modify_list2(Selection* sel, const System& sys, const bp::list& l){
-    vector<int> v(len(l));
-    for(int i=0;i<len(l);++i) v[i] = extract<int>(l[i]);
-    sel->modify(sys,v);
-}
+//------------------------------
 
 void Selection_modify_from_pyobj3(Selection* sel, const System& sys, PyObject* obj, int fr){
     if( PyCallable_Check(obj) ){
         // A lambda, which will call Python function
         auto callback = [&obj](const System& sys, int fr, vector<int>& ind)->void {
             // Call python function
-            auto py_ind = bp::call<bp::list>(obj, boost::ref(sys), fr);
+            auto py_ind = boost::python::call<boost::python::list>(obj, boost::ref(sys), fr);
             // Convert list to vector
             for(int i=0;i<len(py_ind);++i) ind.push_back( extract<int>(py_ind[i]) );
         };
@@ -608,12 +598,6 @@ void Selection_modify_from_pyobj3(Selection* sel, const System& sys, PyObject* o
         string str = extract<string>(object( handle<>(borrowed(obj)) ));
         sel->modify(sys,str,fr);
 
-    } else if( PySequence_Check(obj) ) {
-        throw Pteros_error("Specified target frame for selection from a list of indexes! This doesn't make sense.");
-        bp::object l( handle<>(borrowed(obj)) );
-        vector<int> v(len(l));
-        for(int i=0;i<len(l);++i) v[i] = extract<int>(l[i]);
-        sel->modify(sys,v);
     } else if( PyInt_Check(obj) ) {
         int i = extract<int>(object( handle<>(borrowed(obj)) ));
         sel->modify(sys,i,fr);
@@ -628,7 +612,7 @@ void Selection_modify_from_pyobj2(Selection* sel, const System& sys, PyObject* o
         // A lambda, which will call Python function
         auto callback = [&obj](const System& sys, int fr, vector<int>& ind)->void {
             // Call python function
-            auto py_ind = bp::call<bp::list>(obj, boost::ref(sys), fr);
+            auto py_ind = boost::python::call<boost::python::list>(obj, boost::ref(sys), fr);
             // Convert list to vector
             for(int i=0;i<len(py_ind);++i) ind.push_back( extract<int>(py_ind[i]) );
         };
@@ -639,15 +623,12 @@ void Selection_modify_from_pyobj2(Selection* sel, const System& sys, PyObject* o
         sel->modify(sys,str);
 
     } else if( PySequence_Check(obj) ) {
-        bp::object l( handle<>(borrowed(obj)) );
-        vector<int> v(len(l));
-        for(int i=0;i<len(l);++i) v[i] = extract<int>(l[i]);
+        PYOBJECT_TO_VECTOR(obj,int,v)
         sel->modify(sys,v);
     } else {
         throw Pteros_error("Wrong arguments for selection!");
     }
 }
-
 
 void Selection_modify_from_pyobj2_def(Selection* sel, PyObject* obj){
     Selection_modify_from_pyobj2(sel,*sel->get_system(),obj);
@@ -657,6 +638,7 @@ void Selection_modify_from_pyobj3_def(Selection* sel, PyObject* obj, int fr){
     Selection_modify_from_pyobj3(sel,*sel->get_system(),obj,fr);
 }
 
+//------------------------------
 
 float Selection_distance1(Selection* s, int i, int j, bool pbc, PyObject* dims){
     MAP_EIGEN_TO_PYTHON_I(Vector3i,dim,dims)
@@ -671,6 +653,8 @@ float Selection_distance3(Selection* s, int i, int j, int fr){
     return s->distance(i,j);
 }
 
+//------------------------------
+
 float Selection_angle1(Selection* s, int i, int j, int k, bool pbc, PyObject* dims){
     MAP_EIGEN_TO_PYTHON_I(Vector3i,dim,dims)
     return s->angle(i,j,k,pbc,dim);
@@ -683,6 +667,8 @@ float Selection_angle2(Selection* s, int i, int j, int k, bool pbc){
 float Selection_angle3(Selection* s, int i, int j, int k, int fr){
     return s->angle(i,j,k,fr);
 }
+
+//------------------------------
 
 float Selection_dihedral1(Selection* s, int i, int j, int k, int l, bool pbc, PyObject* dims){
     MAP_EIGEN_TO_PYTHON_I(Vector3i,dim,dims)
@@ -697,6 +683,8 @@ float Selection_dihedral3(Selection* s, int i, int j, int k, int l){
     return s->dihedral(i,j,k,l);
 }
 
+//------------------------------
+
 void Selection_wrap0(Selection* s){
     s->wrap();
 }
@@ -706,6 +694,8 @@ void Selection_wrap1(Selection* s, PyObject* dims){
     s->wrap(dim);
 }
 
+//------------------------------
+
 void Selection_unwrap0(Selection* s){
     s->unwrap();
 }
@@ -714,6 +704,8 @@ void Selection_unwrap1(Selection* s, PyObject* dims){
     MAP_EIGEN_TO_PYTHON_I(Vector3i,dim,dims)
     s->unwrap(dim);
 }
+
+//------------------------------
 
 void Selection_unwrap_bonds0(Selection* s){
     s->unwrap_bonds();
@@ -781,7 +773,7 @@ void Selection_setTime(Selection* sel, const float& t){
 // Iteration support
 // For some unknown reason direct wrapping of Selection::iterator does not work properly
 // So we create custom iterator class, which satisfyes Python iterator protocol
-// and expose it
+// and exposes it
 struct Selection_iter {    
     Selection_iter(Selection* sel): it(sel->begin()), it_end(sel->end()) {}
 
@@ -796,11 +788,6 @@ struct Selection_iter {
     }
 
     Selection::iterator it, it_end;
-    // Used to keep reference to sel during lifetime of Selection_iter object
-    // Otherwise destructor of sel will be called too early and will crash at code like this:
-    // for a in sys():
-    //    print a.name
-    //boost::shared_ptr<Selection> saved;
 };
 
 // Returns an iterator object from __iter__
@@ -815,8 +802,9 @@ Atom_proxy Selection_getitem(Selection* sel, int i){
     return (*sel)[i];
 }
 
-
+//-------------------
 // Subselections
+
 Selection select_str(Selection* sel, string st){
     return sel->select(st);
 }
@@ -825,24 +813,29 @@ Selection select_range(Selection* sel, int ind1, int ind2){
     return sel->select(ind1,ind2);
 }
 
-Selection select_list(Selection* sel, bp::list l){
+Selection select_list(Selection* sel, boost::python::list l){
     vector<int> ind(len(l));
     for(int i=0;i<len(l);++i) ind[i] = extract<int>(l[i]);
     return sel->select(ind);
 }
 
+//==================================================================
 
 void make_bindings_Selection(){
     import_array();
 
+    // Aux iterator class
     class_<Selection_iter>("_Selection_iter", no_init)
         .def("next",&Selection_iter::next)
     ;
 
+    // Free functions
     def("rmsd",&rmsd_py);
     def("fit",&fit_py);
     def("fit_transform",&fit_transform_py);
     def("non_bond_energy",&non_bond_energy_py,non_bond_energy_overloads_free());
+
+    // Selection class itself
 
     class_<Selection>("Selection", init<>())
         .def(init<System&>() )
@@ -939,7 +932,7 @@ void make_bindings_Selection(){
 
         .def("get_traj",&Selection_get_traj, Selection_get_traj_overloads())
 
-        .def("center",&Selection_center, (bp::arg("mass_weighted")=false,bp::arg("periodic")=false) )
+        .def("center",&Selection_center, (boost::python::arg("mass_weighted")=false,boost::python::arg("periodic")=false) )
 
         .def("minmax",&Selection_minmax)
 
@@ -969,7 +962,7 @@ void make_bindings_Selection(){
 
         .def("write",&Selection_write_normal, write_overloads())
 
-        // inertia return a tuple of (moments,axes)
+        // inertia returns a tuple of (moments,axes)
         .def("inertia",&Selection_inertia, Selection_inertia_overloads())
 
         .def("principal_transform",&Selection_principal_transform, Selection_principal_transform_overloads())
@@ -1025,8 +1018,6 @@ void make_bindings_Selection(){
         .def("getXYZ",&Selection_getXYZ2)
         .def("setXYZ",&Selection_setXYZ1)
         .def("setXYZ",&Selection_setXYZ2)
-
-        //.def("getXYZ1",static_cast<const Eigen::Vector3f&(Selection::*)(int)const>(&Selection::XYZ),return_value_policy<reference_existing_object>())
 
         .def("getType",&Selection_getType)
         .def("setType",&Selection_setType)
@@ -1091,6 +1082,5 @@ void make_bindings_Selection(){
         .def(self & self)
         .def(self - self)
         .def(~self)
-
     ;
 }
