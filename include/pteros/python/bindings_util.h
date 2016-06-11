@@ -167,6 +167,17 @@ PyObject* mapper(PyObject* pyobj, size_t& dim1, size_t& dim2){
     } \
     Eigen::Map<T> matr((int*)PyArray_DATA((PyArrayObject*)pyobj),dim1,dim2);
 
+#define PYOBJECT_TO_VECTOR(pyobj,T,vecname) \
+    vector<T> vecname; \
+    if( PySequence_Check(pyobj) ){ \
+        boost::python::object __list__for__##pyobj( handle<>(borrowed(pyobj)) ); \
+        int n = boost::python::len(__list__for__##pyobj); \
+        vecname.resize(n); \
+        for(int i=0;i<n;++i) vecname[i] = extract<T>(__list__for__##pyobj[i]); \
+    } else { \
+        throw Pteros_error("Provided python object is not a sequence!"); \
+    }
+
 
 } // End of namespace Pteros
 
