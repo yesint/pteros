@@ -41,6 +41,7 @@ BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(get_average_overloads, get_average, 0, 2)
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(principal_orient_overloads, principal_orient, 0, 1)
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(non_bond_energy_overloads, non_bond_energy, 0, 2)
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(rmsd_overloads, rmsd, 1, 2)
+BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(gyration_overloads, gyration, 0, 1)
 
 //------------------------------
 
@@ -964,6 +965,7 @@ void make_bindings_Selection(){
 
         // inertia returns a tuple of (moments,axes)
         .def("inertia",&Selection_inertia, Selection_inertia_overloads())
+        .def("gyration",&Selection::gyration, gyration_overloads())
 
         .def("principal_transform",&Selection_principal_transform, Selection_principal_transform_overloads())
 

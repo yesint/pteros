@@ -99,6 +99,13 @@ Selection System_append(System* s, const Atom& atm, PyObject* crd){
     return s->append(atm,coord);
 }
 
+Selection System_atoms_delete(System* s, boost::python::list& atm){
+    vector<int> a;
+    a.resize(len(atm));
+    for(int i=0;i<a.size();++i) a[i] = extract<int>(atm[i]);
+    s->atoms_delete(a);
+}
+
 
 void System_rearrange(System* s, boost::python::list& data){
     // Try to extract string from the first element
@@ -284,6 +291,7 @@ void make_bindings_System(){
 
         .def("atoms_dup", &System_atoms_dup)
         .def("atoms_add", &System_atoms_add)
+        .def("atoms_delete", &System_atoms_delete)
 
         .def("wrap", &System_wrap_all1)
         .def("wrap", &System_wrap_all2)
