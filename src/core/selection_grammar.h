@@ -350,7 +350,7 @@ public:
         int val = strtoul(&*_old_, &e, 0);
         _pos_ += e-&*_old_;
         if(_old_!=_pos_) _ok_ = true;
-        SP_(); // Consume any training space if present
+        SP_(); // Consume any trailing space if present
 
         if(_ok_){
             _this_rule_->code = TOK_UINT;
@@ -363,7 +363,7 @@ public:
         int val = strtol(&*_old_, &e, 0);
         _pos_ += e-&*_old_;
         if(_old_!=_pos_) _ok_ = true;
-        SP_(); // Consume any training space if present
+        SP_(); // Consume any trailing space if present
 
         if(_ok_){
             _this_rule_->code = TOK_INT;
