@@ -136,7 +136,7 @@ s.load('topology.pttop')
 
 -# Finally on step (4) we are adding topology file. Since the System already contain atoms only additional topological information (like atom types, charges, connectivity, etc.) is read.
 
-Since different file types contain different information the logic of adding information to the System becomes rather complicated in no-trivial situations. The following table summarises what is read from different files in different cases.
+Since different file types contain different information the logic of adding information to the System becomes rather complicated in non-trivial situations. The following table summarises what is read from different files in different cases.
 
 <b>Initial loading (in constructor or to the empty System)</b>
 File type   |   What is loaded? |   Comment
@@ -187,6 +187,50 @@ In this example we first create three file handlers for corresponding PDB, GRO a
 \warning Behavior of MFC_TRAJ for file handlers is different from what is used in simple mode! Each call of `System::load(handler)` reads the \e single frame. This behavior is intentional and allows reading frames one by one.
 \note If one will use "MFC_ATOMS | MFC_TRAJ" or "MFC_COORD | MFC_TRAJ" on steps (1) and (2) then MFC_TRAJ will be ignored. This is again intentional to separate frame-by-frame trajectory reading from reading other information.
 \warning If MFC_ATOMS is specified the system is cleared before reading even if it already contained some atoms!
+
+\subsection load_callback Loading with callback
+
+Both simple and advanced forms of System::load() support optional user-defined callback function as last parameter. This function takes two argiments: the pointer to parent system and the index of current frame. If the callback returns true the loading of trajctory will continue to the next frame. If it returns false the loading will stop.
+Such callbacks are useful for organizing simple frame by frame processing of trajectories.
+
+\note Trajectory_processor class and analysis plugins provide much more powerful way of trajectory processing. Callbacks are the most useful as "quick and dirty" way of doing this in simple scripts.
+
+\col1
+bool callback(System* sys, int frame){
+    cout << "Called for frame " << frame << endl;
+}
+
+...
+
+System sys('some-structure.pdb');
+sys.load('some-traj.xtc',0,-1,0,&callback)
+\col2
+
+def callback(sys,frame):
+    print 'Called for frame ',frame
+
+...
+
+sys = System('some-structure.pdb')
+sys.load('some-traj.xtc', on_frame=callback)
+\endcol
+
+\note When using callback the frames are still accumulated by the system. If you want to store only one frame in the memory use this trick:
+\col1
+bool callback(System* sys, int frame){
+    // Do the job in callback
+    ...
+    // Delete current frame.
+    sys->frame_delete(frame,frame);
+}
+\col2
+def callback(sys,frame):
+    # Do the job in callback
+    ...
+    # Delete current frame.
+    sys.frame_delete(frame,frame)
+\endcol
+Please note that this is done by default by analysis plugins.
 
 \subsection load_filters Using input filters
 
