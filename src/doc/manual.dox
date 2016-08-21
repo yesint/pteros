@@ -1097,7 +1097,7 @@ Use \ref pteros::search_contacts(float,const Selection&,std::vector<Eigen::Vecto
 \code{.py}
 (pairs,distances) search_contacts(cut_off, sel, absolute_index = False, periodic = False, do_dist = False)
 \endcode
-Instead of taking pairs and distance vectors as reference parameters they are returned as a tuple, which Pythonic way of handling multiple return values. If the last parameter "do_dist" is "True" then distances are filled with actual values, otherwise second member of return tuple is "None".
+Instead of taking pairs and distance vectors as reference parameters they are returned as a tuple, which is Pythonic way of handling multiple return values. If the last parameter "do_dist" is "True" then distances are filled with actual values, otherwise second member of returned tuple is "None".
 
 \col1
 // Vector for found pairs
@@ -1266,7 +1266,7 @@ searcher = Distance_search_within(3.5, water, False, True)
 
 # Search for each residue
 for i in xrange(20):
-    res = searcher.seacrh_within(residues[i+1]);
+    res = searcher.search_within(residues[i+1]);
     results.append(res);
 \endcol
 
@@ -1302,7 +1302,7 @@ Pteros is able to compute the <i>short-range</i> non-bond energies if topology f
 
 \warning Long-range electrostatics with PME or other lattice sum methods are not supported in Pteros.
 
-Treatment of non-bonded interactions in Gromacs is, unfortunately, complex and rather confusing. Coulomb and van-der-Waals interactions have a type and a modifier. The type is the functional form of interaction and the modifier is a special function, which is used to avoid the discontinuity of derivatives at cut-off distance. In practice different combinations of types and modifiers in Gromacs .mdp files lead to non-trivial and confusing choises of actual interaction functions. Pteros is trying to match these complex rule as close as possible but it is not guaranteed that the results would be numerically identical.
+Treatment of non-bonded interactions in Gromacs is, unfortunately, complex and rather confusing. Coulomb and van-der-Waals interactions have a type and a modifier. The type is the functional form of interaction and the modifier is a special function, which is used to avoid the discontinuity of derivatives at cut-off distance. In practice different combinations of types and modifiers in Gromacs .mdp files lead to non-trivial and confusing choises of actual interaction functions. Pteros is trying to match these complex rules as close as possible but it is not guaranteed that the results would be numerically identical.
 
 \note Pteros is known to produce correct results for MARTINI coarse grained force field and simple cut-off interactions.
 
@@ -1421,7 +1421,7 @@ if sys.force_field_ready():
 
 \section dssp Secondary structure of proteins
 
-Pteros uses <a href="http://www.cmbi.ru.nl/dssp.html">DSSP</a> method for determining secondary structure of proteins. There three methods Selection::dssp(). They write detailed DSSP report to file or to stream if file name of stream object are provided as an argument. If called without arguments the DSSP string is returned with letter-code for secondary structure. The code is the same as in original DSSP program:
+Pteros uses <a href="http://www.cmbi.ru.nl/dssp.html">DSSP</a> method for determining secondary structure of proteins. Selection::dssp() write detailed DSSP report to the file or to the stream if file name of stream object are provided as an argument. If called without arguments the DSSP string is returned with letter-code for secondary structure. The code is the same as in original DSSP program:
 
 Structure | code
 --------- | ----
@@ -1439,7 +1439,7 @@ loop |		' ' (space)
 \section measure_sasa Solvent accessible surface area
 
 Solvent accessible surface area (SASA) is computed in Pteros using using POWERSASA code developed in the <a href="http://www.kit.edu/english/">Karlsruhe Institute of Technology</a> and inclided into <a href="http://www.int.kit.edu/1636.php">SIMONA</a> package. This is fast algorithm of computing area of the molecules based on rather complex theory of power diagrams (<a href="http://onlinelibrary.wiley.com/doi/10.1002/jcc.21844/abstract">paper</a>).
-The method Selection::sasa() returns the solvent accessible area of atoms in selection. Optional argument could be used to set the probe radius and tu get additional data like total volume, area per atom and volume per atom.
+The method Selection::sasa() returns the solvent accessible area of atoms in selection. Optional argument could be used to set the probe radius and to get additional data like total volume, area per atom and volume per atom.
 
 \note
 POWERSASA code is not open source. I contacted the authors of POWERSASA several times to ask for official permision to use their code in Pteros but all requestes were ignored. I concluded that nobody is concerned about the licensing of POWERSASA now. However, compilation of this code is disabled by default. See \ref sasa for details how to enable it.
