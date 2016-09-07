@@ -969,6 +969,26 @@ resids = sel.get_unique_resid()
 Pteros has reach set of methods for building molecular systems. They are not oriented on particular type of molecules like proteins or nucleic acids but allow manipulating atoms and selections in general.
 
 \subsection atom_add_del Adding and deleting atoms
+
+Adding and deleting atoms in the system is rather expensive operation due to internal data organization. It is much faster to add or delete the list of several atoms at once than doing this by one atom at a time.
+
+In order to add one or more atoms use System::atoms_add() method:
+
+\col1
+vector<Atom> atoms(N);
+vector<Vector3f> coords(N);
+for(i=0;i<N;++i){
+    Atom at;
+    at.name = 'C'
+    at.resid = i;
+    atoms.push_back(at);
+    coords.push_back(Vector3f(x,y,z));
+}
+Selection added_atoms = system.atoms_add(atoms,ccords);
+\col2
+
+\endcol
+
 \subsection append_remove Appending and removing systems and selections
 \subsection distib Multiplying selections
 \subsection rearrange Rearranging atoms
