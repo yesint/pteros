@@ -392,10 +392,10 @@ public:
     /// @{
 
     /// Determines secondary structure with DSSP algorithm and writes detailed report to file
-    void dssp(std::string fname) const;
+    void dssp(std::string fname, int fr) const;
 
     /// Determines secondary structure with DSSP algorithm and writes detailed report to stream
-    void dssp(std::ostream& os) const;
+    void dssp(std::ostream& os, int fr) const;
 
     /**
      * @brief Determines secondary structure with DSSP algorithm and return it as a code string
@@ -410,7 +410,7 @@ public:
         bend:		'S'
         loop:		' '
      */
-    std::string dssp() const;
+    std::string dssp(int fr) const;
     /// @}
 
 

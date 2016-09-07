@@ -307,8 +307,8 @@ void make_bindings_System(){
         .def("remove", static_cast<void(System::*)(const string&)>(&System::remove))
         .def("distribute",&System_distribute)
 
-        .def("dssp", static_cast<void(System::*)(std::string)const>(&System::dssp))
-        .def("dssp", static_cast<std::string(System::*)()const>(&System::dssp))
+        .def("dssp", static_cast<void(System::*)(std::string,int)const>(&System::dssp))
+        .def("dssp", static_cast<std::string(System::*)(int)const>(&System::dssp))
 
         .def("sort_by_resindex",&System::sort_by_resindex)
 

@@ -623,7 +623,7 @@ void System::rearrange(const std::vector<string> &sel_strings){
 }
 
 void System::rearrange(const std::vector<Selection> &sel_vec){
-    // Empty selections check
+    // Sanity check
     for(auto &s: sel_vec){
         if(s.size()==0) throw Pteros_error("Empty selections are not permitted in rearrange!");
         if(s.get_system()!=this) throw Pteros_error("rearrange need selections from the same system!");
@@ -640,9 +640,9 @@ void System::rearrange(const std::vector<Selection> &sel_vec){
     }
 
     Selection rest(*this);
+    System result;
 
     // Append all explicitly given selections to result
-    System result;
     for (auto &s: sel_vec){
         result.append(s);
         rest.append(s);
@@ -948,20 +948,20 @@ Energy_components System::non_bond_energy(const std::vector<Eigen::Vector2i> &nl
     return e;
 }
 
-void System::dssp(string fname) const {
+void System::dssp(string fname, int fr) const {
     ofstream f(fname.c_str());
-    Selection sel(const_cast<System&>(*this),std::string("all"));
+    Selection sel(const_cast<System&>(*this),std::string("all"),fr);
     dssp_wrapper(sel,f);
     f.close();
 }
 
-void System::dssp(ostream& os) const {
-    Selection sel(const_cast<System&>(*this),std::string("all"));
+void System::dssp(ostream& os, int fr) const {
+    Selection sel(const_cast<System&>(*this),std::string("all"),fr);
     dssp_wrapper(sel,os);
 }
 
 
-string System::dssp() const{
-    Selection sel(const_cast<System&>(*this),std::string("all"));
+string System::dssp(int fr) const{
+    Selection sel(const_cast<System&>(*this),std::string("all"),fr);
     return dssp_string(sel);
 }
