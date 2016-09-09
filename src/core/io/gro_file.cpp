@@ -143,7 +143,7 @@ void GRO_file::do_write(const Selection &sel, const Mol_file_content &what){
     int ind,resid;
     for(int i=0;i<n;i++){
         ind = (i%99999)+1; // Prevents overflow of index field. It's not used anyway.
-        resid = (sel.Resid(i)%99999)+1; // Prevents overflow of resid field.
+        resid = (sel.Resid(i)%99999); // Prevents overflow of resid field.
         sprintf(ch,"%5d%-5s%5s%5d%8.3f%8.3f%8.3f",
                 //  ^Resid
                 //       ^Resname
