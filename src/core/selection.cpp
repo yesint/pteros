@@ -1404,7 +1404,7 @@ Affine3f fit_transform(const Selection& sel1, const Selection& sel2){
 }
 
 // Fit two selection directly
-void fit(Selection& sel1, const Selection& sel2){
+void fit(Selection& sel1, const Selection& sel2){    
     Affine3f t = pteros::fit_transform(sel1,sel2);
     sel1.apply_transform(t);
 }
@@ -1783,11 +1783,12 @@ void Selection::inertia(Vector3f_ref moments, Matrix3f_ref axes, bool periodic) 
         {
             Vector3f p,d;
             float m;
+            Periodic_box& b = system->Box(frame);
             #pragma omp for reduction(+:axes00,axes11,axes22,axes01,axes02,axes12)
             for(i=0;i<n;++i){
                 // 0 point was used as an anchor in periodic center calculation,
                 // so we have to use it as an anchor here as well!
-                p = system->Box(frame).get_closest_image(XYZ(i),anchor);
+                p = b.get_closest_image(XYZ(i),anchor);
                 d = p-c;
                 m = Mass(i);
                 axes00 += m*( d(1)*d(1) + d(2)*d(2) );
@@ -1904,6 +1905,7 @@ int Selection::unwrap_bonds(float d, int leading_index, Vector3i_const_ref dims)
     todo.insert(leading_index);
     used[leading_index] = 1;
     int Nused = 1;
+    Periodic_box& b = system->Box(frame);
 
     for(;;){
         while(!todo.empty()){
@@ -1917,7 +1919,7 @@ int Selection::unwrap_bonds(float d, int leading_index, Vector3i_const_ref dims)
                 // We only add atoms, which were not yet used as centers
                 if(used(con[cur][i])==0){
                     // Unwrap atom
-                    XYZ(con[cur][i]) = system->Box(frame).get_closest_image(XYZ(con[cur][i]),leading,dims);
+                    XYZ(con[cur][i]) = b.get_closest_image(XYZ(con[cur][i]),leading,dims);
                     // Add this atom to centers queue
                     todo.insert(con[cur][i]);
                     // Mark as used
