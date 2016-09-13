@@ -120,8 +120,6 @@ add_library(pteros SHARED
     io/mol2_file.cpp
     io/xyz_file.h
     io/xyz_file.cpp
-    io/nwchem_q_file.h
-    io/nwchem_q_file.cpp
 
     # xdrfile
     ${PROJECT_SOURCE_DIR}/src/core/xdrfile/xdrfile.c
