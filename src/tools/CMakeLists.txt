@@ -39,7 +39,7 @@ install(TARGETS
     pteros_contacts_finder
     pteros_solvate
 
-    RUNTIME DESTINATION bin/tools
+    RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
 )
