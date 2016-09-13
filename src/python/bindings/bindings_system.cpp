@@ -99,7 +99,7 @@ Selection System_append(System* s, const Atom& atm, PyObject* crd){
     return s->append(atm,coord);
 }
 
-Selection System_atoms_delete(System* s, boost::python::list& atm){
+void System_atoms_delete(System* s, boost::python::list& atm){
     vector<int> a;
     a.resize(len(atm));
     for(int i=0;i<a.size();++i) a[i] = extract<int>(atm[i]);
