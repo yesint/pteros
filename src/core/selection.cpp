@@ -997,8 +997,7 @@ Vector3f Selection::center(bool mass_weighted, bool periodic) const {
                     res += r;
                 }
             }
-            if(mass==0) throw Pteros_error("Atom ") << Index(i)
-                                                    << " has zero mass! Center of mass failed!";
+            if(mass==0) throw Pteros_error("Selection has zero mass! Center of mass failed!");
             return res/mass;
         } else {
             #pragma omp parallel
@@ -1019,6 +1018,7 @@ Vector3f Selection::center(bool mass_weighted, bool periodic) const {
         // We will find closest periodic images of all points
         // using first point as a reference
         Vector3f ref_point = XYZ(0);
+        Periodic_box& b = system->Box(frame);
         if(mass_weighted){
             float mass = 0.0;
             #pragma omp parallel
@@ -1026,7 +1026,7 @@ Vector3f Selection::center(bool mass_weighted, bool periodic) const {
                 Vector3f r(Vector3f::Zero());
                 #pragma omp for nowait reduction(+:mass)
                 for(i=0; i<n; ++i){
-                    r += system->Box(frame).get_closest_image(XYZ(i),ref_point) * Mass(i);
+                    r += b.get_closest_image(XYZ(i),ref_point) * Mass(i);
                     mass += Mass(i);
                 }
                 #pragma omp critical
@@ -1034,8 +1034,7 @@ Vector3f Selection::center(bool mass_weighted, bool periodic) const {
                     res += r;                    
                 }
             }
-            if(mass==0) throw Pteros_error("Atom ") << Index(i)
-                                                    << " has zero mass! Center of mass failed!";
+            if(mass==0) throw Pteros_error("Selection has zero mass! Center of mass failed!");
             return res/mass;
         } else {
             #pragma omp parallel
@@ -1043,7 +1042,7 @@ Vector3f Selection::center(bool mass_weighted, bool periodic) const {
                 Vector3f r(Vector3f::Zero()); // local to omp thread
                 #pragma omp for nowait
                 for(i=0; i<n; ++i)
-                    r += system->Box(frame).get_closest_image(XYZ(i),ref_point);
+                    r += b.get_closest_image(XYZ(i),ref_point);
                 #pragma omp critical
                 {
                     res += r;
