@@ -1778,11 +1778,11 @@ void Selection::inertia(Vector3f_ref moments, Matrix3f_ref axes, bool periodic) 
 
     if(periodic){
         Vector3f anchor = XYZ(0);
+        Periodic_box& b = system->Box(frame);
         #pragma omp parallel
         {
             Vector3f p,d;
-            float m;
-            Periodic_box& b = system->Box(frame);
+            float m;            
             #pragma omp for reduction(+:axes00,axes11,axes22,axes01,axes02,axes12)
             for(i=0;i<n;++i){
                 // 0 point was used as an anchor in periodic center calculation,
