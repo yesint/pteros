@@ -62,7 +62,7 @@ public:
 private:
     // Internal storage is just a vector of strings representing values
     std::vector<std::string> data;
-    // names of this option
+    // name of this option
     std::string name;
 #ifdef DEBUG
     void debug();

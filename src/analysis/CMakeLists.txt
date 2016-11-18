@@ -13,10 +13,7 @@ add_library(pteros_analysis SHARED
     ${PROJECT_SOURCE_DIR}/include/pteros/analysis/options.h
     options.cpp
     ${PROJECT_SOURCE_DIR}/include/pteros/analysis/jump_remover.h
-    jump_remover.cpp
-
-    ${PROJECT_SOURCE_DIR}/include/pteros/analysis/bilayer.h
-    bilayer.cpp
+    jump_remover.cpp    
 )
 
 target_link_libraries(pteros_analysis pteros ${Boost_LIBRARIES})

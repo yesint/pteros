@@ -21,7 +21,7 @@
 */
 
 
-#include "pteros/analysis/bilayer.h"
+#include "bilayer.h"
 #include "pteros/core/pteros_error.h"
 
 using namespace std;
