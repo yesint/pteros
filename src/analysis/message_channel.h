@@ -33,13 +33,9 @@
 template<class T>
 class Message_channel {
 public:
-    Message_channel(): buffer_size(10), stop_requested(false) {
-    }
+    Message_channel(): buffer_size(10), stop_requested(false) { }
 
-    Message_channel(int sz){
-        buffer_size = sz;
-        stop_requested = false;
-    }
+    Message_channel(int sz): buffer_size(sz), stop_requested(false) { }
 
     void set_buffer_size(int sz){        
         std::lock_guard<std::mutex> lock(mutex);
