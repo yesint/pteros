@@ -165,7 +165,7 @@ int main(int argc, char* argv[]){
 
         } while(at<solute_all.size());
 
-        cout << "Number of remaining solvent molecules:" << endl;
+        cout << "Number of solvent molecules:" << endl;
         for(auto& it: residues){
             cout << it.first << " " << it.second << endl;
         }
