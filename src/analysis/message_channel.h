@@ -64,7 +64,7 @@ public:
         if(stop_requested) return false;
 
         queue.push(data);
-        cond.notify_all();
+        cond.notify_one();
         return true;
     }
 

@@ -27,8 +27,11 @@
 #include "pteros/core/selection.h"
 #include "pteros/core/distance_search.h"
 
+#include "pteros/analysis/trajectory_reader.h"
+
 #include <chrono>
 #include <fstream>
+#include <thread>
 
 using namespace std;
 using namespace pteros;
@@ -64,14 +67,78 @@ private:
     vector<Vector3f>* coord;
 };
 
+
+//-------------------------------------------------------
+
+class Test_task: public Task_base {
+public:
+    Test_task(): Task_base() {}
+    virtual Test_task* clone() const {
+        return new Test_task();
+    }
+protected:
+    virtual bool is_parallel(){ return true; }
+    virtual void pre_process(){
+        cout << "Test_task pre_process" << endl;
+    }
+    virtual void process_frame(const Frame_info& info){
+
+        cout << "Test_task process_frame " << std::this_thread::get_id() << " "<< info.valid_frame << endl;
+    }
+
+    virtual void post_process(const Frame_info& info){
+        cout << "Test_task post_process of instance " << info.last_frame << endl;
+    }
+};
+
+void accum(const Frame_info& info, const std::vector<Task_ptr>& tasks){
+    cout << "Running collector for " << tasks.size() << " tasks" << endl;
+}
+
+
+class Test_serial: public Task_base {
+public:
+    Test_serial(): Task_base() {}
+    virtual Test_serial* clone() const {
+        return new Test_serial();
+    }
+protected:
+    virtual bool is_parallel(){ return false; }
+    virtual void pre_process(){
+        cout << "Test_serial pre_process" << endl;
+    }
+    virtual void process_frame(const Frame_info& info){
+
+        cout << "Test_serial process_frame " << std::this_thread::get_id() << " "<< info.valid_frame << endl;
+    }
+
+    virtual void post_process(const Frame_info& info){
+        cout << "Test_serial post_process" << info.last_frame << endl;
+    }
+};
+
+
+
 int main(int argc, char** argv)
 {
 
     try{        
 
-        System s("/home/semen/work/Projects/Besancon-2014/Graphene/gr.pdb");
-        vector<Vector2i> bon;
-        Selection sel(s,"all");
+        Options opt;
+        parse_command_line(argc,argv,opt);
+        Trajectory_reader reader(opt);
+
+
+        reader.add_task( new Test_task() );
+        reader.register_collector( &accum );
+        //reader.add_task( new Test_serial() );
+        //reader.add_task( new Test_serial() );
+
+        reader.run();
+
+        //System s("/home/semen/work/Projects/Besancon-2014/Graphene/gr.pdb");
+        //vector<Vector2i> bon;
+        //Selection sel(s,"all");
 
     /*
         vector<float> dist;
