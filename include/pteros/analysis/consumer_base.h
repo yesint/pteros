@@ -34,16 +34,10 @@ class Message_channel;
 
 namespace pteros {
 
-/// Auxiliary container for sending data to consumers
-struct Data_container {
-    /// Frame itself
-    Frame frame;
-    /// Frame information
-    Frame_info frame_info;
-};
 
 // Forward declarations
 class Trajectory_processor;
+class Data_container;
 
 /** Base class for asynchronous data analysis.
   Consumer recieves frames one by one and process them by means

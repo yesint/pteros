@@ -14,9 +14,13 @@ add_library(pteros_analysis SHARED
     options.cpp
     ${PROJECT_SOURCE_DIR}/include/pteros/analysis/jump_remover.h
     jump_remover.cpp    
+
     ${PROJECT_SOURCE_DIR}/include/pteros/analysis/trajectory_reader.h
     trajectory_reader.cpp
-)
+    ${PROJECT_SOURCE_DIR}/include/pteros/analysis/task_base.h
+    task_base.cpp
+    data_container.h
+    )
 
 target_link_libraries(pteros_analysis pteros ${Boost_LIBRARIES})
 

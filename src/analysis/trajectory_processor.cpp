@@ -28,6 +28,7 @@
 #include "message_channel.h"
 #include "pteros/core/pteros_error.h"
 #include "pteros/core/mol_file.h"
+#include "data_container.h"
 
 #include <boost/algorithm/string.hpp> // For to_lower
 #include <boost/lexical_cast.hpp>

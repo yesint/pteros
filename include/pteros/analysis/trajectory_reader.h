@@ -25,46 +25,21 @@
 #define TRAJECTORY_PROCESSOR_H
 
 #include <string>
-#include <memory>
 #include <functional>
-#include "pteros/core/selection.h"
 #include "pteros/analysis/options.h"
-#include "pteros/analysis/consumer_base.h"
+#include "pteros/analysis/task_base.h"
+
+// Forward declaration of the message channel
+template<class T>
+class Message_channel;
 
 namespace pteros {
 
-typedef std::shared_ptr<Frame> Frame_ptr;
-typedef Message_channel<std::shared_ptr<Data_container> > Data_channel;
+// Forward declaration
+class Data_container;
+
+typedef Message_channel<std::shared_ptr<pteros::Data_container> > Data_channel;
 typedef std::shared_ptr<Data_channel> Data_channel_ptr;
-
-
-
-class Task_base {
-    friend class Trajectory_reader;
-public:
-    Task_base(){}
-    virtual ~Task_base(){}
-    virtual Task_base* clone() const = 0;
-protected:
-    virtual bool is_parallel() = 0;
-    virtual void pre_process() = 0;
-    virtual void process_frame(const Frame_info& info) = 0;
-    virtual void post_process(const Frame_info& info) = 0;
-
-private:
-
-    void put_frame(const Frame& frame){
-        system.Frame_data(0) = frame;
-    }
-
-    void put_system(const System& sys){
-        system = sys;
-    }
-
-    System system;
-};
-
-
 typedef std::shared_ptr<Task_base> Task_ptr;
 
 /** The base class for trajectory processing
@@ -123,6 +98,7 @@ private:
         float custom_dt;
 
         void reader_thread_body(const Data_channel_ptr &channel);
+
         std::vector<std::string> traj_files;
 
         void process_value_with_suffix(const std::string& s, int* intval, float* floatval);

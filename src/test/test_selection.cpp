@@ -28,6 +28,7 @@
 #include "pteros/core/distance_search.h"
 
 #include "pteros/analysis/trajectory_reader.h"
+#include "pteros/analysis/task_base.h"
 
 #include <chrono>
 #include <fstream>
@@ -70,14 +71,7 @@ private:
 
 //-------------------------------------------------------
 
-class Test_task: public Task_base {
-public:
-    Test_task(): Task_base() {}
-    virtual Test_task* clone() const {
-        return new Test_task();
-    }
-protected:
-    virtual bool is_parallel(){ return true; }
+TASK_PARALLEL(Test_task)
     virtual void pre_process(){
         cout << "Test_task pre_process" << endl;
     }
@@ -96,14 +90,7 @@ void accum(const Frame_info& info, const std::vector<Task_ptr>& tasks){
 }
 
 
-class Test_serial: public Task_base {
-public:
-    Test_serial(): Task_base() {}
-    virtual Test_serial* clone() const {
-        return new Test_serial();
-    }
-protected:
-    virtual bool is_parallel(){ return false; }
+TASK_SERIAL(Test_serial)
     virtual void pre_process(){
         cout << "Test_serial pre_process" << endl;
     }
@@ -131,6 +118,7 @@ int main(int argc, char** argv)
 
         reader.add_task( new Test_task() );
         reader.register_collector( &accum );
+
         //reader.add_task( new Test_serial() );
         //reader.add_task( new Test_serial() );
 

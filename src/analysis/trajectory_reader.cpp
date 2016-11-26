@@ -20,15 +20,13 @@
  *
 */
 
-#include <fstream>
-#include <thread>
-#include <functional>
-
 #include "pteros/analysis/trajectory_reader.h"
 #include "message_channel.h"
+#include "data_container.h"
 #include "pteros/core/pteros_error.h"
 #include "pteros/core/mol_file.h"
 
+#include <thread>
 #include <boost/algorithm/string.hpp> // For to_lower
 #include <boost/lexical_cast.hpp>
 
@@ -131,43 +129,33 @@ Frame_info Trajectory_reader::dispatch_frames_to_task(const Task_ptr& task,
                                                 const Data_channel_ptr& channel,
                                                 const System& sys){
 
-    cout << "Dispatch " <<std::this_thread::get_id() << endl;
     std::shared_ptr<Data_container> data;
 
     bool pre_process_done = false;
 
-    try{
-
-        while(channel->recieve(data)){            
-            if(!pre_process_done) task->put_system(sys);
-            task->put_frame(data->frame);
-            if(!pre_process_done){
-                task->pre_process();
-                pre_process_done = true;
-            }
-            task->process_frame(data->frame_info);
+    while(channel->recieve(data)){
+        if(!pre_process_done) task->put_system(sys);
+        task->put_frame(data->frame);
+        if(!pre_process_done){
+            task->pre_process();
+            pre_process_done = true;
         }
-
-        // If we are here than dispatcher thread sent a stop to the queue
-        // Consume all remaining frames
-        while(!channel->empty()){
-            channel->recieve(data);            
-            task->put_frame(data->frame);
-            task->process_frame(data->frame_info);
-        }
-
-        // Call post_process
-        task->post_process(data->frame_info);
-
-        // Return last frame info for possible use in collector
-        return data->frame_info;
-
-    } catch(const Pteros_error& e) {
-        cout << "(ERROR) In task" << endl;
-        cout << e.what() << endl;
-        exit(1);
+        task->process_frame(data->frame_info);
     }
 
+    // If we are here than dispatcher thread sent a stop to the queue
+    // Consume all remaining frames
+    while(!channel->empty()){
+        channel->recieve(data);
+        task->put_frame(data->frame);
+        task->process_frame(data->frame_info);
+    }
+
+    // Call post_process
+    task->post_process(data->frame_info);
+
+    // Return last frame info for possible use in collector
+    return data->frame_info;
 }
 
 
@@ -297,7 +285,6 @@ void Trajectory_reader::run(){
     }
 
 
-
     // Get parameters for reading frames
     process_value_with_suffix(options("b","-1").as_string(),
                               &first_frame, &first_time);
@@ -324,6 +311,8 @@ void Trajectory_reader::run(){
 
 
     // Analysing which kind of tasks we have    
+    if(tasks.size()<1) throw Pteros_error("At least one task is required!");
+
     is_parallel = false;
     for(auto& task: tasks){
         if(task->is_parallel()){
@@ -335,6 +324,7 @@ void Trajectory_reader::run(){
 
     if(is_parallel && !collector) throw Pteros_error("No collector function registered for parallel task!");
 
+
     //-----------------------------------------
     // Actual processing starts here
     //-----------------------------------------
@@ -344,14 +334,15 @@ void Trajectory_reader::run(){
     int buf_size = options("buffer","10").as_int();    
 
     // Channel for frames
-    Data_channel_ptr channel(new Data_channel);
-    channel->set_buffer_size(buf_size);
+    Data_channel_ptr reader_channel(new Data_channel);
+    reader_channel->set_buffer_size(buf_size);
 
     // Start reader thread    
-    std::thread reader_thread( &Trajectory_reader::reader_thread_body, this, ref(channel) );
+    std::thread reader_thread( &Trajectory_reader::reader_thread_body, this, ref(reader_channel) );
 
     // Data container
-    std::shared_ptr<Data_container> data;
+    typedef std::shared_ptr<Data_container> Data_container_ptr;
+    Data_container_ptr data;
 
     // Processing depends on which tasks we have
     if(is_parallel){
@@ -368,36 +359,39 @@ void Trajectory_reader::run(){
         vector<std::thread> worker_threads;
 
         // Start instances
-        // One core is reserved for reader thread
-        // Yet another core will run one worker in current thread
-        // If there are not enough cores extra threads may not even be started
+
+        // We have Nproc-2 remote threads + this thread = Nproc-1 in total        
+        int num_threads = Nproc-2;
+
+        cout << "Physical cores: " << Nproc << endl;
+        cout << "Threads used:" << endl;
+        cout << "\tFile reading thread: 1" << endl;
+        cout << "\tThreads running parallel task: " << num_threads+1 << endl;
+        cout << "\t(" << num_threads << " separate + 1 master)" << endl;
 
         // We have to reserve memory for all tasks in advance!
         // Otherwise due to reallocation of array pointers sent to threads may become invalid
         // which leads to f*cking misterious crashes!
-        // We have Nproc-2 remote threads + this thread = Nproc-1 in total
-        tasks.reserve(Nproc-1);
+        tasks.reserve(num_threads+1);
 
-        for(int i=1; i<Nproc-1; ++i){
-
+        for(int i=1; i<=num_threads; ++i){ // task 0 will run in master thread, so start from 1
+            // Clone provided task to make new independent instance
             tasks.push_back( Task_ptr(tasks[0]->clone()) );
 
             worker_threads.push_back(
                         std::thread(
-
                                 &Trajectory_reader::dispatch_frames_to_task,
                                 this,
-                                ref(tasks[i]), // New instance needed here!
-                                ref(channel),
+                                ref(tasks[i]),
+                                ref(reader_channel),
                                 ref(system)
-
                             )
                         );
         }
 
 
         // Run one worker in current thread
-        Frame_info last_info = dispatch_frames_to_task(tasks[0],channel,system);
+        Frame_info last_info = dispatch_frames_to_task(tasks[0],reader_channel,system);
 
         // Join all workers
         if(worker_threads.size()>0)
@@ -419,6 +413,7 @@ void Trajectory_reader::run(){
 
         if(tasks.size() > 1){
             // More than 1 consumer, start all of them in separate threads
+            // Master thread will work as dispatcher
 
             // We have to reserve memory for all channels in advance!
             // Otherwise due to reallocation of array pointers sent to threads may become invalid
@@ -426,10 +421,9 @@ void Trajectory_reader::run(){
             worker_channels.reserve(tasks.size());
 
             for(int i=0; i<tasks.size(); ++i){
-
-                // Create channel
+                // Create new channel
                 worker_channels.push_back(Data_channel_ptr(new Data_channel));
-                // Set buffer size for this consumer
+                // Set buffer size for this channel
                 worker_channels.back()->set_buffer_size(buf_size);
                 // Spawn thread
                 worker_threads.push_back(
@@ -438,27 +432,19 @@ void Trajectory_reader::run(){
                                     this,
                                     ref(tasks[i]),
                                     ref(worker_channels[i]),
-                                    system
+                                    ref(system)
                                 )
                             );
             }
 
-            // Now recieve frames from the queue until reader sends stop
-            std::shared_ptr<Data_container> data;
-            while(channel->recieve(data)){
-                for(auto &ch: worker_channels){
-                    ch->send(data);
+            // Recieve all frames for reader channel and dispatch them to workers
+            reader_channel->recieve_each(
+                [&worker_channels](const Data_container_ptr& data) {
+                    for(auto &ch: worker_channels){
+                        ch->send(data);
+                    }
                 }
-            }
-
-            // If we are here than reader thread sent a stop to the queue
-            // Consume all remaining frame
-            while(!channel->empty()){
-                channel->recieve(data);
-                for(auto &ch: worker_channels){
-                    ch->send(data);
-                }
-            }
+            );
 
             // No more new frames, send stop to all workers
             for(auto &ch: worker_channels){
@@ -470,34 +456,7 @@ void Trajectory_reader::run(){
 
         } else {
             // There is only one consumer, no need for multiple threads
-
-            std::shared_ptr<Data_container> data;
-
-            bool pre_process_done = false;
-
-            while(channel->recieve(data)){
-                if(!pre_process_done) tasks[0]->put_system(system);
-
-                tasks[0]->put_frame(data->frame);
-
-                if(!pre_process_done){
-                    tasks[0]->pre_process();
-                    pre_process_done = true;
-                }
-
-                tasks[0]->process_frame(data->frame_info);
-            }
-
-            // If we are here than reader thread sent a stop to the queue
-            // Consume all remaining frame
-            while(!channel->empty()){
-                channel->recieve(data);
-                tasks[0]->put_frame(data->frame);
-                tasks[0]->process_frame(data->frame_info);
-            }
-
-            // Run post-process with last supplied data
-            tasks[0]->post_process(data->frame_info);
+            dispatch_frames_to_task(tasks[0],reader_channel,system);
         }
     } // Dispatching frames
 
