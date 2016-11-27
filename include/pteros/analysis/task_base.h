@@ -12,18 +12,21 @@ public:
     Task_base(){}
     virtual ~Task_base(){}
     virtual Task_base* clone() const = 0;
+
+    System system;
 protected:
     virtual bool is_parallel() = 0;
     virtual void pre_process() = 0;
     virtual void process_frame(const Frame_info& info) = 0;
     virtual void post_process(const Frame_info& info) = 0;
 
+
 private:
 
     void put_frame(const Frame& frame);
     void put_system(const System& sys);
 
-    System system;
+
 };
 
 }

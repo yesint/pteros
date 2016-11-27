@@ -78,7 +78,9 @@ TASK_PARALLEL(Test_task)
     virtual void process_frame(const Frame_info& info){
 
         cout << "Test_task process_frame " << std::this_thread::get_id() << " "<< info.valid_frame << endl;
-        std::this_thread::sleep_for(std::chrono::seconds(1));
+        //std::this_thread::sleep_for(std::chrono::seconds(1));
+        for(int i=0; i<10; ++i)
+            system().rotate(1,0.02);
     }
 
     virtual void post_process(const Frame_info& info){
