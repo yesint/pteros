@@ -145,11 +145,13 @@ Frame_info Trajectory_reader::dispatch_frames_to_task(const Task_ptr& task,
 
     // If we are here than dispatcher thread sent a stop to the queue
     // Consume all remaining frames
+    /*
     while(!channel->empty()){
         channel->recieve(data);
         task->put_frame(data->frame);
         task->process_frame(data->frame_info);
     }
+    */
 
     // Call post_process
     task->post_process(data->frame_info);
@@ -337,6 +339,10 @@ void Trajectory_reader::run(){
     Data_channel_ptr reader_channel(new Data_channel);
     reader_channel->set_buffer_size(buf_size);
 
+    cout << "Physical cores: " << Nproc << endl;
+    cout << "Threads used:" << endl;
+    cout << "\tFile reading thread: 1" << endl;
+
     // Start reader thread    
     std::thread reader_thread( &Trajectory_reader::reader_thread_body, this, ref(reader_channel) );
 
@@ -363,9 +369,6 @@ void Trajectory_reader::run(){
         // We have Nproc-2 remote threads + this thread = Nproc-1 in total        
         int num_threads = Nproc-2;
 
-        cout << "Physical cores: " << Nproc << endl;
-        cout << "Threads used:" << endl;
-        cout << "\tFile reading thread: 1" << endl;
         cout << "\tThreads running parallel task: " << num_threads+1 << endl;
         cout << "\t(" << num_threads << " separate + 1 master)" << endl;
 
@@ -415,6 +418,9 @@ void Trajectory_reader::run(){
             // More than 1 consumer, start all of them in separate threads
             // Master thread will work as dispatcher
 
+            cout << "\tRunning " << tasks.size << " serial tasks in separate threads" << endl;
+            cout << "\t(master thread is dispatcjing frames)" << endl;
+
             // We have to reserve memory for all channels in advance!
             // Otherwise due to reallocation of array pointers sent to threads may become invalid
             // which leads to f*cking misterious crashes!
@@ -438,13 +444,11 @@ void Trajectory_reader::run(){
             }
 
             // Recieve all frames for reader channel and dispatch them to workers
-            reader_channel->recieve_each(
-                [&worker_channels](const Data_container_ptr& data) {
-                    for(auto &ch: worker_channels){
-                        ch->send(data);
-                    }
+            while(reader_channel->recieve(data)){
+                for(auto &ch: worker_channels){
+                    ch->send(data);
                 }
-            );
+            }
 
             // No more new frames, send stop to all workers
             for(auto &ch: worker_channels){
@@ -456,6 +460,7 @@ void Trajectory_reader::run(){
 
         } else {
             // There is only one consumer, no need for multiple threads
+            cout << "\tRunning single serial task in master thread" << endl;
             dispatch_frames_to_task(tasks[0],reader_channel,system);
         }
     } // Dispatching frames

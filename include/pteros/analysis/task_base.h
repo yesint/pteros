@@ -39,13 +39,13 @@ private:
 #define TASK_PARALLEL(_name) \
     TASK_DERIVED(_name) \
     protected: \
-    virtual bool is_parallel() final { return false; }
+    virtual bool is_parallel() final { return true; }
 
 
 #define TASK_SERIAL(_name) \
     TASK_DERIVED(_name) \
     protected: \
-    virtual bool is_parallel() final { return true; }
+    virtual bool is_parallel() final { return false; }
 
 
 #endif // TASK_BASE_H
