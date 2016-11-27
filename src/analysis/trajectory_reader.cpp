@@ -339,6 +339,7 @@ void Trajectory_reader::run(){
     Data_channel_ptr reader_channel(new Data_channel);
     reader_channel->set_buffer_size(buf_size);
 
+    int Nproc = std::thread::hardware_concurrency();
     cout << "Physical cores: " << Nproc << endl;
     cout << "Threads used:" << endl;
     cout << "\tFile reading thread: 1" << endl;
@@ -361,7 +362,6 @@ void Trajectory_reader::run(){
          * they only finalize particular instance.
          */
 
-        int Nproc = std::thread::hardware_concurrency();
         vector<std::thread> worker_threads;
 
         // Start instances
@@ -418,7 +418,7 @@ void Trajectory_reader::run(){
             // More than 1 consumer, start all of them in separate threads
             // Master thread will work as dispatcher
 
-            cout << "\tRunning " << tasks.size << " serial tasks in separate threads" << endl;
+            cout << "\tRunning " << tasks.size() << " serial tasks in separate threads" << endl;
             cout << "\t(master thread is dispatcjing frames)" << endl;
 
             // We have to reserve memory for all channels in advance!
