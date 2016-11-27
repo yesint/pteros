@@ -66,7 +66,7 @@ public:
         /// Read trajectory
         virtual void run();
 
-        /// Print summary of allowed options    
+        /// Print summary of allowed options
         std::string help();
 
         /// Adds new task

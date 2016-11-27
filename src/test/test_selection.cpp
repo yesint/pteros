@@ -78,6 +78,7 @@ TASK_PARALLEL(Test_task)
     virtual void process_frame(const Frame_info& info){
 
         cout << "Test_task process_frame " << std::this_thread::get_id() << " "<< info.valid_frame << endl;
+        std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 
     virtual void post_process(const Frame_info& info){
@@ -97,6 +98,7 @@ TASK_SERIAL(Test_serial)
     virtual void process_frame(const Frame_info& info){
 
         cout << "Test_serial process_frame " << std::this_thread::get_id() << " "<< info.valid_frame << endl;
+        std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 
     virtual void post_process(const Frame_info& info){
@@ -116,11 +118,11 @@ int main(int argc, char** argv)
         Trajectory_reader reader(opt);
 
 
-        //reader.add_task( new Test_task() );
-        //reader.register_collector( &accum );
+        reader.add_task( new Test_task() );
+        reader.register_collector( &accum );
 
-        reader.add_task( new Test_serial() );
-        reader.add_task( new Test_serial() );
+        //reader.add_task( new Test_serial() );
+        //reader.add_task( new Test_serial() );
 
         reader.run();
 

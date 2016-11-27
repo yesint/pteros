@@ -203,6 +203,7 @@ void Trajectory_reader::run(){
     // Preparation stage
 
     cout << "Starting trajectory processing..." << endl;
+    auto start = chrono::steady_clock::now();
 
     // Get files to work with
     auto file_list = options("f").as_strings();
@@ -469,6 +470,10 @@ void Trajectory_reader::run(){
     reader_thread.join();    
 
     cout << "Trajectory processing finished!" << endl;
+
+    auto end = chrono::steady_clock::now();
+
+    cout << "Processing time: " << chrono::duration<double>(end-start).count() << " s" << endl;
 }
 
 void Trajectory_reader::reader_thread_body(const Data_channel_ptr &channel){
