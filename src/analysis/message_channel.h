@@ -83,17 +83,6 @@ public:
         return true;
     }
 
-    void recieve_each(const std::function<void(T&)>& callback){
-        T data;
-        while(recieve(data)){
-            callback(data);
-        }
-        while(!empty()){
-            recieve(data);
-            callback(data);
-        }
-    }
-
 private:
     int buffer_size;
     std::condition_variable cond;
