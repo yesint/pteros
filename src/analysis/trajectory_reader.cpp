@@ -134,6 +134,8 @@ Frame_info Trajectory_reader::dispatch_frames_to_task(const Task_ptr& task,
     bool pre_process_done = false;
 
     while(channel->recieve(data)){
+        // put system only makes a copy of sys if it is not yet set in the task
+        // So for the task[0] no excessive copy is made
         if(!pre_process_done) task->put_system(sys);
         task->put_frame(data->frame);
         if(!pre_process_done){
@@ -142,16 +144,6 @@ Frame_info Trajectory_reader::dispatch_frames_to_task(const Task_ptr& task,
         }
         task->process_frame(data->frame_info);
     }
-
-    // If we are here than dispatcher thread sent a stop to the queue
-    // Consume all remaining frames
-    /*
-    while(!channel->empty()){
-        channel->recieve(data);
-        task->put_frame(data->frame);
-        task->process_frame(data->frame_info);
-    }
-    */
 
     // Call post_process
     task->post_process(data->frame_info);
@@ -249,8 +241,10 @@ void Trajectory_reader::run(){
     if(traj_files.empty()) throw Pteros_error("At least one trajectory file is required!");
 
 
-    // We will read into the provided system
-    System system;
+    // Ensure we have tasks
+    if(tasks.size()<1) throw Pteros_error("At least one task is required!");
+    // Will read into the system of the first task
+    System& system = tasks[0]->system;
 
     // To avoid reading top file twice
     if(structure_file==top_file) structure_file = "";
@@ -314,7 +308,7 @@ void Trajectory_reader::run(){
 
 
     // Analysing which kind of tasks we have    
-    if(tasks.size()<1) throw Pteros_error("At least one task is required!");
+
 
     is_parallel = false;
     for(auto& task: tasks){
@@ -368,7 +362,7 @@ void Trajectory_reader::run(){
         // Start instances
 
         // We have Nproc-2 remote threads + this thread = Nproc-1 in total        
-        int num_threads = Nproc-2;
+        int num_threads = Nproc-1;
 
         cout << "\tThreads running parallel task: " << num_threads+1 << endl;
         cout << "\t(" << num_threads << " separate + 1 master)" << endl;

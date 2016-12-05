@@ -21,8 +21,8 @@
 */
 
 
-#ifndef TRAJECTORY_PROCESSOR_H
-#define TRAJECTORY_PROCESSOR_H
+#ifndef TRAJECTORY_READER_H
+#define TRAJECTORY_READER_H
 
 #include <string>
 #include <functional>

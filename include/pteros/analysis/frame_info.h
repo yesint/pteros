@@ -32,12 +32,12 @@ struct Frame_info {
     /// Counts *all* frames in trajectory starting from 0
     int absolute_frame;
     /// Current time stamp
-    int absolute_time;
+    float absolute_time;
     /// Counts only valid frames (the frames, which fall into specified time and frame range)
     /// and are sent to processing. Starts from 0.
     int valid_frame;
     /// Time of the first processed valid frame
-    int first_time;
+    float first_time;
     /// Time of the last processed valid frame
     float last_time;
     /// First processed valid frame (this is an absolute value!)

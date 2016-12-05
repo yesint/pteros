@@ -42,6 +42,9 @@ IF(WITH_PYTHON)
 
         bindings_options.cpp
         bindings_options.h
+
+        bindings_trajectory_reader.cpp
+        bindings_trajectory_reader.h
     )
 
     target_link_libraries(pteros_py pteros pteros_analysis ${PYTHON_LIBRARIES} ${BOOST_PYTHON_LIB})

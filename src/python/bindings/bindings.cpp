@@ -26,6 +26,7 @@
 #include "bindings_options.h"
 #include "bindings_frame_info.h"
 #include "bindings_trajectory_processor.h"
+#include "bindings_trajectory_reader.h"
 #include "bindings_atom.h"
 #include "bindings_atom_proxy.h"
 #include "bindings_distance_search.h"
@@ -145,6 +146,7 @@ BOOST_PYTHON_MODULE(_pteros)
 
     // Bindings for Trajectory_processor
     make_bindings_Trajectory_processor();
+    make_bindings_Trajectory_reader();
 
     // Bindings for atom
     make_bindings_Atom();

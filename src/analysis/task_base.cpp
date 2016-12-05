@@ -6,5 +6,5 @@ void pteros::Task_base::put_frame(const pteros::Frame &frame){
 }
 
 void pteros::Task_base::put_system(const pteros::System &sys){
-    system = sys;
+    if(!system.num_atoms()) system = sys;
 }

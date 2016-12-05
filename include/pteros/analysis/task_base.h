@@ -25,8 +25,6 @@ private:
 
     void put_frame(const Frame& frame);
     void put_system(const System& sys);
-
-
 };
 
 }
