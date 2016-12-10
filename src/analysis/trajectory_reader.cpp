@@ -52,6 +52,10 @@ string Trajectory_reader::help(){
             "\tin the order of their appearance.\n\n"
 
             "Processing options:\n"
+
+            "\t-path <string>\n"
+            "\t\toptional path which will be prepended to all data files, default: empty string\n"
+
             "\t-b <value[suffix]>\n"
             "\t\tbeginning of processing (starting frame or time), default: 0\n"
 
@@ -246,6 +250,8 @@ void Trajectory_reader::run(){
     }
 
     if(traj_files.empty()) throw Pteros_error("At least one trajectory file is required!");
+
+    // Print statistics of what we will read
 
 
     // Ensure we have tasks
