@@ -128,29 +128,27 @@ bool Trajectory_reader::is_end_of_interval(int fr, float t){
 }
 
 
-
 Frame_info Trajectory_reader::dispatch_frames_to_task(const Task_ptr& task,
                                                 const Data_channel_ptr& channel,
-                                                const System& sys){
+                                                const System& sys,
+                                                      bool pre_process_done){
 
-    std::shared_ptr<Data_container> data;
-
-    bool pre_process_done = false;
+    std::shared_ptr<Data_container> data;          
 
     while(channel->recieve(data)){
         // put system only makes a copy of sys if it is not yet set in the task
-        // So for the task[0] no excessive copy is made
-        if(!pre_process_done) task->put_system(sys);
+        // So no excessive copy is made
+        task->put_system(sys);
         task->put_frame(data->frame);
         if(!pre_process_done){
-            task->pre_process();
+            task->pre_process_handler();
             pre_process_done = true;
         }
-        task->process_frame(data->frame_info);
+        task->process_frame_handler(data->frame_info);
     }
 
     // Call post_process
-    task->post_process(data->frame_info);
+    task->post_process_handler(data->frame_info);
 
     // Return last frame info for possible use in collector
     return data->frame_info;
@@ -385,9 +383,28 @@ void Trajectory_reader::run(){
         // which leads to f*cking misterious crashes!
         tasks.reserve(num_threads+1);
 
+        // !!! Ensures that first valid frame is consumed by task[0] !!!
+        // !!! Ensures that pre_process() is only called by task[0] on first valid frame !!!
+        //
+        // Jump remover (and probably some other things) have to initialize
+        // itself on the first consumed frame
+        // but each instance starts from unpredictable frame.
+        // Thus we force task[0] to consume the first frame and call pre_process()
+        // than we clone it with initialized state for other threads
+        tasks[0]->task_id = 0;
+
+        std::shared_ptr<Data_container> data;
+        reader_channel->recieve(data);
+        // No need to put system - it's done alreday
+        tasks[0]->put_frame(data->frame);
+        tasks[0]->pre_process_handler();
+
+        // Now spawn threads
+
         for(int i=1; i<=num_threads; ++i){ // task 0 will run in master thread, so start from 1
             // Clone provided task to make new independent instance
             tasks.push_back( Task_ptr(tasks[0]->clone()) );
+            tasks[i]->task_id = i;
 
             worker_threads.push_back(
                         std::thread(
@@ -395,14 +412,18 @@ void Trajectory_reader::run(){
                                 this,
                                 ref(tasks[i]),
                                 ref(reader_channel),
-                                ref(system)
+                                ref(system), true //!!! true to avoid calling pre_process()
                             )
                         );
         }
 
 
+
+        // Process frame 0 which we got before spawning threads
+        tasks[0]->process_frame_handler(data->frame_info);
         // Run one worker in current thread
-        Frame_info last_info = dispatch_frames_to_task(tasks[0],reader_channel,system);
+        // Pass true in last arg since we did pre_process already in dispatch_first_frame!
+        Frame_info last_info = dispatch_frames_to_task(tasks[0],reader_channel,system,true);
 
         // Join all workers
         if(worker_threads.size()>0)
@@ -440,13 +461,14 @@ void Trajectory_reader::run(){
                 // Set buffer size for this channel
                 worker_channels.back()->set_buffer_size(buf_size);
                 // Spawn thread
+                tasks[i]->task_id = i;
                 worker_threads.push_back(
                             std::thread(
                                     &Trajectory_reader::dispatch_frames_to_task,
                                     this,
                                     ref(tasks[i]),
                                     ref(worker_channels[i]),
-                                    ref(system)
+                                    ref(system), false
                                 )
                             );
             }
@@ -469,7 +491,8 @@ void Trajectory_reader::run(){
         } else {
             // There is only one consumer, no need for multiple threads
             cout << "\tRunning single serial task in master thread" << endl;
-            dispatch_frames_to_task(tasks[0],reader_channel,system);
+            tasks[0]->task_id = 0;
+            dispatch_frames_to_task(tasks[0],reader_channel,system,false);
         }
     } // Dispatching frames
 

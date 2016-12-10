@@ -40,7 +40,7 @@ public:
     void set_leading_index(int ind);
 
     // Remove jumps
-    void remove_jumps(System& system, const Frame_info &info);
+    void remove_jumps(System& system);
 
 private:    
     // Indexes for removing jumps
@@ -53,6 +53,8 @@ private:
     float unwrap_d;
     // Leading index for unwrapping
     int leading_index;
+
+    bool initialized;
 };
 
 } // namespace

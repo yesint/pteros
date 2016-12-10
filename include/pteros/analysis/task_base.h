@@ -14,12 +14,26 @@ public:
     virtual Task_base* clone() const = 0;
 
     System system;
+    int task_id;
 protected:
     virtual bool is_parallel() = 0;
     virtual void pre_process() = 0;
     virtual void process_frame(const Frame_info& info) = 0;
     virtual void post_process(const Frame_info& info) = 0;
 
+    // Handlers, which call actual functions
+    // Could be overriden in subclasses
+    virtual void pre_process_handler(){
+        pre_process();
+    }
+
+    virtual void process_frame_handler(const Frame_info& info){
+        process_frame(info);
+    }
+
+    virtual void post_process_handler(const Frame_info& info){
+        post_process(info);
+    }
 
 private:
 
@@ -34,7 +48,7 @@ private:
     public: \
         _name(): Task_base() {} \
         virtual _name* clone() const { \
-            return new _name(); \
+            return new _name(*this); \
         }
 
 #define TASK_PARALLEL(_name) \

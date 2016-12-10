@@ -108,8 +108,9 @@ private:
         bool is_parallel;
 
         Frame_info dispatch_frames_to_task(const Task_ptr &task,
-                                            const Data_channel_ptr &channel,
-                                            const System& sys);
+                                           const Data_channel_ptr &channel,
+                                           const System& sys,
+                                           bool pre_process_done);
 
         std::function<void(const Frame_info&,const std::vector<Task_ptr>&)> collector;
 

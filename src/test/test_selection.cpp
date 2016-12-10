@@ -28,7 +28,7 @@
 #include "pteros/core/distance_search.h"
 
 #include "pteros/analysis/trajectory_reader.h"
-#include "pteros/analysis/task_base.h"
+#include "pteros/analysis/task_plugin.h"
 
 #include <chrono>
 #include <fstream>
@@ -71,9 +71,10 @@ private:
 
 //-------------------------------------------------------
 
-TASK_PARALLEL(Test_task)
+PLUGIN_PARALLEL(Test_task)
     virtual void pre_process(){
-        cout << "Test_task pre_process" << endl;
+        jump_remover.add_atoms(system("index 1-10"));
+        cout << "Test_task pre_process #" << task_id << endl;
     }
     virtual void process_frame(const Frame_info& info){
 
@@ -120,7 +121,7 @@ int main(int argc, char** argv)
         Trajectory_reader reader(opt);
 
 
-        reader.add_task( new Test_task() );
+        reader.add_task( new Test_task(opt) );
         reader.register_collector( &accum );
 
         //reader.add_task( new Test_serial() );

@@ -27,7 +27,11 @@ using namespace std;
 using namespace pteros;
 
 
-Jump_remover::Jump_remover(): dims(Eigen::Vector3i::Ones()), unwrap_d(-1.0), leading_index(0) {}
+Jump_remover::Jump_remover():
+    dims(Eigen::Vector3i::Ones()),
+    unwrap_d(-1.0),
+    leading_index(0),
+    initialized(false) { }
 
 void Jump_remover::add_atoms(const Selection &sel)
 {    
@@ -61,13 +65,13 @@ void Jump_remover::set_leading_index(int ind)
     leading_index = ind;
 }
 
-void Jump_remover::remove_jumps(System& system, const Frame_info &info){
+void Jump_remover::remove_jumps(System& system){
     // Exit immediately if no atoms or no valid dimensions
     if(no_jump_ind.empty() || dims.sum()==0) return;
     // If not periodic also do nothing
     if(!system.Box(0).is_periodic()) return;
 
-    if(info.valid_frame==0){
+    if(!initialized){
         // Do initial unwrapping
         // Make temp selection from no_jump_ind
         Selection sel(system);
@@ -112,6 +116,8 @@ void Jump_remover::remove_jumps(System& system, const Frame_info &info){
         }                
 
         cout << "Will remove jumps for " << sel.size() << " atoms" << endl;
+
+        initialized = true;
 
     } else { // For other frames, not first
 
