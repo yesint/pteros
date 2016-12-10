@@ -197,8 +197,15 @@ void Trajectory_reader::run(){
     cout << "Starting trajectory processing..." << endl;
     auto start = chrono::steady_clock::now();
 
+    // Get file path
+    auto file_path = options("path","").as_string();
+    if(file_path!="" && file_path.back()!='/') file_path += "/";
+
     // Get files to work with
     auto file_list = options("f").as_strings();
+
+    // Prepend path to all files
+    for(auto& f: file_list) f = file_path + f;
 
     // Get all string parameters and find out how many different files we have
     // and arrange them structure->topology->traj
