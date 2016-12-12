@@ -29,7 +29,7 @@ class Processor(Trajectory_processor):
                         # We need to update frame 0 of each task with the current value
                         self.task_list[i].system.setFrame_data( self.get_frame_ptr() , 0)
                         # Call jump remover
-                        self.task_list[i].jump_remover.remove_jumps(self.task_list[i].system,info)
+                        self.task_list[i].jump_remover.remove_jumps(self.task_list[i].system)
                         # Process frame
                         self.task_list[i].process_frame(info)
 

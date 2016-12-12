@@ -27,6 +27,7 @@
 #include "pteros/core/selection.h"
 #include "pteros/core/distance_search.h"
 
+
 #include "pteros/analysis/trajectory_reader.h"
 #include "pteros/analysis/task_plugin.h"
 
@@ -37,6 +38,7 @@
 using namespace std;
 using namespace pteros;
 using namespace Eigen;
+
 
 class SelTest_mask {
 public:
@@ -129,18 +131,7 @@ int main(int argc, char** argv)
 
         reader.run();
 
-        //System s("/home/semen/work/Projects/Besancon-2014/Graphene/gr.pdb");
-        //vector<Vector2i> bon;
-        //Selection sel(s,"all");
 
-    /*
-        vector<float> dist;
-        search_contacts(0.143,sel,bon,true,true,&dist);
-
-        for(int i=0;i<bon.size();++i){
-            cout << bon[i].transpose() << " " << dist[i] << endl;
-        }
-*/
         //cout << (boost::get<Parse_tree_ptr>(p->children.front())) << endl;
 
         //std::shared_ptr<Parser> p(new Parser);
