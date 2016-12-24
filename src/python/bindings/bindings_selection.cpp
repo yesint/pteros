@@ -204,6 +204,12 @@ PyObject* fit_transform_py(Selection& sel1, Selection& sel2){
     return p;
 }
 
+PyObject* Selection_fit_transform(Selection* sel, int fr1, int fr2){
+    CREATE_PYARRAY_2D_AND_MAP_F(p,Matrix4f,m,4,4)
+    m = sel->fit_transform(fr1,fr2).matrix();
+    return p;
+}
+
 //------------------------------
 
 PyObject* Selection_principal_transform(Selection* sel, bool periodic=false){
@@ -402,6 +408,10 @@ float rmsd_py(Selection& sel1, int fr1, Selection& sel2, int fr2){
 
 void fit_py(Selection& sel1, Selection& sel2){
     fit(sel1,sel2);    
+}
+
+void copy_coord_py(const Selection& sel1, int fr1, Selection& sel2, int fr2){
+    copy_coord(sel1,fr1,sel2,fr2);
 }
 
 //------------------------------
@@ -835,6 +845,7 @@ void make_bindings_Selection(){
     def("fit",&fit_py);
     def("fit_transform",&fit_transform_py);
     def("non_bond_energy",&non_bond_energy_py,non_bond_energy_overloads_free());
+    def("copy_coord",&copy_coord_py);
 
     // Selection class itself
 
@@ -1065,6 +1076,8 @@ void make_bindings_Selection(){
 
         .def("getTime",&Selection_getTime)
         .def("setTime",&Selection_setTime)
+
+        .def("fit_transform",&Selection_fit_transform)
 
         // Iteration protocol support
         .def("__iter__", &Selection_get_iter,with_custodian_and_ward_postcall<0,1>())

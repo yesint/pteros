@@ -712,6 +712,8 @@ class Selection {
     /// \warning Indexex in Gromacs ndx are starting from 1! Thus one is added to all pteros indexes!
     std::string gromacs_ndx(std::string name);
 
+    friend void copy_coord(const Selection& from, int from_fr, Selection& to, int to_fr);
+
     /// @}
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

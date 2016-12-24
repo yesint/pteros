@@ -39,6 +39,91 @@ using namespace std;
 using namespace pteros;
 using namespace Eigen;
 
+//-------------------------------------------------------
+
+
+struct Sel_expr {
+    string name;
+    vector<Sel_expr*> children;
+    virtual string dump(int level=0){
+        string shift;
+        for(int i=0;i<level;++i) shift+="  ";
+
+        string s = shift + name + " {\n";
+        for(auto& c: children){
+            s += c->dump(level+1);
+        }
+        s += shift+"}\n";
+        return s;
+    }
+    virtual ~Sel_expr(){
+        cout << "del: " << name << endl;
+        for(int i=0;i<children.size();++i) delete children[i];
+    }
+};
+
+struct Sel_container {
+    Sel_expr* expr;
+    Sel_container(Sel_expr* ex): expr(ex){}
+    Sel_expr* operator()() const {return expr;}
+};
+
+
+struct Sel_expr_name: public Sel_expr {
+    Sel_expr_name(string val): value(val) {
+        name = "name";
+    }
+
+    virtual string dump(int level=0){
+        string shift;
+        for(int i=0;i<level;++i) shift+="  ";
+        return shift+name+":"+value+"\n";
+    }
+
+    string value;
+};
+
+Sel_container name(string val){
+    return Sel_container(new Sel_expr_name(val));
+}
+
+struct Sel_expr_and: public Sel_expr {
+    Sel_expr_and(Sel_expr* op1, Sel_expr* op2){
+        name = "and";
+        children.push_back(op1);
+        children.push_back(op2);
+    }
+};
+
+struct Sel_expr_or: public Sel_expr {
+    Sel_expr_or(Sel_expr* op1, Sel_expr* op2){
+        name = "or";
+        children.push_back(op1);
+        children.push_back(op2);
+    }
+};
+
+struct Sel_expr_not: public Sel_expr {
+    Sel_expr_not(Sel_expr* op1){
+        name = "not";
+        children.push_back(op1);
+    }
+};
+
+Sel_container operator&(const Sel_container& op1, const Sel_container& op2){
+    return Sel_container(new Sel_expr_and(op1(),op2()));
+}
+
+Sel_container operator|(const Sel_container& op1, const Sel_container& op2){
+    return Sel_container(new Sel_expr_or(op1(),op2()));
+}
+
+Sel_container operator!(const Sel_container& op1){
+    return Sel_container(new Sel_expr_not(op1()));
+}
+
+
+//-------------------------------------------------------
 
 class SelTest_mask {
 public:
@@ -117,6 +202,16 @@ int main(int argc, char** argv)
 {
 
     try{        
+
+
+        auto expr = name("CA") & (name("CB") | !name("CC"));
+        cout << expr()->dump() << endl;
+
+        delete expr();
+
+
+        return 1;
+        //-----------------------
 
         Options opt;
         parse_command_line(argc,argv,opt);

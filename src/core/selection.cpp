@@ -1225,6 +1225,17 @@ Energy_components Selection::non_bond_energy(float cutoff, bool periodic) const
 
 namespace pteros {
 
+void copy_coord(const Selection &from, int from_fr, Selection &to, int to_fr)
+{
+    if(from.size()!=to.size())
+        throw Pteros_error("Can't copy coordinates between selections of different size!");
+
+    for(int i=0; i<from.size(); ++i){
+        to.XYZ(i,to_fr) = from.XYZ(i,from_fr);
+    }
+}
+
+
 Energy_components non_bond_energy(const Selection& sel1,
                                   const Selection& sel2,
                                   float cutoff = 0.25,
