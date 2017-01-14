@@ -63,6 +63,7 @@ class _SharedInfoStruct(Structure):
         )
         return info
 
+
 def run_instance(instance,id,sbox,scoord,st,sinfo,cond,queue,res_queue,stop_val):
 
     instance.pre_process()
@@ -154,6 +155,7 @@ class Parallel_dispatcher:
 
             for p in self.processes:
                 p.start()
+
         except Exception as e:
             traceback.print_exc()
             raise

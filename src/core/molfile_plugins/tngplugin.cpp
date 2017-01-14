@@ -3,21 +3,28 @@
  *
  *      $RCSfile: tngplugin.C,v $
  *      $Author: johns $       $Locker:  $             $State: Exp $
- *      $Revision: 1.2 $       $Date: 2013/11/23 14:53:03 $
+ *      $Revision: 1.7 $       $Date: 2015/10/12 03:00:46 $
  *
  ***************************************************************************
  * DESCRIPTION:
  *   VMD plugin to allow reading and writing of Gromacs TNG trajectories.
- *   This software and the TNG library are made available under the 
+ *   This software and the TNG library are made available under the
  *   BSD license.  For details, see the license information associated
  *   with the Gromacs TNG library that this code depends on at:
  *     http://www.gromacs.org/
  *
  *   The TNG trajectory format is described in this publication:
- *     "An efficient and extensible format, library, and API for 
+ *     "An efficient and extensible format, library, and API for
  *     binary trajectory data from molecular simulations"
- *     Journal of Computational Chemistry 2013, DOI: 10.1002/jcc.23495 
- *     http://onlinelibrary.wiley.com/doi/10.1002/jcc.23495/abstract      
+ *     Journal of Computational Chemistry 2013, DOI: 10.1002/jcc.23495
+ *     http://onlinelibrary.wiley.com/doi/10.1002/jcc.23495/abstract
+ *
+ *   The TNG git repo is the master location for the sources, though
+ *   the standard git SSL checks have to be disabled to access it:
+ *      env GIT_SSL_NO_VERIFY=1 git clone https://gerrit.gromacs.org/tng
+ *
+ *   This version of the TNG plugin requires version 1.7.4 or greater
+ *   of the TNG library.
  *
  ***************************************************************************/
 
@@ -25,11 +32,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include <tng_io.h>
+#include <tng/tng_io.h>
 #include "molfile_plugin.h"
 
-#define TNG_PLUGIN_MAJOR_VERSION 0
-#define TNG_PLUGIN_MINOR_VERSION 9
+#define TNG_PLUGIN_MAJOR_VERSION 1
+#define TNG_PLUGIN_MINOR_VERSION 0
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -223,7 +230,7 @@ static int read_tng_bonds(void *v, int *nbonds, int **fromptr, int **toptr,
 static void convert_to_float(void *from, float *to, const float fact, const int natoms, const int nvalues, const char datatype)
 {
     int i, j;
-    
+
     switch(datatype)
     {
     case TNG_FLOAT_DATA:
@@ -276,23 +283,23 @@ static int read_tng_timestep(void *v, int natoms, molfile_timestep_t *ts)
     int64_t frame, n, temp, temp2;
     tng_function_status stat;
     tngdata *tng = (tngdata *)v;
-    
+
     if(!ts)
     {
         return MOLFILE_ERROR;
     }
-   
+
 //     fprintf(stderr, "Reading framestep from TNG\n");
-   
+
     stat = tng_util_particle_data_next_frame_read(tng->tng_traj, TNG_TRAJ_POSITIONS, &values,
-                                                  &datatype, &frame, &ts->physical_time);    
+                                                  &datatype, &frame, &ts->physical_time);
     if(stat != TNG_SUCCESS)
     {
         return MOLFILE_ERROR;
     }
 //     fprintf(stderr, "tngplugin) Timestep %d (%f), frame %d (%d), %d atoms\n",
 //             tng->step, ts->physical_time, (int)frame, (int)tng->n_frames, natoms);
-    
+
     /* TODO: Here it would be possible to add reading of the energy and pressure
      * measurements supported in VMD if they are present in the TNG file */
     tng_num_particles_get(tng->tng_traj, &n);
@@ -307,9 +314,9 @@ static int read_tng_timestep(void *v, int natoms, molfile_timestep_t *ts)
     {
         fact = pow(10.0, tng->coord_exponential + 10);
     }
-    
+
     convert_to_float(values, ts->coords, fact, natoms, 3, datatype);
-    
+
     if(ts->velocities)
     {
 //         fprintf(stderr, "tngplugin) Reading velocities\n");
@@ -325,7 +332,7 @@ static int read_tng_timestep(void *v, int natoms, molfile_timestep_t *ts)
             convert_to_float(values, ts->velocities, fact, natoms, 3, datatype);
         }
     }
-    
+
     stat = tng_data_vector_interval_get(tng->tng_traj, TNG_TRAJ_BOX_SHAPE,
                                         frame, frame, TNG_USE_HASH, &values,
                                         &temp, &temp2, &datatype);
@@ -336,7 +343,7 @@ static int read_tng_timestep(void *v, int natoms, molfile_timestep_t *ts)
     if(stat == TNG_SUCCESS)
     {
         convert_to_float(values, box_shape, fact, 1, 9, datatype);
-        
+
         convert_tng_box_shape_to_vmd(box_shape, vmd_box);
         if(ts)
         {
@@ -348,7 +355,7 @@ static int read_tng_timestep(void *v, int natoms, molfile_timestep_t *ts)
             ts->gamma = vmd_box[5];
         }
     }
-    
+
     ++tng->step;
     if(values)
     {
@@ -362,12 +369,12 @@ static int read_timestep_metadata(void *v, molfile_timestep_metadata_t *metadata
 {
     tng_function_status stat;
     tngdata *tng = (tngdata *)v;
-    
+
     /* Check only once if there are velocities in the file at all. */
     if(tng->has_velocities == 0)
     {
         stat = tng_frame_set_read_current_only_data_from_block_id(tng->tng_traj, TNG_SKIP_HASH, TNG_TRAJ_VELOCITIES);
-    
+
         if(stat == TNG_CRITICAL)
         {
             metadata->has_velocities = 0;
@@ -433,31 +440,92 @@ static int write_tng_structure(void *v, int optflags, const molfile_atom_t *atom
 {
     /* VMD atoms do not contain molecule information, which
      * complicates TNG writing a bit. */
-    tng_molecule_t tng_mol;
-    tng_chain_t tng_chain;
-    tng_residue_t tng_residue;
+    tng_molecule_t tng_mol = 0;
+    tng_chain_t tng_chain = 0;
+    tng_residue_t tng_residue = 0;
     tng_atom_t tng_atom;
+    int prev_resid = -1;
+    char new_chain_name[4] = "X_A";
 
     tngdata *tng = (tngdata *)v;
 
     /* A dummy molecule must be added. All atoms will be added to it. */
-    tng_molecule_add(tng->tng_traj, "MOL", &tng_mol);
+    if(tng_molecule_find(tng->tng_traj, "MOL", -1, &tng_mol) != TNG_SUCCESS)
+    {
+        tng_molecule_add(tng->tng_traj, "MOL", &tng_mol);
+    }
+
     for(int i = 0; i < tng->natoms; i++)
     {
-        if(tng_molecule_chain_find(tng->tng_traj, tng_mol, atoms[i].chain, -1, &tng_chain) !=
-            TNG_SUCCESS)
+        if(tng_chain == 0)
         {
-            tng_molecule_chain_add(tng->tng_traj, tng_mol, atoms[i].chain, &tng_chain);
+            if(tng_molecule_chain_find(tng->tng_traj, tng_mol, atoms[i].chain, -1, &tng_chain) !=
+                TNG_SUCCESS)
+            {
+                tng_molecule_chain_add(tng->tng_traj, tng_mol, atoms[i].chain, &tng_chain);
+            }
         }
+        else if(tng_residue != 0)
+        {
+            if(prev_resid >= 0)
+            {
+                if(prev_resid > atoms[i].resid)
+                {
+                    new_chain_name[0] = atoms[i].chain[0];
+                    ++new_chain_name[2];
+                    tng_molecule_chain_add(tng->tng_traj, tng_mol, new_chain_name, &tng_chain);
+                }
+            }
+        }
+//         fprintf(stderr, "tngplugin) Looking for residue: %s, %d\n", atoms[i].resname, atoms[i].resid);
         if (tng_chain_residue_find(tng->tng_traj, tng_chain, atoms[i].resname,
                                    atoms[i].resid, &tng_residue) != TNG_SUCCESS)
         {
             tng_chain_residue_w_id_add(tng->tng_traj, tng_chain, atoms[i].resname,
                                        atoms[i].resid, &tng_residue);
+            prev_resid = atoms[i].resid;
         }
         tng_residue_atom_add(tng->tng_traj, tng_residue, atoms[i].name, atoms[i].type, &tng_atom);
     }
+    tng_molecule_cnt_set(tng->tng_traj, tng_mol, 1);
 
+    return MOLFILE_SUCCESS;
+}
+
+#if vmdplugin_ABIVERSION > 14
+static int write_tng_bonds(void *v, int nbonds, int *from, int *to,
+                          float *bondorder, int *bondtype,
+                          int nbondtypes, char **bondtypename)
+#else
+static int write_tng_bonds(void *v, int nbonds, int *from, int *to,
+                          float *bondorder)
+#endif
+{
+    tng_molecule_t tng_mol;
+    tng_bond_t tng_bond;
+    int i;
+
+    if(nbonds == 0)
+    {
+        return MOLFILE_SUCCESS;
+    }
+
+    tngdata *tng = (tngdata *)v;
+
+    /* A dummy molecule must be added. All atoms will be added to it. */
+    if(tng_molecule_find(tng->tng_traj, "MOL", -1, &tng_mol) != TNG_SUCCESS)
+    {
+        tng_molecule_add(tng->tng_traj, "MOL", &tng_mol);
+    }
+
+    for (i = 0; i < nbonds; i++)
+    {
+        if(tng_molecule_bond_add(tng->tng_traj, tng_mol, from[i]-1, to[i]-1, &tng_bond) != TNG_SUCCESS)
+        {
+            fprintf(stderr, "tngplugin) Error adding bond %d (from %d to %d).\n", i, from[i], to[i]);
+            return MOLFILE_ERROR;
+        }
+    }
     return MOLFILE_SUCCESS;
 }
 
@@ -503,7 +571,7 @@ static int write_tng_timestep(void *v, const molfile_timestep_t *ts)
     }
     if(ts->velocities)
     {
-        fprintf(stderr, "tngplugin) Writing TNG velocities\n");
+//         fprintf(stderr, "tngplugin) Writing TNG velocities\n");
         if(tng->time_per_frame < 0)
         {
             tng_util_vel_write(tng->tng_traj, tng->step, ts->velocities);
@@ -523,6 +591,37 @@ static int write_tng_timestep(void *v, const molfile_timestep_t *ts)
 
     return MOLFILE_SUCCESS;
 }
+
+/*
+static molfile_plugin_t tng_plugin;
+
+VMDPLUGIN_API int VMDPLUGIN_init() {
+  // TNG plugin init
+  memset(&tng_plugin, 0, sizeof(molfile_plugin_t));
+  tng_plugin.abiversion = vmdplugin_ABIVERSION;
+  tng_plugin.type = MOLFILE_PLUGIN_TYPE;
+  tng_plugin.name = "tng";
+  tng_plugin.prettyname = "TNG: Trajectory Next Generation (testing)";
+  tng_plugin.author = "Magnus Lundborg";
+  tng_plugin.majorv = TNG_PLUGIN_MAJOR_VERSION;
+  tng_plugin.minorv = TNG_PLUGIN_MINOR_VERSION;
+  tng_plugin.is_reentrant = VMDPLUGIN_THREADUNSAFE;
+  tng_plugin.filename_extension = "tng";
+  tng_plugin.open_file_read = open_tng_read;
+  tng_plugin.read_structure = read_tng_structure;
+  tng_plugin.read_bonds = read_tng_bonds;
+  tng_plugin.read_next_timestep = read_tng_timestep;
+  tng_plugin.close_file_read = close_tng;
+  tng_plugin.open_file_write = open_tng_write;
+  tng_plugin.write_structure = write_tng_structure;
+  tng_plugin.write_timestep = write_tng_timestep;
+  tng_plugin.close_file_write = close_tng;
+  tng_plugin.write_bonds = write_tng_bonds;
+  tng_plugin.read_timestep_metadata = read_timestep_metadata;
+
+  return VMDPLUGIN_SUCCESS;
+}
+*/
 
 molfile_plugin_t tng_plugin = {
   vmdplugin_ABIVERSION,                // ABI version
@@ -559,12 +658,8 @@ molfile_plugin_t tng_plugin = {
 #endif
 };
 
+
 /*
-
-VMDPLUGIN_API int VMDPLUGIN_init() {
-  return VMDPLUGIN_SUCCESS;
-}
-
 VMDPLUGIN_API int VMDPLUGIN_register(void *v, vmdplugin_register_cb cb) {
   (*cb)(v, (vmdplugin_t *)&tng_plugin);
   return VMDPLUGIN_SUCCESS;
@@ -573,5 +668,5 @@ VMDPLUGIN_API int VMDPLUGIN_register(void *v, vmdplugin_register_cb cb) {
 VMDPLUGIN_API int VMDPLUGIN_fini() {
   return VMDPLUGIN_SUCCESS;
 }
-
 */
+

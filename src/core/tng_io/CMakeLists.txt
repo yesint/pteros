@@ -4,13 +4,18 @@
 
 message("Configuring TNG library...")
 
+cmake_policy(SET CMP0022 OLD)
+
+#------------------------------------------
+
 if("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
     set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -Wall")
-elseif(WIN32 AND NOT CYGWIN)
+elseif(WIN32)
     set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} /W2")
 endif()
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
 option(BUILD_SHARED_LIBS "Enable shared libraries" ON)
@@ -21,30 +26,24 @@ option(TNG_BUILD_EXAMPLES "Build examples showing usage of the TNG API" ON)
 option(TNG_BUILD_TEST "Build TNG testing binary." ON)
 option(TNG_BUILD_COMPRESSION_TESTS "Build tests of the TNG compression library" OFF)
 
-find_package(ZLIB QUIET)
-option(TNG_BUILD_WITH_ZLIB "Build TNG with zlib compression" ${ZLIB_FOUND})
+option(TNG_BUILD_OWN_ZLIB "Build and use the internal zlib library" OFF)
+if(NOT TNG_BUILD_OWN_ZLIB)
+  find_package(ZLIB QUIET)
+endif()
 
 include(CheckIncludeFile)
 check_include_file(inttypes.h   HAVE_INTTYPES_H)
 
 include(BuildTNG.cmake)
-tng_get_source_list(TNG_SOURCES TNG_COMPILE_DEFS)
-
-tng_set_source_properties(WITH_ZLIB ${ZLIB_FOUND})
-
-if (ZLIB_FOUND)
-  list(APPEND EXTRA_LIBRARIES ${ZLIB_LIBRARIES})
+if (ZLIB_FOUND AND NOT TNG_BUILD_OWN_ZLIB)
+  add_tng_io_library(tng_io)
+else()
+  add_tng_io_library(tng_io OWN_ZLIB)
 endif()
 
-if (UNIX)
-  list(APPEND EXTRA_LIBRARIES m)
-endif()
+# Use GNUInstallDirs to set paths on multiarch systems
+include(GNUInstallDirs)
 
-add_library(tng_io ${TNG_SOURCES})
-
-target_link_libraries(tng_io ${EXTRA_LIBRARIES})
-
-set_target_properties(tng_io PROPERTIES VERSION ${TNG_IO_VERSION} SOVERSION ${TNG_MAJOR_VERSION})
 
 ##########################################
 # Install to lib directory of Pteros tree
