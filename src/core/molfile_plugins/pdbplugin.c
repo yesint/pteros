@@ -1,6 +1,6 @@
 /***************************************************************************
  *cr
- *cr            (C) Copyright 1995-2009 The Board of Trustees of the
+ *cr            (C) Copyright 1995-2016 The Board of Trustees of the
  *cr                        University of Illinois
  *cr                         All Rights Reserved
  *cr
@@ -11,7 +11,7 @@
  *
  *      $RCSfile: pdbplugin.c,v $
  *      $Author: johns $       $Locker:  $             $State: Exp $
- *      $Revision: 1.72 $       $Date: 2009/04/29 15:45:32 $
+ *      $Revision: 1.73 $       $Date: 2016/11/28 05:01:54 $
  *
  ***************************************************************************/
 
@@ -44,7 +44,7 @@ typedef struct {
   int *from, *to, *idxmap;
 } pdbdata;
 
-static void *open_pdb_read(const char *filepath, const char *filetype,
+static void *open_pdb_read(const char *filepath, const char *filetype, 
     int *natoms) {
   FILE *fd;
   pdbdata *pdb;
@@ -138,12 +138,12 @@ static int read_pdb_structure(void *mydata, int *optflags,
               MOLFILE_ALTLOC | MOLFILE_ATOMICNUMBER | MOLFILE_BONDSSPECIAL;
 
   i = 0;
-  do {      
+  do {
     rectype = read_pdb_record(pdb->fd, pdbrec);
     switch (rectype) {
     case PDB_ATOM:
       atom = atoms+i;
-      get_pdb_fields(pdbrec, strlen(pdbrec), &atomserial,
+      get_pdb_fields(pdbrec, strlen(pdbrec), &atomserial, 
           atom->name, atom->resname, atom->chain, atom->segid, 
           ridstr, atom->insertion, atom->altloc, elementsymbol,
           NULL, NULL, NULL, &atom->occupancy, &atom->bfactor);
@@ -274,7 +274,6 @@ static int read_next_timestep(void *v, int natoms, molfile_timestep_t *ts) {
       }
     }
   } while(!(indx == PDB_END || indx == PDB_EOF));
-
 
   return MOLFILE_SUCCESS;
 }
@@ -525,13 +524,6 @@ static int write_timestep(void *v, const molfile_timestep_t *ts) {
 	    fprintf(stderr, "PDB WRITE ERROR: Position, occupancy, or b-factor (beta) for atom %d\n", i);
       fprintf(stderr, "                 cannot be written in PDB format.\n");
       fprintf(stderr, "                 File will be truncated.\n");
-      /**/
-      fprintf(stderr, "pos[0]=%f",pos[0]);
-      fprintf(stderr, "pos[1]=%f",pos[1]);
-      fprintf(stderr, "pos[2]=%f",pos[2]);
-      fprintf(stderr, "occ=%f",atom->occupancy);
-      fprintf(stderr, "beta=%f",atom->bfactor);
-      /**/
       return MOLFILE_ERROR;
     }
 
@@ -575,33 +567,8 @@ static int read_molecule_metadata(void *v, molfile_metadata_t **metadata) {
  * Initialization stuff down here
  */
 
-molfile_plugin_t pdb_plugin = {
-    vmdplugin_ABIVERSION,               // ABI version
-    MOLFILE_PLUGIN_TYPE,                // type of plugin
-    "pdb",                              // short name of plugin
-    "PDB",                      // pretty name of plugin
-    "David Norris, Justin Gullingsrud", // authors
-    0,       // major version
-    0,       // minor version
-    VMDPLUGIN_THREADUNSAFE,             // is not reentrant
-    "pdb",                              // filename extension
-    open_pdb_read,
-    read_pdb_structure,
-    read_bonds,
-    read_next_timestep,
-    close_pdb_read,
-    open_file_write,                                  // open_write
-    write_structure,                                  // write_structure
-    write_timestep,                                  // write_timestep
-    close_file_write,                                  // close_write
-    0,                                  // read_volumetric_metadata
-    0,                                  // read_volumetric_data
-    0                                   // read_rawgraphics
-};
-
-/*
 static molfile_plugin_t plugin;
-
+ 
 VMDPLUGIN_API int VMDPLUGIN_init() {
   memset(&plugin, 0, sizeof(molfile_plugin_t));
   plugin.abiversion = vmdplugin_ABIVERSION;
@@ -634,4 +601,4 @@ VMDPLUGIN_API int VMDPLUGIN_register(void *v, vmdplugin_register_cb cb) {
 VMDPLUGIN_API int VMDPLUGIN_fini() {
   return VMDPLUGIN_SUCCESS;
 }
-*/
+

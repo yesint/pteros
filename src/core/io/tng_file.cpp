@@ -26,8 +26,11 @@ using namespace std;
 using namespace pteros;
 using namespace Eigen;
 
-extern molfile_plugin_t tng_plugin;
+//extern molfile_plugin_t tng_plugin;
+VMDPLUGIN_EXTERN int tngplugin_init();
+VMDPLUGIN_EXTERN int tngplugin_register(void *v, vmdplugin_register_cb cb);
+VMDPLUGIN_EXTERN int tngplugin_fini();
 
 TNG_file::TNG_file(string &fname): VMD_molfile_plugin_wrapper(fname){
-    plugin = &tng_plugin;
+   plugin = molfile_plugins["tng"];
 }

@@ -79,9 +79,12 @@ void box_from_vmd_rep(float fa, float fb, float fc,
     box /= 10.0; // Convert to nm
 }
 
-VMD_molfile_plugin_wrapper::VMD_molfile_plugin_wrapper(string& fname): Mol_file(fname){
-    handle = NULL;
-    w_handle = NULL;
+
+
+VMD_molfile_plugin_wrapper::VMD_molfile_plugin_wrapper(string& fname): Mol_file(fname),
+    handle(nullptr), w_handle(nullptr)
+{
+
 }
 
 VMD_molfile_plugin_wrapper::~VMD_molfile_plugin_wrapper(){
@@ -96,10 +99,11 @@ VMD_molfile_plugin_wrapper::~VMD_molfile_plugin_wrapper(){
             plugin->close_file_write(w_handle);            
             w_handle = NULL;
         }
-    }
+    }    
 }
 
 void VMD_molfile_plugin_wrapper::open(char open_mode){
+    // Init plugin if needed
     mode = open_mode;
 
     if(mode=='r'){
@@ -270,3 +274,25 @@ void VMD_molfile_plugin_wrapper::do_write(const Selection &sel, const Mol_file_c
     }
 }
 
+VMDPLUGIN_EXTERN int pdbplugin_init();
+VMDPLUGIN_EXTERN int pdbplugin_register(void *v, vmdplugin_register_cb cb);
+VMDPLUGIN_EXTERN int pdbplugin_fini();
+
+namespace pteros {
+int register_cb(void *v, vmdplugin_t *p)
+{
+    v = (void *)p;
+    return VMDPLUGIN_SUCCESS;
+}
+}
+
+std::map<string,molfile_plugin_t*> register_all_plugins(){
+    cout << "Registering VMD molfile plugins..." << endl;
+    void* plugin;
+    std::map<string,molfile_plugin_t*> ret;
+
+    pdbplugin_init();
+    pdbplugin_register(ret["pdb"], &register_cb);
+}
+
+std::map<string,molfile_plugin_t*> VMD_molfile_plugin_wrapper::molfile_plugins = register_all_plugins();

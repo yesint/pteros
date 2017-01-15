@@ -203,7 +203,11 @@ int main(int argc, char** argv)
 
     try{        
 
+        System s("/home/semen/work/current/Projects/albumin/SqGem/protein_combined.pdb");
+        cout << s("name CA").size() << endl;
+        s.load("/home/semen/work/current/Projects/albumin/SqGem/protein_combined.pdb");
 
+/*
         auto expr = name("CA") & (name("CB") | !name("CC"));
         cout << expr()->dump() << endl;
 

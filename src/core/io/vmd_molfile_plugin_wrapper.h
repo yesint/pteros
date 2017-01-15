@@ -43,11 +43,16 @@ protected:
     void* handle; // Handle for reading
     void* w_handle; // Handle for writing
 
-    molfile_plugin_t* plugin;
     char mode;
 
     virtual bool do_read(System *sys, Frame *frame, const Mol_file_content& what);
     virtual void do_write(const Selection &sel, const Mol_file_content& what);
+
+    molfile_plugin_t* plugin;
+
+    int register_cb(void *v, vmdplugin_t *p);
+
+    static std::map<std::string,molfile_plugin_t*> molfile_plugins;
 };
 
 }

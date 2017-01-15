@@ -31,11 +31,13 @@ using namespace Eigen;
 
 #ifdef VMD_PDB
 
-extern molfile_plugin_t pdb_plugin;
+VMDPLUGIN_EXTERN int pdbplugin_init();
+VMDPLUGIN_EXTERN int pdbplugin_register(void *v, vmdplugin_register_cb cb);
+VMDPLUGIN_EXTERN int pdbplugin_fini();
 
 PDB_file::PDB_file(string &fname): VMD_molfile_plugin_wrapper(fname)
 {
-    plugin = &pdb_plugin;
+   plugin = molfile_plugins["pdb"];
 }
 
 

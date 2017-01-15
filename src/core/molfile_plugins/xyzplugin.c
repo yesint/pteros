@@ -1,6 +1,6 @@
 /***************************************************************************
  *cr
- *cr            (C) Copyright 1995-2009 The Board of Trustees of the
+ *cr            (C) Copyright 1995-2016 The Board of Trustees of the
  *cr                        University of Illinois
  *cr                         All Rights Reserved
  *cr
@@ -11,7 +11,7 @@
  *
  *      $RCSfile: xyzplugin.c,v $
  *      $Author: johns $       $Locker:  $             $State: Exp $
- *      $Revision: 1.36 $       $Date: 2009/04/29 15:45:35 $
+ *      $Revision: 1.37 $       $Date: 2016/11/28 05:01:55 $
  *
  ***************************************************************************/
 
@@ -252,31 +252,7 @@ static void close_xyz_write(void *mydata) {
   free(data);
 }
 
-molfile_plugin_t xyz_plugin = {
-    vmdplugin_ABIVERSION,
-    MOLFILE_PLUGIN_TYPE,
-    "xyz",
-    "XYZ",
-    "Mauricio Carrillo Tripp, John E. Stone, Axel Kohlmeyer",
-    1,
-    3,
-    VMDPLUGIN_THREADSAFE,
-    "xyz,xmol",
-    open_xyz_read,
-    read_xyz_structure,
-    0,
-    read_xyz_timestep,
-    close_xyz_read,
-    open_xyz_write,
-    write_xyz_structure,
-    write_xyz_timestep,
-    close_xyz_write,
-    0,
-    0,
-    0
-};
-
-/*
+/* registration stuff */
 static molfile_plugin_t plugin;
 
 VMDPLUGIN_API int VMDPLUGIN_init() {
@@ -342,4 +318,4 @@ int main(int argc, char *argv[]) {
 }
 
 #endif
-*/
+

@@ -38,10 +38,6 @@
 #define TNG_PLUGIN_MAJOR_VERSION 1
 #define TNG_PLUGIN_MINOR_VERSION 0
 
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
-
 #ifndef M_PI_2
 #define M_PI_2 1.57079632679489661922
 #endif
@@ -592,7 +588,6 @@ static int write_tng_timestep(void *v, const molfile_timestep_t *ts)
     return MOLFILE_SUCCESS;
 }
 
-/*
 static molfile_plugin_t tng_plugin;
 
 VMDPLUGIN_API int VMDPLUGIN_init() {
@@ -621,45 +616,7 @@ VMDPLUGIN_API int VMDPLUGIN_init() {
 
   return VMDPLUGIN_SUCCESS;
 }
-*/
 
-molfile_plugin_t tng_plugin = {
-  vmdplugin_ABIVERSION,                // ABI version
-  MOLFILE_PLUGIN_TYPE,                 // type of plugin
-  "tng",                               // short name of plugin
-  "TNG: Trajectory Next Generation (testing)",  // pretty name of plugin
-  "Magnus Lundborg",                   // authors
-  TNG_PLUGIN_MAJOR_VERSION,            // major version
-  TNG_PLUGIN_MINOR_VERSION,            // minor version
-  VMDPLUGIN_THREADUNSAFE,              // is not reentrant
-  "tng",                               // filename extension
-  open_tng_read,                       // open_read
-  read_tng_structure,                  // read structure
-  read_tng_bonds,                      // read bonds
-  read_tng_timestep,                   // read trajectory timestep
-  close_tng,                           // close_read
-  open_tng_write,                      // open_write
-  write_tng_structure,                 // write_structure
-  write_tng_timestep,                  // write_timestep
-  close_tng,                           // close_write
-  0,                                   // read_volumetric_metadata
-  0,                                   // read_volumetric_data
-  0,                                   // read_rawgraphics
-  0,                                   // read_molecule_metadata
-  0,                                   // write_bonds
-  0,                                   // write_volumetric_data
-  0,                                   // read_angles
-  0,                                   // write_angles
-  0,                                   // read_qm_metadata
-  0,                                   // read_qm_rundata
-  0,                                   // read_qm_timestep
-#if vmdplugin_ABIVERSION > 10
-  read_timestep_metadata
-#endif
-};
-
-
-/*
 VMDPLUGIN_API int VMDPLUGIN_register(void *v, vmdplugin_register_cb cb) {
   (*cb)(v, (vmdplugin_t *)&tng_plugin);
   return VMDPLUGIN_SUCCESS;
@@ -668,5 +625,5 @@ VMDPLUGIN_API int VMDPLUGIN_register(void *v, vmdplugin_register_cb cb) {
 VMDPLUGIN_API int VMDPLUGIN_fini() {
   return VMDPLUGIN_SUCCESS;
 }
-*/
+
 

@@ -27,8 +27,10 @@ using namespace std;
 using namespace pteros;
 using namespace Eigen;
 
-extern molfile_plugin_t dcd_plugin;
+VMDPLUGIN_EXTERN int dcdplugin_init();
+VMDPLUGIN_EXTERN int dcdplugin_register(void *v, vmdplugin_register_cb cb);
+VMDPLUGIN_EXTERN int dcdplugin_fini();
 
 DCD_file::DCD_file(string fname): VMD_molfile_plugin_wrapper(fname){
-    plugin = &dcd_plugin;
+    plugin = molfile_plugins["dcd"];
 }
