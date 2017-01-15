@@ -53,61 +53,61 @@ bool PTTOP_file::do_read(System *sys, Frame *frame, const Mol_file_content &what
     getline(f,line); // Comment
     getline(f,line); // Value
     ss.clear(); ss.str(line);
-    if(what & MFC_TOP) ss >> ff_in_system(*sys).coulomb_type;
+    if(what.top()) ss >> ff_in_system(*sys).coulomb_type;
 
     // coulomb_modifier
     getline(f,line); // Comment
     getline(f,line); // Value
     ss.clear(); ss.str(line);
-    if(what & MFC_TOP) ss >> ff_in_system(*sys).coulomb_modifier;
+    if(what.top()) ss >> ff_in_system(*sys).coulomb_modifier;
 
     // rcoulomb
     getline(f,line); // Comment
     getline(f,line); // Value
     ss.clear(); ss.str(line);
-    if(what & MFC_TOP) ss >> ff_in_system(*sys).rcoulomb;
+    if(what.top()) ss >> ff_in_system(*sys).rcoulomb;
 
     // epsilon_r
     getline(f,line); // Comment
     getline(f,line); // Value
     ss.clear(); ss.str(line);
-    if(what & MFC_TOP) ss >> ff_in_system(*sys).epsilon_r;
+    if(what.top()) ss >> ff_in_system(*sys).epsilon_r;
 
     // epsilon_rf
     getline(f,line); // Comment
     getline(f,line); // Value
     ss.clear(); ss.str(line);
-    if(what & MFC_TOP) ss >> ff_in_system(*sys).epsilon_rf;
+    if(what.top()) ss >> ff_in_system(*sys).epsilon_rf;
 
     // rcoulomb_switch
     getline(f,line); // Comment
     getline(f,line); // Value
     ss.clear(); ss.str(line);
-    if(what & MFC_TOP) ss >> ff_in_system(*sys).rcoulomb_switch;
+    if(what.top()) ss >> ff_in_system(*sys).rcoulomb_switch;
 
     // vdw_type
     getline(f,line); // Comment
     getline(f,line); // Value
     ss.clear(); ss.str(line);
-    if(what & MFC_TOP) ss >> ff_in_system(*sys).vdw_type;
+    if(what.top()) ss >> ff_in_system(*sys).vdw_type;
 
     // vdw_modifier
     getline(f,line); // Comment
     getline(f,line); // Value
     ss.clear(); ss.str(line);
-    if(what & MFC_TOP) ss >> ff_in_system(*sys).vdw_modifier;
+    if(what.top()) ss >> ff_in_system(*sys).vdw_modifier;
 
     // rvdw_switch
     getline(f,line); // Comment
     getline(f,line); // Value
     ss.clear(); ss.str(line);
-    if(what & MFC_TOP) ss >> ff_in_system(*sys).rvdw_switch;
+    if(what.top()) ss >> ff_in_system(*sys).rvdw_switch;
 
     // rvdw
     getline(f,line); // Comment
     getline(f,line); // Value
     ss.clear(); ss.str(line);
-    if(what & MFC_TOP) ss >> ff_in_system(*sys).rvdw;
+    if(what.top()) ss >> ff_in_system(*sys).rvdw;
 
     // Number of atoms
     int natoms;
@@ -124,10 +124,10 @@ bool PTTOP_file::do_read(System *sys, Frame *frame, const Mol_file_content &what
         ss.clear(); ss.str(line);
         ss >> dum  >> at.name >> at.type_name >> at.type >> at.resid
            >> at.resindex >> at.resname >> at.mass >> at.charge;
-        if(what & MFC_COORD){
+        if(what.coord()){
            ss >> frame->coord[i](0) >> frame->coord[i](1) >> frame->coord[i](2);
         }
-        if(what & MFC_ATOMS){
+        if(what.atoms()){
             // Add atoms to system
             append_atom_in_system(*sys,at);
         } else {
@@ -158,14 +158,14 @@ bool PTTOP_file::do_read(System *sys, Frame *frame, const Mol_file_content &what
     for(int i=0; i<3; ++i){
         getline(f,line);
         ss.clear(); ss.str(line);
-        if(what & MFC_COORD){
+        if(what.coord()){
             ss >> b(i,0) >> b(i,1) >> b(i,2);
         }
     }
     if(frame) frame->box.modify(b);
 
     // All the rest should be read only if topology is requested
-    if(!(what & MFC_TOP)) return true;
+    if(!what.top()) return true;
 
     // Number of charge groups
     int ncg;

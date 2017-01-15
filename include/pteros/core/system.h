@@ -79,7 +79,7 @@ struct Frame {
 class Selection;
 class Atom_proxy;
 class Mol_file;
-typedef unsigned short Mol_file_content;
+class Mol_file_content;
 
 /**
 *  The system of atoms.

@@ -33,8 +33,8 @@ class DCD_file: public VMD_molfile_plugin_wrapper {
 public:
     DCD_file(std::string fname);
 
-    virtual Mol_file_content get_content_type() const {        
-        return MFC_TRAJ;
+    virtual Mol_file_content get_content_type() const {
+        return Mol_file_content().traj(true);
     }
 
 };

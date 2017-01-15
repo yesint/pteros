@@ -26,18 +26,39 @@
 #include <string>
 #include "pteros/core/system.h"
 #include "pteros/core/selection.h"
+#include <bitset>
 
 namespace pteros {
 
-/// What is stored in file type?
-enum {
-  MFC_ATOMS = 0x01, // The list of atoms and their properties
-  MFC_COORD = 0x02, // Single set of coordinates
-  MFC_TRAJ = 0x04,  // Many frames
-  MFC_TOP = 0x08,   // Molecular topology
-  MFC_RAND = 0x10   // Random access trajectory (for the future)
+class Mol_file_content {
+public:
+    Mol_file_content(){
+        flags.reset();
+    }
+
+    // The list of atoms and their properties
+    bool atoms() const { return flags[0]; }
+    Mol_file_content atoms(bool val){ flags[0] = val; return *this;}
+
+    // Single set of coordinates
+    bool coord() const { return flags[1]; }
+    Mol_file_content coord(bool val){ flags[1] = val; return *this;}
+
+    // Many frames
+    bool traj() const { return flags[2]; }
+    Mol_file_content traj(bool val){ flags[2] = val; return *this;}
+
+    // Molecular topology
+    bool top() const { return flags[3]; }
+    Mol_file_content top(bool val){ flags[3] = val; return *this;}
+
+    // Random access trajectory (for the future)
+    bool rand() const { return flags[4]; }
+    Mol_file_content rand(bool val){ flags[4] = val; return *this;}
+
+private:
+    std::bitset<5> flags;
 };
-typedef unsigned short Mol_file_content;
 
 /// Generic API for reading and writing any molecule file formats
 class Mol_file {

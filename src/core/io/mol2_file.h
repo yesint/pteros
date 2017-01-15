@@ -33,8 +33,8 @@ class MOL2_file: public VMD_molfile_plugin_wrapper {
 public:
     MOL2_file(std::string& fname);
 
-    virtual Mol_file_content get_content_type() const {        
-        return MFC_ATOMS | MFC_COORD;
+    virtual Mol_file_content get_content_type() const {                
+        return Mol_file_content().atoms(true).coord(true);
 
     }
 

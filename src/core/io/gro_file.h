@@ -37,8 +37,8 @@ public:
     virtual void open(char open_mode);
     virtual ~GRO_file();
 
-    virtual Mol_file_content get_content_type() const {
-        return MFC_ATOMS | MFC_COORD;
+    virtual Mol_file_content get_content_type() const {        
+        return Mol_file_content().atoms(true).coord(true);
     }
 
 protected:

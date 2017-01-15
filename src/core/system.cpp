@@ -118,7 +118,7 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
         // We don't have atoms yet, so we will read everything possible except trajectory
         auto c = f->get_content_type();
 
-        if(c & MFC_COORD && !(c & MFC_TRAJ)){
+        if(c.coord() && !c.traj()){
             // We have single frame. Read it directly here
             Frame fr;
             frame_append(fr);
@@ -138,8 +138,10 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
             return;
         } else {
             // We have not a single frame, so read only atoms here
-            // Clear flags for trajectory and coordinates            
-            c &= ~(MFC_COORD | MFC_TRAJ);
+            // Clear flags for trajectory and coordinates
+            c.coord(false);
+            c.traj(false);
+
             f->read(this, nullptr, c);
             filter_atoms();
             assign_resindex();
@@ -149,12 +151,12 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
     if(num_atoms()>0){
         // We have atoms already, so read only coordinates
         auto c = f->get_content_type();
-        if(!(c & MFC_COORD) && !(c & MFC_TRAJ))
+        if(!c.coord() && !c.traj())
             throw Pteros_error("File reader for file '"+fname
                                +"' is not capable of appending frames to the system!");
 
         // Check if we can read trajectory
-        if(c & MFC_TRAJ){
+        if(c.traj()){
             // Sanity check for frame range
             if((e<b && e!=-1)|| b<0)
                 throw Pteros_error("Invalid frame range for reading!");
@@ -166,7 +168,7 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
                 cout << "Skipping " << b << " frames..." << endl;
                 Frame skip_fr;
                 for(int i=0;i<b;++i){
-                    f->read(nullptr, &skip_fr, MFC_TRAJ);                    ;                    
+                    f->read(nullptr, &skip_fr, Mol_file_content().traj(true));                    ;
                     cur++;
                 }
             }
@@ -187,7 +189,7 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
                 Frame fr;
                 frame_append(fr);
                 // Try to read into it
-                bool ok = f->read(nullptr, &Frame_data(num_frames()-1), MFC_TRAJ);
+                bool ok = f->read(nullptr, &Frame_data(num_frames()-1), Mol_file_content().traj(true));
                 if(!ok){
                     frame_delete(num_frames()-1); // Remove last frame - it's invalid
                     break; // end of trajectory
@@ -214,21 +216,22 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
                 // If callback returns false stop reading
                 if(!callback_ok) break;
             }
-        } else if(c & MFC_COORD && !(c & MFC_TOP)) {
+        } else if(c.coord() && !c.top()) {
             // File contains single frame and no topology
             // Append new frame where the data will go
             Frame fr;
             frame_append(fr);
-            // Read it
-            f->read(nullptr, &Frame_data(num_frames()-1), MFC_COORD);
+            // Read it            
+            f->read(nullptr, &Frame_data(num_frames()-1), Mol_file_content().coord(true));
             filter_coord(num_frames()-1);
             check_num_atoms_in_last_frame();
             ++num_stored;
             // Call a callback if asked
             if(on_frame) on_frame(this,num_frames()-1);
-        } else if(f->get_content_type() & MFC_TOP) {
-            // This is topology file, read only topology                  
-            f->read(this, nullptr, MFC_TOP);
+
+        } else if(f->get_content_type().top()) {
+            // This is topology file, read only topology
+            f->read(this, nullptr, Mol_file_content().top(true) );
             // For topology filtering is not possible
             if(!filter.empty() || filter_text!="") throw Pteros_error("Filtering is not possible when reading topology!");
         }
@@ -240,19 +243,19 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
 bool System::load(const std::unique_ptr<Mol_file>& handler, Mol_file_content what, std::function<bool (System *, int)> on_frame)
 {        
     // Asked for structure or topology
-    if(what & MFC_ATOMS || what & MFC_TOP || what & MFC_COORD){
-        if((what & MFC_TOP) && (!filter.empty() || filter_text!=""))
+    if(what.atoms() || what.top() || what.coord()){
+        if(what.top() && (!filter.empty() || filter_text!=""))
             throw Pteros_error("Filtering is not possible when reading topology!");
 
         // We don't want to read traj here, so disable it even if asked to read it
         auto c = what;
-        c &= ~MFC_TRAJ;
+        c.traj(false);
 
         // If we are reading new atoms we have to clear the system first
-        if(what & MFC_ATOMS) clear();
+        if(what.atoms()) clear();
 
         // See if we asked for coordinates
-        if(what & MFC_COORD){
+        if(what.coord()){
             Frame fr;
             frame_append(fr);
             handler->read(this, &Frame_data(num_frames()-1), c);
@@ -261,24 +264,24 @@ bool System::load(const std::unique_ptr<Mol_file>& handler, Mol_file_content wha
             filter_coord(num_frames()-1);
 
             check_num_atoms_in_last_frame();
-            if(what & MFC_ATOMS) assign_resindex();
+            if(what.atoms()) assign_resindex();
             // Call a callback if asked
             if(on_frame) on_frame(this,num_frames()-1);
         } else {
             // Not asked for coordinates
             handler->read(this, nullptr, c);
             filter_coord(num_frames()-1);
-            if(what & MFC_ATOMS) assign_resindex();
+            if(what.atoms()) assign_resindex();
         }
     }
 
     // Asked for trajectory frame
-    if(what & MFC_TRAJ){
+    if(what.traj()){
         // Append new frame where the data will go
         Frame fr;
         frame_append(fr);
         // Try to read into it
-        bool ok = handler->read(nullptr, &Frame_data(num_frames()-1), MFC_TRAJ);
+        bool ok = handler->read(nullptr, &Frame_data(num_frames()-1), Mol_file_content().traj(true));
         if(!ok){
             frame_delete(num_frames()-1); // Remove last frame - it's invalid
             return false;

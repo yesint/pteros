@@ -84,7 +84,7 @@ bool GRO_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
 
         // Coordinates are in nm, so no need to convert
 
-        if(what & MFC_ATOMS){
+        if(what.atoms()){
             // Assign masses
             tmp_atom.mass = get_mass_from_atom_name(tmp_atom.name);
             tmp_atom.type = -1; //Undefined type so far
@@ -96,13 +96,13 @@ bool GRO_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
             append_atom_in_system(*sys,tmp_atom);
         }
 
-        if(what & MFC_COORD){
+        if(what.coord()){
             // Add column of coordinates
             frame->coord[i] = tmp_coor;
         }
     }
 
-    if(what & MFC_COORD){
+    if(what.coord()){
         // Read box. Adapted form VMD.
         stringstream ss;
         getline(f,line);
@@ -133,7 +133,7 @@ void GRO_file::do_write(const Selection &sel, const Mol_file_content &what){
     int n = sel.size();
     char ch[80];
 
-    if(!(what & MFC_COORD && what & MFC_ATOMS))
+    if(!(what.coord() && what.atoms()))
         throw Pteros_error("It is impossible to write individual components to GRO file!");
 
     // Print title

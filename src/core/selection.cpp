@@ -1518,7 +1518,7 @@ void Selection::write(string fname, int b, int e) {
 
     auto f = Mol_file::open(fname,'w');
 
-    if(!(f->get_content_type() & MFC_TRAJ) && e!=b){
+    if(!(f->get_content_type().traj()) && e!=b){
         throw Pteros_error("Can't write the range of frames to structure file!");
     }    
 
@@ -1538,22 +1538,22 @@ void Selection::write(const std::unique_ptr<Mol_file> &handler, Mol_file_content
     if(e<-1 || e>=get_system()->num_frames()) throw Pteros_error("Invalid last frame for writing!");
     if(e<b) throw Pteros_error("Invalid frame range for writing!");
 
-    if(!(handler->get_content_type() & MFC_TRAJ) && e!=b && (what & MFC_TRAJ)){
+    if(!(handler->get_content_type().traj()) && e!=b && what.traj()){
         throw Pteros_error("Can't write the range of frames to this file!");
     }
 
     // First write all except trajectory (if any)
-    if(what & MFC_ATOMS || what & MFC_COORD){
+    if(what.atoms() || what.coord()){
         auto c = what;
-        c &= ~MFC_TRAJ;
+        c.traj(false);
         handler->write(*this,c);
     }
 
     // Now write trajectory if asked
-    if(what & MFC_TRAJ){
+    if(what.traj()){
         for(int fr=b;fr<=e;++fr){
             set_frame(fr);
-            handler->write(*this,MFC_TRAJ);
+            handler->write(*this, Mol_file_content().traj(true));
         }
     }
 }
