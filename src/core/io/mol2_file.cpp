@@ -26,10 +26,6 @@ using namespace std;
 using namespace pteros;
 using namespace Eigen;
 
-VMDPLUGIN_EXTERN int mol2plugin_init();
-VMDPLUGIN_EXTERN int mol2plugin_register(void *v, vmdplugin_register_cb cb);
-VMDPLUGIN_EXTERN int mol2plugin_fini();
-
 MOL2_file::MOL2_file(string &fname): VMD_molfile_plugin_wrapper(fname){
     plugin = molfile_plugins["mol2"];
 }

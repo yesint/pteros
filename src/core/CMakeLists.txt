@@ -39,16 +39,16 @@ include_directories(${PROJECT_SOURCE_DIR}/src/core/tng_io/include/tng)
 #---------------------------
 # Molfile plugins machinery
 #---------------------------
+
 SET(MOLFILE_PLUGINS_DIR ${PROJECT_SOURCE_DIR}/src/core/molfile_plugins)
 
 SET(MOLFILE_PLUGINS pdbplugin tngplugin dcdplugin mol2plugin xyzplugin)
-SET(MOLFILE_PLUGINS_LIST "")
+SET(MOLFILE_PLUGINS_FILE_LIST "")
 
 foreach(PLUGIN ${MOLFILE_PLUGINS})
-    file(GLOB F ${MOLFILE_PLUGINS_DIR}/${PLUGIN}.*)
-    message(${F})
+    file(GLOB F ${MOLFILE_PLUGINS_DIR}/${PLUGIN}.*)    
     set_source_files_properties(${F} PROPERTIES COMPILE_DEFINITIONS VMDPLUGIN=${PLUGIN})
-    list(APPEND MOLFILE_PLUGINS_LIST ${F})
+    list(APPEND MOLFILE_PLUGINS_FILE_LIST ${F})
 endforeach(PLUGIN)
 
 
@@ -151,12 +151,11 @@ add_library(pteros SHARED
     ${PROJECT_SOURCE_DIR}/src/core/molfile_plugins/periodic_table.h
     ${PROJECT_SOURCE_DIR}/src/core/molfile_plugins/vmdplugin.h
     ${PROJECT_SOURCE_DIR}/src/core/molfile_plugins/largefiles.h
-    ${PROJECT_SOURCE_DIR}/src/core/molfile_plugins/endianswap.h
-    #${PROJECT_SOURCE_DIR}/src/core/molfile_plugins/libmolfile_plugin.h
+    ${PROJECT_SOURCE_DIR}/src/core/molfile_plugins/endianswap.h    
     ${PROJECT_SOURCE_DIR}/src/core/molfile_plugins/readpdb.h
     ${PROJECT_SOURCE_DIR}/src/core/molfile_plugins/fastio.h
-    # plugins
-    ${MOLFILE_PLUGINS_LIST}
+    # plugins themselves
+    ${MOLFILE_PLUGINS_FILE_LIST}
 
     #SASA (will be empty if not used)
     ${SASA_FILES}

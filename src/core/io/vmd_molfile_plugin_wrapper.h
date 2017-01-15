@@ -48,10 +48,11 @@ protected:
     virtual bool do_read(System *sys, Frame *frame, const Mol_file_content& what);
     virtual void do_write(const Selection &sel, const Mol_file_content& what);
 
-    molfile_plugin_t* plugin;
+    // molfile plugin instance (set in derived class)
+    molfile_plugin_t* plugin;   
 
-    int register_cb(void *v, vmdplugin_t *p);
-
+    // Static map of all registered plagins.
+    // Filled on first load of the library
     static std::map<std::string,molfile_plugin_t*> molfile_plugins;
 };
 

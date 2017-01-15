@@ -274,25 +274,51 @@ void VMD_molfile_plugin_wrapper::do_write(const Selection &sel, const Mol_file_c
     }
 }
 
-VMDPLUGIN_EXTERN int pdbplugin_init();
-VMDPLUGIN_EXTERN int pdbplugin_register(void *v, vmdplugin_register_cb cb);
-VMDPLUGIN_EXTERN int pdbplugin_fini();
+//--------------------------------------------------------
+// molfile plugins registration bootstrap
+//--------------------------------------------------------
 
-namespace pteros {
-int register_cb(void *v, vmdplugin_t *p)
-{
-    v = (void *)p;
-    return VMDPLUGIN_SUCCESS;
-}
+#define IMPORT_PLUGIN(name) \
+    VMDPLUGIN_EXTERN int name##plugin_init(); \
+    VMDPLUGIN_EXTERN int name##plugin_register(void *v, vmdplugin_register_cb cb); \
+    VMDPLUGIN_EXTERN int name##plugin_fini();
+
+#define REGISTER_PLUGIN(name,ret) \
+    name##plugin_init(); \
+    name##plugin_register(nullptr, &register_cb); \
+    ret[cur_name] = cur_plugin;
+
+IMPORT_PLUGIN(pdb)
+IMPORT_PLUGIN(dcd)
+IMPORT_PLUGIN(tng)
+IMPORT_PLUGIN(xyz)
+IMPORT_PLUGIN(mol2)
+
+static molfile_plugin_t *cur_plugin;
+static string cur_name;
+
+static int register_cb(void *v, vmdplugin_t *p) {
+  cur_name = string(p->name);
+  cur_plugin = (molfile_plugin_t *)p;
+  return VMDPLUGIN_SUCCESS;
 }
 
-std::map<string,molfile_plugin_t*> register_all_plugins(){
-    cout << "Registering VMD molfile plugins..." << endl;
-    void* plugin;
+
+std::map<string,molfile_plugin_t*> register_all_plugins(){    
     std::map<string,molfile_plugin_t*> ret;
 
-    pdbplugin_init();
-    pdbplugin_register(ret["pdb"], &register_cb);
+    REGISTER_PLUGIN(pdb,ret)
+    REGISTER_PLUGIN(dcd,ret)
+    REGISTER_PLUGIN(tng,ret)
+    REGISTER_PLUGIN(xyz,ret)
+    REGISTER_PLUGIN(mol2,ret)
+
+    cout << "Registered VMD molfile plugins: ";
+    for(auto& item: ret){
+        cout << item.first << ", ";
+    }
+    cout << endl;
+    return ret;
 }
 
 std::map<string,molfile_plugin_t*> VMD_molfile_plugin_wrapper::molfile_plugins = register_all_plugins();
