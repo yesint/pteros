@@ -102,7 +102,6 @@ VMD_molfile_plugin_wrapper::~VMD_molfile_plugin_wrapper(){
 }
 
 void VMD_molfile_plugin_wrapper::open(char open_mode){
-    // Init plugin if needed
     mode = open_mode;
 
     if(mode=='r'){
@@ -293,8 +292,8 @@ IMPORT_PLUGIN(tng)
 IMPORT_PLUGIN(xyz)
 IMPORT_PLUGIN(mol2)
 
-static molfile_plugin_t *cur_plugin;
-static string cur_name;
+molfile_plugin_t *cur_plugin;
+string cur_name;
 
 static int register_cb(void *v, vmdplugin_t *p) {
   cur_name = string(p->name);

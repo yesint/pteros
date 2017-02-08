@@ -28,7 +28,6 @@
 #include "pteros/core/selection.h"
 #include "pteros/core/distance_search_within.h"
 
-/// Pteros namespace
 namespace pteros {       
 
 /// Search contacts within single selection

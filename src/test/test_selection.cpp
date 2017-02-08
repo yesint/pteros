@@ -203,9 +203,11 @@ int main(int argc, char** argv)
 
     try{        
 
-        System s("/home/semen/work/current/Projects/albumin/SqGem/protein_combined.pdb");
-        cout << s("name CA").size() << endl;
-        s.load("/home/semen/work/current/Projects/albumin/SqGem/protein_combined.pdb");
+        System s("/storage/semen/work/temp/tim/test/init.pdb");
+        Selection selBC(s,"not (resname SOL SW NA)");
+        Selection subSelSlice = selBC("by residue(x>9.0 and x<12.0)");
+        selBC.write("selBC.pdb");
+        subSelSlice.write("subSelSlice.pdb");
 
 /*
         auto expr = name("CA") & (name("CB") | !name("CC"));
