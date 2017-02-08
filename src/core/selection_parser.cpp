@@ -699,8 +699,8 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
     else if(node->code == TOK_BY)
     {
         vector<int> res1;
-        // Evaluate enclosed expression
-        eval_node(node->child_node(0), res1, nullptr);
+        // Evaluate enclosed expression        
+        eval_node(node->child_node(0), res1, subspace);
         int Nsel = res1.size();
         // Select by residue. This respects chain!
         // First make a set of resids we need to search
