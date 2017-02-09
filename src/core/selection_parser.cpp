@@ -302,8 +302,8 @@ void Selection_parser::apply(System* system, size_t fr, vector<int>& result){
 #endif
     }    
 
-    // Eval root node using staring subset (null by default)
-    eval_node(tree,result,starting_subset);
+    // Eval root node
+    eval_node(tree,result,nullptr);
 
     // Sort result to always get ordered selection index
     //sort(result.begin(),result.end());
@@ -675,7 +675,11 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
         // Otherwise the results would be incorrect        
         // Result is returned directly into the index array of selection dum2
         // thus no additional copying
-        eval_node(node->child_node(1), dum2.index, nullptr);
+        if(starting_subset->size()){
+            eval_node(node->child_node(1), dum2.index, starting_subset);
+        } else {
+            eval_node(node->child_node(1), dum2.index, nullptr);
+        }
 
         // Prepare selection dum1
         if(!subspace){
@@ -699,8 +703,12 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
     else if(node->code == TOK_BY)
     {
         vector<int> res1;
-        // Evaluate enclosed expression        
-        eval_node(node->child_node(0), res1, subspace);
+        // Evaluate enclosed expression
+        if(starting_subset->size()){
+            eval_node(node->child_node(0), res1, starting_subset);
+        } else {
+            eval_node(node->child_node(0), res1, nullptr);
+        }
         int Nsel = res1.size();
         // Select by residue. This respects chain!
         // First make a set of resids we need to search
