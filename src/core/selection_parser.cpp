@@ -675,7 +675,7 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
         // Otherwise the results would be incorrect        
         // Result is returned directly into the index array of selection dum2
         // thus no additional copying
-        if(starting_subset->size()){
+        if(starting_subset && starting_subset->size()){
             eval_node(node->child_node(1), dum2.index, starting_subset);
         } else {
             eval_node(node->child_node(1), dum2.index, nullptr);
@@ -704,7 +704,7 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
     {
         vector<int> res1;
         // Evaluate enclosed expression
-        if(starting_subset->size()){
+        if(starting_subset && starting_subset->size()){
             eval_node(node->child_node(0), res1, starting_subset);
         } else {
             eval_node(node->child_node(0), res1, nullptr);
