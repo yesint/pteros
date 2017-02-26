@@ -526,6 +526,37 @@ void System::atoms_delete(const std::vector<int> &ind){
     }
 }
 
+void System::atom_move(int i, int j)
+{
+    // Sanity check
+    if(i<0 || i>=num_atoms()) throw Pteros_error("Index of atom to move is out of range!");
+    if(j<0 || i>=num_atoms()) throw Pteros_error("Target index to move is out of range!");
+    if(i==j) return; // Nothing to do
+
+    // Move atom
+    auto at = Atom_data(i);
+
+    if(i<j){
+        for(int a=i+1; a<=j; ++a) Atom_data(a-1) = Atom_data(a);
+        Atom_data(j) = at;
+
+        for(int fr=0; fr<num_frames(); ++fr){
+            auto coord = XYZ(i,fr);
+            for(int a=i+1; a<=j; ++a) XYZ(a-1,fr) = XYZ(a,fr);
+            XYZ(j,fr) = coord;
+        }
+    } else {
+        for(int a=i-1; a>=j; --a) Atom_data(a+1) = Atom_data(a);
+        Atom_data(j) = at;
+
+        for(int fr=0; fr<num_frames(); ++fr){
+            auto coord = XYZ(i,fr);
+            for(int a=i-1; a>=j; --a) XYZ(a+1,fr) = XYZ(a,fr);
+            XYZ(j,fr) = coord;
+        }
+    }
+}
+
 Selection System::append(const System &sys){
     //Sanity check
     if(num_frames()>0 && num_frames()!=sys.num_frames()) throw Pteros_error("Can't merge systems with different number of frames!");
