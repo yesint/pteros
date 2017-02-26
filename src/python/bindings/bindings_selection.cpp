@@ -191,8 +191,8 @@ void Selection_rotate_3_arg(Selection* s, PyObject* ar1, PyObject* ar2, PyObject
         MAP_EIGEN_TO_PYTHON_F(Vector3f,piv,ar3)
         s->rotate(dir,extract<float>(ar2),piv);
     } else {
-        MAP_EIGEN_TO_PYTHON_F(Vector3f,piv,ar3)
-        s->rotate(extract<int>(ar2),extract<float>(ar2),piv);
+        MAP_EIGEN_TO_PYTHON_F(Vector3f,piv,ar3)                
+        s->rotate(extract<int>(ar1),extract<float>(ar2),piv);
     }
 }
 
