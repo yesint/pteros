@@ -23,11 +23,15 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <cmath>
 #include "pteros/core/periodic_box.h"
 #include "pteros/core/selection.h"
 #include "pteros/core/pteros_error.h"
 #include "pteros/core/distance_search.h"
 
+#ifndef M_PI
+#define M_PI 3.14159265358979323846264338327950288
+#endif
 
 using namespace std;
 using namespace pteros;

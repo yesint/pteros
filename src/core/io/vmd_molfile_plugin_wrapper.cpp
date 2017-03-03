@@ -24,9 +24,13 @@
 #include "pteros/core/pteros_error.h"
 #include "../molfile_plugins/periodic_table.h"
 #include <Eigen/Core>
-
+#include <cmath>
 // General molfile_plugin includes
 #include "molfile_plugin.h"
+
+#ifndef M_PI
+#define M_PI 3.14159265358979323846264338327950288
+#endif
 
 using namespace std;
 using namespace pteros;
