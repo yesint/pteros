@@ -429,7 +429,7 @@ public:
     /// Delete the set of atoms by indexes
     void atoms_delete(const std::vector<int>& ind);
 
-    /// Move atom i to other position. Atom is inserted instead of atom j.
+    /// Move atom i to other position. Atom is inserted instead of atom j, shift is performed towards previous position of i.
     void atom_move(int i, int j);
     /// @}
 
