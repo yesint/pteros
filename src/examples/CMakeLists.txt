@@ -7,5 +7,5 @@ add_executable(chol_counter chol_counter.cpp bilayer.h bilayer.cpp)
 add_executable(water_movement water_movement.cpp)
 
 install(TARGETS parallel_processing benchmark cg_lipids chol_counter water_movement
-    RUNTIME DESTINATION bin/examples
+    RUNTIME DESTINATION pteros/examples
 )
