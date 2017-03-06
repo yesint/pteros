@@ -107,6 +107,15 @@ endif()
 include_directories(${Boost_INCLUDE_DIRS})
 link_libraries(${Boost_LIBRARIES})
 
+# Add Eigen
+find_package(Eigen3 3.2 REQUIRED)
+if(NOT EIGEN3_INCLUDE_DIR)
+  set(EIGEN3_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/thirdparty/Eigen)
+  install(DIRECTORY ${EIGEN3_INCLUDE_DIR} DESTINATION include)
+  #add_subdirectory(thirdparty/Eigen)
+endif()
+include_directories(${EIGEN3_INCLUDE_DIR})
+
 # Directories for compiled files
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
