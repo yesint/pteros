@@ -184,7 +184,7 @@ target_link_libraries(pteros tng_io)
 #--------------
 
 install(TARGETS pteros    
-    RUNTIME DESTINATION lib
+    RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
 )
