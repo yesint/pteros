@@ -108,11 +108,11 @@ include_directories(${Boost_INCLUDE_DIRS})
 link_libraries(${Boost_LIBRARIES})
 
 # Add Eigen
-find_package(Eigen3 3.2 REQUIRED)
+find_package(Eigen3 3.2 QUIET)
 if(NOT EIGEN3_INCLUDE_DIR)
-  set(EIGEN3_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/thirdparty/Eigen)
-  install(DIRECTORY ${EIGEN3_INCLUDE_DIR} DESTINATION include)
-  #add_subdirectory(thirdparty/Eigen)
+  set(EIGEN3_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/thirdparty)
+  install(DIRECTORY ${EIGEN3_INCLUDE_DIR}/Eigen DESTINATION include)
+  message("Eigen3 library was not found in the system. Falling back to ${EIGEN3_INCLUDE_DIR}.")
 endif()
 include_directories(${EIGEN3_INCLUDE_DIR})
 
