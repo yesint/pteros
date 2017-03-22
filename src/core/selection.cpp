@@ -734,12 +734,16 @@ vector<int> Selection::get_unique_resid() const{
 }
 
 vector<string> Selection::get_unique_resname() const{
-    vector<string> tmp,res;
+    vector<string> res;
     int i,n;
     n = index.size();
-    tmp.resize(n);
-    for(i=0; i<n; ++i) tmp[i] = system->atoms[index[i]].resname;
-    unique_copy(tmp.begin(),tmp.end(), back_inserter(res));
+    int prevResIndex=-1;
+    for(i=0; i<n; ++i) {
+      if(system->atoms[index[i]].resindex!=prevResIndex) {
+        res.push_back(system->atoms[index[i]].resname);
+        prevResIndex=system->atoms[index[i]].resindex;
+      }
+    }
     return res;
 }
 
