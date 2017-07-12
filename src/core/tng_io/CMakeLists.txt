@@ -50,7 +50,7 @@ include(GNUInstallDirs)
 ##########################################
 
 install(TARGETS tng_io
-    RUNTIME DESTINATION lib
+    RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
 )
