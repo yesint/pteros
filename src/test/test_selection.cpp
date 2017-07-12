@@ -161,9 +161,10 @@ private:
 PLUGIN_PARALLEL(Test_task)
     virtual void pre_process(){
         jump_remover.add_atoms(system("index 1-10"));
-        cout << "Test_task pre_process #" << task_id << endl;
+        cout << "Test_task pre_process #" << task_id << endl;        
     }
     virtual void process_frame(const Frame_info& info){
+        res = task_id;
 
         cout << "Test_task process_frame " << std::this_thread::get_id() << " "<< info.valid_frame << endl;
         //std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -174,10 +175,15 @@ PLUGIN_PARALLEL(Test_task)
     virtual void post_process(const Frame_info& info){
         cout << "Test_task post_process of instance " << info.last_frame << endl;
     }
+
+public:
+    int res;
 };
 
 void accum(const Frame_info& info, const std::vector<Task_ptr>& tasks){
     cout << "Running collector for " << tasks.size() << " tasks" << endl;
+    for(auto& t: tasks)
+        cout << dynamic_cast<Test_task*>(t.get())->res << " " << t->task_id << endl;
 }
 
 
@@ -203,21 +209,14 @@ int main(int argc, char** argv)
 
     try{        
 
+        /*
         System s("/storage/semen/work/temp/tim/test/init.pdb");
         Selection selBC(s,"not (resname SOL SW NA)");
         Selection subSelSlice = selBC("by residue(x>9.0 and x<12.0)");
         selBC.write("selBC.pdb");
         subSelSlice.write("subSelSlice.pdb");
+        */
 
-/*
-        auto expr = name("CA") & (name("CB") | !name("CC"));
-        cout << expr()->dump() << endl;
-
-        delete expr();
-
-
-        return 1;
-        //-----------------------
 
         Options opt;
         parse_command_line(argc,argv,opt);

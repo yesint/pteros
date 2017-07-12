@@ -29,17 +29,9 @@
 #include "pteros/analysis/options.h"
 #include "pteros/analysis/task_base.h"
 
-// Forward declaration of the message channel
-template<class T>
-class Message_channel;
 
 namespace pteros {
 
-// Forward declaration
-class Data_container;
-
-typedef Message_channel<std::shared_ptr<pteros::Data_container> > Data_channel;
-typedef std::shared_ptr<Data_channel> Data_channel_ptr;
 typedef std::shared_ptr<Task_base> Task_ptr;
 
 /** The base class for trajectory processing
@@ -110,7 +102,7 @@ private:
         Frame_info dispatch_frames_to_task(const Task_ptr &task,
                                            const Data_channel_ptr &channel,
                                            const System& sys,
-                                           bool pre_process_done);
+                                           bool pre_process_done, std::shared_ptr<Data_container> prev_data);
 
         std::function<void(const Frame_info&,const std::vector<Task_ptr>&)> collector;
 
