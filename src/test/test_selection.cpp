@@ -209,13 +209,21 @@ int main(int argc, char** argv)
 
     try{        
 
+        System sys("/home/semen/work/stored/temp/sys.pdb");
+        //System sys("/home/semen/work/current/Projects/Squalene/Dox_self_org/after_free1.gro");
+        string str="within 2.0 pbc of index 2217";
+        //string str="(name CA and resid 1088 and chain A)";
+        Selection sel(sys,str);
+        std::cout<<sel.size()<<" atoms selected (should be 3110)"<<std::endl;
+
+
         /*
         System s("/storage/semen/work/temp/tim/test/init.pdb");
         Selection selBC(s,"not (resname SOL SW NA)");
         Selection subSelSlice = selBC("by residue(x>9.0 and x<12.0)");
         selBC.write("selBC.pdb");
         subSelSlice.write("subSelSlice.pdb");
-        */
+
 
 
         Options opt;
