@@ -61,9 +61,7 @@ Distance_search_within_sel::Distance_search_within_sel(float d,
 
         // Find true bounding box
         for(int i=0;i<3;++i){
-            //overlap_1d(min1(i),max1(i),min2(i),max2(i),min(i),max(i));
-            min(i) = min1(i)<min2(i) ? min1(i) : min2(i);
-            max(i) = max1(i)>max2(i) ? max1(i) : max2(i);
+            overlap_1d(min1(i),max1(i),min2(i),max2(i),min(i),max(i));
             // If no overlap just exit
             if(max(i)==min(i)) return;
         }

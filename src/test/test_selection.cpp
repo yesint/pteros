@@ -211,8 +211,8 @@ int main(int argc, char** argv)
 
         System sys("/home/semen/work/stored/temp/sys.pdb");
         //System sys("/home/semen/work/current/Projects/Squalene/Dox_self_org/after_free1.gro");
-        string str="within 2.0 pbc of index 2217";
-        //string str="(name CA and resid 1088 and chain A)";
+
+        string str="within 2 of (name CA and resid 1088 and chain A)";
         Selection sel(sys,str);
         std::cout<<sel.size()<<" atoms selected (should be 3110)"<<std::endl;
 
