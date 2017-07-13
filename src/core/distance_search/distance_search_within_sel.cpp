@@ -81,6 +81,8 @@ Distance_search_within_sel::Distance_search_within_sel(float d,
         set_grid_size(min,max, std::min(src.size(),target.size()),box);
     }
 
+    cout << NgridX << " " << NgridY << " " << NgridZ << endl;
+
     //set_grid_size(min,max, std::min(src.size(),target.size()),box);
 
     // Allocate both grids

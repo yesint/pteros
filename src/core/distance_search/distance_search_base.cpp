@@ -61,17 +61,38 @@ void Distance_search_base::set_grid_size(const Vector3f &min, const Vector3f &ma
         */
 
     // See if some of grid vectors projected to lab axes smaller than cutoff
-    while(box.box_to_lab(Vector3f(dX,0.0,0.0))(0) < cutoff && NgridX>1){
-        --NgridX;
-        dX = (max(0)-min(0))/NgridX;
-    }
-    while(box.box_to_lab(Vector3f(0.0,dY,0.0))(1) < cutoff && NgridY>1){
-        --NgridY;
-        dY = (max(1)-min(1))/NgridY;
-    }
-    while(box.box_to_lab(Vector3f(0.0,0.0,dZ))(2) < cutoff && NgridZ>1){
-        --NgridZ;
-        dZ = (max(2)-min(2))/NgridZ;
+    //TODO: This need to be refactored to get rid of the while loop and to
+    // compute optimal size in one operation.
+    if(is_periodic) {
+
+        while(box.box_to_lab(Vector3f(dX,0.0,0.0))(0) < cutoff && NgridX>1){
+            --NgridX;
+            dX = (max(0)-min(0))/NgridX;
+        }
+        while(box.box_to_lab(Vector3f(0.0,dY,0.0))(1) < cutoff && NgridY>1){
+            --NgridY;
+            dY = (max(1)-min(1))/NgridY;
+        }
+        while(box.box_to_lab(Vector3f(0.0,0.0,dZ))(2) < cutoff && NgridZ>1){
+            --NgridZ;
+            dZ = (max(2)-min(2))/NgridZ;
+        }
+
+    } else { // No projection needed since there is no box
+
+        while(dX < cutoff && NgridX>1){
+            --NgridX;
+            dX = (max(0)-min(0))/NgridX;
+        }
+        while(dY < cutoff && NgridY>1){
+            --NgridY;
+            dY = (max(1)-min(1))/NgridY;
+        }
+        while(dZ < cutoff && NgridZ>1){
+            --NgridZ;
+            dZ = (max(2)-min(2))/NgridZ;
+        }
+
     }
 }
 
