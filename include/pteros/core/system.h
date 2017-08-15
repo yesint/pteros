@@ -433,6 +433,7 @@ public:
     void atom_move(int i, int j);
 
     /// Duplicate single target atom and puts it immediately after the source.
+    /// If using many times this procedure is slower than doing atoms_dup() and than assign_resindex().
     Selection atom_clone(int source);
 
     /// @}

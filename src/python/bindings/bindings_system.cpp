@@ -292,6 +292,8 @@ void make_bindings_System(){
         .def("atoms_dup", &System_atoms_dup)
         .def("atoms_add", &System_atoms_add)
         .def("atoms_delete", &System_atoms_delete)
+        .def("atom_move", &System::atom_move)
+        .def("atom_clone", &System::atom_clone)
 
         .def("wrap", &System_wrap_all1)
         .def("wrap", &System_wrap_all2)
