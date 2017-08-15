@@ -315,11 +315,14 @@ std::map<string,molfile_plugin_t*> register_all_plugins(){
     REGISTER_PLUGIN(xyz,ret)
     REGISTER_PLUGIN(mol2,ret)
 
+    /*
     cout << "Registered VMD molfile plugins: ";
     for(auto& item: ret){
         cout << item.first << ", ";
     }
     cout << endl;
+    */
+
     return ret;
 }
 
