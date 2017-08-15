@@ -55,7 +55,7 @@ public:
     std::vector<std::unordered_set<int> > exclusions;
     /// Matrices of normal (not excluded, not 1-4) LJ interactions.
     /// The size of the matrix == the number of distinct LJ types.
-    /// The types themselves are stored in Atom.type
+    /// The types themselves are integers and are stored in Atom.type
     /// Matrices are symmetric.
     Eigen::MatrixXf LJ_C6, LJ_C12;
     /// The list of distinct types of LJ14 interactions in the format [C6,C12]
