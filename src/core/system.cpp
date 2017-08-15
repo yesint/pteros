@@ -557,6 +557,13 @@ void System::atom_move(int i, int j)
     }
 }
 
+Selection System::atom_clone(int source)
+{
+    atoms_dup({source});
+    atom_move(num_atoms()-1,source+1);
+    return Selection(*this,source+1,source+1);
+}
+
 Selection System::append(const System &sys){
     //Sanity check
     if(num_frames()>0 && num_frames()!=sys.num_frames()) throw Pteros_error("Can't merge systems with different number of frames!");

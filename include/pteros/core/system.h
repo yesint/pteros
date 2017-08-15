@@ -419,10 +419,10 @@ public:
     /// These methods <b>do not</b> update resindexes automatically.
     /// @{
 
-    /// Adds new atoms, which are duplicates of existing ones by index
+    /// Adds new atoms, which are duplicates of existing ones by index. Atoms are placed at the end of the system.
     Selection atoms_dup(const std::vector<int>& ind);
 
-    /// Adds new atoms from supplied vectors of atoms and coordinates
+    /// Adds new atoms from supplied vectors of atoms and coordinates. Atoms are placed at the end of the system.
     Selection atoms_add(const std::vector<Atom>& atm,
                    const std::vector<Eigen::Vector3f>& crd);
 
@@ -431,6 +431,10 @@ public:
 
     /// Move atom i to other position. Atom is inserted instead of atom j, shift is performed towards previous position of i.
     void atom_move(int i, int j);
+
+    /// Duplicate single target atom and puts it immediately after the source.
+    Selection atom_clone(int source);
+
     /// @}
 
 
