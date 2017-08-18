@@ -51,7 +51,6 @@ foreach(PLUGIN ${MOLFILE_PLUGINS})
     list(APPEND MOLFILE_PLUGINS_FILE_LIST ${F})
 endforeach(PLUGIN)
 
-
 #---------------------
 # Main pteros library
 #---------------------
@@ -177,7 +176,8 @@ add_library(pteros SHARED
     ${PROJECT_SOURCE_DIR}/src/core/dssp/utils.cpp
 )
 
-target_link_libraries(pteros tng_io)
+#target_link_libraries(pteros tng_io)
+target_link_libraries(pteros PRIVATE fmt::fmt-header-only tng_io)
 
 #--------------
 # Installation
