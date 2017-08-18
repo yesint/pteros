@@ -323,6 +323,9 @@ std::map<string,molfile_plugin_t*> register_all_plugins(){
     cout << endl;
     */
 
+    // Set line buffering for stdio to use fmt normally
+    setvbuf(stdout,NULL,_IOLBF,0);
+
     return ret;
 }
 

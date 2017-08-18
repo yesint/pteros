@@ -12,17 +12,19 @@ class TestTask:
     def pre_process(self):
       print 'pre:',self.id
       self.sel = self.system()
+      self.result = []
 
 
     def process_frame(self,info):
       print 'proc:',self.id,'frame:', info.valid_frame, self.system.getXYZ(0,0)
-      for i in xrange(200):
+      for i in xrange(2):
           self.sel.rotate(0,0.1)
       self.frames.append(info.valid_frame)
+      self.result.append(info.valid_frame)
 
     def post_process(self,info):
       print 'post:',self.id,self.frames
-      self.result = self.id
+      #self.result = self.id
 
 
 def collector(results):

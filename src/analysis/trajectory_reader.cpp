@@ -468,11 +468,11 @@ void Trajectory_reader::run(){
     reader_thread.join();    
 
     //cout << endl << "Trajectory processing finished!" << endl;
-    fmt::print("Trajectory processing finished!\n");
+    fmt::print("\nTrajectory processing finished!\n");
 
     auto end = chrono::steady_clock::now();
 
-    fmt::print("Processing wall time: {}s\n", chrono::duration<double>(end-start).count() );
+    fmt::print("\nProcessing wall time: {}s\n", chrono::duration<double>(end-start).count() );
 
     // Print statistics
     if( is_parallel ){
@@ -486,7 +486,7 @@ void Trajectory_reader::run(){
     } else {
         fmt::print("\nNumber of frames processed by serial tasks:\n");
         for(int i=0; i<tasks.size(); ++i){
-            fmt::print_colored(fmt::RED,"\tTask #{}: {}\n", i,tasks[i]->n_consumed);
+            fmt::print("\tTask #{}: {}\n", i,tasks[i]->n_consumed);
         }
     }
 }
