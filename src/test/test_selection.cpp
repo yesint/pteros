@@ -158,18 +158,20 @@ private:
 
 //-------------------------------------------------------
 
+
 PLUGIN_PARALLEL(Test_task)
     virtual void pre_process(){
         jump_remover.add_atoms(system("index 1-10"));
         cout << "Test_task pre_process #" << get_id() << endl;
     }
-    virtual void process_frame(const Frame_info& info){
-        res = get_id();
+    virtual void process_frame(const Frame_info& info){        
 
-        cout << "Test_task process_frame " << res << " " << std::this_thread::get_id() << " "<< info.valid_frame << endl;
+        cout << "Test_task process_frame " << info.valid_frame << endl;
         //std::this_thread::sleep_for(std::chrono::seconds(1));
         for(int i=0; i<1; ++i)
             system().rotate(1,0.02);
+
+        res.push_back(info.valid_frame);
     }
 
     virtual void post_process(const Frame_info& info){
@@ -177,14 +179,16 @@ PLUGIN_PARALLEL(Test_task)
     }
 
 public:
-    int res;
+    vector<int> res;
 };
 
 
 void accum(const Frame_info& info, const std::vector<Task_ptr>& tasks){
     cout << "Running collector for " << tasks.size() << " tasks" << endl;
     for(auto& t: tasks){
-        cout << dynamic_cast<Test_task*>(t.get())->res << " " << t->get_id() << endl;
+        auto h = dynamic_cast<Test_task*>(t.get());
+        Eigen::Map<VectorXi> m(h->res.data(),h->res.size());
+        cout << h->get_id() << " :: " << m.transpose() << endl;
     }
 }
 

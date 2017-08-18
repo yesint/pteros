@@ -31,6 +31,8 @@
 #include <boost/algorithm/string.hpp> // For to_lower
 #include <boost/lexical_cast.hpp>
 
+#include "fmt/format.h"
+
 using namespace pteros;
 using namespace std;
 
@@ -398,7 +400,11 @@ void Trajectory_reader::run(){
         }
 
         // Now collect results from all instances that consumed some frames
-        collector(last_info, tasks);
+        vector<Task_ptr> resultive_tasks;
+        for(auto& t: tasks)
+            if(t->n_consumed) resultive_tasks.push_back(t);
+
+        collector(last_info, resultive_tasks);
 
 
     } else {
@@ -461,25 +467,26 @@ void Trajectory_reader::run(){
     // Join reader thread
     reader_thread.join();    
 
-    cout << endl << "Trajectory processing finished!" << endl;
+    //cout << endl << "Trajectory processing finished!" << endl;
+    fmt::print("Trajectory processing finished!\n");
 
     auto end = chrono::steady_clock::now();
 
-    cout << endl << "Processing wall time: " << chrono::duration<double>(end-start).count() << " s" << endl;
+    fmt::print("Processing wall time: {}s\n", chrono::duration<double>(end-start).count() );
 
     // Print statistics
     if( is_parallel ){
-        cout << endl << "Number of frames processed by parallel task instances:" << endl;
+        fmt::print("\nNumber of frames processed by parallel task instances:\n");
         int tot = 0;
         for(int i=0; i<tasks.size(); ++i){
-            cout << "\tInstance #" << i << ": " << tasks[i]->n_consumed << endl;
+            fmt::print("\tInstance #{}: {}\n", i, tasks[i]->n_consumed);
             tot += tasks[i]->n_consumed;
         }
-        cout << "\tTotal: " << tot << endl << endl;
+        fmt::print("\tTotal: {}\n", tot);
     } else {
-        cout << endl << "Number of frames processed by serial tasks:" << endl;
+        fmt::print("\nNumber of frames processed by serial tasks:\n");
         for(int i=0; i<tasks.size(); ++i){
-            cout << "\tTask #" << i << ": " << tasks[i]->n_consumed << endl;
+            fmt::print_colored(fmt::RED,"\tTask #{}: {}\n", i,tasks[i]->n_consumed);
         }
     }
 }
