@@ -8,27 +8,29 @@
 template<class T>
 class Message_channel;
 
-
 namespace pteros {
 
-// Forward declaration
-class Data_container;
 
-typedef Message_channel<std::shared_ptr<pteros::Data_container> > Data_channel;
-typedef std::shared_ptr<Data_channel> Data_channel_ptr;
+// Forward declarations
+class Data_container;
+class Task_driver;
 
 
 class Task_base {
     friend class Task_driver;
     friend class Trajectory_reader;
+
 public:
-    Task_base(){}
+    Task_base();
+    Task_base(const Task_base& other);
     virtual ~Task_base(){}
     virtual Task_base* clone() const = 0;
 
+    void set_id(int _id){ task_id = _id; }
+    int get_id(){ return task_id; }
+
     System system;
-    int task_id;
-    int n_consumed;
+
 protected:
     virtual bool is_parallel() = 0;
     virtual void pre_process() = 0;
@@ -49,18 +51,14 @@ protected:
         post_process(info);
     }
 
-private:
-    Data_channel_ptr channel;
+private:    
+    int n_consumed;
+    int task_id;
 
     void put_frame(const Frame& frame);
-    void put_system(const System& sys);
+    void put_system(const System& sys);    
 
-    void set_channel(Data_channel_ptr ch);
-
-    void init_with_first_frame();
-    void process_first_frame();
-    void consume_until_end();
-    void consume_until_end_in_thread();
+    std::shared_ptr<Task_driver> driver;
 };
 
 }

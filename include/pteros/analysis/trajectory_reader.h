@@ -33,6 +33,8 @@
 namespace pteros {
 
 typedef std::shared_ptr<Task_base> Task_ptr;
+typedef Message_channel<std::shared_ptr<pteros::Data_container> > Data_channel;
+typedef std::shared_ptr<Data_channel> Data_channel_ptr;
 
 /** The base class for trajectory processing
 *   It provides facilities for loading large trajectories by frames
@@ -48,7 +50,7 @@ public:
         /// Constructor with options
         Trajectory_reader(const Options& opt);
         /// Destructor
-        virtual ~Trajectory_reader(){};
+        virtual ~Trajectory_reader(){}
 
         /// Pass options
         void set_options(const Options& opt){
@@ -98,11 +100,6 @@ private:
         std::vector<Task_ptr> tasks;
 
         bool is_parallel;
-
-        Frame_info dispatch_frames_to_task(const Task_ptr &task,
-                                           const Data_channel_ptr &channel,
-                                           const System& sys,
-                                           bool pre_process_done, std::shared_ptr<Data_container> prev_data);
 
         std::function<void(const Frame_info&,const std::vector<Task_ptr>&)> collector;
 

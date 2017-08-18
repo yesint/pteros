@@ -161,14 +161,14 @@ private:
 PLUGIN_PARALLEL(Test_task)
     virtual void pre_process(){
         jump_remover.add_atoms(system("index 1-10"));
-        cout << "Test_task pre_process #" << task_id << endl;        
+        cout << "Test_task pre_process #" << get_id() << endl;
     }
     virtual void process_frame(const Frame_info& info){
-        res = task_id;
+        res = get_id();
 
-        cout << "Test_task process_frame " << std::this_thread::get_id() << " "<< info.valid_frame << endl;
+        cout << "Test_task process_frame " << res << " " << std::this_thread::get_id() << " "<< info.valid_frame << endl;
         //std::this_thread::sleep_for(std::chrono::seconds(1));
-        for(int i=0; i<10; ++i)
+        for(int i=0; i<1; ++i)
             system().rotate(1,0.02);
     }
 
@@ -180,21 +180,23 @@ public:
     int res;
 };
 
+
 void accum(const Frame_info& info, const std::vector<Task_ptr>& tasks){
     cout << "Running collector for " << tasks.size() << " tasks" << endl;
-    for(auto& t: tasks)
-        cout << dynamic_cast<Test_task*>(t.get())->res << " " << t->task_id << endl;
+    for(auto& t: tasks){
+        cout << dynamic_cast<Test_task*>(t.get())->res << " " << t->get_id() << endl;
+    }
 }
 
 
-TASK_SERIAL(Test_serial)
+PLUGIN_SERIAL(Test_serial)
     virtual void pre_process(){
         cout << "Test_serial pre_process" << endl;
     }
     virtual void process_frame(const Frame_info& info){
 
         cout << "Test_serial process_frame " << std::this_thread::get_id() << " "<< info.valid_frame << endl;
-        std::this_thread::sleep_for(std::chrono::seconds(1));
+        //std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 
     virtual void post_process(const Frame_info& info){
@@ -209,29 +211,15 @@ int main(int argc, char** argv)
 
     try{        
 
-        System sys("/home/semen/work/stored/temp/sys.pdb");
-        //System sys("/home/semen/work/current/Projects/Squalene/Dox_self_org/after_free1.gro");
-
-        string str="within 2 of (name CA and resid 1088 and chain A)";
-        Selection sel(sys,str);
-        std::cout<<sel.size()<<" atoms selected (should be 3110)"<<std::endl;
-
-
-        /*
-        System s("/storage/semen/work/temp/tim/test/init.pdb");
-        Selection selBC(s,"not (resname SOL SW NA)");
-        Selection subSelSlice = selBC("by residue(x>9.0 and x<12.0)");
-        selBC.write("selBC.pdb");
-        subSelSlice.write("subSelSlice.pdb");
-
-
-
         Options opt;
         parse_command_line(argc,argv,opt);
         Trajectory_reader reader(opt);
 
-
         reader.add_task( new Test_task(opt) );
+
+        //reader.add_task( new Test_serial(opt) );
+        //reader.add_task( new Test_serial(opt) );
+
         reader.register_collector( &accum );
 
         //reader.add_task( new Test_serial() );

@@ -13,7 +13,7 @@ namespace pteros {
 class Task_plugin: public Task_base {
 public:
 
-    Task_plugin(const Options& opt): options(opt) { }
+    Task_plugin(const Options& opt): options(opt) { }    
 
     Options options;
     Jump_remover jump_remover;
@@ -56,6 +56,7 @@ protected:
         } \
     protected: \
     virtual bool is_parallel() final { return false; }
+
 
 
 #endif // TASK_BASE_H
