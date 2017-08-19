@@ -68,9 +68,8 @@ PyObject* mapper(PyObject* pyobj, size_t& dim1, size_t& dim2){
             && T::ColsAtCompileTime!=Eigen::Dynamic
             && (T::RowsAtCompileTime!=dim1 || T::ColsAtCompileTime!=dim2) )
         {
-            throw Pteros_error()<<"Passed an array of size "<<dim1<<":"<<dim2
-                            << " while expected size is "
-                            << T::RowsAtCompileTime<<":"<<T::ColsAtCompileTime<<"!";
+            throw Pteros_error("Passed an array of size {}:{} while expected size is {}:{}",
+                               dim1, dim2, T::RowsAtCompileTime, T::ColsAtCompileTime);
         }
 
         // Check array type
@@ -106,9 +105,8 @@ PyObject* mapper(PyObject* pyobj, size_t& dim1, size_t& dim2){
             && T::ColsAtCompileTime!=Eigen::Dynamic
             && (T::RowsAtCompileTime!=dim1 || T::ColsAtCompileTime!=dim2) )
         {
-            throw Pteros_error()<< "Passed an object of size "<<dim1<<":"<<dim2
-                            << " while expected size is "
-                            << T::RowsAtCompileTime<<":"<<T::ColsAtCompileTime<<"!";
+            throw Pteros_error("Passed an object of size {}:{} while expected size is {}:{}",
+                               dim1, dim2, T::RowsAtCompileTime, T::ColsAtCompileTime);
         }
 
         // Convert to array and map

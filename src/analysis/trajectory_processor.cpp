@@ -276,9 +276,9 @@ void Trajectory_processor::run(){
 
     // Check if the range is valid
     if(first_frame>=0 && last_frame>=0 && last_frame<first_frame)
-        throw Pteros_error("Last frame") << last_frame << " is smaller that first frame " << first_frame;
+        throw Pteros_error("Last frame {} is smaller that first frame {}", last_frame, first_frame);
     if(first_time>=0 && last_time>=0 && last_time<first_time)
-        throw Pteros_error("Last time") << last_time<< " is smaller that first time" << first_time;
+        throw Pteros_error("Last time {} is smaller that first time {}", last_time, first_time);
 
     log_interval = options("log","-1").as_int();
 

@@ -23,9 +23,7 @@
 #ifndef PERROR_H
 #define PERROR_H
 
-#include <sstream>
-#include <iostream>
-#include <exception>
+#include "spdlog/fmt/fmt.h"
 
 namespace pteros {
 
@@ -34,38 +32,27 @@ class Pteros_error {
 public:
 
     Pteros_error(const Pteros_error& p){
-        text.str(p.text.str());
+        text = p.text;
     }
 
-    Pteros_error(){
-        text.str("");
-    }
+    Pteros_error(): text("") { }
 
     /// Constructs an exception object with text message
-    Pteros_error(std::string s){
-        text.str(s);
+    Pteros_error(std::string s): text(s) { }
+
+    template <typename... Args>
+    Pteros_error(const char *format, const Args & ... args) {
+        text = fmt::format(format, args...);
     }
 
-    /** Operator << allows constructing error strings on the fly
-         like this:
-            \code throw Pteros_error("Wrong number ") << 5
-                    << " should be between "
-                    << 7 << " and " << 10;
-            \endcode
-        */
-    template<class T>
-    Pteros_error& operator<<(T data){
-        text << data; //Collect data
-        return *this;
-    };
 
     /// Return error message as string
     std::string what() const {
-        return text.str();
+        return text;
     }
 
 private:
-    std::stringstream text;
+    std::string text;
 };
 
 }

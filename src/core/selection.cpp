@@ -45,6 +45,7 @@
 #include <Eigen/Dense>
 
 #include "selection_macro.h"
+#include "pteros/core/logging.h"
 
 using namespace std;
 using namespace pteros;
@@ -68,10 +69,9 @@ void Selection::sort_and_remove_duplicates()
         sort(index.begin(),index.end());
         vector<int>::iterator it = unique(index.begin(), index.end());
         index.resize( it - index.begin() );
-        if(index[0]<0) throw Pteros_error("Negative index present in Selection!");
+        if(index[0]<0) throw Pteros_error(fmt::format("Negative index {} present in Selection!",index[0]));
     } else {
-        if(size()==0) cout << "(WARNING) Selection '" << sel_text
-                           << "' is empty!\n\t\tAny call of its methods (except size()) will crash your program!" << endl;
+        if(size()==0) LOG()->warn("Selection '{}' is empty! Any call of its methods (except size()) will crash a program!", sel_text);
     }
 }
 
@@ -100,7 +100,7 @@ Selection::Selection(const System &sys, string str, int fr){
 
     // Sanity check
     if(frame<0 || frame>=system->num_frames())
-        throw Pteros_error("Can't make selection for non-existent frame ") << frame << "!";
+        throw Pteros_error("Can't make selection for non-existent frame {} (# of frames is {})", frame, system->num_frames());
 
     allocate_parser();
 
@@ -128,7 +128,7 @@ Selection::Selection(const System &sys, int ind1, int ind2){
     // No parser needed
     parser.reset();
 
-    if(ind2<ind1) throw Pteros_error("Wrong order of indexes (") << ind1 << ":" << ind2 << ")";
+    if(ind2<ind1) throw Pteros_error("Wrong order of indexes {} and {} (must be ascending)", ind1,ind2);
 
     // Populate selection directly
     index.reserve(ind2-ind1+1);
@@ -177,7 +177,7 @@ Selection::Selection(const System& sys,
     frame = fr;
     // Sanity check
     if(frame<0 || frame>=sys.num_frames())
-        throw Pteros_error("Can't make selection for non-existent frame ") << frame << "!";
+        throw Pteros_error("Can't make selection for non-existent frame {} (# of frames is {})", frame, sys.num_frames());
 
     // set system
     system = const_cast<System*>(&sys);
@@ -298,8 +298,8 @@ Selection Selection::select(string str)
     sub.frame = frame;
 
     // Sanity check
-    if(sub.frame<0 || sub.frame>=sub.system->num_frames())
-        throw Pteros_error("Can't make selection for non-existent frame ") << sub.frame << "!";
+    if(sub.frame<0 || sub.frame>=sub.system->num_frames())        
+        throw Pteros_error("Can't make selection for non-existent frame {} (# of frames is {})", sub.frame, sub.system->num_frames());
 
     // Manually allocate parser with subset from parent index
     sub.parser.reset(new Selection_parser(&index));
@@ -361,8 +361,8 @@ void Selection::modify(string str, int fr){
     index.clear();
     frame = fr;
     // Sanity check
-    if(frame<0 || frame>=system->num_frames())
-        throw Pteros_error("Can't make selection for non-existent frame ") << frame << "!";
+    if(frame<0 || frame>=system->num_frames())        
+        throw Pteros_error("Can't make selection for non-existent frame {} (# of frames is {})", frame, system->num_frames());
     allocate_parser();    
 }
 
@@ -373,7 +373,7 @@ void Selection::modify(int ind1, int ind2){
     // not textual
     sel_text = "";    
     // Populate selection directly
-    if(ind2<ind1) throw Pteros_error("Wrong order of indexes (") << ind1 << ":" << ind2 << ")";
+    if(ind2<ind1) throw Pteros_error("Wrong order of indexes {} and {} (must be ascending)", ind1,ind2);
     index.clear();
     for(int i=ind1; i<=ind2; ++i) index.push_back(i);       
 }
@@ -413,7 +413,7 @@ void Selection::modify(const std::function<void (const System &, int, std::vecto
     frame = fr;
     // Sanity check
     if(frame<0 || frame>=system->num_frames())
-        throw Pteros_error("Can't make selection for non-existent frame ") << frame << "!";
+        throw Pteros_error("Can't make selection for non-existent frame {} (# of frames is {})", frame, system->num_frames());
     // fill
     callback(*system,frame,index);
 
@@ -599,11 +599,8 @@ void Selection::apply(){
 }
 
 void Selection::set_frame(int fr){
-    if(fr<0 || fr >= system->num_frames()){
-        Pteros_error e;
-        e << "Invalid frame " << fr << " to set! Valid range is 0:" << system->num_frames();
-        throw e;
-    }
+    if(fr<0 || fr >= system->num_frames())
+        throw Pteros_error("Invalid frame {} to set! Valid range is 0:", fr, system->num_frames());
 
     if(frame!=fr){
         frame = fr;
@@ -651,12 +648,7 @@ void Selection::set_chain(const vector<char>& data){
     int i,n;
     n = index.size();
     // Sanity check
-    if(data.size()!=n){
-        Pteros_error e;
-        e << "Invalid data size "<< data.size()
-          << " for selection of size " << n;
-        throw e;
-    }
+    if(data.size()!=n) throw Pteros_error("Invalid data size {} for selection of size {}", data.size(),n);
     for(i=0; i<n; ++i) system->atoms[index[i]].chain = data[i];
 }
 
@@ -690,12 +682,7 @@ void Selection::set_resid(const vector<int>& data){
     int i,n;
     n = index.size();
     // Sanity check
-    if(data.size()!=n){
-        Pteros_error e;
-        e << "Invalid data size "<< data.size()
-          << " for selection of size " << n;
-        throw e;
-    }
+    if(data.size()!=n) throw Pteros_error("Invalid data size {} for selection of size {}", data.size(),n);
     for(i=0; i<n; ++i) system->atoms[index[i]].resid = data[i];
 }
 
@@ -761,12 +748,7 @@ vector<int> Selection::get_unique_resindex() const {
 void Selection::set_mass(const std::vector<float> m){
     int i,n;
     n = index.size();
-    if(m.size()!=n){
-        Pteros_error e;
-        e << "Invalid data size "<< m.size()
-          << " for selection of size " << n;
-        throw e;
-    }
+    if(m.size()!=n) throw Pteros_error("Invalid data size {} for selection of size {}", m.size(),n);
     for(i=0; i<n; ++i) Mass(i) = m[i];
 }
 
@@ -791,12 +773,7 @@ void Selection::set_name(const vector<string>& data){
     int i,n;
     n = index.size();
     // Sanity check
-    if(data.size()!=n){
-        Pteros_error e;
-        e << "Invalid data size "<< data.size()
-          << " for selection of size " << n;
-        throw e;
-    }
+    if(data.size()!=n) throw Pteros_error("Invalid data size {} for selection of size {}", data.size(),n);
     for(i=0; i<n; ++i) system->atoms[index[i]].name = data[i];
 }
 
@@ -820,12 +797,7 @@ void Selection::set_resname(const vector<string>& data){
     int i,n;
     n = index.size();
     // Sanity check
-    if(data.size()!=n){
-        Pteros_error e;
-        e << "Invalid data size "<< data.size()
-          << " for selection of size " << n;
-        throw e;
-    }
+    if(data.size()!=n) throw Pteros_error("Invalid data size {} for selection of size {}", data.size(),n);
     for(i=0; i<n; ++i) system->atoms[index[i]].resname = data[i];
 }
 
@@ -874,12 +846,7 @@ MatrixXf Selection::average_structure(int b, int e) const {
 void Selection::set_xyz(pteros::MatrixXf_const_ref coord){
     int n = index.size();
     // Sanity check
-    if(coord.cols()!=n){
-        Pteros_error e;
-        e << "Invalid data size "<< coord.size()
-          << " for selection of size " << n;
-        throw e;
-    }
+    if(coord.cols()!=n) throw Pteros_error("Invalid data size {} for selection of size {}", coord.size(),n);
     for(int i=0; i<n; ++i) XYZ(i) = coord.col(i);
 }
 
@@ -896,12 +863,7 @@ void Selection::set_beta(std::vector<float>& data){
     int i,n;
     n = index.size();
     // Sanity check
-    if(data.size()!=n){
-        Pteros_error e;
-        e << "Invalid data size "<< data.size()
-          << " for selection of size " << n;
-        throw e;
-    }
+    if(data.size()!=n) throw Pteros_error("Invalid data size {} for selection of size {}", data.size(),n);
     for(i=0; i<n; ++i) system->atoms[index[i]].beta = data[i];
 }
 
@@ -925,12 +887,7 @@ void Selection::set_occupancy(std::vector<float>& data){
     int i,n;
     n = index.size();
     // Sanity check
-    if(data.size()!=n){
-        Pteros_error e;
-        e << "Invalid data size "<< data.size()
-          << " for selection of size " << n;
-        throw e;
-    }
+    if(data.size()!=n) throw Pteros_error("Invalid data size {} for selection of size {}", data.size(),n);
     for(i=0; i<n; ++i) system->atoms[index[i]].occupancy = data[i];
 }
 
@@ -955,12 +912,7 @@ void Selection::set_tag(std::vector<string> &data)
     int i,n;
     n = index.size();
     // Sanity check
-    if(data.size()!=n){
-        Pteros_error e;
-        e << "Invalid data size "<< data.size()
-          << " for selection of size " << n;
-        throw e;
-    }
+    if(data.size()!=n) throw Pteros_error("Invalid data size {} for selection of size {}", data.size(),n);
     for(i=0; i<n; ++i) system->atoms[index[i]].tag = data[i];
 }
 
@@ -1174,12 +1126,8 @@ float Selection::rmsd(int fr1, int fr2) const{
     float res = 0.0;
 
     if(fr1<0 || fr1>=system->num_frames() ||
-       fr2<0 || fr2>=system->num_frames()){
-        Pteros_error e;
-        e << "RMSD requested for frames" << fr1 << " and "<<fr2
-          << " while the valid range is " << 0<<":"<<system->num_frames()-1;
-        throw e;
-    }
+       fr2<0 || fr2>=system->num_frames())
+        throw Pteros_error("RMSD requested for frames {}:{} while the valid range is 0:{}", fr1,fr2,system->num_frames()-1);
 
     #pragma omp parallel for reduction(+:res)
     for(int i=0; i<n; ++i)
@@ -1190,12 +1138,9 @@ float Selection::rmsd(int fr1, int fr2) const{
 
 //RMSD between current and other frame
 float Selection::rmsd(int fr) const {
-    if(fr<0 || fr>=system->num_frames()){
-        Pteros_error e;
-        e << "RMSD requested for frame" << fr
-          << " while the valid range is " << 0<<":"<<system->num_frames()-1;
-        throw e;
-    }
+    if(fr<0 || fr>=system->num_frames())
+        throw Pteros_error("RMSD requested for frame {} while the valid range is 0:{}", fr,system->num_frames()-1);
+
     return rmsd(frame,fr);
 }
 
@@ -1291,21 +1236,12 @@ float rmsd(const Selection& sel1, int fr1, const Selection& sel2, int fr2){
     int n1 = sel1.index.size();
     int n2 = sel2.index.size();
     float res = 0.0;
-    if(n1!=n2){
-        Pteros_error e;
-        e << "Incompatible selections for RMSD of sizes"
-          << n1 << "and" << n2;
-        throw e;
-    }
-    if(fr1<0 || fr1>=sel1.system->num_frames() ||
-            fr2<0 || fr2>=sel2.system->num_frames()){
-        Pteros_error e;
-        e << "RMSD requested for frames" << fr1 << " and "<<fr2
-          << " while the valid ranges are \n"
-          <<"0:"<<sel1.system->num_frames()-1<<" and "
-          <<"0:"<<sel2.system->num_frames()-1;
-        throw e;
-    }
+    if(n1!=n2) throw Pteros_error("Incompatible selections for RMSD of sizes {} and {}", n1,n2);
+
+    if(fr1<0 || fr1>=sel1.system->num_frames() || fr2<0 || fr2>=sel2.system->num_frames())
+        throw Pteros_error("RMSD requested for frames {}:{} while the valid range is {}:{}",
+                          fr1,fr2,sel1.system->num_frames()-1,sel2.system->num_frames()-1);
+
 
     #pragma omp parallel for reduction(+:res)
     for(int i=0; i<n1; ++i)
@@ -1324,12 +1260,7 @@ Affine3f fit_transform(const Selection& sel1, const Selection& sel2){
     int n1 = sel1.size();
     int n2 = sel2.size();
 
-    if(n1!=n2){
-        Pteros_error e;
-        e << "Incompatible selections for fitting of sizes "
-          << n1 << "and" << n2;
-        throw e;
-    }
+    if(n1!=n2) throw Pteros_error("Incompatible selections for fitting of sizes {} and {}", n1, n2);
 
     Affine3f rot;
     Vector3f cm1, cm2;
