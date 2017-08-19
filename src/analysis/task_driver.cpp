@@ -45,7 +45,7 @@ void Task_driver::process_until_end() {
         task->post_process_handler(data->frame_info);
         last_info = data->frame_info; // Save last processed frame
     } else {
-        cout << "(WARNING) Task " << task->task_id << " consumed no frames!" << endl;
+        task->log->warn("No frames consumed!");
     }
 }
 

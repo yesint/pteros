@@ -174,7 +174,7 @@ int main(int argc, char** argv){
         Chol_counter counter(&proc,options);
         proc.run();
     } catch(const Pteros_error& e){
-        e.print();
+        cout << e.what() << endl;
     }
 }
 

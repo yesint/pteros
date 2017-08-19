@@ -26,7 +26,6 @@
 #include "pteros/core/system.h"
 #include "pteros/analysis/frame_info.h"
 #include <fstream>
-#include <iostream>
 #include <memory>
 
 template<class T>

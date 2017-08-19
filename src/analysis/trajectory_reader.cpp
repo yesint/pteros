@@ -31,7 +31,7 @@
 #include <boost/algorithm/string.hpp> // For to_lower
 #include <boost/lexical_cast.hpp>
 
-#include "fmt/format.h"
+#include "pteros/core/logging.h"
 
 using namespace pteros;
 using namespace std;
@@ -169,10 +169,13 @@ Trajectory_reader::Trajectory_reader(const Options &opt): options(opt), collecto
 
 }
 
-void Trajectory_reader::run(){
-    // Preparation stage
+void Trajectory_reader::run(){    
+    // Separate logger (not registered since only used here)
+    auto log = std::make_shared<spdlog::logger>("trj_processor", Log::instance().console_sink);
+    log->set_pattern(Log::instance().generic_pattern);
 
-    cout << "Starting trajectory processing..." << endl;
+    // Preparation stage
+    log->trace("Starting trajectory processing");
     auto start = chrono::steady_clock::now();
 
     // Get file path
@@ -322,8 +325,8 @@ void Trajectory_reader::run(){
     reader_channel->set_buffer_size(buf_size);
 
     int Nproc = std::thread::hardware_concurrency();
-    cout << "Physical cores: " << Nproc << endl;    
-    cout << "\tFile reading thread: 1" << endl;
+    log->info("Physical cores: {}", Nproc);
+    log->info("\tFile reading thread: 1");
 
     // Start reader thread    
     std::thread reader_thread( &Trajectory_reader::reader_thread_body, this, ref(reader_channel) );
@@ -348,8 +351,8 @@ void Trajectory_reader::run(){
         // We have Nproc-2 remote threads + this thread = Nproc-1 in total        
         int num_threads = Nproc-1;
 
-        cout << "\tThreads running parallel task: " << num_threads+1 << endl;
-        cout << "\t(" << num_threads << " separate + 1 master)" << endl;
+        log->info("\tThreads running parallel task: {}", num_threads+1);
+        log->info("\t({} separate + 1 master)", num_threads);
 
         // We have to reserve memory for all tasks in advance!
         // Otherwise due to reallocation of array pointers sent to threads may become invalid
@@ -373,7 +376,7 @@ void Trajectory_reader::run(){
             // Clone provided task to make new independent instance
             tasks.push_back( Task_ptr(tasks[0]->clone()) );
             //cout << "clonned " << i << endl;
-            tasks[i]->set_id(i);
+            tasks[i]->set_id(i);            
             tasks[i]->driver->set_data_channel(reader_channel);
             tasks[i]->driver->process_until_end_in_thread();
         }
@@ -404,6 +407,7 @@ void Trajectory_reader::run(){
         for(auto& t: tasks)
             if(t->n_consumed) resultive_tasks.push_back(t);
 
+        log->info("Collecting results from {} resultive tasks...", resultive_tasks.size());
         collector(last_info, resultive_tasks);
 
 
@@ -420,8 +424,8 @@ void Trajectory_reader::run(){
             // More than 1 consumer, start all of them in separate threads
             // Master thread will work as dispatcher
 
-            cout << "\tRunning " << tasks.size() << " serial tasks in separate threads" << endl;
-            cout << "\t(master thread is dispatcjing frames)" << endl;
+            log->info("\tRunning {} serial tasks in separate threads", tasks.size());
+            log->info("\t(master thread is dispatcjing frames)");
 
             // We have to reserve memory for all channels in advance!
             // Otherwise due to reallocation of array pointers sent to threads may become invalid
@@ -457,7 +461,7 @@ void Trajectory_reader::run(){
 
         } else {
             // There is only one consumer, no need for multiple threads
-            cout << "\tRunning single serial task in master thread" << endl;
+            log->info("\tRunning single serial task in master thread");
             tasks[0]->set_id(0);
             tasks[0]->driver->set_data_channel(reader_channel);
             tasks[0]->driver->process_all(system);
@@ -467,32 +471,36 @@ void Trajectory_reader::run(){
     // Join reader thread
     reader_thread.join();    
 
-    //cout << endl << "Trajectory processing finished!" << endl;
-    fmt::print("\nTrajectory processing finished!\n");
+    log->info("Trajectory processing finished!");
 
     auto end = chrono::steady_clock::now();
 
-    fmt::print("\nProcessing wall time: {}s\n", chrono::duration<double>(end-start).count() );
+    log->info("Processing wall time: {}s", chrono::duration<double>(end-start).count() );
 
     // Print statistics
     if( is_parallel ){
-        fmt::print("\nNumber of frames processed by parallel task instances:\n");
+        log->info("Number of frames processed by parallel task instances:");
         int tot = 0;
         for(int i=0; i<tasks.size(); ++i){
-            fmt::print("\tInstance #{}: {}\n", i, tasks[i]->n_consumed);
+            log->info("\tInstance #{}: {}", i, tasks[i]->n_consumed);
             tot += tasks[i]->n_consumed;
         }
-        fmt::print("\tTotal: {}\n", tot);
+        log->info("\tTotal: {}", tot);
     } else {
-        fmt::print("\nNumber of frames processed by serial tasks:\n");
+        log->info("Number of frames processed by serial tasks:");
         for(int i=0; i<tasks.size(); ++i){
-            fmt::print("\tTask #{}: {}\n", i,tasks[i]->n_consumed);
+            log->info("\tTask #{}: {}", i,tasks[i]->n_consumed);
         }
     }
 }
 
 void Trajectory_reader::reader_thread_body(const Data_channel_ptr &channel){
-    try {        
+    // Separate reader logger (not registered since only used here)
+    auto log = std::make_shared<spdlog::logger>("trj_reader", Log::instance().console_sink);
+    log->set_pattern(Log::instance().generic_pattern);
+
+
+    try {
         int abs_frame = -1;
         int valid_frame = -1;
         // Saved first frame and time
@@ -502,7 +510,7 @@ void Trajectory_reader::reader_thread_body(const Data_channel_ptr &channel){
         bool finished = false;
 
         for(string& fname: traj_files){
-            cout << "==> Reading trajectory " << fname << endl;
+            log->info("Reading trajectory {}...", fname);
 
             auto trj = Mol_file::open(fname,'r');
 
@@ -521,7 +529,7 @@ void Trajectory_reader::reader_thread_body(const Data_channel_ptr &channel){
                 ++abs_frame; // Next absolute frame
 
                 if(log_interval>0 && abs_frame%log_interval==0)
-                    cout << "At frame " << abs_frame << endl;
+                    log->info("At frame {}",abs_frame);
 
                 // If time stamps are overriden, use overrides
                 if(custom_dt>=0){
@@ -563,7 +571,7 @@ void Trajectory_reader::reader_thread_body(const Data_channel_ptr &channel){
                 channel->send(data);
             } // Over frames
 
-            cout << "==> trajectory done" << endl;
+            log->info("Done with trajectory {}", fname);
 
             // If end reached break here too
             if(finished) break;
@@ -576,8 +584,7 @@ void Trajectory_reader::reader_thread_body(const Data_channel_ptr &channel){
     } catch(Pteros_error e) {
         // Send stop if exception raised
         channel->send_stop();
-        cout << "(ERROR) Execution of the reading thread stopped due to exception:" << endl;
-        cout << e.what() << endl;
+        log->error("Execution of the trajectory reader stopped:\n\t{}", e.what());
     }
 }
 

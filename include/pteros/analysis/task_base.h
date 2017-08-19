@@ -26,10 +26,12 @@ public:
     virtual ~Task_base(){}
     virtual Task_base* clone() const = 0;
 
-    void set_id(int _id){ task_id = _id; }
+    virtual void set_id(int _id){ task_id = _id; }
     int get_id(){ return task_id; }
 
     System system;
+
+    std::shared_ptr<spdlog::logger> log;
 
 protected:
     virtual bool is_parallel() = 0;
@@ -51,12 +53,13 @@ protected:
         post_process(info);
     }
 
-private:    
-    int n_consumed;
     int task_id;
+    int n_consumed;
+
+private:        
 
     void put_frame(const Frame& frame);
-    void put_system(const System& sys);    
+    void put_system(const System& sys);
 
     std::shared_ptr<Task_driver> driver;
 };

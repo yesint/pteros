@@ -27,6 +27,7 @@
 #include <cmath>
 // General molfile_plugin includes
 #include "molfile_plugin.h"
+#include "pteros/core/logging.h"
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846264338327950288
@@ -322,9 +323,8 @@ std::map<string,molfile_plugin_t*> register_all_plugins(){
     }
     cout << endl;
     */
-
-    // Set line buffering for stdio to use fmt normally
     setvbuf(stdout,NULL,_IOLBF,0);
+    spdlog::set_pattern("[%n] (%l) %v");
 
     return ret;
 }

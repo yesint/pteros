@@ -135,7 +135,7 @@ int main(int argc, char** argv){
 
 
     } catch(const Pteros_error& e){
-        e.print();
+        cout << e.what() << endl;
     }
 }
 

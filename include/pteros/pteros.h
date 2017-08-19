@@ -10,6 +10,8 @@
 #include "analysis/consumer.h"
 #include "analysis/options.h"
 
+#include "pteros/core/logging.h"
+
 #include "core/utilities.h"
 
 #include <Eigen/Core>

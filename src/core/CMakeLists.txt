@@ -57,6 +57,7 @@ endforeach(PLUGIN)
 
 add_library(pteros SHARED
     # General
+    ${PROJECT_SOURCE_DIR}/include/pteros/core/logging.h
     ${PROJECT_SOURCE_DIR}/include/pteros/core/utilities.h
     utilities.cpp
     ${PROJECT_SOURCE_DIR}/include/pteros/pteros.h
@@ -177,7 +178,7 @@ add_library(pteros SHARED
 )
 
 #target_link_libraries(pteros tng_io)
-target_link_libraries(pteros PRIVATE fmt::fmt-header-only tng_io)
+target_link_libraries(pteros tng_io)
 
 #--------------
 # Installation

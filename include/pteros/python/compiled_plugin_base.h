@@ -36,7 +36,7 @@ protected:
             std::cout << std::endl << "(ERROR) Compiled plugin method: '"
                       << BOOST_CURRENT_FUNCTION << "'" << std::endl;
             std::cout << "(ERROR) in plugin instance: " << label << std::endl;
-            e.print();
+            std::cout << e.what() << std::endl;
             exit(1);
         }
     }
@@ -48,7 +48,7 @@ protected:
             std::cout << std::endl << "(ERROR) Compiled plugin method: '"
                       << BOOST_CURRENT_FUNCTION << "'" << std::endl;
             std::cout << "(ERROR) in plugin instance: " << label << std::endl;
-            e.print();
+            std::cout << e.what() << std::endl;
             exit(1);
         }
     }
@@ -61,7 +61,7 @@ protected:
                       << BOOST_CURRENT_FUNCTION << "'" << std::endl;
             std::cout << "(ERROR) Occured on frame " << info.valid_frame << std::endl;
             std::cout << "(ERROR) in plugin instance: " << label << std::endl;
-            e.print();
+            std::cout << e.what() << std::endl;
             exit(1);
         }
     }    

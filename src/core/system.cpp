@@ -32,11 +32,14 @@
 #include "selection_parser.h"
 // DSSP
 #include "pteros_dssp_wrapper.h"
-
+#include "spdlog/fmt/fmt.h"
 
 using namespace std;
 using namespace pteros;
 using namespace Eigen;
+using namespace fmt;
+
+
 
 // Base constructor of the system class
 System::System() {
@@ -165,17 +168,15 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
 
             // Skip frames if needed
             if(b>0){
-                cout << "Skipping " << b << " frames..." << endl;
+                fmt::print("Skipping {} frames...\n", b);
                 Frame skip_fr;
                 for(int i=0;i<b;++i){
                     f->read(nullptr, &skip_fr, Mol_file_content().traj(true));                    ;
                     cur++;
                 }
-            }
+            }            
 
-            int first = num_frames(); // Remember start
-
-            cout << "Reading..."<<endl;
+            print("Reading...\n");
 
             int actually_read = 0;
 
@@ -237,7 +238,7 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
         }
     }
 
-    cout << "Accepted " << num_stored << " frames. Now " << num_frames() << " frames in the System" << endl;
+    print("Accepted {} frames. Now {} frames in the System.\n", num_stored, num_frames());
 }
 
 bool System::load(const std::unique_ptr<Mol_file>& handler, Mol_file_content what, std::function<bool (System *, int)> on_frame)
@@ -376,7 +377,7 @@ void System::frame_delete(int b, int e){
 
     // Check if there are some frames left. If not print the warning
     // that all selections are invalid!
-    if(traj.size()==0) cout << "All frames are deleted. All selections are now INVALID!";
+    if(traj.size()==0) print("All frames are deleted. All selections are now INVALID!\n");
 }
 
 void System::frame_swap(int fr1, int fr2)
@@ -529,8 +530,8 @@ void System::atoms_delete(const std::vector<int> &ind){
 void System::atom_move(int i, int j)
 {
     // Sanity check
-    if(i<0 || i>=num_atoms()) throw Pteros_error("Index of atom to move is out of range!");
-    if(j<0 || i>=num_atoms()) throw Pteros_error("Target index to move is out of range!");
+    if(i<0 || i>=num_atoms()) throw Pteros_error(format("Index of atom to move ({}}) is out of range ({}:{})!", i,0,num_atoms()));
+    if(j<0 || i>=num_atoms()) throw Pteros_error(format("Target index to move ({}}) is out of range ({}:{}})!", i,0,num_atoms()));
     if(i==j) return; // Nothing to do
 
     // Move atom

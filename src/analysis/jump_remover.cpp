@@ -22,6 +22,7 @@
 
 #include "pteros/analysis/jump_remover.h"
 #include "pteros/core/pteros_error.h"
+#include "pteros/core/logging.h"
 
 using namespace std;
 using namespace pteros;
@@ -31,7 +32,8 @@ Jump_remover::Jump_remover():
     dims(Eigen::Vector3i::Ones()),
     unwrap_d(-1.0),
     leading_index(0),
-    initialized(false) { }
+    initialized(false)
+{ }
 
 void Jump_remover::add_atoms(const Selection &sel)
 {    
@@ -52,7 +54,7 @@ void Jump_remover::add_atoms(const Selection &sel)
 void Jump_remover::set_dimensions(Vector3i_const_ref dim)
 {
     dims = dim;
-    if(dims.sum()==0) cout << "(WARNING!) No periodic dimensions, skipping jump removing." << endl;
+    if(dims.sum()==0) LOG()->warn("(WARNING!) No periodic dimensions, skipping jump removing.");
 }
 
 void Jump_remover::set_unwrap_dist(float d)
@@ -79,7 +81,7 @@ void Jump_remover::remove_jumps(System& system){
 
         // Do unwrapping if more than 1 atom and distance >0
         if(no_jump_ind.size()>1 && unwrap_d>=0){
-            cout << "Initial unwrapping of atoms with jump removal..." << endl;
+            LOG()->info("Initial unwrapping of atoms with jump removal...");
             if(unwrap_d==0){
                 // Auto find distance
                 unwrap_d = 0.2;
@@ -92,13 +94,13 @@ void Jump_remover::remove_jumps(System& system){
                             min_extent = sel.Box().extent(i);
 
                 while(sel.unwrap_bonds(unwrap_d,leading_index,dims)>1){
-                    cout << "Cutoff " << unwrap_d << " too small for unwrapping. ";
+                    LOG()->info("Cutoff {} too small for unwrapping.", unwrap_d);
                     unwrap_d *= 2.0;
-                    cout << "Trying " << unwrap_d << "..." <<endl;
+                    LOG()->info("Trying {}...", unwrap_d);
                     if(unwrap_d > 0.5*min_extent){
-                        cout << "Reached cutoff > 0.5 of box extents!\n"
+                        LOG()->warn("Reached cutoff > 0.5 of box extents!\n"
                                 "Selection is likely to consist of disconnected parts.\n"
-                                "Continuing as is." << endl;
+                                "Continuing as is.");
                         break;
                     }
                 }
@@ -106,7 +108,7 @@ void Jump_remover::remove_jumps(System& system){
                 // Unwrap with given distance
                 sel.unwrap_bonds(unwrap_d,leading_index,dims);
             }
-            cout << "Unwrapping done." << endl;
+            LOG()->info("Unwrapping done.");
         }
 
         // Save reference coordinates
@@ -115,13 +117,12 @@ void Jump_remover::remove_jumps(System& system){
             no_jump_ref.col(i) = sel.XYZ(i,0);
         }                
 
-        cout << "Will remove jumps for " << sel.size() << " atoms" << endl;
+        LOG()->info("Will remove jumps for {} atoms", sel.size());
 
         initialized = true;
 
     } else { // For other frames, not first
 
-        // remove jumps for every atom of selection. Executed on each step
         int ind;
         for(int i=0;i<no_jump_ind.size();++i){
             ind = no_jump_ind[i];

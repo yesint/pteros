@@ -59,12 +59,6 @@ public:
         return *this;
     };
 
-    /// Print error message
-    void print() const {
-        std::cout << std::endl << "PTEROS terminated due to the following error:"
-             << std::endl << text.str() << std::endl;
-    }
-
     /// Return error message as string
     std::string what() const {
         return text.str();

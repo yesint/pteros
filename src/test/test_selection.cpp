@@ -35,8 +35,8 @@
 #include <fstream>
 #include <thread>
 
-#include "fmt/format.h"
-#include "fmt/ostream.h"
+#include "pteros/core/logging.h"
+#include "spdlog/fmt/ostr.h"
 
 using namespace std;
 using namespace pteros;
@@ -163,14 +163,15 @@ private:
 
 
 PLUGIN_PARALLEL(Test_task)
-    virtual void pre_process(){
+    virtual void pre_process(){        
         jump_remover.add_atoms(system("index 1-10"));
-        fmt::print("Test_task pre_process #{}\n", get_id());
+        log->info("Test_task pre_process #{}", get_id());
+        LOG()->info("Generic message");
     }
     virtual void process_frame(const Frame_info& info){        
 
 
-        fmt::print("Test_task process_frame {}\n", info.valid_frame);
+        log->info("Test_task process_frame {} #{}", info.valid_frame,get_id());
         //fflush(stdout);
 
         //std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -181,7 +182,7 @@ PLUGIN_PARALLEL(Test_task)
     }
 
     virtual void post_process(const Frame_info& info){
-        fmt::print("Test_task post_process of instance {}\n", info.last_frame);
+        log->info("Test_task post_process of instance {}", info.last_frame);
     }
 
 public:
@@ -189,12 +190,11 @@ public:
 };
 
 
-void accum(const Frame_info& info, const std::vector<Task_ptr>& tasks){
-    fmt::print("Running collector for {} tasks\n", tasks.size());
+void accum(const Frame_info& info, const std::vector<Task_ptr>& tasks){    
     for(auto& t: tasks){
         auto h = dynamic_cast<Test_task*>(t.get());
         Eigen::Map<VectorXi> m(h->res.data(),h->res.size());
-        fmt::print("{} :: {}\n", h->get_id(), m.transpose());
+        LOG()->info("{} :: {}", h->get_id(), m.transpose());
     }
 }
 
@@ -308,7 +308,9 @@ int main(int argc, char** argv)
              << 1e6*std::chrono::duration<double>(t_end-t_start).count()/float(N) << endl;
 */
 
-    } catch(const Pteros_error& e){ e.print(); }
+    } catch(const Pteros_error& e){
+        LOG()->error(e.what());
+    }
 
 }
 

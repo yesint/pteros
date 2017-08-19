@@ -28,7 +28,7 @@ add_library(pteros_analysis SHARED
     )
 
 #target_link_libraries(pteros_analysis pteros ${Boost_LIBRARIES})
-target_link_libraries(pteros_analysis PRIVATE ${Boost_LIBRARIES} fmt::fmt-header-only tng_io)
+target_link_libraries(pteros_analysis PRIVATE ${Boost_LIBRARIES} tng_io)
 
 #--------------
 # Installation

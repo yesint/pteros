@@ -13,7 +13,8 @@ namespace pteros {
 class Task_plugin: public Task_base {
 public:
 
-    Task_plugin(const Options& opt): options(opt) { }    
+    Task_plugin(const Options& opt): options(opt) { }
+    Task_plugin(const Task_plugin& other);
 
     Options options;
     Jump_remover jump_remover;
@@ -40,6 +41,11 @@ protected:
     class _name: public Task_plugin { \
     public: \
         using Task_plugin::Task_plugin; \
+        virtual void set_id(int _id){\
+            log = std::make_shared<spdlog::logger>(fmt::format(#_name ".{}",_id), Log::instance().console_sink); \
+            log->set_pattern(Log::instance().generic_pattern); \
+            task_id = _id; \
+        } \
         virtual _name* clone() const { \
             return new _name(*this); \
         } \
