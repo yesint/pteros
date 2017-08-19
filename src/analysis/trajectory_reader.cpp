@@ -258,7 +258,7 @@ void Trajectory_reader::run(){
             if(c.atoms() && c.traj()){
                 structure_file = s;
                 // We only need to load only atoms from TNG here
-                LOG()->info("Using TNG trajectory file 's' to read structure...", s);
+                log->info("Using TNG trajectory file 's' to read structure...", s);
                 trj->open('r');
                 Frame fr;
                 trj->read(&system, &fr, Mol_file_content().atoms(true));
