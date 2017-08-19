@@ -26,6 +26,7 @@
 #include "pteros/core/force_field.h"
 #include <cmath>
 #include <functional>
+#include "pteros/core/logging.h"
 
 using namespace std;
 using namespace pteros;
@@ -123,7 +124,7 @@ void Force_field::setup_kernels(){
 
         // Set coulomb kernel pointer
         coulomb_kernel_ptr = bind(&Force_field::Coulomb_en_kernel_rf,this,_1,_2,_3);
-        cout << "\tCoulomb kernel: reaction_field" << endl;
+        LOG()->debug("\tCoulomb kernel: reaction_field");
 
     } else if((coulomb_type=="cut-off" && coulomb_modifier=="potential-shift")
               || coulomb_type=="shift"  || coulomb_type=="pme") {
@@ -131,15 +132,15 @@ void Force_field::setup_kernels(){
         shift_1 = get_shift_coefs(1,rcoulomb_switch,rcoulomb);
 
         coulomb_kernel_ptr = bind(&Force_field::Coulomb_en_kernel_shifted,this,_1,_2,_3);
-        cout << "\tCoulomb kernel: shifted" << endl;
+        LOG()->debug("\tCoulomb kernel: shifted");
 
     } else if(coulomb_type=="cut-off") {
         // In other cases set plain Coulomb interaction
         coulomb_kernel_ptr = bind(&Force_field::Coulomb_en_kernel_cutoff,this,_1,_2,_3);
-        cout << "\tCoulomb kernel: cutoff" << endl;
+        LOG()->debug("\tCoulomb kernel: cutoff");
     } else {
         coulomb_kernel_ptr = bind(&Force_field::Coulomb_en_kernel,this,_1,_2,_3);
-        cout << "\tCoulomb kernel: plain" << endl;
+        LOG()->debug("\tCoulomb kernel: plain");
     }
 
     // Set LJ kernel
@@ -149,15 +150,15 @@ void Force_field::setup_kernels(){
         shift_12 = get_shift_coefs(12,rvdw_switch,rvdw);
 
         LJ_kernel_ptr = bind(&Force_field::LJ_en_kernel_shifted,this,_1,_2,_3);
-        cout << "\tLJ kernel: shifted" << endl;
+        LOG()->debug("\tLJ kernel: shifted");
 
     } else if(vdw_type== "cut-off") {
         LJ_kernel_ptr = bind(&Force_field::LJ_en_kernel_cutoff,this,_1,_2,_3);
-        cout << "\tLJ kernel: cutoff" << endl;
+        LOG()->debug("\tLJ kernel: cutoff");
 
     } else {
         LJ_kernel_ptr = bind(&Force_field::LJ_en_kernel,this,_1,_2,_3);
-        cout << "\tLJ kernel: plain" << endl;
+        LOG()->debug("\tLJ kernel: plain");
     }
 }
 

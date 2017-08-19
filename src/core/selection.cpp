@@ -71,7 +71,7 @@ void Selection::sort_and_remove_duplicates()
         index.resize( it - index.begin() );
         if(index[0]<0) throw Pteros_error(fmt::format("Negative index {} present in Selection!",index[0]));
     } else {
-        if(size()==0) LOG()->warn("Selection '{}' is empty! Any call of its methods (except size()) will crash a program!", sel_text);
+        if(size()==0) LOG()->warn("Selection '{}' is empty! Any call of its methods (except size()) will crash your program!", sel_text);
     }
 }
 
@@ -105,8 +105,7 @@ Selection::Selection(const System &sys, string str, int fr){
     allocate_parser();
 
     // Show warning if empty selection is created
-    if(size()==0) cout << "(WARNING) Selection '" << sel_text
-                       << "' is empty!\n\t\tAny call of its methods (except size()) will crash your program!" << endl;
+    if(size()==0) LOG()->warn("Selection '{}' is empty! Any call of its methods (except size()) will crash your program!", sel_text);
 }
 
 // Constructor without immediate parsing
@@ -135,8 +134,8 @@ Selection::Selection(const System &sys, int ind1, int ind2){
     for(int i=ind1; i<=ind2; ++i) index.push_back(i);
 
     // Show warning if empty selection is created
-    if(size()==0) cout << "(WARNING) Selection '" << ind1 << ":" << ind2
-                       << "' is empty!\n\t\tAny call of its methods (except size()) will crash your program!" << endl;
+    if(size()==0)
+        LOG()->warn("Selection {}:{} is empty! Any call of its methods (except size()) will crash your program!", ind1, ind2);
 }
 
 Selection::Selection(const System &sys, const std::vector<int> &ind){
@@ -310,8 +309,8 @@ Selection Selection::select(string str)
     }
 
     // Show warning if empty selection is created
-    if(sub.size()==0) cout << "(WARNING) Selection '" << sub.sel_text
-                       << "' is empty!\n\t\tAny call of its methods (except size()) will crash your program!" << endl;
+    if(sub.size()==0)
+        LOG()->warn("Selection '{}' is empty! Any call of its methods (except size()) will crash your program!", sub.sel_text);
 
     // And finally return sub
     return sub;
@@ -834,7 +833,9 @@ MatrixXf Selection::average_structure(int b, int e) const {
     if(e<b || b<0 || e>system->num_frames()-1 || e<0){
         throw Pteros_error("Invalid frame range for average structure!");
     }
-    cout << "Computing avreage structure from frames: "<<b<<":"<<e<<endl;
+
+    LOG()->debug("Computing avreage structure from frames {}:{}",b,e);
+
     for(fr=b;fr<=e;++fr){
         for(i=0; i<n; ++i) res.col(i) = system->traj[fr].coord[index[i]];
     }
@@ -1381,12 +1382,7 @@ void Selection::fit_trajectory(int ref_frame, int b, int e){
 
 
 // Fitting transformation between two frames of the same selection
-Affine3f Selection::fit_transform(int fr1, int fr2) const {
-    if(parser) cout << "(WARNING) Fitting of the coordinate-dependent selection!" << endl
-                    << "\tThis may crash if the number of selected atoms" << endl
-                    << "\tis different in frames "
-                    << fr1 << " and " << fr2 << "!";
-
+Affine3f Selection::fit_transform(int fr1, int fr2) const {    
     // Save current frame
     int cur_frame = get_frame();
 

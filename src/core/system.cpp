@@ -393,7 +393,7 @@ void System::frame_append(const Frame& fr){
 
 void System::assign_resindex(int start){
     if(start<0) start=0;
-    //cout << "Assigning resindex..." << endl;
+
     int curres = atoms[start].resid;
     int curchain = atoms[start].chain;
     int cur = 0;

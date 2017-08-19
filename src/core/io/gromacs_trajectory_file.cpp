@@ -24,6 +24,7 @@
 #include <iostream>
 #include "pteros/core/pteros_error.h"
 #include <stdlib.h>
+#include "pteros/core/logging.h"
 
 using namespace std;
 using namespace pteros;
@@ -81,7 +82,7 @@ bool Gromacs_trajectory_file::do_read(System *sys, Frame *frame, const Mol_file_
 
     if (ret != exdrENDOFFILE){
         if(ret != exdrOK){
-            cout << "Trajectory seems to be is corrupted or incomplete" << endl;
+            LOG()->error("Trajectory seems to be is corrupted or incomplete");
             return false;
         } else {
             // Everything is Ok
