@@ -169,7 +169,7 @@ Trajectory_reader::Trajectory_reader(const Options &opt): options(opt), collecto
 
 }
 
-void Trajectory_reader::run(){
+void Trajectory_reader::run(){    
     // Separate logger (not registered since only used here)
     auto log = std::make_shared<spdlog::logger>("trj_processor", Log::instance().console_sink);
     log->set_pattern(Log::instance().generic_pattern);
@@ -328,8 +328,8 @@ void Trajectory_reader::run(){
     log->info("Physical cores: {}", Nproc);
     log->info("\tFile reading thread: 1");
 
-    // Start reader thread    
-    std::thread reader_thread( &Trajectory_reader::reader_thread_body, this, ref(reader_channel) );
+    // Start reader thread
+    std::thread reader_thread( &Trajectory_reader::reader_thread_body, this, ref(reader_channel) );    
 
     // Data container
     typedef std::shared_ptr<Data_container> Data_container_ptr;
@@ -461,7 +461,7 @@ void Trajectory_reader::run(){
 
         } else {
             // There is only one consumer, no need for multiple threads
-            log->info("\tRunning single serial task in master thread");
+            log->info("\tRunning single serial task in master thread");            
             tasks[0]->set_id(0);
             tasks[0]->driver->set_data_channel(reader_channel);
             tasks[0]->driver->process_all(system);
@@ -499,8 +499,7 @@ void Trajectory_reader::reader_thread_body(const Data_channel_ptr &channel){
     auto log = std::make_shared<spdlog::logger>("trj_reader", Log::instance().console_sink);
     log->set_pattern(Log::instance().generic_pattern);
 
-
-    try {
+    try {        
         int abs_frame = -1;
         int valid_frame = -1;
         // Saved first frame and time
@@ -581,10 +580,10 @@ void Trajectory_reader::reader_thread_body(const Data_channel_ptr &channel){
         // Send stop at the end
         channel->send_stop();
 
-    } catch(Pteros_error e) {
+    } catch(const Pteros_error& e) {
         // Send stop if exception raised
         channel->send_stop();
-        log->error("Execution of the trajectory reader stopped:\n\t{}", e.what());
+        log->error(e.what());
     }
 }
 

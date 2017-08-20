@@ -9,6 +9,7 @@ SET(PLUGINS
     secondary
     rdf
     contacts
+    center_parallel
 )
 
 IF(STANDALONE_PLUGINS)

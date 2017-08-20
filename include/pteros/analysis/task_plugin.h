@@ -21,12 +21,10 @@ public:
 
 protected:
 
-
     virtual void pre_process_handler(){
         pre_process();
         jump_remover.remove_jumps(system); // Init jump remover
     }
-
 
     virtual void process_frame_handler(const Frame_info& info){
         jump_remover.remove_jumps(system);
@@ -58,7 +56,7 @@ protected:
     public: \
         using Task_plugin::Task_plugin; \
         virtual _name* clone() const { \
-            return new _name(*this); \
+            return nullptr; \
         } \
     protected: \
     virtual bool is_parallel() final { return false; }

@@ -153,8 +153,8 @@ const Option& Options::operator()(std::string key) const {
             ++found;
         }
     }
-    if(found==0) throw Pteros_error("Key '"+key+"' not found!");
-    if(found>1) throw Pteros_error("More than one key '"+key+"' found!");
+    if(found==0) throw Pteros_error("Key '{}' not found!", key);
+    if(found>1) throw Pteros_error("More than one key '{}' found!", key);
     return data[ind];
 }
 

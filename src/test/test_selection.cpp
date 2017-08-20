@@ -215,10 +215,27 @@ PLUGIN_SERIAL(Test_serial)
 };
 
 
+void thread_body(){
+    while(true){
+        cout << "in thread" << endl;
+    }
+}
 
 int main(int argc, char** argv)
 {
+    try{
 
+        throw std::runtime_error("error!");
+        auto t = std::thread( thread_body );
+
+        t.join();
+    } catch (const std::exception& e) {
+        cout << e.what() << endl;
+    }
+}
+
+int main1(int argc, char** argv)
+{   
     try{        
 
         Options opt;

@@ -30,16 +30,19 @@ class Dispatcher:
         for task in self.task_list:
             # We need to give each task its own system
             task.system = System(system)
+            # also save system locally
             self.system = system
             # We also need to give it its own jump remover
             task.jump_remover = Jump_remover()
             # Run pre_process for each task
             task.pre_process()
+        log.info("Processing frames...")
 
     def process_frame(self,info):
+        fr = self.system.getFrame_data(0)
         for task in self.task_list:
             # We need to update frame 0 of each task with the current value
-            task.system.setFrame_data( self.system.getFrame_data(0), 0)
+            task.system.setFrame_data(fr, 0)
             # Call jump remover
             task.jump_remover.remove_jumps(task.system)
             # Process frame
@@ -129,7 +132,7 @@ if __name__ == '__main__':
                 # Add instance to dispatcher
                 disp.task_list.append( obj )
 
-
+    #--------------------------------------
     # RUN!
     reader.run()
 

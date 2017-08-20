@@ -40,14 +40,34 @@ public:
     public:
         Task_inner(Trajectory_reader_adaptor* r): reader(r), Task_base() {}
     protected:
-        virtual void pre_process() {            
-            reader->pre_process_cb(&system);            
+        virtual void pre_process() {
+            try {
+                reader->pre_process_cb(&system);
+            } catch (error_already_set& e){
+                LOG()->error("Error occured in Python code:");
+                PyErr_Print();
+                exit(1);
+            }
         }
+
         virtual void process_frame(const Frame_info& info) {
-            reader->process_frame_cb(info);
+            try {
+               reader->process_frame_cb(info);
+            } catch (error_already_set& e){
+                LOG()->error("Error occured in Python code:");
+                PyErr_Print();
+                exit(1);
+            }
         }
+
         virtual void post_process(const Frame_info& info) {
-            reader->post_process_cb(info);
+            try {
+                reader->post_process_cb(info);
+            } catch (error_already_set& e){
+                LOG()->error("Error occured in Python code:");
+                PyErr_Print();
+                exit(1);
+            }
         }
     private:
         Trajectory_reader_adaptor* reader;
@@ -92,6 +112,7 @@ public:
     void info(const string& msg){ log->info(msg); }
     void error(const string& msg){ log->error(msg); }
     void warn(const string& msg){ log->warn(msg); }
+    void set_pattern(const string& pat){ log->set_pattern(pat); }
 
 private:
     std::shared_ptr<spdlog::logger> log;
@@ -109,6 +130,7 @@ void make_bindings_Trajectory_reader(){
         .def("info",&Logger::info)
         .def("warn",&Logger::warn)
         .def("error",&Logger::error)
+        .def("set_pattern",&Logger::set_pattern)
     ;
 
 }

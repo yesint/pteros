@@ -9,7 +9,7 @@ test_selection.cpp
     #${PROJECT_SOURCE_DIR}/src/core/peg_parser.cpp
     #${PROJECT_SOURCE_DIR}/include/pteros/core/peg_parser.h
 )
-target_link_libraries(pteros_test ${Boost_LIBRARIES} ${PYTHON_LIBRARIES} ${BOOST_PYTHON_LIB} fmt)
+target_link_libraries(pteros_test ${Boost_LIBRARIES} ${PYTHON_LIBRARIES} ${BOOST_PYTHON_LIB})
 
 #add_executable(test_sim test_sim.cpp)
 #target_link_libraries(test_sim  pteros)
