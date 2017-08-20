@@ -24,6 +24,7 @@
 #include "pteros/python/bindings_util.h"
 #include "pteros/analysis/trajectory_reader.h"
 #include "pteros/analysis/task_base.h"
+#include "pteros/core/logging.h"
 #include <Eigen/Core>
 
 using namespace pteros;
@@ -39,8 +40,8 @@ public:
     public:
         Task_inner(Trajectory_reader_adaptor* r): reader(r), Task_base() {}
     protected:
-        virtual void pre_process() {
-            reader->pre_process_cb(&system);
+        virtual void pre_process() {            
+            reader->pre_process_cb(&system);            
         }
         virtual void process_frame(const Frame_info& info) {
             reader->process_frame_cb(info);
@@ -52,7 +53,9 @@ public:
         Trajectory_reader_adaptor* reader;
     };
 
-    Trajectory_reader_adaptor(){}
+    Trajectory_reader_adaptor(){
+
+    }
 
     Trajectory_reader_adaptor(const Options& opt,
                               boost::python::object pre_process_handler,
@@ -60,11 +63,14 @@ public:
                               boost::python::object post_process_handler) {
         reader.set_options(opt);
 
-        pre_process_cb = [&pre_process_handler](System* sys) { pre_process_handler(ptr(sys)); };
-        process_frame_cb = [&process_frame_handler](const Frame_info& info) { process_frame_handler(info); };
-        post_process_cb = [&post_process_handler](const Frame_info& info) { post_process_handler(info); };
+        pre_process_cb = [pre_process_handler](System* sys) { pre_process_handler(ptr(sys)); };
+        process_frame_cb = [process_frame_handler](const Frame_info& info) { process_frame_handler(info); };
+        post_process_cb = [post_process_handler](const Frame_info& info) { post_process_handler(info); };
 
-        reader.add_task( new Task_inner(this) );
+        reader.add_task( new Task_inner(this) );       
+    }
+
+    void run(){
         reader.run();
     }
 
@@ -76,10 +82,33 @@ private:
     Trajectory_reader reader;
 };
 
+class Logger {
+public:
+    Logger(const string& name){
+        log = std::make_shared<spdlog::logger>(name, Log::instance().console_sink);
+        log->set_pattern(Log::instance().generic_pattern);
+    }
+
+    void info(const string& msg){ log->info(msg); }
+    void error(const string& msg){ log->error(msg); }
+    void warn(const string& msg){ log->warn(msg); }
+
+private:
+    std::shared_ptr<spdlog::logger> log;
+};
 
 void make_bindings_Trajectory_reader(){
 
     class_<Trajectory_reader_adaptor, boost::noncopyable>("Trajectory_reader", init<>())
-        .def(init<const Options&,boost::python::object,boost::python::object,boost::python::object >() )
+        .def(init<const Options&,boost::python::object,boost::python::object,boost::python::object >() )        
+        .def("run", &Trajectory_reader_adaptor::run)
     ;
+
+    // Bindings for logger
+    class_<Logger>("Logger", init<const string&>())
+        .def("info",&Logger::info)
+        .def("warn",&Logger::warn)
+        .def("error",&Logger::error)
+    ;
+
 }

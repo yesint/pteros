@@ -63,7 +63,7 @@ void System_setXYZ(System* s, PyObject* arr, int ind, int fr){
      s->XYZ(ind,fr) = v;
 }
 
-Frame System_getFrame_data(System* s, int fr){
+const Frame& System_getFrame_data(System* s, int fr){
     return s->Frame_data(fr);
 }
 
@@ -275,7 +275,7 @@ void make_bindings_System(){
         .def("frame_swap", &System::frame_swap)
         .def("frame_delete", &System::frame_delete, frame_delete_overloads())
 
-        .def("getFrame_data", &System_getFrame_data)
+        .def("getFrame_data", &System_getFrame_data, return_value_policy<reference_existing_object>())
         .def("setFrame_data", &System_setFrame_data)        
 
         .def("getBox", &System_getBox,return_value_policy<reference_existing_object>())

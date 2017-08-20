@@ -227,3 +227,4 @@ if __name__ == '__main__':
     disp = Parallel_dispatcher()
 
     r = Trajectory_reader(opt, disp.pre_process, disp.process_frame, disp.post_process)
+    r.run()
