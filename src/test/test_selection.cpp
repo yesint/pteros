@@ -179,6 +179,7 @@ PLUGIN_PARALLEL(Test_task)
             system().rotate(1,0.1);
 
         res.push_back(info.valid_frame);
+        throw Pteros_error("UPS");
     }
 
     virtual void post_process(const Frame_info& info){

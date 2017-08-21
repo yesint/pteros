@@ -28,31 +28,30 @@
 namespace pteros {
 
 /// Represents an error in the Pteros code. Used for all Pteros-related exceptions.
-class Pteros_error {
+class Pteros_error: public std::runtime_error {
 public:
 
-    Pteros_error(const Pteros_error& p){
-        text = p.text;
-    }
+    using runtime_error::runtime_error;
+    //Pteros_error(const Pteros_error& p){
+    //    text = p.text;
+    //}
 
-    Pteros_error(): text("") { }
+    //Pteros_error(): text("") { }
 
     /// Constructs an exception object with text message
-    Pteros_error(std::string s): text(s) { }
+    //Pteros_error(std::string s): text(s) { }
 
     template <typename... Args>
-    Pteros_error(const char *format, const Args & ... args) {
-        text = fmt::format(format, args...);
+    Pteros_error(const char *format, const Args & ... args): runtime_error(fmt::format(format, args...)) {
+
     }
 
 
     /// Return error message as string
-    std::string what() const {
-        return text;
-    }
+    //std::string what() const {
+    //    return text;
+    //}
 
-private:
-    std::string text;
 };
 
 }

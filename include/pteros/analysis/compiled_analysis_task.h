@@ -66,8 +66,10 @@ int main(int argc, char** argv){\
             return 1;\
         }\
         engine.run();\
-    } catch(const Pteros_error& e) {\
-        LOG()->error(e.what());\
+    } catch (const std::exception& e) { \
+        LOG()->error(e.what()); \
+    } catch(...) { \
+        LOG()->error("Unknown error"); \
     }\
 }
 

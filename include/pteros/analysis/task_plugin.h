@@ -4,6 +4,7 @@
 #include "pteros/analysis/task_base.h"
 #include "pteros/analysis/options.h"
 #include "pteros/analysis/jump_remover.h"
+#include "pteros/core/pteros_error.h"
 
 namespace pteros {
 
@@ -22,20 +23,41 @@ public:
 protected:
 
     virtual void pre_process_handler(){
-        pre_process();
-        jump_remover.remove_jumps(system); // Init jump remover
+        try {
+            pre_process();
+            jump_remover.remove_jumps(system); // Init jump remover
+
+        } catch (const std::exception& e) {
+            log->error("pre_process failed: {}", e.what());
+            std::terminate();
+        }
     }
 
-    virtual void process_frame_handler(const Frame_info& info){
-        jump_remover.remove_jumps(system);
-        process_frame(info);
+    virtual void process_frame_handler(const Frame_info& info){        
+        try {
+            jump_remover.remove_jumps(system);
+            process_frame(info);
+
+        } catch (const std::exception& e) {
+            log->error("process_frame failed on frame {}: {} ", info.valid_frame, e.what());
+            std::terminate();
+        }
+    }
+
+    virtual void post_process_handler(const Frame_info& info){
+        try {
+            post_process(info);
+
+        } catch (const std::exception& e) {
+            log->error("post_process failed: {} ", e.what());
+            std::terminate();
+        }
     }
 };
 
 }
 
-
-#define PLUGIN_PARALLEL(_name) \
+#define _PLUGIN_(_name) \
     class _name: public Task_plugin { \
     public: \
         using Task_plugin::Task_plugin; \
@@ -44,22 +66,23 @@ protected:
             log->set_pattern(Log::instance().generic_pattern); \
             task_id = _id; \
         } \
-        virtual _name* clone() const { \
-            return new _name(*this); \
-        } \
+
+#define PLUGIN_PARALLEL(_name) \
+    _PLUGIN_(_name) \
+    virtual _name* clone() const { \
+        return new _name(*this); \
+    } \
     protected: \
-    virtual bool is_parallel() final { return true; }
+        virtual bool is_parallel() final { return true; }
 
 
 #define PLUGIN_SERIAL(_name) \
-    class _name: public Task_plugin { \
-    public: \
-        using Task_plugin::Task_plugin; \
-        virtual _name* clone() const { \
-            return nullptr; \
-        } \
+    _PLUGIN_(_name) \
+    virtual _name* clone() const { \
+        return nullptr; \
+    } \
     protected: \
-    virtual bool is_parallel() final { return false; }
+        virtual bool is_parallel() final { return false; }
 
 
 

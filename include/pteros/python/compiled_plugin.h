@@ -36,7 +36,7 @@ using namespace boost::python;
 
 #define CREATE_COMPILED_PLUGIN(_name) \
 void Pteros_error_translator(const pteros::Pteros_error& e) { \
-  PyErr_SetString(PyExc_UserWarning, const_cast<pteros::Pteros_error&>(e).what().c_str()); \
+  PyErr_SetString(PyExc_UserWarning, const_cast<pteros::Pteros_error&>(e).what()); \
 } \
 BOOST_PYTHON_MODULE(_name) \
 { \

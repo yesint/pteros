@@ -13,6 +13,7 @@ typedef std::shared_ptr<Data_channel> Data_channel_ptr;
 class Task_driver {
 public:
     Task_driver(Task_base* _task);
+    virtual ~Task_driver();
     void set_data_channel(const Data_channel_ptr& ch);
     void init_with_first_frame(const System& sys);
     void process_first_frame();
@@ -28,6 +29,7 @@ private:
     std::shared_ptr<Data_container> data;
     std::thread t;
     Frame_info last_info;
+    bool stop_now; // Emergency stop flag for thread
 };
 
 

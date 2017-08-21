@@ -46,45 +46,5 @@ private:
     ofstream f;
 };
 
-//COMPILED_ANALYSIS_TASK(center,nullptr)
+COMPILED_ANALYSIS_TASK(center,nullptr)
 
-int main(int argc, char** argv){
-    try {
-        Options options;
-        parse_command_line(argc,argv,options);
-        Trajectory_reader engine(options);
-        auto task = new center(options);
-        engine.add_task(task);
-        //engine.register_collector(_collector);
-        cout << "-------------------------------------------------------------" << endl;
-        cout << "  This is stand-alone Pteros analysis plugin " << endl;
-        cout << "-------------------------------------------------------------" << endl;
-        if(!options.has("f") && !options.has("help")){
-            cout << "Usage:" << endl;
-            cout << "\n\tFor specific task options use '-help task'" << endl;
-            cout << "\tFor trajectory processing options use '-help traj'" << endl;
-            cout << "\tFor all available options use '-help all' or just '-help'" << endl;
-            return 1;
-        }
-        if(options.has("help")){
-            string help = options("help","").as_string();
-            if(help=="traj"){
-                cout << engine.help() << endl;
-            } else if(help=="task"){
-                cout << task->help() << endl;
-            } else {
-                cout << task->help() << endl << endl;
-                cout << engine.help() << endl;
-            }
-            return 1;
-        }
-
-        engine.run();
-    } catch(const Pteros_error& e) {
-        LOG()->error(e.what());
-    } catch (const std::exception& e) {
-        LOG()->error(e.what());
-    } catch(...) {
-        LOG()->error("Unknown error");
-    }
-}

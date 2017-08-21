@@ -55,7 +55,7 @@
 
 // Translates Pteros_error to Python exception
 void Pteros_error_translator(const pteros::Pteros_error& e) {
-    PyErr_SetString(PyExc_UserWarning, const_cast<pteros::Pteros_error&>(e).what().c_str());
+    PyErr_SetString(PyExc_UserWarning, const_cast<pteros::Pteros_error&>(e).what());
 }
 
 // Converter type that enables automatic conversions between NumPy scalars and C++ types.

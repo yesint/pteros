@@ -211,11 +211,6 @@ void Trajectory_reader::run(){
             Pteros_error("Structure AND/OR topology file is required!");
     }
 
-
-    // Create reader
-    Traj_file_reader reader(options);
-
-
     // Analysing which kind of tasks we have
 
     is_parallel = false;
@@ -227,13 +222,13 @@ void Trajectory_reader::run(){
         }
     }
 
-    if(is_parallel && !collector) throw Pteros_error("No collector function registered for parallel task!");
+    if(is_parallel && !collector) log->warn("No collector function is registered for parallel task!");
+    if(!is_parallel && collector) log->warn("Collector is registered but it's useless for serial tasks!");
 
 
     //-----------------------------------------
     // Actual processing starts here
-    //-----------------------------------------
-
+    //-----------------------------------------    
 
     // Set buffer size
     int buf_size = options("buffer","10").as_int();    
@@ -246,6 +241,8 @@ void Trajectory_reader::run(){
     log->info("Physical cores: {}", Nproc);
     log->info("\tFile reading thread: 1");
 
+    // Create traj file reader
+    Traj_file_reader reader(options);
     // Start reader thread
     reader.run(traj_files, reader_channel);
 
@@ -296,7 +293,7 @@ void Trajectory_reader::run(){
             //cout << "clonned " << i << endl;
             tasks[i]->set_id(i);            
             tasks[i]->driver->set_data_channel(reader_channel);
-            tasks[i]->driver->process_until_end_in_thread();
+            tasks[i]->driver->process_until_end_in_thread();            
         }
 
         // Process frame 0 which we got before spawning threads
