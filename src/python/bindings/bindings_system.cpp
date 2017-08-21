@@ -22,6 +22,7 @@
 
 #include "bindings_system.h"
 #include "pteros/core/system.h"
+#include "pteros/core/selection.h"
 #include "pteros/python/bindings_util.h"
 
 using namespace pteros;

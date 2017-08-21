@@ -8,7 +8,6 @@ IF(WITH_PYTHON)
         bindings.cpp
 
         ${PROJECT_SOURCE_DIR}/include/pteros/python/bindings_util.h
-        ${PROJECT_SOURCE_DIR}/include/pteros/python/compiled_plugin_base.h
         ${PROJECT_SOURCE_DIR}/include/pteros/python/compiled_plugin.h
 
         bindings_system.cpp
@@ -19,8 +18,7 @@ IF(WITH_PYTHON)
         bindings_utilities.h
         bindings_frame_info.cpp
         bindings_frame_info.h
-        bindings_trajectory_processor.cpp
-        bindings_trajectory_processor.h
+
         bindings_atom.cpp
         bindings_atom.h
         bindings_atom_proxy.cpp
@@ -32,13 +30,7 @@ IF(WITH_PYTHON)
         bindings_frame.cpp
         bindings_frame.h
         bindings_energy_components.cpp
-        bindings_energy_components.h
-
-        trajectory_processor_wrapper.cpp
-        trajectory_processor_wrapper.h
-
-        consumer_wrapper.cpp
-        consumer_wrapper.h
+        bindings_energy_components.h        
 
         bindings_options.cpp
         bindings_options.h

@@ -1,14 +1,14 @@
 
 SET(PLUGINS
-    center
-    box
-    rms
-    interaction_energy
-    covar_matr
-    distance_matr
-    secondary
-    rdf
-    contacts
+    #center
+    #box
+    #rms
+    #interaction_energy
+    #covar_matr
+    #distance_matr
+    #secondary
+    #rdf
+    #contacts
     center_parallel
 )
 
@@ -24,8 +24,7 @@ IF(STANDALONE_PLUGINS)
 
     foreach(plugin ${PLUGINS})
         add_executable(pteros_${plugin}
-            ${plugin}.cpp
-            ${PROJECT_SOURCE_DIR}/include/pteros/python/compiled_plugin_base.h
+            ${plugin}.cpp            
             ${PROJECT_SOURCE_DIR}/include/pteros/core/pteros_error.h
         )
         #set_source_files_properties(${plugin}.cpp  PROPERTIES COMPILE_DEFINITIONS "STANDALONE_PLUGINS")
@@ -47,8 +46,7 @@ IF(WITH_PYTHON)
     foreach(plugin ${PLUGINS})
         add_library(plugin_${plugin} SHARED
             ${plugin}.cpp
-            ${PROJECT_SOURCE_DIR}/include/pteros/python/bindings_util.h
-            ${PROJECT_SOURCE_DIR}/include/pteros/python/compiled_plugin_base.h
+            ${PROJECT_SOURCE_DIR}/include/pteros/python/bindings_util.h            
             ${PROJECT_SOURCE_DIR}/include/pteros/python/compiled_plugin.h
         )
         target_link_libraries(plugin_${plugin} pteros pteros_analysis ${PYTHON_LIBRARIES} ${BOOST_PYTHON_LIB})

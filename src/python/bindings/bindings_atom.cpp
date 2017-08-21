@@ -22,6 +22,7 @@
 
 #include "bindings_atom.h"
 #include "pteros/python/bindings_util.h"
+#include "pteros/core/atom.h"
 
 using namespace boost::python;
 using namespace pteros;

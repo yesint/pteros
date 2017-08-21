@@ -1,10 +1,12 @@
-#include "pteros/analysis/trajectory_processor.h"
-#include "pteros/analysis/consumer.h"
 #include "pteros/core/distance_search.h"
+#include "pteros/pteros.h"
+#include "pteros/analysis/trajectory_reader.h"
+#include "pteros/analysis/task_plugin.h"
 
 using namespace std;
 using namespace pteros;
 
+PLUGIN_SERIAL(Our_task)
 class Our_task: public Consumer {
 public:
     // Constructor

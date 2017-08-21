@@ -6,8 +6,6 @@
 #include "core/pteros_error.h"
 #include "core/distance_search.h"
 
-#include "analysis/trajectory_processor.h"
-#include "analysis/consumer.h"
 #include "analysis/options.h"
 
 #include "pteros/core/logging.h"

@@ -1,5 +1,8 @@
-#include "pteros/analysis/trajectory_processor.h"
 #include "pteros/core/pteros_error.h"
+#include "pteros/analysis/options.h"
+#include "pteros/pteros.h"
+#include <Eigen/Core>
+#include <fstream>
 
 using namespace std;
 using namespace pteros;

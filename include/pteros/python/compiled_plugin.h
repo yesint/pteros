@@ -23,9 +23,6 @@
 #ifndef COMPILED_PLUGIN_H
 #define COMPILED_PLUGIN_H
 
-// this header is needed anyway
-#include "pteros/python/compiled_plugin_base.h"
-
 #ifndef STANDALONE_PLUGINS
 
 // Make a Python extension module from this plugin

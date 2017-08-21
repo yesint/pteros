@@ -1,17 +1,15 @@
-#include "pteros/analysis/trajectory_processor.h"
-#include "pteros/analysis/consumer.h"
 #include "pteros/core/distance_search.h"
 #include "pteros/core/pteros_error.h"
+#include "pteros/analysis/task_plugin.h"
+#include "pteros/analysis/trajectory_reader.h"
 #include <ctime>
 
 using namespace std;
 using namespace pteros;
 
 // RMSD fitting
-class Bench1: public Consumer {
-public:
-    Bench1(Trajectory_processor* pr): Consumer(pr){
-    }
+
+PLUGIN_SERIAL(Bench1)
 protected:
     virtual void pre_process(){        
         sel.modify(system,std::string("all"));
@@ -27,14 +25,13 @@ protected:
         cout << "RMSD of frame " << info.valid_frame << " " << sel.rmsd(0,1) << endl;        
     }
 
+    virtual void post_process(const Frame_info& info){}
+
     Selection sel;
 };
 
 // Contacts computation
-class Bench2: public Consumer {
-public:
-    Bench2(Trajectory_processor* pr): Consumer(pr){
-    }
+PLUGIN_SERIAL(Bench2)
 protected:
     virtual void pre_process(){        
         sel1.modify(system,std::string("resid 1 to 100"));
@@ -49,15 +46,15 @@ protected:
         cout << "frame " << info.valid_frame << " bonds: " << bon.size() << endl;        
     }
 
+    virtual void post_process(const Frame_info& info){}
+
+
     Selection sel1, sel2;
 };
 
 
 // Selecting each residue
-class Bench3: public Consumer {
-public:
-    Bench3(Trajectory_processor* pr): Consumer(pr){
-    }
+PLUGIN_SERIAL(Bench3)
 protected:
     virtual void pre_process(){
 
@@ -71,14 +68,13 @@ protected:
         cout << "frame " << info.valid_frame << endl;        
     }
 
-
+    virtual void post_process(const Frame_info& info){}
 };
 
 
 int main(int argc, char** argv){
 
     try{
-
 
     Options options;
     parse_command_line(argc,argv,options);
@@ -123,27 +119,29 @@ int main(int argc, char** argv){
         return 1;
     }
 
-    Trajectory_processor engine(options);
+    Trajectory_reader engine(options);
 
-    std::unique_ptr<Consumer> b1,b2,b3;
+
+
+
 
     switch(num){
     case 1: {
-        b1 = std::unique_ptr<Bench1>(new Bench1(&engine));
+        engine.add_task( new Bench1(options) );
         break;
     }
     case 2: {
-        b2 = std::unique_ptr<Bench2>(new Bench2(&engine));
+        engine.add_task( new Bench2(options) );
         break;
     }
     case 3: {
-        b3 = std::unique_ptr<Bench3>(new Bench3(&engine));
+        engine.add_task( new Bench3(options) );
         break;
     }
     case 0: {
-        b1 = std::unique_ptr<Bench1>(new Bench1(&engine));
-        b2 = std::unique_ptr<Bench2>(new Bench2(&engine));
-        b3 = std::unique_ptr<Bench3>(new Bench3(&engine));
+        engine.add_task( new Bench1(options) );
+        engine.add_task( new Bench2(options) );
+        engine.add_task( new Bench3(options) );
         break;
     }
     }

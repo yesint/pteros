@@ -32,26 +32,9 @@ class Pteros_error: public std::runtime_error {
 public:
 
     using runtime_error::runtime_error;
-    //Pteros_error(const Pteros_error& p){
-    //    text = p.text;
-    //}
-
-    //Pteros_error(): text("") { }
-
-    /// Constructs an exception object with text message
-    //Pteros_error(std::string s): text(s) { }
 
     template <typename... Args>
-    Pteros_error(const char *format, const Args & ... args): runtime_error(fmt::format(format, args...)) {
-
-    }
-
-
-    /// Return error message as string
-    //std::string what() const {
-    //    return text;
-    //}
-
+    Pteros_error(const char *format, const Args & ... args): runtime_error(fmt::format(format, args...)) { }
 };
 
 }

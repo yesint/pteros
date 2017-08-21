@@ -22,6 +22,7 @@
 
 #include "contacts_finder.h"
 #include <sstream>
+#include <fstream>
 
 #include "json_spirit/json_spirit_reader_template.h"
 #include "json_spirit/json_spirit_writer_template.h"
@@ -31,8 +32,8 @@ using namespace pteros;
 using namespace std;
 using namespace Eigen;
 
-void Contacts_finder::create(Trajectory_processor& proc, const Options& opt){
-    options = opt;
+
+void Contacts_finder::pre_process(){    
 
     // Set method and cut-off
     string s;
@@ -52,15 +53,7 @@ void Contacts_finder::create(Trajectory_processor& proc, const Options& opt){
 
     // Set periodic
     is_periodic = options("periodic","false").as_bool();
-}
 
-Contacts_finder::Contacts_finder(Trajectory_processor& proc, const pteros::Options &opt):
-    Consumer(&proc)
-{
-    create(proc,opt);
-}
-
-void Contacts_finder::pre_process(){
     // Set all selection    
     all.modify(system,"all");
 
@@ -361,9 +354,22 @@ void Contacts_finder::post_process(const Frame_info &info){
         // Set mean energy
         //if(is_energy){
             sel_pairs[i].mean_energy /= (float)info.valid_frame;
-        //}
-
+        //}                       
     } // Sel pair
+
+    cout << "Saving results..." << endl;
+    {
+        ofstream ff("results.json");
+        save(ff);
+        ff.close();
+    }
+
+    cout << "Saving per frame stats..." << endl;
+    {
+        ofstream ff("data.dat");
+        per_frame_stats(ff);
+        ff.close();
+    }
 }
 
 /*

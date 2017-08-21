@@ -1,19 +1,14 @@
-#include "pteros/analysis/trajectory_processor.h"
-#include "pteros/analysis/consumer.h"
 #include <fstream>
 #include "pteros/core/grid.h"
 #include "pteros/core/pteros_error.h"
-
+#include "pteros/analysis/trajectory_reader.h"
+#include "pteros/analysis/task_plugin.h"
 
 using namespace std;
 using namespace pteros;
 using namespace Eigen;
 
-class Water_processor: public Consumer {
-public:
-    Water_processor(Trajectory_processor* pr, const Options& opt): Consumer(pr){
-        options = opt;
-    }
+PLUGIN_SERIAL(Water_processor)
 protected:
     virtual void pre_process(){       
         // Create selection for water        
@@ -128,8 +123,8 @@ int main(int argc, char** argv){
         Options opt;
         parse_command_line(argc,argv,opt);
 
-        Trajectory_processor proc(opt);
-        Water_processor wp(&proc,opt);
+        Trajectory_reader proc(opt);
+        proc.add_task( new Water_processor(opt) );
 
         proc.run();
 

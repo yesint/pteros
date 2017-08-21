@@ -24,15 +24,11 @@
 #define BINDINGS_UTIL_H
 
 #include "pteros/core/pteros_error.h"
-#include "pteros/analysis/trajectory_processor.h"
-
 #include <boost/python.hpp>
-
 #include <numpy/noprefix.h>
-
 #include <boost/python/numeric.hpp>
-
 #include <iostream>
+#include <Eigen/Core>
 
 namespace pteros {
 

@@ -5,6 +5,7 @@
 #include "pteros/analysis/options.h"
 #include "pteros/analysis/jump_remover.h"
 #include "pteros/core/pteros_error.h"
+#include "pteros/core/logging.h"
 
 namespace pteros {
 

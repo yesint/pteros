@@ -1,7 +1,9 @@
-#include "pteros/analysis/trajectory_processor.h"
-#include "pteros/analysis/consumer.h"
 #include "bilayer.h"
 #include "pteros/core/pteros_error.h"
+#include "pteros/pteros.h"
+#include "pteros/analysis/trajectory_reader.h"
+#include "pteros/analysis/task_plugin.h"
+#include <fstream>
 
 using namespace std;
 using namespace pteros;
@@ -26,11 +28,7 @@ struct Chol_data {
 };
 
 
-class Chol_counter: public Consumer {
-public:
-    Chol_counter(Trajectory_processor* pr, const Options& opt): Consumer(pr) {
-        options = opt;
-    }
+PLUGIN_SERIAL(Chol_counter)
 protected:
     virtual void pre_process(){        
         bilayer.modify(system,options("lipids_selection").as_string());
@@ -170,8 +168,8 @@ int main(int argc, char** argv){
     try {
         Options options;
         parse_command_line(argc,argv,options);
-        Trajectory_processor proc(options);
-        Chol_counter counter(&proc,options);
+        Trajectory_reader proc(options);
+        proc.add_task(new Chol_counter(options));
         proc.run();
     } catch(const Pteros_error& e){
         cout << e.what() << endl;

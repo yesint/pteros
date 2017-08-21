@@ -22,6 +22,7 @@
 
 #include "bindings_frame_info.h"
 #include "pteros/python/bindings_util.h"
+#include "pteros/analysis/trajectory_reader.h"
 
 using namespace boost::python;
 using namespace pteros;

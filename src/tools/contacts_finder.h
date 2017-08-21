@@ -28,9 +28,11 @@
 #include <set>
 #include <map>
 #include "pteros/pteros.h"
-#include "pteros/analysis/trajectory_processor.h"
+
 #include "pteros/analysis/options.h"
 #include "pteros/core/distance_search.h"
+
+#include "pteros/analysis/task_plugin.h"
 
 namespace pteros {
 
@@ -79,51 +81,46 @@ struct Selections_pair {
     float mean_energy;
 };
 
-class Contacts_finder: public Consumer {
-    public:
-        Contacts_finder(Trajectory_processor& proc, const Options& opt);
 
-        void create(Trajectory_processor& proc, const Options& opt);
 
-        /// Prints pretty human-readable summary to the stream
-        //void print_info(std::ostream& out);
-        /// Saves results in JSON format to the stream
-        void save(std::ostream& out, bool human_readable=true);
-        /// Writes statisticts per frame (number of contacts, etc.)
-        void per_frame_stats(std::ostream& out);
-        /// Print help
-        static void print_help();
+PLUGIN_SERIAL(Contacts_finder)
+protected:
+    void pre_process();
+    void process_frame(const Frame_info& info);
+    void post_process(const Frame_info& info);
 
-    private:
-        Options options;
+public:
 
-        //------------------------------------
-        /// Slots, which are going to be connected with the signals
-        /// of trajectory processor
-        void process_frame(const Frame_info& info);
-        void pre_process();
-        void post_process(const Frame_info& info);
-        //------------------------------------
 
-        // Aux list of raw contacts
-        std::vector<Eigen::Vector2i> clist;
+    /// Prints pretty human-readable summary to the stream
+    //void print_info(std::ostream& out);
+    /// Saves results in JSON format to the stream
+    void save(std::ostream& out, bool human_readable=true);
+    /// Writes statisticts per frame (number of contacts, etc.)
+    void per_frame_stats(std::ostream& out);
+    /// Print help
+    static void print_help();
 
-        // Mapping of real time
-        std::map<int,float> real_time;
+private:
+    // Aux list of raw contacts
+    std::vector<Eigen::Vector2i> clist;
 
-        // VDW radii
-        std::vector<float> VDW;
+    // Mapping of real time
+    std::map<int,float> real_time;
 
-        // Pairs of selections to process
-        std::vector<Selections_pair> sel_pairs;
-        // Parameters
-        double dist; // Cut-off for grid searching
-        double vdw_gap; // Gap for VDE mode
-        bool is_periodic;
-        Contacts_def method;
+    // VDW radii
+    std::vector<float> VDW;
 
-        // All selection
-        Selection all;
+    // Pairs of selections to process
+    std::vector<Selections_pair> sel_pairs;
+    // Parameters
+    double dist; // Cut-off for grid searching
+    double vdw_gap; // Gap for VDE mode
+    bool is_periodic;
+    Contacts_def method;
+
+    // All selection
+    Selection all;
 };
 
 }
