@@ -17,6 +17,8 @@ add_library(pteros_analysis SHARED
 
     ${PROJECT_SOURCE_DIR}/include/pteros/analysis/trajectory_reader.h
     trajectory_reader.cpp
+    traj_file_reader.h
+    traj_file_reader.cpp
     ${PROJECT_SOURCE_DIR}/include/pteros/analysis/task_base.h
     task_base.cpp
     task_driver.h

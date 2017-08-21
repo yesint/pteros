@@ -78,24 +78,9 @@ private:
         // Options
         Options options;
 
-        int log_interval;
+        //void reader_thread_body(const Data_channel_ptr &channel);
 
-        bool is_frame_valid(int fr, float t);
-        bool is_end_of_interval(int fr, float t);
-
-        /// Reader parameters
-        int first_frame, last_frame;
-        float first_time, last_time;
-        int skip;
-
-        float custom_start_time;
-        float custom_dt;
-
-        void reader_thread_body(const Data_channel_ptr &channel);
-
-        std::vector<std::string> traj_files;
-
-        void process_value_with_suffix(const std::string& s, int* intval, float* floatval);
+        std::vector<std::string> traj_files;        
 
         std::vector<Task_ptr> tasks;
 
