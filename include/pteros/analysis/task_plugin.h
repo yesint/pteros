@@ -15,11 +15,15 @@ namespace pteros {
 class Task_plugin: public Task_base {
 public:
 
-    Task_plugin(const Options& opt): options(opt) { }
+    Task_plugin(const Options& opt): options(opt) {  }
     Task_plugin(const Task_plugin& other);
 
     Options options;
     Jump_remover jump_remover;
+
+    virtual Task_plugin* clone() const { \
+        return nullptr; \
+    }
 
 protected:
 
@@ -79,9 +83,6 @@ protected:
 
 #define PLUGIN_SERIAL(_name) \
     _PLUGIN_(_name) \
-    virtual _name* clone() const { \
-        return nullptr; \
-    } \
     protected: \
         virtual bool is_parallel() final { return false; }
 

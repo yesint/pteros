@@ -23,6 +23,8 @@
 #ifndef COMPILED_PLUGIN_H
 #define COMPILED_PLUGIN_H
 
+#include "pteros/analysis/task_plugin.h"
+
 #ifndef STANDALONE_PLUGINS
 
 // Make a Python extension module from this plugin
@@ -31,38 +33,44 @@
 
 using namespace boost::python;
 
-#define CREATE_COMPILED_PLUGIN(_name) \
+#define CREATE_COMPILED_PLUGIN(_name,_dum) \
 void Pteros_error_translator(const pteros::Pteros_error& e) { \
   PyErr_SetString(PyExc_UserWarning, const_cast<pteros::Pteros_error&>(e).what()); \
 } \
+_name* get_instance_##_name(const Options& opt){ return new _name(opt); }\
 BOOST_PYTHON_MODULE(_name) \
 { \
     import_array(); \
     boost::python::numeric::array::set_module_and_type("numpy", "ndarray"); \
-    register_exception_translator<pteros::Pteros_error>(&Pteros_error_translator); \
-    class_<_name,boost::noncopyable>("Task", init<pteros::Trajectory_processor*,const pteros::Options&>()) \
-    .def_readwrite("label",&_name::label) \
+    register_exception_translator<pteros::Pteros_error>(&Pteros_error_translator);\
+    class_<_name,bases<Task_plugin>,boost::noncopyable>("Task", init<const pteros::Options&>())\
     .def("help",&_name::help) \
     ; \
+    def("get_instance",&get_instance_##_name, return_value_policy<reference_existing_object>());\
 }
 
 #else //STANDALONE_PLUGINS
 
 // Make a stand-alone executable from this plugin
 
+#include "pteros/analysis/trajectory_reader.h"
 #include "pteros/core/pteros_error.h"
+#include "pteros/core/logging.h"
 
 using namespace pteros;
 using namespace std;
 
-#define CREATE_COMPILED_PLUGIN(_name) \
+// Skeleton of the driver program
+
+#define CREATE_COMPILED_PLUGIN(_name, _collector)\
 int main(int argc, char** argv){\
     try {\
         Options options;\
         parse_command_line(argc,argv,options);\
-        Trajectory_processor engine(options);\
-        _name task(&engine,options);\
-        task.label = #_name;\
+        Trajectory_reader engine(options);\
+        auto task = new _name(options);\
+        engine.add_task(task);\
+        engine.register_collector(_collector);\
         cout << "-------------------------------------------------------------" << endl;\
         cout << "  This is stand-alone Pteros analysis plugin '" #_name "'" << endl;\
         cout << "-------------------------------------------------------------" << endl;\
@@ -79,16 +87,18 @@ int main(int argc, char** argv){\
             if(help=="traj"){\
                 cout << engine.help() << endl;\
             } else if(help=="task"){\
-                cout << task.help() << endl;\
+                cout << task->help() << endl;\
             } else {\
-                cout << task.help() << endl << endl;\
+                cout << task->help() << endl << endl;\
                 cout << engine.help() << endl;\
             }\
             return 1;\
         }\
         engine.run();\
-    } catch(const Pteros_error& e) {\
-        cout << e.what() << endl;\
+    } catch (const std::exception& e) { \
+        LOG()->error(e.what()); \
+    } catch(...) { \
+        LOG()->error("Unknown error"); \
     }\
 }
 

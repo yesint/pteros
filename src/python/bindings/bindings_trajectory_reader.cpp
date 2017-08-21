@@ -23,7 +23,7 @@
 #include "bindings_trajectory_reader.h"
 #include "pteros/python/bindings_util.h"
 #include "pteros/analysis/trajectory_reader.h"
-#include "pteros/analysis/task_base.h"
+#include "pteros/analysis/task_plugin.h"
 #include "pteros/core/logging.h"
 #include <Eigen/Core>
 
@@ -86,12 +86,19 @@ public:
         pre_process_cb = [pre_process_handler](System* sys) { pre_process_handler(ptr(sys)); };
         process_frame_cb = [process_frame_handler](const Frame_info& info) { process_frame_handler(info); };
         post_process_cb = [post_process_handler](const Frame_info& info) { post_process_handler(info); };
+    }
 
-        reader.add_task( new Task_inner(this) );       
+    void add_python_tasks_runner(){
+        reader.add_task( new Task_inner(this) );
     }
 
     void run(){
         reader.run();
+    }
+
+    void add_task(object& obj){
+        Task_plugin* ptr = extract<Task_plugin*>(obj);
+        reader.add_task( dynamic_cast<Task_base*>(ptr) );
     }
 
     std::function<void(System*)> pre_process_cb;
@@ -118,11 +125,24 @@ private:
     std::shared_ptr<spdlog::logger> log;
 };
 
+
+void jump_remover_dims(Jump_remover* r, PyObject* dims_to_wrap){
+    MAP_EIGEN_TO_PYTHON_I(Vector3i,dim,dims_to_wrap)
+    r->set_dimensions(dim);
+}
+
+
+
 void make_bindings_Trajectory_reader(){
+
+    class_<Task_plugin, boost::noncopyable>("Task_plugin", no_init)
+    ;
 
     class_<Trajectory_reader_adaptor, boost::noncopyable>("Trajectory_reader", init<>())
         .def(init<const Options&,boost::python::object,boost::python::object,boost::python::object >() )        
         .def("run", &Trajectory_reader_adaptor::run)
+        .def("add_task", &Trajectory_reader_adaptor::add_task)
+        .def("add_python_tasks_runner", &Trajectory_reader_adaptor::add_python_tasks_runner)
     ;
 
     // Bindings for logger
@@ -132,5 +152,15 @@ void make_bindings_Trajectory_reader(){
         .def("error",&Logger::error)
         .def("set_pattern",&Logger::set_pattern)
     ;
+
+    // Also wrap Jump_remover. It will be created for each python plugin on python side
+    class_<Jump_remover>("Jump_remover",init<>())
+        .def("add_atoms",&Jump_remover::add_atoms)
+        .def("set_dimensions",&jump_remover_dims)
+        .def("set_unwrap_dist",&Jump_remover::set_unwrap_dist)
+        .def("remove_jumps",&Jump_remover::remove_jumps)
+        .def("set_leading_index",&Jump_remover::set_leading_index)
+    ;
+
 
 }

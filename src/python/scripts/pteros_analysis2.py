@@ -2,6 +2,7 @@
 
 from pteros import *
 import sys, pkgutil, copy, os, imp, signal
+import pteros_analysis_plugins
 
 #--------------------------------------
 def general_help():
@@ -57,7 +58,7 @@ disp = Dispatcher()
 
 #--------------------------------------
 
-if __name__ == '__main__':
+if __name__ == '__main__':        
     print "+--------------------------------+"
     print "+ This is pteros_analysis script +"
     print "+--------------------------------+"
@@ -107,34 +108,55 @@ if __name__ == '__main__':
     task_num = 0
     log.info("Creating task instances:")
     for f in files_to_load:
-        # Get full path
-        full = os.path.abspath(f)
-        # extract module name
-        (mod_name,ext) = os.path.splitext(os.path.basename(full))
-        # Append module search path
-        sys.path.append(os.path.dirname(full))
-        log.info("\tLoading '%s'" % full)
-        module = __import__(mod_name, fromlist="dummy")
+        # If file ends explicitly by .py then it is custom plugin
+        if f.split('.')[-1] == "py":
+            # Get full path
+            full = os.path.abspath(f)
+            # extract module name
+            (mod_name,ext) = os.path.splitext(os.path.basename(full))
+            # Append module search path
+            sys.path.append(os.path.dirname(full))
+            log.info("\tLoading custom plugin '%s'" % full)
+            module = __import__(mod_name, fromlist="dummy")
+        else:
+            # Seems to be plugin from standard location
+            log.info("\tLoading standard plugin '%s'" % f)
+            module = __import__(pteros_analysis_plugins.__name__ + "." + f, fromlist="dummy")
 
         # Create needed number of task instances
         for task in task_opts:
             if task.get_name() == f:
-                # create new instance of Task from that module
-                obj = module.Task()
-                # Pass options to this task. For this create an options member in instance
-                obj.options = task
-                # Give this task a unique textual label
-                obj.label = mod_name + "_id" + str(task_num);
-                task_num += 1
-                # Give it a logger
-                obj.log = Logger(obj.label)
-                log.info("\t\t Created task instance '%s'" % obj.label)
-                # Add instance to dispatcher
-                disp.task_list.append( obj )
+                if f.split('.')[-1] == "py":
+                    # For pure python plugins
+
+                    # create new instance of Task from that module
+                    obj = module.Task()
+                    # Pass options to this task. For this create an options member in instance
+                    obj.options = task
+                    # Give this task a unique textual label
+                    obj.label = mod_name + "_id" + str(task_num);
+                    task_num += 1
+                    # Give it a logger
+                    obj.log = Logger(obj.label)
+                    log.info("\t\t Created task instance '%s'" % obj.label)
+                    # Add instance to dispatcher
+                    disp.task_list.append( obj )
+                else:
+                    # For compiled plugins
+                    obj = module.get_instance(task)
+                    # Attach it to reader
+                    reader.add_task(obj)
+                    log.info("\t\t Created task instance ")
 
     #--------------------------------------
+
+    # Check if we have python taks. If so create a runner for them on C++ side
+    if len(disp.task_list)>0:
+        log.info("Creating python tasks runner for {} task(s)".format(len(disp.task_list)))
+        reader.add_python_tasks_runner()
+
     # RUN!
-    reader.run()
+    reader.run()    
 
 
 

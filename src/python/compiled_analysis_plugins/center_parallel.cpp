@@ -1,10 +1,10 @@
-#include "pteros/analysis/compiled_analysis_task.h"
+#include "pteros/python/compiled_plugin.h"
 #include <fstream>
 
 using namespace std;
 using namespace pteros;
 
-PLUGIN_SERIAL(center)
+PLUGIN_SERIAL(center_parallel)
 public:
 
     string help(){
@@ -33,7 +33,8 @@ protected:
 
     void process_frame(const Frame_info &info){                
         sel.apply();
-        f << info.absolute_time << " " << sel.center(use_mass).transpose() << endl;        
+        f << info.absolute_time << " " << sel.center(use_mass).transpose() << endl;
+        cout << info.absolute_time << " " << sel.center(use_mass).transpose() << endl;
     }
 
     void post_process(const Frame_info &info){        
@@ -46,5 +47,5 @@ private:
     ofstream f;
 };
 
-COMPILED_ANALYSIS_TASK(center,nullptr)
+CREATE_COMPILED_PLUGIN(center_parallel,nullptr)
 
