@@ -902,7 +902,7 @@ string Energy_components::to_str(){
             + to_string(q_14);
 }
 
-Energy_components Energy_components::operator+(const Energy_components& other){
+Energy_components Energy_components::operator+(const Energy_components& other) const {
     Energy_components ret;
     ret.total = total+other.total;
     ret.lj_14 = lj_14+other.lj_14;

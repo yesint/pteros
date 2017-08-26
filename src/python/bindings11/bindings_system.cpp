@@ -26,6 +26,7 @@
 #include <pybind11/operators.h>
 #include <pybind11/stl.h>
 #include <pybind11/eigen.h>
+#include <pybind11/operators.h>
 
 namespace py = pybind11;
 using namespace pteros;
@@ -132,5 +133,17 @@ void make_bindings_System(py::module& m){
         .def("assign_resindex", &System::assign_resindex, "start"_a=0)
         .def("sort_by_resindex", &System::sort_by_resindex)
 
+    ;
+
+    // Energy components class
+    py::class_<Energy_components>(m, "Energy_components")
+        .def(py::init<>())
+        .def_readonly("total",&Energy_components::total)
+        .def_readonly("lj_14",&Energy_components::lj_14)
+        .def_readonly("q_14",&Energy_components::q_14)
+        .def_readonly("lj_sr",&Energy_components::lj_sr)
+        .def_readonly("q_sr",&Energy_components::q_sr)
+        .def(py::self + py::self)
+        .def(py::self += py::self)
     ;
 }

@@ -58,7 +58,7 @@ struct Energy_components {
     std::string to_str();
 
     /// Addition of energies
-    Energy_components operator+(const Energy_components& other);
+    Energy_components operator+(const Energy_components& other) const;
     Energy_components& operator+=(const Energy_components& other);
 };
 
