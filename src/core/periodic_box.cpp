@@ -40,7 +40,7 @@ using namespace Eigen;
 Periodic_box::Periodic_box():_is_periodic(false),_is_triclinic(false),_box(Eigen::Matrix3f::Zero()){}
 
 Periodic_box::Periodic_box(Matrix3f_const_ref box){
-    modify(box);
+    set_matrix(box);
 }
 
 Periodic_box::Periodic_box(Vector3f_const_ref vectors, Vector3f_const_ref angles)
@@ -49,20 +49,20 @@ Periodic_box::Periodic_box(Vector3f_const_ref vectors, Vector3f_const_ref angles
 }
 
 Periodic_box& Periodic_box::operator=(Periodic_box other){
-    modify(other._box);
+    set_matrix(other._box);
     return *this;
 }
 
-void Periodic_box::modify(Matrix3f_const_ref box)
+void Periodic_box::set_matrix(Matrix3f_const_ref matr)
 {
-    _box = box;
+    _box = matr;
     _is_periodic = (_box.array().abs().sum()>0) ? true : false;
     if(!_is_periodic) return;
     _box_inv = _box.inverse();
     _is_triclinic = (_box(0,1)||_box(0,2)||_box(1,0)||_box(1,2)||_box(2,0)||_box(2,1));
 }
 
-Vector3f Periodic_box::get_vector(int i){
+Vector3f Periodic_box::get_vector(int i) const{
     return _box.col(i);
 }
 
@@ -263,7 +263,7 @@ void Periodic_box::read_pdb_box(const char *line)
     box.transposeInPlace();
 
     // Init object
-    modify(box);
+    set_matrix(box);
 }
 
 // This function works with column-ordered box!
@@ -353,5 +353,5 @@ void Periodic_box::from_vectors_angles(Vector3f_const_ref vectors, Vector3f_cons
     box.transposeInPlace();
 
     // Recompute internals
-    modify(box);
+    set_matrix(box);
 }

@@ -92,7 +92,7 @@ bool Gromacs_trajectory_file::do_read(System *sys, Frame *frame, const Mol_file_
             for(int i=0;i<3;++i)
                 for(int j=0;j<3;++j)
                     b(i,j) = box[j][i];
-            frame->box.modify(b);
+            frame->box.set_matrix(b);
         }
     } else {
         return false; // End of file

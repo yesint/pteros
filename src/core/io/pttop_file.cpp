@@ -162,7 +162,7 @@ bool PTTOP_file::do_read(System *sys, Frame *frame, const Mol_file_content &what
             ss >> b(i,0) >> b(i,1) >> b(i,2);
         }
     }
-    if(frame) frame->box.modify(b);
+    if(frame) frame->box.set_matrix(b);
 
     // All the rest should be read only if topology is requested
     if(!what.top()) return true;

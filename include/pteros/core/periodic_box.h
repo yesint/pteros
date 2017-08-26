@@ -59,14 +59,15 @@ public:
     /// Copy constructor
     Periodic_box& operator=(Periodic_box other);
 
-    /// Modify the box from 3x3 matrix
-    void modify(Matrix3f_const_ref box);       
-
     /// Get i-th box vector
-    Eigen::Vector3f get_vector(int i);
+    Eigen::Vector3f get_vector(int i) const;
 
     /// Get stored matrix of box vectors
     Eigen::Matrix3f get_matrix() const;
+
+    /// Modify the box from 3x3 matrix
+    void set_matrix(Matrix3f_const_ref box);
+
 
     /// Scale box vectors by specified factors.
     /// Causes recomputing internal data.

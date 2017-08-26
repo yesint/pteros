@@ -123,7 +123,7 @@ bool GRO_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
         // Transpose the box because we want column-vectors (the code above uses row-vectors)
         box.transposeInPlace();
 
-        frame->box.modify(box);
+        frame->box.set_matrix(box);
     }
 
     return true;

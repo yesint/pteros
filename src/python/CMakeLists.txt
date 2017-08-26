@@ -8,21 +8,8 @@ if(WITH_PYTHON)
     install(PROGRAMS scripts/pteros.py DESTINATION ${PY_INST_DIR})
 
 
-    add_subdirectory(pybind11)
-    INCLUDE_DIRECTORIES(pybind11/include)
-    pybind11_add_module(pteros11 bindings.cpp)
-
-    target_link_libraries(pteros11 PRIVATE pteros pteros_analysis)
-
-    set_target_properties(pteros11 PROPERTIES
-        LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/python"
-    )
-
-    #Installation
-    install(TARGETS pteros11
-        LIBRARY DESTINATION ${PY_INST_DIR}
-        ARCHIVE DESTINATION ${PY_INST_DIR}
-    )
-
+    add_subdirectory(pybind11_src)
+    INCLUDE_DIRECTORIES(pybind11_src/include)
+    add_subdirectory(bindings11)
 
 endif()

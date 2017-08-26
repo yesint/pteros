@@ -37,7 +37,7 @@ boost::shared_ptr<Periodic_box> constructor0(PyObject* vectors, PyObject* angles
 
 void Periodic_box_modify(Periodic_box* b, PyObject* arr){
     MAP_EIGEN_TO_PYTHON_F(Matrix3f,m,arr)
-    b->modify(m);
+    b->set_matrix(m);
 }
 
 PyObject* Periodic_box_get_matrix(Periodic_box* b){

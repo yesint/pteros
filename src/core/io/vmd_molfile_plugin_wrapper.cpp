@@ -193,7 +193,7 @@ bool VMD_molfile_plugin_wrapper::do_read(System *sys, Frame *frame, const Mol_fi
             // Only convert if all three vectors are non-zero
             box_from_vmd_rep(ts.A,ts.B,ts.C,ts.alpha,ts.beta,ts.gamma,b);
         }
-        frame->box.modify(b);
+        frame->box.set_matrix(b);
 
         frame->time = ts.physical_time;
 
