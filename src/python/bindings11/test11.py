@@ -68,3 +68,14 @@ c[0] = [1,1,1]
 print c[0:3]
 fr.coord = c
 print fr.coord[0:3]
+
+print "Inertia"
+sel = s('resname LIG')
+m,a = sel.inertia()
+print m,a
+
+t = sel.principal_transform(False)
+print t
+
+for a in sel:
+    print a

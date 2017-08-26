@@ -27,15 +27,21 @@
 #include <pybind11/stl.h>
 #include <pybind11/eigen.h>
 #include <pybind11/operators.h>
+#include "pteros/core/pteros_error.h"
 
 namespace py = pybind11;
 using namespace pteros;
 using namespace std;
+using namespace Eigen;
 using namespace pybind11::literals;
+
 
 void make_bindings_Selection(py::module& m){
 
     using RowMatrixXf = Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
+
+    py::class_<Atom_proxy>(m, "Atom_proxy")
+    ;
 
     py::class_<Selection>(m, "Selection")
         // Constructors
@@ -82,11 +88,204 @@ void make_bindings_Selection(py::module& m){
         .def("select", py::overload_cast<int,int>(&Selection::operator()))
         .def("select", py::overload_cast<const std::vector<int>&>(&Selection::operator()))
 
-         .def("size",&Selection::size)
-        .def("__len__", &Selection::size)
-        .def("get_index", &Selection::get_index)
+        // Get and set
+        .def("get_frame",&Selection::get_frame)
+        .def("get_system",&Selection::get_system, py::return_value_policy::reference_internal)
+        .def("get_text",&Selection::get_text)
+        .def("get_index",&Selection::get_index)
+
+        .def("get_chain",&Selection::get_chain)
+        .def("get_unique_chain",&Selection::get_unique_chain)
+        .def("set_chain",py::overload_cast<char>(&Selection::set_chain))
+        .def("set_chain",py::overload_cast<const std::vector<char>&>(&Selection::set_chain))
+
+        .def("get_resid",&Selection::get_resid)
+        .def("get_unique_resid",&Selection::get_unique_resid)
+        .def("set_resid",py::overload_cast<int>(&Selection::set_resid))
+        .def("set_resid",py::overload_cast<const std::vector<int>&>(&Selection::set_resid))
+
+        .def("get_resindex",&Selection::get_resindex)
+        .def("get_unique_resindex",&Selection::get_unique_resindex)
+
+        .def("get_name",&Selection::get_name)
+        .def("set_name",py::overload_cast<string&>(&Selection::set_name))
+        .def("set_name",py::overload_cast<const std::vector<string>&>(&Selection::set_name))
+
+        .def("get_resname",&Selection::get_resname)
+        .def("get_unique_resname",&Selection::get_unique_resname)
+        .def("set_resname",py::overload_cast<string&>(&Selection::set_resname))
+        .def("set_resname",py::overload_cast<const std::vector<string>&>(&Selection::set_resname))
+
+        .def("get_xyz", [](Selection* sel){ return sel->get_xyz(true); }) // pass true for row-major matrix
+        .def("set_xyz", &Selection::set_xyz) // detects raw-major matrix internally
+
+        .def("get_mass",&Selection::get_mass)
+        .def("set_mass",py::overload_cast<float>(&Selection::set_mass))
+        .def("set_mass",py::overload_cast<const std::vector<float>>(&Selection::set_mass))
+
+        .def("get_beta",&Selection::get_beta)
+        .def("set_beta",py::overload_cast<float>(&Selection::set_beta))
+        .def("set_beta",py::overload_cast<const std::vector<float>&>(&Selection::set_beta))
+
+        .def("get_occupancy",&Selection::get_occupancy)
+        .def("set_occupancy",py::overload_cast<float>(&Selection::set_occupancy))
+        .def("set_occupancy",py::overload_cast<const std::vector<float>&>(&Selection::set_occupancy))
+
+        .def("get_tag",&Selection::get_tag)
+        .def("set_tag",py::overload_cast<string&>(&Selection::set_tag))
+        .def("set_tag",py::overload_cast<const std::vector<string>&>(&Selection::set_tag))
+
+        // Properties
+        .def("center",&Selection::center,"mass_weighted"_a=false,"periodic"_a=false)
+        .def("minmax",[](Selection* sel){Vector3f min,max; sel->minmax(min,max); return py::make_tuple(min,max);})
+
+        .def("sasa", [](Selection* sel, float probe_r, bool do_total_volume, bool do_area_per_atom, bool do_vol_per_atom){
+            float vol;
+            std::vector<float> area_per_atom;
+            std::vector<float> volume_per_atom;
+            float* vol_ptr;
+            std::vector<float> *area_per_atom_ptr, *volume_per_atom_ptr;
+            vol_ptr = do_total_volume ? &vol : nullptr;
+            area_per_atom_ptr = do_area_per_atom ? &area_per_atom : nullptr;
+            volume_per_atom_ptr = do_vol_per_atom ? &volume_per_atom : nullptr;
+            float a = sel->sasa(probe_r,vol_ptr,area_per_atom_ptr,volume_per_atom_ptr);
+            py::list ret;
+            ret.append(a);
+            if(do_total_volume) ret.append(vol);
+            if(do_area_per_atom) ret.append(area_per_atom);
+            if(do_vol_per_atom) ret.append(volume_per_atom);
+            return ret;
+         }, "probe_r"_a=0.14, "do_total_volume"_a=false, "do_area_per_atom"_a=false, "do_vol_per_atom"_a=false)
+
+        .def("average_structure", [](Selection* sel, int b, int e){
+                return sel->average_structure(b,e,true); // pass true for row-major matrix
+            }, "b"_a=0, "e"_a=-1)
+
+        .def("atom_traj", [](Selection* sel, int i, int b, int e){
+                return sel->atom_traj(i,b,e,true); // pass true for row-major matrix
+            }, "i"_a, "b"_a=0, "e"_a=-1)
+
+        .def("inertia",[](Selection* sel, bool is_periodic){
+                Vector3f m;
+                Matrix3f ax;
+                sel->inertia(m,ax,is_periodic);
+                return py::make_tuple(m,ax.transpose());
+            },"is_periodic"_a=false)
+
+        .def("gyration",&Selection::gyration, "periodic"_a=false)
+
+        .def("distance", &Selection::distance, "i"_a, "j"_a, "periodic"_a=true, "dims"_a=Eigen::Vector3i::Ones())
+        .def("angle", &Selection::angle, "i"_a, "j"_a, "k"_a, "periodic"_a=true, "dims"_a=Eigen::Vector3i::Ones())
+        .def("dihedral", &Selection::dihedral, "i"_a, "j"_a, "k"_a, "l"_a, "periodic"_a=true, "dims"_a=Eigen::Vector3i::Ones())
+
+        // Geometry transforms
         .def("translate", &Selection::translate)
-        .def("get_xyz", [](Selection* sel){  RowMatrixXf m = sel->get_xyz().transpose(); return m; })
-        .def("set_xyz", [](Selection* sel, MatrixXf_const_ref m){ sel->set_xyz(m.transpose()); })
+        .def("rotate",py::overload_cast<int,float>(&Selection::rotate))
+        .def("rotate",py::overload_cast<int,float,Vector3f_const_ref>(&Selection::rotate))
+        .def("rotate",py::overload_cast<Vector3f_const_ref,float,Vector3f_const_ref>(&Selection::rotate))
+        .def("rotate",[](Selection* sel, Matrix3f_const_ref m){ sel->rotate(m.transpose()); })
+        .def("rotate",py::overload_cast<Vector3f_const_ref,Vector3f_const_ref>(&Selection::rotate))
+        .def("wrap", &Selection::wrap, "dims"_a=Eigen::Vector3i::Ones())
+        .def("unwrap", &Selection::unwrap, "dims"_a=Eigen::Vector3i::Ones())
+        .def("unwrap_bonds", &Selection::unwrap_bonds, "d"_a=0.2, "lead_ind"_a=0, "dims"_a=Eigen::Vector3i::Ones())
+        .def("principal_transform", [](Selection* sel, bool periodic){
+                Matrix4f m = sel->principal_transform(periodic).matrix().transpose();
+                return m;
+            }, "periodic"_a=false)
+
+        .def("principal_orient",&Selection::principal_orient, "periodic"_a=false)
+
+        // Fitting and rmsd
+        .def("rmsd",py::overload_cast<int>(&Selection::rmsd,py::const_))
+        .def("rmsd",py::overload_cast<int,int>(&Selection::rmsd,py::const_))
+        .def("fit_trajectory",&Selection::fit_trajectory, "ref_frame"_a=0, "b"_a=0, "e"_a=-1)
+
+        .def("fir_transform", [](Selection* sel, int fr1, int fr2){
+                Matrix4f m = sel->fit_transform(fr1,fr2).matrix().transpose();
+                return m;
+            })
+
+        .def("apply_transform", [](Selection* sel, const Eigen::Ref<const Eigen::Matrix4f>& m){
+                Affine3f t(m.transpose());
+                sel->apply_transform(t);
+            })
+
+        // Energy
+        .def("non_bond_energy", &Selection::non_bond_energy, "cutoff"_a=0.25, "periodic"_a=true)
+
+        // IO
+        .def("write", py::overload_cast<string,int,int>(&Selection::write), "fname"_a, "b"_a=0, "e"_a=-1)
+
+        // Util
+        .def("size",&Selection::size)
+        .def("__len__", &Selection::size)
+        .def("text_based",&Selection::text_based)
+        .def("coord_dependent",&Selection::coord_dependent)
+        .def("flatten",&Selection::flatten)
+        .def("gromacs_ndx",&Selection::gromacs_ndx)
+
+        // Indexing and iterating
+        .def("__iter__", [](Selection* s) {
+            return py::make_iterator(s->begin(), s->end());
+        }, py::keep_alive<0,1>() /* Essential: keep object alive while iterator exists */)
+
+        .def("__getitem__", [](const Selection &s, size_t i) {
+                if (i >= s.size()) throw py::index_error();
+                return s[i]; // Returns atom proxy object
+            })
+
+        // Splitting
+        .def("split_by_connectivity", [](Selection* sel,float d,bool periodic){
+                std::vector<Selection> res;
+                sel->split_by_connectivity(d,res,periodic);
+                return res;
+            })
+
+        .def("split_by_residue", [](Selection* sel){
+                std::vector<Selection> res;
+                sel->split_by_residue(res);
+                return res;
+            })
+
+        .def("split_by_chain", [](Selection* sel){
+                std::vector<Selection> res;
+                sel->split_by_chain(res);
+                return res;
+            })
+
+        .def("split_by_contiguous_index", [](Selection* sel){
+                std::vector<Selection> res;
+                sel->split_by_contiguous_index(res);
+                return res;
+            })
+
+        .def("split_by_contiguous_residue", [](Selection* sel){
+                std::vector<Selection> res;
+                sel->split_by_contiguous_residue(res);
+                return res;
+            })
+
+        .def("each_residue", [](Selection* sel){
+                std::vector<Selection> res;
+                sel->each_residue(res);
+                return res;
+            })
+
+        // split based on callback have to be implemented in python side
+        // since no means to bind templated return value!
+
+        // Accessors
+        .def("getX",py::overload_cast<int>(&Selection::X, py::const_))
+        .def("getX",py::overload_cast<int,int>(&Selection::X, py::const_))
+        .def("setX",[](Selection* sel,int i,float val){sel->X(i)=val;})
     ;
+
+    m.def("rmsd",[](const Selection& sel1, const Selection& sel2){ return rmsd(sel1,sel2); });
+    m.def("rmsd",[](const Selection& sel1, int fr1, const Selection& sel2, int fr2){ return rmsd(sel1,fr1,sel2,fr2); });
+    m.def("fit",[](Selection& sel1, const Selection& sel2){ fit(sel1,sel2); });
+    m.def("non_bond_energy", [](const Selection& sel1, const Selection& sel2,float cutoff,int fr,bool periodic){
+        return non_bond_energy(sel1,sel2,cutoff,fr,periodic);
+    },"sel1"_a, "sel2"_a, "cutoff"_a=0.25, "fr"_a=-1, "periodic"_a=true);
+    m.def("copy_coord",[](const Selection& sel1, int fr1, Selection& sel2, int fr2){ return copy_coord(sel1,fr1,sel2,fr2); });
+
 }

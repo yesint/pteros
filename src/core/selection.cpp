@@ -807,10 +807,17 @@ void Selection::set_resname(string& data){
 }
 
 
-MatrixXf Selection::get_xyz() const {
+MatrixXf Selection::get_xyz(bool make_row_major_matrix) const {
     int n = index.size();
-    MatrixXf res(3,n);
-    for(int i=0; i<n; ++i) res.col(i) = system->traj[frame].coord[index[i]];
+    MatrixXf res;
+    if(make_row_major_matrix){
+        res.resize(n,3);
+        for(int i=0; i<n; ++i) res.row(i) = system->traj[frame].coord[index[i]];
+    } else {
+        // Column major, default
+        res.resize(3,n);
+        for(int i=0; i<n; ++i) res.col(i) = system->traj[frame].coord[index[i]];
+    }
     return res;
 }
 
@@ -823,12 +830,11 @@ void Selection::get_xyz(MatrixXf_ref res) const {
 
 
 // Compute average structure
-MatrixXf Selection::average_structure(int b, int e) const {
+MatrixXf Selection::average_structure(int b, int e, bool make_row_major_matrix) const {
     MatrixXf res;
     int i,n,fr;
     n = index.size();
-    res.resize(3,n);
-    res.fill(0.0);
+
     if(e==-1) e = system->num_frames()-1;
     if(e<b || b<0 || e>system->num_frames()-1 || e<0){
         throw Pteros_error("Invalid frame range for average structure!");
@@ -836,8 +842,14 @@ MatrixXf Selection::average_structure(int b, int e) const {
 
     LOG()->debug("Computing avreage structure from frames {}:{}",b,e);
 
-    for(fr=b;fr<=e;++fr){
-        for(i=0; i<n; ++i) res.col(i) = system->traj[fr].coord[index[i]];
+    if(!make_row_major_matrix){
+        res.resize(3,n);
+        res.fill(0.0);
+        for(fr=b;fr<=e;++fr) for(i=0; i<n; ++i) res.col(i) = system->traj[fr].coord[index[i]];
+    } else {
+        res.resize(n,3);
+        res.fill(0.0);
+        for(fr=b;fr<=e;++fr) for(i=0; i<n; ++i) res.row(i) = system->traj[fr].coord[index[i]];
     }
     res /= (e-b+1);
     return res;
@@ -847,8 +859,12 @@ MatrixXf Selection::average_structure(int b, int e) const {
 void Selection::set_xyz(pteros::MatrixXf_const_ref coord){
     int n = index.size();
     // Sanity check
-    if(coord.cols()!=n) throw Pteros_error("Invalid data size {} for selection of size {}", coord.size(),n);
-    for(int i=0; i<n; ++i) XYZ(i) = coord.col(i);
+    if(coord.cols()!=n && coord.rows()!=n) throw Pteros_error("Invalid data size {} for selection of size {}", coord.size(),n);
+    if(coord.cols()==n){ // Column major, default
+        for(int i=0; i<n; ++i) XYZ(i) = coord.col(i);
+    } else { // row-major, from python bindings
+        for(int i=0; i<n; ++i) XYZ(i) = coord.row(i);
+    }
 }
 
 vector<float> Selection::get_beta() const{
@@ -860,7 +876,7 @@ vector<float> Selection::get_beta() const{
     return res;
 }
 
-void Selection::set_beta(std::vector<float>& data){
+void Selection::set_beta(const std::vector<float>& data){
     int i,n;
     n = index.size();
     // Sanity check
@@ -884,7 +900,7 @@ vector<float> Selection::get_occupancy() const{
     return res;
 }
 
-void Selection::set_occupancy(std::vector<float>& data){
+void Selection::set_occupancy(const std::vector<float>& data){
     int i,n;
     n = index.size();
     // Sanity check
@@ -908,7 +924,7 @@ std::vector<string> Selection::get_tag() const
     return res;
 }
 
-void Selection::set_tag(std::vector<string> &data)
+void Selection::set_tag(const std::vector<string> &data)
 {
     int i,n;
     n = index.size();
@@ -917,7 +933,7 @@ void Selection::set_tag(std::vector<string> &data)
     for(i=0; i<n; ++i) system->atoms[index[i]].tag = data[i];
 }
 
-void Selection::set_tag(string data)
+void Selection::set_tag(string& data)
 {
     for(int i=0; i<index.size(); ++i) system->atoms[index[i]].tag = data;
 }
@@ -1545,17 +1561,22 @@ void Selection::each_residue(std::vector<Selection>& sel) const {
 }
 
 
-MatrixXf Selection::atom_traj(int ind, int b, int e) const {
+MatrixXf Selection::atom_traj(int ind, int b, int e, bool make_row_major_matrix) const {
     if(e==-1) e = system->num_frames()-1;
     // Sanity check
     if(ind<0 || ind>=index.size()) throw Pteros_error("Selection index is out of range!");
     if(b<0 || b>=system->num_frames() || b>e) throw Pteros_error("Invalid frame range!");
 
     int Nfr = e-b+1;
+    MatrixXf ret;
 
-    MatrixXf ret(3,Nfr);
-
-    for(int fr=b;fr<=e;++fr) ret.col(fr) = system->traj[fr].coord[index[ind]];
+    if(!make_row_major_matrix){
+        ret.resize(3,Nfr);
+        for(int fr=b;fr<=e;++fr) ret.col(fr) = system->traj[fr].coord[index[ind]];
+    } else {
+        ret.resize(Nfr,3);
+        for(int fr=b;fr<=e;++fr) ret.row(fr) = system->traj[fr].coord[index[ind]];
+    }
 
     return ret;
 }

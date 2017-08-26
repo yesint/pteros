@@ -414,7 +414,9 @@ class Selection {
     void set_resname(std::string& data);
 
     /// Get coordinates of all atoms in this selection for the current frame
-    Eigen::MatrixXf get_xyz() const;
+    /// By default columnt of the matrix contain atom coordinates.
+    /// Optional flag turns this to row-major format (mainly used by python binding)
+    Eigen::MatrixXf get_xyz(bool make_row_major_matrix = false) const;
 
     /// Get coordinates of all atoms in this selection for the current frame in existing matrix
     void get_xyz(MatrixXf_ref res) const;
@@ -437,7 +439,7 @@ class Selection {
 
     /// Set beta in selection to the values from supplied vector.
     /// \note Vector size must be the save as the size of selection.
-    void set_beta(std::vector<float>& data);
+    void set_beta(const std::vector<float>& data);
 
     /// Sets beta of all selected atoms to the same given value.
     void set_beta(float data);
@@ -447,7 +449,7 @@ class Selection {
 
     /// Set occupancy in selection to the values from supplied vector.
     /// \note Vector size must be the save as the size of selection.
-    void set_occupancy(std::vector<float>& data);
+    void set_occupancy(const std::vector<float>& data);
 
     /// Sets occupancy of all selected atoms to the same given value.
     void set_occupancy(float data);
@@ -457,10 +459,10 @@ class Selection {
 
     /// Set tags in selection to the values from supplied vector.
     /// \note Vector size must be the save as the size of selection.
-    void set_tag(std::vector<std::string>& data);
+    void set_tag(const std::vector<std::string>& data);
 
     /// Set tags of all selected atoms to the same given value.
-    void set_tag(std::string data);
+    void set_tag(std::string& data);
     /// @}
 
 
@@ -489,13 +491,13 @@ class Selection {
                std::vector<float>* volume_per_atom = nullptr) const;
 
     /// Computes average structure over the range of frames
-    Eigen::MatrixXf average_structure(int b=0, int e=-1) const;
+    Eigen::MatrixXf average_structure(int b=0, int e=-1, bool make_row_major_matrix = false) const;
 
     /** Extracts X,Y,Z for given atom index for specified range of frames
         (gets trajectory of given atom).
-    *   Result is returned as MatrixXf, where i-th column is an XYZ vector for frame i.
+    *   Result is returned as MatrixXf, where i-th column (or row) is an XYZ vector for frame i.
     */
-    Eigen::MatrixXf atom_traj(int ind, int b=0, int e=-1) const;
+    Eigen::MatrixXf atom_traj(int ind, int b=0, int e=-1, bool make_row_major_matrix = false) const;
 
     /** Computes the central momens of inertia and principal axes of inertia
      \warning
