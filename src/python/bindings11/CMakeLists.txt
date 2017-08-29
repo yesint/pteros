@@ -10,6 +10,7 @@ IF(WITH_PYTHON)
         bindings_system.cpp
         bindings_selection.cpp
         bindings_frame.cpp
+        bindings_distance_search.cpp
     )
 
 

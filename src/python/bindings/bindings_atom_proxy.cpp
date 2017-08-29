@@ -83,7 +83,8 @@ WRAP_ACCESSOR(float,Occupancy)
 WRAP_ACCESSOR(long,Resid)
 WRAP_ACCESSOR(std::string,Tag)
 WRAP_ACCESSOR(int,Resindex)
-WRAP_ACCESSOR(int,Index)
+
+int Atom_proxy_getIndex_func(Atom_proxy* s){ return s->Index(); } \
 
 void make_bindings_Atom_proxy(){
     import_array();
@@ -121,9 +122,10 @@ void make_bindings_Atom_proxy(){
         DEF_PROPERTY(charge,Charge)
         DEF_PROPERTY(beta,Beta)
         DEF_PROPERTY(occupancy,Occupancy)
-        DEF_PROPERTY(resid,Resid)
-        DEF_PROPERTY(index,Index)
+        DEF_PROPERTY(resid,Resid)        
         DEF_PROPERTY(resindex,Resindex)
         DEF_PROPERTY(tag,Tag)
+
+        .def("getIndex",&Atom_proxy_getIndex_func)
     ;
 }

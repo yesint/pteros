@@ -850,7 +850,7 @@ class Selection {
         return &(system->traj[frame].coord[index[ind]]);
     }
 
-    /// Extracts X,Y and Z for given frame frame fr
+    /// Extracts X,Y and Z for given frame fr
     inline Eigen::Vector3f& XYZ(int ind, int fr){
     	return system->traj[fr].coord[index[ind]];
     }
@@ -1058,14 +1058,13 @@ class Atom_proxy {
     friend class Selection::iterator;
 public:
     Atom_proxy(){}
-    Atom_proxy(Selection* s, int i): sel(s), ind(i) {}        
+    Atom_proxy(Selection* s, int i): sel(s), ind(i) {}
 
     /// @name Inline accessors. Const and non-const versions.
     /// @{
     inline int& Resid(){ return sel->Resid(ind); }
     inline const int& Resid() const { return sel->Resid(ind); }
 
-    inline int& Index(){ return sel->Index(ind); }
     inline const int& Index() const { return sel->Index(ind); }
 
     inline std::string& Name(){ return sel->Name(ind); }
@@ -1139,6 +1138,8 @@ public:
     bool operator!=(const Atom_proxy &other) const {
         return !(*this == other);
     }
+
+    Selection* get_selection(){ return sel; }
 
 protected:
     Selection* sel;

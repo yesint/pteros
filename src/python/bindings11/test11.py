@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 from pteros11 import *
+import numpy as np
 
 def cb(s,fr):
     print "callback with {} atoms".format(s.num_atoms())
@@ -77,5 +78,24 @@ print m,a
 t = sel.principal_transform(False)
 print t
 
-for a in sel:
-    print a
+#for a in sel:
+#    a.resid += 1
+#    print a.name, a.resid, a.xyz
+
+print sel[45].resname
+
+sel = s('resid 1')
+vec = np.array([],dtype=np.float32)
+pairs,dist = search_contacts(0.6,sel,True,True,True)
+print pairs[0]
+
+ptr,b = pairs.__array_interface__['data']
+print hex(ptr)
+
+print dist[0:10]
+
+
+sel2 = s('not resid 1')
+
+res = search_within(0.5,sel2,sel)
+print res[:10]

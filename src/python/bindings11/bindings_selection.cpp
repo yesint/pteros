@@ -35,12 +35,41 @@ using namespace std;
 using namespace Eigen;
 using namespace pybind11::literals;
 
+#define DEF_PROPERTY(_name,_dtype,_func) \
+    .def_property(#_name, [](Atom_proxy* obj){return obj->_func();}, [](Atom_proxy* obj,const _dtype& val){obj->_func()=val;})
 
 void make_bindings_Selection(py::module& m){
 
     using RowMatrixXf = Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
 
     py::class_<Atom_proxy>(m, "Atom_proxy")
+        .def_property_readonly("index", [](Atom_proxy* obj){return obj->Index();})
+        DEF_PROPERTY(resid,int,Resid)
+        DEF_PROPERTY(resindex,int,Resindex)
+        DEF_PROPERTY(resname,string,Resname)
+        DEF_PROPERTY(name,string,Name)
+        DEF_PROPERTY(chain,char,Chain)
+        DEF_PROPERTY(tag,string,Tag)
+        DEF_PROPERTY(occupancy,float,Occupancy)
+        DEF_PROPERTY(beta,float,Beta)
+        DEF_PROPERTY(mass,float,Mass)
+        DEF_PROPERTY(charge,float,Charge)
+        DEF_PROPERTY(type,int,Type)
+        DEF_PROPERTY(type_name,string,Type_name)
+        DEF_PROPERTY(atom,Atom,Atom_data)
+        DEF_PROPERTY(x,float,X)
+        DEF_PROPERTY(y,float,Y)
+        DEF_PROPERTY(z,float,Z)
+        .def_property("xyz", [](Atom_proxy* obj){return obj->XYZ();}, [](Atom_proxy* obj,Vector3f_const_ref val){obj->XYZ()=val;})
+        // For other frame
+        .def("getX", [](Atom_proxy* ap, int fr){ return ap->X(fr); })
+        .def("getY", [](Atom_proxy* ap, int fr){ return ap->Y(fr); })
+        .def("getZ", [](Atom_proxy* ap, int fr){ return ap->Z(fr); })
+        .def("getXYZ", [](Atom_proxy* ap, int fr){ return ap->XYZ(fr); })
+        .def("setX", [](Atom_proxy* ap, int fr, float data){ ap->X(fr) = data; })
+        .def("setY", [](Atom_proxy* ap, int fr, float data){ ap->Y(fr) = data; })
+        .def("setZ", [](Atom_proxy* ap, int fr, float data){ ap->Z(fr) = data; })
+        .def("setXYZ", [](Atom_proxy* ap, int fr, Vector3f_const_ref data){ ap->XYZ(fr) = data; })
     ;
 
     py::class_<Selection>(m, "Selection")
@@ -275,11 +304,14 @@ void make_bindings_Selection(py::module& m){
         // since no means to bind templated return value!
 
         // Accessors
-        .def("getX",py::overload_cast<int>(&Selection::X, py::const_))
-        .def("getX",py::overload_cast<int,int>(&Selection::X, py::const_))
-        .def("setX",[](Selection* sel,int i,float val){sel->X(i)=val;})
+        .def("VDW",&Selection::VDW)
+        .def_property("box", [](Selection* obj){return obj->Box();}, [](Selection* obj,const Periodic_box& val){obj->Box()=val;})
+        .def_property("time", [](Selection* obj){return obj->Time();}, [](Selection* obj, float val){obj->Time()=val;})
+
+        // No other accessors are exposed in favor to [] operator
     ;
 
+    // Free functions
     m.def("rmsd",[](const Selection& sel1, const Selection& sel2){ return rmsd(sel1,sel2); });
     m.def("rmsd",[](const Selection& sel1, int fr1, const Selection& sel2, int fr2){ return rmsd(sel1,fr1,sel2,fr2); });
     m.def("fit",[](Selection& sel1, const Selection& sel2){ fit(sel1,sel2); });
