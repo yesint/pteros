@@ -2,6 +2,7 @@
 
 from pteros11 import *
 import numpy as np
+import sys
 
 def cb(s,fr):
     print "callback with {} atoms".format(s.num_atoms())
@@ -99,3 +100,7 @@ sel2 = s('not resid 1')
 
 res = search_within(0.5,sel2,sel)
 print res[:10]
+
+opt,tasks = parse_command_line(sys.argv,"task")
+print opt('f').as_strings()
+print tasks[0]('opt1').as_float()

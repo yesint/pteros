@@ -14,6 +14,7 @@ void make_bindings_Selection(py::module&);
 void make_bindings_Periodic_box(py::module&);
 void make_bindings_Frame(py::module&);
 void make_bindings_Distance_search(py::module&);
+void make_bindings_Options(py::module&);
 
 
 PYBIND11_MODULE(pteros11, m) {
@@ -25,6 +26,7 @@ PYBIND11_MODULE(pteros11, m) {
     make_bindings_Periodic_box(m);
     make_bindings_Frame(m);
     make_bindings_Distance_search(m);
+    make_bindings_Options(m);
 
     //py::bind_vector<std::vector<int>>(m, "VectorInt");
 

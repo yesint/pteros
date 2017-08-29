@@ -11,6 +11,7 @@ IF(WITH_PYTHON)
         bindings_selection.cpp
         bindings_frame.cpp
         bindings_distance_search.cpp
+        bindings_options.cpp
     )
 
 
