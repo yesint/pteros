@@ -34,6 +34,12 @@ using namespace Eigen;
 using namespace pybind11::literals;
 
 
+template<class T>
+py::array vector_to_array(std::vector<T>* ptr, size_t sz=-1){
+    if(sz==-1) sz=ptr->size();
+    auto capsule = py::capsule(ptr, [](void *v) { delete reinterpret_cast<std::vector<T>*>(v); });
+    return py::array(sz, ptr->data(), capsule);
+}
 
 void make_bindings_Distance_search(py::module& m){
 
@@ -46,16 +52,25 @@ void make_bindings_Distance_search(py::module& m){
     {
         std::vector<float>* dist_vec_ptr = do_dist_vec ? new std::vector<float> : nullptr;
         std::vector<Vector2i>* pairs_ptr = new std::vector<Vector2i>;
+
         search_contacts(d,sel,*pairs_ptr,absolute_index,periodic,dist_vec_ptr);
-        Map<Matrix<int,Dynamic,Dynamic,Eigen::RowMajor>> m((int*)pairs_ptr->data(),pairs_ptr->size(),2);
+
+        // Interpret pairs array as 1D array of ints first
+        // Pass size*2 explicitly to ensure correct size
+        py::array m = vector_to_array<int>(reinterpret_cast<std::vector<int>*>(pairs_ptr),2*pairs_ptr->size());
+        // Reshape into 2D array (no reallocation)
+        m.resize(vector<size_t>{pairs_ptr->size(),2});
+
+        //cout << (*pairs_ptr)[1] << " " << pairs_ptr->data() << " " << m.data() << endl;
 
         if(do_dist_vec){
-            Map<Matrix<float,Dynamic,Dynamic,Eigen::RowMajor>> v((float*)dist_vec_ptr->data(),dist_vec_ptr->size(),1);
+            // Make py::array for distances
+            py::array v = vector_to_array<float>(dist_vec_ptr);
             return py::make_tuple(m,v);
         } else {
             return py::make_tuple(m,py::none());
         }
-    }, py::return_value_policy::take_ownership, "d"_a, "sel"_a, "abs_ind"_a=false, "periodic"_a=false,"do_distances"_a=false);
+    }, "d"_a, "sel"_a, "abs_ind"_a=false, "periodic"_a=false,"do_distances"_a=false);
 
 
     m.def("search_contacts",[](float d,
@@ -69,15 +84,23 @@ void make_bindings_Distance_search(py::module& m){
         std::vector<float>* dist_vec_ptr = do_dist_vec ? new std::vector<float> : nullptr;
         std::vector<Vector2i>* pairs_ptr = new std::vector<Vector2i>;
         search_contacts(d,sel1,sel2,*pairs_ptr,absolute_index,periodic,dist_vec_ptr);
-        Map<Matrix<int,Dynamic,Dynamic,Eigen::RowMajor>> m((int*)pairs_ptr->data(),pairs_ptr->size(),2);
+
+        // Interpret pairs array as 1D array of ints first
+        // Pass size*2 explicitly to ensure correct size
+        py::array m = vector_to_array<int>(reinterpret_cast<std::vector<int>*>(pairs_ptr),2*pairs_ptr->size());
+        // Reshape into 2D array (no reallocation)
+        m.resize(vector<size_t>{pairs_ptr->size(),2});
 
         if(do_dist_vec){
-            Map<Matrix<float,Dynamic,Dynamic,Eigen::RowMajor>> v((float*)dist_vec_ptr->data(),dist_vec_ptr->size(),1);
+            // Make py::array for distances
+            py::array v = vector_to_array<float>(dist_vec_ptr);
             return py::make_tuple(m,v);
         } else {
             return py::make_tuple(m,py::none());
         }
-    }, py::return_value_policy::take_ownership, "d"_a, "sel1"_a, "sel2"_a, "abs_ind"_a=false, "periodic"_a=false,"do_distances"_a=false);
+
+
+    }, "d"_a, "sel1"_a, "sel2"_a, "abs_ind"_a=false, "periodic"_a=false,"do_distances"_a=false);
 
 
     m.def("search_within",[](float d,
@@ -89,8 +112,7 @@ void make_bindings_Distance_search(py::module& m){
     {
         std::vector<int>* res_ptr = new std::vector<int>;
         search_within(d,src,target,*res_ptr,include_self,periodic);
-        Map<Matrix<int,Dynamic,Dynamic,Eigen::RowMajor>> v((int*)res_ptr->data(),res_ptr->size(),1);
-        return v;
+        return vector_to_array<int>(res_ptr);
     }, "d"_a, "src"_a, "target"_a, "include_self"_a=true, "periodic"_a=false);
 
 
@@ -102,16 +124,14 @@ void make_bindings_Distance_search(py::module& m){
                 {
                    std::vector<int>* res_ptr = new std::vector<int>;
                    obj->search_within(coord,*res_ptr);
-                   Map<Matrix<int,Dynamic,Dynamic,Eigen::RowMajor>> v((int*)res_ptr->data(),res_ptr->size(),1);
-                   return v;
+                   return vector_to_array<int>(res_ptr);
                 })
 
             .def("search_within",[](Distance_search_within* obj, const Selection& target, bool include_self)
                 {
                     std::vector<int>* res_ptr = new std::vector<int>;
                     obj->search_within(target,*res_ptr,include_self);
-                    Map<Matrix<int,Dynamic,Dynamic,Eigen::RowMajor>> v((int*)res_ptr->data(),res_ptr->size(),1);
-                    return v;
+                    return vector_to_array<int>(res_ptr);
                 },"target"_a, "include_self"_a=true)
     ;
 }

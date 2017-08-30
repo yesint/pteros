@@ -12,6 +12,7 @@ IF(WITH_PYTHON)
         bindings_frame.cpp
         bindings_distance_search.cpp
         bindings_options.cpp
+        bindings_trajectory_reader.cpp
     )
 
 

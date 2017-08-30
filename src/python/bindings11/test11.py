@@ -85,22 +85,14 @@ print t
 
 print sel[45].resname
 
+print "DIST SEARCH"
 sel = s('resid 1')
-vec = np.array([],dtype=np.float32)
 pairs,dist = search_contacts(0.6,sel,True,True,True)
-print pairs[0]
+print pairs
+print dist
 
 ptr,b = pairs.__array_interface__['data']
 print hex(ptr)
 
-print dist[0:10]
+#print dist[0:10]
 
-
-sel2 = s('not resid 1')
-
-res = search_within(0.5,sel2,sel)
-print res[:10]
-
-opt,tasks = parse_command_line(sys.argv,"task")
-print opt('f').as_strings()
-print tasks[0]('opt1').as_float()
