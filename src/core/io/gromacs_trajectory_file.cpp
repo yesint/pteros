@@ -39,14 +39,14 @@ void Gromacs_trajectory_file::open(char openmode){
     mode = openmode;
 
     xd = xdrfile_open(fname.c_str(),&mode);
-    if(!xd) throw Pteros_error("Can't open trajectory file "+fname+" in mode '"+mode+"'");
+    if(!xd) throw Pteros_error("Can't open trajectory file '{}' in mode '{}'",fname,mode);
 
     if(mode == 'r'){ //READING
         // Get number of atoms
         ret = read_num_atoms(const_cast<char*>(fname.c_str()), &natoms);
 
         if(ret != exdrOK)
-            throw Pteros_error("Failed to get number of atoms in trajectory file "+fname);
+            throw Pteros_error("Failed to get number of atoms in trajectory file {}",fname);
 
     } else {
         // For writing number of atoms will be supplied later on first write operation

@@ -112,7 +112,7 @@ void VMD_molfile_plugin_wrapper::open(char open_mode){
         if(handle) throw Pteros_error("Can't open file for reading twice - handle busy!");        
         handle = NULL;
         handle = plugin->open_file_read(fname.c_str(), &open_mode, &natoms);
-        if(!handle) throw Pteros_error("Can't open file '"+fname + "'!");        
+        if(!handle) throw Pteros_error("Can't open file '{}'!",fname);
     } else {
         if(w_handle) throw Pteros_error("Can't open file for writing twice - handle busy!");        
         w_handle = NULL;

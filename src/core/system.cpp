@@ -20,9 +20,8 @@
  *
 */
 
-#include <iostream>
+
 #include <fstream>
-#include <iomanip>
 #include <unordered_map>
 #include "pteros/core/system.h"
 #include "pteros/core/selection.h"
@@ -32,7 +31,7 @@
 #include "selection_parser.h"
 // DSSP
 #include "pteros_dssp_wrapper.h"
-#include "spdlog/fmt/fmt.h"
+#include "pteros/core/logging.h"
 
 using namespace std;
 using namespace pteros;
@@ -77,12 +76,9 @@ void System::clear(){
 }
 
 void System::check_num_atoms_in_last_frame(){
-    if(Frame_data(num_frames()-1).coord.size()!=num_atoms())
-        throw Pteros_error("File contains "
-                           +to_string(Frame_data(num_frames()-1).coord.size())
-                           +" atoms while the system has "
-                           +to_string(num_atoms())
-                           );
+    if(Frame_data(num_frames()-1).coord.size()!=num_atoms())        
+        throw Pteros_error("File contains {} atoms while the system has {}",
+                       Frame_data(num_frames()-1).coord.size(),num_atoms() );
 }
 
 void System::filter_atoms()
@@ -155,8 +151,7 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
         // We have atoms already, so read only coordinates
         auto c = f->get_content_type();
         if(!c.coord() && !c.traj())
-            throw Pteros_error("File reader for file '"+fname
-                               +"' is not capable of appending frames to the system!");
+            throw Pteros_error("File reader for file '{}' is not capable of appending frames to the system!",fname);
 
         // Check if we can read trajectory
         if(c.traj()){
@@ -168,7 +163,7 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
 
             // Skip frames if needed
             if(b>0){
-                fmt::print("Skipping {} frames...\n", b);
+                LOG()->info("Skipping {} frames...\n", b);
                 Frame skip_fr;
                 for(int i=0;i<b;++i){
                     f->read(nullptr, &skip_fr, Mol_file_content().traj(true));                    ;
@@ -176,7 +171,7 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
                 }
             }            
 
-            print("Reading...\n");
+            LOG()->info("Reading...\n");
 
             int actually_read = 0;
 
@@ -238,7 +233,7 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
         }
     }
 
-    print("Accepted {} frames. Now {} frames in the System.\n", num_stored, num_frames());
+    LOG()->info("Accepted {} frames. Now {} frames in the System.\n", num_stored, num_frames());
 }
 
 bool System::load(const std::unique_ptr<Mol_file>& handler, Mol_file_content what, std::function<bool (System *, int)> on_frame)
@@ -312,7 +307,7 @@ void sort_and_remove_duplicates(std::vector<int>& index)
         sort(index.begin(),index.end());
         vector<int>::iterator it = unique(index.begin(), index.end());
         index.resize( it - index.begin() );
-        if(index[0]<0) throw Pteros_error("Negative index present in filter!");
+        if(index[0]<0) throw Pteros_error("Negative index {} present in filter!",index[0]);
     }
 }
 
@@ -347,14 +342,14 @@ System::~System() {}
 
 int System::frame_dup(int fr){
     if(fr<0 || fr>=traj.size())
-    	throw Pteros_error("Invalid frame for duplication!");
+        throw Pteros_error("Invalid frame {} for duplication!",fr);
     traj.push_back(traj[fr]);
     return traj.size()-1;
 }
 
 void System::frame_copy(int fr1, int fr2){
     if(fr1<0 || fr1>=traj.size() || fr2<0 || fr2>=traj.size())
-    	throw Pteros_error("Invalid frame for copying!");
+        throw Pteros_error("Invalid frames {} and {} for copying!",fr1,fr2);
     traj[fr2] = traj[fr1];    
 }
 
@@ -363,7 +358,7 @@ void System::frame_delete(int b, int e){
     int i;    
 
     if(e==-1) e = num_frames()-1;
-    if(e<b || b<0 || e>num_frames()-1) throw Pteros_error("Invalid frame range for deletion");    
+    if(e<b || b<0 || e>num_frames()-1) throw Pteros_error("Invalid frame range {}:{} for deletion",b,e);
 
     // Get iterators for deletion
     vector<Frame>::iterator b_it, e_it;
@@ -377,13 +372,13 @@ void System::frame_delete(int b, int e){
 
     // Check if there are some frames left. If not print the warning
     // that all selections are invalid!
-    if(traj.size()==0) print("All frames are deleted. All selections are now INVALID!\n");
+    if(traj.size()==0) LOG()->warn("All frames are deleted. All selections are now INVALID!\n");
 }
 
 void System::frame_swap(int fr1, int fr2)
 {
     if(fr1<0 || fr1>=traj.size() || fr2<0 || fr2>=traj.size())
-        throw Pteros_error("Invalid frame for swapping!");
+        throw Pteros_error("Invalid frames {} and {} for swapping!",fr1,fr2);
     std::swap(traj[fr1],traj[fr2]);
 }
 
@@ -439,7 +434,7 @@ Selection System::atoms_dup(const vector<int>& ind){
     if(!ind.size()) throw Pteros_error("No atoms to duplicate!");
     for(int i=0; i<ind.size(); ++i){
         if(ind[i]<0 || ind[i]>atoms.size()-1)
-            throw Pteros_error("Invalid index for atom duplication!");
+            throw Pteros_error("Invalid index {} for atom duplication!", ind[i]);
     }
 
     // Duplicate atoms
@@ -468,7 +463,8 @@ Selection System::atoms_dup(const vector<int>& ind){
 Selection System::atoms_add(const vector<Atom>& atm, const vector<Vector3f>& crd){
     // Sanity check
     if(!atm.size()) throw Pteros_error("No atoms to add!");
-    if(atm.size()!=crd.size()) throw Pteros_error("Wrong number of coordinates for adding atoms!");
+    if(atm.size()!=crd.size())
+        throw Pteros_error("Number of coordinates {} doesn't mutch number of atoms {}",crd.size(),atm.size());
 
     int first_added = atoms.size();
     int last_added = atoms.size()+atm.size()-1;
@@ -501,7 +497,7 @@ void System::atoms_delete(const std::vector<int> &ind){
     if(!ind.size()) throw Pteros_error("No atoms to delete!");
     for(int i=0; i<ind.size(); ++i){
         if(ind[i]<0 || ind[i]>atoms.size()-1)
-            throw Pteros_error("Invalid index for atom deletion!");
+            throw Pteros_error("Index {} for atom is out of range (0:{})!",ind[i],atoms.size()-1);
     }
 
     // Mark atoms for deletion by assigning negative mass
@@ -567,7 +563,8 @@ Selection System::atom_clone(int source)
 
 Selection System::append(const System &sys){
     //Sanity check
-    if(num_frames()>0 && num_frames()!=sys.num_frames()) throw Pteros_error("Can't merge systems with different number of frames!");
+    if(num_frames()>0 && num_frames()!=sys.num_frames())
+        throw Pteros_error("Can't merge systems with different number of frames ({} and {}})!",num_frames(),sys.num_frames());
     // If no frames create needed ammount
     bool transfer_time_box = false;
     if(num_frames()==0){
@@ -596,7 +593,9 @@ Selection System::append(const System &sys){
 
 Selection System::append(const Selection &sel){    
     //Sanity check    
-    if(num_frames()>0 && num_frames()!=sel.get_system()->num_frames()) throw Pteros_error("Can't merge systems with different number of frames!");
+    if(num_frames()>0 && num_frames()!=sel.get_system()->num_frames())
+        throw Pteros_error("Can't merge systems with different number of frames! ({} and {}})",
+                           num_frames(),sel.get_system()->num_frames());
 
     // If no frames create needed ammount
     bool transfer_time_box = false;

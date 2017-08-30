@@ -22,6 +22,7 @@
 
 #include "pttop_file.h"
 #include "pteros/core/pteros_error.h"
+#include "pteros/core/logging.h"
 #include <fstream>
 
 using namespace std;
@@ -45,9 +46,9 @@ bool PTTOP_file::do_read(System *sys, Frame *frame, const Mol_file_content &what
     float val;
 
     ifstream f(fname.c_str());
-    if(!f) throw Pteros_error("Can't open PTTOP file '"+fname+"'' for reading");
+    if(!f) throw Pteros_error("Can't open PTTOP file '{}' for reading",fname);
 
-    cout << "Reading Pteros topology file '"<< fname << "'..." << endl;
+    LOG()->info("Reading Pteros topology file '{}'",fname);
 
     // coulomb_type
     getline(f,line); // Comment

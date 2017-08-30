@@ -32,10 +32,10 @@ void GRO_file::open(char open_mode)
 {
     if(open_mode=='r'){
         f.open(fname.c_str(),ios_base::in);
-        if(!f) throw Pteros_error("Can't open GRO file '"+fname+"'' for reading");
+        if(!f) throw Pteros_error("Can't open GRO file '{}' for reading",fname);
     } else {
         f.open(fname.c_str(),ios_base::out);
-        if(!f) throw Pteros_error("Can't open GRO file '"+fname+"'' for writing");
+        if(!f) throw Pteros_error("Can't open GRO file '{}' for writing",fname);
     }
 }
 

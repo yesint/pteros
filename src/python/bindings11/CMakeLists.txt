@@ -5,6 +5,7 @@ IF(WITH_PYTHON)
     #############################
     SET(BIND_FILES
         bindings.cpp
+        bindings_util.h
         bindings_atom.cpp
         bindings_periodic_box.cpp
         bindings_system.cpp

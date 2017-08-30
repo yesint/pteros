@@ -26,6 +26,7 @@
 #include <pybind11/operators.h>
 #include <pybind11/stl.h>
 #include <pybind11/eigen.h>
+#include "bindings_util.h"
 
 namespace py = pybind11;
 using namespace pteros;
@@ -33,13 +34,6 @@ using namespace std;
 using namespace Eigen;
 using namespace pybind11::literals;
 
-
-template<class T>
-py::array vector_to_array(std::vector<T>* ptr, size_t sz=-1){
-    if(sz==-1) sz=ptr->size();
-    auto capsule = py::capsule(ptr, [](void *v) { delete reinterpret_cast<std::vector<T>*>(v); });
-    return py::array(sz, ptr->data(), capsule);
-}
 
 void make_bindings_Distance_search(py::module& m){
 
@@ -55,7 +49,7 @@ void make_bindings_Distance_search(py::module& m){
 
         search_contacts(d,sel,*pairs_ptr,absolute_index,periodic,dist_vec_ptr);
 
-        // Interpret pairs array as 1D array of ints first
+        // Interpret pairs array as 1D array of ints first and convert to py::array
         // Pass size*2 explicitly to ensure correct size
         py::array m = vector_to_array<int>(reinterpret_cast<std::vector<int>*>(pairs_ptr),2*pairs_ptr->size());
         // Reshape into 2D array (no reallocation)

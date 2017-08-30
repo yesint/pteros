@@ -69,7 +69,7 @@ void Selection::sort_and_remove_duplicates()
         sort(index.begin(),index.end());
         vector<int>::iterator it = unique(index.begin(), index.end());
         index.resize( it - index.begin() );
-        if(index[0]<0) throw Pteros_error(fmt::format("Negative index {} present in Selection!",index[0]));
+        if(index[0]<0) throw Pteros_error("Negative index {} present in Selection!",index[0]);
     } else {
         if(size()==0) LOG()->warn("Selection '{}' is empty! Any call of its methods (except size()) will crash your program!", sel_text);
     }

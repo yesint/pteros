@@ -41,7 +41,7 @@ void Jump_remover::add_atoms(const Selection &sel)
     int n = sel.get_system()->num_atoms();
     for(int i=0;i<sel.size();++i){
         ind = sel.Index(i);
-        if(ind<0 || ind>=n) throw Pteros_error("Index for jump removal out of range!");
+        if(ind<0 || ind>=n) throw Pteros_error("Index {} for jump removal out of range (0:{})!",ind,n-1);
         no_jump_ind.push_back(ind);
     }
 
@@ -54,7 +54,7 @@ void Jump_remover::add_atoms(const Selection &sel)
 void Jump_remover::set_dimensions(Vector3i_const_ref dim)
 {
     dims = dim;
-    if(dims.sum()==0) LOG()->warn("(WARNING!) No periodic dimensions, skipping jump removing.");
+    if(dims.sum()==0) LOG()->warn("No periodic dimensions, skipping jump removing.");
 }
 
 void Jump_remover::set_unwrap_dist(float d)
