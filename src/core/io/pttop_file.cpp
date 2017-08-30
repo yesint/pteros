@@ -136,7 +136,7 @@ bool PTTOP_file::do_read(System *sys, Frame *frame, const Mol_file_content &what
             atom_in_system(*sys,i) = at;
         }
     }
-    cout << "\tRead " << natoms << " atoms" << endl;
+    LOG()->info("Read {} atoms",natoms);
 
     // Bonds
     int nbonds;
@@ -151,7 +151,7 @@ bool PTTOP_file::do_read(System *sys, Frame *frame, const Mol_file_content &what
         ss.clear(); ss.str(line);
         ss >> ff_in_system(*sys).bonds[i](0) >> ff_in_system(*sys).bonds[i](1);
     }
-    cout << "\tRead " << nbonds << " bonds" << endl;
+    LOG()->info("Read {} bonds",nbonds);
 
     // Box
     getline(f,line); // Comment
@@ -183,7 +183,7 @@ bool PTTOP_file::do_read(System *sys, Frame *frame, const Mol_file_content &what
         ss >> ff_in_system(*sys).charge_groups[i](0)
            >> ff_in_system(*sys).charge_groups[i](1);
     }
-    cout << "\tRead " << ncg << " charge groups" << endl;
+     LOG()->info("Read {} charge groups",ncg);
 
     // number of atoms with exclusions
     int nexcl;
@@ -203,7 +203,7 @@ bool PTTOP_file::do_read(System *sys, Frame *frame, const Mol_file_content &what
             ff_in_system(*sys).exclusions[i].insert(dum);
         }
     }
-    cout << "\tRead " << nexcl << " exclusion groups" << endl;
+     LOG()->info("Read {} exclusion groups",nexcl);
 
     // Size of LJ matrix
     int nLJ;
@@ -233,7 +233,7 @@ bool PTTOP_file::do_read(System *sys, Frame *frame, const Mol_file_content &what
             ff_in_system(*sys).LJ_C12(i,j) = val;
         }
     }
-    cout << "\tRead LJ interaction matrices of size " << nLJ << endl;
+     LOG()->info("Read LJ interaction matrices of size {}",nLJ);
 
     // fudgeQQ
     getline(f,line); // Coment
@@ -256,7 +256,7 @@ bool PTTOP_file::do_read(System *sys, Frame *frame, const Mol_file_content &what
         ss >> dum >> ff_in_system(*sys).LJ14_interactions[i](0)
                   >> ff_in_system(*sys).LJ14_interactions[i](1);
     }
-    cout << "\tRead " << nLJ14types << " LJ-14 interaction types" << endl;
+     LOG()->info("Read {} LJ-14 interaction types", nLJ14types);
 
     // number of LJ14 pairs
     int nLJ14pairs;
@@ -273,7 +273,7 @@ bool PTTOP_file::do_read(System *sys, Frame *frame, const Mol_file_content &what
         ss >> a >> b >> n;
         ff_in_system(*sys).LJ14_pairs.insert( make_pair(a*nLJ14types+b,n) );
     }
-    cout << "\tRead " << nLJ14pairs << " LJ-14 atom pairs" << endl;
+     LOG()->info("Read {} LJ-14 atom pairs", nLJ14pairs);
 
     ff_in_system(*sys).setup_kernels(); // Setup kernels
     ff_in_system(*sys).ready = true; // ff is ready to use
