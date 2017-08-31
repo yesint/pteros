@@ -374,11 +374,11 @@ void Trajectory_reader::run(){
             // Join all workers
             for(auto& t: tasks) t->driver->join_thread();
 
-        } else {
+        } else {            
             // There is only one consumer, no need for multiple threads
             log->info("\tRunning single serial task in master thread");            
-            tasks[0]->set_id(0);
-            tasks[0]->driver->set_data_channel(reader_channel);
+            tasks[0]->set_id(0);            
+            tasks[0]->driver->set_data_channel(reader_channel);            
             tasks[0]->driver->process_all(system);
         }
     } // Dispatching frames

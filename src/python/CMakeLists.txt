@@ -6,6 +6,7 @@ if(WITH_PYTHON)
             DESTINATION bin)
     # Install wrapper for main extension module
     install(PROGRAMS scripts/pteros.py DESTINATION ${PY_INST_DIR})
+    install(PROGRAMS bindings11/pteros11.py DESTINATION ${PY_INST_DIR})
 
 
     add_subdirectory(pybind11_src)

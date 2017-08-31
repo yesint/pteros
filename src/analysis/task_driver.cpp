@@ -34,7 +34,7 @@ void Task_driver::process_all_in_thread(const System &sys) {
 
 void Task_driver::init_with_first_frame(const System &sys) {
     bool ok = channel->recieve(data);
-    if(!ok) throw Pteros_error("Can't init instance of the task: no frames!");
+    if(!ok) throw Pteros_error("Can't init instance of the task: no frames!");    
     task->put_system(sys);
     task->put_frame(data->frame);
     task->pre_process_handler();

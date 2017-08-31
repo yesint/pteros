@@ -18,7 +18,7 @@ void make_bindings_Options(py::module&);
 void make_bindings_Trajectory_reader(py::module&);
 
 
-PYBIND11_MODULE(pteros11, m) {
+PYBIND11_MODULE(_pteros11, m) {
     m.doc() = "pybind11 pteros bindings"; // optional module docstring
 
     make_bindings_Atom(m);
@@ -30,6 +30,13 @@ PYBIND11_MODULE(pteros11, m) {
     make_bindings_Options(m);
     make_bindings_Trajectory_reader(m);
 
-    //py::bind_vector<std::vector<int>>(m, "VectorInt");
+    // Globas stuff
+    py::class_<spdlog::logger>(m,"Logger")
+        .def("info",[](spdlog::logger* log, const string& str){log->info(str);})
+        .def("warn",[](spdlog::logger* log, const string& str){log->warn(str);})
+        .def("error",[](spdlog::logger* log, const string& str){log->error(str);})
+        .def("debug",[](spdlog::logger* log, const string& str){log->debug(str);})
+        .def("critical",[](spdlog::logger* log, const string& str){log->critical(str);})
+    ;
 
 }

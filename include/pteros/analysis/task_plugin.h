@@ -15,7 +15,7 @@ namespace pteros {
 class Task_plugin: public Task_base {
 public:
 
-    Task_plugin(const Options& opt): options(opt) {  }
+    Task_plugin(const Options& opt): options(opt), Task_base() {  }
     Task_plugin(const Task_plugin& other);
 
     Options options;

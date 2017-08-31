@@ -17,16 +17,16 @@ IF(WITH_PYTHON)
     )
 
 
-    pybind11_add_module(pteros11 ${BIND_FILES})
+    pybind11_add_module(_pteros11 ${BIND_FILES})
 
-    target_link_libraries(pteros11 PRIVATE pteros pteros_analysis)
+    target_link_libraries(_pteros11 PRIVATE pteros pteros_analysis)
 
-    set_target_properties(pteros11 PROPERTIES
+    set_target_properties(_pteros11 PROPERTIES
         LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/python"
     )
 
     #Installation
-    install(TARGETS pteros11
+    install(TARGETS _pteros11
         LIBRARY DESTINATION ${PY_INST_DIR}
         ARCHIVE DESTINATION ${PY_INST_DIR}
     )

@@ -26,6 +26,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/operators.h>
 #include <pybind11/stl.h>
+#include <pybind11/eval.h>
 
 
 namespace py = pybind11;
@@ -33,67 +34,72 @@ using namespace pteros;
 using namespace std;
 using namespace pybind11::literals;
 
-class Task_base_py : public Task_plugin {
+
+
+class Task_py : public Task_plugin {
 public:
-    /* Inherit the constructors */
-    Task_base_py(const Options& opt): Task_plugin(opt) { }
-    virtual void pre_process_pub() = 0;
-    virtual void process_frame_pub(const Frame_info& info) = 0;
-    virtual void post_process_pub(const Frame_info& info) = 0;
+    /* Inherit the constructors */    
+    using Task_plugin::Task_plugin;
 
+    string _class_name;
 
-protected:
-    virtual bool is_parallel(){return false;}
-    // Call corresponding public functions
-    virtual void pre_process(){ pre_process_pub(); }
-    virtual void process_frame(const Frame_info& info){ process_frame_pub(info); }
-    virtual void post_process(const Frame_info& info){ post_process_pub(info); }
-
-};
-
-class Task_py : public Task_base_py {
-public:
-    /* Inherit the constructors */
-    using Task_base_py::Task_base_py;
+    void set_id(int id) override {
+        log = std::make_shared<spdlog::logger>(fmt::format("{}.{}",_class_name,id), Log::instance().console_sink);
+        log->set_pattern(Log::instance().generic_pattern);
+        task_id = id;
+    }
 
     /* Trampoline (need one for each virtual function) */
-    void pre_process_pub() override {
+    void pre_process() override {
+        py::gil_scoped_acquire acquire;
         PYBIND11_OVERLOAD_PURE(
             void, /* Return type */
-            Task_base_py,      /* Parent class */
-            pre_process_pub          /* Name of function in C++ (must match Python name) */
+            Task_plugin,      /* Parent class */
+            pre_process          /* Name of function in C++ (must match Python name) */
                           /* Argument(s) */
-        );
+        );        
     }
 
-    void process_frame_pub(const Frame_info& info) override {
+    void process_frame(const Frame_info& info) override {
+        py::gil_scoped_acquire acquire;
         PYBIND11_OVERLOAD_PURE(
             void, /* Return type */
-            Task_base_py,      /* Parent class */
-            process_frame_pub,          /* Name of function in C++ (must match Python name) */
+            Task_plugin,      /* Parent class */
+            process_frame,          /* Name of function in C++ (must match Python name) */
+            info              /* Argument(s) */
+        );        
+    }
+
+    void post_process(const Frame_info& info) override {
+        py::gil_scoped_acquire acquire;
+        PYBIND11_OVERLOAD_PURE(
+            void, /* Return type */
+            Task_plugin,      /* Parent class */
+            post_process,          /* Name of function in C++ (must match Python name) */
             info              /* Argument(s) */
         );
     }
-
-    void post_process_pub(const Frame_info& info) override {
-        PYBIND11_OVERLOAD_PURE(
-            void, /* Return type */
-            Task_base_py,      /* Parent class */
-            post_process_pub,          /* Name of function in C++ (must match Python name) */
-            info              /* Argument(s) */
-        );
-    }
-
+protected:
+    bool is_parallel() override { return false; }
 };
 
 
 void make_bindings_Trajectory_reader(py::module& m){
 
-    py::class_<Task_base_py,Task_py>(m, "Task_base")
-        .def(py::init<const Options&>())
-        .def("pre_process",&Task_base_py::pre_process_pub)
-        .def("process_frame",&Task_base_py::process_frame_pub)
-        .def("post_process",&Task_base_py::post_process_pub)
+    py::class_<Task_plugin,Task_py,std::shared_ptr<Task_plugin>>(m, "Task_base_")
+        .def(py::init<const Options&>())        
+
+        .def("pre_process",&Task_plugin::pre_process)
+        .def("process_frame",&Task_plugin::process_frame)
+        .def("post_process",&Task_plugin::post_process)
+
+        .def_readonly("system",&Task_py::system)
+        .def_property_readonly("id",&Task_py::get_id)
+        .def_readonly("jump_remover",&Task_py::jump_remover)
+        .def_readonly("options",&Task_py::options)
+        .def_property_readonly("log",[](Task_py* obj){return obj->log.get();},py::return_value_policy::reference_internal)
+
+        .def_property("_class_name",[](Task_py* obj){return obj->_class_name;}, [](Task_py* obj, const string& str){obj->_class_name=str;})
     ;
 
     py::class_<Trajectory_reader>(m, "Trajectory_reader")
@@ -101,11 +107,33 @@ void make_bindings_Trajectory_reader(py::module& m){
         .def(py::init<const Options&>())
         .def("set_options",&Trajectory_reader::set_options)
         .def("help",&Trajectory_reader::help)
-        .def("run",&Trajectory_reader::run)
+        // We release GIL before starting run and will acquire it in individual tasks
+        .def("run",[](Trajectory_reader* r){
+            py::gil_scoped_release release;
+            r->run();
+        })
+
         .def("add_task",[](Trajectory_reader* r, const py::object& o){
-                auto p = o.cast<Task_base_py*>();
-                r->add_task(p);
-            })
+            auto p = o.cast<shared_ptr<Task_plugin>>();
+            r->add_task(p);
+        })
+    ;
+
+    py::class_<Frame_info>(m,"Frame_info")
+        .def_readonly("absolute_frame",&Frame_info::absolute_frame)
+        .def_readonly("absolute_time",&Frame_info::absolute_time)
+        .def_readonly("first_frame",&Frame_info::first_frame)
+        .def_readonly("first_time",&Frame_info::first_time)
+        .def_readonly("last_frame",&Frame_info::last_frame)
+        .def_readonly("last_time",&Frame_info::last_time)
+        .def_readonly("valid_frame",&Frame_info::valid_frame)
+    ;
+
+    py::class_<Jump_remover>(m,"Jump_remover")
+        .def("add_atoms",&Jump_remover::add_atoms)
+        .def("set_dimensions",&Jump_remover::set_dimensions)
+        .def("set_unwrap_dist",&Jump_remover::set_unwrap_dist)
+        .def("set_leading_index",&Jump_remover::set_leading_index)
     ;
 
 }
