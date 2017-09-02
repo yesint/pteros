@@ -119,8 +119,8 @@ include_directories(${EIGEN3_INCLUDE_DIR})
 # Add fmt library support
 #add_subdirectory(${PROJECT_SOURCE_DIR}/thirdparty/fmt EXCLUDE_FROM_ALL)
 #include_directories(${PROJECT_SOURCE_DIR}/thirdparty/fmt)
-
-include_directories(${PROJECT_SOURCE_DIR}/thirdparty/spdlog)
+#for spdlog
+include_directories(${PROJECT_SOURCE_DIR}/thirdparty)
 
 # Directories for compiled files
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
