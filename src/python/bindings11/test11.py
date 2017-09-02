@@ -111,10 +111,24 @@ class Task1(Task_base):
         
     def post_process(self,info):
         self.log.info('in post_process of task {}'.format(self.id) )
+
+class Task2(Task_base_parallel):
+    def pre_process(self):
+        self.log.info('in pre_process of task {}'.format(self.id) )
+        self.jump_remover.add_atoms(self.system('resid 1 2 3'))        
+        
+    def process_frame(self,info):
+        self.log.info('frame: {}'.format(info.valid_frame))
+        
+    def post_process(self,info):
+        self.log.info('in post_process of task {}'.format(self.id) )
+
         
 inst1 = Task1(opts)
-inst2 = Task1(opts)
+inst2 = Task2(opts)
 
-reader.add_task(inst1)
+print type(Task_base_parallel)
+
+#reader.add_task(inst1)
 reader.add_task(inst2)
 reader.run()
