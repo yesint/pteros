@@ -1,7 +1,6 @@
 #include "pteros/core/selection.h"
 #include <pybind11/pybind11.h>
-
-//PYBIND11_MAKE_OPAQUE(std::vector<int>);
+#include "pteros/core/logging.h"
 
 namespace py = pybind11;
 using namespace std;
@@ -32,6 +31,11 @@ PYBIND11_MODULE(_pteros11, m) {
 
     // Globas stuff
     py::class_<spdlog::logger>(m,"Logger")
+        .def(py::init([](const string& name){
+            auto p = std::unique_ptr<spdlog::logger>(new spdlog::logger(name,Log::instance().console_sink));
+            p->set_pattern(Log::instance().generic_pattern);
+            return p;
+        }))
         .def("info",[](spdlog::logger* log, const string& str){log->info(str);})
         .def("warn",[](spdlog::logger* log, const string& str){log->warn(str);})
         .def("error",[](spdlog::logger* log, const string& str){log->error(str);})

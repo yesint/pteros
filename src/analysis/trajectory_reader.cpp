@@ -340,7 +340,7 @@ void Trajectory_reader::run(){
             // Master thread will work as dispatcher
 
             log->info("\tRunning {} serial tasks in separate threads", tasks.size());
-            log->info("\t(master thread is dispatcjing frames)");
+            log->info("\t(master thread is dispatching frames)");
 
             // We have to reserve memory for all channels in advance!
             // Otherwise due to reallocation of array pointers sent to threads may become invalid

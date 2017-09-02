@@ -112,7 +112,7 @@ class Task1(Task_base):
     def post_process(self,info):
         self.log.info('in post_process of task {}'.format(self.id) )
 
-class Task2(Task_base_parallel):
+class Task2(Task_base):
     def pre_process(self):
         self.log.info('in pre_process of task {}'.format(self.id) )
         self.jump_remover.add_atoms(self.system('resid 1 2 3'))        
@@ -125,10 +125,8 @@ class Task2(Task_base_parallel):
 
         
 inst1 = Task1(opts)
-inst2 = Task2(opts)
+inst2 = Task1(opts)
 
-print type(Task_base_parallel)
-
-#reader.add_task(inst1)
+reader.add_task(inst1)
 reader.add_task(inst2)
 reader.run()

@@ -38,10 +38,9 @@ public:
     /* Inherit the constructors */    
     using Task_plugin::Task_plugin;
 
-    string _class_name;
-
     void set_id(int id) override {
-        log = std::make_shared<spdlog::logger>(fmt::format("{}.{}",_class_name,id), Log::instance().console_sink);
+        auto class_name = py::cast(this).get_type().attr("__name__").cast<string>();
+        log = std::make_shared<spdlog::logger>(fmt::format("{}.{}",class_name,id),Log::instance().console_sink);
         log->set_pattern(Log::instance().generic_pattern);
         task_id = id;
     }
@@ -52,7 +51,7 @@ public:
         PYBIND11_OVERLOAD_PURE(
             void, /* Return type */
             Task_plugin,      /* Parent class */
-            pre_process          /* Name of function in C++ (must match Python name) */
+            pre_process,          /* Name of function in C++ (must match Python name) */
                           /* Argument(s) */
         );        
     }
@@ -83,7 +82,7 @@ protected:
 
 void make_bindings_Trajectory_reader(py::module& m){
 
-    py::class_<Task_plugin,Task_py,std::shared_ptr<Task_plugin>>(m, "Task_base_")
+    py::class_<Task_plugin,Task_py,std::shared_ptr<Task_plugin>>(m, "Task_base")
         .def(py::init<const Options&>())        
 
         .def("pre_process",&Task_plugin::pre_process)
@@ -95,8 +94,6 @@ void make_bindings_Trajectory_reader(py::module& m){
         .def_readonly("jump_remover",&Task_py::jump_remover)
         .def_readonly("options",&Task_py::options)
         .def_property_readonly("log",[](Task_py* obj){return obj->log.get();},py::return_value_policy::reference_internal)
-
-        .def_property("_class_name",[](Task_py* obj){return obj->_class_name;}, [](Task_py* obj, const string& str){obj->_class_name=str;})
     ;
 
     py::class_<Trajectory_reader>(m, "Trajectory_reader")
