@@ -13,8 +13,8 @@ target_link_libraries(pteros_test ${Boost_LIBRARIES} ${PYTHON_LIBRARIES} ${BOOST
 
 
 #add_subdirectory(${PROJECT_SOURCE_DIR}/src/python/pybind11_src)
-INCLUDE_DIRECTORIES(pybind11_src/include)
-pybind11_add_module(module1 test_1.cpp)
+#INCLUDE_DIRECTORIES(pybind11_src/include)
+#pybind11_add_module(module1 test_1.cpp)
 
 #add_executable(test_sim test_sim.cpp)
 #target_link_libraries(test_sim  pteros)
