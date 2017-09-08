@@ -96,6 +96,21 @@ print hex(ptr)
 
 #print dist[0:10]
 
+print "SPLIT"
+
+sel = s()
+
+def cb(sel,ind):
+    if ind<5:
+	return 1
+    else:
+	return 2
+
+parts = sel.split(cb)
+print len(parts)
+print parts[0].get_name()
+
+
 print "TASKS"
 
 opts,tasks = parse_command_line(sys.argv,"task")
