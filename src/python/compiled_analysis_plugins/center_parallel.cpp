@@ -1,5 +1,6 @@
 #include "pteros/python/compiled_plugin.h"
 #include <fstream>
+#include "pteros/core/logging.h"
 
 using namespace std;
 using namespace pteros;
@@ -34,7 +35,7 @@ protected:
     void process_frame(const Frame_info &info){                
         sel.apply();
         f << info.absolute_time << " " << sel.center(use_mass).transpose() << endl;
-        cout << info.absolute_time << " " << sel.center(use_mass).transpose() << endl;
+        log->info("{} {}",info.absolute_time, sel.center(use_mass).transpose());
     }
 
     void post_process(const Frame_info &info){        
