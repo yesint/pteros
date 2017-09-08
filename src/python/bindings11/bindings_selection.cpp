@@ -254,7 +254,11 @@ void make_bindings_Selection(py::module& m){
         }, py::keep_alive<0,1>() /* Essential: keep object alive while iterator exists */)
 
         .def("__getitem__", [](const Selection &s, size_t i) {
-                if (i >= s.size()) throw py::index_error();
+                if(i >= s.size()) throw py::index_error();
+                if(i<0){
+                    i=s.size()-i;
+                    if(i<0) throw py::index_error();
+                }
                 return s[i]; // Returns atom proxy object
             })
 
