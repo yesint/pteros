@@ -21,7 +21,7 @@
 */
 
 #include "pteros/core/atom.h"
-#include <pybind11/pybind11.h>
+#include "bindings_util.h"
 
 namespace py = pybind11;
 using namespace pteros;

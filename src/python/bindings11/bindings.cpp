@@ -1,6 +1,6 @@
 #include "pteros/core/selection.h"
-#include <pybind11/pybind11.h>
 #include "pteros/core/logging.h"
+#include "bindings_util.h"
 
 namespace py = pybind11;
 using namespace std;
