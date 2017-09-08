@@ -29,6 +29,7 @@ using namespace pteros;
 void make_bindings_Atom(py::module& m){
 
     py::class_<Atom>(m, "Atom")
+        .def(py::init<>())
         .def_readwrite("resid",     &Atom::resid)
         .def_readwrite("name",      &Atom::name)
         .def_readwrite("chain",     &Atom::chain)

@@ -37,6 +37,7 @@ using namespace pybind11::literals;
 void make_bindings_System(py::module& m){
 
     py::class_<System>(m, "System")
+        .def(py::init<>())
         .def(py::init<const std::string &>())
 
         // Size
@@ -47,6 +48,7 @@ void make_bindings_System(py::module& m){
         .def("append", py::overload_cast<const System&>(&System::append))
         .def("append", py::overload_cast<const Selection&>(&System::append))
         .def("append", py::overload_cast<const Atom&, Vector3f_const_ref>(&System::append))
+        .def("append", py::overload_cast<const Atom_proxy&>(&System::append))
 
         // Reaaranging
         .def("rearrange", py::overload_cast<const vector<string>&>(&System::rearrange))
