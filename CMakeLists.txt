@@ -93,6 +93,10 @@ if(PYTHON_BINDINGS)
     else()
         message("Can't find Python interpreter of libraries!\nPython bindings and plugins are disabled!")
     endif()
+
+    add_subdirectory(${PROJECT_SOURCE_DIR}/src/python/pybind11_src)
+    INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/src/python/pybind11_src/include)
+
 endif()
 
 # Find Boost
@@ -164,11 +168,11 @@ ENDIF()
 #--------------
 
 add_subdirectory(src/core)
-add_subdirectory(src/core/sasa)
+#add_subdirectory(src/core/sasa)
 add_subdirectory(src/analysis)
 add_subdirectory(src/tools)
 add_subdirectory(src/python)
-add_subdirectory(src/python/bindings)
+#add_subdirectory(src/python/bindings)
 add_subdirectory(src/python/compiled_analysis_plugins)
 add_subdirectory(src/examples)
 add_subdirectory(src/test)

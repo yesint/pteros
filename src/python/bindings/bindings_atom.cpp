@@ -20,27 +20,27 @@
  *
 */
 
-#include "bindings_atom.h"
-#include "pteros/python/bindings_util.h"
 #include "pteros/core/atom.h"
+#include "bindings_util.h"
 
-using namespace boost::python;
+namespace py = pybind11;
 using namespace pteros;
 
-void make_bindings_Atom(){
+void make_bindings_Atom(py::module& m){
 
-    class_<Atom>("Atom", init<>())
-        .def_readwrite("resid",&Atom::resid)
-        .def_readwrite("name",&Atom::name)
-        .def_readwrite("chain",&Atom::chain)
-        .def_readwrite("resname",&Atom::resname)
-        .def_readwrite("tag",&Atom::tag)
-        .def_readwrite("occupancy",&Atom::occupancy)
-        .def_readwrite("beta",&Atom::beta)
-        .def_readwrite("resindex",&Atom::resindex)
-        .def_readwrite("mass",&Atom::mass)
-        .def_readwrite("charge",&Atom::charge)
-        .def_readwrite("type",&Atom::type)
-        .def_readwrite("type_name",&Atom::type_name)
+    py::class_<Atom>(m, "Atom")
+        .def(py::init<>())
+        .def_readwrite("resid",     &Atom::resid)
+        .def_readwrite("name",      &Atom::name)
+        .def_readwrite("chain",     &Atom::chain)
+        .def_readwrite("resname",   &Atom::resname)
+        .def_readwrite("tag",       &Atom::tag)
+        .def_readwrite("occupancy", &Atom::occupancy)
+        .def_readwrite("beta",      &Atom::beta)
+        .def_readwrite("resindex",  &Atom::resindex)
+        .def_readwrite("mass",      &Atom::mass)
+        .def_readwrite("charge",    &Atom::charge)
+        .def_readwrite("type",      &Atom::type)
+        .def_readwrite("type_name", &Atom::type_name)
     ;
 }

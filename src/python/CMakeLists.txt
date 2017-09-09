@@ -5,12 +5,8 @@ if(WITH_PYTHON)
             scripts/tpr2pteros.py
             DESTINATION bin)
     # Install wrapper for main extension module
-    install(PROGRAMS scripts/pteros.py DESTINATION ${PY_INST_DIR})
-    install(PROGRAMS bindings11/pteros11.py DESTINATION ${PY_INST_DIR})
+    install(PROGRAMS scripts/pteros.py DESTINATION ${PY_INST_DIR})    
 
-
-    add_subdirectory(pybind11_src)
-    INCLUDE_DIRECTORIES(pybind11_src/include)
-    add_subdirectory(bindings11)
+    add_subdirectory(bindings)
 
 endif()

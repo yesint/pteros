@@ -20,147 +20,113 @@
  *
 */
 
-#include "bindings_trajectory_reader.h"
-#include "pteros/python/bindings_util.h"
 #include "pteros/analysis/trajectory_reader.h"
+#include "pteros/analysis/options.h"
 #include "pteros/analysis/task_plugin.h"
-#include "pteros/core/logging.h"
-#include <Eigen/Core>
+#include "bindings_util.h"
 
+namespace py = pybind11;
 using namespace pteros;
-using namespace Eigen;
-using namespace boost::python;
 using namespace std;
+using namespace pybind11::literals;
 
 
-class Trajectory_reader_adaptor {
+
+class Task_py : public Task_plugin {
 public:
+    /* Inherit the constructors */    
+    using Task_plugin::Task_plugin;
 
-    TASK_SERIAL(Task_inner)
-    public:
-        Task_inner(Trajectory_reader_adaptor* r): reader(r), Task_base() {}
-    protected:
-        virtual void pre_process() {
-            try {
-                reader->pre_process_cb(&system);
-            } catch (error_already_set& e){
-                LOG()->error("Error occured in Python code:");
-                PyErr_Print();
-                exit(1);
-            }
-        }
-
-        virtual void process_frame(const Frame_info& info) {
-            try {
-               reader->process_frame_cb(info);
-            } catch (error_already_set& e){
-                LOG()->error("Error occured in Python code:");
-                PyErr_Print();
-                exit(1);
-            }
-        }
-
-        virtual void post_process(const Frame_info& info) {
-            try {
-                reader->post_process_cb(info);
-            } catch (error_already_set& e){
-                LOG()->error("Error occured in Python code:");
-                PyErr_Print();
-                exit(1);
-            }
-        }
-    private:
-        Trajectory_reader_adaptor* reader;
-    };
-
-    Trajectory_reader_adaptor(){
-
-    }
-
-    Trajectory_reader_adaptor(const Options& opt,
-                              boost::python::object pre_process_handler,
-                              boost::python::object process_frame_handler,
-                              boost::python::object post_process_handler) {
-        reader.set_options(opt);
-
-        pre_process_cb = [pre_process_handler](System* sys) { pre_process_handler(ptr(sys)); };
-        process_frame_cb = [process_frame_handler](const Frame_info& info) { process_frame_handler(info); };
-        post_process_cb = [post_process_handler](const Frame_info& info) { post_process_handler(info); };
-    }
-
-    void add_python_tasks_runner(){
-        reader.add_task( new Task_inner(this) );
-    }
-
-    void run(){
-        reader.run();
-    }
-
-    void add_task(object& obj){
-        Task_plugin* ptr = extract<Task_plugin*>(obj);
-        reader.add_task( dynamic_cast<Task_base*>(ptr) );
-    }
-
-    std::function<void(System*)> pre_process_cb;
-    std::function<void(const Frame_info&)> process_frame_cb;
-    std::function<void(const Frame_info&)> post_process_cb;
-
-private:
-    Trajectory_reader reader;
-};
-
-class Logger {
-public:
-    Logger(const string& name){
-        log = std::make_shared<spdlog::logger>(name, Log::instance().console_sink);
+    void set_id(int id) override {
+        auto class_name = py::cast(this).get_type().attr("__name__").cast<string>();
+        log = std::make_shared<spdlog::logger>(fmt::format("{}.{}",class_name,id),Log::instance().console_sink);
         log->set_pattern(Log::instance().generic_pattern);
+        task_id = id;
     }
 
-    void info(const string& msg){ log->info(msg); }
-    void error(const string& msg){ log->error(msg); }
-    void warn(const string& msg){ log->warn(msg); }
-    void set_pattern(const string& pat){ log->set_pattern(pat); }
+    /* Trampoline (need one for each virtual function) */
+    void pre_process() override {
+        py::gil_scoped_acquire acquire;
+        PYBIND11_OVERLOAD_PURE(
+            void, /* Return type */
+            Task_plugin,      /* Parent class */
+            pre_process,          /* Name of function in C++ (must match Python name) */
+                          /* Argument(s) */
+        );        
+    }
 
-private:
-    std::shared_ptr<spdlog::logger> log;
+    void process_frame(const Frame_info& info) override {
+        py::gil_scoped_acquire acquire;
+        PYBIND11_OVERLOAD_PURE(
+            void, /* Return type */
+            Task_plugin,      /* Parent class */
+            process_frame,          /* Name of function in C++ (must match Python name) */
+            info              /* Argument(s) */
+        );        
+    }
+
+    void post_process(const Frame_info& info) override {
+        py::gil_scoped_acquire acquire;
+        PYBIND11_OVERLOAD_PURE(
+            void, /* Return type */
+            Task_plugin,      /* Parent class */
+            post_process,          /* Name of function in C++ (must match Python name) */
+            info              /* Argument(s) */
+        );
+    }
+protected:
+    bool is_parallel() override { return false; }
 };
 
 
-void jump_remover_dims(Jump_remover* r, PyObject* dims_to_wrap){
-    MAP_EIGEN_TO_PYTHON_I(Vector3i,dim,dims_to_wrap)
-    r->set_dimensions(dim);
-}
+void make_bindings_Trajectory_reader(py::module& m){
 
+    py::class_<Task_plugin,Task_py,std::shared_ptr<Task_plugin>>(m, "Task_base")
+        .def(py::init<const Options&>())        
 
+        .def("pre_process",&Task_plugin::pre_process)
+        .def("process_frame",&Task_plugin::process_frame)
+        .def("post_process",&Task_plugin::post_process)
 
-void make_bindings_Trajectory_reader(){
-
-    class_<Task_plugin, boost::noncopyable>("Task_plugin", no_init)
+        .def_readonly("system",&Task_py::system)
+        .def_property_readonly("id",&Task_py::get_id)
+        .def_readonly("jump_remover",&Task_py::jump_remover)
+        .def_readonly("options",&Task_py::options)
+        .def_property_readonly("log",[](Task_py* obj){return obj->log.get();},py::return_value_policy::reference_internal)
     ;
 
-    class_<Trajectory_reader_adaptor, boost::noncopyable>("Trajectory_reader", init<>())
-        .def(init<const Options&,boost::python::object,boost::python::object,boost::python::object >() )        
-        .def("run", &Trajectory_reader_adaptor::run)
-        .def("add_task", &Trajectory_reader_adaptor::add_task)
-        .def("add_python_tasks_runner", &Trajectory_reader_adaptor::add_python_tasks_runner)
+    py::class_<Trajectory_reader>(m, "Trajectory_reader")
+        .def(py::init<>())
+        .def(py::init<const Options&>())
+        .def("set_options",&Trajectory_reader::set_options)
+        .def("help",&Trajectory_reader::help)
+        // We release GIL before starting run and will acquire it in individual tasks
+        .def("run",[](Trajectory_reader* r){
+            py::gil_scoped_release release;
+            r->run();
+        })
+
+        .def("add_task",[](Trajectory_reader* r, const py::object& o){
+            auto p = o.cast<shared_ptr<Task_plugin>>();
+            r->add_task(p);
+        })
     ;
 
-    // Bindings for logger
-    class_<Logger>("Logger", init<const string&>())
-        .def("info",&Logger::info)
-        .def("warn",&Logger::warn)
-        .def("error",&Logger::error)
-        .def("set_pattern",&Logger::set_pattern)
+    py::class_<Frame_info>(m,"Frame_info")
+        .def_readonly("absolute_frame",&Frame_info::absolute_frame)
+        .def_readonly("absolute_time",&Frame_info::absolute_time)
+        .def_readonly("first_frame",&Frame_info::first_frame)
+        .def_readonly("first_time",&Frame_info::first_time)
+        .def_readonly("last_frame",&Frame_info::last_frame)
+        .def_readonly("last_time",&Frame_info::last_time)
+        .def_readonly("valid_frame",&Frame_info::valid_frame)
     ;
 
-    // Also wrap Jump_remover. It will be created for each python plugin on python side
-    class_<Jump_remover>("Jump_remover",init<>())
+    py::class_<Jump_remover>(m,"Jump_remover")
         .def("add_atoms",&Jump_remover::add_atoms)
-        .def("set_dimensions",&jump_remover_dims)
+        .def("set_dimensions",&Jump_remover::set_dimensions)
         .def("set_unwrap_dist",&Jump_remover::set_unwrap_dist)
-        .def("remove_jumps",&Jump_remover::remove_jumps)
         .def("set_leading_index",&Jump_remover::set_leading_index)
     ;
-
 
 }

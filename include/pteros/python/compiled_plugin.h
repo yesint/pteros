@@ -29,24 +29,21 @@
 
 // Make a Python extension module from this plugin
 
-#include "pteros/python/bindings_util.h"
+#include <pybind11/pybind11.h>
+#include <pybind11/functional.h>
+#include <pybind11/operators.h>
+#include <pybind11/stl.h>
+#include <pybind11/eigen.h>
+#include <pybind11/operators.h>
 
-using namespace boost::python;
+namespace py = pybind11;
 
-#define CREATE_COMPILED_PLUGIN(_name,_dum) \
-void Pteros_error_translator(const pteros::Pteros_error& e) { \
-  PyErr_SetString(PyExc_UserWarning, const_cast<pteros::Pteros_error&>(e).what()); \
-} \
-_name* get_instance_##_name(const Options& opt){ return new _name(opt); }\
-BOOST_PYTHON_MODULE(_name) \
-{ \
-    import_array(); \
-    boost::python::numeric::array::set_module_and_type("numpy", "ndarray"); \
-    register_exception_translator<pteros::Pteros_error>(&Pteros_error_translator);\
-    class_<_name,bases<Task_plugin>,boost::noncopyable>("Task", init<const pteros::Options&>())\
-    .def("help",&_name::help) \
-    ; \
-    def("get_instance",&get_instance_##_name, return_value_policy<reference_existing_object>());\
+#define CREATE_COMPILED_PLUGIN(_name,_acc) \
+PYBIND11_MODULE(_name, m) {\
+    py::class_<_name,Task_plugin,std::shared_ptr<_name>>(m, #_name)\
+        .def(py::init<const Options&>())\
+        .def("help",&_name::help)\
+    ;\
 }
 
 #else //STANDALONE_PLUGINS

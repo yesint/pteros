@@ -20,158 +20,107 @@
  *
 */
 
-#include "pteros/python/bindings_util.h"
-#include "bindings_distance_search.h"
 #include "pteros/core/distance_search.h"
-#include <boost/python/make_constructor.hpp>
+#include "bindings_util.h"
 
-using namespace std;
-using namespace boost::python;
+namespace py = pybind11;
 using namespace pteros;
+using namespace std;
 using namespace Eigen;
+using namespace pybind11::literals;
 
 
-boost::shared_ptr<Distance_search_within> distance_search_within_init1(float d,
-                                                                      const Selection& src,
-                                                                      bool absolute_index,
-                                                                      bool periodic)
-{
-    boost::shared_ptr<Distance_search_within> g(new Distance_search_within(d,src,absolute_index,periodic));
-    return g;
-}
+void make_bindings_Distance_search(py::module& m){
 
-boost::shared_ptr<Distance_search_within> distance_search_within_init2(float d,
-                                                                      const Selection& src,
-                                                                      bool absolute_index)
-{
-    return distance_search_within_init1(d,src,absolute_index,false);
-}
+    m.def("search_contacts",[](float d,
+          const Selection& sel,
+          bool absolute_index = false,
+          bool periodic = false,
+          bool do_dist_vec = false
+          )
+    {
+        std::vector<float>* dist_vec_ptr = do_dist_vec ? new std::vector<float> : nullptr;
+        std::vector<Vector2i>* pairs_ptr = new std::vector<Vector2i>;
 
-boost::shared_ptr<Distance_search_within> distance_search_within_init3(float d,
-                                                                      const Selection& src)
-{
-    return distance_search_within_init1(d,src,false,false);
-}
+        search_contacts(d,sel,*pairs_ptr,absolute_index,periodic,dist_vec_ptr);
 
+        // Interpret pairs array as 1D array of ints first and convert to py::array
+        // Pass size*2 explicitly to ensure correct size
+        py::array m = vector_to_array<int>(reinterpret_cast<std::vector<int>*>(pairs_ptr),2*pairs_ptr->size());
+        // Reshape into 2D array (no reallocation)
+        m.resize(vector<size_t>{pairs_ptr->size(),2});
 
-PyObject* distance_search_within1(Distance_search_within* g, PyObject* coord){
-    MAP_EIGEN_TO_PYTHON_F(Vector3f,c,coord)
-    vector<int> r;
-    g->search_within(c,r);
+        //cout << (*pairs_ptr)[1] << " " << pairs_ptr->data() << " " << m.data() << endl;
 
-    CREATE_PYARRAY_1D_AND_MAP_I(p,VectorXi,v,(npy_intp)r.size())
-    v = Map<VectorXi>(r.data(),r.size());
-
-    return p;
-}
-
-PyObject* distance_search_within2(Distance_search_within* g,
-                                            const Selection& target,
-                                            bool include_self){
-    vector<int> r;
-    g->search_within(target,r,include_self);
-
-    CREATE_PYARRAY_1D_AND_MAP_I(p,VectorXi,v,(npy_intp)r.size())
-    v = Map<VectorXi>(r.data(),r.size());
-
-    return p;
-}
-
-PyObject* distance_search_within3(Distance_search_within* g,
-                                            const Selection& target)
-{
-    return distance_search_within2(g,target,true);
-}
-
-boost::python::tuple search_contacts1(float d,
-                     const Selection& sel,
-                     bool absolute_index = false,
-                     bool periodic = false,
-                     bool do_dist = false)
-{
-    std::vector<Eigen::Vector2i> pairs;
-    std::vector<float> dist_vec;
-    if(do_dist){
-        search_contacts(d,sel,pairs,absolute_index,periodic,&dist_vec);
-    } else {
-        search_contacts(d,sel,pairs,absolute_index,periodic,nullptr);
-    }
-
-    CREATE_PYARRAY_2D_AND_MAP_I(p1,MatrixXi,m,2,(npy_intp)pairs.size())
-    m = Map<MatrixXi>((int*)(pairs.data()),2,pairs.size());
-
-    if(do_dist){
-        CREATE_PYARRAY_1D_AND_MAP_F(p2,VectorXf,v,(npy_intp)dist_vec.size())
-        v = Map<VectorXf>(dist_vec.data(),dist_vec.size());
-        return boost::python::make_tuple(handle<>(p1),handle<>(p2));
-    } else {
-        return boost::python::make_tuple(handle<>(p1),boost::python::object());
-    }
-}
-
-BOOST_PYTHON_FUNCTION_OVERLOADS(search_contacts1_overloads, search_contacts1, 2, 5)
-
-boost::python::tuple search_contacts2(float d,
-                     const Selection& sel1,
-                     const Selection& sel2,
-                     bool absolute_index = false,
-                     bool periodic = false,
-                     bool do_dist = false)
-{
-    std::vector<Eigen::Vector2i> pairs;
-    std::vector<float> dist_vec;
-    if(do_dist){
-        search_contacts(d,sel1,sel2,pairs,absolute_index,periodic,&dist_vec);
-    } else {
-        search_contacts(d,sel1,sel2,pairs,absolute_index,periodic,nullptr);
-    }
-
-    CREATE_PYARRAY_2D_AND_MAP_I(p1,MatrixXi,m,2,(npy_intp)pairs.size())
-    m = Map<MatrixXi>((int*)(pairs.data()),2,pairs.size());
-
-    if(do_dist){
-        CREATE_PYARRAY_1D_AND_MAP_F(p2,VectorXf,v,(npy_intp)dist_vec.size())
-        v = Map<VectorXf>(dist_vec.data(),dist_vec.size());
-        return boost::python::make_tuple(handle<>(p1),handle<>(p2));
-    } else {
-        return boost::python::make_tuple(handle<>(p1),boost::python::object());
-    }
-}
-
-BOOST_PYTHON_FUNCTION_OVERLOADS(search_contacts2_overloads, search_contacts2, 3, 6)
+        if(do_dist_vec){
+            // Make py::array for distances
+            py::array v = vector_to_array<float>(dist_vec_ptr);
+            return py::make_tuple(m,v);
+        } else {
+            return py::make_tuple(m,py::none());
+        }
+    }, "d"_a, "sel"_a, "abs_ind"_a=false, "periodic"_a=false,"do_distances"_a=false);
 
 
-PyObject* search_within_free(float d,
-                     const Selection& src,
-                     const Selection& target,
-                     bool include_self = false,
-                     bool periodic = false)
-{
-    std::vector<int> res;
-    search_within(d,src,target,res,include_self,periodic);
+    m.def("search_contacts",[](float d,
+          const Selection& sel1,
+          const Selection& sel2,
+          bool absolute_index = false,
+          bool periodic = false,
+          bool do_dist_vec = false
+          )
+    {
+        std::vector<float>* dist_vec_ptr = do_dist_vec ? new std::vector<float> : nullptr;
+        std::vector<Vector2i>* pairs_ptr = new std::vector<Vector2i>;
+        search_contacts(d,sel1,sel2,*pairs_ptr,absolute_index,periodic,dist_vec_ptr);
 
-    CREATE_PYARRAY_1D_AND_MAP_I(p,VectorXi,v,(npy_intp)res.size())
-    v = Map<VectorXi>(res.data(),res.size());
-    return p;
-}
+        // Interpret pairs array as 1D array of ints first
+        // Pass size*2 explicitly to ensure correct size
+        py::array m = vector_to_array<int>(reinterpret_cast<std::vector<int>*>(pairs_ptr),2*pairs_ptr->size());
+        // Reshape into 2D array (no reallocation)
+        m.resize(vector<size_t>{pairs_ptr->size(),2});
 
-BOOST_PYTHON_FUNCTION_OVERLOADS(search_within_free_overloads, search_within_free, 3, 5)
-//------------------------------------------------------
+        if(do_dist_vec){
+            // Make py::array for distances
+            py::array v = vector_to_array<float>(dist_vec_ptr);
+            return py::make_tuple(m,v);
+        } else {
+            return py::make_tuple(m,py::none());
+        }
 
-void make_bindings_distance_search(){
-    import_array();
 
-    class_<Distance_search_within,boost::shared_ptr<Distance_search_within>,boost::noncopyable >("Distance_search_within", init<>())
-            .def("__init__",make_constructor(&distance_search_within_init1))
-            .def("__init__",make_constructor(&distance_search_within_init2))
-            .def("__init__",make_constructor(&distance_search_within_init3))
-            .def("setup",&Distance_search_within::setup)
-            .def("search_within",&distance_search_within1)
-            .def("search_within",&distance_search_within2)
-            .def("search_within",&distance_search_within3)
+    }, "d"_a, "sel1"_a, "sel2"_a, "abs_ind"_a=false, "periodic"_a=false,"do_distances"_a=false);
+
+
+    m.def("search_within",[](float d,
+          const Selection& src,
+          const Selection& target,
+          bool include_self = true,
+          bool periodic = false
+          )
+    {
+        std::vector<int>* res_ptr = new std::vector<int>;
+        search_within(d,src,target,*res_ptr,include_self,periodic);
+        return vector_to_array<int>(res_ptr);
+    }, "d"_a, "src"_a, "target"_a, "include_self"_a=true, "periodic"_a=false);
+
+
+    py::class_<Distance_search_within>(m, "Distance_search_within")
+            .def(py::init<float,const Selection&,bool,bool>(), "d"_a,"src"_a,"abs_ind"_a=false,"periodic"_a=false)
+            .def("setup",&Distance_search_within::setup, "d"_a,"src"_a,"abs_ind"_a=false,"periodic"_a=false)
+
+            .def("search_within",[](Distance_search_within* obj, Vector3f_const_ref coord)
+                {
+                   std::vector<int>* res_ptr = new std::vector<int>;
+                   obj->search_within(coord,*res_ptr);
+                   return vector_to_array<int>(res_ptr);
+                })
+
+            .def("search_within",[](Distance_search_within* obj, const Selection& target, bool include_self)
+                {
+                    std::vector<int>* res_ptr = new std::vector<int>;
+                    obj->search_within(target,*res_ptr,include_self);
+                    return vector_to_array<int>(res_ptr);
+                },"target"_a, "include_self"_a=true)
     ;
-
-    def("search_contacts",&search_contacts1,search_contacts1_overloads());
-    def("search_contacts",&search_contacts2,search_contacts2_overloads());
-    def("search_within",&search_within_free,search_within_free_overloads());
 }
