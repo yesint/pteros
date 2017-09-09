@@ -25,7 +25,7 @@ public:
 protected:
     void pre_process(){        
         use_mass = options("mass","false").as_bool();
-        string fname = get_id()+".dat";
+        string fname = fmt::format("center_id{}.dat",get_id());
         f.open(fname.c_str());
         f << "# time center_x center_y center_z" << endl;
         string sel_text = options("sel").as_string();
