@@ -114,6 +114,7 @@ void make_bindings_Selection(py::module& m){
 
         // Get and set
         .def("get_frame",&Selection::get_frame)
+        .def("set_frame",&Selection::set_frame)
         .def("get_system",&Selection::get_system, py::return_value_policy::reference_internal)
         .def("get_text",&Selection::get_text)
         .def("get_index",&Selection::get_index)
