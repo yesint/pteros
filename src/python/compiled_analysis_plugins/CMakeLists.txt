@@ -1,7 +1,6 @@
 
-SET(PLUGINS
-    #center
-    #box
+SET(PLUGINS    
+    box
     #rms
     #interaction_energy
     #covar_matr

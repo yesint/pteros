@@ -21,14 +21,13 @@
 */
 #include "pteros/python/compiled_plugin.h"
 #include <fstream>
+#include "spdlog/fmt/fmt.h"
 
 using namespace std;
 using namespace pteros;
 
-class box: public Compiled_plugin_base {
+PLUGIN_SERIAL(box)
 public:
-    box(Trajectory_processor* pr, const Options& opt): Compiled_plugin_base(pr,opt) {}
-
     string help(){
         return  "Purpose:\n"
                 "\tComputes box vectors and box volume for each frame\n"
@@ -52,7 +51,7 @@ protected:
 
     void post_process(const Frame_info &info){
         // Output
-        string fname = label+".dat";
+        string fname = fmt::format("box_id{}.dat",get_id());
         // Get time step in frames and time
         float dt = (info.last_time-info.first_time)/(float)(info.valid_frame);
 
@@ -69,4 +68,4 @@ private:
     vector<float> volume;
 };
 
-CREATE_COMPILED_PLUGIN(box)
+CREATE_COMPILED_PLUGIN(box,nullptr)
