@@ -83,15 +83,6 @@ if(WITH_PYTHON)
 
         # Set python includes globally (pybind11 fails to find Python.h without this)
         include_directories(${PYTHON_INCLUDE_PATH})
-
-        # Find boost.python
-        #find_package(Boost 1.48.0 REQUIRED python)
-        # Save lib location separately from other boost libs
-        #set(BOOST_PYTHON_LIB ${Boost_LIBRARIES})
-
-        #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
-        #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION")
-        #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DNPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION")
     else()
         message("Can't find Python interpreter or libraries!\nPython bindings and plugins are disabled!")
     endif()
@@ -151,7 +142,7 @@ set(PY_INST_DIR python)
 IF(MAKE_PACKAGE)
     SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Pteros molecular modeling library")
     SET(CPACK_PACKAGE_VERSION_MAJOR "2")
-    SET(CPACK_PACKAGE_VERSION_MINOR "0")
+    SET(CPACK_PACKAGE_VERSION_MINOR "5")
     SET(CPACK_PACKAGE_VERSION_PATCH "0")
     SET(CPACK_PACKAGE_INSTALL_DIRECTORY "CMake ${CMake_VERSION_MAJOR}.${CMake_VERSION_MINOR}")
     IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
@@ -170,7 +161,6 @@ add_subdirectory(src/core)
 add_subdirectory(src/analysis)
 add_subdirectory(src/tools)
 add_subdirectory(src/python)
-#add_subdirectory(src/python/bindings)
 add_subdirectory(src/python/compiled_analysis_plugins)
 add_subdirectory(src/examples)
 add_subdirectory(src/test)

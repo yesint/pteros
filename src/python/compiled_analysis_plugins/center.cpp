@@ -1,13 +1,12 @@
 #include "pteros/python/compiled_plugin.h"
 #include <fstream>
+#include "pteros/core/logging.h"
 
 using namespace std;
 using namespace pteros;
 
-class center: public Compiled_plugin_base {
+PLUGIN_SERIAL(center)
 public:
-    center(Trajectory_processor* pr, const Options& opt): Compiled_plugin_base(pr,opt) {
-    }
 
     string help(){
         return  "Purpose:\n"
@@ -24,20 +23,19 @@ public:
     }
 
 protected:
-    void pre_process(){
-        use_mass = options("mass_weighted","false").as_bool();                
-
-        string fname = label+".dat";
+    void pre_process(){        
+        use_mass = options("mass","false").as_bool();
+        string fname = get_id()+".dat";
         f.open(fname.c_str());
         f << "# time center_x center_y center_z" << endl;
-
-        string sel_text = options("selection").as_string();
-        sel.modify(system,sel_text);
+        string sel_text = options("sel").as_string();
+        sel.modify(system,sel_text);        
     }
 
     void process_frame(const Frame_info &info){                
         sel.apply();
-        f << info.absolute_time << " " << sel.center(use_mass).transpose() << endl;        
+        f << info.absolute_time << " " << sel.center(use_mass).transpose() << endl;
+        log->info("{} {}",info.absolute_time, sel.center(use_mass).transpose());
     }
 
     void post_process(const Frame_info &info){        
@@ -48,7 +46,7 @@ private:
     Selection sel;
     bool use_mass;
     ofstream f;
-
 };
 
-CREATE_COMPILED_PLUGIN(center)
+CREATE_COMPILED_PLUGIN(center,nullptr)
+

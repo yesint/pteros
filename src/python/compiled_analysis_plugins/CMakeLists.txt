@@ -9,7 +9,7 @@ SET(PLUGINS
     #secondary
     #rdf
     #contacts
-    center_parallel
+    center
 )
 
 IF(STANDALONE_PLUGINS)
@@ -45,8 +45,7 @@ IF(WITH_PYTHON)
 
     foreach(plugin ${PLUGINS})
         add_library(plugin_${plugin} SHARED
-            ${plugin}.cpp
-            ${PROJECT_SOURCE_DIR}/include/pteros/python/bindings_util.h            
+            ${plugin}.cpp            
             ${PROJECT_SOURCE_DIR}/include/pteros/python/compiled_plugin.h
         )
         target_link_libraries(plugin_${plugin} pteros pteros_analysis ${PYTHON_LIBRARIES} ${BOOST_PYTHON_LIB})
