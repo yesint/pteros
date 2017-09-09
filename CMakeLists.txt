@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.1)
 
 project(pteros)
 
-OPTION(PYTHON_BINDINGS "Build python bindings and compiled analysis plugins as Python modules" ON)
+OPTION(WITH_PYTHON "Build python bindings and compile analysis plugins as Python modules" ON)
 OPTION(POWERSASA "Use POWERSASA code. This implies severe license restrictions! \n Read the comment in src/core/sasa/power_sasa.h carefully before enabling this option!" OFF)
 OPTION(STANDALONE_PLUGINS "Compile analysis plugins as stand-alone executables" OFF)
 OPTION(MAKE_PACKAGE "Generate package" OFF)
@@ -70,33 +70,31 @@ if(USE_OPENMP)
 endif()
 
 # Find Python only if we need bindings
-if(PYTHON_BINDINGS)
+if(WITH_PYTHON)
     find_package(PythonInterp)
-    find_package(PythonLibs)    
+    find_package(PythonLibs)
 
     if(PYTHONINTERP_FOUND AND PYTHONLIBS_FOUND)
-        SET(WITH_PYTHON 1) # Compile python wrappers
         #For conditional compilation
         add_definitions(-DWRAP_PYTHON)
+        # Configure pybind11
+        add_subdirectory(${PROJECT_SOURCE_DIR}/src/python/pybind11_src)
+        INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/src/python/pybind11_src/include)
 
-        # Set python includes globally
+        # Set python includes globally (pybind11 fails to find Python.h without this)
         include_directories(${PYTHON_INCLUDE_PATH})
 
         # Find boost.python
-        find_package(Boost 1.48.0 REQUIRED python)
+        #find_package(Boost 1.48.0 REQUIRED python)
         # Save lib location separately from other boost libs
-        set(BOOST_PYTHON_LIB ${Boost_LIBRARIES})
+        #set(BOOST_PYTHON_LIB ${Boost_LIBRARIES})
 
         #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION")
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DNPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION")
+        #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION")
+        #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DNPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION")
     else()
-        message("Can't find Python interpreter of libraries!\nPython bindings and plugins are disabled!")
+        message("Can't find Python interpreter or libraries!\nPython bindings and plugins are disabled!")
     endif()
-
-    add_subdirectory(${PROJECT_SOURCE_DIR}/src/python/pybind11_src)
-    INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/src/python/pybind11_src/include)
-
 endif()
 
 # Find Boost
