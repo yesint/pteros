@@ -1054,11 +1054,14 @@ protected:
 /// Auxilary type used to incapsulate the atom and its current coordinates
 /// Used internally in Selection::operator[] and in iterator access to Selection.
 /// Objects of this class should not be created by the user in normal situation.
-class Atom_proxy {
-    friend class Selection::iterator;
+class Atom_proxy {    
 public:
     Atom_proxy(){}
     Atom_proxy(Selection* s, int i): sel(s), ind(i) {}
+    void set(Selection* s, int i){ sel=s; ind=i; }
+    void next(){ ++ind; }
+    Selection* get_selection(){ return sel; }
+    System* get_system(){ return sel->get_system(); }
 
     /// @name Inline accessors. Const and non-const versions.
     /// @{
@@ -1137,9 +1140,7 @@ public:
     /// Inequality operator
     bool operator!=(const Atom_proxy &other) const {
         return !(*this == other);
-    }
-
-    Selection* get_selection(){ return sel; }
+    }    
 
 protected:
     Selection* sel;
@@ -1157,9 +1158,9 @@ public:
     typedef Atom_proxy& reference;
     typedef std::forward_iterator_tag iterator_category;
 
-    iterator(Selection* sel, int pos) { proxy.sel = sel; proxy.ind = pos; }
-    iterator operator++() { iterator tmp = *this; proxy.ind++; return tmp; }
-    iterator operator++(int junk) { proxy.ind++; return *this; }
+    iterator(Selection* sel, int pos) { proxy.set(sel,pos); }
+    iterator operator++() { iterator tmp = *this; proxy.next(); return tmp; }
+    iterator operator++(int junk) { proxy.next(); return *this; }
     Atom_proxy& operator*() { return proxy; }
     Atom_proxy* operator->() { return &proxy; }
     bool operator==(const iterator& rhs) { return proxy == rhs.proxy; }
