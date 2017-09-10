@@ -448,7 +448,7 @@ void Selection::modify(const System &sys, const std::function<void (const System
 // Assignment
 Selection& Selection::operator=(Selection sel){
     // Sanity check
-    if(sel.system==NULL) Pteros_error("Operator '=' with selection, which does not belong to the system!");
+    if(sel.system==nullptr) Pteros_error("Operator '=' with selection, which does not belong to the system!");
 
     // Kill all current data
     clear();
@@ -488,12 +488,14 @@ Selection Selection::operator~() const {
     int n = index.size();
     int i,j;
     if(n!=0){
+        res.index.reserve(system->num_atoms()-n);
         for(j=0;j<index[0];++j) res.index.push_back(j); //Before first
         for(i=1;i<n;++i)
             for(j=index[i-1]+1;j<index[i];++j) res.index.push_back(j); // between any two
         for(j=index[n-1]+1;j<system->num_atoms();++j) res.index.push_back(j); // after last
     } else {
-        for(j=0;j<system->num_atoms();++j) res.index.push_back(j); //All
+        res.index.resize(system->num_atoms());
+        for(j=0;j<system->num_atoms();++j) res.index[j] = j; //All
     }
     return res;
 }
@@ -561,9 +563,9 @@ Selection operator-(const Selection &sel1, const Selection &sel2)
 
 // Copy constructor
 Selection::Selection(const Selection& sel){
-    if(sel.system==NULL){
+    if(sel.system==nullptr){
         // Making copy of empty selection
-        system = NULL;
+        system = nullptr;
         sel_text = "";
         parser.reset();
         // And return
