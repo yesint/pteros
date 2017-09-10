@@ -118,8 +118,8 @@ struct AstNode {
 
     bool is_coordinate_dependent();
     // Returns child elements
-    int child_as_int(int i);    
-    float child_as_float(int i);        
+    int child_as_int(int i);
+    float child_as_float(int i);
     std::string child_as_str(int i);
     std::shared_ptr<AstNode>& child_node(int i);
 
