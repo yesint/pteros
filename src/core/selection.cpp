@@ -82,6 +82,11 @@ Selection::Selection(){
     frame = 0;
 };
 
+void expand_macro(string& str){
+    for(int i=0;i<macro.size();++i)
+        boost::replace_all(str,macro[2*i],macro[2*i+1]);
+}
+
 // Main constructor
 Selection::Selection(const System &sys, string str, int fr){
     // Set selection string
@@ -89,8 +94,7 @@ Selection::Selection(const System &sys, string str, int fr){
     boost::trim(sel_text);
 
     // Expand macro-definitions in the string
-    for(int i=0;i<Nmacro;++i)
-        boost::replace_all(sel_text,macro[2*i],macro[2*i+1]);
+    expand_macro(sel_text);
 
     // Add selection to sys
     system = const_cast<System*>(&sys);
@@ -287,8 +291,7 @@ Selection Selection::select(string str)
     boost::trim(sub.sel_text);
 
     // Expand macro-definitions in the string
-    for(int i=0;i<Nmacro;++i)
-        boost::replace_all(sub.sel_text,macro[2*i],macro[2*i+1]);
+    expand_macro(sub.sel_text);
 
     // Add selection to sys
     sub.system = system;
@@ -355,8 +358,8 @@ void Selection::modify(string str, int fr){
     sel_text = str;
     boost::trim(sel_text);
     // Expand macro-definitions in the string
-    for(int i=0;i<Nmacro;++i)
-        boost::replace_all(sel_text,macro[2*i],macro[2*i+1]);
+    expand_macro(sel_text);
+
     index.clear();
     frame = fr;
     // Sanity check

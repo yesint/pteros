@@ -22,11 +22,14 @@
 #ifndef SELECTION_MACRO_H
 #define SELECTION_MACRO_H
 
+#include <string>
+#include <vector>
+
 namespace pteros {
 
 /// Macro definitions for selections. Each macro is expanded during
 /// evaluation of selection.
-static const char* macro[] = {
+static const std::vector<std::string> macro {
     "protein", "(resname ALA CYS ASP GLU PHE GLY HIS ILE LYS LEU MET ASN PRO GLN ARG SER THR VAL TRP TYR LYSH HISA HISB CYSH)",
     "backbone", "(name C CA O N)",
     "acidic", "(resname ASP GLU)",
@@ -39,7 +42,7 @@ static const char* macro[] = {
     "water", "(resname HOH SOL)"
 };
 /// Number of macro definitions
-static const int Nmacro = 10;
+//static const int Nmacro = 10;
 
 } // end of namespace pteros
 
