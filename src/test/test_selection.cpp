@@ -217,11 +217,101 @@ PLUGIN_SERIAL(Test_serial)
 
 //-----------------------------
 
+std::function<Vector3f&(int)>
+make_accessor(const Selection& sel){
+    shared_ptr<vector<Vector3f>> data = make_shared<vector<Vector3f>>(sel.size());
+    for(int i=0;i<sel.size();++i) (*data)[i] = sel.XYZ(i);
+    return [data](int i) -> Vector3f& {
+        return (*data)[i];
+    };
+}
+
 
 int main(int argc, char** argv)
 {   
 
+    //System s("/home/semen/work/current/Projects/plasma_vesicle/after_em.gro");
 
+    // System with 10^6 atoms
+    System s("/home/semen/work/stored/Projects/pteros/paper2/supplement/benchmark/large.gro");
+    vector<int> ind;
+    for(int i=0;i<s.num_atoms();i+=1) ind.push_back(i);
+    Selection sel(s,ind);
+
+    std::clock_t start;
+    double duration;
+
+    //-----------------------
+
+    {
+        start = std::clock();
+
+        vector<Vector3f> data(sel.size());
+        for(int i=0;i<sel.size();++i) data[i] = sel.XYZ(i);
+
+
+        for(int i=1;i<sel.size();++i){
+            for(int j=1;j<1000;++j){
+                data[i]=data[i-1]+data[j];
+            }
+        }
+
+        duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
+        cout << "Execution time: " << duration << endl;
+    }
+
+    //-----------------------
+
+    {
+        start = std::clock();
+
+        MatrixXf data(3,sel.size());
+        for(int i=0;i<sel.size();++i) data.col(i) = sel.XYZ(i);
+
+        for(int i=1;i<sel.size();++i){
+            for(int j=1;j<1000;++j){
+                data.col(i)=data.col(i-1)+data.col(j);
+            }
+        }
+
+        duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
+        cout << "Execution time: " << duration << endl;
+    }
+
+    //-----------------------
+    {
+
+        start = std::clock();
+
+        for(int i=1;i<sel.size();++i){
+            for(int j=1;j<1000;++j){
+                sel.XYZ(i)=sel.XYZ(i-1)+sel.XYZ(j);
+            }
+        }
+
+        duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
+        cout << "Execution time: " << duration << endl;
+    }
+
+    //-----------------------
+
+
+    {
+
+        start = std::clock();
+
+        for(int i=1;i<sel.size();++i){
+            for(int j=1;j<1000;++j){
+                sel[i].XYZ()=sel[i-1].XYZ()+sel[j].XYZ();
+            }
+        }
+
+        duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
+        cout << "Execution time: " << duration << endl;
+    }
+    //-----------------------
+
+    return 1;
 
     try{
 
