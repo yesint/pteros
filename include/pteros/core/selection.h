@@ -985,15 +985,16 @@ class Selection {
         return system->atoms[index[ind]].resindex;
     }
 
-    /// Computes VDW radius. Read only.
+    /// Computes VDW radius. Read only. Values from Gromacs vdwradii.dat
     inline float VDW(int ind) const {
         switch(system->atoms[index[ind]].name[0]){
-            case 'H': return  0.1;
+            case 'H': return  0.12;
             case 'C': return  0.17;
-            case 'N': return  0.1625;
-            case 'O': return  0.149; //mean value used
-            case 'S': return  0.1782;
-            case 'P': return  0.1871;
+            case 'N': return  0.155;
+            case 'O': return  0.152;
+            case 'S': return  0.18;
+            case 'P': return  0.18;
+            case 'F': return  0.147;
             default:  return  0.17;
         }
     }
