@@ -9,8 +9,8 @@
 
 namespace pteros {
 
-typedef Message_channel<std::shared_ptr<pteros::Data_container> > Data_channel;
-typedef std::shared_ptr<Data_channel> Data_channel_ptr;
+using Data_channel = Message_channel<std::shared_ptr<pteros::Data_container> > ;
+using Data_channel_ptr = std::shared_ptr<Data_channel> ;
 
 
 class Traj_file_reader {

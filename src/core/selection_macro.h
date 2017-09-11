@@ -41,8 +41,6 @@ static const std::vector<std::string> macro {
     "hydrophobic", "(resname ALA LEU VAL ILE PRO PHE MET TRP)",
     "water", "(resname HOH SOL)"
 };
-/// Number of macro definitions
-//static const int Nmacro = 10;
 
 } // end of namespace pteros
 

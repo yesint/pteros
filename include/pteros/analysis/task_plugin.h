@@ -21,13 +21,14 @@ public:
     Options options;
     Jump_remover jump_remover;
 
-    virtual Task_plugin* clone() const { \
-        return nullptr; \
+    Task_plugin* clone() const override {
+        return nullptr;
     }
 
 protected:
 
-    virtual void pre_process_handler(){
+    void pre_process_handler() override
+    {
         try {
             pre_process();
             jump_remover.remove_jumps(system); // Init jump remover
@@ -38,7 +39,8 @@ protected:
         }
     }
 
-    virtual void process_frame_handler(const Frame_info& info){        
+    void process_frame_handler(const Frame_info& info) override
+    {
         try {
             jump_remover.remove_jumps(system);
             process_frame(info);
@@ -49,7 +51,8 @@ protected:
         }
     }
 
-    virtual void post_process_handler(const Frame_info& info){
+    virtual void post_process_handler(const Frame_info& info) override
+    {
         try {
             post_process(info);
 
@@ -66,7 +69,7 @@ protected:
     class _name: public Task_plugin { \
     public: \
         using Task_plugin::Task_plugin; \
-        virtual void set_id(int _id){\
+        void set_id(int _id) override {\
             log = std::make_shared<spdlog::logger>(fmt::format(#_name ".{}",_id), Log::instance().console_sink); \
             log->set_pattern(Log::instance().generic_pattern); \
             task_id = _id; \
@@ -74,17 +77,17 @@ protected:
 
 #define PLUGIN_PARALLEL(_name) \
     _PLUGIN_(_name) \
-    virtual _name* clone() const { \
+    _name* clone() const override { \
         return new _name(*this); \
     } \
     protected: \
-        virtual bool is_parallel() final { return true; }
+        bool is_parallel() final { return true; }
 
 
 #define PLUGIN_SERIAL(_name) \
     _PLUGIN_(_name) \
     protected: \
-        virtual bool is_parallel() final { return false; }
+        bool is_parallel() final { return false; }
 
 
 

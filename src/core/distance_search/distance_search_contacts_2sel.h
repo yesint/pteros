@@ -37,9 +37,9 @@ public:
 protected:
     void create_grids(const Selection &sel1, const Selection &sel2);
 
-    virtual void do_part(int dim, int _b, int _e,
-                         std::deque<Eigen::Vector2i>& bon,
-                         std::deque<float>* dist_vec);
+    void do_part(int dim, int _b, int _e,
+                 std::deque<Eigen::Vector2i>& bon,
+                 std::deque<float>* dist_vec) override;
 };
 
 }

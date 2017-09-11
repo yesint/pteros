@@ -99,12 +99,13 @@ enum Codes {
 
 struct AstNode; // Forward declaration
 // An element of the tree is either a recursive sub-tree or a leaf
-typedef boost::variant<
-    float,    
-    int,   
-    std::string,
-    std::shared_ptr<AstNode>
-> ast_element;
+using ast_element =
+    boost::variant<
+        float,
+        int,
+        std::string,
+        std::shared_ptr<AstNode>
+    >;
 
 // The tree itself
 struct AstNode {
@@ -131,7 +132,7 @@ struct AstNode {
 #endif
 };
 
-typedef std::shared_ptr<AstNode> AstNode_ptr;
+using AstNode_ptr = std::shared_ptr<AstNode>;
 
 /**
 *   Selection parser class.

@@ -37,9 +37,9 @@ public:
 protected:
     void create_grid(const Selection &sel);
 
-    virtual void do_part(int dim, int _b, int _e,
-                         std::deque<Eigen::Vector2i>& bon,
-                         std::deque<float>* dist_vec);
+    void do_part(int dim, int _b, int _e,
+                 std::deque<Eigen::Vector2i>& bon,
+                 std::deque<float>* dist_vec) override;
 
     void search_in_cell(int x, int y, int z,
                         std::deque<Eigen::Vector2i> &bon,

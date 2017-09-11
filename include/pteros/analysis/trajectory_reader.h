@@ -32,9 +32,9 @@
 
 namespace pteros {
 
-typedef std::shared_ptr<Task_base> Task_ptr;
-typedef Message_channel<std::shared_ptr<pteros::Data_container> > Data_channel;
-typedef std::shared_ptr<Data_channel> Data_channel_ptr;
+using Task_ptr = std::shared_ptr<Task_base> ;
+using Data_channel = Message_channel<std::shared_ptr<pteros::Data_container> > ;
+using Data_channel_ptr = std::shared_ptr<Data_channel> ;
 
 /** The base class for trajectory processing
 *   It provides facilities for loading large trajectories by frames

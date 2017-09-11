@@ -247,7 +247,7 @@ void Trajectory_reader::run(){
     reader.run(traj_files, reader_channel);
 
     // Data container
-    typedef std::shared_ptr<Data_container> Data_container_ptr;
+    using Data_container_ptr = std::shared_ptr<Data_container>;
     Data_container_ptr data;
 
     // Processing depends on which tasks we have
