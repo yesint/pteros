@@ -82,9 +82,10 @@ Selection::Selection(){
     frame = 0;
 };
 
-void expand_macro(string& str){
-    for(int i=0;i<macro.size();++i)
-        boost::replace_all(str,macro[2*i],macro[2*i+1]);
+void expand_macro(string& str){    
+    for(int i=0;i<macro.size()/2;++i){
+        boost::replace_all(str,macro[2*i].c_str(),macro[2*i+1].c_str());
+    }
 }
 
 // Main constructor
