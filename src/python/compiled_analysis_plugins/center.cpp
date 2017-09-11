@@ -45,7 +45,7 @@ public:
     }
 
 protected:
-    void pre_process(){        
+    void pre_process() override {
         use_mass = options("mass","false").as_bool();
         string fname = fmt::format("center_id{}.dat",get_id());
         f.open(fname.c_str());
@@ -54,13 +54,13 @@ protected:
         sel.modify(system,sel_text);        
     }
 
-    void process_frame(const Frame_info &info){                
+    void process_frame(const Frame_info &info) override {
         sel.apply();
         f << info.absolute_time << " " << sel.center(use_mass).transpose() << endl;
         log->info("{} {}",info.absolute_time, sel.center(use_mass).transpose());
     }
 
-    void post_process(const Frame_info &info){        
+    void post_process(const Frame_info &info) override {
         f.close();
     }    
 

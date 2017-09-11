@@ -10,7 +10,7 @@ using namespace Eigen;
 
 PLUGIN_SERIAL(Water_processor)
 protected:
-    virtual void pre_process(){       
+    void pre_process() override {
         // Create selection for water        
         water.modify(system,std::string("resname SOL and name OW"));
 
@@ -46,7 +46,7 @@ protected:
     }
 
 
-    virtual void process_frame(const Frame_info& info){
+    void process_frame(const Frame_info& info) override {
         int i,j,k,n,w,ind;
 
         if(info.valid_frame==0){
@@ -76,7 +76,7 @@ protected:
     }
 
 
-    virtual void post_process(const Frame_info& info){
+    void post_process(const Frame_info& info) override {
         int i,j,k;
         for(i=0;i<NgridX;++i)
             for(j=0;j<NgridY;++j)

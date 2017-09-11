@@ -30,7 +30,7 @@ struct Chol_data {
 
 PLUGIN_SERIAL(Chol_counter)
 protected:
-    virtual void pre_process(){        
+    virtual void pre_process() override {
         bilayer.modify(system,options("lipids_selection").as_string());
         roh.modify(system,options("chol_head_selection").as_string());
         lip_name1 = options("lipid_name1").as_string();
@@ -41,7 +41,7 @@ protected:
         bi.create(bilayer,marker_sel_text,2.0);        
     }
 
-    virtual void process_frame(const Frame_info& info){
+    virtual void process_frame(const Frame_info& info) override {
         bilayer.set_frame(0);
 
         Chol_data dum;
@@ -128,7 +128,7 @@ protected:
         cout << "Frame " << info.absolute_frame << " " << trace.back().print() << endl;
     }
 
-    virtual void post_process(const Frame_info& info){
+    virtual void post_process(const Frame_info& info) override {
 
         // Write trace
         ofstream ff(options("output_file","trace.dat").as_string().c_str());

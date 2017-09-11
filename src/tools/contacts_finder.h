@@ -85,9 +85,9 @@ struct Selections_pair {
 
 PLUGIN_SERIAL(Contacts_finder)
 protected:
-    void pre_process();
-    void process_frame(const Frame_info& info);
-    void post_process(const Frame_info& info);
+    void pre_process() override;
+    void process_frame(const Frame_info& info) override;
+    void post_process(const Frame_info& info) override;
 
 public:
 

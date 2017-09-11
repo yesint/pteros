@@ -40,17 +40,17 @@ public:
     }
 
 protected:
-    void pre_process(){
+    void pre_process() override {
         data.clear();
         volume.clear();
     }
 
-    void process_frame(const Frame_info &info){        
+    void process_frame(const Frame_info &info) override {
         data.push_back(system.Box(0).extents());
         volume.push_back(system.Box(0).volume());
     }
 
-    void post_process(const Frame_info &info){
+    void post_process(const Frame_info &info) override {
         // Output
         string fname = fmt::format("box_id{}.dat",get_id());
         // Get time step in frames and time

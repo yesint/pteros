@@ -11,11 +11,11 @@ using namespace pteros;
 
 PLUGIN_SERIAL(Bench1)
 protected:
-    virtual void pre_process(){        
+    virtual void pre_process() override {
         sel.modify(system,std::string("all"));
     }
 
-    virtual void process_frame(const Frame_info& info){
+    virtual void process_frame(const Frame_info& info) override {
         if(info.valid_frame==0){
             system.frame_dup(0);
         }
@@ -25,7 +25,7 @@ protected:
         cout << "RMSD of frame " << info.valid_frame << " " << sel.rmsd(0,1) << endl;        
     }
 
-    virtual void post_process(const Frame_info& info){}
+    virtual void post_process(const Frame_info& info) override {}
 
     Selection sel;
 };
@@ -33,12 +33,12 @@ protected:
 // Contacts computation
 PLUGIN_SERIAL(Bench2)
 protected:
-    virtual void pre_process(){        
+    virtual void pre_process() override {
         sel1.modify(system,std::string("resid 1 to 100"));
         sel2.modify(system,std::string("resid 102 to 200"));
     }
 
-    virtual void process_frame(const Frame_info& info){
+    virtual void process_frame(const Frame_info& info) override {
         vector<Eigen::Vector2i> bon;
         bon.clear();
         search_contacts(0.5,sel1,sel2,bon,true);
@@ -46,7 +46,7 @@ protected:
         cout << "frame " << info.valid_frame << " bonds: " << bon.size() << endl;        
     }
 
-    virtual void post_process(const Frame_info& info){}
+    virtual void post_process(const Frame_info& info) override {}
 
 
     Selection sel1, sel2;
@@ -56,11 +56,11 @@ protected:
 // Selecting each residue
 PLUGIN_SERIAL(Bench3)
 protected:
-    virtual void pre_process(){
+    virtual void pre_process() override  {
 
     }
 
-    virtual void process_frame(const Frame_info& info){
+    virtual void process_frame(const Frame_info& info) override {
         vector<Selection> sel;
         Selection all(system,std::string("all"));
         all.each_residue(sel);
@@ -68,7 +68,7 @@ protected:
         cout << "frame " << info.valid_frame << endl;        
     }
 
-    virtual void post_process(const Frame_info& info){}
+    virtual void post_process(const Frame_info& info) override {}
 };
 
 

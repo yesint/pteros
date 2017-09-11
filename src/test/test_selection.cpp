@@ -163,12 +163,13 @@ private:
 
 
 PLUGIN_PARALLEL(Test_task)
-    virtual void pre_process(){        
+    void pre_process() override {
         jump_remover.add_atoms(system("index 1-10"));
         log->info("Test_task pre_process #{}", get_id());
         LOG()->info("Generic message");
     }
-    virtual void process_frame(const Frame_info& info){        
+
+    void process_frame(const Frame_info& info) override {
 
 
         log->info("Test_task process_frame {} #{}", info.valid_frame,get_id());
@@ -182,7 +183,7 @@ PLUGIN_PARALLEL(Test_task)
         throw Pteros_error("UPS");
     }
 
-    virtual void post_process(const Frame_info& info){
+    void post_process(const Frame_info& info) override {
         log->info("Test_task post_process of instance {}", info.last_frame);
     }
 
@@ -201,16 +202,17 @@ void accum(const Frame_info& info, const std::vector<Task_ptr>& tasks){
 
 
 PLUGIN_SERIAL(Test_serial)
-    virtual void pre_process(){
+    void pre_process() override {
         cout << "Test_serial pre_process" << endl;
     }
-    virtual void process_frame(const Frame_info& info){
+
+    void process_frame(const Frame_info& info) override {
 
         cout << "Test_serial process_frame " << std::this_thread::get_id() << " "<< info.valid_frame << endl;
         //std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 
-    virtual void post_process(const Frame_info& info){
+    void post_process(const Frame_info& info) override {
         cout << "Test_serial post_process" << info.last_frame << endl;
     }
 };
