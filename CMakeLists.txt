@@ -147,7 +147,10 @@ IF(MAKE_PACKAGE)
     ENDIF()
     INCLUDE(CPack)
 ENDIF()
-#--------------
+
+#----------------------------
+# Build thirdparty libraries
+#----------------------------
 
 # Build separate tng_io library (will be linked later)
 add_subdirectory(thirdparty/tng_io)
@@ -156,6 +159,16 @@ include_directories(thirdparty/tng_io/include)
 # DSSP library
 add_subdirectory(thirdparty/dssp)
 include_directories(thirdparty/dssp)
+
+# VMD molfile plugins
+add_subdirectory(thirdparty/molfile_plugins)
+include_directories(thirdparty/molfile_plugins)
+
+# xdrfile library
+add_subdirectory(thirdparty/xdrfile)
+include_directories(thirdparty/xdrfile)
+
+#---------------------------------------------
 
 add_subdirectory(src/core)
 add_subdirectory(src/analysis)

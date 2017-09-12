@@ -5,48 +5,22 @@
 if(POWERSASA)
     # Set definition for conditional compilation
     add_definitions(-DUSE_POWERSASA)
+    # Add includes
+    include_directories(${PROJECT_SOURCE_DIR}/thirdparty/sasa)
     # Make list of SASA files
     SET(SASA_FILES
-        ${PROJECT_SOURCE_DIR}/src/core/sasa/power_diagram.h
-        ${PROJECT_SOURCE_DIR}/src/core/sasa/power_sasa.h
+        ${PROJECT_SOURCE_DIR}/thirdparty/sasa/power_diagram.h
+        ${PROJECT_SOURCE_DIR}/thirdparty/sasa/power_sasa.h
     )
 
     message("------------------------------")
-    message("POWERSASA code is used! \n This implies severe license restrictions! \n Read the comment in src/core/sasa/power_sasa.h carefully. \n If you don't agree with this license please use flag -DPOWERSASA=\"OFF\" !")
+    message("POWERSASA code is used! \n This implies severe license restrictions! \n Read the comment in src/thirdparty/sasa/LICENSE carefully. \n If you don't agree with this license please use flag -DPOWERSASA=\"OFF\" !")
+    message("------------------------------")
 
 else()
     SET(SASA_FILES "")
 endif()
 
-#---------------------------------------------
-# Set locations of headers for 3rd party libs
-#---------------------------------------------
-
-# set includes for SASA
-include_directories(${PROJECT_SOURCE_DIR}/src/core/sasa)
-# Headers of xdrfile are stored together with sources
-include_directories(${PROJECT_SOURCE_DIR}/src/core/xdrfile)
-# The same is for molfile plugins
-include_directories(${PROJECT_SOURCE_DIR}/src/core/molfile_plugins)
-# The same is for DSSP
-include_directories(${PROJECT_SOURCE_DIR}/src/core/dssp)
-# For tng
-include_directories(${PROJECT_SOURCE_DIR}/src/core/tng_io/include/tng)
-
-#---------------------------
-# Molfile plugins machinery
-#---------------------------
-
-SET(MOLFILE_PLUGINS_DIR ${PROJECT_SOURCE_DIR}/src/core/molfile_plugins)
-
-SET(MOLFILE_PLUGINS pdbplugin tngplugin dcdplugin mol2plugin xyzplugin)
-SET(MOLFILE_PLUGINS_FILE_LIST "")
-
-foreach(PLUGIN ${MOLFILE_PLUGINS})
-    file(GLOB F ${MOLFILE_PLUGINS_DIR}/${PLUGIN}.*)    
-    set_source_files_properties(${F} PROPERTIES COMPILE_DEFINITIONS VMDPLUGIN=${PLUGIN})
-    list(APPEND MOLFILE_PLUGINS_FILE_LIST ${F})
-endforeach(PLUGIN)
 
 #---------------------
 # Main pteros library
@@ -108,7 +82,6 @@ add_library(pteros SHARED
     distance_search/distance_search_contacts_2sel.h
     distance_search/distance_search_contacts_2sel.cpp
 
-
     # IO
     ${PROJECT_SOURCE_DIR}/include/pteros/core/mol_file.h
     io/mol_file.cpp
@@ -135,35 +108,15 @@ add_library(pteros SHARED
     io/xyz_file.h
     io/xyz_file.cpp
 
-    # xdrfile
-    ${PROJECT_SOURCE_DIR}/src/core/xdrfile/xdrfile.c
-    ${PROJECT_SOURCE_DIR}/src/core/xdrfile/xdrfile_trr.c
-    ${PROJECT_SOURCE_DIR}/src/core/xdrfile/xdrfile_xtc.c
-    ${PROJECT_SOURCE_DIR}/src/core/xdrfile/xdrfile.h
-    ${PROJECT_SOURCE_DIR}/src/core/xdrfile/xdrfile_trr.h
-    ${PROJECT_SOURCE_DIR}/src/core/xdrfile/xdrfile_xtc.h
-
-    # molfile_plugins
-    # required headers
-    ${PROJECT_SOURCE_DIR}/src/core/molfile_plugins/molfile_plugin.h
-    ${PROJECT_SOURCE_DIR}/src/core/molfile_plugins/periodic_table.h
-    ${PROJECT_SOURCE_DIR}/src/core/molfile_plugins/vmdplugin.h
-    ${PROJECT_SOURCE_DIR}/src/core/molfile_plugins/largefiles.h
-    ${PROJECT_SOURCE_DIR}/src/core/molfile_plugins/endianswap.h    
-    ${PROJECT_SOURCE_DIR}/src/core/molfile_plugins/readpdb.h
-    ${PROJECT_SOURCE_DIR}/src/core/molfile_plugins/fastio.h
-    # plugins themselves
-    ${MOLFILE_PLUGINS_FILE_LIST}
-
     #SASA (will be empty if not used)
     ${SASA_FILES}
 
-    #DSSP
+    #DSSP wrapper
     ${PROJECT_SOURCE_DIR}/src/core/pteros_dssp_wrapper.cpp
     ${PROJECT_SOURCE_DIR}/src/core/pteros_dssp_wrapper.h
 )
 
-target_link_libraries(pteros tng_io dssp)
+target_link_libraries(pteros tng_io dssp molfile_plugins xdrfile)
 
 #--------------
 # Installation

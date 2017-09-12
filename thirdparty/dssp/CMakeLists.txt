@@ -2,7 +2,7 @@
 # DSSP library
 #---------------------
 
-add_library(dssp SHARED
+add_library(dssp STATIC
     align-2d.h
     matrix.h
     dssp.h
@@ -17,8 +17,3 @@ add_library(dssp SHARED
     utils.cpp
 )
 
-install(TARGETS dssp
-    RUNTIME DESTINATION bin
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
-)
