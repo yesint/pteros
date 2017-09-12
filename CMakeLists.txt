@@ -78,8 +78,8 @@ if(WITH_PYTHON)
         #For conditional compilation
         add_definitions(-DWRAP_PYTHON)
         # Configure pybind11
-        add_subdirectory(${PROJECT_SOURCE_DIR}/src/python/pybind11_src)
-        INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/src/python/pybind11_src/include)
+        add_subdirectory(thirdparty/pybind11)
+        INCLUDE_DIRECTORIES(thirdparty/pybind11/include)
 
         # Set python includes globally (pybind11 fails to find Python.h without this)
         include_directories(${PYTHON_INCLUDE_PATH})
@@ -152,6 +152,10 @@ ENDIF()
 # Build separate tng_io library (will be linked later)
 add_subdirectory(thirdparty/tng_io)
 include_directories(thirdparty/tng_io/include)
+
+# DSSP library
+add_subdirectory(thirdparty/dssp)
+include_directories(thirdparty/dssp)
 
 add_subdirectory(src/core)
 add_subdirectory(src/analysis)

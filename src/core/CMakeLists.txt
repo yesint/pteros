@@ -159,23 +159,11 @@ add_library(pteros SHARED
     ${SASA_FILES}
 
     #DSSP
-    ${PROJECT_SOURCE_DIR}/src/core/dssp/pteros_dssp_wrapper.cpp
-    ${PROJECT_SOURCE_DIR}/src/core/dssp/pteros_dssp_wrapper.h    
-    ${PROJECT_SOURCE_DIR}/src/core/dssp/align-2d.h
-    ${PROJECT_SOURCE_DIR}/src/core/dssp/matrix.h
-    ${PROJECT_SOURCE_DIR}/src/core/dssp/dssp.h
-    ${PROJECT_SOURCE_DIR}/src/core/dssp/mas.h
-    ${PROJECT_SOURCE_DIR}/src/core/dssp/primitives-3d.h
-    ${PROJECT_SOURCE_DIR}/src/core/dssp/structure.h
-    ${PROJECT_SOURCE_DIR}/src/core/dssp/utils.h
-    ${PROJECT_SOURCE_DIR}/src/core/dssp/dssp.cpp
-    ${PROJECT_SOURCE_DIR}/src/core/dssp/mas.cpp
-    ${PROJECT_SOURCE_DIR}/src/core/dssp/primitives-3d.cpp
-    ${PROJECT_SOURCE_DIR}/src/core/dssp/structure.cpp
-    ${PROJECT_SOURCE_DIR}/src/core/dssp/utils.cpp
+    ${PROJECT_SOURCE_DIR}/src/core/pteros_dssp_wrapper.cpp
+    ${PROJECT_SOURCE_DIR}/src/core/pteros_dssp_wrapper.h
 )
 
-target_link_libraries(pteros tng_io)
+target_link_libraries(pteros tng_io dssp)
 
 #--------------
 # Installation
