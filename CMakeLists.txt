@@ -3,10 +3,11 @@ cmake_minimum_required(VERSION 3.1)
 project(pteros)
 
 OPTION(WITH_PYTHON "Build python bindings and compile analysis plugins as Python modules" ON)
-OPTION(POWERSASA "Use POWERSASA code. This implies severe license restrictions! \n Read the comment in src/core/sasa/power_sasa.h carefully before enabling this option!" OFF)
+OPTION(WITH_OPENMP "Use OpenMP parallelization if supported" ON)
+OPTION(WITH_POWERSASA "Use POWERSASA code. This implies severe license restrictions! \n Read the comment in src/core/sasa/power_sasa.h carefully before enabling this option!" OFF)
 OPTION(STANDALONE_PLUGINS "Compile analysis plugins as stand-alone executables" OFF)
 OPTION(MAKE_PACKAGE "Generate package" OFF)
-OPTION(USE_OPENMP "Use OpenMP parallelization if supported" ON)
+
 
 # Use shared Boost libraries
 set(Boost_USE_STATIC_LIBS OFF)
@@ -61,7 +62,9 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wl,--no-as-needed")
 endif()
 
-if(USE_OPENMP)
+# Find OpenMP if needed
+if(WITH_OPENMP)
+    message("Looking for OpenMP...")
     find_package(OpenMP)
     if(OPENMP_FOUND)
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
@@ -71,6 +74,7 @@ endif()
 
 # Find Python only if we need bindings
 if(WITH_PYTHON)
+    message("Looking for Python...")
     find_package(PythonInterp)
     find_package(PythonLibs)
 
@@ -78,19 +82,24 @@ if(WITH_PYTHON)
         #For conditional compilation
         add_definitions(-DWRAP_PYTHON)
         # Configure pybind11
+        message("Configuring Pybind11...")
         add_subdirectory(thirdparty/pybind11)
         INCLUDE_DIRECTORIES(thirdparty/pybind11/include)
 
         # Set python includes globally (pybind11 fails to find Python.h without this)
         include_directories(${PYTHON_INCLUDE_PATH})
+
+        # Set python install dir
+        set(PY_INST_DIR python)
+
     else()
         message("Can't find Python interpreter or libraries!\nPython bindings and plugins are disabled!")
     endif()
 endif()
 
 # Find Boost
+message("Looking for Boost...")
 find_package(Boost 1.48.0 REQUIRED system date_time)
-
 # For boost>1.50 and on windows also add filesystem to compile normally
 if(${Boost_MINOR_VERSION} GREATER 50 AND ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     find_package(Boost 1.48.0 REQUIRED filesystem system)
@@ -101,19 +110,14 @@ include_directories(${Boost_INCLUDE_DIRS})
 link_libraries(${Boost_LIBRARIES})
 
 # Add Eigen
+message("Looking for Eigen...")
 find_package(Eigen3 3.2 QUIET)
 if(NOT EIGEN3_INCLUDE_DIR)
   set(EIGEN3_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/thirdparty)
   install(DIRECTORY ${EIGEN3_INCLUDE_DIR}/Eigen DESTINATION include)
-  message("Eigen3 library was not found in the system. Falling back to ${EIGEN3_INCLUDE_DIR}.")
+  message("System-wide Eigen3 not found. Falling back to internal Eigen version.")
 endif()
 include_directories(${EIGEN3_INCLUDE_DIR})
-
-#include_directories for spdlog
-include_directories(${PROJECT_SOURCE_DIR}/thirdparty)
-
-# Install spdlog headers
-install(DIRECTORY ${PROJECT_SOURCE_DIR}/thirdparty/spdlog DESTINATION include)
 
 # Directories for compiled files
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
@@ -126,8 +130,47 @@ include_directories(include)
 # Main Pteros lib dir (for build time, not yet installed)
 link_directories("${CMAKE_BINARY_DIR}/lib")
 
-# Set python install dir
-set(PY_INST_DIR python)
+
+#----------------------------
+# Build thirdparty libraries
+#----------------------------
+
+#include_directories for spdlog
+include_directories(${PROJECT_SOURCE_DIR}/thirdparty)
+# Install spdlog headers
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/thirdparty/spdlog DESTINATION include)
+
+# Build separate tng_io library (will be linked later)
+add_subdirectory(thirdparty/tng_io)
+include_directories(thirdparty/tng_io/include)
+
+# DSSP library
+add_subdirectory(thirdparty/dssp)
+include_directories(thirdparty/dssp)
+
+# VMD molfile plugins
+add_subdirectory(thirdparty/molfile_plugins)
+include_directories(thirdparty/molfile_plugins)
+
+# xdrfile library
+add_subdirectory(thirdparty/xdrfile)
+include_directories(thirdparty/xdrfile)
+
+#---------------------------------------------
+# Compiling pteros itself
+#---------------------------------------------
+
+add_subdirectory(src/core)
+add_subdirectory(src/analysis)
+add_subdirectory(src/tools)
+add_subdirectory(src/python)
+add_subdirectory(src/python/compiled_analysis_plugins)
+add_subdirectory(src/examples)
+add_subdirectory(src/test)
+#add_subdirectory(template_plugin)
+
+# Install headers
+install(DIRECTORY include DESTINATION .)
 
 #--------------
 # CPack config
@@ -148,39 +191,6 @@ IF(MAKE_PACKAGE)
     INCLUDE(CPack)
 ENDIF()
 
-#----------------------------
-# Build thirdparty libraries
-#----------------------------
-
-# Build separate tng_io library (will be linked later)
-add_subdirectory(thirdparty/tng_io)
-include_directories(thirdparty/tng_io/include)
-
-# DSSP library
-add_subdirectory(thirdparty/dssp)
-include_directories(thirdparty/dssp)
-
-# VMD molfile plugins
-add_subdirectory(thirdparty/molfile_plugins)
-include_directories(thirdparty/molfile_plugins)
-
-# xdrfile library
-add_subdirectory(thirdparty/xdrfile)
-include_directories(thirdparty/xdrfile)
-
-#---------------------------------------------
-
-add_subdirectory(src/core)
-add_subdirectory(src/analysis)
-add_subdirectory(src/tools)
-add_subdirectory(src/python)
-add_subdirectory(src/python/compiled_analysis_plugins)
-add_subdirectory(src/examples)
-add_subdirectory(src/test)
-#add_subdirectory(template_plugin)
-
-# Install headers
-install(DIRECTORY include DESTINATION .)
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     message("------------------------------")

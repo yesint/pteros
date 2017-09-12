@@ -2,7 +2,7 @@
 # SASA code
 #------------------------
 
-if(POWERSASA)
+if(WITH_POWERSASA)
     # Set definition for conditional compilation
     add_definitions(-DUSE_POWERSASA)
     # Add includes
