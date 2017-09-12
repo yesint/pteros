@@ -126,13 +126,6 @@ include_directories(include)
 # Main Pteros lib dir (for build time, not yet installed)
 link_directories("${CMAKE_BINARY_DIR}/lib")
 
-# Determine extension of the shared libs depending on platform
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    SET(SHARED_LIB_EXT ".pyd") # Force .pyd extension on Windows to ensure correct loading
-ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    SET(SHARED_LIB_EXT ".so") # Use .so on Linux
-ENDIF()
-
 # Set python install dir
 set(PY_INST_DIR python)
 
@@ -156,15 +149,17 @@ IF(MAKE_PACKAGE)
 ENDIF()
 #--------------
 
+# Build separate tng_io library (will be linked later)
+add_subdirectory(thirdparty/tng_io)
+include_directories(thirdparty/tng_io/include)
+
 add_subdirectory(src/core)
-#add_subdirectory(src/core/sasa)
 add_subdirectory(src/analysis)
 add_subdirectory(src/tools)
 add_subdirectory(src/python)
 add_subdirectory(src/python/compiled_analysis_plugins)
 add_subdirectory(src/examples)
 add_subdirectory(src/test)
-#add_subdirectory(template)
 #add_subdirectory(template_plugin)
 
 # Install headers

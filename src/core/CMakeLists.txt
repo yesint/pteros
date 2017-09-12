@@ -1,6 +1,3 @@
-# Build separate tng_io library (will be linked later)
-add_subdirectory(${PROJECT_SOURCE_DIR}/src/core/tng_io)
-
 #------------------------
 # SASA code
 #------------------------
@@ -89,6 +86,7 @@ add_library(pteros SHARED
     ${PROJECT_SOURCE_DIR}/include/pteros/core/distance_search_within.h
     distance_search/distance_search_within.cpp
 
+    distance_search/atomic_wrapper.h
     distance_search/search_utils.h
     distance_search/search_utils.cpp
 
@@ -177,7 +175,6 @@ add_library(pteros SHARED
     ${PROJECT_SOURCE_DIR}/src/core/dssp/utils.cpp
 )
 
-#target_link_libraries(pteros tng_io)
 target_link_libraries(pteros tng_io)
 
 #--------------

@@ -25,7 +25,7 @@
 
 #include <string>
 #include "vmd_molfile_plugin_wrapper.h"
-#include "tng_io.h"
+#include "tng/tng_io.h"
 
 namespace pteros {
 
