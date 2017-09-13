@@ -69,4 +69,4 @@ private:
     vector<float> volume;
 };
 
-CREATE_COMPILED_PLUGIN(box,nullptr)
+CREATE_COMPILED_PLUGIN(box)

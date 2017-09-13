@@ -99,12 +99,12 @@ string Trajectory_reader::help(){
 
 
 
-Trajectory_reader::Trajectory_reader(): collector(nullptr)
+Trajectory_reader::Trajectory_reader()
 {
 
 }
 
-Trajectory_reader::Trajectory_reader(const Options &opt): options(opt), collector(nullptr)
+Trajectory_reader::Trajectory_reader(const Options &opt): options(opt)
 {
 
 }
@@ -222,10 +222,6 @@ void Trajectory_reader::run(){
         }
     }
 
-    if(is_parallel && !collector) log->warn("No collector function is registered for parallel task!");
-    if(!is_parallel && collector) log->warn("Collector is registered but it's useless for serial tasks!");
-
-
     //-----------------------------------------
     // Actual processing starts here
     //-----------------------------------------    
@@ -319,11 +315,14 @@ void Trajectory_reader::run(){
 
         // Now collect results from all instances that consumed some frames
         vector<Task_ptr> resultive_tasks;
-        for(auto& t: tasks)
-            if(t->n_consumed) resultive_tasks.push_back(t);
+        for(int i=1; i<tasks.size();++i)
+            if(tasks[i]->n_consumed) resultive_tasks.push_back(tasks[i]);
 
-        log->info("Collecting results from {} resultive tasks...", resultive_tasks.size());
-        collector(last_info, resultive_tasks);
+        log->info("Collecting results from {} task instances...", resultive_tasks.size()+1);
+        tasks[0]->collect_data(resultive_tasks);
+
+        // Call post-process on master instance
+        tasks[0]->post_process(last_info);
 
 
     } else {

@@ -180,11 +180,19 @@ PLUGIN_PARALLEL(Test_task)
             system().rotate(1,0.1);
 
         res.push_back(info.valid_frame);
-        throw Pteros_error("UPS");
+        //throw Pteros_error("UPS");
     }
 
     void post_process(const Frame_info& info) override {
         log->info("Test_task post_process of instance {}", info.last_frame);
+    }
+
+    void collect_data(const vector<Task_ptr>& tasks) override {
+        for(auto& t: tasks){
+            auto h = dynamic_cast<Test_task*>(t.get());
+            Eigen::Map<VectorXi> m(h->res.data(),h->res.size());
+            LOG()->info("{} :: {}", h->get_id(), m.transpose());
+        }
     }
 
 public:
@@ -233,7 +241,7 @@ int main(int argc, char** argv)
 {   
 
     //System s("/home/semen/work/current/Projects/plasma_vesicle/after_em.gro");
-
+/*
     // System with 10^6 atoms
     System s("/home/semen/work/stored/Projects/pteros/paper2/supplement/benchmark/large.gro");
     vector<int> ind;
@@ -314,7 +322,7 @@ int main(int argc, char** argv)
     //-----------------------
 
     return 1;
-
+*/
     try{
 
         Options opt;
@@ -326,9 +334,7 @@ int main(int argc, char** argv)
         //reader.add_task( new Test_serial(opt) );
         //reader.add_task( new Test_serial(opt) );
 
-        reader.register_collector( &accum );
-
-        //reader.add_task( new Test_serial() );
+          //reader.add_task( new Test_serial() );
         //reader.add_task( new Test_serial() );
 
         reader.run();

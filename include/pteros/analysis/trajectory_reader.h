@@ -70,12 +70,7 @@ public:
 
         void add_task(const Task_ptr& task){
             tasks.push_back( task );
-        }
-
-        /// Register collecting function for parallel tasks
-        void register_collector( std::function<void(const Frame_info&,const std::vector<Task_ptr>&)> func){
-            collector = func;
-        }
+        }        
 
 private:
 
@@ -89,9 +84,6 @@ private:
         std::vector<Task_ptr> tasks;
 
         bool is_parallel;
-
-        std::function<void(const Frame_info&,const std::vector<Task_ptr>&)> collector;
-
 };
 
 }

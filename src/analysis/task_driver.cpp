@@ -54,7 +54,8 @@ void Task_driver::process_until_end() {
         ++task->n_consumed;
     }
     if(task->n_consumed>0){
-        task->post_process_handler(data->frame_info);
+        // Only call post_process here for serial tasks!
+        if(!task->is_parallel()) task->post_process_handler(data->frame_info);
         last_info = data->frame_info; // Save last processed frame
     } else {
         task->log->warn("No frames consumed!");

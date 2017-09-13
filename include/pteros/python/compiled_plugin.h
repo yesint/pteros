@@ -38,7 +38,7 @@
 
 namespace py = pybind11;
 
-#define CREATE_COMPILED_PLUGIN(_name,_acc) \
+#define CREATE_COMPILED_PLUGIN(_name) \
 PYBIND11_MODULE(_name, m) {\
     py::class_<_name,Task_plugin,std::shared_ptr<_name>>(m, #_name)\
         .def(py::init<const Options&>())\
@@ -59,15 +59,14 @@ using namespace std;
 
 // Skeleton of the driver program
 
-#define CREATE_COMPILED_PLUGIN(_name, _collector)\
+#define CREATE_COMPILED_PLUGIN(_name)\
 int main(int argc, char** argv){\
     try {\
         Options options;\
         parse_command_line(argc,argv,options);\
         Trajectory_reader engine(options);\
         auto task = new _name(options);\
-        engine.add_task(task);\
-        engine.register_collector(_collector);\
+        engine.add_task(task);\        
         cout << "-------------------------------------------------------------" << endl;\
         cout << "  This is stand-alone Pteros analysis plugin '" #_name "'" << endl;\
         cout << "-------------------------------------------------------------" << endl;\

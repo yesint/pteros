@@ -70,5 +70,5 @@ private:
     ofstream f;
 };
 
-CREATE_COMPILED_PLUGIN(center,nullptr)
+CREATE_COMPILED_PLUGIN(center)
 
