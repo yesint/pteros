@@ -348,9 +348,9 @@ void Trajectory_reader::run(){
 
             for(int i=0; i<tasks.size(); ++i){
                 // Create new channel
-                worker_channels.push_back(Data_channel_ptr(new Data_channel));
-                // Set buffer size for this channel
-                worker_channels.back()->set_buffer_size(buf_size);
+                auto channel=std::make_shared<Data_channel>();
+                channel->set_buffer_size(buf_size);
+                worker_channels.push_back(channel);
 
                 // Spawn worker
                 tasks[i]->set_id(i);
