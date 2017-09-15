@@ -162,7 +162,7 @@ private:
 //-------------------------------------------------------
 
 
-PLUGIN_PARALLEL(Test_task)
+TASK_PARALLEL(Test_task)
     void pre_process() override {
         jump_remover.add_atoms(system("index 1-10"));
         log->info("Test_task pre_process #{}", get_id());
@@ -209,7 +209,7 @@ void accum(const Frame_info& info, const std::vector<Task_ptr>& tasks){
 }
 
 
-PLUGIN_SERIAL(Test_serial)
+TASK_SERIAL(Test_serial)
     void pre_process() override {
         cout << "Test_serial pre_process" << endl;
     }
@@ -329,7 +329,8 @@ int main(int argc, char** argv)
         parse_command_line(argc,argv,opt);
         Trajectory_reader reader(opt);
 
-        reader.add_task( new Test_task(opt) );
+        reader.add_task( new Test_serial(opt) );
+        reader.add_task( new Test_serial(opt) );
 
         //reader.add_task( new Test_serial(opt) );
         //reader.add_task( new Test_serial(opt) );

@@ -27,7 +27,7 @@
 using namespace std;
 using namespace pteros;
 
-PLUGIN_SERIAL(center)
+TASK_SERIAL(center)
 public:
 
     string help(){

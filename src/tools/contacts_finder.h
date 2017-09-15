@@ -83,7 +83,7 @@ struct Selections_pair {
 
 
 
-PLUGIN_SERIAL(Contacts_finder)
+TASK_SERIAL(Contacts_finder)
 protected:
     void pre_process() override;
     void process_frame(const Frame_info& info) override;

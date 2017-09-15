@@ -257,7 +257,7 @@ void make_bindings_Selection(py::module& m){
         .def("__getitem__", [](const Selection &s, size_t i) {
                 if(i >= s.size()) throw py::index_error();                
                 return s[i]; // Returns atom proxy object
-            })
+            }, py::keep_alive<0,1>())
 
         // Splitting
         .def("split_by_connectivity", [](Selection* sel,float d,bool periodic){

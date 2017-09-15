@@ -8,7 +8,7 @@ using namespace std;
 using namespace pteros;
 using namespace Eigen;
 
-PLUGIN_SERIAL(Water_processor)
+TASK_SERIAL(Water_processor)
 protected:
     void pre_process() override {
         // Create selection for water        

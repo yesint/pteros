@@ -27,7 +27,7 @@
 using namespace std;
 using namespace pteros;
 
-PLUGIN_SERIAL(box)
+TASK_SERIAL(box)
 public:
     string help(){
         return  "Purpose:\n"

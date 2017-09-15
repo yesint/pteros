@@ -28,7 +28,7 @@ struct Chol_data {
 };
 
 
-PLUGIN_SERIAL(Chol_counter)
+TASK_SERIAL(Chol_counter)
 protected:
     virtual void pre_process() override {
         bilayer.modify(system,options("lipids_selection").as_string());

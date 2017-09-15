@@ -808,25 +808,7 @@ sel.XYZ(0,frame) = sel.XYZ(1,frame1) + sel.XYZ(2,frame2);
 
 \subsection py_access Accessor methods in Python
 
-Due to language limitations in Python each accessor have to be prepended by "get" or "set" prefixes for read and write access respectively, which makes them rather clumsy and difficult to use:
-
-\code{.py}
-sel = Selection(system, 'name CA')
-# Read access
-print sel.getName(0)
-# Write access
-sel.setName(0, "CB")
-
-# Accessing coordinates of the current frame
-print sel.getX(0)
-sel.setXYZ(0, sel.getXYZ(0) + sel.getXYZ(0) )
-
-# Accessing coordinates of other frames
-print sel.getX(0,frame)
-sel.setXYZ(0, frame, sel.getXYZ(1,frame1) + sel.getXYZ(2,frame2));
-\endcode
-
-Much more covenient way of accessing atom properties in Python is using indexing operator of Selection object (see below).
+Due to language limitations in Python each accessor have to be prepended by "get" or "set" prefixes for read and write access respectively, which makes them rather clumsy and difficult to use. That is why accessors are not ported to Python and recommended way of accessing atom properties in using indexing (see below).
 
 \subsection indexing Indexing operator of Selection object
 
@@ -1481,47 +1463,96 @@ Although System and Selection classes already provide quite high-level tools for
 
 It is necessary to emphasize an importance of parallel processing. MD trajectories are often huge (up to ~100Gb) and reading them from disk tipically takes many minutes, especially if the storage is slow or even non-local. If you have 5 different anaysis tasks, which should be applied to the same trajectory it is very wasteful to run them sequntially and to read the whole trajectory five times. It is much more logical to read the trajectory only ones and execute all your tasks in parallel for each frame. By doing this you will also utilize the power of you modern multi-core processor effectively.
 
-All these routine operations in Pteros are incapsulated into the Trajectory_processor class. The logic of using this class is the following. You supply it with the set of options (the trajectory to read, which frames to include into the analysis, etc). In addition you create a number of Consumer objects, which represent separated analysis tasks, and connect them to the Trajectory_processor. After that you run the processor. It launches all supplied tasks in separate parallel threads, read the trajectory frame by frame in yet another thread and passes the frames to each of the tasks for user-defined processing. In such scenario the speed of trajectory processing is limited by either the slowest consumer or the trajectory file IO (whatever is slower).
+Another scenario is the analysis task, which does not depend on frame processing order. Typical example is averaging of some property over the frames. In such case it is tempting to spawn several instances of analys task, each running in parallel in its own thread, and dispatch frames to them from the shared queue without any particular order. This again utilizes all cores of your processor and can make the analysis much faster.
 
-Although the framework of trajectory processor and consumers is a high-level concept by itself it is used to provide even higher-level abstractions - the \ref plugins.
+All these routine operations in Pteros are incapsulated into the Trajectory_reader class. The logic of using this class is the following. You supply it with the set of options (the trajectory to read, which frames to include into the analysis, etc). In addition you create a number of task objects, which represent separated analysis tasks, and connect them to the Trajectory_reader. After that you run the reader. It launches all supplied tasks in separate parallel threads (or spawns many instances of the parallel task), reads the trajectory frame by frame in yet another thread and passes the frames to each of the tasks for user-defined processing. In such scenario the speed of trajectory processing is limited by either the slowest task or the trajectory file IO (whatever is slower).
 
-\note Trajectory processors and consumers, as the lower-level concepts, are available in C++ only. In Python only analysis plugins are supported.
+Although the framework of trajectory reader and tasks is a high-level concept by itself it is used to provide even higher-level abstractions - the \ref plugins.
 
-\section processors_consumers Trajectory processors and consumers
+\note Although Trajectory_reader and tasks are exposed to Python the prefered way of using them in Python is by writing analysis plugins.
 
-Trajectory_processor class incapsulates all low-level details of reading trajectories including reading intervals of frames of times, skipping frames, etc. Its typical usage is the following:
+\section processors_consumers Trajectory reader and analysis tasks
+
+Trajectory_reader class incapsulates all low-level details of reading trajectories including reading intervals of frames or times, skipping frames, etc. Its typical usage is the following:
 \code
-// We derive our analysis class from Consumer
+// Create serial analysis task using corresponding macro
 // The details will be covered later
-class My_consumer: public Consumer {
-    My_consumer(Trajectory_processor* pr, string sel_str): Consumer(pr){
-    ...
-    }
-    ...
+
+TASK_SERIAL(My_task)
+    void pre_process() override { ... }
+    void process_frame(const Frame_info& info) override { ... }
+    void post_process(const Frame_info& info) override { ...  }
 }
 
 int main(int argc, char** argv){
     // Represents built-in and custom command line options
-    Options options;
+    Options reader_options;
+    // Options for indivudual tasks
+    vector<Option> task_opts;
     // Parse options from the command line
-    parse_command_line(argc,argv,options);
-    // Create an instance of trajectory processor
-    Trajectory_processor engine(options);
+    // Used flag -task to separate options of individual tasks
+    parse_command_line(argc,argv, reader_options, "task", task_opts);
+    // Create an instance of trajectory reader
+    Trajectory_reader engine(reader_options);
 
-    // Create several consumers with different parameters.
-    // They will be linked to engine authomatically
-    My_consumer task1(&engine,"name CA");
-    My_consumer task2(&engine,"name CB");
-    My_consumer task3(&engine,"name N O");
+    // Add several tasks (with different parameters).
+    reader.add_task( new My_task(task_opts[0]) );
+    reader.add_task( new My_task(task_opts[1]) );
 
     // Start trajectory processing
     engine.run();
 }
 \endcode
 
+This program could be called with the following command line (see \ref options for details):
+\code
+./example -f some_file.pdb some_traj.xtc -b 10ps -e 2000fr -skip 2 -log 10 -task task1 -some_option1 val1 -task task2 -some_option2 val2
+\endcode
+
+\subsection task_types Serial and parallel tasks
+
+All analysis tasks in Pteros are subdivided into serial and parallel.
+
+The objects of serial tasks exist as single instances, which run in their own thread of execution. The task is "serial" in the sence that \em inside the task code all operations are sequential and executed one by one in defined order. Trajectory_reader may run as many serial tasks as you want at the same time.
+
+The parallel tasks behave differently. The Trajectory_reader may run only one parallel task and nothing else. The parallel task spawns as many instances of itself as there are cores in your processor. Each trajectory frame is dispatched to one of the instances only with no particular order. At the end all instances merge their results to the master instance, which is doing post-processing. Parallel tasks work much like parallel for loops in OpenMP over trajectory frames.
+
+Regardless of the task type you have to override three methods: pre_process(), process_frame() and post_process(). For parallel tasks additional method collect_data() have to be overriden.
+
+Tasks are created by the macro TASK_SERIAL or TASK_PARALLEL:
+
+\code
+// Serial task
+TASK_SERIAL(My_serial_task)
+    void pre_process() override { ... }
+    void process_frame(const Frame_info& info) override { ... }
+    void post_process(const Frame_info& info) override { ...  }
+};
+
+// Parallel task
+TASK_PARALLEL(My_parallel_task)
+    void pre_process() override { ... }
+    void process_frame(const Frame_info& info) override { ... }
+    void post_process(const Frame_info& info) override { ...  }
+    void collect_data(const std::vector<std::shared_ptr<Task_base>>& tasks) override { ... }
+};
+\endcode
+
+The moments when these methods are called is different for serial and parallel tasks:
+
+Method | Serial task | Parallel task
+-------|-------------- |---------
+pre_process | Called on first consumed trajectory frame for each task | Called on first consumed trajectory frame by single master task instance only. After that multiple task instances are spawned by cloning this master instance.
+process_frame | Called on each valid trajectory frame. Frames are processed in order. | Called by each task instance in parallel on different frames. Frames are dispatched to instances with no particular order on the "first come first served" basis.
+collect_data | N/A | Called by master instance only when trajectory is complete. All other instances are passed in tasks vector. The purpose is to merge local data of all instances together in the master instance for post-processing.
+post_process | Called after last consumed trajectory frame for each task. | Called by master instance only immediately after collect_data().
+
+\note The reason of having separate collect_data() method is to keep the interface of serial and parallel task consistent otherwise.
+
+
 \subsection options Processing command-line options
 
-Trajectory_processor takes an Options object, which provides mandatory built-in command-line options that specify which trajectory to read and which frames from it to accept. Default options are the following:
+Trajectory_reader takes an Options object, which provides mandatory built-in command-line options that specify which trajectory to read and which frames from it to accept. Default options are the following:
 
 <table>
 <tr><th>Option flag</th><th>Meaning</th><th>Comment</th></tr>
@@ -1573,16 +1604,22 @@ Files may appear in any order, but trajectory files will be processed in the ord
 </tr>
 
 <tr>
-<td> -buffer </td> <td>Number of frames, which are kept in memory of Trajectory_processor</td>
-<td>Default: 10. You only need to decrease this if individual frames are very large.
+<td> -buffer </td> <td>Number of frames, which are kept in memory of Trajectory_reader</td>
+<td>Default: 10. You only need to decrease this if individual frames are \em very large.
 </tr>
+
+<tr>
+<td> -task </td> <td>Name of the analysis task</td>
+<td>No default. Name of the task is used to load corresponding compiled analysis plugin or python plugin. Options, which follow "-task name" are forwarded to the corresponding task only and will not be visible in other tasks or Trajectory_reader. Many tasks could be specified.
+</tr>
+
 </table>
 
 \subsubsection suffix Value suffixes
 
 %Options -b, -e and -t0 could be specified with the following convenience suffixes:
 
-Suffix | Example value | Meaning
+Suffix | Example | Meaning
 -------|-------------- |---------
 (no suffix)| | value is in frames
 fr | 10fr | value is in frames
@@ -1593,7 +1630,30 @@ us | 2us | value is time in microseconds (value multiplied by 10^6)
 ms | 4ms | value is time in milliseconds (value multiplied by 10^9)
 
 \subsection frame_info Understanding frame metadata
-\subsection magic_vars Magic variables in consumers
+
+The process_frame() and post_process() methods of analysis tasks are called with Frame_info argument, which contains metadata of the currently processed frame:
+
+Property | Meaning
+-------- | ---------
+absolute_frame | Counts \em all frames (either consumed or skipped) in trajectory starting from 0
+absolute_time | Current time stamp
+valid_frame | Counts only valid frames (the frames, which fall into specified time and frame range) and are sent to processing. Starts from 0.
+first_time | Time of the first processed valid frame
+last_time | Time of the last processed valid frame. During the processing is set to absolute_time. Meaningfull for post-processing only.
+first_frame | First processed valid frame (an absolute value)
+last_frame | Last processed valid frame (an absolute value). During the processing is set to absolute_frame. Meaningfull for post-processing only.
+
+\subsection magic_vars "Magic variables" in analysis tasks
+
+Each analysis task is derived from Task_base class under the hood and contains the following "magic variable":
+
+Variable | Meaning
+-------- | -------
+system | the System allocated locally for this task containg currently processing frame as frame #0. Changes in this system are local does not propagate to other serial tasks or instances of parallel tasks.
+log | logger object, which is local for current task. Logger uses unique name formed by the name of task class and its id.
+options | Options object with command-line options provided for this particular task. See \ref options for details.
+jump_remover | Jump_remover object of the current task. See \ref jump for details.
+
 \subsection jump Removing jumps over periodic boundaries
 \section plugins Analysis plugins
 

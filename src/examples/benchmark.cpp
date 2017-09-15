@@ -9,7 +9,7 @@ using namespace pteros;
 
 // RMSD fitting
 
-PLUGIN_SERIAL(Bench1)
+TASK_SERIAL(Bench1)
 protected:
     virtual void pre_process() override {
         sel.modify(system,std::string("all"));
@@ -31,7 +31,7 @@ protected:
 };
 
 // Contacts computation
-PLUGIN_SERIAL(Bench2)
+TASK_SERIAL(Bench2)
 protected:
     virtual void pre_process() override {
         sel1.modify(system,std::string("resid 1 to 100"));
@@ -54,7 +54,7 @@ protected:
 
 
 // Selecting each residue
-PLUGIN_SERIAL(Bench3)
+TASK_SERIAL(Bench3)
 protected:
     virtual void pre_process() override  {
 

@@ -65,7 +65,7 @@ protected:
 
 }
 
-#define _PLUGIN_(_name) \
+#define _TASK_(_name) \
     class _name: public Task_plugin { \
     public: \
         using Task_plugin::Task_plugin; \
@@ -75,8 +75,8 @@ protected:
             task_id = _id; \
         } \
 
-#define PLUGIN_PARALLEL(_name) \
-    _PLUGIN_(_name) \
+#define TASK_PARALLEL(_name) \
+    _TASK_(_name) \
     _name* clone() const override { \
         return new _name(*this); \
     } \
@@ -84,8 +84,8 @@ protected:
         bool is_parallel() final { return true; }
 
 
-#define PLUGIN_SERIAL(_name) \
-    _PLUGIN_(_name) \
+#define TASK_SERIAL(_name) \
+    _TASK_(_name) \
     protected: \
         bool is_parallel() final { return false; }
 
