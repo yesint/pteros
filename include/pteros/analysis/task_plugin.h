@@ -21,7 +21,7 @@ public:
     Options options;
     Jump_remover jump_remover;
 
-    virtual std::string help(){}
+    virtual std::string help(){ return ""; }
 
     Task_plugin* clone() const override {
         return nullptr;

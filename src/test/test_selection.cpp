@@ -237,8 +237,18 @@ make_accessor(const Selection& sel){
 }
 
 
+#define AAA aaa
+#define EVAL(arg) #arg
+
+#define MACRO(_n) void _n(){ cout << EVAL(_n) << endl;}
+
+MACRO(AAA)
+
 int main(int argc, char** argv)
-{   
+{
+
+    aaa();
+    return 1;
 
     //System s("/home/semen/work/current/Projects/plasma_vesicle/after_em.gro");
 /*
@@ -324,6 +334,8 @@ int main(int argc, char** argv)
     return 1;
 */
     try{
+
+
 
         Options opt;
         parse_command_line(argc,argv,opt);

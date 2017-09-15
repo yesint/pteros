@@ -1,8 +1,5 @@
-###############################################
-## This is CMakeLists.txt file               ##
-## for Pteros compiled analysis plugin       ##
-###############################################
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 3.1)
+
 project(pteros_analysis_plugin)
 
 ###############################################
@@ -18,10 +15,42 @@ SET(PLUGIN_FILES plugin_main.cpp)
 # Path to your Pteros installation
 SET(PTEROS_PATH /home/semen/programs/pteros/)
 
+
+
+###############################################
+## Do not modify below!                      ##
+###############################################
+
+set_source_files_properties(${PLUGIN_FILES} PROPERTIES COMPILE_DEFINITIONS PLUGIN_NAME=${PLUGIN_NAME})
+
+SET(PTEROS_INCLUDE_PATH "${PTEROS_PATH}/include")
+SET(PTEROS_LIB_PATH "${PTEROS_PATH}/lib")
+SET(CMAKE_INSTALL_PREFIX ${PTEROS_PATH})
+
+include_directories(${PTEROS_INCLUDE_PATH})
+link_directories(${PTEROS_LIB_PATH})
+
+
+# Use shared Boost libraries
+set(Boost_USE_STATIC_LIBS OFF)
+
+# Gloabal compiler and linker flags for Linux
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
+    # Strip libraries and executables to decrease size in Release builds
+    SET(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} -s")
+    SET(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -s")
+ENDIF()
+
+# Windows-related stuff
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    ##################################################################
-    ## On Windows put the full path to boost and python libs here:  ##
-    ##################################################################
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_THREAD_USE_LIB -s")
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -s")
+
+    ##########################################################
+    # Cnange the paths here if you are compiling on Windows! #
+    ##########################################################
 
     # Path to Boost:
     SET(BOOST_ROOT "c:/install/boost")
@@ -34,58 +63,72 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     include_directories("C:/Python27/Lib/site-packages/numpy/core/include")
     # Path to numpy libs:
     link_directories("C:/Python27/Lib/site-packages/numpy/core/lib")
+
+    ##########################################################
+    # End of user-modifieble section!                        #
+    ##########################################################
 ENDIF()
 
-#############################################################################
-## !!! Do not modify anything below unless you know what are you doing !!! ##
-#############################################################################
+#Sets optmization for Eigen in Release build
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -msse2")
 
-SET(PTEROS_INCLUDE_PATH "${PTEROS_PATH}/include")
-SET(PTEROS_LIB_PATH "${PTEROS_PATH}/lib")
+# Enable STL debugging in debug mode
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_GLIBCXX_DEBUG")
 
-SET(CMAKE_INSTALL_PREFIX ${PTEROS_PATH})
+# Enable C++11 and C99 everywhere
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99")
 
-add_definitions(-DPLUGIN_NAME=${PLUGIN_NAME})
+# Set specific options for GCC if used
+if(CMAKE_COMPILER_IS_GNUCXX)
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wl,--no-as-needed")
+endif()
 
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    SET(LIB_EXT ".pyd") # Force .pyd extension on Windows to ensure correct loading
-ELSE()
-    SET(LIB_EXT ".so") # Use default on Linux
-ENDIF()
+# Find OpenMP if needed
+if(WITH_OPENMP)
+    message("Looking for OpenMP...")
+    find_package(OpenMP)
+    if(OPENMP_FOUND)
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+    endif()
+endif()
 
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -msse2")
-    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
-ENDIF()
+# Find Python
 
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_THREAD_USE_LIB -msse2 -s -std=c++0x")
-ENDIF()
-
-# Strip libraries and executables to decrease size in Release builds
-SET(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} -s")
-SET(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -s")
-
-SET(CMAKE_BUILD_TYPE Release)
-
-# Will use shared Boost libraries
-set(Boost_USE_STATIC_LIBS OFF)
-
-find_package(Boost 1.48.0 REQUIRED system date_time python)
+message("Looking for Python...")
 find_package(PythonInterp)
 find_package(PythonLibs)
 
-include_directories(${PTEROS_INCLUDE_PATH} ${Boost_INCLUDE_DIRS} ${PYTHON_INCLUDE_PATH})
-link_directories(${PTEROS_LIB_PATH})
-link_libraries(pteros pteros_analysis ${Boost_LIBRARIES} ${PYTHON_LIBRARIES})
+if(PYTHONINTERP_FOUND AND PYTHONLIBS_FOUND)
+    # Configure pybind11
+    message("Configuring Pybind11...")
+    find_package(pybind11)
+    # Set python includes globally (pybind11 fails to find Python.h without this)
+    include_directories(${PYTHON_INCLUDE_PATH})
+else()
+    message("Can't find Python interpreter or libraries!")
+endif()
 
+# Find Boost
+message("Looking for Boost...")
+find_package(Boost 1.48.0 REQUIRED system date_time)
+# For boost>1.50 and on windows also add filesystem to compile normally
+if(${Boost_MINOR_VERSION} GREATER 50 AND ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    find_package(Boost 1.48.0 REQUIRED filesystem system)
+endif()
 
-add_library(plugin SHARED ${PLUGIN_FILES})
+# Add Boost includes and libs globally - they are needed everywhere
+include_directories(${Boost_INCLUDE_DIRS})
+link_libraries(${Boost_LIBRARIES})
+
+# Make python extension module
+pybind11_add_module(plugin ${PLUGIN_FILES} )
+
+target_link_libraries(plugin PRIVATE pteros pteros_analysis)
 
 set_target_properties(plugin PROPERTIES
-    PREFIX ""
-    SUFFIX "${LIB_EXT}"
-    OUTPUT_NAME "${PLUGIN_NAME}"
+    OUTPUT_NAME ${PLUGIN_NAME}
 )
 
 #Installation

@@ -7,7 +7,7 @@ SET(PLUGINS
     #distance_matr
     #secondary
     #rdf
-    #contacts
+    #example_plugin
     center
 )
 

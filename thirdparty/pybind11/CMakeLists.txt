@@ -17,10 +17,10 @@ project(pybind11)
 # Check if pybind11 is being used directly or via add_subdirectory
 set(PYBIND11_MASTER_PROJECT OFF)
 if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
-  set(PYBIND11_MASTER_PROJECT ON)
+ set(PYBIND11_MASTER_PROJECT ON)
+ message(${PYBIND11_MASTER_PROJECT})
 endif()
 
-#option(PYBIND11_INSTALL "Install pybind11 header files?" ${PYBIND11_MASTER_PROJECT})
 option(PYBIND11_INSTALL "Install pybind11 header files?" ${PYBIND11_MASTER_PROJECT})
 option(PYBIND11_TEST    "Build pybind11 test suite?"     ${PYBIND11_MASTER_PROJECT})
 
@@ -134,6 +134,7 @@ endif()
                 tools/pybind11Tools.cmake
           DESTINATION ${PYBIND11_CMAKECONFIG_INSTALL_DIR})
 
+
   if(NOT (CMAKE_VERSION VERSION_LESS 3.0))
     if(NOT PYBIND11_EXPORT_NAME)
       set(PYBIND11_EXPORT_NAME "${PROJECT_NAME}Targets")
@@ -141,10 +142,10 @@ endif()
 
     install(TARGETS pybind11 module embed
             EXPORT "${PYBIND11_EXPORT_NAME}")
-    if(PYBIND11_MASTER_PROJECT)
+    #if(PYBIND11_MASTER_PROJECT)
       install(EXPORT "${PYBIND11_EXPORT_NAME}"
               NAMESPACE "${PROJECT_NAME}::"
               DESTINATION ${PYBIND11_CMAKECONFIG_INSTALL_DIR})
-    endif()
+    #endif()
   endif()
 #endif()
