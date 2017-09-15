@@ -30,7 +30,7 @@ using namespace pteros;
 TASK_SERIAL(center)
 public:
 
-    string help(){
+    string help() override {
         return  "Purpose:\n"
                 "\tComputes center of mass or geometric center of selection for each frame.\n"
                 "\tIf selection is coordinate-dependent updates it every frame.\n"

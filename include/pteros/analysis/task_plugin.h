@@ -10,7 +10,7 @@
 namespace pteros {
 
 /// Base class for plugins. Has options and jump remover
-/// Also has constructor with options and set_options()
+/// Also has constructor with options
 
 class Task_plugin: public Task_base {
 public:
@@ -20,6 +20,8 @@ public:
 
     Options options;
     Jump_remover jump_remover;
+
+    virtual std::string help(){}
 
     Task_plugin* clone() const override {
         return nullptr;

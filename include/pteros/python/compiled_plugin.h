@@ -66,7 +66,7 @@ int main(int argc, char** argv){\
         parse_command_line(argc,argv,options);\
         Trajectory_reader engine(options);\
         auto task = new _name(options);\
-        engine.add_task(task);\        
+        engine.add_task(task);\
         cout << "-------------------------------------------------------------" << endl;\
         cout << "  This is stand-alone Pteros analysis plugin '" #_name "'" << endl;\
         cout << "-------------------------------------------------------------" << endl;\

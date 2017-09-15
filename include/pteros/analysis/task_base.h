@@ -26,7 +26,6 @@ public:
     virtual ~Task_base(){}
     virtual Task_base* clone() const = 0;
 
-    virtual void set_id(int _id){ task_id = _id; }
     int get_id(){ return task_id; }
 
     System system;
@@ -41,6 +40,8 @@ public:
     virtual void collect_data(const std::vector<std::shared_ptr<Task_base>>& tasks){}
 
 protected:
+    virtual void set_id(int _id){ task_id = _id; }
+
     virtual bool is_parallel() = 0;    
 
     // Handlers, which call actual functions
@@ -69,25 +70,6 @@ private:
 };
 
 }
-
-#define TASK_DERIVED(_name) \
-    class _name: public Task_base { \
-    public: \
-        _name(): Task_base() {} \
-        virtual _name* clone() const { \
-            return new _name(*this); \
-        }
-
-#define TASK_PARALLEL(_name) \
-    TASK_DERIVED(_name) \
-    protected: \
-    virtual bool is_parallel() final { return true; }
-
-
-#define TASK_SERIAL(_name) \
-    TASK_DERIVED(_name) \
-    protected: \
-    virtual bool is_parallel() final { return false; }
 
 
 #endif // TASK_BASE_H
