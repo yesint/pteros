@@ -62,16 +62,16 @@ void make_bindings_System(py::module& m){
              "fname"_a, "b"_a=0, "e"_a=-1, "skip"_a=0, "on_frame"_a=nullptr)
 
         // Selecting
-        .def("__call__", py::overload_cast<>(&System::operator()))
-        .def("__call__", py::overload_cast<string,int>(&System::operator()),"str"_a,"fr"_a=0)
-        .def("__call__", py::overload_cast<int,int>(&System::operator()))
-        .def("__call__", py::overload_cast<const std::vector<int>&>(&System::operator()))
-        .def("__call__", py::overload_cast<const std::function<void(const System&,int,std::vector<int>&)>&,int>(&System::operator()),"callback"_a,"fr"_a=0)
-        .def("select_all", py::overload_cast<>(&System::operator()))
-        .def("select", py::overload_cast<string,int>(&System::operator()),"str"_a,"fr"_a=0)
-        .def("select", py::overload_cast<int,int>(&System::operator()))
-        .def("select", py::overload_cast<const std::vector<int>&>(&System::operator()))
-        .def("select", py::overload_cast<const std::function<void(const System&,int,std::vector<int>&)>&,int>(&System::operator()),"callback"_a,"fr"_a=0)
+        .def("__call__", py::overload_cast<>(&System::operator()), py::keep_alive<0,1>())
+        .def("__call__", py::overload_cast<string,int>(&System::operator()),"str"_a,"fr"_a=0, py::keep_alive<0,1>())
+        .def("__call__", py::overload_cast<int,int>(&System::operator()), py::keep_alive<0,1>())
+        .def("__call__", py::overload_cast<const std::vector<int>&>(&System::operator()), py::keep_alive<0,1>())
+        .def("__call__", py::overload_cast<const std::function<void(const System&,int,std::vector<int>&)>&,int>(&System::operator()),"callback"_a,"fr"_a=0, py::keep_alive<0,1>())
+        .def("select_all", py::overload_cast<>(&System::operator()), py::keep_alive<0,1>())
+        .def("select", py::overload_cast<string,int>(&System::operator()),"str"_a,"fr"_a=0, py::keep_alive<0,1>())
+        .def("select", py::overload_cast<int,int>(&System::operator()), py::keep_alive<0,1>())
+        .def("select", py::overload_cast<const std::vector<int>&>(&System::operator()), py::keep_alive<0,1>())
+        .def("select", py::overload_cast<const std::function<void(const System&,int,std::vector<int>&)>&,int>(&System::operator()),"callback"_a,"fr"_a=0, py::keep_alive<0,1>())
 
         // Input filtering
         .def("set_filter", py::overload_cast<string>(&System::set_filter))
