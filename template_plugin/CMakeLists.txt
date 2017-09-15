@@ -30,10 +30,6 @@ SET(CMAKE_INSTALL_PREFIX ${PTEROS_PATH})
 include_directories(${PTEROS_INCLUDE_PATH})
 link_directories(${PTEROS_LIB_PATH})
 
-
-# Use shared Boost libraries
-set(Boost_USE_STATIC_LIBS OFF)
-
 # Gloabal compiler and linker flags for Linux
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
@@ -84,22 +80,10 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wl,--no-as-needed")
 endif()
 
-# Find OpenMP if needed
-if(WITH_OPENMP)
-    message("Looking for OpenMP...")
-    find_package(OpenMP)
-    if(OPENMP_FOUND)
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-    endif()
-endif()
-
 # Find Python
-
 message("Looking for Python...")
 find_package(PythonInterp)
 find_package(PythonLibs)
-
 if(PYTHONINTERP_FOUND AND PYTHONLIBS_FOUND)
     # Configure pybind11
     message("Configuring Pybind11...")
@@ -110,20 +94,8 @@ else()
     message("Can't find Python interpreter or libraries!")
 endif()
 
-# Find Boost
-message("Looking for Boost...")
-find_package(Boost 1.48.0 REQUIRED system date_time)
-# For boost>1.50 and on windows also add filesystem to compile normally
-if(${Boost_MINOR_VERSION} GREATER 50 AND ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    find_package(Boost 1.48.0 REQUIRED filesystem system)
-endif()
-
-# Add Boost includes and libs globally - they are needed everywhere
-include_directories(${Boost_INCLUDE_DIRS})
-link_libraries(${Boost_LIBRARIES})
-
 # Make python extension module
-pybind11_add_module(plugin ${PLUGIN_FILES} )
+pybind11_add_module(plugin ${PLUGIN_FILES})
 
 target_link_libraries(plugin PRIVATE pteros pteros_analysis)
 
