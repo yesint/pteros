@@ -1,0 +1,1664 @@
+namespace pteros {
+/**
+\page manual User manual
+
+\warning THIS MANUAL IS NOT COMPLETE! WORK IN PROGRESS.
+
+- \subpage basic
+- \subpage core
+- \subpage analysis
+- \subpage tools
+
+\page basic Basic principles
+
+Pteros is developed according to the following principles
+- API should be simple and intuitive to use
+- Low-level detailes should never be exposed to the user
+- Performance should never be compromised
+- C++ and Python APIs should be the same except for the language-specific features
+
+Pteros is C++ library with Python bindings. This means that the Python part is only a wrapper over C++ backend. All new features are implemented in C++ and than exposed to Python.
+
+\section structure Library structure
+\subsection include Include files
+
+\page core Core functionality
+
+\tableofcontents
+
+\section basic_classes Basic classes
+\subsection atoms Atom
+Pteros treats all particles as atoms. There is no destinction between real atoms and various dummy particles (virtual sites, shell particles, etc.).
+Each atom in Pteros has the following attributes:
+
+Property    |   Data type   |   Description |   Comment |
+--------    |   ----------- |   ----------- |   ------- |
+name        |   string      |   %Atom name   |           |
+resid       |   integer     |   Residue id  |   Unique within single protein or nucleic acid chain. May start at any value defined in the structure file for each chain. |
+resindex    |   integer     |   Residue index | Unique within the whole system. Chain boundaries are ignored. Starts at 0. Assigned automatically. |
+resname     |   string      |   Residue name |          |
+chain       |   char        |   Chain identifier | Single character. If no chain information is present defaults to single space.  |
+tag         |   string      |   Arbitrary textual tag |   Defaults to empty string |
+mass        |   float       |   Atomic mass |   In atomic units. If not given explicitly in the structure file guessed from the atom name. Defaults to 1.0. |
+charge      |   float       |   Atomic charge | Electron charge units. Defaults to 0.0. Usually read from topology files. |
+beta        |   float       |   PDB B-factor  | Defaults to 0. |
+occupancy   |   float       | PDB occupancy facor | Defaults to 0. |
+type        |   integer     | Numerical index of atom type |    Defaults to -1, only makes sense in MD topologies.|
+type_name   |   string      | Name of atom type | Defaults to empty string. |
+
+\note Coordinates of atoms are stored separately in \ref frame "frames".
+
+Atoms are represented by the objects of Atom class.
+
+\subsection system System
+The system is a container for atoms, coordinate frames and associated force field parameters. The system may contain many coordinate frames which represent different states of the system (MD time steps or NMR structures for example). System is usually read from one or more structure, trajectory or topology files. Systems are represented by the System class.
+
+\note The system is \em not a representation of particular data file! Although attributes of atoms are similar to the fields of PDB files the system is much more general concept. The system could be constructed from a single file (such as PDB), from several files (such as PDB+XTC) or could be built from scratch programmatically by adding individual atoms and frames.
+
+\subsection frame Frame
+The frame is representation of the instanteneous state of the system. It contains coordinates of all atoms, time stamp and the periodic box (if the periodic boundary conditions are used). Represented by the Frame class.
+
+\subsection selection Selection
+Selection is a subset of atoms from particular system. Selection <i>do not contain any data</i> but just points to existing atoms in the system. Selection should be considered as a "handle" to certain group of atoms which allows to query their properties and to manipulate their attributes and coordinates in various ways.
+
+
+
+
+\section load Loading molecular system
+
+\subsection formats Supported file formats
+
+Currently the following file formats are supported:
+- Structure files
+    + PDB
+    + GRO
+    + MOL2
+- Trajectories
+    + XTC
+    + TRR
+    + TNG
+    \note TNG files also contain structure information.
+    + DCD
+- Topology
+    + PTTOP
+    \note Read only. Produced from Gromacs TPR files by the `tpr2pteros.py` script.
+
+\subsection types_of_info What is loaded from data files?
+Molecular data formats contain different information about the system. In Pteros all information stored in the data files is classified into \em atoms, \em coordinates, \em trajectory and \em topology. Type of particular piece of information is determined by Mol_file_content enum value MFC_* where MFC is abbreviation for "Molecular File Content".
+\par Atoms (MFC_ATOMS)
+Information about atoms in the system (name, residue name, chain and other attributes) but without coordinates.
+\par Coordinates (MFC_COORD)
+Single set of coordinates of atoms (single frame) and the periodic box if periodicity is present.
+\par Trajectory (MFC_TRAJ)
+The number of coordinate frames each containing a set of coordinates, time stamp and the periodic box if periodicity is present.
+\par Topology (MFC_TOP)
+MD topology containing connectivity, atom types, precise masses, partial charges, non-bond Van-der-Waals parameters, etc.
+
+Particular file format may contain different information. For example PDB files contain atoms and coordinates. XTC files contain the trajectory but no atoms. TNG files contain atoms and trajectory at the same time, etc. There are two ways of loading data files - simple and advanced.
+
+Loading is performed by either constructor of the System class or by System::load() method. In both cases the same behavior and parameters are used.
+
+\subsection simple_load Simple loading
+
+When the data file is loaded in Pteros using simple mode the information being loaded depend on the file type and on the current content of the System where the data go. The most "logical" way of adding new data to the system is chosen but there is no fine control about what is read and how. Here is an example:
+
+\col1
+// (1) Initial loading in constructor
+System s("somefile.pdb");
+
+// (2) Adding structure file
+s.load("other-file.pdb");
+
+// (3) Adding trajectory
+s.load("trajectory.xtc",3,20);
+
+// (4) Adding topology
+s.load("topology.pttop");
+\col2
+# Initial loading in constructor
+s = System('somefile.pdb')
+
+# (2) Adding structure file
+s.load('other-file.pdb')
+
+# (3) Adding trajectory
+s.load('trajectory.xtc',3,20)
+
+# (4) Adding topology
+s.load('topology.pttop')
+\endcol
+
+-# In this example we first construct the System from the PDB file "somefile.pdb". File type is \em always determined by extension. Since on step (1) the system is empty all possible information is read from this file, which means that atoms and coordinates would be read.
+
+-# On step (2) we are adding another PDB file "other-file.pdb". Now the system already contains atoms and one coordinate frame, thus Pteros deduces that we just want to \e add another coordinate frame. Thus only coordinates are read from "other-file.pdb". If the number of atoms in this file is the same as in the System another frame is added. No check is performed if "other-file.pdb" actually contains the same set of atoms as the system - everything with matching number of atoms is accepted.
+
+-# On step (3) we are adding an XTC trajectory. The logic is the same as on step (2) - the number of new coordinate frames are added to the System. Additional arguments instruct Pteros to read frames from 3 to 20 inclusive.
+
+-# Finally on step (4) we are adding topology file. Since the System already contain atoms only additional topological information (like atom types, charges, connectivity, etc.) is read.
+
+Since different file types contain different information the logic of adding information to the System becomes rather complicated in non-trivial situations. The following table summarises what is read from different files in different cases.
+
+<b>Initial loading (in constructor or to the empty System)</b>
+File type   |   What is loaded? |   Comment
+----------  |   --------------- |   -------
+PDB, GRO, MOL2    |   Atoms and the single frame |   MOL2 does not contain periodic box! |
+PTTOP   |   Atoms, the single frame, full topology    | PTTOP file in Pteros are not "pure topology" - they also contain the set of starting coordinates.  |
+TNG     |   Atoms and multiple frames   |   |
+XTC, TRR, DCD   |   Fails and raises exception | In Pteros reading trajectory into an empty system is not allowed (in contrast to VMD for example). |
+
+<b>Adding data to the System which is not empty (by System::load())</b>
+File type   |   What is loaded? |   Comment
+----------  |   --------------- |   -------
+PDB, GRO, MOL2    |   Single frame |  New frame added. The only check is matching number of atoms.  |
+PTTOP   |   Topology    | Adds atom types and charges, updates masses, adds other topology information. No coordinates are read, no frames added.  |
+TNG, XTC, TRR, DCD   |   Multiple frames | Adds number of new frames. The only check is matching number of atoms. |
+
+\subsection advanced_load Advanced loading with file handlers
+
+\warning Advanced mode should only be used in specific cases and only if you are absolutely sure that you need fine control. The simple mode is the most convenient in most practical scenarios.
+
+\warning Advanced mode and file handlers are \e not available from Python.
+
+In advanced mode the user specifies explicitly what to read and what to store in the system.
+
+\code
+#include "pteros/core/mol_file.h"
+...
+auto pdb_handler = Mol_file::open("some-pdb-file.pdb",'r');
+auto gro_handler = Mol_file::open("some-gro-file.gro",'r');
+auto xtc_handler = Mol_file::open("some-xtc-file.xtc",'r');
+
+System s;
+s.load(pdb_handler, MFC_ATOMS); // (1)
+s.load(gro_handler, MFC_COORD); // (2)
+// Load frames until the end of trajectory one by one
+bool ok;
+do {
+    ok = s.load(xtc_handler, MFC_TRAJ); // (3)
+} while(ok);
+\endcode
+
+In this example we first create three file handlers for corresponding PDB, GRO and XTC files. File handlers are created by static Mol_file::open() method. Handlers could be created for reading (mode 'r') and for writing (mode 'w'). In our case we open them for reading. After that we create an empty system and load data from handlers.
+
+-# On step (1) we read only atoms (MFC_ATOMS) from PDB file. No coordinates are read.
+-# On step (2) we add coordinates (MFC_COORD) from GRO file.
+-# On step (3) we read frames from XTC file (MFC_TRAJ) one by one in the loop up to the end of trajectory. The load() method returns false on failure to read next frame, which allows to track the end of trajectory.
+
+\warning Behavior of MFC_TRAJ for file handlers is different from what is used in simple mode! Each call of `System::load(handler)` reads the \e single frame. This behavior is intentional and allows reading frames one by one.
+\note If one will use "MFC_ATOMS | MFC_TRAJ" or "MFC_COORD | MFC_TRAJ" on steps (1) and (2) then MFC_TRAJ will be ignored. This is again intentional to separate frame-by-frame trajectory reading from reading other information.
+\warning If MFC_ATOMS is specified the system is cleared before reading even if it already contained some atoms!
+
+\subsection load_callback Loading with callback
+
+Both simple and advanced forms of System::load() support optional user-defined callback function as last parameter. This function takes two argiments: the pointer to parent system and the index of current frame. If the callback returns true the loading of trajctory will continue to the next frame. If it returns false the loading will stop.
+Such callbacks are useful for organizing simple frame by frame processing of trajectories.
+
+\note Trajectory_processor class and analysis plugins provide much more powerful way of trajectory processing. Callbacks are the most useful as "quick and dirty" way of doing this in simple scripts.
+
+\col1
+bool callback(System* sys, int frame){
+    cout << "Called for frame " << frame << endl;
+}
+
+...
+
+System sys('some-structure.pdb');
+sys.load('some-traj.xtc',0,-1,0,&callback)
+\col2
+
+def callback(sys,frame):
+    print 'Called for frame ',frame
+
+...
+
+sys = System('some-structure.pdb')
+sys.load('some-traj.xtc', on_frame=callback)
+\endcol
+
+\note When using callback the frames are still accumulated by the system. If you want to store only one frame in the memory use this trick:
+\col1
+bool callback(System* sys, int frame){
+    // Do the job in callback
+    ...
+    // Delete current frame.
+    sys->frame_delete(frame,frame);
+}
+\col2
+def callback(sys,frame):
+    # Do the job in callback
+    ...
+    # Delete current frame.
+    sys.frame_delete(frame,frame)
+\endcol
+Please note that this is done by default by analysis plugins.
+
+\subsection load_filters Using input filters
+
+Sometimes it is not necessary to read all atoms from the data file. For example if the system contains protein in water quite often only the protein is of interest. However, water may constitute 75% of the whole number of atoms and storing them in the System is redundant. This is especially important if many frames have to be kept in memory. In this case filtering the input may save huge amount of memory.
+
+Pteros has the mechanism of input filtering which helps in such situations. The filter is a special kind of Selection which is set to empty system \e before any loading occures. All subsequent calls to System::load() will be filtered and only selected atoms will be kept in the system.
+
+Filter is set by System::set_filter() method. It takes the same \ref sel_args "arguments" as ordinary selections with two exceptions: filters can't be coordinate-dependent (they will throw an error during loading) and can't be set by callbacs.
+
+\note Filters do not make loading faster. In fact it becomes slower
+(up to 2 times for very large frames) and consumes
+twise as much memory \e during loading. However, when loading finishes the system will
+contain only selected atoms. If many frames are stored overall
+memory consumption will be much smaller. <i>Do not use filters if loading speed is critical!</i>
+
+Filter could only be set to empty system (set_filter() throws an error otherwise),
+thus the correct way of using them is the following:
+\col1
+// Create empty system
+System sys;
+// Set filter
+sys.set_filter("name CA");
+// All calls to load will use filter now
+sys.load("some_protein.pdb");
+sys.load("trajectory.xtc");
+\col2
+# Create empty system
+sys = System()
+# Set filter
+sys.set_filter('name CA')
+# All calls to load will use filter now
+sys.load('some_protein.pdb')
+sys.load('trajectory.xtc')
+\endcol
+
+\warning Filters could not be used for topologies! load() throws an error if
+attempting to load topology with filter.
+
+\section making_selections Selecting atoms
+
+Selections are the most important objects in Pteros which allow manipulating groups of atoms in the System. It is important to understand that selections do not contain any data but merely point to the set of atoms in the System.
+
+\subsection sel_methods Ways of creating selections
+
+In order to select atoms one need to create Selection class in one of the following ways:
+
+-# <b> Direct construction of Selection object</b>
+\col1
+Selection sel(system, <arguments...>);
+\col2
+sel = Selection(system, <arguments...>)
+\endcol
+
+-# <b> Construction by System::select() method</b>
+\col1
+Selection sel = system.select(<arguments...>);
+// Or using type inference:
+auto sel = system.select(<arguments...>);
+\col2
+sel = system.select(<arguments...>)
+\endcol
+
+-# <b> Construction by System::operator()</b> This is exactly the same as the previous one but less verbose.
+\col1
+Selection sel = system(<arguments...>);
+// Or using type inference:
+auto sel = system(<arguments...>);
+\col2
+sel = system(<arguments...>)
+\endcol
+
+\subsection sel_args Arguments of selection methods
+
+The arguments passed to selection could be the following (only method 2 is used for illustration but any method takes the same variants of arguments):
+
+-# <b>Textual selections (using \ref sel_lang "selection language")</b>
+\col1
+// Defaults to 1st frame in the System
+auto sel = system.select("resname ALA GLY and within 3.0 pbc of resid 23-34 45");
+// Explicitly points to frame #3
+auto sel = system.select("resname ALA GLY and within 3.0 pbc of resid 23-34 45", 3);
+\col2
+# Defaults to 1st frame in the System
+sel = system.select('resname ALA GLY and within 3.0 pbc of resid 23-34 45')
+# Explicitly points to frame #3
+sel = system.select('resname ALA GLY and within 3.0 pbc of resid 23-34 45', 3)
+\endcol
+
+-# <b>Pair of atom indexes</b> Selects atoms with indexes in the given range (inclusive).
+\col1
+int ind1 = 10;
+int ind2 = 20;
+sel = system.select(ind1, ind2);
+\col2
+ind1 = 10
+ind2 = 20
+sel = system.select(ind1, ind2)
+\endcol
+
+-# <b>Vector of atom indexes</b>
+\col1
+vector<int> ind = {1,2,3,56,67,100};
+sel = system.select(ind);
+\col2
+ind = [1,2,3,56,67,100]
+sel = system.select(ind)
+\endcol
+
+-# <b>Pair of iterators to integer vector</b>
+\warning This is only available in C++.
+
+\code
+vector<int> ind = {5,10,34,1,4,15};
+Selection sel21(sys,ind.begin(),ind.end());
+\endcode
+
+-# <b>Custom callback function</b>
+This method allows implementing arbitrary complex logic of selecting atoms by delegating the work to user-provided callback function. The callback function has the following signature:
+\col1
+void selection_callback(const System& sys, int fr, std::vector<int>& ind);
+\col2
+def selection_callback(sys, fr, ind)
+\endcol
+First argument is the parent System, second - is the target frame, and the third is integer vector, which have to be filled with indexes of selected atoms.
+The following example shows selecting atoms with x>5. On practice this is easier to implement using textual selections but callback allows implementing arbitrarily complex logic.
+\col1
+// Callback function
+void sel_func(const System& sys,int fr,std::vector<int>& ind){
+    // Just for example we are selecting all atoms with x>5
+    ind.clear();
+    for(int i=0;i<sys.num_atoms();++i)
+        if(sys.XYZ(i,fr)(0)>5.0) ind.push_back(i);
+}
+
+...
+
+System s("struct.pdb");
+// Callback function is called to fill selection
+Selection sel(s, &sel_func);
+// The same but for specific frame #3
+Selection sel(s, &sel_func, 3);
+\col2
+# Callback function
+def sel_func(sys,fr,ind):
+    # Just for example we are selecting all atoms with x>5
+    ind = []
+    for i in xrange(sys.num_atoms()):
+        if sys.getXYZ(i,fr)[0]>5.0:
+            ind.append(i)
+
+...
+
+s = System('struct.pdb')
+# Callback function is called to fill selection
+sel = s.select(sel_func)
+# The same but for specific frame #3
+sel = s.select(sel_func, 3)
+\endcol
+
+\subsection sel_modify Modifying selections
+
+Existing selection objects could be modified in two ways: by changing parent System and by selecting another set of atoms. Parent selection is changed by Selection::set_system() method:
+
+\col1
+System sys1("structure1.pdb");
+System sys2("structure2.pdb");
+// Create empty selection pointing to sys1
+Selection sel(sys1);
+// Make it point to sys2
+sel.set_system(sys2);
+\col2
+sys1 = System('structure1.pdb')
+sys2 = System('structure2.pdb')
+# Create empty selection pointing to sys1
+sel = Selection(sys1)
+# Make it point to sys2
+sel.set_system(sys2)
+\endcol
+
+\warning Selection::set_system() always clears content of selection and leaves it empty even if it contained some data!
+
+In order to modify content of seelction (the set of selected atoms) the number of Selection::modify() methods is present. They accept the same arguments as corresponding constructors of Selection class. Each method also have the variant where new System is passed as the first argument:
+
+-# <b>Textual selections</b>
+\col1
+// Changes selected atoms
+sel.modify("resname ALA GLY");
+// The same but also assigns to other system
+sel.modify(other_system, "resname ALA GLY");
+// The same but also changes the target frame to frame 3
+sel.modify(other_system, "resname ALA GLY", 3);
+\col2
+# Changes selected atoms
+sel.modify('resname ALA GLY')
+# The same but also assigns to other system
+sel.modify(other_system, 'resname ALA GLY')
+# The same but also changes the target frame to frame 3
+sel.modify(other_system, 'resname ALA GLY', 3)
+\endcol
+
+-# <b>Pair of atom indexes</b>
+\col1
+int ind1 = 10;
+int ind2 = 20;
+// Changes selected atoms
+sel.modify(ind1, ind2);
+// The same but also assigns to other system
+sel.modify(other_system, ind1, ind2);
+\col2
+ind1 = 10
+ind2 = 20
+# Changes selected atoms
+sel.modify(ind1, ind2)
+# The same but also assigns to other system
+sel.modify(other_system, ind1, ind2)
+\endcol
+
+-# <b>Vector of atom indexes</b>
+\col1
+vector<int> ind = {1,2,3,56,67,100};
+// Changes selected atoms
+sel.modify(ind);
+// The same but also assigns to other system
+sel.modify(other_system, ind);
+\col2
+ind = [1,2,3,56,67,100]
+# Changes selected atoms
+sel.modify(ind)
+# The same but also assigns to other system
+sel.modify(other_system, ind)
+\endcol
+
+-# <b>Pair of iterators to integer vector</b>
+\warning This is only available in C++.
+
+\code
+vector<int> ind = {5,10,34,1,4,15};
+// Changes selected atoms
+sel.modify(ind.begin(),ind.end());
+// The same but also assigns to other system
+sel.modify(other_system, ind.begin(),ind.end());
+\endcode
+
+-# <b>Custom callback function</b>
+\col1
+// Callback function
+void sel_func(const System& sys,int fr,std::vector<int>& ind){
+    // Just for example we are selecting all atoms with x>5
+    ind.clear();
+    for(int i=0;i<sys.num_atoms();++i)
+        if(sys.XYZ(i,fr)(0)>5.0) ind.push_back(i);
+}
+
+...
+
+
+// Changes selected atoms
+sel.modify(sel_func);
+// The same but also assigns to other system
+sel.modify(other_system, sel_func);
+// The same but also changes the target frame to frame 3
+sel.modify(other_system, sel_func, 3);
+\col2
+# Callback function
+def sel_func(sys,fr,ind):
+    # Just for example we are selecting all atoms with x>5
+    ind = []
+    for i in xrange(sys.num_atoms()):
+        if sys.getXYZ(i,fr)[0]>5.0:
+            ind.append(i)
+
+...
+
+# Changes selected atoms
+sel.modify(sel_func)
+# The same but also assigns to other system
+sel.modify(other_system, sel_func)
+# The same but also changes the target frame to frame 3
+sel.modify(other_system, sel_func, 3)
+\endcol
+
+\subsection all_sel Selecting everything
+\col1
+// Using System::select_all() (the most efficient method)
+Selection all = system.select_all();
+
+// Using operator "()" with no arguments (the same as above)
+all = system();
+
+// Using textual selection (less efficient)
+all = Selection("all");
+\col2
+# Using System.select_all() (the most efficient method)
+all = system.select_all()
+
+# Using operator "()" with no arguments (the same as above)
+all = system()
+
+# Using textual selection (less efficient)
+all = Selection('all')
+\endcol
+
+
+\subsection sel_lang Selection language
+
+%Selection language in Pteros is similar but not identical to one of [VMD](http://www.ks.uiuc.edu/Research/vmd/vmd-1.3/ug/node132.html). Simple selections could be copy-pasted from VMD to Pteros and vice versa, while more complex selections would be different. Particularly Pteros provides much more advanced selections which include periodic boundary conditions, which are not possible in VMD.
+
+The basic elements of selection language are the following:
+
+\subsubsection select_all Selecting everything
+The keyword "all" selects all atoms in the system.
+
+\subsubsection keyword_sel Keyword selections
+Consist of the keyword, which represent property of the atom, followed by one or more values of this property. The values are implicitly combined by logical OR. Depending on the keyword the values are either strings, integers or unsigned integers.
+
+For integers in addition to individual values the ranges are allowed in two forms: `1 to 10` and `1-10`. Both forms are equivalent.
+
+For strings regular expressions could be given in single ('') or double ("") quotes. The systnax of the regular expressions is the same [as used in C++11](http://www.cplusplus.com/reference/regex/ECMAScript/).
+
+Keyword | Type of values | Example
+------- | -------------- | -------
+name    | string    | name CA CB "C.*"
+resname | string    | resname ALA GLU '.N.*'
+resid   | int   | resid 1 2 3 4-10 20 to 40
+resindex | unsigned int | resindex 1 2 3 5 to 100 200-211
+chain | single character | chain A B C
+tag | string | tag TAG1 TAG2
+index | unsigned int | index 12 13 45 2-7
+
+
+\subsubsection num_prop Numeric properties
+Consist of a lone keyword, which represent single numeric property of the atom. Numeric properties could be either integer or floats. They could be combined to \ref num_expr "numerical expressions" and compared by \ref num_comp "numeric comparisons".
+
+Keyword | Property
+-----   | -----
+x   | X coordinate of the atom
+y   | Y coordinate of the atom
+z   | Z coordinate of the atom
+beta | B-factor of the atom
+occupancy | Value of the PDB occupancy field for the atom
+index | Index of the atom
+resindex | Residue index of the atom
+resid | Resid of the atom
+distance | The distance of atom from given point, line or plane. See \ref dist_sel "description of distance selections" for details.
+
+\note Words \e index, \e resindex and \e resid could be either keywords followed by multiple values or numeric properties depending on the context:
+%Selection string | Interpretation
+---- | ----
+"resid 1 2 3 4-10" | interpreted as \ref keyword_sel "keyword selection"
+"resid > 25" | interpreted as \ref num_prop "numeric property" in \ref num_expr "numerical expression".
+
+\subsubsection num_expr Numeric expressions
+Numerical expressions consist of \ref num_prop "numerical properties", integer of float point literals and common arithmetic operators "+", "-", "*", "/". Raising to any integer or fractional power is possible using either "^" or "**" operators. Unary minus could be used to change the sign of expression. Operator precedence could be changed by parentheses. Numerical expressions are only meaningful as operands of \ref num_comp "numeric comparisons". Single number or single numerical property is also valid numerical expression.
+
+\subsubsection num_comp Numeric comparisons
+
+Numerical expressions are compared to each other by the common operators:
+
+Operator | Meaning | Example
+-------- | ------- | -------
+">" | Greater than | x > 3
+"<" | Lower than | y < 5.6
+"=" | Equal | resid =  45
+"<>" | Not equal | resid <> 14
+">=" | Greater or equal | index >= 15
+"<=" | Lower or equal | resindex <= 100
+
+The comparisons could be chained to select the ranges:
+
+%Selection text | Meaning
+-------------- | -------
+3 < x < 10  | Open range
+10 > x >= 3 | Semi-closed range
+100 <= resid <= 200 | Closed range
+
+\subsubsection log_expr Logical expressions
+
+Common logical operators "or", "and" and "not" are supported and could be used to construct arbitrary logical expressions:
+~~~~~
+resid 1-10 or x>15
+name CA CB and resname ALA
+not (name OW and resname SOL and resid > 34)
+~~~~~
+
+\subsubsection within_sel Within selections
+
+Within selections allow selecting atoms which are within given cutoff distance around other selection, called "central selection". The syntax of within selections in Pteros is the following:
+~~~~
+within <distance> [pbc|nopbc|periodic|noperiodic] [self|noself] of <central selection>
+~~~~
+Distance is in nm.
+
+Optional keywords "pbc" or "periodic" mean that selection takes into account periodic boundary conditions. Keywords "nopbc" or "noperiodic" means that periodicity is switched off. By default periodicity is off.
+
+The optional keyword "self" means that central selection itself is also included into resulting selection. If "noself" is specified the central selection is excluded from result. The default is "self".
+
+Keywords "pbc|nopbc" and "self|noself" can go in any order.
+
+Here are some examples:
+
+%Selection text | What is selected
+-------------- | ----------------
+within 3.0 of protein | All atoms within 3.0 nm from any protein atom including the protein itself. Not periodic.
+within 3.0 pbc of protein | Same as above but periodic.
+within 3.0 pbc noself of protein | Same as above but the protein itself is not included.
+
+\subsubsection by_res By residue selections
+
+The "by residue <central selection>" operator is used to select whole residues, which are referenced by the central selection. This means that if at least one atom of particular residue is present in central selection then the whole residue would be selected.
+
+\warning The "by residue" operation has lower precedence than logical operators thus its operand have to be put into the parentheses if it contains logical operations: "by residue (name CA and resid 1 4 5)".
+
+\subsubsection dist_sel Distance selections
+
+Distance selections are unique for Pteros and allow selecting atoms by their distance from given reference point, line or plane. Their syntax is the following:
+~~~~~
+dist|distance point|vector|plane [pbc|nopbc|periodic|noperiodic] x0 y0 z0 [x1 y1 z1]
+~~~~~
+The keyword "dist" and "distance" are synonyms. If "point" is specified than three float point numbers x0, y0, z0 are expected. For "vector" and "distance" six float point numbers x0, y0, z0, x1, y1, z1 are expected.
+
+Optional keywords "pbc" or "periodic" mean that selection takes into account periodic boundary conditions. Keywords "nopbc" or "noperiodic" means that periodicity is switched off. By default periodicity is off.
+
+In the case of "dist vector" (x0,y0,z0) give the point in space and (x1,y1,z1) specify \b direction of the vector originating from this point (direction is normalized automatically). The distance from the atoms to this vector is evaluated.
+
+In the case of "dist plane" (x0,y0,z0) give the point in space and (x1,y1,z1) specify the <b>normal vector</b> of the plane originating in this point (the normal vector is normalized automatically). The distance from the atoms to this plane is evaluated.
+
+Distance keyword operates on per-atom basis and is treated as \ref num_prop "numeric property" of the atom:
+
+%Selection text | What is selected
+-------------- | ----------------
+dist point 12.4 34.3 45.1 < 3.0 | Atoms within 3.0 nm from the point "12.4 34.3 45.1"
+dist point pbc 12.4 34.3 45.1 < 3.0 | The same as above but periodic
+dist vector 2.1 3.3 3.5 1 0 0 < 3.0 | Atoms within the cylinder with radius 3 nm and the axis going from point "2.1 3.3 3.5" along X axis (the direction vector is "1 0 0")
+3.0 < dist plane 2.1 3.3 3.5 1 1 1 < 5.0 | Selects the slabs of atoms which are between 3 and 5 nm from the plane which goes through the point "2.1 3.3 3.5" and has the normal "1 1 1".
+
+\subsection text_based_sel Text-based and coordinate-depensent selections
+Selections created by means of selection string (\e text-based selections) are a bit special in Pteros. The set of selected atoms may depends on atomic coordinates (for example for selection `x>15` or `within 3.0 of y<34`). These cases are recognized automatically and such \e coordinate-dependent selection are treated in special manner.
+
+Coordinate-dependent selections have to be updated if atomic coordinates change. If the coordinates of atoms were changed manually without changing the current frame this have to be done by hand using Selection::apply() method. If selection is not coordinate-dependent it does nothing.
+
+If the user calls Selection::set_frame() to change the frame selection points to then the coordinate-dependent selection calls apply() automatically to be consistent with new atomic coordinates.
+
+It is also possible to re-parse selection text completely by calling Selection::update(). This is necessary when the number of atoms (not only their coordinate) change. For non-textual selections it does nothing.
+
+In most cases the feature of auto-update is very handy and saves a lot of time allowing not to bother about consistency of the coordinate-dependent selections with the current frame. However in certain cases such behavior is not desirable. For example one selects all water molecules around the protein in starting configuration using "resname SOL and within 3.0 of protein" and want to see how they diffuse in the course of MD simulation. Each update of the coordinate frame made by Selection::set_frame() will select new water shell around protein, which is not what we want. In such case one can call Selection::flatten() method. It "flattens" selection to the plain set of indexes without any auto-update magic.
+\warning Flattening is not reversible! New text-based selection have to be created to turn auto-update on again.
+
+Text-based status of selection is also lost immediately after any operation which modifies it externally (i.e. not by means of parsing selection string) such as using append(), remove() or invert(), using any logical operators with selections, etc. Current status of selection could be queries by Selection::text_based() and Selection::coord_dependent() methods.
+
+\subsection subsel Sub-selections
+
+Sub-selections allow selecting atoms \e inside existing selection
+(narrowing or refining existing selection in other terms).
+Sub-selections could be very useful in the following situation.
+Suppose that we need to create separate selections for N,C,CA and CB atoms
+of particular protein residue. With "normal" selections the following code could be used:
+\code
+Selection sel_N(sys,"protein and resid 1 and name N");
+Selection sel_C(sys,"protein and resid 1 and name C");
+Selection sel_CA(sys,"protein and resid 1 and name CA");
+Selection sel_CB(sys,"protein and resid 1 and name CB");
+\endcode
+The problem with this code is that we are looping over \e all atoms in the system four times,
+ones in each selection. This is very inefficient since we only need to find our
+residue with "protein and resid 1" (one loop over all atoms) and then we need to search
+\e inside this residue four times (looping over ~10 atoms only). This problem is not
+apparent for small systems but becomes very painful for the systems with millions of atoms.
+Subselections solve this problem:
+\code
+Selection residue1(sys,"protein and resid 1");
+auto sel_N = residue1.select("name N");
+auto sel_C = residue1.select("name C");
+auto sel_CA = residue1.select("name CA");
+auto sel_CB = residue1.select("name CB");
+\endcode
+
+Subselections inherit the system and frame from the parent. The search in sub-selections
+is performed over selected atoms of the parent only (the only exception from this rule are
+within selections which involve seacrh over all atoms by design).
+
+Subselections can also accept the pair of \e local indexes or the vector of \e local indexes:
+\code
+Selection residue1(sys,"protein and resid 1");
+// Select range of atoms 1-4 inclusive in parent selection
+auto sel_1_4 = residue1.select(1,4);
+// Select atoms 1,4,7 in parent selection
+vector<int> ind = {1,4,7};
+auto sel_1_4_7 = residue1.select(ind);
+\endcode
+
+\note This behavior of sub-selections is different from normal selections. Sub-selections are constructed by \e local indexes of parent selection, while normal selections - by \e global indexes in the system. There are no constructors for sub-selections taking iterators or callback functions.
+
+Once sub-selection is created it is not distinguishable from the gnormal one. Particularly it could be modifyed as any other selection, reassigned, etc. Sub-selections are only special by the way of their creation.
+
+\note Subselections in Python follow exactly the same syntax as in C++.
+
+\subsection sel_comb Combining selections
+
+Selection objects could be combined by logical operations to create new selections:
+
+<ul>
+<li> <b>Logical AND</b>
+\col1
+auto new_sel = sel1 & sel2;
+\col2
+new_sel = sel1 and sel2
+\endcol
+
+<li> <b>Logical OR</b>
+\col1
+auto new_sel = sel1 | sel2;
+\col2
+new_sel = sel1 or sel2
+\endcol
+
+<li> <b>Logical NOT</b>
+\col1
+auto new_sel = ~sel1;
+\col2
+new_sel = not sel2
+\endcol
+
+<li> <b>Removing one selection from the other</b>
+\col1
+auto new_sel = sel1 - sel2;
+\col2
+new_sel = sel2 - sel1
+\endcol
+Operator "-" creates new selection, by removing all atoms of sel2 from sel1.
+Parent selections are not modified.
+\warning This operator is \em not commutative!
+</ul>
+
+It is also possible to perform logical operation <i>in place</i> without creating new selections:
+In-place operation | Method
+------------------ | ------
+Appending one selection to the other | Selection::append()
+Removing atoms from one selection from the other | Selection::remove()
+Invert selection | Selection::invert()
+
+\note append() and remove() methods also work with individual atom indexes.
+
+\section access Accessing properties of selected atoms
+
+If selection contains \e N atoms then they could be accessed by relative indexes from 0 to N-1 inclusive. Relative indexes are \e NOT the same as atomic indexes. Atom with global index 150 may have relative index 0 in one selection and 23 in the other. Relative indexes are very convenient in accessing properties of selected atoms. For this Selection class contains the set of <i>accessor methods</i>.
+
+\warning Accessing atom properties could be rather confusing due to the differences in C++ and Python. These differences are dictated by very different architectures of C++ and Python languages.
+
+\subsection cpp_access Accessor methods in C++
+Accessor methos in C++ have the same names as the properties of atoms with the first letter capitalized. For example `sel.Index(i)` returns global index of atom with relative index i, `sel.Name(i)` returns name of this atom, `sel.Resname(i)` returns its residue name, etc.
+
+Accessors `X(i)`, `Y(i)` and `Z(i)` give access to individual atomic coordinates of the current frame (the frame pointed by selection). The method `XYZ(i)` returns the vector of all three coordinates. These accessors also accept frame index as optional second parameter: `Z(i,fr)`, `XYZ(i,fr)`, etc.
+
+There are also accessors for periodic box associated with current frame pointed by selection (`Box()`) and the time stamp of the pointed frame (`Time()`). These methods are \e not available for arbitrary frames.
+
+There is also special accessor `VDW(i)` which returns the van der Waals radius of <i>i</i>-th atom.
+
+In C++ all of them are accessors inlined l-value functions. This means that they do not add any overhead in accessing atom properties and could be assinged to:
+
+\code
+Selection sel(system,"name CA");
+// Read access
+cout << sel.Name(0) << endl;
+// Write access
+sel.Name(0) = "CB";
+
+// Accessing coordinates of the current frame
+cout << sel.X(0) << endl;
+sel.XYZ(0) = sel.XYZ(0) + sel.XYZ(0);
+
+// Accessing coordinates of other frames
+cout << sel.X(0,frame) << endl;
+sel.XYZ(0,frame) = sel.XYZ(1,frame1) + sel.XYZ(2,frame2);
+\endcode
+
+\subsection py_access Accessor methods in Python
+
+Due to language limitations in Python each accessor have to be prepended by "get" or "set" prefixes for read and write access respectively, which makes them rather clumsy and difficult to use. That is why accessors are not ported to Python and recommended way of accessing atom properties in using indexing (see below).
+
+\subsection indexing Indexing operator of Selection object
+
+Selections support indexing by "[]" operator. It returns special Atom_proxy object, which has the same set of atom property accessors as Selection itslef.
+
+In C++ the only difference is that these accessors do not take relative atomic index since Atom_proxy stores it internally.
+
+\code
+// Note that accessors do not take atom index as first argument!
+
+Selection sel(system,"name CA");
+// Read access
+cout << sel[0].Name() << endl;
+// Write access
+sel[0].Name() = "CB";
+
+// Accessing coordinates of the current frame
+cout << sel[0].X() << endl;
+sel[0].XYZ() = sel[1].XYZ() + sel[2].XYZ();
+
+// Accessing coordinates of other frame
+cout << sel[0].X(frame) << endl;
+sel[0].XYZ(frame) = sel[1].XYZ(frame1) + sel[2].XYZ(frame2);
+\endcode
+
+In Python Atom_proxy objects benefit from the Python properties, which makes the usage of indexing much easier than the direct usage of accessors:
+
+\code{.py}
+# Recommended way in Python
+
+sel = Selection(system, 'name CA')
+# Read access
+print sel[0].name
+# Write access
+sel[0].name = "CB"
+# Note that 'name' is a property, not a method!
+# It is NOT capitalized and no () is needed!
+
+# This also works for coordinates of the CURRENT frame:
+print sel[0].x, sel[0].xyz
+sel[0].xyz = sel[1].xyz + sel[2].xyz
+
+# BUT if you want to access coordinates of OTHER frame
+# you HAVE to use ordinary accessors:
+print sel.getXYZ(0, other_frame)
+sel.setXYZ(0, frame, sel.getXYZ(1,frame1) + sel.getXYZ(2,frame2));
+\endcode
+
+\warning Creation of proxy objects makes access by indexing \e slower than direct usage of accessor methods of Selection. The difference is neglegible in most situations but do not use it in performance-critical parts of the code.
+
+\subsection sel_iter Iterating over selected atoms
+
+There are two ways to iterate over selected atoms - using <i>relative selection indexes</i> and using <i>iterators</i>.
+
+The first variant uses either accessor methods or indexing operator to get atom properties:
+\col1
+Selection sel(system, "name CA CB");
+
+// Usage of accessor methods for each atom property
+for(int i=0; i< sel.size(); ++i){
+    cout << sel.Name(i) << " " << sel.Resname(i) << endl;
+}
+
+// Usage of indexing operator (slower than property accessors and not recommended in C++!)
+for(int i=0; i< sel.size(); ++i){
+    cout << sel[i].name() << " " << sel[i].resname() << endl;
+}
+\col2
+sel = Selection(system, 'name CA CB')
+
+# Usage of accessor methods for each atom property
+# (clumsy syntax in Python, not reccomended despite being a bit faster)
+for i in xrange(sel.size()):
+    print sel.getName(i), sel.getResname(i)
+
+# Usage of indexing operator (still not the best way in Python, see below)
+for i in xrange(sel.size()):
+    print sel[i].name, sel[i].resname
+\endcol
+
+The second way is using built-in iterators of Selection objects:
+\col1
+Selection sel(system, "name CA CB");
+
+// Usage of explicit iterators
+Selection::iterator it;
+for(it=sel.begin(); it!=sel.end(); it++){
+    cout << it->name() << " " << it->resname() << endl;
+}
+
+// Usage of range-based for loop in C++11 and higher
+for(auto& a: sel){
+    cout << a.name() << " " << a.resname() << endl;
+}
+\col2
+sel = Selection(system, 'name CA CB')
+
+# Recommended way in Python
+for a in sel:
+    print a.name, a.resname
+\endcol
+
+\subsection uniform_prop Getting particular property of all selected atoms
+
+There is a set of methods allowing to get particular property of all selected atoms at the same time. These methods have the names "get_<property>()" and "set_<property>()" where property is name, resname, resid, beta, x, y, z, xyz, etc. In C++ getters return either std::vector for strings and char properties or Eigen::Vector for integer and float properties. Setters accept the same vectors as corresponding getters return. It is also possible to call setterss with simgle value which will "fill" all selected atoms. In Python the lists are used for strings and chars and numpy arrays for ints and floats:
+
+\col1
+auto resids = sel.get_resid();
+resids[5] += 4;
+sel.set_resid(resids);
+
+// Set all atom names to CA
+sel.set_name("CA");
+\col2
+resids = sel.get_resid()
+resids[5] += 4
+sel.set_resid(resids)
+
+# Set all atom names to CA
+sel.set_name('CA')
+\endcol
+
+There are also methods "get_unique_<property>()" which return the vector of unique properties in selection. For example in order to get the list of all residue ids in selection:
+\col1
+sel = system.select_all();
+auto resids = sel.get_resid();
+// May return 1,1,1,1,2,2,2,2,2,3,3,3,3,4,4,4,4,...
+resids = sel.get_unique_resid();
+// Returns 1,2,3,4,5,...
+\col2
+sel = system.select_all()
+resids = sel.get_resid()
+#May return 1,1,1,1,2,2,2,2,2,3,3,3,3,4,4,4,4,...
+resids = sel.get_unique_resid()
+# Returns 1,2,3,4,5,...
+\endcol
+
+\section sys_build Building molecular systems
+
+Pteros has reach set of methods for building molecular systems. They are not oriented on particular type of molecules like proteins or nucleic acids but allow manipulating atoms and selections in general.
+
+\subsection atom_add_del Adding and deleting atoms
+
+Adding and deleting atoms in the system is rather expensive operation due to internal data organization. It is much faster to add or delete the list of several atoms at once than doing this by one atom at a time.
+
+In order to add one or more atoms use System::atoms_add() method:
+
+\col1
+vector<Atom> atoms(N);
+vector<Vector3f> coords(N);
+for(i=0;i<N;++i){
+    Atom at;
+    at.name = 'C'
+    at.resid = i;
+    atoms.push_back(at);
+    coords.push_back(Vector3f(x,y,z));
+}
+Selection added_atoms = system.atoms_add(atoms,ccords);
+\col2
+
+\endcol
+
+\subsection append_remove Appending and removing systems and selections
+\subsection distib Multiplying selections
+\subsection rearrange Rearranging atoms
+
+There is a common problem of rearranging the atoms in the system in particular order, which is especially important for preparing MD topologies. In Pteros this is easily acomplished with System::rearrange() method. It takes a vector of selections or the vector of selection strings and arranges the atoms in the order of these selections. The atoms, which do not belong to any of provided selections are placed at the end in their initial order.
+\warning Selections should not overlap (an exception is thrown if they are). Empty selections are not allowed.
+\note This method rearranges the atom indexes only (shuffles the order of atoms). Residue or chain ids are not changed. If you need to reorder atoms by residues look at System::sort_by_resindex() method.
+\warning This method affects all frames and could be slow for very large systems and and/or large number of frames.
+
+\section pbc Working with periodicity
+Pteros is designed to work with arbitrary triclinic periodic boxes. There are several ways of accounting for periodicity:
+
+- Many methods, which are aware of periodicity, have an optional boolean parameter "periodic" that switches on periodic computations.
+- Periodicity could be taken into account explicitly by using Periodic_box class and its methods.
+
+Upon reading the data files Pteros sets the periodic box accordingly in the System if it is present in the data file.
+
+\subsection pbc_get_set Getting, setting and modifying periodic box
+Periodic box could be extracted for each frame by using System::Box() method. Here is how to check if the periodic box is present:
+\col1
+System s("some_file.pdb");
+if( s.Box(0).is_priodic() ) cout << "Box present for frame 0!" << endl;
+\col2
+s = System('some_file.pdb')
+if s.getBox(0).is_periodic():
+    print 'Box present for frame 0!'
+\endcol
+
+An important feature of the Periodic_box is that it stores some internal data (like inverse tranform matrices) and thus individual components of the box are immutable. In order to change the box you have to get it as a 3x3 matrix, edit this matrix and assign it back using Periodic_box::modify() method:
+\col1
+System s("some_file.pdb");
+// Get a box as matrix. Column 0 is vector a, column 1 is b, column 2 is c.
+auto m = s.Box(0).get_matrix();
+// Modify individual box element
+m(0,1) *= 2;
+// Set it back
+s.Box(0).modify(m);
+\col2
+s = System('some_file.pdb')
+# Get a box as matrix. Column 0 is vector a, column 1 is b, column 2 is c.
+box = s.getBox(0).get_matrix()
+# Modify individual matrix element
+m[0][1] *= 2
+# Set modified box object to the System
+s.getBox(0).modify(m)
+\endcol
+
+You can also get lengths of individual box vectors with Periodic_box::get_extent() or the lengths of all vectors with Periodic_box::get_extents().
+It is also possible to extract an individual vector directly with Periodic_box::get_vector().
+
+One common operation is scaling the peridic box without changing the angles between the vectors. This could be achieved with convenience function Periodic_box::scale_vectors():
+\col1
+System s("some_file.pdb");
+// Scale all box vectors by x2
+vector<float> scale = {2,2,2};
+s.Box(0).scale_vectors(scale);
+\col2
+s = System('some_file.pdb')
+# Scale all box vectors by x2
+s.getBox(0).scale_vectors([2,2,2])
+\endcol
+
+It is also possible to get and set the box as a set of vector lengths (a,b,c) and the set of angles between the vectors (a^c, b^c, a^b). This is performed by the Periodic_box::to_vectors_angles() and Periodic_box::from_vectors_angles() methods:
+\col1
+System s("some_file.pdb");
+vector<float> vecs, angles;
+// Get as vectors and angles
+s.Box(0).to_vectors_angles(vecs,angles);
+// Modify a^b angle
+angles[2] *= 2;
+// Set it back
+s.Box(0).from_vectors_angles(vecs,angles);
+\col2
+System s('some_file.pdb')
+# Get as vectors and angles
+vecs,angles = s.getBox(0).to_vectors_angles()
+# Modify a^b angle
+angles[2] *= 2
+# Set it back
+s.getBox(0).from_vectors_angles(vecs,angles)
+\endcol
+
+\note The order of angles  (a^c, b^c, a^b) is the same as in PDB CRYST1 record.
+
+\subsection wrap Wrapping and unwrapping
+
+There are several ways to wrap atoms or points into the box:
+- Wrap an arbitrary point with Periodic_box::wrap_point()
+- Wrap the whole selection with Selection::wrap()
+- Wrap the whole system with System::wrap()
+
+\note All these methods take an optional parameter "dims" which tells which dimentions to wrap.
+
+In contrast to wrapping unwrapping is non-trivial operation which could be done in different ways. Pteros supports two unwrapping methods:
+<ul>
+<li> Simple unwrapping is performed by Selection::unwrap(). It uses the center of masses of selection as an "anchor" and sets all atoms of selection to their periodic images, which are closest to this anchor.
+\warning This method is very fast but only works if selection does not exceed 1/2 of the box size in any dimension! Otherwise it produces unpredictable results.
+<li> Unwrapping by bonds is performed by Selection::unwrap_bonds(). In this method the user supplies the maximal bond length and all atoms of selections which are within this distance are considered as connected by bonds. After that first atom in selection is set as an anchor (the anchor atom could be overriden by optional "leading_index" parameter) and all atoms connected to it are moved to their corresponding closest periodic images. The procedure is continued for all connected atoms.
+\warning This mehtod works for any size of selection but is <b>much</b> slower than simple unwrapping!
+</ul>
+
+\subsection pbc_measure Periodic distances and closest images
+
+In order to compute the periodic distances the following methods could be used:
+- Smallest periodic distance between two arbitrary points could be computed with Periodic_box::distance() and Periodic_box::distance_squared() methods.
+- Smallest periodic distance between two atoms could be computed with System::distance() method when optional parameter "periodic" is set to "true".
+
+Periodic_box::shortest_vector() computes the shortest vector between two arbitrary points. Periodic_box::get_closest_image() returns the periodic image of given point, which is closest to the anchor point.
+
+\note All these methods take an optional parameter "dims" which tells which dimentions to treat as periodic.
+
+
+\section dist_search Fast distance search and spatial grids
+
+Pteros uses fast grid search algorithms for finding distances between the atoms. There are several variants of the distance seacrh which return either pairs of atoms within given cut-off distance or the list of atoms within given distance from point in space or other set of atoms.
+
+\note \ref within_sel "Within selections" also use distance search algorithms under the hood.
+
+\subsection dist_search_variants Different forms of distance search
+
+\subsubsection search_1_sel Searching contacts within single selection
+
+Use \ref pteros::search_contacts(float,const Selection&,std::vector<Eigen::Vector2i>&,bool,bool,std::vector<float>*) "this" function to search all contacts between the atoms within single selection.
+
+\warning In Python the signature of this function is different:
+\code{.py}
+(pairs,distances) search_contacts(cut_off, sel, absolute_index = False, periodic = False, do_dist = False)
+\endcode
+Instead of taking pairs and distance vectors as reference parameters they are returned as a tuple, which is Pythonic way of handling multiple return values. If the last parameter "do_dist" is "True" then distances are filled with actual values, otherwise second member of returned tuple is "None".
+
+\col1
+// Vector for found pairs
+vector<Vector2i> pairs;
+
+// Cut-off distance in nm
+float cut_off = 3.5;
+
+// Non-periodic search returning local indexes
+search_contacts(cut_off,sel,pairs);
+
+// Periodic search returning global indexes
+search_contacts(cut_off,sel,pairs,true,true);
+
+// Same as above but also return distances for each pair
+vector<float> distances;
+search_contacts(cut_off,sel,pairs,true,true,&distances);
+\col2
+# Cut-off distance in nm
+cut_off = 3.5
+
+# In Python search_contacts() *always*
+# returns a tuple (pairs,distances)
+# If no distances are requested the 'distances'
+# would be equal to None!
+
+# Non-periodic search returning local indexes
+# We only take first member of the tuple (the pairs)
+pairs = search_contacts(cut_off,sel)[0]
+
+# Periodic search returning global indexes
+# We only take first member of the tuple (the pairs)
+pairs = search_contacts(cut_off,sel,True,True)[0]
+
+# Same as above but also return distances for each pair
+# Passing True in last argument instruct to fill distances with
+# values instead of returning it as None.
+pairs,distances = search_contacts(cut_off,sel,True,True,True)
+\endcol
+
+
+\subsubsection search_2_sel Searching contacts between two selections
+
+Use \ref pteros::search_contacts(float,const Selection&,const Selection&,std::vector<Eigen::Vector2i>&,bool,bool,std::vector<float>*) "this" function to search the contacts between two different selections.
+\warning In Python the signature of this function is different:
+\code{.py}
+(pairs,distances) search_contacts(cut_off, sel1, sel2, absolute_index = False, periodic = False, do_dist = False)
+\endcode
+Instead of taking pairs and distance vectors as reference parameters they are returned as a tuple, which Pythonic way of handling multiple return values. If the last parameter "do_dist" is "True" then distances are filled with actual values, otherwise second member of return tuple is "None".
+
+\col1
+// Vector for found pairs
+vector<Vector2i> pairs;
+
+// Cut-off distance in nm
+float cut_off = 3.5;
+
+// Non-periodic search returning local indexes
+search_contacts(cut_off,sel1,sel2,pairs);
+
+// Periodic search returning global indexes
+search_contacts(cut_off,sel1,sel2,pairs,true,true);
+
+// Same as above but also return distances for each pair
+vector<float> distances;
+search_contacts(cut_off,sel1,sel2,pairs,true,true,&distances);
+\col2
+# Cut-off distance in nm
+cut_off = 3.5
+
+# In Python search_contacts() *always*
+# returns a tuple (pairs,distances)
+# If no distances are requested the 'distances'
+# would be equal to None!
+
+# Non-periodic search returning local indexes
+# We only take first member of the tuple (the pairs)
+pairs = search_contacts(cut_off,sel1,sel2)[0]
+
+# Periodic search returning global indexes
+# We only take first member of the tuple (the pairs)
+pairs = search_contacts(cut_off,sel1,sel2,True,True)[0]
+
+# Same as above but also return distances for each pair
+# Passing True in last argument instruct to fill distances with
+# values instead of returning it as None.
+pairs,distances = search_contacts(cut_off,sel1,sel2,True,True,True)
+\endcol
+
+\subsubsection search_within Searching around given selection
+
+Use pteros::search_within() function to search all atoms from <i>source selection</i> which are within given distance from any atom of <i>target selection</i>.
+
+\warning In Python the signature of this function is different:
+\code{.py}
+indexes = search_contacts(cut_off, source, target, include_self = True, periodic = False)
+\endcode
+Indexes are returned instead of being passed by reference, which is Pythonic way of handling this situation.
+
+\col1
+// Source selection is water
+auto source_sel = system("resname SOL");
+// Target selection is protein
+auto target_sel = system("protein");
+
+// Vector of found atom indexes
+// Absolute indexes are returned!
+vector<int> result;
+
+float cut_off = 3.5; // in nm
+
+// Find all atoms of source in 3.5 nm shell around target
+// not including target itself accounting for periodicity
+search_within(cut_off, source_sel, target_sel, result, false, true);
+\col2
+# Source selection is water
+source_sel = system('resname SOL')
+# Target selection is protein
+target_sel = system('protein')
+
+cut_off = 3.5 # in nm
+
+# Find all atoms of source in 3.nm 5 shell around target
+# not including target itself accounting for periodicity
+# Absolute indexes are returned!
+result = search_within(cut_off, source_sel, target_sel, False, True)
+\endcol
+
+\subsubsection repeated_search Repeated searching around multiple targets
+
+There is a common situation when one needs to find, for example, water molecules around multiple protein residues or around head group of each lipid in the membrane. In this scenario the source selection (water) is always the same, while the target selection changes and multiple searches have to be done. Usage of pteros::search_within() function is not optimal in this case bacause it will redundantly distribute source atoms to the same grid multiple times. In this case the Distance_search_within provides \e much better performance. This class is initialized with source selection and then allows to search around different targets efficiently multple times. It also allows searching around fixed points in space.
+
+\col1
+// Source selection for water
+auto water = system("resname SOL");
+// Multiple target selections for 20 protein residues
+vector<Selection> residues;
+for(int i=1; i<20; i++){
+    residues[i].modify(system,"protein and resid "+to_string(i));
+}
+
+// Vector of vectors for results
+vector<vector<int>> results(20);
+
+// Initialise for periodic search and to return local indexes
+Distance_search_within seacrher(3.5, water, false, true);
+
+// Search for each residue
+for(int i=1; i<20; i++){
+    searcher.seacrh_within(residues[i], results[i]);
+}
+\col2
+# Source selection for water
+water = system('resname SOL')
+# Multiple target selections for 20 protein residues
+residues = []
+for i in xrange(20):
+    sel = system("protein and resid %i" % (i+1))
+    residues.append(sel);
+
+# Storage for results
+results = []
+
+# Initialise for periodic search and to return local indexes
+searcher = Distance_search_within(3.5, water, False, True)
+
+# Search for each residue
+for i in xrange(20):
+    res = searcher.search_within(residues[i+1]);
+    results.append(res);
+\endcol
+
+\subsection custom_grid Custom spatial grids
+
+Sometimes one does not need to do a distance searcg but want to distribute the atoms from given selection into spatial grid. This is useful for computing 3D density distributions, occupancy volumetric hystograms, velocity fields, etc.
+This task is perfromed by Grid class.
+
+\note Grid is used internally by all distance search functions, thus it is rather \e low-level class. Particularly grid cells contain raw pointers to atomic coordinates, which are treated in a complex way internally. In periodic grids they may point not to actual atoms but to temporary wrapped coordinates.
+
+\warning Grid is currently C++ only.
+
+\code
+// Create 100x100x100 grid
+int N = 100;
+Grid g(N,N,N);
+// Populate it from given selection
+// in periodic manner
+g.populate_periodic(sel);
+
+// Print number of atoms in the grid cells
+for(int i=0;i<N;++i){
+    for(int j=0;j<N;++j)
+        for(int k=0;k<N;++k)
+            cout << g.cell(i,j,k).size() << endl;
+\endcode
+
+Grid cells are of type `vector<Grid_element>` and contain information about indexes and coordinates of atoms in each cell.
+
+\section energy Evaluating non-bond energies
+
+Pteros is able to compute the <i>short-range</i> non-bond energies if topology file is read for the system. Currently Pteros supports special .pttop format of topology files, which have to be generated from Gromacs .tpr run input files using "tpr2pteros.py" script.
+
+\warning Long-range electrostatics with PME or other lattice sum methods are not supported in Pteros.
+
+Treatment of non-bonded interactions in Gromacs is, unfortunately, complex and rather confusing. Coulomb and van-der-Waals interactions have a type and a modifier. The type is the functional form of interaction and the modifier is a special function, which is used to avoid the discontinuity of derivatives at cut-off distance. In practice different combinations of types and modifiers in Gromacs .mdp files lead to non-trivial and confusing choises of actual interaction functions. Pteros is trying to match these complex rules as close as possible but it is not guaranteed that the results would be numerically identical.
+
+\note Pteros is known to produce correct results for MARTINI coarse grained force field and simple cut-off interactions.
+
+\subsection get_top Generating Pteros .pttop files
+
+Call "tpr2pteros.py" script to convernt Gromacs .tpr binary file to Pteros .pttop topology. The script is doing simple caching - if .tpr file did not change since last call of the script it will do nothing. Currently Pteros uses the same options for short-range energies as set in parent Gromacs .tpr file.
+\note This requires working Gromacs installation.
+
+\subsection en_components Energy components
+
+All energy evaluation methods return an object of type Energy_components which contain separate fields for different energy components:
+
+Field | Energy component
+----- | ----------------
+total | Total energy
+lj_sr | Short-ranhe Lennard-Jones energy
+lj_14 | Lennard-Jones energy of 1-4 pairs
+q_sr | Short-ranhe Coulomb energy
+q_14 | Coulomb energy of 1-4 pairs
+
+Energy_components objects could be added to each other with "+" and "+=" operators.
+
+\subsection get_en Computing non-bond energies
+
+Before evaluating non-bond energies the user should always check if the System has correctly set force field parameters by calling System::force_field_ready(). If it returns `true` than it is safe to call energy functions.
+\warning The Pteros will crash if calling energy functions on system without force field (i.e. without any topology loaded). No check is made in energy functions themselves for efficiency reasons.
+
+\subsubsection en_system Methods of System class
+
+The method System::non_bond_energy() has two forms which evaluate the energy between two atoms or in the list of given atom pairs:
+\col1
+System s("some-structure.pdb");
+s.load("topology.pttop"); // Required!
+
+// Check if system is ready for energy evaluation
+if(s.force_field_ready()){
+   // (1) ENERGY BETWEEN TWO ATOMS
+
+   // Energy between atoms 1 and 2 for frame 0
+   auto en12 = s.non_bond_energy(1,2,0);
+   // The same but accounting for periodicity
+   auto en12pbc = s.non_bond_energy(1,2,0,true);
+   // Print total energies
+   cout << en12.total << " " << en12pbc.total << endl;
+
+   // (2) ENERGY FOR THE LIST OF ATOM PAIRS
+
+   // The list of atom pairs
+   vector<Vector2i> lst = ...;
+   // Non-periodic variant for frame 0
+   auto en = s.non_bond_energy(lst,0);
+   // The same but accounting for periodicity
+   auto en_pbc = s.non_bond_energy(lst,0,true);
+   // Print total energies
+   cout << en.total << " " << en_pbc.total << endl;
+}
+\col2
+s = System('some-structure.pdb')
+s.load('topology.pttop') # Required!
+
+# Check if system is ready for energy evaluation
+if s.force_field_ready():
+   # (1) ENERGY BETWEEN TWO ATOMS
+
+   # Energy between atoms 1 and 2 for frame 0
+   en12 = s.non_bond_energy(1,2,0)
+   # The same but accounting for periodicity
+   en12pbc = s.non_bond_energy(1,2,0,True)
+   # Print total energies
+   print en12.total, en12pbc.total
+
+   # (2) ENERGY FOR THE LIST OF ATOM PAIRS
+
+   # The list of atom pairs
+   lst = [[1,2],[3,4],[5,6]]
+   # Non-periodic variant for frame 0
+   en = s.non_bond_energy(lst,0)
+   # The same but accounting for periodicity
+   en_pbc = s.non_bond_energy(lst,0,True)
+   # Print total energies
+   print en.total, en_pbc.total
+\endcol
+
+\subsubsection en_sel Methods of Selection class
+
+Selection class provides two higher-level methods of energy evaluation. The first one computes self-energy of selection within given distance cut-off. The second computes the energy between two selection of the same size within given cut-off for given frame.
+
+\note If cutoff is zero or negative both methods computes interaction between all atoms (very slow for large selections).
+
+\col1
+Selection sel1(sys,"name CA");
+Selection sel2(sys,"name CB");
+
+// Check if it is safe to compute energies
+if(sys.force_field_ready()){
+    // Energy of all atom pairs within 0.3 nm accounting for periodicity
+    auto self_en = sel1.non_bond_energy(0.3, true);
+
+    // Interaction between two selections within 0.3 nm for frame 3
+    // and accounting for periodicity
+    auto en12 = non_bond_energy(sel1, sel2, 0.3, 3, true);
+}
+\col2
+sel1 = sys("name CA")
+sel2 = sys("name CB")
+
+# Check if it is safe to compute energies
+if sys.force_field_ready():
+    # Energy of all atom pairs within 0.3 nm accounting for periodicity
+    self_en = sel1.non_bond_energy(0.3, True)
+
+    # Interaction between two selections within 0.3 nm for frame 3
+    # and accounting for periodicity
+    en12 = non_bond_energy(sel1, sel2, 0.3, 3, True)
+\endcol
+
+\section dssp Secondary structure of proteins
+
+Pteros uses <a href="http://www.cmbi.ru.nl/dssp.html">DSSP</a> method for determining secondary structure of proteins. Selection::dssp() write detailed DSSP report to the file or to the stream if file name of stream object are provided as an argument. If called without arguments the DSSP string is returned with letter-code for secondary structure. The code is the same as in original DSSP program:
+
+Structure | code
+--------- | ----
+alphahelix |	H
+betabridge |	B
+strand |	E
+helix_3 |	G
+helix_5 |	I
+turn |		T
+bend |		S
+loop |		' ' (space)
+
+\note System::dssp() always works with the whole system, not with selection. This is caused by the fact that the algorithm have to see all atoms of the protein backbone in all protein residues while user can easily provide selection where only some of them are present.
+
+\section measure_sasa Solvent accessible surface area
+
+Solvent accessible surface area (SASA) is computed in Pteros using using POWERSASA code developed in the <a href="http://www.kit.edu/english/">Karlsruhe Institute of Technology</a> and inclided into <a href="http://www.int.kit.edu/1636.php">SIMONA</a> package. This is fast algorithm of computing area of the molecules based on rather complex theory of power diagrams (<a href="http://onlinelibrary.wiley.com/doi/10.1002/jcc.21844/abstract">paper</a>).
+The method Selection::sasa() returns the solvent accessible area of atoms in selection. Optional argument could be used to set the probe radius and to get additional data like total volume, area per atom and volume per atom.
+
+\note
+POWERSASA code is not open source. I contacted the authors of POWERSASA several times to ask for official permision to use their code in Pteros but all requestes were ignored. I concluded that nobody is concerned about the licensing of POWERSASA now. However, compilation of this code is disabled by default. See \ref sasa for details how to enable it.
+
+
+
+\page analysis Analysis of trajectories
+
+\tableofcontents
+
+\section anal_concepts Asynchronous parallel trajectory processing in Pteros
+
+Although System and Selection classes already provide quite high-level tools for building custom analysis programs, Pteros contains even more advanced facilities for rapid implementation of complex analysis algorithms. When you build your custom analysis program, it is usually painful and repetitive to implement the following things:
+- Read only specified range of frames from trajectory based on time stamp or frame number.
+- Read the trajectory, stored by pieces in several files.
+- Read very large trajectory, which doen't fit into the memory frame by frame.
+- Implement parallel execution of several analysis tasks, to keep all processor cores busy.
+- Implement processing of the command line arguments, which set all options of trajectory processing and represent custom flags for your analysis.
+
+It is necessary to emphasize an importance of parallel processing. MD trajectories are often huge (up to ~100Gb) and reading them from disk tipically takes many minutes, especially if the storage is slow or even non-local. If you have 5 different anaysis tasks, which should be applied to the same trajectory it is very wasteful to run them sequntially and to read the whole trajectory five times. It is much more logical to read the trajectory only ones and execute all your tasks in parallel for each frame. By doing this you will also utilize the power of you modern multi-core processor effectively.
+
+Another scenario is the analysis task, which does not depend on frame processing order. Typical example is averaging of some property over the frames. In such case it is tempting to spawn several instances of analys task, each running in parallel in its own thread, and dispatch frames to them from the shared queue without any particular order. This again utilizes all cores of your processor and can make the analysis much faster.
+
+All these routine operations in Pteros are incapsulated into the Trajectory_reader class. The logic of using this class is the following. You supply it with the set of options (the trajectory to read, which frames to include into the analysis, etc). In addition you create a number of task objects, which represent separated analysis tasks, and connect them to the Trajectory_reader. After that you run the reader. It launches all supplied tasks in separate parallel threads (or spawns many instances of the parallel task), reads the trajectory frame by frame in yet another thread and passes the frames to each of the tasks for user-defined processing. In such scenario the speed of trajectory processing is limited by either the slowest task or the trajectory file IO (whatever is slower).
+
+Although the framework of trajectory reader and tasks is a high-level concept by itself it is used to provide even higher-level abstractions - the \ref plugins.
+
+\note Although Trajectory_reader and tasks are exposed to Python the prefered way of using them in Python is by writing analysis plugins.
+
+\section processors_consumers Trajectory reader and analysis tasks
+
+Trajectory_reader class incapsulates all low-level details of reading trajectories including reading intervals of frames or times, skipping frames, etc. Its typical usage is the following:
+\code
+// Create serial analysis task using corresponding macro
+// The details will be covered later
+
+TASK_SERIAL(My_task)
+    void pre_process() override { ... }
+    void process_frame(const Frame_info& info) override { ... }
+    void post_process(const Frame_info& info) override { ...  }
+}
+
+int main(int argc, char** argv){
+    // Represents built-in and custom command line options
+    Options reader_options;
+    // Options for indivudual tasks
+    vector<Option> task_opts;
+    // Parse options from the command line
+    // Used flag -task to separate options of individual tasks
+    parse_command_line(argc,argv, reader_options, "task", task_opts);
+    // Create an instance of trajectory reader
+    Trajectory_reader engine(reader_options);
+
+    // Add several tasks (with different parameters).
+    reader.add_task( new My_task(task_opts[0]) );
+    reader.add_task( new My_task(task_opts[1]) );
+
+    // Start trajectory processing
+    engine.run();
+}
+\endcode
+
+This program could be called with the following command line (see \ref options for details):
+\code
+./example -f some_file.pdb some_traj.xtc -b 10ps -e 2000fr -skip 2 -log 10 -task task1 -some_option1 val1 -task task2 -some_option2 val2
+\endcode
+
+\subsection task_types Serial and parallel tasks
+
+All analysis tasks in Pteros are subdivided into serial and parallel.
+
+The objects of serial tasks exist as single instances, which run in their own thread of execution. The task is "serial" in the sence that \em inside the task code all operations are sequential and executed one by one in defined order. Trajectory_reader may run as many serial tasks as you want at the same time.
+
+The parallel tasks behave differently. The Trajectory_reader may run only one parallel task and nothing else. The parallel task spawns as many instances of itself as there are cores in your processor. Each trajectory frame is dispatched to one of the instances only with no particular order. At the end all instances merge their results to the master instance, which is doing post-processing. Parallel tasks work much like parallel for loops in OpenMP over trajectory frames.
+
+Regardless of the task type you have to override three methods: pre_process(), process_frame() and post_process(). For parallel tasks additional method collect_data() have to be overriden.
+
+Tasks are created by the macro TASK_SERIAL or TASK_PARALLEL:
+
+\code
+// Serial task
+TASK_SERIAL(My_serial_task)
+    void pre_process() override { ... }
+    void process_frame(const Frame_info& info) override { ... }
+    void post_process(const Frame_info& info) override { ...  }
+};
+
+// Parallel task
+TASK_PARALLEL(My_parallel_task)
+    void pre_process() override { ... }
+    void process_frame(const Frame_info& info) override { ... }
+    void post_process(const Frame_info& info) override { ...  }
+    void collect_data(const std::vector<std::shared_ptr<Task_base>>& tasks) override { ... }
+};
+\endcode
+
+The moments when these methods are called is different for serial and parallel tasks:
+
+Method | Serial task | Parallel task
+-------|-------------- |---------
+pre_process | Called on first consumed trajectory frame for each task | Called on first consumed trajectory frame by single master task instance only. After that multiple task instances are spawned by cloning this master instance.
+process_frame | Called on each valid trajectory frame. Frames are processed in order. | Called by each task instance in parallel on different frames. Frames are dispatched to instances with no particular order on the "first come first served" basis.
+collect_data | N/A | Called by master instance only when trajectory is complete. All other instances are passed in tasks vector. The purpose is to merge local data of all instances together in the master instance for post-processing.
+post_process | Called after last consumed trajectory frame for each task. | Called by master instance only immediately after collect_data().
+
+\note The reason of having separate collect_data() method is to keep the interface of serial and parallel task consistent otherwise.
+
+
+\subsection options Processing command-line options
+
+Trajectory_reader takes an Options object, which provides mandatory built-in command-line options that specify which trajectory to read and which frames from it to accept. Default options are the following:
+
+<table>
+<tr><th>Option flag</th><th>Meaning</th><th>Comment</th></tr>
+<tr>
+<td>-help</td> <td>Show help on usage and options </td>
+<td> Could be extended for custom options </td>
+</tr>
+
+<tr>
+<td> -f </td> <td> List of files to read </td>
+<td>
+\i Example: -f sturcture.pdb traj1.xtc traj2.xtc
+
+The list may include
+- Exactly one structure file (PDB or GRO). If not specified, topology PTTOP file must be given instead.
+- Topology PTTOP file (converted from Gromacs .tpr by tpr2pteros.py). If structure file is also present only topology is read from this file. If structure file is not present the coordinates are also read.
+- One or more trajectory files (TRR, XTC, TNG or DCD). TNG files also contain the structure, so if no structure file is given the structure is read from the first TNG file.
+
+Files may appear in any order, but trajectory files will be processed in the order of their appearance.
+</tr>
+
+<tr>
+<td> -b </td> <td> Beginning of processing (starting frame or time)</td>
+<td>Default: 0 (fisrt frame of trajectory). \ref suffix accepted.</td>
+</tr>
+
+<tr>
+<td> -e </td> <td> End of processing (end frame or time)</td>
+<td>Default: -1 (last frame of trajectory). \ref suffix accepted.</td>
+</tr>
+
+
+<tr>
+<td> -t0 </td> <td>Custom starting time </td>
+<td>Default: -1 (use value from the first frame). \ref suffix accepted. Useful when trajectory does not contain time stamps or if the starting time is incorrect.
+\warning If this flag is set and \em dt is not given sets \em dt to 1.0! </td>
+</tr>
+
+
+<tr>
+<td> -dt </td> <td>Custom time step</td>
+<td>Default: -1 (use value from trajectory). Useful when trajectory does not contain time stamps.
+\warning If this flag is set and \em t0 is not given sets \em t0 to 0! </td>
+</tr>
+
+<tr>
+<td> -log </td> <td>Prints logging information on each n-th processed frame</td>
+<td>Default: -1 (no logging).
+</tr>
+
+<tr>
+<td> -buffer </td> <td>Number of frames, which are kept in memory of Trajectory_reader</td>
+<td>Default: 10. You only need to decrease this if individual frames are \em very large.
+</tr>
+
+<tr>
+<td> -task </td> <td>Name of the analysis task</td>
+<td>No default. Name of the task is used to load corresponding compiled analysis plugin or python plugin. Options, which follow "-task name" are forwarded to the corresponding task only and will not be visible in other tasks or Trajectory_reader. Many tasks could be specified.
+</tr>
+
+</table>
+
+\subsubsection suffix Value suffixes
+
+%Options -b, -e and -t0 could be specified with the following convenience suffixes:
+
+Suffix | Example | Meaning
+-------|-------------- |---------
+(no suffix)| | value is in frames
+fr | 10fr | value is in frames
+t | 10t | value is time in picoseconds (value used as is)
+ps | 15ps | value is time in picoseconds (value used as is)
+ns | 100ns | value is time in nanoseconds (value multiplied by 10^3)
+us | 2us | value is time in microseconds (value multiplied by 10^6)
+ms | 4ms | value is time in milliseconds (value multiplied by 10^9)
+
+\subsection frame_info Understanding frame metadata
+
+The process_frame() and post_process() methods of analysis tasks are called with Frame_info argument, which contains metadata of the currently processed frame:
+
+Property | Meaning
+-------- | ---------
+absolute_frame | Counts \em all frames (either consumed or skipped) in trajectory starting from 0
+absolute_time | Current time stamp
+valid_frame | Counts only valid frames (the frames, which fall into specified time and frame range) and are sent to processing. Starts from 0.
+first_time | Time of the first processed valid frame
+last_time | Time of the last processed valid frame. During the processing is set to absolute_time. Meaningfull for post-processing only.
+first_frame | First processed valid frame (an absolute value)
+last_frame | Last processed valid frame (an absolute value). During the processing is set to absolute_frame. Meaningfull for post-processing only.
+
+\subsection magic_vars "Magic variables" in analysis tasks
+
+Each analysis task is derived from Task_base class under the hood and contains the following "magic variable":
+
+Variable | Meaning
+-------- | -------
+system | the System allocated locally for this task containg currently processing frame as frame #0. Changes in this system are local does not propagate to other serial tasks or instances of parallel tasks.
+log | logger object, which is local for current task. Logger uses unique name formed by the name of task class and its id.
+options | Options object with command-line options provided for this particular task. See \ref options for details.
+jump_remover | Jump_remover object of the current task. See \ref jump for details.
+
+\subsection jump Removing jumps over periodic boundaries
+\section plugins Analysis plugins
+
+
+
+\page tools Pteros tools
+*/
+}

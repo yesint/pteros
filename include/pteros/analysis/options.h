@@ -6,7 +6,7 @@
  *                    ******************
  *                 molecular modeling library
  *
- * Copyright (c) 2009-2013, Semen Yesylevskyy
+ * Copyright (c) 2009-2017, Semen Yesylevskyy
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of Artistic License:
@@ -43,7 +43,7 @@ class Option {
     friend void parse_command_line(int argc, char** argv, Options& toplevel);
 
 public:
-    /// throw if not a needed type, or more than 1 value
+    /// Throws if not a needed type, or more than 1 value
     /// Get single string value
     std::string as_string() const;
     /// Get single int value,
@@ -62,10 +62,11 @@ public:
 private:
     // Internal storage is just a vector of strings representing values
     std::vector<std::string> data;
-    // names of this option
+    // name of this option
     std::string name;
-
+#ifdef DEBUG
     void debug();
+#endif
 };
 
 //---------------------------------------------------------------------------
@@ -87,8 +88,9 @@ public:
     const Option& operator()(std::string key, std::string default_val);
     bool has(std::string key);
     std::string get_name(){ return task_name; }
-
+#ifdef DEBUG
     void debug();
+#endif
 private:
     std::vector<Option> data;
     std::string task_name;

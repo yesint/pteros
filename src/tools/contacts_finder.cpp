@@ -6,7 +6,7 @@
  *                    ******************
  *                 molecular modeling library
  *
- * Copyright (c) 2009-2013, Semen Yesylevskyy
+ * Copyright (c) 2009-2017, Semen Yesylevskyy
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of Artistic License:
@@ -22,6 +22,7 @@
 
 #include "contacts_finder.h"
 #include <sstream>
+#include <fstream>
 
 #include "json_spirit/json_spirit_reader_template.h"
 #include "json_spirit/json_spirit_writer_template.h"
@@ -31,8 +32,8 @@ using namespace pteros;
 using namespace std;
 using namespace Eigen;
 
-void Contacts_finder::create(Trajectory_processor& proc, const Options& opt){
-    options = opt;
+
+void Contacts_finder::pre_process(){    
 
     // Set method and cut-off
     string s;
@@ -52,15 +53,7 @@ void Contacts_finder::create(Trajectory_processor& proc, const Options& opt){
 
     // Set periodic
     is_periodic = options("periodic","false").as_bool();
-}
 
-Contacts_finder::Contacts_finder(Trajectory_processor& proc, const pteros::Options &opt):
-    Consumer(&proc)
-{
-    create(proc,opt);
-}
-
-void Contacts_finder::pre_process(){
     // Set all selection    
     all.modify(system,"all");
 
@@ -160,7 +153,7 @@ void Contacts_finder::process_frame(const Frame_info &info){
             // If VDW radii are used we should filter the list first
             // We make aux list and then filter it into clist
             vector<Vector2i> aux;
-            Grid_searcher(dist, sel_pairs[i].sel1, sel_pairs[i].sel2, aux, true, is_periodic);
+            search_contacts(dist, sel_pairs[i].sel1, sel_pairs[i].sel2, aux, true, is_periodic);
             clist.reserve(aux.size());
             for(int k=0;k<aux.size();++k){
                 // See if this contact falls into VDW1+VDW2+gap. If so add to clist
@@ -173,7 +166,7 @@ void Contacts_finder::process_frame(const Frame_info &info){
         } else {
             // Otherwise just call searcher and form clist directly
             //searcher.search(sel_pairs[i].sel1, sel_pairs[i].sel2, clist);
-            Grid_searcher(dist, sel_pairs[i].sel1, sel_pairs[i].sel2, clist, true, is_periodic);
+            search_contacts(dist, sel_pairs[i].sel1, sel_pairs[i].sel2, clist, true, is_periodic);
         }
 
         // Add time to the list
@@ -361,9 +354,22 @@ void Contacts_finder::post_process(const Frame_info &info){
         // Set mean energy
         //if(is_energy){
             sel_pairs[i].mean_energy /= (float)info.valid_frame;
-        //}
-
+        //}                       
     } // Sel pair
+
+    cout << "Saving results..." << endl;
+    {
+        ofstream ff("results.json");
+        save(ff);
+        ff.close();
+    }
+
+    cout << "Saving per frame stats..." << endl;
+    {
+        ofstream ff("data.dat");
+        per_frame_stats(ff);
+        ff.close();
+    }
 }
 
 /*

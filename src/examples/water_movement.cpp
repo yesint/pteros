@@ -1,23 +1,18 @@
-#include "pteros/analysis/trajectory_processor.h"
-#include "pteros/analysis/consumer.h"
 #include <fstream>
-#include "pteros/core/grid_search.h"
+#include "pteros/core/grid.h"
 #include "pteros/core/pteros_error.h"
-
+#include "pteros/analysis/trajectory_reader.h"
+#include "pteros/analysis/task_plugin.h"
 
 using namespace std;
 using namespace pteros;
 using namespace Eigen;
 
-class Water_processor: public Consumer {
-public:
-    Water_processor(Trajectory_processor* pr, const Options& opt): Consumer(pr){
-        options = opt;
-    }
+TASK_SERIAL(Water_processor)
 protected:
-    virtual void pre_process(){       
+    void pre_process() override {
         // Create selection for water        
-        water.modify(system,"resname SOL and name OW");
+        water.modify(system,std::string("resname SOL and name OW"));
 
         // Allocate a grid
         // Get size of the cell
@@ -51,7 +46,7 @@ protected:
     }
 
 
-    virtual void process_frame(const Frame_info& info){
+    void process_frame(const Frame_info& info) override {
         int i,j,k,n,w,ind;
 
         if(info.valid_frame==0){
@@ -81,7 +76,7 @@ protected:
     }
 
 
-    virtual void post_process(const Frame_info& info){
+    void post_process(const Frame_info& info) override {
         int i,j,k;
         for(i=0;i<NgridX;++i)
             for(j=0;j<NgridY;++j)
@@ -128,14 +123,14 @@ int main(int argc, char** argv){
         Options opt;
         parse_command_line(argc,argv,opt);
 
-        Trajectory_processor proc(opt);
-        Water_processor wp(&proc,opt);
+        Trajectory_reader proc(opt);
+        proc.add_task( new Water_processor(opt) );
 
         proc.run();
 
 
     } catch(const Pteros_error& e){
-        e.print();
+        cout << e.what() << endl;
     }
 }
 

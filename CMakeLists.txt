@@ -1,11 +1,13 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 3.1)
 
 project(pteros)
 
-OPTION(PYTHON_BINDINGS "Build python bindings and compiled analysis plugins as Python modules" ON)
-OPTION(POWERSASA "Use POWERSASA code. This implies severe license restrictions! \n Read the comment in src/core/sasa/power_sasa.h carefully before enabling this option!" OFF)
+OPTION(WITH_PYTHON "Build python bindings and compile analysis plugins as Python modules" ON)
+OPTION(WITH_OPENMP "Use OpenMP parallelization if supported" ON)
+OPTION(WITH_POWERSASA "Use POWERSASA code. This implies severe license restrictions! \n Read the comment in thirdparty/sasa/LICENSE carefully before enabling this option!" OFF)
 OPTION(STANDALONE_PLUGINS "Compile analysis plugins as stand-alone executables" OFF)
 OPTION(MAKE_PACKAGE "Generate package" OFF)
+
 
 # Use shared Boost libraries
 set(Boost_USE_STATIC_LIBS OFF)
@@ -48,70 +50,101 @@ ENDIF()
 #Sets optmization for Eigen in Release build
 SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -msse2")
 
+# Enable STL debugging in debug mode
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_GLIBCXX_DEBUG")
+
 # Enable C++11 and C99 everywhere
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -Wl,--no-as-needed")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99")
 
-find_package(OpenMP)
-if(OPENMP_FOUND)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+# Set specific options for GCC if used
+if(CMAKE_COMPILER_IS_GNUCXX)
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wl,--no-as-needed")
 endif()
 
-# Find Python only if we need bindings
-if(PYTHON_BINDINGS)
-    find_package(PythonInterp)
-    find_package(PythonLibs)    
-
-    if(PYTHONINTERP_FOUND AND PYTHONLIBS_FOUND)
-        SET(WITH_PYTHON 1) # Compile python wrappers
-        #For conditional compilation
-        add_definitions(-DWRAP_PYTHON)
-
-        # Set python includes globally
-        include_directories(${PYTHON_INCLUDE_PATH})
-
-        # Find boost.python
-        find_package(Boost 1.48.0 REQUIRED python)
-        # Save lib location separately from other boost libs
-        set(BOOST_PYTHON_LIB ${Boost_LIBRARIES})
-    else()
-        message("Can't find Python interpreter of libraries!\nPython bindings and plugins are disabled!")
+# Find OpenMP if needed
+if(WITH_OPENMP)
+    message("Looking for OpenMP...")
+    find_package(OpenMP)
+    if(OPENMP_FOUND)
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
     endif()
 endif()
 
-# Find Boost
-find_package(Boost 1.48.0 REQUIRED system date_time)
+# Find Python only if we need bindings
+if(WITH_PYTHON)
+    #For conditional compilation
+    add_definitions(-DWRAP_PYTHON)
+    # Configure pybind11
+    message("Configuring Pybind11...")
+    find_package(pybind11)
+    # Set python install dir
+    set(PY_INST_DIR python)
+endif()
 
+# Find Boost
+message("Looking for Boost...")
+find_package(Boost 1.48.0 REQUIRED system date_time)
 # For boost>1.50 and on windows also add filesystem to compile normally
 if(${Boost_MINOR_VERSION} GREATER 50 AND ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    find_package(Boost 1.48.0 REQUIRED filesystem)
+    find_package(Boost 1.48.0 REQUIRED filesystem system)
 endif()
 
 # Add Boost includes and libs globally - they are needed everywhere
 include_directories(${Boost_INCLUDE_DIRS})
 link_libraries(${Boost_LIBRARIES})
 
-# Directories for compiled files
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
+# Add Eigen
+message("Looking for Eigen...")
+find_package(Eigen3 REQUIRED)
+include_directories(${EIGEN3_INCLUDE_DIR})
+
 
 # Main Pteros include dir (for build time, not yet installed)
 include_directories(include)
 
-# Main Pteros lib dir (for build time, not yet installed)
-link_directories("${CMAKE_BINARY_DIR}/lib")
 
-# Determine extension of the shared libs depending on platform
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    SET(SHARED_LIB_EXT ".pyd") # Force .pyd extension on Windows to ensure correct loading
-ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    SET(SHARED_LIB_EXT ".so") # Use .so on Linux
-ENDIF()
+#----------------------------
+# Build thirdparty libraries
+#----------------------------
 
-# Set python install dir
-set(PY_INST_DIR python)
+#include_directories for spdlog
+include_directories(${PROJECT_SOURCE_DIR}/thirdparty)
+# Install spdlog headers
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/thirdparty/spdlog DESTINATION include)
+
+# Build separate tng_io library (will be linked later)
+add_subdirectory(thirdparty/tng_io)
+include_directories(thirdparty/tng_io/include)
+
+# DSSP library
+add_subdirectory(thirdparty/dssp)
+include_directories(thirdparty/dssp)
+
+# VMD molfile plugins
+add_subdirectory(thirdparty/molfile_plugins)
+include_directories(thirdparty/molfile_plugins)
+
+# xdrfile library
+add_subdirectory(thirdparty/xdrfile)
+include_directories(thirdparty/xdrfile)
+
+#---------------------------------------------
+# Compiling pteros itself
+#---------------------------------------------
+
+add_subdirectory(src/core)
+add_subdirectory(src/analysis)
+add_subdirectory(src/tools)
+add_subdirectory(src/python)
+add_subdirectory(src/python/compiled_analysis_plugins)
+add_subdirectory(src/examples)
+add_subdirectory(src/test)
+#add_subdirectory(template_plugin)
+
+# Install headers
+install(DIRECTORY include DESTINATION .)
 
 #--------------
 # CPack config
@@ -119,7 +152,7 @@ set(PY_INST_DIR python)
 IF(MAKE_PACKAGE)
     SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Pteros molecular modeling library")
     SET(CPACK_PACKAGE_VERSION_MAJOR "2")
-    SET(CPACK_PACKAGE_VERSION_MINOR "0")
+    SET(CPACK_PACKAGE_VERSION_MINOR "5")
     SET(CPACK_PACKAGE_VERSION_PATCH "0")
     SET(CPACK_PACKAGE_INSTALL_DIRECTORY "CMake ${CMake_VERSION_MAJOR}.${CMake_VERSION_MINOR}")
     IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
@@ -131,22 +164,7 @@ IF(MAKE_PACKAGE)
     ENDIF()
     INCLUDE(CPack)
 ENDIF()
-#--------------
 
-add_subdirectory(src/core)
-add_subdirectory(src/core/sasa)
-add_subdirectory(src/analysis)
-add_subdirectory(src/tools)
-add_subdirectory(src/python)
-add_subdirectory(src/python/bindings)
-add_subdirectory(src/python/compiled_analysis_plugins)
-add_subdirectory(src/examples)
-add_subdirectory(src/test)
-#add_subdirectory(template)
-#add_subdirectory(template_plugin)
-
-# Install headers
-install(DIRECTORY include DESTINATION .)
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     message("------------------------------")

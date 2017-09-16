@@ -3,23 +3,27 @@
 #------------------
 
 add_library(pteros_analysis SHARED    
-    ${PROJECT_SOURCE_DIR}/include/pteros/analysis/message_channel.h
-    ${PROJECT_SOURCE_DIR}/include/pteros/analysis/trajectory_processor.h
-    trajectory_processor.cpp
-    ${PROJECT_SOURCE_DIR}/include/pteros/analysis/consumer_base.h
-    consumer_base.cpp
-    ${PROJECT_SOURCE_DIR}/include/pteros/analysis/consumer.h
-    consumer.cpp    
+    message_channel.h    
     ${PROJECT_SOURCE_DIR}/include/pteros/analysis/options.h
     options.cpp
     ${PROJECT_SOURCE_DIR}/include/pteros/analysis/jump_remover.h
-    jump_remover.cpp
+    jump_remover.cpp    
 
-    ${PROJECT_SOURCE_DIR}/include/pteros/analysis/bilayer.h
-    bilayer.cpp
-)
+    ${PROJECT_SOURCE_DIR}/include/pteros/analysis/trajectory_reader.h
+    trajectory_reader.cpp
+    traj_file_reader.h
+    traj_file_reader.cpp
+    ${PROJECT_SOURCE_DIR}/include/pteros/analysis/task_base.h
+    task_base.cpp
+    task_driver.h
+    task_driver.cpp
+    ${PROJECT_SOURCE_DIR}/include/pteros/analysis/task_plugin.h
+    task_plugin.cpp
+    data_container.h
+    )
 
-target_link_libraries(pteros_analysis pteros ${Boost_LIBRARIES})
+#target_link_libraries(pteros_analysis pteros ${Boost_LIBRARIES})
+target_link_libraries(pteros_analysis PRIVATE ${Boost_LIBRARIES} tng_io)
 
 #--------------
 # Installation

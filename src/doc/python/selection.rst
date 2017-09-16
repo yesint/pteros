@@ -51,4 +51,31 @@ Selection class
 	.. method:: size()
 	
 		Returns selection size
-		
+
+        .. method:: append(selection)
+
+                Appends another selection to this one.
+
+        .. method:: append(ind)
+
+                Appends absolute index to selection.
+
+                :param int ind: index to append
+
+        .. method:: remove(sel)
+
+                Removes all atoms of sel from current selection
+
+                :param Selection sel: selection to remove
+
+        .. method:: remove(ind)
+
+                Removes absolute index from selection.
+
+                :param int ind: index to remove
+
+        .. method:: set_system(system)
+
+                Sets new system for selection.
+
+                .. warning:: This clears selection index and leaves it empty!

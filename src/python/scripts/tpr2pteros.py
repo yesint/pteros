@@ -22,7 +22,7 @@ if os.path.isfile(sys.argv[1]+".pttop"):
 
 # Run gmxdump
 print "Calling gmxdump on tpr file '%s'..." % sys.argv[1]
-call("gmxdump -sys -s %s > _tpr_dump" % sys.argv[1], shell=True)
+call("gmx dump -sys -s %s > _tpr_dump" % sys.argv[1], shell=True)
 
 # Read the dump
 f = open("_tpr_dump","r")

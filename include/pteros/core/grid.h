@@ -6,7 +6,7 @@
  *                    ******************
  *                 molecular modeling library
  *
- * Copyright (c) 2009-2013, Semen Yesylevskyy
+ * Copyright (c) 2009-2017, Semen Yesylevskyy
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of Artistic License:
@@ -43,19 +43,18 @@ namespace pteros {
     Sorting the atoms from given selection into the cells of
     3D grid with given dimensions. Useful for producing volumetric datasets or
     various 3D histrograms (for examples density or the residence time maps).
-    Typical usage:
     \code
-    Grid_searcher g;
-    g.create_custom_grid(NX,NY,NZ);
-    for(...){ // Accumulate some data in the grid
-        g.add_to_custom_grid(sel,true);
-    }
-    // Print number of atoms accumulated in the grid cells
-    for(i=0;i<NX;++i)
-        for(j=0;j<NY;++j)
-            for(k=0;k<NZ;++k)
-                cout << g.cell_of_custom_grid(i,j,k).size() << endl;
-    g.clear_custom_grid(); // Ready for new data
+    // Create 100x100x100 grid
+    Grid g(100,100,100);
+    // Populate it from given selection
+    // in periodic manner
+    g.populate_periodic(sel);
+
+    // Print number of atoms in the grid cells
+    for(int i=0;i< 100;++i){
+        for(int j=0;j< 100;++j)
+            for(int k=0;k< 100;++k)
+                cout << g.cell(i,j,k).size() << endl;
     \endcode
      */
     class Grid {
@@ -82,8 +81,7 @@ namespace pteros {
         void populate_periodic(const Selection& sel,
                       const Periodic_box& box,
                       bool abs_index);
-    private:
-        Eigen::Vector3f* add_wrapped_atom(Vector3f_const_ref coor);
+    private:        
         boost::multi_array<std::vector<Grid_element>,3> data;
         // Array of atomic coordinates, which have to be wrapped if periodic.
         // This is in order not to touch real coordinates of atoms and improve speed.

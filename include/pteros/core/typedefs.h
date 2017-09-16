@@ -6,7 +6,7 @@
  *                    ******************
  *                 molecular modeling library
  *
- * Copyright (c) 2009-2013, Semen Yesylevskyy
+ * Copyright (c) 2009-2017, Semen Yesylevskyy
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of Artistic License:
@@ -27,17 +27,17 @@
 
 namespace pteros {
 
-typedef Eigen::Ref<Eigen::Vector3f> Vector3f_ref;
-typedef Eigen::Ref<Eigen::Matrix3f> Matrix3f_ref;
-typedef Eigen::Ref<Eigen::VectorXf> VectorXf_ref;
-typedef Eigen::Ref<Eigen::MatrixXf> MatrixXf_ref;
-typedef Eigen::Ref<Eigen::Vector3i> Vector3i_ref;
+using Vector3f_ref = Eigen::Ref<Eigen::Vector3f> ;
+using Matrix3f_ref = Eigen::Ref<Eigen::Matrix3f> ;
+using VectorXf_ref = Eigen::Ref<Eigen::VectorXf> ;
+using MatrixXf_ref = Eigen::Ref<Eigen::MatrixXf> ;
+using Vector3i_ref = Eigen::Ref<Eigen::Vector3i> ;
 
-typedef const Eigen::Ref<const Eigen::Vector3f>& Vector3f_const_ref;
-typedef const Eigen::Ref<const Eigen::Matrix3f>& Matrix3f_const_ref;
-typedef const Eigen::Ref<const Eigen::VectorXf>& VectorXf_const_ref;
-typedef const Eigen::Ref<const Eigen::MatrixXf>& MatrixXf_const_ref;
-typedef const Eigen::Ref<const Eigen::Vector3i>& Vector3i_const_ref;
+using Vector3f_const_ref = const Eigen::Ref<const Eigen::Vector3f>& ;
+using Matrix3f_const_ref = const Eigen::Ref<const Eigen::Matrix3f>& ;
+using VectorXf_const_ref = const Eigen::Ref<const Eigen::VectorXf>& ;
+using MatrixXf_const_ref = const Eigen::Ref<const Eigen::MatrixXf>& ;
+using Vector3i_const_ref = const Eigen::Ref<const Eigen::Vector3i>& ;
 
 }
 

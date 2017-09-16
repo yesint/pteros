@@ -22,9 +22,13 @@
 
 #include "pteros/python/compiled_plugin.h"
 #include "pteros/core/pteros_error.h"
-#include "pteros/core/grid_search.h"
+#include "pteros/core/distance_search.h"
 #include <boost/lexical_cast.hpp>
 #include <fstream>
+
+#ifndef M_PI
+#define M_PI 3.14159265358979323846264338327950288
+#endif
 
 using namespace std;
 using namespace pteros;
@@ -80,7 +84,7 @@ protected:
 
         vector<Vector2i> bon;
         vector<float> dist_vec;
-        Grid_searcher(max_dist,sel1,sel2,bon,true,true,&dist_vec);
+        search_contacts(max_dist,sel1,sel2,bon,true,true,&dist_vec);
 
 
         // Atom-atom rdf

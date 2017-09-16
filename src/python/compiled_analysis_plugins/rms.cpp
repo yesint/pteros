@@ -46,8 +46,8 @@ public:
                 "\t-nojump <distance>. Default: 0\n"
                 "\t\tRemove jumps of atoms over periodic box boundary.\n"
                 "\t\tAtoms, which should not jump, are unwrapped with\n"
-                "\t\given distance on the first frame.\n"
-                "\t\Zero means find unwrap distance automatically.\n"
+                "\t\tgiven distance on the first frame.\n"
+                "\t\tZero means find unwrap distance automatically.\n"
                 "\t\tDistance -1 means no jump removal\n"
                 "\t\tthis is only meaningful is very special cases!\n"
                 ;

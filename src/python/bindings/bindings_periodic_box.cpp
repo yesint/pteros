@@ -6,7 +6,7 @@
  *                    ******************
  *                 molecular modeling library
  *
- * Copyright (c) 2009-2013, Semen Yesylevskyy
+ * Copyright (c) 2009-2017, Semen Yesylevskyy
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of Artistic License:
@@ -20,196 +20,47 @@
  *
 */
 
-#include "bindings_periodic_box.h"
-#include "pteros/core/system.h"
-#include "pteros/python/bindings_util.h"
+#include "pteros/core/periodic_box.h"
+#include "bindings_util.h"
 
+namespace py = pybind11;
 using namespace pteros;
+using namespace std;
 using namespace Eigen;
-using namespace boost::python;
+using namespace pybind11::literals;
 
-boost::shared_ptr<Periodic_box> constructor0(PyObject* vectors, PyObject* angles){
-    MAP_EIGEN_TO_PYTHON_F(Vector3f,v,vectors)
-    MAP_EIGEN_TO_PYTHON_F(Vector3f,a,angles)
-    boost::shared_ptr<Periodic_box> g(new Periodic_box(v,a));
-    return g;
-}
+void make_bindings_Periodic_box(py::module& m){
 
-void Periodic_box_modify(Periodic_box* b, PyObject* arr){
-    MAP_EIGEN_TO_PYTHON_F(Matrix3f,m,arr)
-    b->modify(m);
-}
-
-PyObject* Periodic_box_get_matrix(Periodic_box* b){
-    CREATE_PYARRAY_2D_AND_MAP(p,Matrix3f,m,3,3)
-    m = b->get_matrix();
-    return boost::python::incref(p);
-}
-
-PyObject* Periodic_box_get_inv_matrix(Periodic_box* b){
-    CREATE_PYARRAY_2D_AND_MAP(p,Matrix3f,m,3,3)
-    m = b->get_inv_matrix();
-    return boost::python::incref(p);
-}
-
-PyObject* Periodic_box_get_vector(Periodic_box* b, int i){
-    CREATE_PYARRAY_1D_AND_MAP(vec,Vector3f,v,3)
-    v = b->get_vector(i);
-    return boost::python::incref(vec);
-}
-
-PyObject* Periodic_lab_to_box(Periodic_box* b, PyObject* point){
-    CREATE_PYARRAY_1D_AND_MAP(ret,Vector3f,v,3)
-    MAP_EIGEN_TO_PYTHON_F(Vector3f,p,point)
-    v = b->lab_to_box(p);
-    return boost::python::incref(ret);
-}
-
-PyObject* Periodic_box_to_lab(Periodic_box* b, PyObject* point){
-    CREATE_PYARRAY_1D_AND_MAP(ret,Vector3f,v,3)
-    MAP_EIGEN_TO_PYTHON_F(Vector3f,p,point)
-    v = b->box_to_lab(p);
-    return boost::python::incref(ret);
-}
-
-PyObject* Periodic_lab_to_box_transform(Periodic_box* b){
-    CREATE_PYARRAY_2D_AND_MAP(ret,Matrix3f,m,3,3)
-    m = b->lab_to_box_transform();
-    return boost::python::incref(ret);
-}
-
-PyObject* Periodic_box_to_lab_transform(Periodic_box* b){
-    CREATE_PYARRAY_2D_AND_MAP(ret,Matrix3f,m,3,3)
-    m = b->box_to_lab_transform();
-    return boost::python::incref(ret);
-}
-
-PyObject* Periodic_box_extents(Periodic_box* b){
-    CREATE_PYARRAY_1D_AND_MAP(ret,Vector3f,v,3)
-    v = b->extents();
-    return boost::python::incref(ret);
-}
-
-float Periodic_box_distance(Periodic_box* b, PyObject* point1, PyObject* point2,
-                             PyObject* periodic_dims=nullptr){
-    MAP_EIGEN_TO_PYTHON_F(Vector3f,p1,point1)
-    MAP_EIGEN_TO_PYTHON_F(Vector3f,p2,point2)
-    if(periodic_dims){
-        MAP_EIGEN_TO_PYTHON_I(Vector3i,dim,periodic_dims)
-        return b->distance(p1,p2,dim);
-    } else {
-        return b->distance(p1,p2);
-    }
-}
-
-BOOST_PYTHON_FUNCTION_OVERLOADS(Periodic_box_distance_overloads,Periodic_box_distance,3,4);
-
-float Periodic_box_distance_squared(Periodic_box* b, PyObject* point1, PyObject* point2,
-                             PyObject* periodic_dims=nullptr){
-    MAP_EIGEN_TO_PYTHON_F(Vector3f,p1,point1)
-    MAP_EIGEN_TO_PYTHON_F(Vector3f,p2,point2)
-    if(periodic_dims){
-        MAP_EIGEN_TO_PYTHON_I(Vector3i,dim,periodic_dims)
-        return b->distance_squared(p1,p2,dim);
-    } else {
-        return b->distance_squared(p1,p2);
-    }
-}
-
-BOOST_PYTHON_FUNCTION_OVERLOADS(Periodic_box_distance_squared_overloads,Periodic_box_distance_squared,3,4);
-
-void Periodic_box_wrap_point(Periodic_box* b, PyObject* point, PyObject* dims_to_wrap=nullptr){
-    MAP_EIGEN_TO_PYTHON_F(Vector3f,p,point)
-    if(dims_to_wrap){
-        MAP_EIGEN_TO_PYTHON_I(Vector3i,dim,dims_to_wrap)
-        b->wrap_point(p,dim);
-    } else {
-        b->wrap_point(p);
-    }
-}
-
-BOOST_PYTHON_FUNCTION_OVERLOADS(Periodic_box_wrap_point_overloads,Periodic_box_wrap_point,2,3);
-
-PyObject* Periodic_box_get_closest_image(Periodic_box* b, PyObject* point, PyObject* target,
-                             PyObject* dims_to_wrap=nullptr){
-    MAP_EIGEN_TO_PYTHON_F(Vector3f,p,point)
-    MAP_EIGEN_TO_PYTHON_F(Vector3f,t,target)   
-    CREATE_PYARRAY_1D_AND_MAP(ret,Vector3f,v,3)
-    if(dims_to_wrap){
-        MAP_EIGEN_TO_PYTHON_I(Vector3i,dim,dims_to_wrap)
-        v = b->get_closest_image(p,t,dim);
-        return boost::python::incref(ret);
-    } else {
-        v = b->get_closest_image(p,t);
-        return boost::python::incref(ret);
-    }
-}
-
-BOOST_PYTHON_FUNCTION_OVERLOADS(Periodic_box_get_closest_image_overloads,Periodic_box_get_closest_image,3,4);
-
-PyObject* Periodic_box_shortest_vector(Periodic_box* b, PyObject* point1, PyObject* point2,
-                                        PyObject* dims_to_wrap=nullptr){
-    MAP_EIGEN_TO_PYTHON_F(Vector3f,p1,point1)
-    MAP_EIGEN_TO_PYTHON_F(Vector3f,p2,point2)    
-    CREATE_PYARRAY_1D_AND_MAP(ret,Vector3f,v,3)
-    if(dims_to_wrap){
-        MAP_EIGEN_TO_PYTHON_I(Vector3i,dim,dims_to_wrap)
-        v = b->shortest_vector(p1,p2,dim);
-        return boost::python::incref(ret);
-    } else {
-        v = b->shortest_vector(p1,p2);
-        return boost::python::incref(ret);
-    }
-}
-
-BOOST_PYTHON_FUNCTION_OVERLOADS(Periodic_box_shortest_vector_overloads,Periodic_box_shortest_vector,3,4);
-
-
-bool Periodic_box_in_box(Periodic_box* b, PyObject* point){
-    MAP_EIGEN_TO_PYTHON_F(Vector3f,p,point)
-    return b->in_box(p);
-}
-
-
-boost::python::tuple Periodic_box_to_vectors_angles(Periodic_box* b){
-    CREATE_PYARRAY_1D_AND_MAP(vec,Vector3f,v,3)
-    CREATE_PYARRAY_1D_AND_MAP(ang,Vector3f,a,3)
-    b->to_vectors_angles(v,a);
-    return boost::python::make_tuple(handle<>(vec),handle<>(ang));
-}
-
-void Periodic_box_from_vectors_angles(Periodic_box* b, PyObject* vec, PyObject* ang){
-    MAP_EIGEN_TO_PYTHON_F(Vector3f,v,vec)
-    MAP_EIGEN_TO_PYTHON_F(Vector3f,a,ang)
-    b->from_vectors_angles(v,a);
-}
-
-
-void make_bindings_Periodic_box(){
-    import_array();
-
-    class_<Periodic_box>("Periodic_box", init<>())
-        .def("__init__",make_constructor(&constructor0))
-        .def("modify",&Periodic_box_modify)
-        .def("get_matrix",&Periodic_box_get_matrix)
-        .def("get_inv_matrix",&Periodic_box_get_inv_matrix)
-        .def("get_vector",&Periodic_box_get_vector)
-        .def("lab_to_box",&Periodic_lab_to_box)
-        .def("lab_to_box_transform",&Periodic_lab_to_box_transform)
-        .def("box_to_lab",&Periodic_box_to_lab)
-        .def("box_to_lab_transform",&Periodic_box_to_lab_transform)
+    py::class_<Periodic_box>(m, "Periodic_box")
+        .def(py::init<Vector3f_const_ref,Vector3f_const_ref>())
+        .def("get_vector",&Periodic_box::get_vector)
+        .def("get_matrix",[](Periodic_box* b){Matrix3f m = b->get_matrix().transpose(); return m;})
+        .def("set_matrix",[](Periodic_box* b, Matrix3f_const_ref m){ b->set_matrix(m.transpose()); })
+        .def("scale_vectors",&Periodic_box::scale_vectors)
+        .def("get_inv_matrix",[](Periodic_box* b){Matrix3f m = b->get_inv_matrix().transpose(); return m;})
+        .def("lab_to_box",&Periodic_box::lab_to_box)
+        .def("lab_to_box_transform",[](Periodic_box* b){Matrix3f m = b->lab_to_box_transform().transpose(); return m;})
+        .def("box_to_lab",&Periodic_box::box_to_lab)
+        .def("box_to_lab_transform",[](Periodic_box* b){Matrix3f m = b->box_to_lab_transform().transpose(); return m;})
         .def("extent",&Periodic_box::extent)
-        .def("extents",&Periodic_box_extents)
+        .def("extents",&Periodic_box::extents)
         .def("is_triclinic",&Periodic_box::is_triclinic)
         .def("is_periodic",&Periodic_box::is_periodic)
-        .def("distance",&Periodic_box_distance, Periodic_box_distance_overloads())
-        .def("distance_squared",&Periodic_box_distance_squared, Periodic_box_distance_squared_overloads())
-        .def("wrap_point",&Periodic_box_wrap_point, Periodic_box_wrap_point_overloads())
-        .def("in_box",&Periodic_box_in_box)
+        .def("distance",&Periodic_box::distance, "point1"_a, "point2"_a, "dims"_a=Eigen::Vector3i::Ones())
+        .def("distance_squared",&Periodic_box::distance_squared, "point1"_a, "point2"_a, "dims"_a=Eigen::Vector3i::Ones())
+        .def("wrap_point",&Periodic_box::wrap_point, "point"_a, "dims"_a=Eigen::Vector3i::Ones())
+        .def("in_box",&Periodic_box::in_box, "point"_a, "origin"_a=Eigen::Vector3i::Zero())
+        .def("get_closest_image",&Periodic_box::get_closest_image, "point"_a, "target"_a, "dims"_a=Eigen::Vector3i::Ones())
+        .def("shortest_vector",&Periodic_box::shortest_vector, "point1"_a, "point2"_a, "dims"_a=Eigen::Vector3i::Ones())
         .def("volume",&Periodic_box::volume)
-        .def("get_closest_image",&Periodic_box_get_closest_image, Periodic_box_get_closest_image_overloads())
-        .def("shortest_vector",&Periodic_box_shortest_vector, Periodic_box_shortest_vector_overloads())
-        .def("to_vectors_angles",&Periodic_box_to_vectors_angles)
-        .def("from_vectors_angles",&Periodic_box_from_vectors_angles)
+        .def("read_pdb_box",&Periodic_box::read_pdb_box)
+        .def("write_pdb_box",&Periodic_box::write_pdb_box)
+        .def("from_vectors_angles",&Periodic_box::from_vectors_angles)
+        .def("to_vectors_angles",[](Periodic_box* b){
+            Vector3f vec;
+            Vector3f ang;
+            b->to_vectors_angles(vec,ang);
+            return py::make_tuple(vec,ang);
+        })
     ;
 }

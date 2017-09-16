@@ -6,7 +6,7 @@
  *                    ******************
  *                 molecular modeling library
  *
- * Copyright (c) 2009-2013, Semen Yesylevskyy
+ * Copyright (c) 2009-2017, Semen Yesylevskyy
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of Artistic License:
@@ -26,12 +26,15 @@
 #include <string>
 #include <vector>
 #include <functional>
+#include <memory>
 #include <Eigen/Core>
 #include <Eigen/Dense>
 #include "pteros/core/atom.h"
 #include "pteros/core/force_field.h"
 #include "pteros/core/periodic_box.h"
 #include "pteros/core/typedefs.h"
+#include "spdlog/spdlog.h"
+#include <iostream>
 
 namespace pteros {
 
@@ -55,7 +58,7 @@ struct Energy_components {
     std::string to_str();
 
     /// Addition of energies
-    Energy_components operator+(const Energy_components& other);
+    Energy_components operator+(const Energy_components& other) const;
     Energy_components& operator+=(const Energy_components& other);
 };
 
@@ -71,13 +74,14 @@ struct Frame {
     /// Timestamp
     float time;
 
-    Frame(){        
-        time = 0.0;
-    }
+    Frame(): time(0.0) {}
 };
 
 //Forward declarations
 class Selection;
+class Atom_proxy;
+class Mol_file;
+class Mol_file_content;
 
 /**
 *  The system of atoms.
@@ -92,7 +96,7 @@ class Selection;
 */
 class System {
     // System and Selection are friends because they are closely integrated.
-    friend class Selection;
+    friend class Selection;    
     // Selection_parser must access internals of Selection
     friend class Selection_parser;
     // Mol_file needs an access too
@@ -104,6 +108,7 @@ public:
 
     /// Default constructor
     System();
+
     /// Constructor creating system from file
     System(std::string fname);
 
@@ -126,22 +131,36 @@ public:
     /// Returns selection corresponding to appended atoms
     Selection append(const System& sys);
 
-    /// Append atoms from selection to this system
-    /// Returns selection corresponding to appended atoms
+    /// Append atoms from selection to this system.
+    /// Selection may belong to any system, not necessary current.
+    /// Returns selection corresponding to appended atoms.
     Selection append(const Selection& sel);
 
     /// Append single atom to this system
     /// Returns selection corresponding to appended atom
-    Selection append(const Atom& at, const Vector3f_const_ref coord);
+    Selection append(const Atom& at, Vector3f_const_ref coord);
+
+    /** Append Atom_proxy object to this system
+     Returns selection corresponding to appended atom.
+     Usage:
+     \code
+     Selection sel(s,"name CA");
+     System new_s;
+     for(auto& at: sel){
+        new_s.append(at);
+     }
+     \endcode
+    */
+    Selection append(const Atom_proxy& at);
 
     /// Rearranges the atoms in the order of provided selection strings.
     /// Atom, which are not selected are appended at the end in their previous order.
-    /// Selections should not overlap (exception is thrown if they are).
+    /// \note Selections should not overlap (exception is thrown if they are).
     void rearrange(const std::vector<std::string>& sel_strings);
 
     /// Rearranges the atoms in the order of provided selections.
     /// Atom, which are not selected are appended at the end in their previous order.
-    /// Selections should not overlap (exception is thrown if they are).
+    /// \note Selections should not overlap (exception is thrown if they are).
     void rearrange(const std::vector<Selection>& sel_vec);
 
     /// Keep only atoms given by selection string
@@ -153,12 +172,14 @@ public:
     /// Remove atoms given by selection string
     void remove(const std::string& sel_str);
 
-    /// Remove atoms from given selection
-    void remove(const Selection& sel);
+    /// Remove atoms of given selection
+    /// \warning Selection becomes invalid after that and is cleared!
+    void remove(Selection& sel);
 
     /// Creates multiple copies of selection in the system and
-    /// distributes them in a grid
-    void distribute(const Selection sel, Vector3i_const_ref ncopies, Vector3f_const_ref shift);
+    /// distributes them in a grid given by 3 translation vectors.
+    /// Vectors are stored column-wise as shift.col(i)
+    void distribute(const Selection sel, Vector3i_const_ref ncopies, Matrix3f_const_ref shift);
 
     /// @}
 
@@ -182,29 +203,42 @@ public:
      sys = System("structure.pdb");
      Selection sel(s,"name CA");
 
-     // Convenient way:
-     sys = System("structure.pdb");
+     // Shorter way:
      auto sel = sys.select("name CA");
+
+     // Even shorter way using operator ():
+     auto sel = sys("name CA");
      \endcode
 
-     It also allows to write "one-liners" like this:
+     It also allows writing "one-liners" like this:
      \code
      System("file.pdb").select("name CA").write("ca.pdb");
      \endcode
     **/
     /// @{
 
-    Selection select(std::string str);
+    Selection select(std::string str, int fr = 0);
+    Selection operator()(std::string str, int fr = 0);
 
     Selection select(int ind1, int ind2);
+    Selection operator()(int ind1, int ind2);
 
     Selection select(const std::vector<int>& ind);
+    Selection operator()(const std::vector<int>& ind);
 
     Selection select(std::vector<int>::iterator it1,
                      std::vector<int>::iterator it2);
+    Selection operator()(std::vector<int>::iterator it1,
+                         std::vector<int>::iterator it2);
 
-    /// Convenience function to select all
+    Selection select(const std::function<void(const System&,int,std::vector<int>&)>& callback, int fr = 0);
+    Selection operator()(const std::function<void(const System&,int,std::vector<int>&)>& callback, int fr = 0);
+    /// @}
+
+    /// Convenience functions to select all
+    /// @{
     Selection select_all();
+    Selection operator()();
     /// @}
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -220,8 +254,58 @@ public:
      If callback returns false loading stops.
     */
     // Skip functionality suggested by Raul Mera
-    void load(std::string fname, int b=0, int e=-1, int skip = 0,
+    void load(std::string fname,
+              int b=0,
+              int e=-1,
+              int skip = 0,
               std::function<bool(System*,int)> on_frame = 0);
+
+    /**
+     * @brief Load data into System from the pre-opened file handler.
+     * This is rather low-level method which provides
+     * fine control over what should be read.
+     * It can be called several times to read trajectory frames one by one
+     * from the same pre-opened file.
+     */
+    bool load(const std::unique_ptr<Mol_file> &handler,
+              Mol_file_content what,         
+              std::function<bool(System*,int)> on_frame = 0);    
+
+
+    /// @name Input filtering
+    /** Filters narrow set of atoms and coordinates which are loaded from data files. Only atoms
+        specified by filter are kept in the system.
+        They follow the same rules as ordinary selections but can't be coordinate-dependent
+        and can't be set by callbacs.
+        \note Filters do not make loading faster. In fact it becomes slower
+        (up to 2 times for very large frames) and consumes
+        twise as much memory \e during loading. However when loading finishes the system will
+        contain only selected atoms. If many frames are stored in the system overall
+        memory consumption will be much smaller.
+
+        Filter could only be set to empty system (it throws an error otherwise),
+        thus the way of using them is the following:
+        \code
+        // Create empty system
+        System sys;
+        // Set filter
+        sys.set_filter("name CA");
+        // All calls to load will use filter now
+        sys.load("some_protein.pdb");
+        sys.load("trajectory.xtc");
+        \endcode
+
+        \warning Filters could not be used when loading topologies! load() throws an error if
+        attempting to load topology with filter.
+    */
+    /// @{
+    void set_filter(std::string str);
+    void set_filter(int ind1, int ind2);
+    void set_filter(const std::vector<int>& ind);
+    void set_filter(std::vector<int>::iterator it1,
+                    std::vector<int>::iterator it2);
+    /// @}
+
     /// @}
 
 
@@ -230,9 +314,9 @@ public:
     /// @{
 
     /// Duplicates given frame and adds it to the end of frame vector
-    int frame_dup(int);
+    int frame_dup(int fr);
 
-    /// Adds provided frame to trajectory
+    /// Appends provided frame to trajectory
     void frame_append(const Frame& fr);
 
     /// Copy all frame data from fr1 to fr2. Fr2 is overwritten!
@@ -242,7 +326,10 @@ public:
     *   If only @param b is supplied deletes all frames from b to the end.
     *   If only @param e is supplied deletes all frames from 0 to e
     */
-    void frame_delete(int b = 0, int e = -1);    
+    void frame_delete(int b = 0, int e = -1);
+
+    /// Swaps two specified frames
+    void frame_swap(int fr1, int fr2);
     /// @}
 
 
@@ -307,10 +394,10 @@ public:
     /// @{
 
     /// Determines secondary structure with DSSP algorithm and writes detailed report to file
-    void dssp(std::string fname) const;
+    void dssp(std::string fname, int fr) const;
 
     /// Determines secondary structure with DSSP algorithm and writes detailed report to stream
-    void dssp(std::ostream& os) const;
+    void dssp(std::ostream& os, int fr) const;
 
     /**
      * @brief Determines secondary structure with DSSP algorithm and return it as a code string
@@ -325,7 +412,7 @@ public:
         bend:		'S'
         loop:		' '
      */
-    std::string dssp() const;
+    std::string dssp(int fr) const;
     /// @}
 
 
@@ -334,15 +421,23 @@ public:
     /// These methods <b>do not</b> update resindexes automatically.
     /// @{
 
-    /// Adds new atoms, which are duplicates of existing ones by index
+    /// Adds new atoms, which are duplicates of existing ones by index. Atoms are placed at the end of the system.
     Selection atoms_dup(const std::vector<int>& ind);
 
-    /// Adds new atoms from supplied vectors of atoms and coordinates
+    /// Adds new atoms from supplied vectors of atoms and coordinates. Atoms are placed at the end of the system.
     Selection atoms_add(const std::vector<Atom>& atm,
                    const std::vector<Eigen::Vector3f>& crd);
 
     /// Delete the set of atoms by indexes
     void atoms_delete(const std::vector<int>& ind);
+
+    /// Move atom i to other position. Atom is inserted instead of atom j, shift is performed towards previous position of i.
+    void atom_move(int i, int j);
+
+    /// Duplicate single target atom and puts it immediately after the source.
+    /// If using many times this procedure is slower than doing atoms_dup() and than assign_resindex().
+    Selection atom_clone(int source);
+
     /// @}
 
 
@@ -351,7 +446,7 @@ public:
     /// @{
 
     /// Wrap all system to the periodic box for given frame
-    void wrap_all(int fr, Vector3i_const_ref dims_to_wrap = Eigen::Vector3i::Ones());
+    void wrap(int fr, Vector3i_const_ref dims_to_wrap = Eigen::Vector3i::Ones());
 
     /// @}
 
@@ -378,7 +473,7 @@ public:
     /// @{
 
     /// Compute non-bond energy between two atoms        
-    Energy_components non_bond_energy(int a1, int a2, int frame, bool is_periodic = true) const;
+    Energy_components non_bond_energy(int at1, int at2, int frame, bool is_periodic = true) const;
 
     /// Non-bond energy for given list of atom pairs
     Energy_components non_bond_energy(const std::vector<Eigen::Vector2i>& nlist, int fr, bool is_periodic=true) const;
@@ -419,18 +514,26 @@ public:
 
 protected:
 
-    /// Holds all atom attributes except the coordinates
+    // Holds all atom attributes except the coordinates
     std::vector<Atom>  atoms;
 
-    /// Coordinates for any number of frames
+    // Coordinates for any number of frames
     std::vector<Frame> traj;
 
-    /// Force field parameters
+    // Force field parameters
     Force_field force_field;
 
-    /// Supplementary function to check if last added frame contains same number
-    /// of atoms as topology
+    // Supplementary function to check if last added frame contains same number
+    // of atoms as topology
     void check_num_atoms_in_last_frame();
+
+    // Indexes for filtering
+    std::vector<int> filter;
+    // Filter selection text for text-based filters
+    std::string filter_text;
+
+    void filter_atoms();
+    void filter_coord(int fr);
 };
 
 }

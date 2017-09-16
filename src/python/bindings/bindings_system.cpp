@@ -6,7 +6,7 @@
  *                    ******************
  *                 molecular modeling library
  *
- * Copyright (c) 2009-2013, Semen Yesylevskyy
+ * Copyright (c) 2009-2017, Semen Yesylevskyy
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of Artistic License:
@@ -20,238 +20,127 @@
  *
 */
 
-#include "bindings_system.h"
-#include "pteros/core/system.h"
-#include "pteros/python/bindings_util.h"
+#include "pteros/core/selection.h"
+#include "bindings_util.h"
 
+namespace py = pybind11;
 using namespace pteros;
-using namespace Eigen;
 using namespace std;
-namespace bp = boost::python;
-using namespace boost::python;
+using namespace Eigen;
+using namespace pybind11::literals;
 
-/**********************
-  Wrappers for System
-***********************/
+void make_bindings_System(py::module& m){
 
-BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(load_overloads, load, 1, 4)
-BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(frame_delete_overloads, frame_delete, 0, 2)
+    py::class_<System>(m, "System")
+        .def(py::init<>())
+        .def(py::init<const std::string &>())
 
-const Periodic_box& System_getBox(System* s, int fr){
-    return s->Box(fr);
-}
-
-void System_setBox(System* s, int fr, Periodic_box& b){
-     s->Box(fr) = b;
-}
-
-float System_getTime(System* s, int fr){
-    return s->Time(fr);
-}
-
-void System_setTime(System* s, int fr, float t){
-    s->Time(fr) = t;
-}
-
-PyObject* System_getXYZ(System* s, int ind, int fr){
-    CREATE_PYARRAY_1D_AND_MAP(p,Vector3f,v,3)
-    v = s->XYZ(ind,fr);
-    return boost::python::incref(p);
-}
-
-void System_setXYZ(System* s, PyObject* arr, int ind, int fr){
-    MAP_EIGEN_TO_PYTHON_F(Vector3f,v,arr)
-     s->XYZ(ind,fr) = v;
-}
-
-Frame System_getFrame_data(System* s, int fr){
-    return s->Frame_data(fr);
-}
-
-void System_setFrame_data(System* s, Frame& data, int fr){
-    s->Frame_data(fr) = data;
-}
-
-
-Selection System_atoms_dup(System* s, boost::python::list& data){
-    vector<int> r;
-    r.resize(len(data));
-    for(int i=0;i<r.size();++i) r[i] = extract<int>(data[i]);
-    return s->atoms_dup(r);
-}
-
-Selection System_atoms_add(System* s, boost::python::list& atm,
-                       boost::python::list& crd){
-    vector<Atom> a;
-    vector<Vector3f> c;
-    a.resize(len(atm));
-    c.resize(len(crd));
-    for(int i=0;i<a.size();++i) a[i] = extract<Atom>(atm[i]);
-    for(int i=0;i<c.size();++i){
-        boost::python::object o = crd[i];
-        MAP_EIGEN_TO_PYTHON_F(Vector3f,v,o.ptr())
-        c[i] = v;
-    }
-    return s->atoms_add(a,c);
-}
-
-Selection System_append(System* s, const Atom& atm, PyObject* crd){
-    MAP_EIGEN_TO_PYTHON_F(Vector3f,coord,crd)
-    return s->append(atm,coord);
-}
-
-
-void System_rearrange(System* s, boost::python::list& data){
-    // Try to extract string from the first element
-    if(len(data)==0) throw Pteros_error("Need a list of selection or the list of selection strings!");
-    extract<string> get_str(data[0]);
-    if (get_str.check()){
-        // Work with strings
-        vector<string> sels(len(data));
-        for(int i=0;i<sels.size();++i) sels[i] = extract<string>(data[i]);
-        s->rearrange(sels);
-    } else {
-        // Work with selections
-        vector<Selection> sels(len(data));
-        for(int i=0;i<sels.size();++i) sels[i] = extract<Selection>(data[i]);
-        s->rearrange(sels);
-    }
-}
-
-void System_load_callback(System* sys, string fname, int b, int e, int skip, boost::python::object obj){
-    // Create a callback from obj
-    auto callback = [&obj](System* s, int fr)->bool { return extract<bool>(obj(ptr(s),fr)); };
-    sys->load(fname,b,e,skip,callback);
-}
-
-void System_wrap_all1(System* sys, int fr, bp::list& dims){
-    Vector3i d;
-    for(int i=0;i<3;++i) d(i) = extract<int>(dims[i]);
-    sys->wrap_all(fr,d);
-}
-
-void System_wrap_all2(System* sys, int fr){
-    sys->wrap_all(fr);
-}
-
-float System_distance1(System* sys, int i, int j, int fr, bool pbc, PyObject* dims){
-    MAP_EIGEN_TO_PYTHON_I(Vector3i,dim,dims)
-    return sys->distance(i,j,fr,pbc,dim);
-}
-
-float System_distance2(System* sys, int i, int j,  int fr, bool pbc){
-    return sys->distance(i,j,fr,pbc);
-}
-
-float System_distance3(System* sys, int i, int j, int fr){
-    return sys->distance(i,j,fr);
-}
-
-float System_angle1(System* sys, int i, int j, int k,  int fr, bool pbc, PyObject* dims){
-    MAP_EIGEN_TO_PYTHON_I(Vector3i,dim,dims)
-    return sys->angle(i,j,k,fr,pbc,dim);
-}
-
-float System_angle2(System* sys, int i, int j, int k,  int fr, bool pbc){
-    return sys->angle(i,j,k,fr,pbc);
-}
-
-float System_angle3(System* sys, int i, int j, int k, int fr){
-    return sys->angle(i,j,k,fr);
-}
-
-float System_dihedral1(System* sys, int i, int j, int k, int l, int fr, bool pbc, PyObject* dims){
-    MAP_EIGEN_TO_PYTHON_I(Vector3i,dim,dims)
-    return sys->dihedral(i,j,k,l,fr,pbc,dim);
-}
-
-float System_dihedral2(System* sys, int i, int j, int k, int l, int fr, bool pbc){
-    return sys->dihedral(i,j,k,l,fr,pbc);
-}
-
-float System_dihedral3(System* sys, int i, int j, int k, int l, int fr){
-    return sys->dihedral(i,j,k,l,fr);
-}
-
-void System_distribute(System* s, const Selection& sel, boost::python::list& ncopy, PyObject* shift){
-    MAP_EIGEN_TO_PYTHON_F(Vector3f,sh,shift)
-    Vector3i nc;
-    for(int i=0;i<3;++i) nc(i) = extract<int>(ncopy[i]);
-    s->distribute(sel,nc,sh);
-}
-
-
-//==================================================================
-
-void make_bindings_System(){
-    import_array();
-
-    class_<System, boost::noncopyable>("System", init<>())
-        .def(init<std::string>() )
-        .def(init<System>() )            
+        // Size
         .def("num_atoms", &System::num_atoms)
         .def("num_frames", &System::num_frames)
 
-        // bindings for select() are implemented on Python side because
-        // otherwise expressions like
-        // System('file.pdb').select('name CA').write('res.gro')
-        // do work. The reason is that C++ destructor of System gets called
-        // *before* Python calls write(). In C++ this never happens.
+        // Append
+        .def("append", py::overload_cast<const System&>(&System::append))
+        .def("append", py::overload_cast<const Selection&>(&System::append))
+        .def("append", py::overload_cast<const Atom&, Vector3f_const_ref>(&System::append))
+        .def("append", py::overload_cast<const Atom_proxy&>(&System::append))
 
-        .def("load", &System::load, load_overloads())
-        .def("load", &System_load_callback,(bp::arg("fname"),bp::arg("b")=0,bp::arg("e")=-1,bp::arg("skip")=0,bp::arg("on_frame")))
+        // Reaaranging
+        .def("rearrange", py::overload_cast<const vector<string>&>(&System::rearrange))
+        .def("rearrange", py::overload_cast<const vector<Selection>&>(&System::rearrange))
+        .def("keep", py::overload_cast<const string&>(&System::keep))
+        .def("keep", py::overload_cast<const Selection&>(&System::keep))
+        .def("remove", py::overload_cast<const string&>(&System::remove))
+        .def("remove", py::overload_cast<Selection&>(&System::remove))
+        .def("distribute", [](System* s, const Selection sel, Vector3i_const_ref ncopies, Matrix3f_const_ref shift){
+            Matrix3f m = shift.transpose();
+            s->distribute(sel,ncopies,m);
+        })
 
-        .def("frame_append", &System::frame_append)
+        // Loading
+        .def("load", py::overload_cast<string,int,int,int,std::function<bool(System*,int)>>(&System::load),
+             "fname"_a, "b"_a=0, "e"_a=-1, "skip"_a=0, "on_frame"_a=nullptr)
+
+        // Selecting
+        .def("__call__", py::overload_cast<>(&System::operator()), py::keep_alive<0,1>())
+        .def("__call__", py::overload_cast<string,int>(&System::operator()),"str"_a,"fr"_a=0, py::keep_alive<0,1>())
+        .def("__call__", py::overload_cast<int,int>(&System::operator()), py::keep_alive<0,1>())
+        .def("__call__", py::overload_cast<const std::vector<int>&>(&System::operator()), py::keep_alive<0,1>())
+        .def("__call__", py::overload_cast<const std::function<void(const System&,int,std::vector<int>&)>&,int>(&System::operator()),"callback"_a,"fr"_a=0, py::keep_alive<0,1>())
+        .def("select_all", py::overload_cast<>(&System::operator()), py::keep_alive<0,1>())
+        .def("select", py::overload_cast<string,int>(&System::operator()),"str"_a,"fr"_a=0, py::keep_alive<0,1>())
+        .def("select", py::overload_cast<int,int>(&System::operator()), py::keep_alive<0,1>())
+        .def("select", py::overload_cast<const std::vector<int>&>(&System::operator()), py::keep_alive<0,1>())
+        .def("select", py::overload_cast<const std::function<void(const System&,int,std::vector<int>&)>&,int>(&System::operator()),"callback"_a,"fr"_a=0, py::keep_alive<0,1>())
+
+        // Input filtering
+        .def("set_filter", py::overload_cast<string>(&System::set_filter))
+        .def("set_filter", py::overload_cast<int,int>(&System::set_filter))
+        .def("set_filter", py::overload_cast<const std::vector<int>&>(&System::set_filter))
+
+        // Frame operations
         .def("frame_dup", &System::frame_dup)
+        .def("frame_append", &System::frame_append)
         .def("frame_copy", &System::frame_copy)
-        .def("frame_delete", &System::frame_delete, frame_delete_overloads())
+        .def("frame_delete", &System::frame_delete, "b"_a=0, "e"_a=-1)
+        .def("frame_swap", &System::frame_swap)
 
-        .def("getFrame_data", &System_getFrame_data)
-        .def("setFrame_data", &System_setFrame_data)        
+        // Accessors
+        .def("getBox", py::overload_cast<int>(&System::Box, py::const_))
+        .def("setBox", [](System* s,int fr,const Periodic_box& b){ s->Box(fr)=b; })
 
-        .def("getBox", &System_getBox,return_value_policy<reference_existing_object>())
-        .def("setBox", &System_setBox)        
+        .def("getTime", py::overload_cast<int>(&System::Time, py::const_))
+        .def("setTime", [](System* s,int fr,int t){ s->Time(fr)=t; })
 
-        .def("getTime", &System_getTime)
-        .def("setTime", &System_setTime)               
+        .def("getFrame_data", py::overload_cast<int>(&System::Frame_data, py::const_))
+        .def("setFrame_data", [](System* s, int i, const Frame& fr){ s->Frame_data(i)=fr; })
 
-        .def("getXYZ", &System_getXYZ)
-        .def("setXYZ", &System_setXYZ)        
+        .def("getXYZ", py::overload_cast<int,int>(&System::XYZ, py::const_))
+        .def("setXYZ", [](System* s,Vector3f_const_ref v,int i,int fr){ s->XYZ(i,fr)=v; })
 
-        .def("assign_resindex", &System::assign_resindex)
+        .def("getAtom_data", py::overload_cast<int>(&System::Atom_data, py::const_))
+        .def("setAtom_data", [](System* s, int i, const Atom& a){ s->Atom_data(i)=a; })
 
-        .def("atoms_dup", &System_atoms_dup)
-        .def("atoms_add", &System_atoms_add)
+        // dssp
+        .def("dssp", py::overload_cast<string,int>(&System::dssp, py::const_))
+        .def("dssp", py::overload_cast<int>(&System::dssp, py::const_))
 
-        .def("wrap_all", &System_wrap_all1)
-        .def("wrap_all", &System_wrap_all2)
+        // operations with atoms
+        .def("atoms_dup", &System::atoms_dup)
+        .def("atoms_add", &System::atoms_add)
+        .def("atoms_delete", &System::atoms_delete)
+        .def("atom_move", &System::atom_move)
+        .def("atom_clone", &System::atom_clone)
 
-        .def("append", static_cast<Selection(System::*)(const Selection&)>(&System::append))
-        .def("append", static_cast<Selection(System::*)(const System&)>(&System::append))
-        .def("append", &System_append)
-        .def("rearrange", &System_rearrange)
+        // wrap
+        .def("wrap", &System::wrap, "fr"_a, "dims"_a=Eigen::Vector3i::Ones())
 
-        .def("keep", static_cast<void(System::*)(const Selection&)>(&System::keep))
-        .def("keep", static_cast<void(System::*)(const string&)>(&System::keep))
-        .def("remove", static_cast<void(System::*)(const Selection&)>(&System::remove))
-        .def("remove", static_cast<void(System::*)(const string&)>(&System::remove))
-        .def("distribute",&System_distribute)
+        // measuring
+        .def("distance", &System::distance, "i"_a, "j"_a, "fr"_a, "periodic"_a=true, "dims"_a=Eigen::Vector3i::Ones())
+        .def("angle", &System::angle, "i"_a, "j"_a, "k"_a, "fr"_a, "periodic"_a=true, "dims"_a=Eigen::Vector3i::Ones())
+        .def("dihedral", &System::dihedral, "i"_a, "j"_a, "k"_a, "l"_a, "fr"_a, "periodic"_a=true, "dims"_a=Eigen::Vector3i::Ones())
 
-        .def("dssp", static_cast<void(System::*)(std::string)const>(&System::dssp))
-        .def("dssp", static_cast<std::string(System::*)()const>(&System::dssp))
+        // Energy
+        .def("non_bond_energy", py::overload_cast<int,int,int,bool>(&System::non_bond_energy,py::const_), "at1"_a, "at2"_a, "fr"_a, "periodic"_a=true)
+        .def("non_bond_energy", py::overload_cast<const std::vector<Eigen::Vector2i>&,int,bool>(&System::non_bond_energy,py::const_), "nlist"_a, "fr"_a, "periodic"_a=true)
 
-        .def("sort_by_resindex",&System::sort_by_resindex)
+        // Unit
+        .def("clear", &System::clear)
+        .def("force_field_ready", &System::force_field_ready)
+        .def("assign_resindex", &System::assign_resindex, "start"_a=0)
+        .def("sort_by_resindex", &System::sort_by_resindex)
 
-        .def("distance",&System_distance1)
-        .def("distance",&System_distance2)
-        .def("distance",&System_distance3)
+    ;
 
-        .def("angle",&System_angle1)
-        .def("angle",&System_angle2)
-        .def("angle",&System_angle3)
-
-        .def("dihedral",&System_dihedral1)
-        .def("dihedral",&System_dihedral2)
-        .def("dihedral",&System_dihedral3)
+    // Energy components class
+    py::class_<Energy_components>(m, "Energy_components")
+        .def(py::init<>())
+        .def_readonly("total",&Energy_components::total)
+        .def_readonly("lj_14",&Energy_components::lj_14)
+        .def_readonly("q_14",&Energy_components::q_14)
+        .def_readonly("lj_sr",&Energy_components::lj_sr)
+        .def_readonly("q_sr",&Energy_components::q_sr)
+        .def(py::self + py::self)
+        .def(py::self += py::self)
     ;
 }

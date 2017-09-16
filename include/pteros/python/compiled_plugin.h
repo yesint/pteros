@@ -6,7 +6,7 @@
  *                    ******************
  *                 molecular modeling library
  *
- * Copyright (c) 2009-2013, Semen Yesylevskyy
+ * Copyright (c) 2009-2017, Semen Yesylevskyy
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of Artistic License:
@@ -23,49 +23,51 @@
 #ifndef COMPILED_PLUGIN_H
 #define COMPILED_PLUGIN_H
 
-// this header is needed anyway
-#include "pteros/python/compiled_plugin_base.h"
+#include "pteros/analysis/task_plugin.h"
 
 #ifndef STANDALONE_PLUGINS
 
 // Make a Python extension module from this plugin
 
-#include "pteros/python/bindings_util.h"
+#include <pybind11/pybind11.h>
+#include <pybind11/functional.h>
+#include <pybind11/operators.h>
+#include <pybind11/stl.h>
+#include <pybind11/eigen.h>
+#include <pybind11/operators.h>
 
-using namespace boost::python;
+namespace py = pybind11;
 
+#define _EVAL(arg) #arg
 #define CREATE_COMPILED_PLUGIN(_name) \
-void Pteros_error_translator(const pteros::Pteros_error& e) { \
-  PyErr_SetString(PyExc_UserWarning, const_cast<pteros::Pteros_error&>(e).what().c_str()); \
-} \
-BOOST_PYTHON_MODULE(_name) \
-{ \
-    import_array(); \
-    boost::python::numeric::array::set_module_and_type("numpy", "ndarray"); \
-    register_exception_translator<pteros::Pteros_error>(&Pteros_error_translator); \
-    class_<_name,boost::noncopyable>("Task", init<pteros::Trajectory_processor*,const pteros::Options&>()) \
-    .def_readwrite("label",&_name::label) \
-    .def("help",&_name::help) \
-    ; \
+PYBIND11_MODULE(_name, m) {\
+    py::class_<_name,Task_plugin,std::shared_ptr<_name>>(m, _EVAL(_name))\
+        .def(py::init<const Options&>())\
+        .def("help",&_name::help)\
+    ;\
 }
 
 #else //STANDALONE_PLUGINS
 
 // Make a stand-alone executable from this plugin
 
+#include "pteros/analysis/trajectory_reader.h"
 #include "pteros/core/pteros_error.h"
+#include "pteros/core/logging.h"
 
 using namespace pteros;
 using namespace std;
 
-#define CREATE_COMPILED_PLUGIN(_name) \
+// Skeleton of the driver program
+
+#define CREATE_COMPILED_PLUGIN(_name)\
 int main(int argc, char** argv){\
     try {\
         Options options;\
         parse_command_line(argc,argv,options);\
-        Trajectory_processor engine(options);\
-        _name task(&engine,options);\
-        task.label = #_name;\
+        Trajectory_reader engine(options);\
+        auto task = new _name(options);\
+        engine.add_task(task);\
         cout << "-------------------------------------------------------------" << endl;\
         cout << "  This is stand-alone Pteros analysis plugin '" #_name "'" << endl;\
         cout << "-------------------------------------------------------------" << endl;\
@@ -82,16 +84,18 @@ int main(int argc, char** argv){\
             if(help=="traj"){\
                 cout << engine.help() << endl;\
             } else if(help=="task"){\
-                cout << task.help() << endl;\
+                cout << task->help() << endl;\
             } else {\
-                cout << task.help() << endl << endl;\
+                cout << task->help() << endl << endl;\
                 cout << engine.help() << endl;\
             }\
             return 1;\
         }\
         engine.run();\
-    } catch(const Pteros_error& e) {\
-        cout << e.what() << endl;\
+    } catch (const std::exception& e) { \
+        LOG()->error(e.what()); \
+    } catch(...) { \
+        LOG()->error("Unknown error"); \
     }\
 }
 

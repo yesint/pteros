@@ -6,7 +6,7 @@
  *                    ******************
  *                 molecular modeling library
  *
- * Copyright (c) 2009-2013, Semen Yesylevskyy
+ * Copyright (c) 2009-2017, Semen Yesylevskyy
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of Artistic License:
@@ -23,11 +23,15 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <cmath>
 #include "pteros/core/periodic_box.h"
 #include "pteros/core/selection.h"
 #include "pteros/core/pteros_error.h"
-#include "pteros/core/grid_search.h"
+#include "pteros/core/distance_search.h"
 
+#ifndef M_PI
+#define M_PI 3.14159265358979323846264338327950288
+#endif
 
 using namespace std;
 using namespace pteros;
@@ -36,7 +40,7 @@ using namespace Eigen;
 Periodic_box::Periodic_box():_is_periodic(false),_is_triclinic(false),_box(Eigen::Matrix3f::Zero()){}
 
 Periodic_box::Periodic_box(Matrix3f_const_ref box){
-    modify(box);
+    set_matrix(box);
 }
 
 Periodic_box::Periodic_box(Vector3f_const_ref vectors, Vector3f_const_ref angles)
@@ -45,25 +49,32 @@ Periodic_box::Periodic_box(Vector3f_const_ref vectors, Vector3f_const_ref angles
 }
 
 Periodic_box& Periodic_box::operator=(Periodic_box other){
-    modify(other._box);
+    set_matrix(other._box);
     return *this;
 }
 
-void Periodic_box::modify(Matrix3f_const_ref box)
+void Periodic_box::set_matrix(Matrix3f_const_ref matr)
 {
-    _box = box;
+    _box = matr;
     _is_periodic = (_box.array().abs().sum()>0) ? true : false;
     if(!_is_periodic) return;
     _box_inv = _box.inverse();
     _is_triclinic = (_box(0,1)||_box(0,2)||_box(1,0)||_box(1,2)||_box(2,0)||_box(2,1));
 }
 
-Vector3f Periodic_box::get_vector(int i){
+Vector3f Periodic_box::get_vector(int i) const{
     return _box.col(i);
 }
 
 Matrix3f Periodic_box::get_matrix() const {
     return _box;
+}
+
+void Periodic_box::scale_vectors(Vector3f_const_ref scale)
+{
+    if(!_is_periodic) throw Pteros_error("No periodicity! Can't scale!");
+    for(int i=0;i<3;i++) _box.col(i) *= scale(i);
+    _box_inv = _box.inverse();
 }
 
 Matrix3f Periodic_box::get_inv_matrix() const {
@@ -120,15 +131,16 @@ void Periodic_box::wrap_point(Vector3f_ref point, Vector3i_const_ref dims) const
     point = _box*point;
 }
 
-bool Periodic_box::in_box(Vector3f_const_ref point) const
+bool Periodic_box::in_box(Vector3f_const_ref point, Vector3f_const_ref origin) const
 {
-    Vector3f p = _box_inv*point;
+    Vector3f p = _box_inv*(point-origin);
 
     for(int i=0; i<3; ++i)
         if(p(i)<0 || p(i)>1.0) return false;
 
     return true;
 }
+
 
 Eigen::Vector3f Periodic_box::get_closest_image(Vector3f_const_ref point, Vector3f_const_ref target, Vector3i_const_ref dims) const
 {    
@@ -251,7 +263,7 @@ void Periodic_box::read_pdb_box(const char *line)
     box.transposeInPlace();
 
     // Init object
-    modify(box);
+    set_matrix(box);
 }
 
 // This function works with column-ordered box!
@@ -341,5 +353,5 @@ void Periodic_box::from_vectors_angles(Vector3f_const_ref vectors, Vector3f_cons
     box.transposeInPlace();
 
     // Recompute internals
-    modify(box);
+    set_matrix(box);
 }

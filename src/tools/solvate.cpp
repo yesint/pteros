@@ -1,5 +1,6 @@
 #include "pteros/pteros.h"
 #include <Eigen/Core>
+#include "spdlog/fmt/ostr.h"
 
 using namespace std;
 using namespace pteros;
@@ -9,6 +10,8 @@ void help(){
     cout << "Usage:\n"
             "\t-solute <file>  - structure file with solute\n"
             "\t-solvent <file> - structure file with the periodic box of solvent\n"
+            "\t\tDefaults to spc216.gro from Gromacs dir if Gromacs is installed\n"
+            "\t\totherwise no default.\n"
             "\t-d <float>, default: 0.25 - minimal distance from solute to solvent in nm\n"
             "\t\tmeasured between the centers of atoms.\n"
             "\t-sel <string>, optional - custom selection of atoms to remove.\n"
@@ -23,6 +26,13 @@ void help(){
 
 int main(int argc, char* argv[]){
     try{
+        cout << "===================================" << endl;
+        cout << "==        pteros_solvent         ==" << endl;
+        cout << "===================================" << endl;
+        cout << "==  (C) Semen Yesylevskyy, 2016  ==" << endl;
+        cout << "===================================" << endl;
+
+        LOG()->set_pattern("(%l)\t%v");
 
         Options opt;
         parse_command_line(argc,argv,opt);
@@ -32,10 +42,25 @@ int main(int argc, char* argv[]){
             return 0;
         }
 
-        cout << "Loading solute..." << endl;
-        System solute( opt("solute").as_string() );
-        cout << "Loading solvent..." << endl;
-        System solvent( opt("solvent").as_string() );
+        // Solute
+
+        string solute_file = opt("solute").as_string();
+        LOG()->info("Loading solute from '{}'...", solute_file);
+        System solute( solute_file );
+
+        // Solvent
+
+        System solvent;
+        string solvent_file;
+        // Look for $GMXDATA environmental variable
+        if (const char* env_gmx = std::getenv("GMXDATA")) {
+            solvent_file = opt("solvent",string(env_gmx)+"/top/spc216.gro").as_string();
+        } else {
+            solvent_file = opt("solvent").as_string();
+        }
+
+        LOG()->info("Loading solvent from '{}'...", solvent_file);
+        solvent.load( solvent_file );
 
         if(solvent.Box(0).is_triclinic())
             throw Pteros_error("Only rectangular solvent boxes are allowed!");
@@ -49,56 +74,53 @@ int main(int argc, char* argv[]){
         Vector3i nbox;
         for(int i=0; i<3; ++i) nbox(i) = int(ceil(max_solute_coord(i)/max_solvent_coord(i)));
 
-        cout << "Will use " << nbox.transpose() << " solvent boxes..." << endl;
+        LOG()->info("Will use {} solvent boxes...", nbox.transpose());
 
         // Distribute solvent boxes
         {
-            Selection all(solvent,"all");
-            solvent.distribute(all,nbox,max_solvent_coord);
+            auto all = solvent.select_all();
+            auto m = solvent.Box(0).get_matrix();
+            solvent.distribute(all,nbox,m);
         }
 
-        // Move minimal coord solvent box to minimal coord of solute
+        // Move min coords of solvent and solute to zero
         Vector3f solvent_min,solvent_max, solute_min, solute_max;
-        Selection solute_all(solute,"all");
-        Selection solvent_all(solvent,"all");
+        auto solute_all = solute.select_all();
+        auto solvent_all = solvent.select_all();
         solute_all.minmax(solute_min,solute_max);
         solvent_all.minmax(solvent_min,solvent_max);
 
-        solvent_all.translate(solute_min-solvent_min);
+        solvent_all.translate(-solvent_min);
+        solute_all.translate(-solute_min);
 
-        cout << "Finding solvent atoms outside the solute box..." << endl;
+        LOG()->info("Finding solvent atoms outside the solute box...");
 
         // Cut solvent atoms outside the solute box
-        vector<int> bad;
-        Vector3f v;
-        for(int i=0; i<solvent_all.size(); ++i){
-            v = solute.Box(0).lab_to_box( solvent_all.XYZ(i)-solute_min );
-            if(   v(0)>solute.Box(0).extent(0)
-               || v(1)>solute.Box(0).extent(1)
-               || v(2)>solute.Box(0).extent(2)
-               || v(0)<0 || v(1)<0 || v(2) <0
-              ) bad.push_back(solvent_all.Index(i));
+        vector<int> bad;        
+        for(int i=0; i<solvent_all.size(); ++i){            
+            if( !solute.Box(0).in_box(solvent_all.XYZ(i)) ) bad.push_back(solvent_all.Index(i));
         }
 
-        cout << "Finding solvent residues outside the solute box..." << endl;
+        // Select bad atoms
+        Selection bad_sel(solvent,bad);
+        // Select whole bad residues
+        vector<Selection> bad_res;
+        bad_sel.each_residue(bad_res);
 
-        // Select by residue for bad atoms
-        string s("by residue index ");
-        for(int i=0; i<bad.size(); ++i) s += to_string(bad[i])+" ";
-        Selection bad_sel(solvent,s);
-
-        cout << "Removing " << bad_sel.size() << " atoms outside the solute box..." << endl;
-        solvent.remove(bad_sel);
+        LOG()->info("Found {} solvent molecules outside the solute box...", bad_res.size());
+        for(auto& sel: bad_res){
+            sel.set_beta(-1000);
+        }
 
         // Find last index of solute
         int last_solute_ind = solute.num_atoms()-1;
 
-        // append solvent to solute
-        solute.append(solvent);
+        // append good solvent to solute
+        solute.append(solvent("beta > -1000"));
 
-        // select bad water
+        // select overlapping water
         float d = opt("d","0.25").as_float();
-        s = "by residue (index " + to_string(last_solute_ind+1)
+        string s = "by residue (index " + to_string(last_solute_ind+1)
                 + "-" + to_string(solute.num_atoms()-1)
                 + " and within "
                 + to_string(d)+ " pbc of index 0-"
@@ -106,25 +128,56 @@ int main(int argc, char* argv[]){
 
         Selection sel(solute, s);
 
-        cout << "Removing " << sel.size() << " overlaping solvent atoms at cutoff="
-             << d <<"..."<< endl;
+        LOG()->info("Found {} overlaping solvent atoms at cutoff={}", sel.size(),d);
 
-        // Remove bad water
-        solute.remove(sel);
+        // Remove overlapping water
+        sel.set_beta(-1000);
 
         // If we have custom selection use it
-        if(opt.has("sel")){
+        if(opt.has("sel")){            
             s = opt("sel").as_string();
-            sel.modify(solute, s);
-            cout << "Removing custom selection '" + s
-                    + "' ("+to_string(sel.size())+" atoms)..." << endl;
-            solute.remove(sel);
+            Selection sel(solute, s);
+            LOG()->info("Removing atoms from custom selection '{}' ({} atoms})", s, sel.size());
+            sel.set_beta(-1000);
+        }
+
+        // Translate back to initial box center
+        solute_all.modify("beta > -1000");
+        solute_all.translate(solute_min);
+
+        // Report number of remaining solvent residues
+        map<string,int> residues;
+        int at=last_solute_ind+1;
+        do {
+            string resname = solute_all.Resname(at);
+            int resind = solute_all.Resindex(at);
+
+            // Find the end of this residue
+            do {
+                ++at;
+            } while(solute_all.Resindex(at) == resind && at<solute_all.size());
+
+            if(residues.count(resname)){
+                // such resname is present
+                ++residues[resname];
+            } else {
+                // new resname
+                residues[resname] = 1;
+            }
+
+        } while(at<solute_all.size());
+
+        LOG()->info("Number of solvent molecules added:");
+        for(auto& it: residues){
+            LOG()->info("\t{}: {}", it.first,it.second);
         }
 
         // Writing output
-        solute.select_all().write( opt("o","solvated.pdb").as_string() );
+        auto out = opt("o","solvated.pdb").as_string();
+        LOG()->info("Writing output to '{}'...", out);
+        solute_all.write(out);
 
     } catch(const Pteros_error& e) {
-        e.print();
+        LOG()->error(e.what());
     }
 }

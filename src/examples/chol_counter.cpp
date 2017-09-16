@@ -1,7 +1,9 @@
-#include "pteros/analysis/trajectory_processor.h"
-#include "pteros/analysis/consumer.h"
-#include "pteros/analysis/bilayer.h"
+#include "bilayer.h"
 #include "pteros/core/pteros_error.h"
+#include "pteros/pteros.h"
+#include "pteros/analysis/trajectory_reader.h"
+#include "pteros/analysis/task_plugin.h"
+#include <fstream>
 
 using namespace std;
 using namespace pteros;
@@ -26,13 +28,9 @@ struct Chol_data {
 };
 
 
-class Chol_counter: public Consumer {
-public:
-    Chol_counter(Trajectory_processor* pr, const Options& opt): Consumer(pr) {
-        options = opt;
-    }
+TASK_SERIAL(Chol_counter)
 protected:
-    virtual void pre_process(){        
+    virtual void pre_process() override {
         bilayer.modify(system,options("lipids_selection").as_string());
         roh.modify(system,options("chol_head_selection").as_string());
         lip_name1 = options("lipid_name1").as_string();
@@ -43,7 +41,7 @@ protected:
         bi.create(bilayer,marker_sel_text,2.0);        
     }
 
-    virtual void process_frame(const Frame_info& info){
+    virtual void process_frame(const Frame_info& info) override {
         bilayer.set_frame(0);
 
         Chol_data dum;
@@ -130,7 +128,7 @@ protected:
         cout << "Frame " << info.absolute_frame << " " << trace.back().print() << endl;
     }
 
-    virtual void post_process(const Frame_info& info){
+    virtual void post_process(const Frame_info& info) override {
 
         // Write trace
         ofstream ff(options("output_file","trace.dat").as_string().c_str());
@@ -170,11 +168,11 @@ int main(int argc, char** argv){
     try {
         Options options;
         parse_command_line(argc,argv,options);
-        Trajectory_processor proc(options);
-        Chol_counter counter(&proc,options);
+        Trajectory_reader proc(options);
+        proc.add_task(new Chol_counter(options));
         proc.run();
     } catch(const Pteros_error& e){
-        e.print();
+        cout << e.what() << endl;
     }
 }
 

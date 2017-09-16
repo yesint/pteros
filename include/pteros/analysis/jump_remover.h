@@ -6,7 +6,7 @@
  *                    ******************
  *                 molecular modeling library
  *
- * Copyright (c) 2009-2013, Semen Yesylevskyy
+ * Copyright (c) 2009-2017, Semen Yesylevskyy
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of Artistic License:
@@ -26,8 +26,6 @@
 #include "pteros/core/selection.h"
 #include "pteros/analysis/frame_info.h"
 
-#include <iostream>
-
 namespace pteros {
 
 class Jump_remover {    
@@ -37,9 +35,10 @@ public:
     void set_dimensions(Vector3i_const_ref dim);
     /// -1 means do not unwrap, 0 means auto find distance
     void set_unwrap_dist(float d);
+    void set_leading_index(int ind);
 
     // Remove jumps
-    void remove_jumps(System& system, const Frame_info &info);
+    void remove_jumps(System& system);
 
 private:    
     // Indexes for removing jumps
@@ -50,6 +49,10 @@ private:
     Eigen::Vector3i dims;
     // Starting distance for unwrapping. -1 means no unwrapping (default)
     float unwrap_d;
+    // Leading index for unwrapping
+    int leading_index;
+
+    bool initialized;
 };
 
 } // namespace

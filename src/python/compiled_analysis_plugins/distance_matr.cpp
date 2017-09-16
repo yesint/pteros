@@ -22,7 +22,7 @@
 
 #include "pteros/python/compiled_plugin.h"
 #include <fstream>
-#include "pteros/core/grid_search.h"
+#include "pteros/core/distance_search.h"
 
 using namespace std;
 using namespace pteros;
@@ -74,7 +74,7 @@ protected:
         float r;
         if(dist>0){
             vector<Eigen::Vector2i> bon;
-            Grid_searcher(dist,sel,bon);
+            search_contacts(dist,sel,bon);
             for(i=0;i<bon.size();++i){
                 if(abs(bon[i](0)-bon[i](1))>4){
                     r = (sel.XYZ(bon[i](0))-sel.XYZ(bon[i](1))).norm();

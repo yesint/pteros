@@ -49,7 +49,7 @@ protected:
     }
 
     void process_frame(const Frame_info &info){
-        f << info.valid_frame << "," << system.dssp() << endl;
+        f << info.valid_frame << "," << system.dssp(0) << endl;
     }
 
     void post_process(const Frame_info &info){        

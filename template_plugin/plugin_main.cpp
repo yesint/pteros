@@ -6,12 +6,10 @@ using namespace std;
 using namespace pteros;
 using namespace Eigen;
 
-class PLUGIN_NAME: public Compiled_plugin_base {
+TASK_SERIAL(PLUGIN_NAME)
 public:
 
-    PLUGIN_NAME(Trajectory_processor* pr, const Options& opt): Compiled_plugin_base(pr,opt) { }
-
-    string help(){
+    string help() override {
         return  "Purpose:\n"
                 "\tPut purpose of your plugin here\n"
                 "Output:\n"
@@ -21,21 +19,20 @@ public:
     }
 
 protected:
-    void pre_process(){
+    void pre_process() override {
         string sel_text = options("selection").as_string();
         use_mass = options("mass_weighted","false").as_bool();
         sel.modify(system,sel_text);
-        cout << "Working on selection " << sel.get_text() << endl;
-        cout << "There are " << sel.size() << " atoms in selection" << endl;
+        log->info("Working on selection '{}'", sel.get_text());
+        log->info("There are {} atoms in selection", sel.size());
     }
 
-    void process_frame(const Frame_info &info){
-        cout << "Frame " << info.absolute_frame << " time " << info.absolute_time << endl;
-        cout << "Selection center: " << sel.center(use_mass).transpose() << endl;
+    void process_frame(const Frame_info &info) override {
+        log->info("Frame: {}, time: {}, center: {}", info.absolute_frame, info.absolute_time, sel.center(use_mass).transpose());
     }
 
-    void post_process(const Frame_info &info){
-        cout << "Finished" << endl;
+    void post_process(const Frame_info &info) override {
+        log->info("Finished");
     }
 private:
     Selection sel;

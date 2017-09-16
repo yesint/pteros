@@ -6,7 +6,7 @@
  *                    ******************
  *                 molecular modeling library
  *
- * Copyright (c) 2009-2013, Semen Yesylevskyy
+ * Copyright (c) 2009-2017, Semen Yesylevskyy
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of Artistic License:
@@ -26,38 +26,66 @@
 #include <string>
 #include "pteros/core/system.h"
 #include "pteros/core/selection.h"
+#include <bitset>
 
 namespace pteros {
 
-/// What is stored in this file type?
-struct Mol_file_content {
-    bool structure; // The list of atoms and their properties
-    bool coordinates; // Single frame
-    bool trajectory; // Many frames
-    bool topology; // Molecular topology
+class Mol_file_content {
+public:
+    Mol_file_content(){
+        flags.reset();
+    }
 
-    Mol_file_content(): structure(false), coordinates(false),
-                        trajectory(false), topology(false) {}
+    // The list of atoms and their properties
+    bool atoms() const { return flags[0]; }
+    Mol_file_content atoms(bool val){ flags[0] = val; return *this;}
 
-    Mol_file_content(bool str, bool coor, bool trj, bool top): structure(str),
-        coordinates(coor), trajectory(trj), topology(top) {}
+    // Single set of coordinates
+    bool coord() const { return flags[1]; }
+    Mol_file_content coord(bool val){ flags[1] = val; return *this;}
+
+    // Many frames
+    bool traj() const { return flags[2]; }
+    Mol_file_content traj(bool val){ flags[2] = val; return *this;}
+
+    // Molecular topology
+    bool top() const { return flags[3]; }
+    Mol_file_content top(bool val){ flags[3] = val; return *this;}
+
+    // Random access trajectory (for the future)
+    bool rand() const { return flags[4]; }
+    Mol_file_content rand(bool val){ flags[4] = val; return *this;}
+
+private:
+    std::bitset<5> flags;
 };
 
 /// Generic API for reading and writing any molecule file formats
 class Mol_file {
 public:
-    // Recognizes file extension and returns a handler object
+    /// Recognizes file extension and returns a file handler
     static std::unique_ptr<Mol_file> recognize(std::string fname);
-    // Opens a file with given access mode. Need to be defined by derived classes.
+
+    /** Recognize file extension, open file for reading or writing and return a file handler.
+     This function is aquivalent to:
+     \code
+     auto f = Mol_file::recognize(fname);
+     f.open(mode);
+     \endcode
+    */
+    static std::unique_ptr<Mol_file> open(std::string fname, char open_mode);
+
+    /// Opens a file with given access mode. Need to be defined by derived classes.
     virtual void open(char open_mode) = 0;
 
     virtual ~Mol_file();
 
     /// Reads data, which are specified by what.
-    /// Pointers to System and Frame could be NULL if not used
+    /// Pointers to System and Frame could be nullptr if not used
+    /// Returns true if read operation is succesfull and false if not.    
     bool read(System* sys, Frame* frame, const Mol_file_content& what);
 
-    /// Write given data from selection specidied by what.
+    /// Write data from selection specidied by what.
     void write(const Selection& sel, const Mol_file_content& what);
 
     /// Reports content of this file type

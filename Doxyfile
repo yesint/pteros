@@ -228,7 +228,9 @@ TAB_SIZE               = 8
 # "Side Effects:". You can put \n's in the value part of an alias to insert
 # newlines.
 
-ALIASES                = 
+ALIASES += col1="<table border="0" width=\"100%\"><tr><td align=\"center\" width=\"50%\">C++</td><td align=\"center\" width=\"50%\">Python</td></tr><tr><td>\code{.cpp}"
+ALIASES += col2="\endcode </td><td> \code{.py}"
+ALIASES += endcol="\endcode </td></tr></table>"
 
 # This tag can be used to specify a number of word-keyword mappings (TCL only).
 # A mapping has the form "name=value". For example adding "class=itcl::class"
@@ -796,7 +798,8 @@ RECURSIVE              = YES
 EXCLUDE                = ./src/core/xdrfile \
                          ./src/core/molfile_plugins \
                          ./src/core/sasa \
-                         ./src/core/tng_io
+                         ./src/core/tng_io \
+                         ./src/tools/json_spirit
 
 # The EXCLUDE_SYMLINKS tag can be used to select whether or not files or
 # directories that are symbolic links (a Unix file system feature) are excluded
@@ -2083,7 +2086,7 @@ DOT_NUM_THREADS        = 0
 # The default value is: Helvetica.
 # This tag requires that the tag HAVE_DOT is set to YES.
 
-DOT_FONTNAME           = FreeSans
+DOT_FONTNAME           = 
 
 # The DOT_FONTSIZE tag can be used to set the size (in points) of the font of
 # dot graphs.

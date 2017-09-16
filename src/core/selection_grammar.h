@@ -6,7 +6,7 @@
  *                    ******************
  *                 molecular modeling library
  *
- * Copyright (c) 2009-2013, Semen Yesylevskyy
+ * Copyright (c) 2009-2017, Semen Yesylevskyy
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of Artistic License:
@@ -23,7 +23,7 @@
 #ifndef SELECTION_GRAMMAR_H
 #define SELECTION_GRAMMAR_H
 
-#include "pteros/core/selection_parser.h"
+#include "selection_parser.h"
 #include <functional>
 #include <map>
 #include "pteros/core/pteros_error.h"
@@ -350,7 +350,7 @@ public:
         int val = strtoul(&*_old_, &e, 0);
         _pos_ += e-&*_old_;
         if(_old_!=_pos_) _ok_ = true;
-        SP_(); // Consume any training space if present
+        SP_(); // Consume any trailing space if present
 
         if(_ok_){
             _this_rule_->code = TOK_UINT;
@@ -363,7 +363,7 @@ public:
         int val = strtol(&*_old_, &e, 0);
         _pos_ += e-&*_old_;
         if(_old_!=_pos_) _ok_ = true;
-        SP_(); // Consume any training space if present
+        SP_(); // Consume any trailing space if present
 
         if(_ok_){
             _this_rule_->code = TOK_INT;
@@ -648,6 +648,8 @@ public:
                 // Reduce pbc node to number 0 or 1
                 _this_rule_->children[3] = _this_rule_->child_as_int(3);                
             }
+            // Reduce 3 first nodes to floats
+            for(int i=0;i<3;++i) _this_rule_->children[i] = _this_rule_->child_as_float(i);
         } // _ok_
     }
 
@@ -669,6 +671,8 @@ public:
                 // Reduce pbc node to number 0 or 1
                 _this_rule_->children[6] = _this_rule_->child_as_int(6);
             }
+            // Reduce 6 first nodes to floats
+            for(int i=0;i<6;++i) _this_rule_->children[i] = _this_rule_->child_as_float(i);
         } // _ok_
     }
 
@@ -690,6 +694,8 @@ public:
                 // Reduce pbc node to number 0 or 1
                 _this_rule_->children[6] = _this_rule_->child_as_int(6);
             }
+            // Reduce 6 first nodes to floats
+            for(int i=0;i<6;++i) _this_rule_->children[i] = _this_rule_->child_as_float(i);
         } // _ok_
     }
 

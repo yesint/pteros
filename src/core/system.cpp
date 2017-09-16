@@ -6,7 +6,7 @@
  *                    ******************
  *                 molecular modeling library
  *
- * Copyright (c) 2009-2013, Semen Yesylevskyy
+ * Copyright (c) 2009-2017, Semen Yesylevskyy
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of Artistic License:
@@ -20,22 +20,25 @@
  *
 */
 
-#include <iostream>
+
 #include <fstream>
-#include <iomanip>
 #include <unordered_map>
 #include "pteros/core/system.h"
 #include "pteros/core/selection.h"
 #include "pteros/core/pteros_error.h"
-#include "pteros/core/grid_search.h"
+#include "pteros/core/distance_search.h"
 #include "pteros/core/mol_file.h"
+#include "selection_parser.h"
 // DSSP
 #include "pteros_dssp_wrapper.h"
-
+#include "pteros/core/logging.h"
 
 using namespace std;
 using namespace pteros;
 using namespace Eigen;
+using namespace fmt;
+
+
 
 // Base constructor of the system class
 System::System() {
@@ -43,7 +46,7 @@ System::System() {
 }
 
 // Construnt system from file
-System::System(string fname) {    
+System::System(string fname) {
     clear();
     load(fname);
 }
@@ -68,35 +71,61 @@ void System::clear(){
     atoms.clear();
     traj.clear();
     force_field.clear();
+    filter.clear();
+    filter_text = "";
 }
 
 void System::check_num_atoms_in_last_frame(){
-    if(Frame_data(num_frames()-1).coord.size()!=num_atoms())
-        throw Pteros_error("File contains "
-                           +to_string(Frame_data(num_frames()-1).coord.size())
-                           +" atoms while the system has "
-                           +to_string(num_atoms())
-                           );
+    if(Frame_data(num_frames()-1).coord.size()!=num_atoms())        
+        throw Pteros_error("File contains {} atoms while the system has {}",
+                       Frame_data(num_frames()-1).coord.size(),num_atoms() );
+}
+
+void System::filter_atoms()
+{
+    if(filter.empty() && filter_text=="") return; // Do nothing if no filtering
+
+    if(filter_text!="" && filter.empty()){
+        // Parse text-based filter
+        Selection_parser parser;
+        parser.create_ast(filter_text);
+        if(parser.has_coord) throw Pteros_error("Coordinate-dependent selections are not allowed in filters!");
+        parser.apply(this, 0, filter);
+    }
+
+    vector<Atom> tmp = atoms;
+    atoms.resize(filter.size());
+    for(int i=0; i<filter.size(); ++i) atoms[i] = tmp[filter[i]];
+}
+
+void System::filter_coord(int fr)
+{
+    if(filter.empty()) return; // Do nothing if no filtering
+    vector<Vector3f> tmp = traj[fr].coord;
+    traj[fr].coord.resize(filter.size());
+    for(int i=0; i<filter.size(); ++i) traj[fr].coord[i] = tmp[filter[i]];
 }
 
 // Load structure or trajectory
 void System::load(string fname, int b, int e, int skip, std::function<bool(System*,int)> on_frame){
     // Create an IO handler
-    auto f = Mol_file::recognize(fname);
-    // Open file for reading
-    f->open('r');
+    auto f = Mol_file::open(fname,'r');
 
     int num_stored = 0;    
 
     if(num_atoms()==0){
         // We don't have atoms yet, so we will read everything possible except trajectory
-        Mol_file_content c = f->get_content_type();
+        auto c = f->get_content_type();
 
-        if(c.coordinates && !c.trajectory){
-            // If we have single frame read it directly here
+        if(c.coord() && !c.traj()){
+            // We have single frame. Read it directly here
             Frame fr;
             frame_append(fr);
-            f->read(this,&Frame_data(num_frames()-1),c);
+            f->read(this, &Frame_data(num_frames()-1), c);
+
+            filter_atoms();
+            filter_coord(num_frames()-1);
+
             check_num_atoms_in_last_frame();
             ++num_stored;
 
@@ -107,27 +136,25 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
             // And now we should just exit
             return;
         } else {
-            // We have not a single frame, so read only structure here
+            // We have not a single frame, so read only atoms here
             // Clear flags for trajectory and coordinates
-            c.coordinates = c.trajectory = false;
-            f->read(this,nullptr,c);
+            c.coord(false);
+            c.traj(false);
+
+            f->read(this, nullptr, c);
+            filter_atoms();
             assign_resindex();
         }        
     }
 
-    // Do we have some structure?
-    if(num_atoms()>0){                
+    if(num_atoms()>0){
         // We have atoms already, so read only coordinates
-        if(!f->get_content_type().coordinates && !f->get_content_type().trajectory)
-            throw Pteros_error("File reader for file '"+fname
-                               +"' is not capable of appending frames to the system!");
+        auto c = f->get_content_type();
+        if(!c.coord() && !c.traj())
+            throw Pteros_error("File reader for file '{}' is not capable of appending frames to the system!",fname);
 
         // Check if we can read trajectory
-        if(f->get_content_type().trajectory){
-
-            Mol_file_content c;
-            c.trajectory = true;
-
+        if(c.traj()){
             // Sanity check for frame range
             if((e<b && e!=-1)|| b<0)
                 throw Pteros_error("Invalid frame range for reading!");
@@ -136,17 +163,15 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
 
             // Skip frames if needed
             if(b>0){
-                cout << "Skipping " << b << " frames..." << endl;
+                LOG()->info("Skipping {} frames...\n", b);
                 Frame skip_fr;
                 for(int i=0;i<b;++i){
-                    f->read(nullptr,&skip_fr,c);
+                    f->read(nullptr, &skip_fr, Mol_file_content().traj(true));                    ;
                     cur++;
                 }
-            }
+            }            
 
-            int first = num_frames(); // Remember start
-
-            cout << "Reading..."<<endl;
+            LOG()->info("Reading...\n");
 
             int actually_read = 0;
 
@@ -160,12 +185,13 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
                 Frame fr;
                 frame_append(fr);
                 // Try to read into it
-                bool ok = f->read(nullptr,&Frame_data(num_frames()-1),c);
+                bool ok = f->read(nullptr, &Frame_data(num_frames()-1), Mol_file_content().traj(true));
                 if(!ok){
                     frame_delete(num_frames()-1); // Remove last frame - it's invalid
                     break; // end of trajectory
                 }
 
+                filter_coord(num_frames()-1);
                 check_num_atoms_in_last_frame();
 
                 ++cur;
@@ -186,28 +212,129 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
                 // If callback returns false stop reading
                 if(!callback_ok) break;
             }
-        } else if(f->get_content_type().coordinates && !f->get_content_type().topology) {
-            Mol_file_content c;
-            c.coordinates = true;
-            // File contains single frame
+        } else if(c.coord() && !c.top()) {
+            // File contains single frame and no topology
             // Append new frame where the data will go
             Frame fr;
             frame_append(fr);
-            // Read it
-            f->read(nullptr,&Frame_data(num_frames()-1),c);
+            // Read it            
+            f->read(nullptr, &Frame_data(num_frames()-1), Mol_file_content().coord(true));
+            filter_coord(num_frames()-1);
             check_num_atoms_in_last_frame();
             ++num_stored;
             // Call a callback if asked
             if(on_frame) on_frame(this,num_frames()-1);
-        } else if(f->get_content_type().topology) {
+
+        } else if(f->get_content_type().top()) {
             // This is topology file, read only topology
-            Mol_file_content c;
-            c.topology = true;
-            f->read(this,nullptr,c);
+            f->read(this, nullptr, Mol_file_content().top(true) );
+            // For topology filtering is not possible
+            if(!filter.empty() || filter_text!="") throw Pteros_error("Filtering is not possible when reading topology!");
         }
     }
 
-    cout << "Accepted " << num_stored << " frames. Now " << num_frames() << " frames in the System" << endl;
+    LOG()->info("Accepted {} frames. Now {} frames in the System.\n", num_stored, num_frames());
+}
+
+bool System::load(const std::unique_ptr<Mol_file>& handler, Mol_file_content what, std::function<bool (System *, int)> on_frame)
+{        
+    // Asked for structure or topology
+    if(what.atoms() || what.top() || what.coord()){
+        if(what.top() && (!filter.empty() || filter_text!=""))
+            throw Pteros_error("Filtering is not possible when reading topology!");
+
+        // We don't want to read traj here, so disable it even if asked to read it
+        auto c = what;
+        c.traj(false);
+
+        // If we are reading new atoms we have to clear the system first
+        if(what.atoms()) clear();
+
+        // See if we asked for coordinates
+        if(what.coord()){
+            Frame fr;
+            frame_append(fr);
+            handler->read(this, &Frame_data(num_frames()-1), c);
+
+            filter_atoms();
+            filter_coord(num_frames()-1);
+
+            check_num_atoms_in_last_frame();
+            if(what.atoms()) assign_resindex();
+            // Call a callback if asked
+            if(on_frame) on_frame(this,num_frames()-1);
+        } else {
+            // Not asked for coordinates
+            handler->read(this, nullptr, c);
+            filter_coord(num_frames()-1);
+            if(what.atoms()) assign_resindex();
+        }
+    }
+
+    // Asked for trajectory frame
+    if(what.traj()){
+        // Append new frame where the data will go
+        Frame fr;
+        frame_append(fr);
+        // Try to read into it
+        bool ok = handler->read(nullptr, &Frame_data(num_frames()-1), Mol_file_content().traj(true));
+        if(!ok){
+            frame_delete(num_frames()-1); // Remove last frame - it's invalid
+            return false;
+        }
+
+        filter_coord(num_frames()-1);
+        check_num_atoms_in_last_frame();
+
+        // Call a callback if asked
+        if(on_frame) on_frame(this,num_frames()-1);
+        // Since we are reading one frame return doesn't matter
+    }
+
+    return true;
+}
+
+void System::set_filter(string str)
+{
+    if(atoms.size()) throw Pteros_error("Filter could be set to empty system only!");
+    filter_text = str;
+    filter.clear();
+}
+
+void sort_and_remove_duplicates(std::vector<int>& index)
+{
+    if(index.size()){
+        sort(index.begin(),index.end());
+        vector<int>::iterator it = unique(index.begin(), index.end());
+        index.resize( it - index.begin() );
+        if(index[0]<0) throw Pteros_error("Negative index {} present in filter!",index[0]);
+    }
+}
+
+
+void System::set_filter(int ind1, int ind2)
+{
+    if(atoms.size()) throw Pteros_error("Filter could be set to empty system only!");
+    filter.reserve(ind2-ind1+1);
+    for(int i=ind1; i<=ind2; ++i) filter.push_back(i);
+    sort_and_remove_duplicates(filter);
+    filter_text="";
+}
+
+void System::set_filter(const std::vector<int> &ind)
+{
+    if(atoms.size()) throw Pteros_error("Filter could be set to empty system only!");
+    filter = ind;
+    sort_and_remove_duplicates(filter);
+    filter_text="";
+}
+
+void System::set_filter(vector<int>::iterator it1, vector<int>::iterator it2)
+{
+    if(atoms.size()) throw Pteros_error("Filter could be set to empty system only!");
+    copy(it1,it2,back_inserter(filter));
+    sort_and_remove_duplicates(filter);
+    filter_text="";
 }
 
 // Destructor of the system class
@@ -215,14 +342,14 @@ System::~System() {}
 
 int System::frame_dup(int fr){
     if(fr<0 || fr>=traj.size())
-    	throw Pteros_error("Invalid frame for duplication!");
+        throw Pteros_error("Invalid frame {} for duplication!",fr);
     traj.push_back(traj[fr]);
     return traj.size()-1;
 }
 
 void System::frame_copy(int fr1, int fr2){
     if(fr1<0 || fr1>=traj.size() || fr2<0 || fr2>=traj.size())
-    	throw Pteros_error("Invalid frame for copying!");
+        throw Pteros_error("Invalid frames {} and {} for copying!",fr1,fr2);
     traj[fr2] = traj[fr1];    
 }
 
@@ -231,7 +358,7 @@ void System::frame_delete(int b, int e){
     int i;    
 
     if(e==-1) e = num_frames()-1;
-    if(e<b || b<0 || e>num_frames()-1) throw Pteros_error("Invalid frame range for deletion");    
+    if(e<b || b<0 || e>num_frames()-1) throw Pteros_error("Invalid frame range {}:{} for deletion",b,e);
 
     // Get iterators for deletion
     vector<Frame>::iterator b_it, e_it;
@@ -245,7 +372,14 @@ void System::frame_delete(int b, int e){
 
     // Check if there are some frames left. If not print the warning
     // that all selections are invalid!
-    if(traj.size()==0) cout << "All frames are deleted. All selections are now INVALID!";
+    if(traj.size()==0) LOG()->warn("All frames are deleted. All selections are now INVALID!\n");
+}
+
+void System::frame_swap(int fr1, int fr2)
+{
+    if(fr1<0 || fr1>=traj.size() || fr2<0 || fr2>=traj.size())
+        throw Pteros_error("Invalid frames {} and {} for swapping!",fr1,fr2);
+    std::swap(traj[fr1],traj[fr2]);
 }
 
 void System::frame_append(const Frame& fr){
@@ -254,7 +388,7 @@ void System::frame_append(const Frame& fr){
 
 void System::assign_resindex(int start){
     if(start<0) start=0;
-    //cout << "Assigning resindex..." << endl;
+
     int curres = atoms[start].resid;
     int curchain = atoms[start].chain;
     int cur = 0;
@@ -275,9 +409,15 @@ void System::sort_by_resindex()
     vector<int> ind(atoms.size());
     for(int i=0;i<ind.size();++i) ind[i] = i;
     // Sort indexes
-    sort(ind.begin(),ind.end(), [this](int i, int j){
-                                    return (Atom_data(i).resindex < Atom_data(j).resindex);
-                                } );
+    sort(ind.begin(),ind.end(),
+       [this](int i, int j){
+        if(Atom_data(i).resindex == Atom_data(j).resindex){
+            return (i<j);
+        } else {
+            return (Atom_data(i).resindex < Atom_data(j).resindex);
+        }
+       }
+    );
     // Now shuffle atoms and coordinates according to indexes
     vector<Atom> tmp(atoms); //temporary
     for(int i=0;i<ind.size();++i) atoms[i] = tmp[ind[i]];
@@ -294,7 +434,7 @@ Selection System::atoms_dup(const vector<int>& ind){
     if(!ind.size()) throw Pteros_error("No atoms to duplicate!");
     for(int i=0; i<ind.size(); ++i){
         if(ind[i]<0 || ind[i]>atoms.size()-1)
-            throw Pteros_error("Invalid index for atom duplication!");
+            throw Pteros_error("Invalid index {} for atom duplication!", ind[i]);
     }
 
     // Duplicate atoms
@@ -323,7 +463,8 @@ Selection System::atoms_dup(const vector<int>& ind){
 Selection System::atoms_add(const vector<Atom>& atm, const vector<Vector3f>& crd){
     // Sanity check
     if(!atm.size()) throw Pteros_error("No atoms to add!");
-    if(atm.size()!=crd.size()) throw Pteros_error("Wrong number of coordinates for adding atoms!");
+    if(atm.size()!=crd.size())
+        throw Pteros_error("Number of coordinates {} doesn't mutch number of atoms {}",crd.size(),atm.size());
 
     int first_added = atoms.size();
     int last_added = atoms.size()+atm.size()-1;
@@ -356,7 +497,7 @@ void System::atoms_delete(const std::vector<int> &ind){
     if(!ind.size()) throw Pteros_error("No atoms to delete!");
     for(int i=0; i<ind.size(); ++i){
         if(ind[i]<0 || ind[i]>atoms.size()-1)
-            throw Pteros_error("Invalid index for atom deletion!");
+            throw Pteros_error("Index {} for atom is out of range (0:{})!",ind[i],atoms.size()-1);
     }
 
     // Mark atoms for deletion by assigning negative mass
@@ -382,9 +523,48 @@ void System::atoms_delete(const std::vector<int> &ind){
     }
 }
 
+void System::atom_move(int i, int j)
+{
+    // Sanity check
+    if(i<0 || i>=num_atoms()) throw Pteros_error(format("Index of atom to move ({}}) is out of range ({}:{})!", i,0,num_atoms()));
+    if(j<0 || i>=num_atoms()) throw Pteros_error(format("Target index to move ({}}) is out of range ({}:{}})!", i,0,num_atoms()));
+    if(i==j) return; // Nothing to do
+
+    // Move atom
+    auto at = Atom_data(i);
+
+    if(i<j){
+        for(int a=i+1; a<=j; ++a) Atom_data(a-1) = Atom_data(a);
+        Atom_data(j) = at;
+
+        for(int fr=0; fr<num_frames(); ++fr){
+            auto coord = XYZ(i,fr);
+            for(int a=i+1; a<=j; ++a) XYZ(a-1,fr) = XYZ(a,fr);
+            XYZ(j,fr) = coord;
+        }
+    } else {
+        for(int a=i-1; a>=j; --a) Atom_data(a+1) = Atom_data(a);
+        Atom_data(j) = at;
+
+        for(int fr=0; fr<num_frames(); ++fr){
+            auto coord = XYZ(i,fr);
+            for(int a=i-1; a>=j; --a) XYZ(a+1,fr) = XYZ(a,fr);
+            XYZ(j,fr) = coord;
+        }
+    }
+}
+
+Selection System::atom_clone(int source)
+{
+    atoms_dup({source});
+    atom_move(num_atoms()-1,source+1);
+    return Selection(*this,source+1,source+1);
+}
+
 Selection System::append(const System &sys){
     //Sanity check
-    if(num_frames()>0 && num_frames()!=sys.num_frames()) throw Pteros_error("Can't merge systems with different number of frames!");
+    if(num_frames()>0 && num_frames()!=sys.num_frames())
+        throw Pteros_error("Can't merge systems with different number of frames ({} and {}})!",num_frames(),sys.num_frames());
     // If no frames create needed ammount
     bool transfer_time_box = false;
     if(num_frames()==0){
@@ -411,17 +591,20 @@ Selection System::append(const System &sys){
     return Selection(*this,first_added,num_atoms()-1);
 }
 
-Selection System::append(const Selection &sel){
-    //Sanity check
-    if(num_frames()>0 && num_frames()!=sel.get_system()->num_frames()) throw Pteros_error("Can't merge systems with different number of frames!");
+Selection System::append(const Selection &sel){    
+    //Sanity check    
+    if(num_frames()>0 && num_frames()!=sel.get_system()->num_frames())
+        throw Pteros_error("Can't merge systems with different number of frames! ({} and {}})",
+                           num_frames(),sel.get_system()->num_frames());
+
     // If no frames create needed ammount
     bool transfer_time_box = false;
     if(num_frames()==0){
         transfer_time_box = true;
-        traj.resize(sel.get_system()->num_frames());
+        traj.resize(sel.get_system()->num_frames());        
     }
 
-    int first_added = num_atoms();
+    int first_added = num_atoms();    
 
     // Merge atoms
     //atoms.reserve(atoms.size()+sel.size());
@@ -444,7 +627,7 @@ Selection System::append(const Selection &sel){
     return Selection(*this,first_added,num_atoms()-1);
 }
 
-Selection System::append(const Atom &at, const Vector3f_const_ref coord)
+Selection System::append(const Atom &at, Vector3f_const_ref coord)
 {
     // If no frames create one
     if(num_frames()==0){
@@ -466,19 +649,25 @@ Selection System::append(const Atom &at, const Vector3f_const_ref coord)
     return Selection(*this,first_added,num_atoms()-1);
 }
 
+Selection System::append(const Atom_proxy &at)
+{
+    return append(at.Atom_data(),at.XYZ());
+}
+
 void System::rearrange(const std::vector<string> &sel_strings){
     vector<Selection> sel_vec(sel_strings.size());
     for (int i=0; i<sel_strings.size(); ++i){
-        sel_vec[i].modify(*this, sel_strings[i]);
+        sel_vec[i].modify(*this, sel_strings[i]);        
     }
 
     rearrange(sel_vec);
 }
 
 void System::rearrange(const std::vector<Selection> &sel_vec){
-    // Empty selections check
+    // Sanity check
     for(auto &s: sel_vec){
         if(s.size()==0) throw Pteros_error("Empty selections are not permitted in rearrange!");
+        if(s.get_system()!=this) throw Pteros_error("rearrange need selections from the same system!");
     }
     // Overlap check
     vector<int> inters;
@@ -492,12 +681,18 @@ void System::rearrange(const std::vector<Selection> &sel_vec){
     }
 
     Selection rest(*this);
-    for (auto &s: sel_vec) rest.append(s);
+    System result;
+
+    // Append all explicitly given selections to result
+    for (auto &s: sel_vec){
+        result.append(s);
+        rest.append(s);
+    }
+    // Invert to get rest
     rest = ~rest;
 
-    System result;
-    for (auto &s: sel_vec) result.append(s);
-    result.append(rest);
+    // Only append rest to result if it is not empty
+    if(rest.size()) result.append(rest);
 
     *this = result;
 }
@@ -510,42 +705,64 @@ void System::keep(const string &sel_str)
 
 void System::keep(const Selection &sel)
 {
+    if(sel.get_system()!=this) throw Pteros_error("keep needs selection from the same system!");
     System tmp;
     tmp.append(sel);
     *this = tmp;
 }
 
 void System::remove(const string &sel_str)
-{
+{    
     Selection sel(*this,"not ("+sel_str+")");
     keep(sel);
 }
 
-void System::remove(const Selection &sel)
+void System::remove(Selection &sel)
 {
+    if(sel.get_system()!=this) throw Pteros_error("remove needs selection from the same system!");
     System tmp;
     tmp.append(~sel);
     *this = tmp;
+    sel.clear();
 }
 
-void System::distribute(const Selection sel, Vector3i_const_ref ncopies, Vector3f_const_ref shift)
+
+void System::distribute(const Selection sel, Vector3i_const_ref ncopies, Matrix3f_const_ref shift)
 {
+    if(sel.get_system()!=this) throw Pteros_error("distribute needs selection from the same system!");
     Selection tmp;
+    Vector3f v;
+    int n = sel.Resindex(sel.size()-1)+1;
     for(int x=0; x<ncopies(0); ++x)
         for(int y=0; y<ncopies(1); ++y)
             for(int z=0; z<ncopies(2); ++z){
                 if(x>0 || y>0 || z>0){
                     tmp = append(sel);
-                    tmp.translate(Vector3f(shift(0)*x,shift(1)*y,shift(2)*z));
+                    v = shift.col(0)*x + shift.col(1)*y + shift.col(2)*z;
+                    tmp.translate(v);
+                    // Increment all resindexes of added selection
+                    for(int i=0;i<tmp.size();++i) tmp.Resindex(i) += n;
+                    //++n;
                 }
             }
 }
 
-Selection System::select(string str){
-    return Selection(*this,str);
+
+Selection System::select(string str, int fr){
+    return Selection(*this,str,fr);
+}
+
+Selection System::operator()(string str, int fr)
+{
+    return Selection(*this,str,fr);
 }
 
 Selection System::select(int ind1, int ind2){
+    return Selection(*this,ind1,ind2);
+}
+
+Selection System::operator()(int ind1, int ind2)
+{
     return Selection(*this,ind1,ind2);
 }
 
@@ -553,12 +770,37 @@ Selection System::select(const std::vector<int> &ind){
     return Selection(*this,ind);
 }
 
+Selection System::operator()(const std::vector<int> &ind)
+{
+    return Selection(*this,ind);
+}
+
 Selection System::select(std::vector<int>::iterator it1, std::vector<int>::iterator it2){
     return Selection(*this,it1,it2);
 }
 
+Selection System::operator()(vector<int>::iterator it1, vector<int>::iterator it2)
+{
+    return Selection(*this,it1,it2);
+}
+
+Selection System::select(const std::function<void (const System &, int, std::vector<int> &)> &callback, int fr)
+{
+    return Selection(*this,callback,fr);
+}
+
+Selection System::operator()(const std::function<void (const System &, int, std::vector<int> &)> &callback, int fr)
+{
+    return Selection(*this,callback,fr);
+}
+
 Selection System::select_all(){
     return Selection(*this,0,num_atoms()-1);
+}
+
+Selection System::operator()()
+{
+    return select_all();
 }
 
 inline void wrap_coord(Vector3f& point, const Matrix3f& box,
@@ -596,7 +838,6 @@ float System::distance(int i, int j, int fr, bool is_periodic, Vector3i_const_re
     }
 }
 
-#define RAD_TO_DEG 57.295779513082320876798154814105
 
 float System::angle(int i, int j, int k, int fr, bool is_periodic, Vector3i_const_ref dims) const
 {
@@ -608,18 +849,20 @@ float System::angle(int i, int j, int k, int fr, bool is_periodic, Vector3i_cons
         v1 = XYZ(i,fr)-XYZ(j,fr);
         v2 = XYZ(k,fr)-XYZ(j,fr);
     }
-    return acos(v1.dot(v2)/(v1.norm()*v2.norm())) * RAD_TO_DEG;
+    return acos(v1.dot(v2)/(v1.norm()*v2.norm()));
 }
 
 float System::dihedral(int i, int j, int k, int l, int fr, bool is_periodic, Vector3i_const_ref dims) const
 {
     Vector3f b1,b2,b3;
     if(is_periodic){
-        b1 = Box(fr).get_closest_image(XYZ(j,fr),XYZ(i,fr)) - XYZ(i,fr);
-        b2 = Box(fr).get_closest_image(XYZ(k,fr),XYZ(i,fr)) -
-               Box(fr).get_closest_image(XYZ(j,fr),XYZ(i,fr));
-        b3 = Box(fr).get_closest_image(XYZ(l,fr),XYZ(i,fr)) -
-               Box(fr).get_closest_image(XYZ(k,fr),XYZ(i,fr));
+        Vector3f _i = XYZ(i,fr);
+        Vector3f _j = Box(fr).get_closest_image(XYZ(j,fr),_i);
+        Vector3f _k = Box(fr).get_closest_image(XYZ(k,fr),_i);
+        Vector3f _l = Box(fr).get_closest_image(XYZ(l,fr),_i);
+        b1 = _j - _i;
+        b2 = _k - _j;
+        b3 = _l - _k;
     } else {
         b1 = XYZ(j,fr)-XYZ(i,fr);
         b2 = XYZ(k,fr)-XYZ(j,fr);
@@ -628,10 +871,10 @@ float System::dihedral(int i, int j, int k, int l, int fr, bool is_periodic, Vec
 
     // Dihedral
     return atan2( ((b1.cross(b2)).cross(b2.cross(b3))).dot(b2/b2.norm()) ,
-                  (b1.cross(b2)).dot(b2.cross(b3)) ) * RAD_TO_DEG;
+                  (b1.cross(b2)).dot(b2.cross(b3)) );
 }
 
-void System::wrap_all(int fr, Vector3i_const_ref dims_to_wrap){
+void System::wrap(int fr, Vector3i_const_ref dims_to_wrap){
     for(int i=0;i<num_atoms();++i){
         traj[fr].box.wrap_point(XYZ(i,fr),dims_to_wrap);
     }
@@ -658,7 +901,7 @@ string Energy_components::to_str(){
             + to_string(q_14);
 }
 
-Energy_components Energy_components::operator+(const Energy_components& other){
+Energy_components Energy_components::operator+(const Energy_components& other) const {
     Energy_components ret;
     ret.total = total+other.total;
     ret.lj_14 = lj_14+other.lj_14;
@@ -678,21 +921,14 @@ Energy_components &Energy_components::operator+=(const Energy_components &other)
     return *this;
 }
 
-Energy_components System::non_bond_energy(int a1, int a2, int frame, bool is_periodic) const
+Energy_components System::non_bond_energy(int at1, int at2, int frame, bool is_periodic) const
 {
     Energy_components e;
 
     // First check if this pair is not in exclusions
-    if( force_field.exclusions[a1].count(a2) == 0 ){
-        // Required at1 < at2
-        int at1,at2;
-        if(a1<a2){
-            at1 = a1;
-            at2 = a2;
-        } else {
-            at1 = a2;
-            at2 = a1;
-        }
+    if( force_field.exclusions[at1].count(at2) == 0 ){
+        // Required at1 < at2        
+        if(at1>at2) std::swap(at1,at2);
 
         float e1,e2;
 
@@ -753,20 +989,20 @@ Energy_components System::non_bond_energy(const std::vector<Eigen::Vector2i> &nl
     return e;
 }
 
-void System::dssp(string fname) const {
+void System::dssp(string fname, int fr) const {
     ofstream f(fname.c_str());
-    Selection sel(const_cast<System&>(*this),"all");
+    Selection sel(const_cast<System&>(*this),std::string("all"),fr);
     dssp_wrapper(sel,f);
     f.close();
 }
 
-void System::dssp(ostream& os) const {
-    Selection sel(const_cast<System&>(*this),"all");
+void System::dssp(ostream& os, int fr) const {
+    Selection sel(const_cast<System&>(*this),std::string("all"),fr);
     dssp_wrapper(sel,os);
 }
 
 
-string System::dssp() const{
-    Selection sel(const_cast<System&>(*this),"all");
+string System::dssp(int fr) const{
+    Selection sel(const_cast<System&>(*this),std::string("all"),fr);
     return dssp_string(sel);
 }

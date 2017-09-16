@@ -6,7 +6,7 @@
  *                    ******************
  *                 molecular modeling library
  *
- * Copyright (c) 2009-2013, Semen Yesylevskyy
+ * Copyright (c) 2009-2017, Semen Yesylevskyy
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of Artistic License:
@@ -23,55 +23,18 @@
 #ifndef PERROR_H
 #define PERROR_H
 
-#include <sstream>
-#include <iostream>
-#include <exception>
+#include "spdlog/fmt/fmt.h"
 
 namespace pteros {
 
 /// Represents an error in the Pteros code. Used for all Pteros-related exceptions.
-class Pteros_error {
+class Pteros_error: public std::runtime_error {
 public:
 
-    Pteros_error(const Pteros_error& p){
-        text.str(p.text.str());
-    }
+    using runtime_error::runtime_error;
 
-    Pteros_error(){
-        text.str("");
-    }
-
-    /// Constructs an exception object with text message
-    Pteros_error(std::string s){
-        text.str(s);
-    }
-
-    /** Operator << allows constructing error strings on the fly
-         like this:
-            \code throw Pteros_error("Wrong number ") << 5
-                    << " should be between "
-                    << 7 << " and " << 10;
-            \endcode
-        */
-    template<class T>
-    Pteros_error& operator<<(T data){
-        text << data; //Collect data
-        return *this;
-    };
-
-    /// Print error message
-    void print() const {
-        std::cout << std::endl << "PTEROS terminated due to the following error:"
-             << std::endl << text.str() << std::endl;
-    }
-
-    /// Return error message as string
-    std::string what() const {
-        return text.str();
-    }
-
-private:
-    std::stringstream text;
+    template <typename... Args>
+    Pteros_error(const char *format, const Args & ... args): runtime_error(fmt::format(format, args...)) { }
 };
 
 }

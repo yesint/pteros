@@ -6,7 +6,7 @@
  *                    ******************
  *                 molecular modeling library
  *
- * Copyright (c) 2009-2013, Semen Yesylevskyy
+ * Copyright (c) 2009-2017, Semen Yesylevskyy
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of Artistic License:
@@ -43,11 +43,6 @@ void Grid::resize(int X, int Y, int Z)
 {
     data.resize( boost::extents[X][Y][Z] );
     clear();
-}
-
-Vector3f* Grid::add_wrapped_atom(Vector3f_const_ref coor){
-    wrapped_atoms.push_back(coor);
-    return &*wrapped_atoms.rbegin();
 }
 
 void Grid::populate(const Selection &sel, bool abs_index)
@@ -90,7 +85,7 @@ void Grid::populate(const Selection &sel, Vector3f_const_ref min, Vector3f_const
 
 void Grid::populate_periodic(const Selection &sel, bool abs_index)
 {
-    populate_periodic(sel, sel.get_system()->Box(sel.get_frame()), abs_index);
+    populate_periodic(sel, sel.Box(), abs_index);
 }
 
 void Grid::populate_periodic(const Selection &sel, const Periodic_box &box, bool abs_index)
@@ -111,7 +106,8 @@ void Grid::populate_periodic(const Selection &sel, const Periodic_box &box, bool
         // See if atom i is in box and wrap if needed
         if( !box.in_box(coor) ){
             box.wrap_point(coor);
-            ptr = add_wrapped_atom(coor);
+            wrapped_atoms.push_back(coor);
+            ptr = &*wrapped_atoms.rbegin();
         } else {
             ptr = sel.XYZ_ptr(i);
         }

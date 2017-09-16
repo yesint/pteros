@@ -6,7 +6,7 @@
  *                    ******************
  *                 molecular modeling library
  *
- * Copyright (c) 2009-2013, Semen Yesylevskyy
+ * Copyright (c) 2009-2017, Semen Yesylevskyy
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of Artistic License:
@@ -20,121 +20,83 @@
  *
 */
 
-#include "bindings_options.h"
-#include "pteros/python/bindings_util.h"
 #include "pteros/analysis/options.h"
+#include "bindings_util.h"
 
-using namespace std;
+
+namespace py = pybind11;
 using namespace pteros;
-using namespace Eigen;
-using namespace boost::python;
+using namespace std;
+using namespace pybind11::literals;
 
-const Option& Options_call1(Options* o, std::string key){    
-    return (*o)(key);
-}
+void make_bindings_Options(py::module& m){
 
-const Option& Options_call2(Options* o, std::string key, std::string default_val){    
-    return (*o)(key,default_val);
-}
-
-// Version for parsing python argv
-Options parse_command_line1(boost::python::list py_argv){
-    int argc = len(py_argv);
-    char* argv[argc];
-    string tmp;
-    // Allocate memory for c-strings and copy
-    for(int i=0;i<argc;++i){
-        argv[i] = (char*)malloc( sizeof(char) * len(py_argv[i]) );
-        tmp = extract<string>(py_argv[i]);
-        strcpy(argv[i], tmp.c_str());
-    }
-    // Call
-    Options opt;
-    parse_command_line(argc,argv,opt);
-    // Free memory of c-strings
-    for(int i=0;i<argc;++i) free(argv[i]);
-
-    return opt;
-}
-
-// Version with tasks
-boost::python::tuple parse_command_line2(boost::python::list py_argv, string task_tag){
-    int argc = len(py_argv);
-    char* argv[argc];
-    string tmp;
-    // Allocate memory for c-strings and copy
-    for(int i=0;i<argc;++i){
-        argv[i] = (char*)malloc( sizeof(char) * len(py_argv[i]) );
-        tmp = extract<string>(py_argv[i]);
-        strcpy(argv[i], tmp.c_str());
-    }
-    // Call
-    Options opt;
-    vector<Options> tasks;
-    parse_command_line(argc,argv,opt,task_tag,tasks);
-    // Free memory of c-strings
-    for(int i=0;i<argc;++i) free(argv[i]);
-
-    // Convert tasks to python list
-    boost::python::list tasks_list;
-    for(auto& t: tasks) tasks_list.append(t);
-
-    return boost::python::make_tuple(opt,tasks_list);
-}
-
-boost::python::list Option_as_ints(Option* o){
-    boost::python::list res;
-    auto vec = o->as_ints();
-    for(auto& v: vec) res.append(v);
-    return res;
-}
-
-boost::python::list Option_as_floats(Option* o){
-    boost::python::list res;
-    auto vec = o->as_floats();
-    for(auto& v: vec) res.append(v);
-    return res;
-}
-
-boost::python::list Option_as_bools(Option* o){
-    boost::python::list res;
-    auto vec = o->as_bools();
-    for(bool v: vec) res.append(v);
-    return res;
-}
-
-boost::python::list Option_as_strings(Option* o){
-    boost::python::list res;
-    auto vec = o->as_strings();
-    for(auto& v: vec) res.append(v);
-    return res;
-}
-
-
-void make_bindings_Options(){
-
-    import_array();
-
-    def("parse_command_line", &parse_command_line1);
-    def("parse_command_line", &parse_command_line2);
-
-    class_<Option>("Option", init<>())
+    py::class_<Option>(m, "Option")
+        .def("as_string",&Option::as_string)
         .def("as_int",&Option::as_int)
         .def("as_float",&Option::as_float)
         .def("as_bool",&Option::as_bool)
-        .def("as_string",&Option::as_string)
 
-        .def("as_ints",&Option_as_ints)
-        .def("as_floats",&Option_as_floats)
-        .def("as_bools",&Option_as_bools)
-        .def("as_strings",&Option_as_strings)
+        .def("as_strings",&Option::as_strings)
+        .def("as_ints",&Option::as_ints)
+        .def("as_floats",&Option::as_floats)
+        // vector of bools fails to convert automatically in pybind11...
+        .def("as_bools",[](Option* o){
+            py::list res;
+            auto vec = o->as_bools();
+            for(bool v: vec) res.append(v);
+            return res;
+        })
     ;
 
-    class_<Options>("Options", init<>())
-        .def("__call__",&Options_call1, return_value_policy<reference_existing_object>())
-        .def("__call__",&Options_call2, return_value_policy<reference_existing_object>())
-        .def("debug",&Options::debug)
+    py::class_<Options>(m, "Options")
+        .def("__call__", py::overload_cast<string>(&Options::operator(), py::const_), "key"_a)
+        .def("__call__", py::overload_cast<string,string>(&Options::operator()), "key"_a, "default_value"_a)
         .def("has",&Options::has)
         .def("get_name",&Options::get_name)
     ;
+
+    // parser with tasks
+    m.def("parse_command_line", [](const py::list& py_argv, const std::string& task_tag){
+        // Make c-style argc/argv from python argv
+        int argc = py::len(py_argv);
+        char* argv[argc];
+        string tmp;
+        // Allocate memory for c-strings and copy
+        for(int i=0;i<argc;++i){
+            argv[i] = (char*)malloc( sizeof(char) * py::len(py_argv[i]) );
+            tmp = py_argv[i].cast<string>();
+            strcpy(argv[i], tmp.c_str());
+        }
+        // Call
+        Options opt;
+        std::vector<Options> tasks;
+        parse_command_line(argc,argv,opt,task_tag,tasks);
+        // Free memory of c-strings
+        for(int i=0;i<argc;++i) free(argv[i]);
+        // return
+        return py::make_tuple(opt,tasks);
+    }, "argv"_a, "task_tag"_a);
+
+    // parser without tasks
+    m.def("parse_command_line", [](const py::list& py_argv){
+        // Make c-style argc/argv from python argv
+        int argc = py::len(py_argv);
+        char* argv[argc];
+        string tmp;
+        // Allocate memory for c-strings and copy
+        for(int i=0;i<argc;++i){
+            argv[i] = (char*)malloc( sizeof(char) * py::len(py_argv[i]) );
+            tmp = py_argv[i].cast<string>();
+            strcpy(argv[i], tmp.c_str());
+        }
+        // Call
+        Options opt;
+        parse_command_line(argc,argv,opt);
+        // Free memory of c-strings
+        for(int i=0;i<argc;++i) free(argv[i]);
+        // return
+        return opt;
+    }, "argv"_a);
+
 }

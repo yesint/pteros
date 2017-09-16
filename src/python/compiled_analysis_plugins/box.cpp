@@ -6,7 +6,7 @@
  *                    ******************
  *                 molecular modeling library
  *
- * Copyright (c) 2009-2013, Semen Yesylevskyy
+ * Copyright (c) 2009-2017, Semen Yesylevskyy
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of Artistic License:
@@ -19,17 +19,17 @@
  * GPL because it prevents the distribution of bugged derivatives.
  *
 */
+
 #include "pteros/python/compiled_plugin.h"
 #include <fstream>
+#include "spdlog/fmt/fmt.h"
 
 using namespace std;
 using namespace pteros;
 
-class box: public Compiled_plugin_base {
+TASK_SERIAL(box)
 public:
-    box(Trajectory_processor* pr, const Options& opt): Compiled_plugin_base(pr,opt) {}
-
-    string help(){
+    string help() override {
         return  "Purpose:\n"
                 "\tComputes box vectors and box volume for each frame\n"
                 "Output:\n"
@@ -40,19 +40,19 @@ public:
     }
 
 protected:
-    void pre_process(){
+    void pre_process() override {
         data.clear();
         volume.clear();
     }
 
-    void process_frame(const Frame_info &info){        
+    void process_frame(const Frame_info &info) override {
         data.push_back(system.Box(0).extents());
         volume.push_back(system.Box(0).volume());
     }
 
-    void post_process(const Frame_info &info){
+    void post_process(const Frame_info &info) override {
         // Output
-        string fname = label+".dat";
+        string fname = fmt::format("box_id{}.dat",get_id());
         // Get time step in frames and time
         float dt = (info.last_time-info.first_time)/(float)(info.valid_frame);
 

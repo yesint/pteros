@@ -6,7 +6,7 @@
  *                    ******************
  *                 molecular modeling library
  *
- * Copyright (c) 2009-2013, Semen Yesylevskyy
+ * Copyright (c) 2009-2017, Semen Yesylevskyy
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of Artistic License:
@@ -21,6 +21,8 @@
 */
 
 #include "contacts_finder.h"
+#include "pteros/analysis/trajectory_reader.h"
+#include <fstream>
 
 using namespace pteros;
 using namespace std;
@@ -33,7 +35,7 @@ int main(int argc, char* argv[]){
         parse_command_line(argc,argv,options);
 
         cout << "Creating trajectory processor..." << endl;
-        Trajectory_processor processor(options);
+        Trajectory_reader processor(options);
 
         // Show help if asked
         if(argc==1){
@@ -43,27 +45,14 @@ int main(int argc, char* argv[]){
         }
 
         cout << "Creating contacts finder..." << endl;
-        std::unique_ptr<Contacts_finder> finder(new Contacts_finder(processor,options));
+        processor.add_task(new Contacts_finder(options));
 
         // Do computation
         processor.run();
 
-        cout << "Saving results..." << endl;
-        {
-            ofstream ff("results.json");
-            finder->save(ff);
-            ff.close();
-        }
-
-        cout << "Saving per frame stats..." << endl;
-        {
-            ofstream ff("data.dat");
-            finder->per_frame_stats(ff);
-            ff.close();
-        }
 
     } catch(const Pteros_error& e) {
-        e.print();        
+        cout << "ERROR:" << e.what() << endl;
     }
 
 }

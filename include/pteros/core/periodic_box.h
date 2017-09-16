@@ -6,7 +6,7 @@
  *                    ******************
  *                 molecular modeling library
  *
- * Copyright (c) 2009-2013, Semen Yesylevskyy
+ * Copyright (c) 2009-2017, Semen Yesylevskyy
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of Artistic License:
@@ -53,20 +53,25 @@ public:
     /// Constructor from other box
     Periodic_box(Matrix3f_const_ref box);
 
-    /// Constructor from vectors and angles
+    /// Constructor from vector lengths and angles
     Periodic_box(Vector3f_const_ref vectors, Vector3f_const_ref angles);
 
     /// Copy constructor
     Periodic_box& operator=(Periodic_box other);
 
-    /// Modify the box
-    void modify(Matrix3f_const_ref box);       
-
     /// Get i-th box vector
-    Eigen::Vector3f get_vector(int i);
+    Eigen::Vector3f get_vector(int i) const;
 
     /// Get stored matrix of box vectors
     Eigen::Matrix3f get_matrix() const;
+
+    /// Modify the box from 3x3 matrix
+    void set_matrix(Matrix3f_const_ref box);
+
+
+    /// Scale box vectors by specified factors.
+    /// Causes recomputing internal data.
+    void scale_vectors(Vector3f_const_ref scale);
 
     /// Get stored inverted matrix of box vectors
     Eigen::Matrix3f get_inv_matrix() const;
@@ -117,8 +122,8 @@ public:
                     Vector3i_const_ref dims = Eigen::Vector3i::Ones()) const;
 
     /// Determine if the point is inside the box
-    /// Origin of the box coordinates is assumed to be {0,0,0}.
-    bool in_box(Vector3f_const_ref point) const;
+    /// Origin of the box coordinates defaults to {0,0,0}.
+    bool in_box(Vector3f_const_ref point, Vector3f_const_ref origin = Eigen::Vector3f::Zero()) const;
 
     /// Finds a periodic image of point, which is closest in space to target and returns it    
     Eigen::Vector3f get_closest_image(Vector3f_const_ref point,
@@ -139,10 +144,10 @@ public:
     /// Write box as CRYST string in PDB format
     std::string write_pdb_box() const;
 
-    /// Returns representation of the box as direction vectors and angles
+    /// Returns representation of the box as vector lengths and angles
     void to_vectors_angles(Vector3f_ref vectors, Vector3f_ref angles) const;
 
-    /// Creates box from vectors and angles. Overwrites current box!
+    /// Creates box from vector length and angles. Overwrites current box!
     /// vectors = {a,b,c}
     /// angles = {a^c, b^c, a^b}
     void from_vectors_angles(Vector3f_const_ref vectors, Vector3f_const_ref angles);

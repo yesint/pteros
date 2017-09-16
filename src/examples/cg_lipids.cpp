@@ -1,5 +1,8 @@
-#include "pteros/analysis/trajectory_processor.h"
 #include "pteros/core/pteros_error.h"
+#include "pteros/analysis/options.h"
+#include "pteros/pteros.h"
+#include <Eigen/Core>
+#include <fstream>
 
 using namespace std;
 using namespace pteros;
@@ -16,7 +19,7 @@ int main(int argc, char** argv){
     fname = opt("struct").as_string();
     System sys(fname);
     // Get indexes of ROH atoms of CHOL molecules
-    Selection ROH(sys,"name ROH");
+    Selection ROH(sys,std::string("name ROH"));
     vector<int> ROH_index = ROH.get_index();
 
     // Occupancy of monolayers over time averaged over all trajectories
@@ -75,7 +78,7 @@ int main(int argc, char** argv){
     f.close();
 
     } catch(const Pteros_error& e){
-        e.print();
+        cout << e.what() << endl;
     }
 }
 

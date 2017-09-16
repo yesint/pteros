@@ -1,14 +1,14 @@
 
-SET(PLUGINS
-    center
+SET(PLUGINS    
     box
-    rms
-    interaction_energy
-    covar_matr
-    distance_matr
-    secondary
-    rdf
-    contacts
+    #rms
+    #interaction_energy
+    #covar_matr
+    #distance_matr
+    #secondary
+    #rdf
+    #example_plugin
+    center
 )
 
 IF(STANDALONE_PLUGINS)
@@ -17,17 +17,13 @@ IF(STANDALONE_PLUGINS)
     message("      Building standalone plugins        ")
     message("-----------------------------------------")
 
-
-    # Conditional compilation definition
-    #add_definitions(-DSTANDALONE_PLUGINS)
-
     foreach(plugin ${PLUGINS})
         add_executable(pteros_${plugin}
-            ${plugin}.cpp
-            ${PROJECT_SOURCE_DIR}/include/pteros/python/compiled_plugin_base.h
+            ${plugin}.cpp            
             ${PROJECT_SOURCE_DIR}/include/pteros/core/pteros_error.h
         )
-        #set_source_files_properties(${plugin}.cpp  PROPERTIES COMPILE_DEFINITIONS "STANDALONE_PLUGINS")
+
+        # Set compile definitions for this target
         set_target_properties(pteros_${plugin} PROPERTIES COMPILE_DEFINITIONS "STANDALONE_PLUGINS")
 
         target_link_libraries(pteros_${plugin} pteros pteros_analysis)
@@ -44,21 +40,19 @@ IF(WITH_PYTHON)
     message("-----------------------------------------")
 
     foreach(plugin ${PLUGINS})
-        add_library(plugin_${plugin} SHARED
+        pybind11_add_module(${plugin}
             ${plugin}.cpp
-            ${PROJECT_SOURCE_DIR}/include/pteros/python/bindings_util.h
-            ${PROJECT_SOURCE_DIR}/include/pteros/python/compiled_plugin_base.h
             ${PROJECT_SOURCE_DIR}/include/pteros/python/compiled_plugin.h
         )
-        target_link_libraries(plugin_${plugin} pteros pteros_analysis ${PYTHON_LIBRARIES} ${BOOST_PYTHON_LIB})
-        set_target_properties(plugin_${plugin}
+
+        target_link_libraries(${plugin} PRIVATE pteros pteros_analysis ${PYTHON_LIBRARIES})
+
+        set_target_properties(${plugin}
             PROPERTIES
             LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/python/pteros_analysis_plugins"
-            PREFIX "" SUFFIX "${SHARED_LIB_EXT}"
-            OUTPUT_NAME ${plugin}
         )
         #Installation
-        install(TARGETS plugin_${plugin}
+        install(TARGETS ${plugin}
             LIBRARY DESTINATION ${PY_INST_DIR}/pteros_analysis_plugins
             ARCHIVE DESTINATION ${PY_INST_DIR}/pteros_analysis_plugins
         )

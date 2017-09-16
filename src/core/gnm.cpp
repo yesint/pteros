@@ -6,7 +6,7 @@
  *                    ******************
  *                 molecular modeling library
  *
- * Copyright (c) 2009-2013, Semen Yesylevskyy
+ * Copyright (c) 2009-2017, Semen Yesylevskyy
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of Artistic License:
@@ -22,7 +22,7 @@
 
 #include "pteros/core/gnm.h"
 #include "pteros/core/pteros_error.h"
-#include "pteros/core/grid_search.h"
+#include "pteros/core/distance_search.h"
 #include <fstream>
 #include <Eigen/Core>
 #include <Eigen/Dense>
@@ -59,7 +59,7 @@ void GNM::compute(Selection& sel, float cutoff){
     */
 
     vector<Eigen::Vector2i> bon;
-    Grid_searcher(cutoff,sel,bon);
+    search_contacts(cutoff,sel,bon);
     for(int i=0; i<bon.size(); ++i){
         kirk(bon[i](0),bon[i](1)) = kirk(bon[i](1),bon[i](0)) = -1.0;
     }
