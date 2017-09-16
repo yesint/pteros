@@ -20,26 +20,38 @@ Intel ICC compiles Pteros on Linux, but gives poor performance. Compiling with I
 \tableofcontents
 
 \section depend 	Dependencies
-The prerequisites for compilation of Pteros are the following:
+The prerequisites for compilation of Pteros are the following.
 
+Core dependencies:
 - Standard-conforming C and C++11 compilers (tested with gcc>=4.8, clang>=3.1).
 - <a href="http://www.cmake.org/">cmake</a> build system.
 - <a href="http://www.boost.org/">boost</a> 1.48 or higher.
+- <a href="http://eigen.tuxfamily.org/index.php?title=Main_Page">Eigen</a> linear algebra library (>=3.2).
 - <a href="http://git-scm.com/">Git</a> for getting the source code.
-- <a href="https://www.python.org/">Python</a> 2.5 or higher (optional if you don't use dynamic plugins and python bindings)
-- <a href="www.doxygen.org">Doxygen</a> (only if you want to build documentation yourself)
-- <a href="http://sphinx-doc.org/">Sphinx</a> (only if you want to build documentation for python bindings yourself)
 
-If you are using Debian or Ubuntu it should be enough to run the following command in the terminal to install all dependencies:
+For compiling dynamic plugins and python bindings (optional if you only want C++ core):
+- <a href="https://www.python.org/">Python</a> 2.7 or higher (>=3.5 recommended).
+- <a href="https://github.com/pybind/pybind11">Pybind11</a> binding generator library.
+
+For building documentation (don't needed unless you want to contribute to the docs):
+- <a href="www.doxygen.org">Doxygen</a>
+- <a href="http://sphinx-doc.org/">Sphinx</a>
+
+If you are using latest Ubuntu it should be enough to run the following command in the terminal to install all dependencies:
 \code{.unparsed}
-sudo apt-get install g++ cmake libboost-all-dev python-dev python-numpy python-sphinx git doxygen
+sudo apt-get install g++ cmake libeigen3-dev libboost-all-dev python3.5-dev python3.5-numpy pybind11-dev git doxygen python-sphinx
+\endcode
+
+In older Ubuntu versions pybind11 is not yet packaged so it should be installed from source:
+\code{.unparsed}
+git clone https://github.com/pybind/pybind11.git
+mkdir pybind11-build
+cd pybind11-build
+cmake ../pybind11 -DPYBIND11_TEST=OFF
+sudo make install
 \endcode
 
 Installation of dependencies on Windows is described \ref install_win "here".
-
-\note
-Starting from May 2014 Pteros has moved to C++11 standard. As a result it can only be compiled with sufficiently modern C++ compilers. We are aware that many workstations and computational clusters still have ancient versions of compilers, which do not support C++11. For such situations an older C++98 version of Pteros is preserved in a separate repository (see below).
-
 
 \section build	Building Pteros
 
@@ -51,22 +63,6 @@ git clone -b experimental git://git.code.sf.net/p/pteros/code pteros-code
 \endcode
 This will create a directory named "pteros-code" in you current working directory and will download the source code into it.
 
-You can also get the "stable" branch:
-\code{.unparsed}
-git clone git://git.code.sf.net/p/pteros/code pteros-code
-\endcode
-
-\warning
-Currently the *stable* branch is significantly outdated and not as stable as it should be. It is advised to use *experimental* branch for all projects. This may change in the future.
-
-If you need an older version, which does not contain C++11 features, use the "optional_cpp11" branch:
-\code{.unparsed}
-git clone -b optional_cpp11 git://git.code.sf.net/p/pteros/code pteros-code
-\endcode
-
-\warning
-The *optional_cpp11* branch is completely outdated and will \b never get new features! It is preserved only for compatibility with ancient compilers.
-
 \subsection compile Compiling
 Create a separate build directory (for example 'pteros_build'). Go to this directory and issue the following commands:
 
@@ -76,8 +72,7 @@ make
 make install
 \endcode
 
-\warning
-The 'make install' command may require root access if you are installing into the system-wide location.
+\warning The 'make install' command may require root access if you are installing into the system-wide location.
 
 The first cmake command will print something like this:
 \code{.unparsed}
@@ -98,6 +93,16 @@ If you want to compile with alternative compiler (for example Clang), add the fo
 -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
 \endcode
 
+If both Python 3.x and 2.7 are installed in your system the version 3.x will be used by default (even if 2.7 if the system-default, like in Ubuntu).
+To force version 2.7 add the following flag:
+
+\code{.unparsed}
+-DPYTHON_EXECUTABLE:FILEPATH=<path to python2.7 executable>
+\endcode
+In Ubuntu Python2.7 is usually a default, so just `python` could be sufficient.
+
+\warning Make sure that you use correct python interpreter! If Pteros was compiled with Python 3.5 it won't work with 2.7 and vice versa!
+
 \subsection test Testing installation
 
 Run the following command:
@@ -112,31 +117,34 @@ If you see any errors then Pteros can't load plugins or something elese went wro
 \subsection sasa Enabling SASA code
 
 Pteros can perform the Solvent Accesible Surface Area (SASA) computatations using POWERSASA code developed in the <a href="http://www.kit.edu/english/">Karlsruhe Institute of Technology</a>. POWERSASA is licensed by specific and rather restrictive "Academic/Non-Profit SASA software license agreement".
-See the comment in the file *src/core/sasa/power_sasa.h* for details.
+See the comment file `thirdparty/sasa/LICENSE` for details.
 This license is NOT Open Source and imply many restrictions!
-Please read it carefully. If you agree with this license and performed all required steps use the following flag when invoking cmake:
+Please read it carefully. If you agree with this license use the following flag when invoking cmake:
 \code{.unparsed}
--DPOWERSASA="ON"
+-DWITH_POWERSASA="ON"
 \endcode
 By default this code is NOT compiled. Pteros doesn't support SASA computations without it.
 \note
-I contacted the authors of POWERSASA several times to ask for official permision to use their code but got no reply. It seems that nobody is concerned about the licensing of POWERSASA now. But you are warned :)
+I contacted the authors of POWERSASA several times and asked for official permision to use their code but got no reply. It seems that the project is abandoned and nobody is concerned about the licensing of POWERSASA now.
 
 
 \subsection no_python 	Building Pteros without Python
 
-Pteros could be build without Python. If no Python libraries are found in the System the compilation of Python bindings and plugins is disabled and only the core libraries are built.
+Pteros could be build without Python by specifying the following flag:
 
-If the Python is installed, but you don't want to use it add the following flag to CMake invocation:
+\code{.unparsed} -DWITH_PYTHON="OFF" \endcode
 
-\code{.unparsed} -DPYTHON_BINDINGS="OFF" \endcode
+In this case compiled C++ plugins are not built as python extension modules and python bindings are not produced.
 
-Compiled analysis plugins, which are written in C++, will be also missing in this case because they are built as Python extensions by default. However, it is possible to build each plugin as a separate standalone program, which does not depend on Python, by adding the following flag to CMake:
+\subsection standalone Building standalone analysis plugins
+
+Compiled analysis plugins, which are written in C++, are compiled as Python extensions by default. However, it is possible to build each plugin as a separate standalone program, which does not depend on Python, by adding the following flag to CMake:
+
 \code{.unparsed} -DSTANDALONE_PLUGINS="ON" \endcode
 
 If you want to build plugins as the standalone programs AND as python extensions at the same time use the following flags:
 \code{.unparsed}
-cmake <usual options> -DPYTHON_BINDINGS="ON" -DSTANDALONE_PLUGINS="ON"
+cmake <usual options> -DWITH_PYTHON="ON" -DSTANDALONE_PLUGINS="ON"
 make
 make install
 \endcode
@@ -146,10 +154,10 @@ In this case each plugin will be compiled twice, so expect longer compilation ti
 
 \subsection no_omp Building Pteros without OpenMP
 
-By default Pteros is compiled with OpenMP paralellization of many internal operations. However, on certain clusters running SGE scheduler the usage of OpenMP is prohibited. There are also other situations when you may want to disable OpenMP. Use the following flag to compile without OpenMP:
+By default Pteros is compiled with OpenMP paralellization of many internal operations. However, on certain computational clusters running SGE scheduler the usage of OpenMP is prohibited. There are also other situations when you may want to disable OpenMP. Use the following flag to compile without OpenMP:
 
 \code{.unparsed}
-cmake <usual options> -DUSE_OPENMP="OFF"
+cmake <usual options> -DWITH_OPENMP="OFF"
 \endcode
 
 
@@ -159,7 +167,8 @@ The most common problems during installation arise from bugs in Boost or in the 
 
 \subsection known_problems Known problems
 - Clang compiler doesn't work with Boost < 1.52
-- If there are several Boost versions in the system CMake may find the right one for one library (say, Boost.threads) but the wrong one for the other (say, Boost.python), which causes very strange errors. The solution is to include the following flags to CMake invocation:
+- OpenMP in clang only works for clang++ >= 3.8 and if libomp is installed: `sudo apt install libomp-dev`
+- If there are several Boost versions in the system CMake may find the right one for one library but the wrong one for the other, which causes very strange errors. The solution is to include the following flags to CMake invocation:
 \code{.unparsed} -DBoost_NO_SYSTEM_PATHS=ON -DBOOST_ROOT="Correct path to boost" \endcode
 - All Pteros plugins have to be up to date with the main library, but CMake doesn't always ensure this if you pull new updates from the repository. If plugins suddenly stop working after update delete CMakeCache.txt and CMakeFiles and recompile.
 
