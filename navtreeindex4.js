@@ -1,0 +1,27 @@
+var NAVTREEINDEX4 =
+{
+"tools.html":[3,3],
+"traj__file__reader_8h_source.html":[6,0,1,0,3],
+"trajectory__reader_8h_source.html":[6,0,0,0,0,6],
+"trr__file_8h_source.html":[6,0,1,1,1,7],
+"tutorial.html":[4],
+"tutorial.html#analysis_plugins":[4,5],
+"tutorial.html#bindings":[4,3],
+"tutorial.html#compiled":[4,5,1],
+"tutorial.html#copy_assign":[4,1,3],
+"tutorial.html#getting_started":[4,0],
+"tutorial.html#hi_level":[4,4],
+"tutorial.html#manip":[4,2],
+"tutorial.html#mod_sel":[4,1,2],
+"tutorial.html#non_text_sel":[4,1,1],
+"tutorial.html#pure_python":[4,5,0],
+"tutorial.html#rmsd":[4,2,1],
+"tutorial.html#selections":[4,1],
+"tutorial.html#text_sel":[4,1,0],
+"tutorial.html#transforms":[4,2,0],
+"typedefs_8h_source.html":[6,0,0,0,1,13],
+"utilities_8h_source.html":[6,0,0,0,1,14],
+"vmd__molfile__plugin__wrapper_8h_source.html":[6,0,1,1,1,8],
+"xtc__file_8h_source.html":[6,0,1,1,1,9],
+"xyz__file_8h_source.html":[6,0,1,1,1,10]
+};

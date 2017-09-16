@@ -1,0 +1,258 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Selection class &mdash; Pteros 1.0b documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0b',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Pteros 1.0b documentation" href="index.html" />
+    <link rel="prev" title="System class" href="system.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="system.html" title="System class"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Pteros 1.0b documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="selection-class">
+<h1>Selection class<a class="headerlink" href="#selection-class" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="rmsd">
+<tt class="descname">rmsd</tt><big>(</big><em>selection1</em>, <em>frame1</em>, <em>selection2</em>, <em>frame2</em><big>)</big><a class="headerlink" href="#rmsd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes RMSD of two selections of the same size for given frames</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">RMSD value</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">float</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="fit">
+<tt class="descname">fit</tt><big>(</big><em>selection1</em>, <em>selection2</em><big>)</big><a class="headerlink" href="#fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fits <em>selection1</em> to <em>selection2</em></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="fit_transform">
+<tt class="descname">fit_transform</tt><big>(</big><em>selection1</em>, <em>selection2</em><big>)</big><a class="headerlink" href="#fit_transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes fit transform for fitting <em>selection1</em> to <em>selection2</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">fit transform matrix</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">4x4 matrix</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="non_bond_energy">
+<tt class="descname">non_bond_energy</tt><big>(</big><em>selection1</em>, <em>selection2</em><span class="optional">[</span>, <em>cutoff=0.25</em><span class="optional">[</span>, <em>fr=-1</em><span class="optional">[</span>, <em>periodic=True</em><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><big>)</big><a class="headerlink" href="#non_bond_energy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes non-bond interaction energy between two selections within given cut-off distance.
+If <em>fr</em> is not specified the current frame of <em>selection1</em> is used.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="Selection">
+<em class="property">class </em><tt class="descname">Selection</tt><a class="headerlink" href="#Selection" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="Selection.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>system</em>, <em>sel_str</em><big>)</big><a class="headerlink" href="#Selection.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create selection from selection string</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">__init__</tt><big>(</big><em>system</em><big>)</big></dt>
+<dd><p>Create empty selection bound to system</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">__init__</tt><big>(</big><em>selection</em><big>)</big></dt>
+<dd><p>Create selection from other selection</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">__init__</tt><big>(</big><em>system</em>, <em>ind1</em>, <em>ind2</em><big>)</big></dt>
+<dd><p>Create selection from the range of absolute indexes</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">__init__</tt><big>(</big><em>system</em>, <em>seq</em><big>)</big></dt>
+<dd><p>Create selection from the sequence of indexes</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>seq</strong> (<em>sequence</em>) &#8211; list or tuple of indexes</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Selection.size">
+<tt class="descname">size</tt><big>(</big><big>)</big><a class="headerlink" href="#Selection.size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns selection size</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Selection.append">
+<tt class="descname">append</tt><big>(</big><em>selection</em><big>)</big><a class="headerlink" href="#Selection.append" title="Permalink to this definition">¶</a></dt>
+<dd><p>Appends another selection to this one.</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">append</tt><big>(</big><em>ind</em><big>)</big></dt>
+<dd><p>Appends absolute index to selection.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ind</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; index to append</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Selection.remove">
+<tt class="descname">remove</tt><big>(</big><em>sel</em><big>)</big><a class="headerlink" href="#Selection.remove" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes all atoms of sel from current selection</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>sel</strong> (<a class="reference internal" href="#Selection" title="Selection"><em>Selection</em></a>) &#8211; selection to remove</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">remove</tt><big>(</big><em>ind</em><big>)</big></dt>
+<dd><p>Removes absolute index from selection.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ind</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; index to remove</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Selection.set_system">
+<tt class="descname">set_system</tt><big>(</big><em>system</em><big>)</big><a class="headerlink" href="#Selection.set_system" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets new system for selection.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">This clears selection index and leaves it empty!</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="system.html"
+                        title="previous chapter">System class</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/selection.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="system.html" title="System class"
+             >previous</a> |</li>
+        <li><a href="index.html">Pteros 1.0b documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Semen Yesylevskyy.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>
