@@ -74,27 +74,13 @@ endif()
 
 # Find Python only if we need bindings
 if(WITH_PYTHON)
-    message("Looking for Python...")
-    find_package(PythonInterp)
-    find_package(PythonLibs)
-
-    if(PYTHONINTERP_FOUND AND PYTHONLIBS_FOUND)
-        #For conditional compilation
-        add_definitions(-DWRAP_PYTHON)
-        # Configure pybind11
-        message("Configuring Pybind11...")
-        add_subdirectory(thirdparty/pybind11)
-        INCLUDE_DIRECTORIES(thirdparty/pybind11/include)
-
-        # Set python includes globally (pybind11 fails to find Python.h without this)
-        include_directories(${PYTHON_INCLUDE_PATH})
-
-        # Set python install dir
-        set(PY_INST_DIR python)
-
-    else()
-        message("Can't find Python interpreter or libraries!\nPython bindings and plugins are disabled!")
-    endif()
+    #For conditional compilation
+    add_definitions(-DWRAP_PYTHON)
+    # Configure pybind11
+    message("Configuring Pybind11...")
+    find_package(pybind11)
+    # Set python install dir
+    set(PY_INST_DIR python)
 endif()
 
 # Find Boost
@@ -111,24 +97,12 @@ link_libraries(${Boost_LIBRARIES})
 
 # Add Eigen
 message("Looking for Eigen...")
-find_package(Eigen3 3.2 QUIET)
-if(NOT EIGEN3_INCLUDE_DIR)
-  set(EIGEN3_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/thirdparty)
-  install(DIRECTORY ${EIGEN3_INCLUDE_DIR}/Eigen DESTINATION include)
-  message("System-wide Eigen3 not found. Falling back to internal Eigen version.")
-endif()
+find_package(Eigen3 REQUIRED)
 include_directories(${EIGEN3_INCLUDE_DIR})
 
-# Directories for compiled files
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 
 # Main Pteros include dir (for build time, not yet installed)
 include_directories(include)
-
-# Main Pteros lib dir (for build time, not yet installed)
-link_directories("${CMAKE_BINARY_DIR}/lib")
 
 
 #----------------------------

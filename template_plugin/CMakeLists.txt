@@ -2,6 +2,14 @@ cmake_minimum_required(VERSION 3.1)
 
 project(pteros_analysis_plugin)
 
+find_package(pybind11)
+message(STATUS "Found pybind11 v${pybind11_VERSION}: ${pybind11_INCLUDE_DIRS}")
+find_package(PythonInterp  3.5)
+find_package(PythonLibs 3.5)
+
+
+
+
 ###############################################
 ## You have to set the variables below:      ##
 ###############################################

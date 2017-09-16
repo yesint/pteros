@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from pteros import *
 import sys, pkgutil, copy, os, imp, signal
@@ -9,7 +9,7 @@ import pteros_analysis_plugins
 
 #--------------------------------------
 def general_help():
-    print """Usage:
+    print("""Usage:
 pteros_analysis.py -f <files> <processing options>... -task name1 <task1 options> -task name2 <task2 options> ...
 
 -help traj
@@ -20,13 +20,13 @@ pteros_analysis.py -f <files> <processing options>... -task name1 <task1 options
     Detailed help for particular analysis plugin
 -help all
     Detailed help for all analysis plugins and trajectory processing options
-"""
+""")
 #--------------------------------------
 
 if __name__ == '__main__':        
-    print "+--------------------------------+"
-    print "+ This is pteros_analysis script +"
-    print "+--------------------------------+"
+    print("+--------------------------------+")
+    print("+ This is pteros_analysis script +")
+    print("+--------------------------------+")
 
     # Create logger
     log = Logger('analysis')
@@ -60,7 +60,7 @@ if __name__ == '__main__':
         topic = opt("help","all").as_string()
         if topic == "traj":
             # Show trajectory processing options
-            print reader.help()
+            print( reader.help() )
 
     # Load all supplied tasks
     files_to_load = set()
