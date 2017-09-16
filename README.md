@@ -34,6 +34,7 @@ Pteros is not for you if:
 - You have no programming skills at all, or you don't want to learn C++ or Python.
 
 Features
+========
 
 - Reading/writing popular molecular structure and trajectory formats (PDB, GRO, MOL2, XTC, TRR, TPR, DCD, TNG).
 - Very simple and expressive syntax for selecting groups of atoms similar to one used in VMD, but more powerfull.
