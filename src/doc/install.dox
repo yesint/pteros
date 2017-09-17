@@ -4,15 +4,17 @@
 - \subpage install_win
 
 \section port 	Portability
-Pteros is being developed on Linux with gcc and clang compilers. New versions are tested periodically on Windows under MinGW gcc compiler (see \ref install_win). Other compilers and operating systems are not tested because we have no other systems in possession. Design decisions are made with portability to Linux, Windows and MacOS in mind. Other systems are not considered. The code itself should be 100% portable providing that the dependencies are available for your system, but expect platform-dependent quirks and issues, which are common to all complex C++ programs, not only to Pteros.
+Pteros is being developed on Linux with gcc and clang compilers. New versions are tested from time to time on Windows (see \ref install_win, instructions for Windows could be severely outdated). Other compilers and operating systems are not tested because we have no other systems in possession. Design decisions are made with portability to Linux, Windows and MacOS in mind. Other systems are not considered. The code itself should be 100% portable providing that the dependencies are available for your system, but expect platform-dependent quirks and issues, which are common to all complex C++ programs, not only to Pteros.
 
 \note
 If you managed to compile Pteros on MacOS, please share your experience because we have no Mac machines to perform the tests.
+\note
+You are wellcome to provide better guide for compiling Pteros on Windows - this is not a priority for us since we use Linux.
 
 \warning
 Intel ICC compiles Pteros on Linux, but gives poor performance. Compiling with Intel MKL works, but gives broken Python bindings. Any help with these issues is appreciated!
 
-\note Linux is considered as primary platform for Pteros. Installation on Windows is only tested from time to time and may be very tricky. You are warned.
+\note Linux is considered as primary platform for Pteros. Installation on Windows is only tested only from time to time and may be tricky. You are warned.
 
 
 \page install_linux Installation on Linux
@@ -59,7 +61,7 @@ Installation of dependencies on Windows is described \ref install_win "here".
 
 Get the latest source code from the Git repository:
 \code{.unparsed}
-git clone -b experimental git://git.code.sf.net/p/pteros/code pteros-code
+git clone https://github.com/yesint/pteros.git pteros-code
 \endcode
 This will create a directory named "pteros-code" in you current working directory and will download the source code into it.
 
