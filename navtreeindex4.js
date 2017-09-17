@@ -1,7 +1,5 @@
 var NAVTREEINDEX4 =
 {
-"tools.html":[3,3],
-"traj__file__reader_8h_source.html":[6,0,1,0,3],
 "trajectory__reader_8h_source.html":[6,0,0,0,0,6],
 "trr__file_8h_source.html":[6,0,1,1,1,7],
 "tutorial.html":[4],
