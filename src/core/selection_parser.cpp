@@ -322,6 +322,16 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
     // Clear any garbage passed in result
     result.clear();
 
+    // Pointer to any restricting set (either subspace or starting subset)
+    vector<int>* restr;
+    if(subspace){
+        restr = subspace;
+    } else if(starting_subset) {
+        restr = starting_subset;
+    } else {
+        restr = nullptr;
+    }
+
     //---------------------------------------------------------------------------
     if(node->code == TOK_PRECOMPUTED)
     {
@@ -342,7 +352,7 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
     {
         // Logical NOT
         vector<int> res1;
-        eval_node(node->child_node(0), res1, subspace);
+        eval_node(node->child_node(0), res1, restr);
         // Sort
         //std::sort(res1.begin(),res1.end());
         // res1 is sorted, so we can speed up negation a bit by filling only the "gaps"
@@ -367,8 +377,8 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
         // Logical OR
         vector<int> res1, res2; // Aux vectors
 
-        eval_node(node->child_node(0), res1, subspace);
-        eval_node(node->child_node(1), res2, subspace);
+        eval_node(node->child_node(0), res1, restr);
+        eval_node(node->child_node(1), res2, restr);
 
         // Sort
         //std::sort(res1.begin(),res1.end());
@@ -383,8 +393,8 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
         // Logical AND
         vector<int> res1, res2; // Aux vectors
 
-        eval_node(node->child_node(0), res1, subspace);
-        // First operand sets a subspace for the second!
+        eval_node(node->child_node(0), res1, restr);
+        // First operand sets a restr for the second!
         eval_node(node->child_node(1), res2, &res1);
 
         // Sort
@@ -404,13 +414,13 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
             str = node->child_as_str(i);
             if(node->child_node(i)->code == TOK_STR){
                 // For normal strings
-                if(!subspace){
+                if(!restr){
                     for(at=0;at<Natoms;++at){
                         if(sys->atoms[at].name == str) result.push_back(at);
                     }
                 } else {
-                    for(j=0;j<subspace->size();++j){
-                        at = (*subspace)[j];
+                    for(j=0;j<restr->size();++j){
+                        at = (*restr)[j];
                         if(sys->atoms[at].name == str) result.push_back(at);
                     }
                 }
@@ -418,15 +428,15 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
                 // For regex
                 std::cmatch what;
                 std::regex reg(str);
-                if(!subspace){
+                if(!restr){
                     for(at=0;at<Natoms;++at){
                         if(std::regex_match(sys->atoms[at].name.c_str(),what,reg)){
                              result.push_back(at);
                         }
                     }
                 } else {
-                    for(j=0;j<subspace->size();++j){
-                        at = (*subspace)[j];
+                    for(j=0;j<restr->size();++j){
+                        at = (*restr)[j];
                         if(std::regex_match(sys->atoms[at].name.c_str(),what,reg)){
                              result.push_back(at);
                         }
@@ -447,12 +457,12 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
             str = node->child_as_str(i);
             if(node->child_node(i)->code == TOK_STR){
                 // For normal strings
-                if(!subspace){
+                if(!restr){
                     for(at=0;at<Natoms;++at)
                         if(sys->atoms[at].resname == str) result.push_back(at);
                 } else {
-                    for(j=0;j<subspace->size();++j){
-                        at = (*subspace)[j];
+                    for(j=0;j<restr->size();++j){
+                        at = (*restr)[j];
                         if(sys->atoms[at].resname == str) result.push_back(at);
                     }
                 }
@@ -460,15 +470,15 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
                 // For regex
                 std::cmatch what;
                 std::regex reg(str);
-                if(!subspace){
+                if(!restr){
                     for(at=0;at<Natoms;++at){
                         if(std::regex_match(sys->atoms[at].resname.c_str(),what,reg)){
                              result.push_back(at);
                         }
                     }
                 } else {
-                    for(j=0;j<subspace->size();++j){
-                        at = (*subspace)[j];
+                    for(j=0;j<restr->size();++j){
+                        at = (*restr)[j];
                         if(std::regex_match(sys->atoms[at].resname.c_str(),what,reg)){
                              result.push_back(at);
                         }
@@ -489,12 +499,12 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
             str = node->child_as_str(i);
             if(node->child_node(i)->code == TOK_STR){
                 // For normal strings
-                if(!subspace){
+                if(!restr){
                     for(at=0;at<Natoms;++at)
                         if(sys->atoms[at].tag == str) result.push_back(at);
                 } else {
-                    for(j=0;j<subspace->size();++j){
-                        at = (*subspace)[j];
+                    for(j=0;j<restr->size();++j){
+                        at = (*restr)[j];
                         if(sys->atoms[at].tag == str) result.push_back(at);
                     }
                 }
@@ -502,15 +512,15 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
                 // For regex
                 std::cmatch what;
                 std::regex reg(str);
-                if(!subspace){
+                if(!restr){
                     for(at=0;at<Natoms;++at){
                         if(std::regex_match(sys->atoms[at].tag.c_str(),what,reg)){
                              result.push_back(at);
                         }
                     }
                 } else {
-                    for(j=0;j<subspace->size();++j){
-                        at = (*subspace)[j];
+                    for(j=0;j<restr->size();++j){
+                        at = (*restr)[j];
                         if(std::regex_match(sys->atoms[at].tag.c_str(),what,reg)){
                              result.push_back(at);
                         }
@@ -529,12 +539,12 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
         // Cycle over children
         for(i=0;i<Nchildren;++i){
             ch = node->child_as_str(i)[0];
-            if(!subspace){
+            if(!restr){
                 for(at=0;at<Natoms;++at)
                     if(sys->atoms[at].chain == ch) result.push_back(at);
             } else {
-                for(j=0;j<subspace->size();++j){
-                    at = (*subspace)[j];
+                for(j=0;j<restr->size();++j){
+                    at = (*restr)[j];
                     if(sys->atoms[at].chain == ch) result.push_back(at);
                 }
             }
@@ -550,13 +560,13 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
         for(i=0;i<Nchildren;++i){
             if(node->child_node(i)->code == TOK_INT) { // Resid could be int!
                 k = node->child_as_int(i);
-                if(!subspace){
+                if(!restr){
                     for(at=0;at<Natoms;++at)
                         // Even if k is out of range, nothing will crash here
                         if(sys->atoms[at].resid == k) result.push_back(at);
                 } else {
-                    for(j=0;j<subspace->size();++j){
-                        at = (*subspace)[j];
+                    for(j=0;j<restr->size();++j){
+                        at = (*restr)[j];
                         // Even if k is out of range, nothing will crash here
                         if(sys->atoms[at].resid == k) result.push_back(at);
                     }
@@ -567,13 +577,13 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
                 int i1 = range->child_as_int(0);
                 int i2 = range->child_as_int(1);
                 for(k=i1;k<=i2;++k){
-                    if(!subspace){
+                    if(!restr){
                         for(at=0;at<Natoms;++at)
                             // Even if k is out of range, nothing will crash here
                             if(sys->atoms[at].resid == k) result.push_back(at);
                     } else {
-                        for(j=0;j<subspace->size();++j){
-                            at = (*subspace)[j];
+                        for(j=0;j<restr->size();++j){
+                            at = (*restr)[j];
                             // Even if k is out of range, nothing will crash here
                             if(sys->atoms[at].resid == k) result.push_back(at);
                         }
@@ -592,13 +602,13 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
         for(i=0;i<Nchildren;++i){                        
             if(node->child_node(i)->code == TOK_UINT) {
                 k = node->child_as_int(i);
-                if(!subspace){
+                if(!restr){
                     for(at=0;at<Natoms;++at)
                         // Even if k is out of range, nothing will crash here
                         if(sys->atoms[at].resindex == k) result.push_back(at);
                 } else {
-                    for(j=0;j<subspace->size();++j){
-                        at = (*subspace)[j];
+                    for(j=0;j<restr->size();++j){
+                        at = (*restr)[j];
                         // Even if k is out of range, nothing will crash here
                         if(sys->atoms[at].resindex == k) result.push_back(at);
                     }
@@ -609,13 +619,13 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
                 int i1 = range->child_as_int(0);
                 int i2 = range->child_as_int(1);
                 for(k=i1;k<=i2;++k){
-                    if(!subspace){
+                    if(!restr){
                         for(at=0;at<Natoms;++at)
                             // Even if k is out of range, nothing will crash here
                             if(sys->atoms[at].resindex == k) result.push_back(at);
                     } else {
-                        for(j=0;j<subspace->size();++j){
-                            at = (*subspace)[j];
+                        for(j=0;j<restr->size();++j){
+                            at = (*restr)[j];
                             // Even if k is out of range, nothing will crash here
                             if(sys->atoms[at].resindex == k) result.push_back(at);
                         }
@@ -730,25 +740,29 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
     //---------------------------------------------------------------------------
     else if(node->code == TOK_ALL)
     {
-        result.resize(Natoms);
-        for(at=0;at<Natoms;++at) result[at] = at;    
+        if(!restr){
+            result.resize(Natoms);
+            for(at=0;at<Natoms;++at) result[at] = at;
+        } else {
+            result = *restr; // subspace optimization
+        }
     }
 
     //---------------------------------------------------------------------------
     // Math logical nodes
-    // All of them benefit from subspace optimization
+    // All of them benefit from restr optimization
     // All give sorted results
 
     else if(node->code == TOK_EQ)
     {
         auto op1 = get_numeric(node->child_node(0));
         auto op2 = get_numeric(node->child_node(1));
-        if(!subspace){
+        if(!restr){
             for(at=0;at<Natoms;++at) // over all atoms
                 if( op1(at) == op2(at) ) result.push_back(at);
         } else {
-            for(int i=0;i<subspace->size();++i){ // over subspace
-                at = (*subspace)[i];
+            for(int i=0;i<restr->size();++i){ // over restr
+                at = (*restr)[i];
                 if( op1(at) == op2(at) ) result.push_back(at);
             }
         }
@@ -759,12 +773,12 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
     {
         auto op1 = get_numeric(node->child_node(0));
         auto op2 = get_numeric(node->child_node(1));
-        if(!subspace){
+        if(!restr){
             for(at=0;at<Natoms;++at) // over all atoms
                 if( op1(at) != op2(at) ) result.push_back(at);
         } else {
-            for(int i=0;i<subspace->size();++i){ // over subspace
-                at = (*subspace)[i];
+            for(int i=0;i<restr->size();++i){ // over restr
+                at = (*restr)[i];
                 if( op1(at) != op2(at) ) result.push_back(at);
             }
         }
@@ -775,13 +789,13 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
     {
         auto op1 = get_numeric(node->child_node(0));
         auto op2 = get_numeric(node->child_node(1));
-        if(!subspace){
+        if(!restr){
             for(at=0;at<Natoms;++at){ // over all atoms
                 if( op1(at) < op2(at) ) result.push_back(at);
             }
         } else {            
-            for(int i=0;i<subspace->size();++i){ // over subspace
-                at = (*subspace)[i];
+            for(int i=0;i<restr->size();++i){ // over restr
+                at = (*restr)[i];
                 if( op1(at) < op2(at) ) result.push_back(at);
             }
         }
@@ -792,13 +806,13 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
     {
         auto op1 = get_numeric(node->child_node(0));
         auto op2 = get_numeric(node->child_node(1));
-        if(!subspace){
+        if(!restr){
             for(at=0;at<Natoms;++at){ // over all atoms
                 if( op1(at) > op2(at) ) result.push_back(at);
             }
         } else {
-            for(int i=0;i<subspace->size();++i){ // over subspace
-                at = (*subspace)[i];
+            for(int i=0;i<restr->size();++i){ // over restr
+                at = (*restr)[i];
                 if( op1(at) > op2(at) ) result.push_back(at);
             }
         }
@@ -809,13 +823,13 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
     {
         auto op1 = get_numeric(node->child_node(0));
         auto op2 = get_numeric(node->child_node(1));
-        if(!subspace){
+        if(!restr){
             for(at=0;at<Natoms;++at){ // over all atoms
                 if( op1(at) <= op2(at) ) result.push_back(at);
             }
         } else {
-            for(int i=0;i<subspace->size();++i){ // over subspace
-                at = (*subspace)[i];
+            for(int i=0;i<restr->size();++i){ // over restr
+                at = (*restr)[i];
                 if( op1(at) <= op2(at) ) result.push_back(at);
             }
         }
@@ -826,13 +840,13 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
     {
         auto op1 = get_numeric(node->child_node(0));
         auto op2 = get_numeric(node->child_node(1));
-        if(!subspace){
+        if(!restr){
             for(at=0;at<Natoms;++at){ // over all atoms
                 if( op1(at) >= op2(at) ) result.push_back(at);
             }
         } else {
-            for(int i=0;i<subspace->size();++i){ // over subspace
-                at = (*subspace)[i];
+            for(int i=0;i<restr->size();++i){ // over restr
+                at = (*restr)[i];
                 if( op1(at) >= op2(at) ) result.push_back(at);
             }
         }
