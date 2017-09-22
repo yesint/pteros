@@ -105,12 +105,12 @@ void make_bindings_Selection(py::module& m){
         .def("clear",&Selection::clear)
 
         // Subselection
-        .def("__call__", py::overload_cast<string>(&Selection::operator()))
-        .def("__call__", py::overload_cast<int,int>(&Selection::operator()))
-        .def("__call__", py::overload_cast<const std::vector<int>&>(&Selection::operator()))
-        .def("select", py::overload_cast<string>(&Selection::operator()))
-        .def("select", py::overload_cast<int,int>(&Selection::operator()))
-        .def("select", py::overload_cast<const std::vector<int>&>(&Selection::operator()))
+        .def("__call__", py::overload_cast<string>(&Selection::operator()), py::keep_alive<0,1>())
+        .def("__call__", py::overload_cast<int,int>(&Selection::operator()), py::keep_alive<0,1>())
+        .def("__call__", py::overload_cast<const std::vector<int>&>(&Selection::operator()), py::keep_alive<0,1>())
+        .def("select", py::overload_cast<string>(&Selection::operator()), py::keep_alive<0,1>())
+        .def("select", py::overload_cast<int,int>(&Selection::operator()), py::keep_alive<0,1>())
+        .def("select", py::overload_cast<const std::vector<int>&>(&Selection::operator()), py::keep_alive<0,1>())
 
         // Get and set
         .def("get_frame",&Selection::get_frame)
