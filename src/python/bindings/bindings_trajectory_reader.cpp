@@ -37,11 +37,14 @@ public:
     /* Inherit the constructors */    
     using Task_plugin::Task_plugin;
 
-    void set_id(int id) override {
-        auto class_name = py::cast(this).get_type().attr("__name__").cast<string>();
+    void set_id(int id) override {        
+        //cout << ":: set_id" << endl;
+        //auto class_name = py::cast(this).get_type().attr("__name__").cast<string>();
+        //cout << ":: set_id (2)" << endl;
+        string class_name = "task";
         log = std::make_shared<spdlog::logger>(fmt::format("{}.{}",class_name,id),Log::instance().console_sink);
         log->set_pattern(Log::instance().generic_pattern);
-        task_id = id;
+        task_id = id;        
     }
 
     /* Trampoline (need one for each virtual function) */
