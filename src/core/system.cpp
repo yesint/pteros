@@ -166,7 +166,7 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
                 LOG()->info("Skipping {} frames...\n", b);
                 Frame skip_fr;
                 for(int i=0;i<b;++i){
-                    f->read(nullptr, &skip_fr, Mol_file_content().traj(true));                    ;
+                    f->read(nullptr, &skip_fr, Mol_file_content().traj(true));
                     cur++;
                 }
             }            
