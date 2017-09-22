@@ -81,18 +81,18 @@ Currently the following file formats are supported:
     + DCD
 - Topology
     + PTTOP
-    \note Read only. Produced from Gromacs TPR files by the `tpr2pteros.py` script.
+    \note Read only. Produced from Gromacs TPR files by the ``tpr2pteros.py`` script.
 
 \subsection types_of_info What is loaded from data files?
-Molecular data formats contain different information about the system. In Pteros all information stored in the data files is classified into \em atoms, \em coordinates, \em trajectory and \em topology. Type of particular piece of information is determined by Mol_file_content enum value MFC_* where MFC is abbreviation for "Molecular File Content".
-\par Atoms (MFC_ATOMS)
-Information about atoms in the system (name, residue name, chain and other attributes) but without coordinates.
-\par Coordinates (MFC_COORD)
-Single set of coordinates of atoms (single frame) and the periodic box if periodicity is present.
-\par Trajectory (MFC_TRAJ)
-The number of coordinate frames each containing a set of coordinates, time stamp and the periodic box if periodicity is present.
-\par Topology (MFC_TOP)
-MD topology containing connectivity, atom types, precise masses, partial charges, non-bond Van-der-Waals parameters, etc.
+Molecular data formats contain different information about the system. In Pteros all information stored in the data files is classified into \em atoms, \em coordinates, \em trajectory and \em topology. Type of particular piece of information is determined by Mol_file_content class.
+\par Atoms
+Set by ``Mol_file_content::atoms()``. Information about atoms in the system (name, residue name, chain and other attributes) but without coordinates.
+\par Coordinates
+Set by ``Mol_file_content::coord()``. Single set of coordinates of atoms (single frame) and the periodic box if periodicity is present.
+\par Trajectory
+Set by``Mol_file_content::traj()``. The number of coordinate frames each containing a set of coordinates, time stamp and the periodic box if periodicity is present.
+\par Topology
+Set by ``Mol_file_content::top()``. MD topology containing connectivity, atom types, precise masses, partial charges, non-bond Van-der-Waals parameters, etc.
 
 Particular file format may contain different information. For example PDB files contain atoms and coordinates. XTC files contain the trajectory but no atoms. TNG files contain atoms and trajectory at the same time, etc. There are two ways of loading data files - simple and advanced.
 
@@ -169,24 +169,26 @@ auto gro_handler = Mol_file::open("some-gro-file.gro",'r');
 auto xtc_handler = Mol_file::open("some-xtc-file.xtc",'r');
 
 System s;
-s.load(pdb_handler, MFC_ATOMS); // (1)
-s.load(gro_handler, MFC_COORD); // (2)
+s.load(pdb_handler, Mol_file_content().atoms(true)); // (1)
+s.load(gro_handler, Mol_file_content().traj(true)); // (2)
 // Load frames until the end of trajectory one by one
 bool ok;
+auto c = Mol_file_content();
+c.traj(true);
 do {
-    ok = s.load(xtc_handler, MFC_TRAJ); // (3)
+    ok = s.load(xtc_handler, c); // (3)
 } while(ok);
 \endcode
 
 In this example we first create three file handlers for corresponding PDB, GRO and XTC files. File handlers are created by static Mol_file::open() method. Handlers could be created for reading (mode 'r') and for writing (mode 'w'). In our case we open them for reading. After that we create an empty system and load data from handlers.
 
--# On step (1) we read only atoms (MFC_ATOMS) from PDB file. No coordinates are read.
--# On step (2) we add coordinates (MFC_COORD) from GRO file.
--# On step (3) we read frames from XTC file (MFC_TRAJ) one by one in the loop up to the end of trajectory. The load() method returns false on failure to read next frame, which allows to track the end of trajectory.
+-# On step (1) we read only atoms from PDB file. No coordinates are read.
+-# On step (2) we add coordinates rom GRO file.
+-# On step (3) we read frames from XTC file one by one in the loop up to the end of trajectory. The load() method returns false on failure to read next frame, which allows to track the end of trajectory.
 
-\warning Behavior of MFC_TRAJ for file handlers is different from what is used in simple mode! Each call of `System::load(handler)` reads the \e single frame. This behavior is intentional and allows reading frames one by one.
-\note If one will use "MFC_ATOMS | MFC_TRAJ" or "MFC_COORD | MFC_TRAJ" on steps (1) and (2) then MFC_TRAJ will be ignored. This is again intentional to separate frame-by-frame trajectory reading from reading other information.
-\warning If MFC_ATOMS is specified the system is cleared before reading even if it already contained some atoms!
+\warning Behavior of Mol_file_content().traj(true) for file handlers is different from what is used in simple mode! Each call of ``System::load(handler)`` reads the \e single frame. This behavior is intentional and allows reading frames one by one.
+\note If one will use ``Mol_file_content().atoms(true).traj(true)`` or "Mol_file_content().coord(true).traj(true)" on steps (1) and (2) then trajectory reading will be ignored. This is again intentional to separate frame-by-frame trajectory reading from reading other information.
+\warning If ``Mol_file_content().atoms(true)`` is specified the system is cleared before reading even if it already contained some atoms!
 
 \subsection load_callback Loading with callback
 
@@ -546,7 +548,7 @@ The keyword "all" selects all atoms in the system.
 \subsubsection keyword_sel Keyword selections
 Consist of the keyword, which represent property of the atom, followed by one or more values of this property. The values are implicitly combined by logical OR. Depending on the keyword the values are either strings, integers or unsigned integers.
 
-For integers in addition to individual values the ranges are allowed in two forms: `1 to 10` and `1-10`. Both forms are equivalent.
+For integers in addition to individual values the ranges are allowed in two forms: ``1 to 10`` and ``1-10``. Both forms are equivalent.
 
 For strings regular expressions could be given in single ('') or double ("") quotes. The systnax of the regular expressions is the same [as used in C++11](http://www.cplusplus.com/reference/regex/ECMAScript/).
 
@@ -667,7 +669,7 @@ dist vector 2.1 3.3 3.5 1 0 0 < 3.0 | Atoms within the cylinder with radius 3 nm
 3.0 < dist plane 2.1 3.3 3.5 1 1 1 < 5.0 | Selects the slabs of atoms which are between 3 and 5 nm from the plane which goes through the point "2.1 3.3 3.5" and has the normal "1 1 1".
 
 \subsection text_based_sel Text-based and coordinate-depensent selections
-Selections created by means of selection string (\e text-based selections) are a bit special in Pteros. The set of selected atoms may depends on atomic coordinates (for example for selection `x>15` or `within 3.0 of y<34`). These cases are recognized automatically and such \e coordinate-dependent selection are treated in special manner.
+Selections created by means of selection string (\e text-based selections) are a bit special in Pteros. The set of selected atoms may depends on atomic coordinates (for example for selection ``x>15`` or ``within 3.0 of y<34``). These cases are recognized automatically and such \e coordinate-dependent selection are treated in special manner.
 
 Coordinate-dependent selections have to be updated if atomic coordinates change. If the coordinates of atoms were changed manually without changing the current frame this have to be done by hand using Selection::apply() method. If selection is not coordinate-dependent it does nothing.
 
@@ -780,13 +782,13 @@ If selection contains \e N atoms then they could be accessed by relative indexes
 \warning Accessing atom properties could be rather confusing due to the differences in C++ and Python. These differences are dictated by very different architectures of C++ and Python languages.
 
 \subsection cpp_access Accessor methods in C++
-Accessor methos in C++ have the same names as the properties of atoms with the first letter capitalized. For example `sel.Index(i)` returns global index of atom with relative index i, `sel.Name(i)` returns name of this atom, `sel.Resname(i)` returns its residue name, etc.
+Accessor methos in C++ have the same names as the properties of atoms with the first letter capitalized. For example ``sel.Index(i)`` returns global index of atom with relative index i, ``sel.Name(i)`` returns name of this atom, ``sel.Resname(i)`` returns its residue name, etc.
 
-Accessors `X(i)`, `Y(i)` and `Z(i)` give access to individual atomic coordinates of the current frame (the frame pointed by selection). The method `XYZ(i)` returns the vector of all three coordinates. These accessors also accept frame index as optional second parameter: `Z(i,fr)`, `XYZ(i,fr)`, etc.
+Accessors ``X(i)``, ``Y(i)`` and ``Z(i)`` give access to individual atomic coordinates of the current frame (the frame pointed by selection). The method ``XYZ(i)`` returns the vector of all three coordinates. These accessors also accept frame index as optional second parameter: ``Z(i,fr)``, ``XYZ(i,fr)``, etc.
 
-There are also accessors for periodic box associated with current frame pointed by selection (`Box()`) and the time stamp of the pointed frame (`Time()`). These methods are \e not available for arbitrary frames.
+There are also accessors for periodic box associated with current frame pointed by selection (``Box()``) and the time stamp of the pointed frame (``Time()``). These methods are \e not available for arbitrary frames.
 
-There is also special accessor `VDW(i)` which returns the van der Waals radius of <i>i</i>-th atom.
+There is also special accessor ``VDW(i)`` which returns the van der Waals radius of <i>i</i>-th atom.
 
 In C++ all of them are accessors inlined l-value functions. This means that they do not add any overhead in accessing atom properties and could be assinged to:
 
@@ -1296,7 +1298,7 @@ for(int i=0;i<N;++i){
             cout << g.cell(i,j,k).size() << endl;
 \endcode
 
-Grid cells are of type `vector<Grid_element>` and contain information about indexes and coordinates of atoms in each cell.
+Grid cells are of type ``vector<Grid_element>`` and contain information about indexes and coordinates of atoms in each cell.
 
 \section energy Evaluating non-bond energies
 
