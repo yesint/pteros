@@ -37,12 +37,12 @@ public:
     /* Inherit the constructors */    
     using Task_plugin::Task_plugin;
 
-    void set_id(int id) override {        
-        //cout << ":: set_id" << endl;
-        //auto class_name = py::cast(this).get_type().attr("__name__").cast<string>();
-        //cout << ":: set_id (2)" << endl;
-        string class_name = "task";
-        log = std::make_shared<spdlog::logger>(fmt::format("{}.{}",class_name,id),Log::instance().console_sink);
+    // Workaround to set the correct class name for logger
+    // This is filled on Python side by the name of derived class
+    string _class_name;
+
+    void set_id(int id) override {                
+        log = std::make_shared<spdlog::logger>(fmt::format("{}.{}",_class_name,id),Log::instance().console_sink);
         log->set_pattern(Log::instance().generic_pattern);
         task_id = id;        
     }
@@ -91,11 +91,13 @@ void make_bindings_Trajectory_reader(py::module& m){
         .def("process_frame",&Task_plugin::process_frame)
         .def("post_process",&Task_plugin::post_process)
 
-        .def_readonly("system",&Task_py::system)
-        .def_property_readonly("id",&Task_py::get_id)
-        .def_readonly("jump_remover",&Task_py::jump_remover)
-        .def_readonly("options",&Task_py::options)
-        .def_property_readonly("log",[](Task_py* obj){return obj->log.get();},py::return_value_policy::reference_internal)
+        .def_readonly("system",&Task_plugin::system)
+        .def_property_readonly("id",&Task_plugin::get_id)
+        .def_readonly("jump_remover",&Task_plugin::jump_remover)
+        .def_readonly("options",&Task_plugin::options)
+        .def_property_readonly("log",[](Task_plugin* obj){return obj->log.get();},py::return_value_policy::reference_internal)
+
+        .def_property("_class_name",[](Task_py* obj){return obj->_class_name;}, [](Task_py* obj, const string& s){obj->_class_name=s;})
     ;
 
     py::class_<Trajectory_reader>(m, "Trajectory_reader")

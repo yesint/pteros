@@ -112,12 +112,16 @@ if __name__ == '__main__':
                 # create new instance of task from that module
                 class_ = getattr(module, class_name) # Get class by name
                 obj = class_(task) # create instance
+                # Workaround to set the correct class name in logger
+                if f.split('.')[-1] == "py":
+                    obj._class_name = obj.__class__.__name__
                 task_num += 1
                 reader.add_task( obj )
                 log.info('\t\tCreated instance of task {}'.format(class_name))
                 if f.split('.')[-1] == "py":
                     # For pure python plugins
                     python_tasks.append(obj) # Save it
+
 
     #--------------------------------------
 
