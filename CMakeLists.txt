@@ -7,6 +7,7 @@ OPTION(WITH_OPENMP "Use OpenMP parallelization if supported" ON)
 OPTION(WITH_POWERSASA "Use POWERSASA code. This implies severe license restrictions! \n Read the comment in thirdparty/sasa/LICENSE carefully before enabling this option!" OFF)
 OPTION(STANDALONE_PLUGINS "Compile analysis plugins as stand-alone executables" OFF)
 OPTION(MAKE_PACKAGE "Generate package" OFF)
+OPTION(INSTALL_INTERNAL_SPDLOG "Install internal spdlog headers in the case if there is no system-wide spdlog" ON)
 
 
 # Use shared Boost libraries
@@ -109,10 +110,18 @@ include_directories(include)
 # Build thirdparty libraries
 #----------------------------
 
+message("Looking for spdlog...")
+find_package(spdlog CONFIG QUIET)
+if(NOT ${spdlog_FOUND})
+    message("spdlog not found! Using internal one.")
+    include_directories(${PROJECT_SOURCE_DIR}/thirdparty)
+    # Install spdlog headers
+    if(${INSTALL_INTERNAL_SPDLOG})
+        install(DIRECTORY ${PROJECT_SOURCE_DIR}/thirdparty/spdlog DESTINATION include)
+    endif()
+endif()
+
 #include_directories for spdlog
-include_directories(${PROJECT_SOURCE_DIR}/thirdparty)
-# Install spdlog headers
-install(DIRECTORY ${PROJECT_SOURCE_DIR}/thirdparty/spdlog DESTINATION include)
 
 # Build separate tng_io library (will be linked later)
 add_subdirectory(thirdparty/tng_io)
