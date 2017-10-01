@@ -181,7 +181,7 @@ Known problems</h2>
 <li>OpenMP in clang only works for clang++ &gt;= 3.8 and if libomp is installed: <code>sudo apt install libomp-dev</code></li>
 <li>If there are several Boost versions in the system CMake may find the right one for one library but the wrong one for the other, which causes very strange errors. The solution is to include the following flags to CMake invocation: <div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;-DBoost_NO_SYSTEM_PATHS=ON -DBOOST_ROOT=&quot;Correct path to boost&quot; </div></div><!-- fragment --></li>
 <li>All Pteros plugins have to be up to date with the main library, but CMake doesn't always ensure this if you pull new updates from the repository. If plugins suddenly stop working after update delete CMakeCache.txt and CMakeFiles and recompile.</li>
-<li>The error `trying to overwrite '/usr/include/spdlog/async_logger.h', which is also in package libspdlog-dev 1.6-1<code>occurs during installation. This happens if you have</code>spdlog<code>installed system-wide in Ubuntu from the package</code>libspdlog-dev<code>. This package is built in a wrong way and it lacks</code>spdlogConfig.cmake&lt;tt&gt;file needed for correct library detection. That is why Pteros can't see it and tries to install its own bandled version of spdlog. UseINSTALL_INTERNAL_SPDLOG=OFF` as a workaround.</li>
+<li>The error <em>"trying to overwrite '/usr/include/spdlog/async_logger.h', which is also in package libspdlog-dev 1.6-1"</em> occurs during installation. This happens if you have <code>spdlog</code> installed system-wide in Ubuntu from the package <code>libspdlog-dev</code>. This package is built in a wrong way and it lacks <code>spdlogConfig.cmake</code> file needed for correct library detection. That is why Pteros can't see it and tries to install its own bandled version of spdlog. Use <code>INSTALL_INTERNAL_SPDLOG=OFF</code> as a workaround.</li>
 </ul>
 <h1><a class="anchor" id="linking"></a>
 Linking with Pteros</h1>
@@ -192,7 +192,7 @@ Linking with Pteros</h1>
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="install.html">Installation</a></li>
-    <li class="footer">Generated on Sun Oct 1 2017 14:59:39 for Pteros by
+    <li class="footer">Generated on Sun Oct 1 2017 15:07:41 for Pteros by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.11 </li>
   </ul>
