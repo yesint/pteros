@@ -115,7 +115,7 @@ $(document).ready(function(){initNavTree('install_linux.html','');});
 <li class="level2"><a href="#no_omp">Building Pteros without OpenMP</a></li>
 </ul>
 </li>
-<li class="level1"><a href="#trouble">Troubleshooting</a><ul><li class="level2"><a href="#known_problems">Known problems</a></li>
+<li class="level1"><a href="#trouble">Reporting bugs</a><ul><li class="level2"><a href="#known_problems">Known problems</a></li>
 </ul>
 </li>
 <li class="level1"><a href="#linking">Linking with Pteros</a></li>
@@ -172,8 +172,8 @@ Building standalone analysis plugins</h2>
 Building Pteros without OpenMP</h2>
 <p>By default Pteros is compiled with OpenMP paralellization of many internal operations. However, on certain computational clusters running SGE scheduler the usage of OpenMP is prohibited. There are also other situations when you may want to disable OpenMP. Use the following flag to compile without OpenMP:</p>
 <div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;cmake &lt;usual options&gt; -DWITH_OPENMP=&quot;OFF&quot;</div></div><!-- fragment --><h1><a class="anchor" id="trouble"></a>
-Troubleshooting</h1>
-<p>The most common problems during installation arise from bugs in Boost or in the compilers and from the wrong versions of the libraries, which are found by CMake. In general <a href="http://www.google.com">Google</a> is your best friend in solving any problem. If you are stuck completely write to <em>yesint4(AT)yahoo.com</em> and attach error messages and the system configuration (versions of all required libraries and compiler).</p>
+Reporting bugs</h1>
+<p>Use <a href="https://github.com/yesint/pteros/issues">issues on Github</a> to report bugs.</p>
 <h2><a class="anchor" id="known_problems"></a>
 Known problems</h2>
 <ul>
@@ -181,6 +181,7 @@ Known problems</h2>
 <li>OpenMP in clang only works for clang++ &gt;= 3.8 and if libomp is installed: <code>sudo apt install libomp-dev</code></li>
 <li>If there are several Boost versions in the system CMake may find the right one for one library but the wrong one for the other, which causes very strange errors. The solution is to include the following flags to CMake invocation: <div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;-DBoost_NO_SYSTEM_PATHS=ON -DBOOST_ROOT=&quot;Correct path to boost&quot; </div></div><!-- fragment --></li>
 <li>All Pteros plugins have to be up to date with the main library, but CMake doesn't always ensure this if you pull new updates from the repository. If plugins suddenly stop working after update delete CMakeCache.txt and CMakeFiles and recompile.</li>
+<li>The error `trying to overwrite '/usr/include/spdlog/async_logger.h', which is also in package libspdlog-dev 1.6-1<code>occurs during installation. This happens if you have</code>spdlog<code>installed system-wide in Ubuntu from the package</code>libspdlog-dev<code>. This package is built in a wrong way and it lacks</code>spdlogConfig.cmake&lt;tt&gt;file needed for correct library detection. That is why Pteros can't see it and tries to install its own bandled version of spdlog. UseINSTALL_INTERNAL_SPDLOG=OFF` as a workaround.</li>
 </ul>
 <h1><a class="anchor" id="linking"></a>
 Linking with Pteros</h1>
@@ -191,7 +192,7 @@ Linking with Pteros</h1>
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="install.html">Installation</a></li>
-    <li class="footer">Generated on Sun Sep 17 2017 15:06:52 for Pteros by
+    <li class="footer">Generated on Sun Oct 1 2017 14:59:39 for Pteros by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.11 </li>
   </ul>

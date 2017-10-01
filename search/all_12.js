@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['tag',['tag',['../classpteros_1_1Atom.html#a8b46cd1a32f797c60e7d4fc78453ab77',1,'pteros::Atom::tag()'],['../classpteros_1_1Selection.html#a432ca8dddfbff0be0a9445c063436642',1,'pteros::Selection::Tag(int ind)'],['../classpteros_1_1Selection.html#a432ca8dddfbff0be0a9445c063436642',1,'pteros::Selection::Tag(int ind)']]],
+  ['tag',['Tag',['../classpteros_1_1Selection.html#a432ca8dddfbff0be0a9445c063436642',1,'pteros::Selection::Tag(int ind)'],['../classpteros_1_1Selection.html#a432ca8dddfbff0be0a9445c063436642',1,'pteros::Selection::Tag(int ind)'],['../classpteros_1_1Atom.html#a8b46cd1a32f797c60e7d4fc78453ab77',1,'pteros::Atom::tag()']]],
   ['task_5fplugin',['Task_plugin',['../classpteros_1_1Task__plugin.html',1,'pteros']]],
   ['text_5fbased',['text_based',['../classpteros_1_1Selection.html#a4fd0cf325d2db37e208639c71b34f133',1,'pteros::Selection::text_based() const '],['../classpteros_1_1Selection.html#a4fd0cf325d2db37e208639c71b34f133',1,'pteros::Selection::text_based() const ']]],
   ['time',['Time',['../classpteros_1_1Selection.html#a34d7f61f07dccf04984d597c0964f356',1,'pteros::Selection::Time()'],['../classpteros_1_1Selection.html#a34d7f61f07dccf04984d597c0964f356',1,'pteros::Selection::Time()'],['../classpteros_1_1System.html#a2d44e502f67fab1a21b7a54ad6b14bb9',1,'pteros::System::Time(int fr)'],['../classpteros_1_1System.html#abf00b5693b49760e18fba6aaf6b6e99d',1,'pteros::System::Time(int fr) const '],['../structpteros_1_1Frame.html#ad6c13b851a594d8dda18c29404e37294',1,'pteros::Frame::time()']]],

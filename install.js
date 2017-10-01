@@ -12,7 +12,7 @@ var install =
         [ "Building standalone analysis plugins", "install_linux.html#standalone", null ],
         [ "Building Pteros without OpenMP", "install_linux.html#no_omp", null ]
       ] ],
-      [ "Troubleshooting", "install_linux.html#trouble", [
+      [ "Reporting bugs", "install_linux.html#trouble", [
         [ "Known problems", "install_linux.html#known_problems", null ]
       ] ],
       [ "Linking with Pteros", "install_linux.html#linking", null ]
