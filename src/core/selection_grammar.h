@@ -553,6 +553,10 @@ public:
         _this_rule_->code = TOK_INDEX;
     }
 
+    LITERAL_RULE(TYPE,"type"){
+        _this_rule_->code = TOK_TYPE;
+    }
+
     /*===================================*/
     /*           NON-TERMINALS           */
     /*===================================*/
@@ -879,7 +883,7 @@ public:
     }
 
     RULE_REDUCE(STR_KEYWORD){
-        _ok_ = NAME() || RESNAME() || TAG() || CHAIN();
+        _ok_ = NAME() || RESNAME() || TAG() || CHAIN() || TYPE();
     }
 
     RULE_REDUCE(INT_KEYWORD){

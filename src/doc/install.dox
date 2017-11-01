@@ -163,9 +163,9 @@ cmake <usual options> -DWITH_OPENMP="OFF"
 \endcode
 
 
-\section trouble Troubleshooting
+\section trouble Reporting bugs
 
-The most common problems during installation arise from bugs in Boost or in the compilers and from the wrong versions of the libraries, which are found by CMake. In general <a href="http://www.google.com">Google</a> is your best friend in solving any problem. If you are stuck completely write to <i>yesint4(AT)yahoo.com</i> and attach error messages and the system configuration (versions of all required libraries and compiler).
+Use <a href="https://github.com/yesint/pteros/issues">issues on Github</a> to report bugs.
 
 \subsection known_problems Known problems
 - Clang compiler doesn't work with Boost < 1.52
@@ -173,7 +173,7 @@ The most common problems during installation arise from bugs in Boost or in the 
 - If there are several Boost versions in the system CMake may find the right one for one library but the wrong one for the other, which causes very strange errors. The solution is to include the following flags to CMake invocation:
 \code{.unparsed} -DBoost_NO_SYSTEM_PATHS=ON -DBOOST_ROOT="Correct path to boost" \endcode
 - All Pteros plugins have to be up to date with the main library, but CMake doesn't always ensure this if you pull new updates from the repository. If plugins suddenly stop working after update delete CMakeCache.txt and CMakeFiles and recompile.
-
+- The error <i>"trying to overwrite '/usr/include/spdlog/async_logger.h', which is also in package libspdlog-dev 1.6-1"</i> occurs during installation. This happens if you have `spdlog` installed system-wide in Ubuntu from the package `libspdlog-dev`. This package is built in a wrong way and it lacks `spdlogConfig.cmake` file needed for correct library detection. That is why Pteros can't see it and tries to install its own bandled version of spdlog. Use `INSTALL_INTERNAL_SPDLOG=OFF` as a workaround.
 
 \section linking 	Linking with Pteros
 

@@ -448,6 +448,51 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
     }
 
     //---------------------------------------------------------------------------
+    else if(node->code == TOK_TYPE)
+    {
+        if(!sys->force_field_ready()) throw Pteros_error("Can't select type names from system with no valid force field!");
+
+        int Nchildren = node->children.size(); // Get number of children
+        string str;
+        // Cycle over children
+        for(i=0;i<Nchildren;++i){
+            str = node->child_as_str(i);
+            if(node->child_node(i)->code == TOK_STR){
+                // For normal strings
+                if(!restr){
+                    for(at=0;at<Natoms;++at){
+                        if(sys->atoms[at].type_name == str) result.push_back(at);
+                    }
+                } else {
+                    for(j=0;j<restr->size();++j){
+                        at = (*restr)[j];
+                        if(sys->atoms[at].type_name == str) result.push_back(at);
+                    }
+                }
+            } else if(node->child_node(i)->code == TOK_REGEX){
+                // For regex
+                std::cmatch what;
+                std::regex reg(str);
+                if(!restr){
+                    for(at=0;at<Natoms;++at){
+                        if(std::regex_match(sys->atoms[at].type_name.c_str(),what,reg)){
+                             result.push_back(at);
+                        }
+                    }
+                } else {
+                    for(j=0;j<restr->size();++j){
+                        at = (*restr)[j];
+                        if(std::regex_match(sys->atoms[at].type_name.c_str(),what,reg)){
+                             result.push_back(at);
+                        }
+                    }
+                }
+            }
+        }
+        sort(result.begin(),result.end());
+    }
+
+    //---------------------------------------------------------------------------
     else if(node->code == TOK_RESNAME)
     {
         int Nchildren = node->children.size(); // Get number of children

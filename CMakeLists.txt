@@ -79,7 +79,7 @@ if(WITH_PYTHON)
     add_definitions(-DWRAP_PYTHON)
     # Configure pybind11
     message("Configuring Pybind11...")
-    find_package(pybind11)
+    find_package(pybind11 REQUIRED)
     # Set python install dir
     set(PY_INST_DIR python)
 endif()
