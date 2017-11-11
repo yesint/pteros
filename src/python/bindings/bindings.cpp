@@ -1,6 +1,7 @@
 #include "pteros/core/selection.h"
 #include "pteros/core/logging.h"
 #include "bindings_util.h"
+#include "pteros/core/utilities.h"
 
 namespace py = pybind11;
 using namespace std;
@@ -42,5 +43,8 @@ PYBIND11_MODULE(_pteros, m) {
         .def("debug",[](spdlog::logger* log, const string& str){log->debug(str);})
         .def("critical",[](spdlog::logger* log, const string& str){log->critical(str);})
     ;
+
+    m.def("angle_between_vectors",&angle_between_vectors);
+    m.def("project_vector",&project_vector);
 
 }
