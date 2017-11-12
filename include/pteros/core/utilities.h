@@ -31,12 +31,37 @@ namespace pteros {
 
     Eigen::Vector3f project_vector(Vector3f_const_ref vec1, Vector3f_const_ref vec2);
 
-    float rad_to_deg(float rad);
+    float rad_to_deg(float ang);
+    float deg_to_rad(float ang);
 
-    constexpr long double operator"" _deg ( long double deg )
+    constexpr long double operator"" _deg ( long double ang )
     {
-        return deg*3.141592/180;
+        return ang*3.141592/180.0;
     }
+
+    constexpr long double operator"" _rad ( long double ang )
+    {
+        return ang*180.0/3.141592;
+    }
+
+    class Histogram {
+    public:
+        Histogram(float minval, float maxval, int n);
+        void add(float v);
+        void normalize();
+        float value(int i) const;
+        float position(int i) const;
+        const Eigen::VectorXd& values() const;
+        const Eigen::VectorXd& positions() const;
+        int num_bins() const;
+        void save_to_file(const std::string& fname);
+    private:
+        int nbins;
+        float minv,maxv,d;
+        Eigen::VectorXd val;
+        Eigen::VectorXd pos;
+        bool normalized;
+    };
 
 /*
     float distance_to_vector(Vector3f_const_ref point,

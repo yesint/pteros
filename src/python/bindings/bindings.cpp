@@ -47,4 +47,16 @@ PYBIND11_MODULE(_pteros, m) {
     m.def("angle_between_vectors",&angle_between_vectors);
     m.def("project_vector",&project_vector);
 
+    py::class_<Histogram>(m,"Histogram")
+            .def(py::init<float,float,int>())
+            .def("add",&Histogram::add)
+            .def("normalize",&Histogram::normalize)
+            .def("value",&Histogram::value)
+            .def("position",&Histogram::position)
+            .def_property_readonly("values",&Histogram::values)
+            .def_property_readonly("positions",&Histogram::positions)
+            .def_property_readonly("num_bins",&Histogram::num_bins)
+            .def("save_to_file",&Histogram::save_to_file)
+    ;
+
 }
