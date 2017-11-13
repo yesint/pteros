@@ -71,7 +71,7 @@ void Histogram::add(float v)
 
 void Histogram::normalize()
 {
-    val.normalize();
+    val /= val.sum()*(pos(1)-pos(0));
     normalized = true;
 }
 
