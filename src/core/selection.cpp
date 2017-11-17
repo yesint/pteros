@@ -1125,7 +1125,6 @@ void Selection::rotate(int axis, float angle, Vector3f_const_ref pivot){
 // Rotation around given vector relative to pivot
 void Selection::rotate(Vector3f_const_ref direction, float angle, Vector3f_const_ref pivot){
     int n = index.size();
-    float ay,az;
 
     Affine3f m( AngleAxisf(angle,direction.normalized()) );
 
@@ -1172,7 +1171,7 @@ void Selection::apply_transform(const Affine3f &t){
     int n = size();    
     #pragma omp parallel for
     for(int i=0; i<n; ++i){        
-        XYZ(i) = (t * XYZ(i)).eval();
+        XYZ(i) = t * XYZ(i);
     }
 }
 
