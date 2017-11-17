@@ -45,8 +45,7 @@ add_library(pteros SHARED
     selection_grammar.h
     selection_parser.cpp
     selection.cpp
-    ${PROJECT_SOURCE_DIR}/include/pteros/core/gnm.h
-    gnm.cpp
+
     ${PROJECT_SOURCE_DIR}/include/pteros/core/grid.h
     grid.cpp
 

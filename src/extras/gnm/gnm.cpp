@@ -20,7 +20,7 @@
  *
 */
 
-#include "pteros/core/gnm.h"
+#include "pteros/extras/gnm.h"
 #include "pteros/core/pteros_error.h"
 #include "pteros/core/distance_search.h"
 #include <fstream>

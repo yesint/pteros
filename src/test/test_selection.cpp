@@ -38,6 +38,8 @@
 #include "pteros/core/logging.h"
 #include "spdlog/fmt/ostr.h"
 
+#include "pteros/extras/membrane.h"
+
 using namespace std;
 using namespace pteros;
 using namespace Eigen;
@@ -237,17 +239,18 @@ make_accessor(const Selection& sel){
 }
 
 
-#define AAA aaa
-#define EVAL(arg) #arg
-
-#define MACRO(_n) void _n(){ cout << EVAL(_n) << endl;}
-
-MACRO(AAA)
 
 int main(int argc, char** argv)
 {
+    vector<Lipid_descr> species = {
+        {"DOPC","resname DOPC", "name P N", "name C216 C217 C218 C316 C317 C318", "name C22 C21 C23 C31 C32 C33"},
+        {"POPC","resname POPC", "name P N", "name C216 C217 C218 C316 C317 C318", "name C22 C21 C23 C31 C32 C33"}
+    };
 
-    aaa();
+    System sys("/home/semen/work/current/Projects/Masato/symmetric/after_em.gro");
+
+    Membrane membr(&sys,species);
+
     return 1;
 
     //System s("/home/semen/work/current/Projects/plasma_vesicle/after_em.gro");

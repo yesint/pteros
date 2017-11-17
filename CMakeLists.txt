@@ -8,6 +8,7 @@ OPTION(WITH_POWERSASA "Use POWERSASA code. This implies severe license restricti
 OPTION(STANDALONE_PLUGINS "Compile analysis plugins as stand-alone executables" OFF)
 OPTION(MAKE_PACKAGE "Generate package" OFF)
 OPTION(INSTALL_INTERNAL_SPDLOG "Install internal spdlog headers in the case if there is no system-wide spdlog" ON)
+OPTION(MAKE_EXAMPLES "Compile examples and plugin templates" OFF)
 
 
 # Use shared Boost libraries
@@ -148,9 +149,13 @@ add_subdirectory(src/analysis)
 add_subdirectory(src/tools)
 add_subdirectory(src/python)
 add_subdirectory(src/python/compiled_analysis_plugins)
-add_subdirectory(src/examples)
 add_subdirectory(src/test)
-#add_subdirectory(template_plugin)
+add_subdirectory(src/extras)
+
+IF(MAKE_EXAMPLES)
+    add_subdirectory(src/examples)
+    add_subdirectory(template_plugin)
+ENDIF()
 
 # Install headers
 install(DIRECTORY include DESTINATION .)

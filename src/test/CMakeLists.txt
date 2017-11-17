@@ -1,5 +1,3 @@
-link_libraries( pteros_analysis pteros)
-
 #add_executable(threads_test test_threads.cpp)
 #target_link_libraries(threads_test
 #    pteros pteros_analysis ${Boost_LIBRARIES} ${PYTHON_LIBRARIES})
@@ -9,7 +7,7 @@ test_selection.cpp
     #${PROJECT_SOURCE_DIR}/src/core/peg_parser.cpp
     #${PROJECT_SOURCE_DIR}/include/pteros/core/peg_parser.h
 )
-target_link_libraries(pteros_test ${Boost_LIBRARIES} ${PYTHON_LIBRARIES} ${BOOST_PYTHON_LIB})
+target_link_libraries(pteros_test ${Boost_LIBRARIES} ${PYTHON_LIBRARIES} ${BOOST_PYTHON_LIB} pteros_analysis pteros pteros_membrane)
 
 
 #add_subdirectory(${PROJECT_SOURCE_DIR}/src/python/pybind11_src)
