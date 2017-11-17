@@ -2,14 +2,6 @@ cmake_minimum_required(VERSION 3.1)
 
 project(pteros_analysis_plugin)
 
-find_package(pybind11)
-message(STATUS "Found pybind11 v${pybind11_VERSION}: ${pybind11_INCLUDE_DIRS}")
-find_package(PythonInterp  3.5)
-find_package(PythonLibs 3.5)
-
-
-
-
 ###############################################
 ## You have to set the variables below:      ##
 ###############################################
@@ -22,7 +14,6 @@ SET(PLUGIN_FILES plugin_main.cpp)
 
 # Path to your Pteros installation
 SET(PTEROS_PATH /home/semen/programs/pteros/)
-
 
 
 ###############################################
@@ -47,32 +38,6 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     SET(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -s")
 ENDIF()
 
-# Windows-related stuff
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_THREAD_USE_LIB -s")
-    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -s")
-
-    ##########################################################
-    # Cnange the paths here if you are compiling on Windows! #
-    ##########################################################
-
-    # Path to Boost:
-    SET(BOOST_ROOT "c:/install/boost")
-    # Path to Boost includes:
-    SET(BOOST_INCLUDEDIR "C:/install/boost/include/boost-1_53")
-    # Path to Boost libs:
-    link_directories("C:/install/boost/lib")
-
-    # Path to numpy includes:
-    include_directories("C:/Python27/Lib/site-packages/numpy/core/include")
-    # Path to numpy libs:
-    link_directories("C:/Python27/Lib/site-packages/numpy/core/lib")
-
-    ##########################################################
-    # End of user-modifieble section!                        #
-    ##########################################################
-ENDIF()
-
 #Sets optmization for Eigen in Release build
 SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -msse2")
 
@@ -90,17 +55,26 @@ endif()
 
 # Find Python
 message("Looking for Python...")
-find_package(PythonInterp)
-find_package(PythonLibs)
-if(PYTHONINTERP_FOUND AND PYTHONLIBS_FOUND)
-    # Configure pybind11
-    message("Configuring Pybind11...")
-    find_package(pybind11)
-    # Set python includes globally (pybind11 fails to find Python.h without this)
-    include_directories(${PYTHON_INCLUDE_PATH})
-else()
-    message("Can't find Python interpreter or libraries!")
+find_package(pybind11)
+# Set python includes globally (pybind11 fails to find Python.h without this)
+include_directories(${PYTHON_INCLUDE_PATH})
+
+# Find Eigen
+message("Looking for Eigen...")
+find_package(Eigen3 REQUIRED)
+include_directories(${EIGEN3_INCLUDE_DIR})
+
+# Find Boost
+message("Looking for Boost...")
+find_package(Boost 1.48.0 REQUIRED system date_time)
+# For boost>1.50 and on windows also add filesystem to compile normally
+if(${Boost_MINOR_VERSION} GREATER 50 AND ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    find_package(Boost 1.48.0 REQUIRED filesystem system)
 endif()
+# Add Boost includes and libs globally - they are needed everywhere
+include_directories(${Boost_INCLUDE_DIRS})
+link_libraries(${Boost_LIBRARIES})
+
 
 # Make python extension module
 pybind11_add_module(plugin ${PLUGIN_FILES})
