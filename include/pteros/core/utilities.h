@@ -44,6 +44,7 @@ namespace pteros {
         return ang*180.0/3.141592;
     }
 
+
     class Histogram {
     public:
         Histogram(float minval, float maxval, int n);
@@ -63,19 +64,9 @@ namespace pteros {
         bool normalized;
     };
 
-/*
-    float distance_to_vector(Vector3f_const_ref point,
-                             Vector3f_const_ref vec_origin,
-                             Vector3f_const_ref vec_dir);
 
-    void project_to_vector(Vector3f_const_ref point,
-                             Vector3f_const_ref vec_origin,
-                             Vector3f_const_ref vec_dir);
 
-    float distance_to_plane(Vector3f_const_ref point,
-                            Vector3f_const_ref plane_origin,
-                            Vector3f_const_ref plane_normal);
-*/
+
 
 }
 
