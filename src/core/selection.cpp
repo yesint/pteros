@@ -1838,8 +1838,13 @@ void Selection::wrap(Vector3i_const_ref dims){
     }
 }
 
-void Selection::unwrap(Vector3i_const_ref dims){
-    Vector3f c = center(true,true);
+void Selection::unwrap(int leading_index, Vector3i_const_ref dims){
+    Vector3f c;
+    if(leading_index>=0){
+        c = XYZ(leading_index);
+    } else {
+        c = center(true,true);
+    }
     for(int i=0;i<size();++i){
         XYZ(i) = Box().get_closest_image(XYZ(i),c,dims);
     }

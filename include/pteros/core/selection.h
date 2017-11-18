@@ -577,7 +577,7 @@ class Selection {
       If the size of selection is larger than 1/2 of the box size in
       any dimension unwrap() will not work as expected and will not make selection "compact"!
     */
-    void unwrap(Vector3i_const_ref dims = Eigen::Vector3i::Ones());
+    void unwrap(int leading_index = -1, Vector3i_const_ref dims = Eigen::Vector3i::Ones());
 
     /** Unwraps selection to make it whole (without jumps over periodic box boundary).
      * based on preserving all bonds.
