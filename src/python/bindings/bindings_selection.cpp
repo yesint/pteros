@@ -211,7 +211,7 @@ void make_bindings_Selection(py::module& m){
         .def("rotate",[](Selection* sel, Matrix3f_const_ref m){ sel->rotate(m.transpose()); })
         .def("rotate",py::overload_cast<Vector3f_const_ref,Vector3f_const_ref>(&Selection::rotate))
         .def("wrap", &Selection::wrap, "dims"_a=Eigen::Vector3i::Ones())
-        .def("unwrap", &Selection::unwrap, "dims"_a=Eigen::Vector3i::Ones())
+        .def("unwrap", &Selection::unwrap, "lead_ind"_a=-1, "dims"_a=Eigen::Vector3i::Ones())
         .def("unwrap_bonds", &Selection::unwrap_bonds, "d"_a=0.2, "lead_ind"_a=0, "dims"_a=Eigen::Vector3i::Ones())
         .def("principal_transform", [](Selection* sel, bool periodic){
                 Matrix4f m = sel->principal_transform(periodic).matrix().transpose();
