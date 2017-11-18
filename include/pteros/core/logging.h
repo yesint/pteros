@@ -55,6 +55,8 @@ private:
   }
 };
 
+std::shared_ptr<spdlog::logger> create_logger(const std::string& name);
+
 }
 
 #define LOG() (Log::instance().logger)
