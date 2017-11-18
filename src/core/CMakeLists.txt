@@ -29,6 +29,7 @@ endif()
 add_library(pteros SHARED
     # General
     ${PROJECT_SOURCE_DIR}/include/pteros/core/logging.h
+    logging.cpp
     ${PROJECT_SOURCE_DIR}/include/pteros/core/utilities.h
     utilities.cpp
     ${PROJECT_SOURCE_DIR}/include/pteros/pteros.h

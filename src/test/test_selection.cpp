@@ -243,13 +243,21 @@ make_accessor(const Selection& sel){
 int main(int argc, char** argv)
 {
     vector<Lipid_descr> species = {
-        {"DOPC","resname DOPC", "name P N", "name C216 C217 C218 C316 C317 C318", "name C22 C21 C23 C31 C32 C33"},
-        {"POPC","resname POPC", "name P N", "name C216 C217 C218 C316 C317 C318", "name C22 C21 C23 C31 C32 C33"}
+        {"YOPE","resname YOPE", "name P N", "name C314 C315 C316 C216 C217 C218", "name C22 C21 C23 C31 C32 C33"},
+        {"DYPE","resname DYPE", "name P N", "name C314 C315 C316 C214 C215 C216", "name C22 C21 C23 C31 C32 C33"},
+        {"DOPE","resname DOPE", "name P N", "name C316 C317 C318 C216 C217 C218", "name C22 C21 C23 C31 C32 C33"},
+        {"DOPC","resname DOPC", "name P N", "name C316 C317 C318 C216 C217 C218", "name C22 C21 C23 C31 C32 C33"},
+        {"POPE","resname POPE", "name P N", "name C316 C317 C318 C216 C217 C218", "name C22 C21 C23 C31 C32 C33"},
+        {"DYPC","resname DYPE", "name P N", "name C314 C315 C316 C214 C215 C216", "name C22 C21 C23 C31 C32 C33"},
+        {"YOPC","resname YOPC", "name P N", "name C314 C315 C316 C216 C217 C218", "name C22 C21 C23 C31 C32 C33"},
+        {"POPC","resname POPC", "name P N", "name C316 C317 C318 C216 C217 C218", "name C22 C21 C23 C31 C32 C33"},
     };
 
     System sys("/home/semen/work/current/Projects/Masato/symmetric/after_em.gro");
 
     Membrane membr(&sys,species);
+    membr.compute_properties(2.0, Vector3f(0,0,1));
+    membr.write_vmd_arrows("normals.tcl");
 
     return 1;
 
