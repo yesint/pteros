@@ -3,7 +3,7 @@ add_library(pteros_membrane SHARED
     ${PROJECT_SOURCE_DIR}/include/pteros/extras/membrane.h
     )
 
-target_link_libraries(pteros_membrane pteros)
+target_link_libraries(pteros_membrane pteros voro++)
 
 install(TARGETS pteros_membrane
     RUNTIME DESTINATION bin

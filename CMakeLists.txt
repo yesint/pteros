@@ -140,6 +140,11 @@ include_directories(thirdparty/molfile_plugins)
 add_subdirectory(thirdparty/xdrfile)
 include_directories(thirdparty/xdrfile)
 
+# voro++ library
+add_subdirectory(thirdparty/voro++)
+include_directories(thirdparty/voro++)
+
+
 #---------------------------------------------
 # Compiling pteros itself
 #---------------------------------------------

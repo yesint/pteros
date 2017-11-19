@@ -248,7 +248,7 @@ int main(int argc, char** argv)
         {"DOPE","resname DOPE", "name P N", "name C316 C317 C318 C216 C217 C218", "name C22 C21 C23 C31 C32 C33"},
         {"DOPC","resname DOPC", "name P N", "name C316 C317 C318 C216 C217 C218", "name C22 C21 C23 C31 C32 C33"},
         {"POPE","resname POPE", "name P N", "name C316 C317 C318 C216 C217 C218", "name C22 C21 C23 C31 C32 C33"},
-        {"DYPC","resname DYPE", "name P N", "name C314 C315 C316 C214 C215 C216", "name C22 C21 C23 C31 C32 C33"},
+        {"DYPC","resname DYPC", "name P N", "name C314 C315 C316 C214 C215 C216", "name C22 C21 C23 C31 C32 C33"},
         {"YOPC","resname YOPC", "name P N", "name C314 C315 C316 C216 C217 C218", "name C22 C21 C23 C31 C32 C33"},
         {"POPC","resname POPC", "name P N", "name C316 C317 C318 C216 C217 C218", "name C22 C21 C23 C31 C32 C33"},
     };
@@ -257,7 +257,15 @@ int main(int argc, char** argv)
 
     Membrane membr(&sys,species);
     membr.compute_properties(2.0, Vector3f(0,0,1));
+    //membr.compute_properties(2.0);
     membr.write_vmd_arrows("normals.tcl");
+    membr.write_smoothed("smoothed.pdb");
+
+    // lip properties
+
+    for(int i=0;i<membr.lipids.size();++i){
+        cout << i << " " << membr.lipids[i].normal(2) << " " << membr.lipids[i].area << endl;
+    }
 
     return 1;
 

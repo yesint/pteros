@@ -39,6 +39,7 @@ struct Lipid_descr {
 
 
 class Lipid {
+    friend class Membrane;
 public:
     Lipid(const Selection& sel, const Lipid_descr& descr);
 
@@ -51,40 +52,62 @@ public:
     Selection get_head_marker() {return head_sel(0,0);}
     Selection get_tail_marker() {return tail_sel(0,0);}
 
-    Eigen::Vector3f get_mid_xyz() {return mid_sel.XYZ(0);}
-    Eigen::Vector3f get_head_xyz() {return head_sel.XYZ(0);}
-    Eigen::Vector3f get_tail_xyz() {return tail_sel.XYZ(0);}
+    Eigen::Vector3f get_mid_xyz() const {return mid_sel.XYZ(0);}
+    Eigen::Vector3f get_head_xyz() const {return head_sel.XYZ(0);}
+    Eigen::Vector3f get_tail_xyz() const {return tail_sel.XYZ(0);}
 
-    const Selection& get_mid_sel() {return mid_sel;}
+    Selection& get_mid_sel() {return mid_sel;}
+    Selection& get_head_sel() {return head_sel;}
+    Selection& get_tail_sel() {return tail_sel;}
 
     Eigen::Vector3f normal;
-    float angle;
+    Eigen::Vector3f smoothed;
+    float tilt;
+    float splay;
+    float fit_rms;
+    float area;
+    int leaflet;
+    float gaussian_curvature;
+    float mean_curvature;
+    int coord_number;
+
 private:
     std::string name;
     Selection whole;
     Selection head_sel;
     Selection tail_sel;
     Selection mid_sel;
-    int leaflet;
+
     Eigen::Vector3f saved_head0, saved_tail0, saved_mid0;
+
+    Selection local_sel;
 };
 
 
 class Membrane {
 public:
     Membrane(System *sys, const std::vector<Lipid_descr>& species);
-    void compute_properties(float d, Vector3f_const_ref external_normal = Eigen::Vector3f::Zero());
+    void compute_properties(float d,
+                            Vector3f_const_ref external_normal = Eigen::Vector3f::Zero());
     void write_vmd_arrows(const std::string& fname);
+    void write_smoothed(const std::string &fname);
+
+    std::vector<Lipid> lipids;
+
+    std::vector<float> splay;
+
 private:
     System* system;
     std::vector<Lipid_descr> lipid_species;
-    std::vector<Lipid> lipids;
+
     std::vector<std::vector<int>> leaflets;
     std::vector<Selection> leaflets_sel;
 
     std::shared_ptr<spdlog::logger> log;
+    std::unordered_map<int,int> index_map;
 
-    std::unordered_map<int,int> resindex_map;
+    // Dynamic properties
+    std::vector<Eigen::Vector2i> neighbor_pairs;
 };
 
 }
