@@ -49,7 +49,7 @@ Membrane::Membrane(System *sys, const std::vector<Lipid_descr> &species): system
         for(auto& lip: res){
             auto mol = Lipid(lip,sp);
             mol.set_markers();
-            all_mid_sel.append(mol.get_mid_marker());
+            all_mid_sel.append(mol.get_mid_sel().Index(0));
             lipids.push_back(mol);
             index_map[mol.get_mid_sel().Index(0)] = lipids.size()-1;
         }
@@ -253,12 +253,12 @@ void Membrane::compute_properties(float d, Vector3f_const_ref external_normal)
         }               
 
         // Process lipids from this leaflet
-        for(int i=0;i<leaflets_sel[l].size();++i){
+        for(int i=0;i<leaflets[l].size();++i){
             // Find current lipid
-            Lipid& lip = lipids[index_map[leaflets_sel[l].Index(i)]];
+            Lipid& lip = lipids[leaflets[l][i]];
 
             // Save local selection for this lipid
-            lip.local_sel = leaflets_sel[l](conn[i]);;
+            lip.local_sel = leaflets_sel[l](conn[i]);
 
             // Create selection for locality of this lipid including itself
             Selection local_self(lip.local_sel);
@@ -299,19 +299,20 @@ void Membrane::compute_properties(float d, Vector3f_const_ref external_normal)
             // Fit a quad surface
             Matrix<float,6,1> res;
             Vector3f sm; // smoothed coords of central point
-            fit_quad_surface(coord,res,sm,lip.fit_rms);
+            fit_quad_surface(coord,res,sm,lip.quad_fit_rms);
             // Compute curvatures using quad fit coeefs
             get_curvature(res, lip.gaussian_curvature, lip.mean_curvature);
 
             // Get smoothed surface point in lab coords
-            lip.smoothed = tr*sm + lip.get_mid_sel().XYZ(0);
+            lip.smoothed_mid_xyz = tr*sm + lip.get_mid_sel().XYZ(0);
 
             // Do areas
             vector<int> neib;
             lip.area = compute_area(coord,10.0,neib);
+            // Save coordination number of the lipid
             lip.coord_number = neib.size();
 
-            // Add splay pair. Only use nearest neighbor lipids from area computation
+            // Add neighbor pairs. Only use nearest neighbor lipids from area computation
             // use only i<j to avoid adding duplicates
             int cur_ind = index_map[leaflets_sel[l].Index(i)];
             for(int j=0; j<neib.size(); ++j){
@@ -319,15 +320,17 @@ void Membrane::compute_properties(float d, Vector3f_const_ref external_normal)
                 if(cur_ind<n) neighbor_pairs.push_back(Vector2i(cur_ind,n));
             }
 
-
-
         } // Over lipids in leaflet
 
     } // over leaflets
 
     // Go over neighbor pairs and compute mean splay
+    // Also for neigbhor array as i ==> 1,2,3...
     splay.resize(neighbor_pairs.size());
+    neighbors.resize(lipids.size());
     for(int i=0;i<neighbor_pairs.size();++i){
+        neighbors[neighbor_pairs[i](0)].push_back(neighbor_pairs[i](1));
+        neighbors[neighbor_pairs[i](1)].push_back(neighbor_pairs[i](0));
         // We have to use periodic distance since atoms could be from different images
         Lipid& lip1 = lipids[neighbor_pairs[i](0)];
         Lipid& lip2 = lipids[neighbor_pairs[i](1)];
@@ -382,10 +385,10 @@ void Membrane::write_vmd_arrows(const string &fname)
 void Membrane::write_smoothed(const string& fname){
     System out;
     for(auto& l: lipids){
-        auto s = out.append(l.get_mid_marker());
+        auto s = out.append(l.get_mid_sel()(0,0));
         s.Name(0) = "M";
-        s = out.append(l.get_head_marker());
-        s.XYZ(0) = l.smoothed;
+        s = out.append(l.get_head_sel()(0,0));
+        s.XYZ(0) = l.smoothed_mid_xyz;
         s.Name(0) = "S";
     }
     out().write(fname);
@@ -394,16 +397,16 @@ void Membrane::write_smoothed(const string& fname){
 
 Lipid::Lipid(const Selection &sel, const Lipid_descr &descr){
     name = descr.name;
-    whole = sel;
-    head_sel = whole(descr.head_sel_str);
-    tail_sel = whole(descr.tail_sel_str);
-    mid_sel = whole(descr.mid_sel_str);
+    whole_sel = sel;
+    head_sel = whole_sel(descr.head_sel_str);
+    tail_sel = whole_sel(descr.tail_sel_str);
+    mid_sel = whole_sel(descr.mid_sel_str);
 }
 
 void Lipid::set_markers()
 {
     // Unwrap this lipid with leading index of position[0]
-    whole.unwrap(mid_sel.Index(0)-whole.Index(0));
+    whole_sel.unwrap(mid_sel.Index(0)-whole_sel.Index(0));
 
     // save coords of first atoms
     saved_head0 = head_sel.XYZ(0);

@@ -36,21 +36,10 @@ struct Lipid_descr {
     std::string mid_sel_str;
 };
 
-
-
 class Lipid {
     friend class Membrane;
 public:
-    Lipid(const Selection& sel, const Lipid_descr& descr);
-
-    void set_leaflet(int i){leaflet = i;}
-    // Set current COM coordinates of seletions to their first atoms used as markers
-    void set_markers();
-    // Restore atomic coords of markers
-    void unset_markers();
-    Selection get_mid_marker() {return mid_sel(0,0);}
-    Selection get_head_marker() {return head_sel(0,0);}
-    Selection get_tail_marker() {return tail_sel(0,0);}
+    Lipid(const Selection& sel, const Lipid_descr& descr);   
 
     Eigen::Vector3f get_mid_xyz() const {return mid_sel.XYZ(0);}
     Eigen::Vector3f get_head_xyz() const {return head_sel.XYZ(0);}
@@ -61,10 +50,10 @@ public:
     Selection& get_tail_sel() {return tail_sel;}
 
     Eigen::Vector3f normal;
-    Eigen::Vector3f smoothed;
+    Eigen::Vector3f smoothed_mid_xyz;
     float tilt;
     float splay;
-    float fit_rms;
+    float quad_fit_rms;
     float area;
     int leaflet;
     float gaussian_curvature;
@@ -72,8 +61,14 @@ public:
     int coord_number;
 
 private:
+    void set_leaflet(int i){leaflet = i;}
+    // Set current COM coordinates of seletions to their first atoms used as markers
+    void set_markers();
+    // Restore atomic coords of markers
+    void unset_markers();
+
     std::string name;
-    Selection whole;
+    Selection whole_sel;
     Selection head_sel;
     Selection tail_sel;
     Selection mid_sel;
@@ -95,6 +90,8 @@ public:
     std::vector<Lipid> lipids;
 
     std::vector<float> splay;
+
+    std::vector<std::vector<int>> neighbors;
 
 private:
     System* system;

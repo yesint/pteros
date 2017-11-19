@@ -87,6 +87,6 @@ set_target_properties(plugin PROPERTIES
 
 #Installation
 install(TARGETS plugin
-    LIBRARY DESTINATION python/pteros_analysis_plugins
-    ARCHIVE DESTINATION python/pteros_analysis_plugins
+    LIBRARY DESTINATION ${PY_INST_DIR}/pteros_analysis_plugins
+    ARCHIVE DESTINATION ${PY_INST_DIR}/pteros_analysis_plugins
 )

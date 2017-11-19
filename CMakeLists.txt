@@ -23,41 +23,15 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     SET(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -s")
 ENDIF()
 
-# Windows-related stuff
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_THREAD_USE_LIB -s")
-    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -s")
-
-    ##########################################################
-    # Cnange the paths here if you are compiling on Windows! #
-    ##########################################################
-
-    # Path to Boost:
-    SET(BOOST_ROOT "c:/install/boost")
-    # Path to Boost includes:
-    SET(BOOST_INCLUDEDIR "C:/install/boost/include/boost-1_53")
-    # Path to Boost libs:
-    link_directories("C:/install/boost/lib")
-
-    # Path to numpy includes:
-    include_directories("C:/Python27/Lib/site-packages/numpy/core/include")
-    # Path to numpy libs:
-    link_directories("C:/Python27/Lib/site-packages/numpy/core/lib")
-
-    ##########################################################
-    # End of user-modifieble section!                        #
-    ##########################################################
-ENDIF()
-
 #Sets optmization for Eigen in Release build
-SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -msse2")
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -march=native")
 
 # Enable STL debugging in debug mode
 SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_GLIBCXX_DEBUG")
 
 # Enable C++11 and C99 everywhere
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99")
+SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99")
 
 # Set specific options for GCC if used
 if(CMAKE_COMPILER_IS_GNUCXX)
@@ -75,9 +49,7 @@ if(WITH_OPENMP)
 endif()
 
 # Find Python only if we need bindings
-if(WITH_PYTHON)
-    #For conditional compilation
-    add_definitions(-DWRAP_PYTHON)
+if(WITH_PYTHON)    
     # Configure pybind11
     message("Configuring Pybind11...")
     find_package(pybind11 REQUIRED)
@@ -90,7 +62,7 @@ message("Looking for Boost...")
 find_package(Boost 1.48.0 REQUIRED system date_time)
 # For boost>1.50 and on windows also add filesystem to compile normally
 if(${Boost_MINOR_VERSION} GREATER 50 AND ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    find_package(Boost 1.48.0 REQUIRED filesystem system)
+    find_package(Boost 1.50.0 REQUIRED filesystem)
 endif()
 
 # Add Boost includes and libs globally - they are needed everywhere
@@ -102,10 +74,27 @@ message("Looking for Eigen...")
 find_package(Eigen3 REQUIRED)
 include_directories(${EIGEN3_INCLUDE_DIR})
 
-
 # Main Pteros include dir (for build time, not yet installed)
 include_directories(include)
 
+#--------------
+# CPack config
+#--------------
+IF(MAKE_PACKAGE)
+    message("Configuring package...")
+    SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Pteros molecular modeling library")
+    SET(CPACK_PACKAGE_VERSION_MAJOR "2")
+    SET(CPACK_PACKAGE_VERSION_MINOR "7")
+    SET(CPACK_PACKAGE_VERSION_PATCH "0")
+    SET(CPACK_PACKAGE_INSTALL_DIRECTORY "CMake ${CMake_VERSION_MAJOR}.${CMake_VERSION_MINOR}")
+    IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+        SET(CPACK_GENERATOR DEB)
+        SET(CPACK_PACKAGE_CONTACT "Semen Yesylevskyy yesint4@yahoo.com")
+        SET(CPACK_DEBIAN_PACKAGE_DEPENDS "g++ (>=4.8), libboost-all-dev (>=1.50), python-dev (>=2.7), python-numpy, libeigen3-dev")
+        set(PY_INST_DIR ${PYTHON_SITE_PACKAGES})
+    ENDIF()
+    INCLUDE(CPack)
+ENDIF()
 
 #----------------------------
 # Build thirdparty libraries
@@ -122,9 +111,7 @@ if(NOT ${spdlog_FOUND})
     endif()
 endif()
 
-#include_directories for spdlog
-
-# Build separate tng_io library (will be linked later)
+# Build separate tng_io library
 add_subdirectory(thirdparty/tng_io)
 include_directories(thirdparty/tng_io/include)
 
@@ -165,24 +152,6 @@ ENDIF()
 # Install headers
 install(DIRECTORY include DESTINATION .)
 
-#--------------
-# CPack config
-#--------------
-IF(MAKE_PACKAGE)
-    SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Pteros molecular modeling library")
-    SET(CPACK_PACKAGE_VERSION_MAJOR "2")
-    SET(CPACK_PACKAGE_VERSION_MINOR "5")
-    SET(CPACK_PACKAGE_VERSION_PATCH "0")
-    SET(CPACK_PACKAGE_INSTALL_DIRECTORY "CMake ${CMake_VERSION_MAJOR}.${CMake_VERSION_MINOR}")
-    IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-        SET(CPACK_GENERATOR DEB)
-        SET(CPACK_PACKAGE_CONTACT "Semen Yesylevskyy yesint4@yahoo.com")
-        SET(CPACK_DEBIAN_PACKAGE_DEPENDS "g++ (>=4.8), libboost-all-dev (>=1.50), python-dev (>=2.5), python-numpy, libeigen3-dev")
-        execute_process(COMMAND python -c "from distutils.sysconfig import get_python_lib; print get_python_lib()" OUTPUT_VARIABLE PYTHON_SITE_PACKAGES OUTPUT_STRIP_TRAILING_WHITESPACE)
-        set(PY_INST_DIR ${PYTHON_SITE_PACKAGES})
-    ENDIF()
-    INCLUDE(CPack)
-ENDIF()
 
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
