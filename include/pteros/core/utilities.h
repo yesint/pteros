@@ -47,8 +47,11 @@ namespace pteros {
 
     class Histogram {
     public:
+        Histogram(){}
         Histogram(float minval, float maxval, int n);
+        void create(float minval, float maxval, int n);
         void add(float v);
+        void add(const std::vector<float> &v);
         void normalize();
         float value(int i) const;
         float position(int i) const;

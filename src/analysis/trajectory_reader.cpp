@@ -111,8 +111,7 @@ Trajectory_reader::Trajectory_reader(const Options &opt): options(opt)
 
 void Trajectory_reader::run(){    
     // Separate logger (not registered since only used here)
-    auto log = std::make_shared<spdlog::logger>("trj_processor", Log::instance().console_sink);
-    log->set_pattern(Log::instance().generic_pattern);
+    auto log = create_logger("trj_processor");
 
     // Preparation stage
     log->trace("Starting trajectory processing");

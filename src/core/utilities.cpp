@@ -55,6 +55,11 @@ float deg_to_rad(float ang)
 
 Histogram::Histogram(float minval, float maxval, int n): minv(minval), maxv(maxval), nbins(n), normalized(false)
 {
+    create(minval,maxval,n);
+}
+
+void Histogram::create(float minval, float maxval, int n)
+{
     val.resize(nbins);
     val.fill(0.0);
     pos.resize(nbins);
@@ -67,6 +72,11 @@ void Histogram::add(float v)
     if(normalized) throw Pteros_error("Can't add value to normalized histogram!");
     int b = floor((v-minv)/d);
     if(b>=0 && b<nbins) val(b) += 1.0;
+}
+
+void Histogram::add(const std::vector<float>& v)
+{
+    for(auto& val: v) add(val);
 }
 
 void Histogram::normalize()

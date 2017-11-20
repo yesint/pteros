@@ -42,8 +42,7 @@ public:
     string _class_name;
 
     void set_id(int id) override {                
-        log = std::make_shared<spdlog::logger>(fmt::format("{}.{}",_class_name,id),Log::instance().console_sink);
-        log->set_pattern(Log::instance().generic_pattern);
+        log = create_logger(fmt::format("{}.{}",_class_name,id));
         task_id = id;        
     }
 

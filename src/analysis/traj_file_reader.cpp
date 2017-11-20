@@ -37,8 +37,7 @@ void process_suffix_value(const string& s, int* intval, float* floatval){
 
 Traj_file_reader::Traj_file_reader(Options &options){
     // Separate reader logger (not registered since only used here)
-    log = std::make_shared<spdlog::logger>("trj_reader", Log::instance().console_sink);
-    log->set_pattern(Log::instance().generic_pattern);
+    log = create_logger("trj_reader");
 
     // Get parameters for reading frames
     process_suffix_value(options("b","-1").as_string(),

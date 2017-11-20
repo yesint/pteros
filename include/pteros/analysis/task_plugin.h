@@ -72,8 +72,7 @@ protected:
     public: \
         using Task_plugin::Task_plugin; \
         void set_id(int _id) override {\
-            log = std::make_shared<spdlog::logger>(fmt::format(#_name ".{}",_id), Log::instance().console_sink); \
-            log->set_pattern(Log::instance().generic_pattern); \
+            log = create_logger(fmt::format(#_name ".{}",_id)); \
             task_id = _id; \
         } \
 

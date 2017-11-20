@@ -22,7 +22,7 @@
 
 #include "pteros/core/logging.h"
 
-std::shared_ptr<spdlog::logger> pteros::create_logger(const std::__cxx11::string &name)
+std::shared_ptr<spdlog::logger> pteros::create_logger(const std::string &name)
 {
     auto log = std::make_shared<spdlog::logger>(name, Log::instance().console_sink);
     log->set_pattern(Log::instance().generic_pattern);
