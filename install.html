@@ -104,24 +104,101 @@ $(document).ready(function(){initNavTree('install.html','');});
 <div class="title">Installation </div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><ul>
-<li><a class="el" href="install_linux.html">Installation on Linux</a></li>
-<li><a class="el" href="install_win.html">Installation on Windows</a></li>
+<div class="toc"><h3>Table of Contents</h3>
+<ul><li class="level1"><a href="#port">Portability</a></li>
+<li class="level1"><a href="#depend">Dependencies</a></li>
+<li class="level1"><a href="#build">Building Pteros</a><ul><li class="level2"><a href="#get">Getting the code</a></li>
+<li class="level2"><a href="#compile">Compiling</a></li>
+<li class="level2"><a href="#test">Testing installation</a></li>
+<li class="level2"><a href="#sasa">Enabling SASA code</a></li>
+<li class="level2"><a href="#no_python">Building without Python</a></li>
+<li class="level2"><a href="#standalone">Building standalone analysis plugins</a></li>
+<li class="level2"><a href="#no_omp">Building Pteros without OpenMP</a></li>
 </ul>
-<h1><a class="anchor" id="port"></a>
+</li>
+<li class="level1"><a href="#trouble">Reporting bugs</a><ul><li class="level2"><a href="#known_problems">Known problems</a></li>
+</ul>
+</li>
+<li class="level1"><a href="#linking">Linking with Pteros</a></li>
+</ul>
+</div>
+<div class="textblock"><h1><a class="anchor" id="port"></a>
 Portability</h1>
-<p>Pteros is being developed on Linux with gcc and clang compilers. New versions are tested from time to time on Windows (see <a class="el" href="install_win.html">Installation on Windows</a>, instructions for Windows could be severely outdated). Other compilers and operating systems are not tested because we have no other systems in possession. Design decisions are made with portability to Linux, Windows and MacOS in mind. Other systems are not considered. The code itself should be 100% portable providing that the dependencies are available for your system, but expect platform-dependent quirks and issues, which are common to all complex C++ programs, not only to Pteros.</p>
+<p>Pteros is currently being developed on Linux Mint with gcc and clang compilers. Design decisions are made with portability to Linux, Windows and MacOS in mind but no testing on Windows and MacOS are made. Other systems are never considered. The code itself should be 100% portable providing that the dependencies are available for your system, but expect platform-dependent quirks and issues, which are common to all complex C++ programs, not only to Pteros.</p>
 <dl class="section note"><dt>Note</dt><dd>If you managed to compile Pteros on MacOS, please share your experience because we have no Mac machines to perform the tests. </dd>
 <dd>
-You are wellcome to provide better guide for compiling Pteros on Windows - this is not a priority for us since we use Linux.</dd></dl>
-<dl class="section warning"><dt>Warning</dt><dd>Intel ICC compiles Pteros on Linux, but gives poor performance. Compiling with Intel MKL works, but gives broken Python bindings. Any help with these issues is appreciated!</dd></dl>
-<dl class="section note"><dt>Note</dt><dd>Linux is considered as primary platform for Pteros. Installation on Windows is only tested only from time to time and may be tricky. You are warned. </dd></dl>
+You are wellcome to provide a guide for compiling Pteros on Windows. I maintained such guide some time ago but now I have no interest in this since I'm not doing any development on Windows.</dd></dl>
+<dl class="section warning"><dt>Warning</dt><dd>Intel ICC compiler was tested in the past on Linux, but was giving poor performance. Compiling with Intel MKL worked, but gave broken Python bindings. No testing with recent versions was performed.</dd></dl>
+<h1><a class="anchor" id="depend"></a>
+Dependencies</h1>
+<p>The prerequisites for compilation of Pteros are the following.</p>
+<p>Core dependencies:</p><ul>
+<li>Standard-conforming C and C++11 compilers (tested with gcc&gt;=4.8, clang&gt;=3.1).</li>
+<li><a href="http://www.cmake.org/">cmake</a> build system.</li>
+<li><a href="http://www.boost.org/">boost</a> 1.48 or higher.</li>
+<li><a href="http://eigen.tuxfamily.org/index.php?title=Main_Page">Eigen</a> linear algebra library (&gt;=3.2).</li>
+<li><a href="http://git-scm.com/">Git</a> for getting the source code.</li>
+</ul>
+<p>For compiling dynamic plugins and python bindings (optional if you only want C++ core):</p><ul>
+<li><a href="https://www.python.org/">Python</a> 2.7 or higher (&gt;=3.5 recommended).</li>
+<li><a href="https://github.com/pybind/pybind11">Pybind11</a> binding generator library.</li>
+</ul>
+<p>For building documentation (don't needed unless you want to contribute to the docs):</p><ul>
+<li><a href="www.doxygen.org">Doxygen</a></li>
+<li><a href="http://sphinx-doc.org/">Sphinx</a></li>
+</ul>
+<p>If you are using latest Ubuntu or other debian-based system it should be enough to run the following command in the terminal to install all dependencies: </p><div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;sudo apt-get install g++ cmake libeigen3-dev libboost-all-dev python3.5-dev python3.5-numpy pybind11-dev git doxygen python-sphinx</div></div><!-- fragment --><p>In older Ubuntu releases pybind11 is not yet packaged so it should be installed from source: </p><div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;git clone https://github.com/pybind/pybind11.git</div><div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;mkdir pybind11-build</div><div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160;cd pybind11-build</div><div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;cmake ../pybind11 -DPYBIND11_TEST=OFF</div><div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;sudo make install</div></div><!-- fragment --><h1><a class="anchor" id="build"></a>
+Building Pteros</h1>
+<h2><a class="anchor" id="get"></a>
+Getting the code</h2>
+<p>Get the latest source code from the Git repository: </p><div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;git clone https://github.com/yesint/pteros.git pteros</div></div><!-- fragment --><p> This will create a directory named "pteros" in you current working directory and will download the source code into it.</p>
+<h2><a class="anchor" id="compile"></a>
+Compiling</h2>
+<p>Create a separate build directory (for example 'pteros_build'). Go to this directory and issue the following commands:</p>
+<div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;cmake &lt;path to Pteros source directory&gt; -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=&lt;where to install Pteros&gt;</div><div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;make</div><div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160;make install</div></div><!-- fragment --><dl class="section warning"><dt>Warning</dt><dd>The 'make install' command may require root access if you are installing into the system-wide location.</dd></dl>
+<p>The cmake command will print something like this: </p><div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;------------------------------</div><div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;IMPORTANT!</div><div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160;In order to be able to link with Pteros and to use Pteros Python modules</div><div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;you have to add the following lines to your .bashrc file:</div><div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;export LD_LIBRARY_PATH=&quot;$LD_LIBRARY_PATH:&lt;path to Pteros&gt;/lib&quot;</div><div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160;export PYTHONPATH=&quot;$PYTHONPATH:&lt;path to Pteros&gt;/python&quot;</div><div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160;export PATH=&quot;$PATH:&lt;path to Pteros&gt;/bin&quot;</div><div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160;------------------------------</div></div><!-- fragment --><p>Copy suggested lines and add them to your .bashrc file (it is assumed that bash shell is used. If it is not the case use the syntax of your actual shell instead).</p>
+<p>If you want to compile with alternative compiler (for example Clang), add the following flags to cmake invocation: </p><div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++</div></div><!-- fragment --><p>If both Python 3.x and 2.7 are installed in your system the version 3.x will be used by default (even if 2.7 if the system-default, like in Ubuntu). To force version 2.7 instead (which I don't recommend) add the following flag:</p>
+<div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;-DPYTHON_EXECUTABLE:FILEPATH=&lt;path to python2.7 executable&gt;</div></div><!-- fragment --><p> In Ubuntu Python2.7 is usually a default, so just <code>python</code> could be sufficient.</p>
+<dl class="section warning"><dt>Warning</dt><dd>Make sure that you use correct python interpreter! If Pteros was compiled with Python 3.5 it won't work with 2.7 and vice versa!</dd></dl>
+<h2><a class="anchor" id="test"></a>
+Testing installation</h2>
+<p>Run the following command: </p><div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;pteros_analysis.py --help all</div></div><!-- fragment --><p>If you see any errors then Pteros can't load plugins or something elese went wrong.</p>
+<dl class="section note"><dt>Note</dt><dd>This is only applicable if you are building with Python support!</dd></dl>
+<h2><a class="anchor" id="sasa"></a>
+Enabling SASA code</h2>
+<p>Pteros can perform the Solvent Accesible Surface Area (SASA) computatations using POWERSASA code developed in the <a href="http://www.kit.edu/english/">Karlsruhe Institute of Technology</a>. POWERSASA is licensed by specific and rather restrictive "Academic/Non-Profit SASA software license agreement". See the comment file <code>thirdparty/sasa/LICENSE</code> for details. This license is NOT Open Source and imply many restrictions! Please read it carefully. If you agree with this license use the following flag when invoking cmake: </p><div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;-DWITH_POWERSASA=&quot;ON&quot;</div></div><!-- fragment --><p> By default this code is NOT compiled. Pteros doesn't support SASA computations without it. </p><dl class="section note"><dt>Note</dt><dd>I contacted the authors of POWERSASA several times and asked for official permision to use their code but got no reply. It seems that the project is abandoned and nobody is concerned about the licensing of POWERSASA now.</dd></dl>
+<h2><a class="anchor" id="no_python"></a>
+Building without Python</h2>
+<p>Pteros could be build without Python by specifying the following flag:</p>
+<div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;-DWITH_PYTHON=&quot;OFF&quot; </div></div><!-- fragment --><p>In this case compiled C++ plugins are not built as python extension modules and python bindings are not produced.</p>
+<h2><a class="anchor" id="standalone"></a>
+Building standalone analysis plugins</h2>
+<p>Compiled analysis plugins, which are written in C++, are compiled as Python extensions by default. However, it is possible to build each plugin as a separate standalone program, which does not depend on Python, by adding the following flag to CMake:</p>
+<div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;-DSTANDALONE_PLUGINS=&quot;ON&quot; </div></div><!-- fragment --><p>If you want to build plugins as the standalone programs AND as python extensions at the same time use the following flags: </p><div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;cmake &lt;usual options&gt; -DWITH_PYTHON=&quot;ON&quot; -DSTANDALONE_PLUGINS=&quot;ON&quot;</div><div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;make</div><div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160;make install</div></div><!-- fragment --><dl class="section note"><dt>Note</dt><dd>In this case each plugin will be compiled twice, so expect longer compilation time.</dd></dl>
+<h2><a class="anchor" id="no_omp"></a>
+Building Pteros without OpenMP</h2>
+<p>By default Pteros is compiled with OpenMP paralellization of many internal operations. However, on certain computational clusters running SGE scheduler the usage of OpenMP is prohibited. There are also other situations when you may want to disable OpenMP. Use the following flag to compile without OpenMP:</p>
+<div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;cmake &lt;usual options&gt; -DWITH_OPENMP=&quot;OFF&quot;</div></div><!-- fragment --><h1><a class="anchor" id="trouble"></a>
+Reporting bugs</h1>
+<p>Use <a href="https://github.com/yesint/pteros/issues">issues on Github</a> to report bugs.</p>
+<h2><a class="anchor" id="known_problems"></a>
+Known problems</h2>
+<ul>
+<li>Clang compiler doesn't work with Boost &lt; 1.52</li>
+<li>OpenMP in clang only works for clang++ &gt;= 3.8 and if libomp is installed: <code>sudo apt-get install libomp-dev</code></li>
+<li>If there are several Boost versions in the system CMake may find the right one for one library but the wrong one for the other, which causes very strange errors. The solution is to include the following flags to CMake invocation: <div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;-DBoost_NO_SYSTEM_PATHS=ON -DBOOST_ROOT=&quot;Correct path to boost&quot; </div></div><!-- fragment --></li>
+<li>All Pteros plugins have to be up to date with the main library, but CMake doesn't always ensure this if you pull new updates from the repository. If plugins suddenly stop working after update delete CMakeCache.txt and CMakeFiles and recompile.</li>
+<li>The error <em>"trying to overwrite '/usr/include/spdlog/async_logger.h', which is also in package libspdlog-dev 1.6-1"</em> occurs during installation. This happens if you have <code>spdlog</code> installed system-wide in Ubuntu from the package <code>libspdlog-dev</code>. This package is built in a wrong way and it lacks <code>spdlogConfig.cmake</code> file needed for correct library detection. That is why Pteros can't see it and tries to install its own bandled version of spdlog. Use <code>INSTALL_INTERNAL_SPDLOG=OFF</code> as a workaround.</li>
+</ul>
+<h1><a class="anchor" id="linking"></a>
+Linking with Pteros</h1>
+<p>It is recommended to use CMake. You <em>can</em> use autoconf/automake or custom Makefiles, but this will never be officially supported. The "template" subdirectory of the source tree contains the skeleton of CMake project, which could be used to link your own program with pteros libraries. </p>
 </div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Sun Oct 1 2017 15:07:41 for Pteros by
+    <li class="footer">Generated on Mon Nov 20 2017 15:57:29 for Pteros by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.11 </li>
   </ul>

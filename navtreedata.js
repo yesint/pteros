@@ -14,7 +14,23 @@ var NAVTREE =
       [ "Benchmarks", "index.html#bench", null ]
     ] ],
     [ "Design thoughts", "design.html", null ],
-    [ "Installation", "install.html", "install" ],
+    [ "Installation", "install.html", [
+      [ "Portability", "install.html#port", null ],
+      [ "Dependencies", "install.html#depend", null ],
+      [ "Building Pteros", "install.html#build", [
+        [ "Getting the code", "install.html#get", null ],
+        [ "Compiling", "install.html#compile", null ],
+        [ "Testing installation", "install.html#test", null ],
+        [ "Enabling SASA code", "install.html#sasa", null ],
+        [ "Building without Python", "install.html#no_python", null ],
+        [ "Building standalone analysis plugins", "install.html#standalone", null ],
+        [ "Building Pteros without OpenMP", "install.html#no_omp", null ]
+      ] ],
+      [ "Reporting bugs", "install.html#trouble", [
+        [ "Known problems", "install.html#known_problems", null ]
+      ] ],
+      [ "Linking with Pteros", "install.html#linking", null ]
+    ] ],
     [ "User manual", "manual.html", "manual" ],
     [ "Tutorial", "tutorial.html", [
       [ "Getting started", "tutorial.html#getting_started", null ],
@@ -55,7 +71,7 @@ var NAVTREEINDEX =
 [
 ".html",
 "classpteros_1_1Periodic__box.html#a8a0d1bee5d70b3c4b61bc947a8e55322",
-"classpteros_1_1Selection.html#aa5551a11482b6db769c5cf5ff4401c2b",
+"classpteros_1_1Selection.html#aa290dc08b6425722db037cac5d0adade",
 "classpteros_1_1Trajectory__reader.html#aa156f6827fbb55404c6dc2d86c8b7e38",
 "trajectory__reader_8h_source.html"
 ];

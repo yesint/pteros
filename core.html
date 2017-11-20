@@ -783,7 +783,7 @@ Wrapping and unwrapping</h2>
 <dl class="section note"><dt>Note</dt><dd>All these methods take an optional parameter "dims" which tells which dimentions to wrap.</dd></dl>
 <p>In contrast to wrapping unwrapping is non-trivial operation which could be done in different ways. Pteros supports two unwrapping methods: </p><ul>
 <li>
-Simple unwrapping is performed by <a class="el" href="classpteros_1_1Selection.html#aae31219b618e40acae39deca29f8dd7b" title="Unwraps selection to make it whole if possible (without jumps over periodic box boundary). ">Selection::unwrap()</a>. It uses the center of masses of selection as an "anchor" and sets all atoms of selection to their periodic images, which are closest to this anchor. <dl class="section warning"><dt>Warning</dt><dd>This method is very fast but only works if selection does not exceed 1/2 of the box size in any dimension! Otherwise it produces unpredictable results. </dd></dl>
+Simple unwrapping is performed by <a class="el" href="classpteros_1_1Selection.html#a0b9f98a16d2f12ffa00ea461825cae2b" title="Unwraps selection to make it whole if possible (without jumps over periodic box boundary). ">Selection::unwrap()</a>. It uses the center of masses of selection as an "anchor" and sets all atoms of selection to their periodic images, which are closest to this anchor. <dl class="section warning"><dt>Warning</dt><dd>This method is very fast but only works if selection does not exceed 1/2 of the box size in any dimension! Otherwise it produces unpredictable results. </dd></dl>
 </li>
 <li>
 Unwrapping by bonds is performed by <a class="el" href="classpteros_1_1Selection.html#a9ac9f110586ea185a83ab6da81a9b3cd" title="Unwraps selection to make it whole (without jumps over periodic box boundary). ">Selection::unwrap_bonds()</a>. In this method the user supplies the maximal bond length and all atoms of selections which are within this distance are considered as connected by bonds. After that first atom in selection is set as an anchor (the anchor atom could be overriden by optional "leading_index" parameter) and all atoms connected to it are moved to their corresponding closest periodic images. The procedure is continued for all connected atoms. <dl class="section warning"><dt>Warning</dt><dd>This mehtod works for any size of selection but is <b>much</b> slower than simple unwrapping! </dd></dl>
@@ -922,14 +922,14 @@ Secondary structure of proteins</h1>
 <h1><a class="anchor" id="measure_sasa"></a>
 Solvent accessible surface area</h1>
 <p>Solvent accessible surface area (SASA) is computed in Pteros using using POWERSASA code developed in the <a href="http://www.kit.edu/english/">Karlsruhe Institute of Technology</a> and inclided into <a href="http://www.int.kit.edu/1636.php">SIMONA</a> package. This is fast algorithm of computing area of the molecules based on rather complex theory of power diagrams (<a href="http://onlinelibrary.wiley.com/doi/10.1002/jcc.21844/abstract">paper</a>). The method <a class="el" href="classpteros_1_1Selection.html#a60d0093d1c30f39506613033636abe66" title="Get the SASA. Returns area and computes volume and per-atom values if asked. ">Selection::sasa()</a> returns the solvent accessible area of atoms in selection. Optional argument could be used to set the probe radius and to get additional data like total volume, area per atom and volume per atom.</p>
-<dl class="section note"><dt>Note</dt><dd>POWERSASA code is not open source. I contacted the authors of POWERSASA several times to ask for official permision to use their code in Pteros but all requestes were ignored. I concluded that nobody is concerned about the licensing of POWERSASA now. However, compilation of this code is disabled by default. See <a class="el" href="install_linux.html#sasa">Enabling SASA code</a> for details how to enable it. </dd></dl>
+<dl class="section note"><dt>Note</dt><dd>POWERSASA code is not open source. I contacted the authors of POWERSASA several times to ask for official permision to use their code in Pteros but all requestes were ignored. I concluded that nobody is concerned about the licensing of POWERSASA now. However, compilation of this code is disabled by default. See <a class="el" href="install.html#sasa">Enabling SASA code</a> for details how to enable it. </dd></dl>
 </div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="manual.html">User manual</a></li>
-    <li class="footer">Generated on Sun Oct 1 2017 15:07:41 for Pteros by
+    <li class="footer">Generated on Mon Nov 20 2017 15:57:29 for Pteros by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.11 </li>
   </ul>

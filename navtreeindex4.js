@@ -17,8 +17,8 @@ var NAVTREEINDEX4 =
 "tutorial.html#selections":[4,1],
 "tutorial.html#text_sel":[4,1,0],
 "tutorial.html#transforms":[4,2,0],
-"typedefs_8h_source.html":[6,0,0,0,1,13],
-"utilities_8h_source.html":[6,0,0,0,1,14],
+"typedefs_8h_source.html":[6,0,0,0,1,12],
+"utilities_8h_source.html":[6,0,0,0,1,13],
 "vmd__molfile__plugin__wrapper_8h_source.html":[6,0,1,1,1,8],
 "xtc__file_8h_source.html":[6,0,1,1,1,9],
 "xyz__file_8h_source.html":[6,0,1,1,1,10]

@@ -7,8 +7,6 @@ var searchData=
   ['index_5fend',['index_end',['../classpteros_1_1Selection.html#a501e1ab0fe6acf64cd312ac37652d3e4',1,'pteros::Selection::index_end() const '],['../classpteros_1_1Selection.html#a501e1ab0fe6acf64cd312ac37652d3e4',1,'pteros::Selection::index_end() const ']]],
   ['inertia',['inertia',['../classpteros_1_1Selection.html#a2f0a941058fcd10704ea9f91a8a73108',1,'pteros::Selection::inertia(Vector3f_ref moments, Matrix3f_ref axes, bool periodic=false) const '],['../classpteros_1_1Selection.html#a579e5308e1d5cba9632bd1ab23f1be8d',1,'pteros::Selection::inertia(Vector3f_ref moments, Matrix3f_ref axes, bool periodic=false) const ']]],
   ['installation',['Installation',['../install.html',1,'']]],
-  ['installation_20on_20linux',['Installation on Linux',['../install_linux.html',1,'install']]],
-  ['installation_20on_20windows',['Installation on Windows',['../install_win.html',1,'install']]],
   ['invert',['invert',['../classpteros_1_1Selection.html#abd772b69215ac54679d6716088d57668',1,'pteros::Selection::invert()'],['../classpteros_1_1Selection.html#a079174d0bc0f28eb9651104ad0600185',1,'pteros::Selection::invert()']]],
   ['is_5fperiodic',['is_periodic',['../classpteros_1_1Periodic__box.html#ae8c3a132be7df21149dff79f41212e1c',1,'pteros::Periodic_box']]],
   ['is_5ftriclinic',['is_triclinic',['../classpteros_1_1Periodic__box.html#a1f93e21ec97b95d4a46190e4cac97133',1,'pteros::Periodic_box']]],
