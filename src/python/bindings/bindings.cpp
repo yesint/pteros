@@ -20,7 +20,7 @@ void make_bindings_Membrane(py::module&);
 
 
 PYBIND11_MODULE(_pteros, m) {
-    m.doc() = "pybind11 pteros bindings"; // optional module docstring
+    m.doc() = "pteros bindings"; // module docstring
 
     make_bindings_Atom(m);
     make_bindings_System(m);
@@ -62,7 +62,7 @@ PYBIND11_MODULE(_pteros, m) {
     ;
 
     // Extras submodule
-    py::module ex = m.def_submodule("extras","Pteros extras");
+    py::module ex = m.def_submodule("extras","Pteros extras bindings");
 
     make_bindings_Membrane(ex);
 }
