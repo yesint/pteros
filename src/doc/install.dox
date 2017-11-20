@@ -1,27 +1,21 @@
 /** \page install Installation
 
-- \subpage install_linux
-- \subpage install_win
+\tableofcontents
 
 \section port 	Portability
-Pteros is being developed on Linux with gcc and clang compilers. New versions are tested from time to time on Windows (see \ref install_win, instructions for Windows could be severely outdated). Other compilers and operating systems are not tested because we have no other systems in possession. Design decisions are made with portability to Linux, Windows and MacOS in mind. Other systems are not considered. The code itself should be 100% portable providing that the dependencies are available for your system, but expect platform-dependent quirks and issues, which are common to all complex C++ programs, not only to Pteros.
+
+Pteros is currently being developed on Linux Mint with gcc and clang compilers. Design decisions are made with portability to Linux, Windows and MacOS in mind but no testing on Windows and MacOS are made. Other systems are never considered. The code itself should be 100% portable providing that the dependencies are available for your system, but expect platform-dependent quirks and issues, which are common to all complex C++ programs, not only to Pteros.
 
 \note
 If you managed to compile Pteros on MacOS, please share your experience because we have no Mac machines to perform the tests.
 \note
-You are wellcome to provide better guide for compiling Pteros on Windows - this is not a priority for us since we use Linux.
+You are wellcome to provide a guide for compiling Pteros on Windows. I maintained such guide some time ago but now I have no interest in this since I'm not doing any development on Windows.
 
 \warning
-Intel ICC compiles Pteros on Linux, but gives poor performance. Compiling with Intel MKL works, but gives broken Python bindings. Any help with these issues is appreciated!
-
-\note Linux is considered as primary platform for Pteros. Installation on Windows is only tested only from time to time and may be tricky. You are warned.
+Intel ICC compiler was tested in the past on Linux, but was giving poor performance. Compiling with Intel MKL worked, but gave broken Python bindings. No testing with recent versions was performed.
 
 
-\page install_linux Installation on Linux
-
-\tableofcontents
-
-\section depend 	Dependencies
+\section depend     Dependencies
 The prerequisites for compilation of Pteros are the following.
 
 Core dependencies:
@@ -39,12 +33,12 @@ For building documentation (don't needed unless you want to contribute to the do
 - <a href="www.doxygen.org">Doxygen</a>
 - <a href="http://sphinx-doc.org/">Sphinx</a>
 
-If you are using latest Ubuntu it should be enough to run the following command in the terminal to install all dependencies:
+If you are using latest Ubuntu or other debian-based system it should be enough to run the following command in the terminal to install all dependencies:
 \code{.unparsed}
 sudo apt-get install g++ cmake libeigen3-dev libboost-all-dev python3.5-dev python3.5-numpy pybind11-dev git doxygen python-sphinx
 \endcode
 
-In older Ubuntu versions pybind11 is not yet packaged so it should be installed from source:
+In older Ubuntu releases pybind11 is not yet packaged so it should be installed from source:
 \code{.unparsed}
 git clone https://github.com/pybind/pybind11.git
 mkdir pybind11-build
@@ -53,17 +47,15 @@ cmake ../pybind11 -DPYBIND11_TEST=OFF
 sudo make install
 \endcode
 
-Installation of dependencies on Windows is described \ref install_win "here".
-
 \section build	Building Pteros
 
 \subsection get Getting the code
 
 Get the latest source code from the Git repository:
 \code{.unparsed}
-git clone https://github.com/yesint/pteros.git pteros-code
+git clone https://github.com/yesint/pteros.git pteros
 \endcode
-This will create a directory named "pteros-code" in you current working directory and will download the source code into it.
+This will create a directory named "pteros" in you current working directory and will download the source code into it.
 
 \subsection compile Compiling
 Create a separate build directory (for example 'pteros_build'). Go to this directory and issue the following commands:
@@ -76,7 +68,7 @@ make install
 
 \warning The 'make install' command may require root access if you are installing into the system-wide location.
 
-The first cmake command will print something like this:
+The cmake command will print something like this:
 \code{.unparsed}
 ------------------------------
 IMPORTANT!
@@ -96,7 +88,7 @@ If you want to compile with alternative compiler (for example Clang), add the fo
 \endcode
 
 If both Python 3.x and 2.7 are installed in your system the version 3.x will be used by default (even if 2.7 if the system-default, like in Ubuntu).
-To force version 2.7 add the following flag:
+To force version 2.7 instead (which I don't recommend) add the following flag:
 
 \code{.unparsed}
 -DPYTHON_EXECUTABLE:FILEPATH=<path to python2.7 executable>
@@ -104,6 +96,18 @@ To force version 2.7 add the following flag:
 In Ubuntu Python2.7 is usually a default, so just `python` could be sufficient.
 
 \warning Make sure that you use correct python interpreter! If Pteros was compiled with Python 3.5 it won't work with 2.7 and vice versa!
+
+\subsection deb  Building .deb package
+
+Another way of installing Pteros system-wide in a debian-based system is to build a .deb package and to install it in usual way:
+\code{.unparsed}
+cmake <all needed flags>
+make package   #This produces file pteros-<version>.deb
+sudo dpkg -i pteros-<version>.deb
+\endcode
+
+\warning This method is only tested from time to time. Manual installation with "make install" is currently more reliable.
+
 
 \subsection test Testing installation
 
@@ -130,7 +134,7 @@ By default this code is NOT compiled. Pteros doesn't support SASA computations w
 I contacted the authors of POWERSASA several times and asked for official permision to use their code but got no reply. It seems that the project is abandoned and nobody is concerned about the licensing of POWERSASA now.
 
 
-\subsection no_python 	Building Pteros without Python
+\subsection no_python 	Building without Python
 
 Pteros could be build without Python by specifying the following flag:
 
@@ -169,7 +173,7 @@ Use <a href="https://github.com/yesint/pteros/issues">issues on Github</a> to re
 
 \subsection known_problems Known problems
 - Clang compiler doesn't work with Boost < 1.52
-- OpenMP in clang only works for clang++ >= 3.8 and if libomp is installed: `sudo apt install libomp-dev`
+- OpenMP in clang only works for clang++ >= 3.8 and if libomp is installed: `sudo apt-get install libomp-dev`
 - If there are several Boost versions in the system CMake may find the right one for one library but the wrong one for the other, which causes very strange errors. The solution is to include the following flags to CMake invocation:
 \code{.unparsed} -DBoost_NO_SYSTEM_PATHS=ON -DBOOST_ROOT="Correct path to boost" \endcode
 - All Pteros plugins have to be up to date with the main library, but CMake doesn't always ensure this if you pull new updates from the repository. If plugins suddenly stop working after update delete CMakeCache.txt and CMakeFiles and recompile.
@@ -178,6 +182,5 @@ Use <a href="https://github.com/yesint/pteros/issues">issues on Github</a> to re
 \section linking 	Linking with Pteros
 
 It is recommended to use CMake. You \e can use autoconf/automake or custom Makefiles, but this will never be officially supported. The "template" subdirectory of the source tree contains the skeleton of CMake project, which could be used to link your own program with pteros libraries.
-
 
 */

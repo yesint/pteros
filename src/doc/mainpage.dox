@@ -9,7 +9,6 @@
 - \ref features
 - \ref status
 - \ref install
-- \ref install_win
 - \ref cpp_level
 - \ref third
 - \ref design
@@ -77,10 +76,10 @@ Pteros is a mature but evolving library. The librray is stable, but API (especia
 
 \section third 	Third-party software integrated into Pteros
 - <a href="http://www.gromacs.org/Developer_Zone/Programming_Guide/XTC_Library">xdrfile</a> library from <a href="http://www.gromacs.org/">GROMACS</a>. 
-- <a href="http://eigen.tuxfamily.org/index.php?title=Main_Page">Eigen</a> - highly optimized vector/matrix library.
 - POWERSASA code for Solvent Accesible Surface Area (SASA) computatations. Now inclided into <a href="http://www.int.kit.edu/1636.php">SIMONA</a> package.
 - <a href="http://swift.cmbi.ru.nl/gv/dssp/">dssp 2.0</a> code for secondary structure computations.
 - <a href="http://www.ks.uiuc.edu/Research/vmd/plugins/molfile/">Molfile plugins</a> from VMD for reading PDB, DCD, MOL2 and TNG files.
+- <a href="http://math.lbl.gov/voro++/">Voro++</a> C++ library for Voronoi tesselation.
 
 The sources of all these libraries are included into the source tree of Pteros, so you don't need to install them separately.
 
