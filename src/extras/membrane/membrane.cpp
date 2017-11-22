@@ -49,9 +49,9 @@ Membrane::Membrane(System *sys, const std::vector<Lipid_descr> &species): system
         for(auto& lip: res){
             auto mol = Lipid(lip,sp);
             mol.set_markers();
-            all_mid_sel.append(mol.get_mid_sel().Index(0));
+            all_mid_sel.append(mol.mid_sel.Index(0));
             lipids.push_back(mol);
-            index_map[mol.get_mid_sel().Index(0)] = lipids.size()-1;
+            index_map[mol.mid_sel.Index(0)] = lipids.size()-1;
         }
     }
 
@@ -64,7 +64,7 @@ Membrane::Membrane(System *sys, const std::vector<Lipid_descr> &species): system
     for(int i=0;i<leafs.size();++i){
         leaflets_sel[i].set_system(*system);
         for(auto& a: leafs[i]){
-            lipids[index_map[a.Index()]].set_leaflet(i);
+            lipids[index_map[a.Index()]].leaflet = i;
             leaflets[i].push_back(index_map[a.Index()]);
             leaflets_sel[i].append(a.Index());
         }
@@ -304,7 +304,7 @@ void Membrane::compute_properties(float d, Vector3f_const_ref external_normal)
             get_curvature(res, lip.gaussian_curvature, lip.mean_curvature);
 
             // Get smoothed surface point in lab coords
-            lip.smoothed_mid_xyz = tr*sm + lip.get_mid_sel().XYZ(0);
+            lip.smoothed_mid_xyz = tr*sm + lip.mid_sel.XYZ(0);
 
             // Do areas
             vector<int> neib;
@@ -314,10 +314,13 @@ void Membrane::compute_properties(float d, Vector3f_const_ref external_normal)
 
             // Add neighbor pairs. Only use nearest neighbor lipids from area computation
             // use only i<j to avoid adding duplicates
-            int cur_ind = index_map[leaflets_sel[l].Index(i)];
-            for(int j=0; j<neib.size(); ++j){
-                int n = index_map[lip.local_sel.Index(neib[j]-1)];
-                if(cur_ind<n) neighbor_pairs.push_back(Vector2i(cur_ind,n));
+            // If area is -1 skip since this lipid has weird surrounding
+            if(lip.area>0){
+                int cur_ind = index_map[leaflets_sel[l].Index(i)];
+                for(int j=0; j<neib.size(); ++j){
+                    int n = index_map[lip.local_sel.Index(neib[j]-1)];
+                    if(cur_ind<n) neighbor_pairs.push_back(Vector2i(cur_ind,n));
+                }
             }
 
         } // Over lipids in leaflet
@@ -325,7 +328,7 @@ void Membrane::compute_properties(float d, Vector3f_const_ref external_normal)
     } // over leaflets
 
     // Go over neighbor pairs and compute mean splay
-    // Also for neigbhor array as i ==> 1,2,3...
+    // Also form neigbhor array as i ==> 1,2,3...
     splay.resize(neighbor_pairs.size());
     neighbors.resize(lipids.size());
     for(int i=0;i<neighbor_pairs.size();++i){
@@ -346,10 +349,14 @@ void Membrane::compute_properties(float d, Vector3f_const_ref external_normal)
         Vector3f v1 = (lip1.get_head_xyz()-lip1.get_tail_xyz()).normalized();
         Vector3f v2 = (lip2.get_head_xyz()-lip2.get_tail_xyz()).normalized();
 
-        splay[i] = (v2.dot(x)-v1.dot(x)-n2.dot(x)+n1.dot(x))/d;
+        splay[i] = {
+                    neighbor_pairs[i](0),
+                    neighbor_pairs[i](1),
+                    (v2.dot(x)-v1.dot(x)-n2.dot(x)+n1.dot(x))/d
+                   };
     }
 
-    cout << Map<VectorXf>(splay.data(),splay.size()).transpose() << endl;
+    //cout << Map<VectorXf>(splay.data(),splay.size()).transpose() << endl;
 
 
     // unset markers
@@ -385,9 +392,9 @@ void Membrane::write_vmd_arrows(const string &fname)
 void Membrane::write_smoothed(const string& fname){
     System out;
     for(auto& l: lipids){
-        auto s = out.append(l.get_mid_sel()(0,0));
+        auto s = out.append(l.mid_sel(0,0));
         s.Name(0) = "M";
-        s = out.append(l.get_head_sel()(0,0));
+        s = out.append(l.head_sel(0,0));
         s.XYZ(0) = l.smoothed_mid_xyz;
         s.Name(0) = "S";
     }

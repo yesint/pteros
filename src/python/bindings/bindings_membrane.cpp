@@ -38,6 +38,12 @@ void make_bindings_Membrane(py::module& m){
         .def_readonly("head_mid_str",&Lipid_descr::mid_sel_str)
     ;
 
+    py::class_<Splay_pair>(m,"Splay_pair")
+        .def_readonly("lip1",&Splay_pair::lip1)
+        .def_readonly("lip2",&Splay_pair::lip2)
+        .def_readonly("splay",&Splay_pair::splay)
+    ;
+
     py::class_<Lipid>(m,"Lipid")
             .def(py::init<const Selection&,const Lipid_descr&>())
 
@@ -45,10 +51,12 @@ void make_bindings_Membrane(py::module& m){
             .def("get_head_xyz",&Lipid::get_head_xyz)
             .def("get_tail_xyz",&Lipid::get_tail_xyz)
 
-            .def("get_mid_sel",&Lipid::get_mid_sel)
-            .def("get_head_sel",&Lipid::get_head_sel)
-            .def("get_tail_sel",&Lipid::get_tail_sel)
+            .def_readwrite("mid_sel",&Lipid::mid_sel)
+            .def_readwrite("head_sel",&Lipid::head_sel)
+            .def_readwrite("tail_sel",&Lipid::tail_sel)
+            .def_readwrite("whole_sel",&Lipid::whole_sel)
 
+            .def_readonly("name",&Lipid::name)
             .def_readonly("normal",&Lipid::normal)
             .def_readonly("smoothed_mid_xyz",&Lipid::smoothed_mid_xyz)
             .def_readonly("tilt",&Lipid::tilt)
@@ -64,5 +72,12 @@ void make_bindings_Membrane(py::module& m){
     py::class_<Membrane>(m,"Membrane")
         .def(py::init<System*,const std::vector<Lipid_descr>&>())
         .def("compute_properties",&Membrane::compute_properties,"d"_a,"external_normal"_a=Eigen::Vector3f::Zero())
+        .def("write_vmd_arrows",&Membrane::write_vmd_arrows)
+        .def("get_lipid",&Membrane::get_lipid,py::return_value_policy::reference_internal)
+        .def("write_smoothed",&Membrane::write_smoothed)
+        .def_readonly("lipids",&Membrane::lipids)
+        .def_readonly("splay",&Membrane::splay)
+        .def_readonly("neighbors",&Membrane::neighbors)
+        .def_readonly("leaflets",&Membrane::leaflets)
     ;
 }

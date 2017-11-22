@@ -45,10 +45,12 @@ public:
     Eigen::Vector3f get_head_xyz() const {return head_sel.XYZ(0);}
     Eigen::Vector3f get_tail_xyz() const {return tail_sel.XYZ(0);}
 
-    Selection& get_mid_sel() {return mid_sel;}
-    Selection& get_head_sel() {return head_sel;}
-    Selection& get_tail_sel() {return tail_sel;}
+    Selection whole_sel;
+    Selection head_sel;
+    Selection tail_sel;
+    Selection mid_sel;
 
+    std::string name;
     Eigen::Vector3f normal;
     Eigen::Vector3f smoothed_mid_xyz;
     float tilt;
@@ -60,24 +62,23 @@ public:
     float mean_curvature;
     int coord_number;
 
-private:
-    void set_leaflet(int i){leaflet = i;}
+private:    
     // Set current COM coordinates of seletions to their first atoms used as markers
     void set_markers();
     // Restore atomic coords of markers
     void unset_markers();
-
-    std::string name;
-    Selection whole_sel;
-    Selection head_sel;
-    Selection tail_sel;
-    Selection mid_sel;
 
     Eigen::Vector3f saved_head0, saved_tail0, saved_mid0;
 
     Selection local_sel;
 };
 
+
+struct Splay_pair {
+    int lip1;
+    int lip2;
+    float splay;
+};
 
 class Membrane {
 public:
@@ -87,17 +88,21 @@ public:
     void write_vmd_arrows(const std::string& fname);
     void write_smoothed(const std::string &fname);
 
+    const Lipid& get_lipid(int i){ return lipids[i]; }
+
     std::vector<Lipid> lipids;
 
-    std::vector<float> splay;
+    std::vector<Splay_pair> splay;
 
     std::vector<std::vector<int>> neighbors;
+
+    std::vector<std::vector<int>> leaflets;
 
 private:
     System* system;
     std::vector<Lipid_descr> lipid_species;
 
-    std::vector<std::vector<int>> leaflets;
+
     std::vector<Selection> leaflets_sel;
 
     std::shared_ptr<spdlog::logger> log;
