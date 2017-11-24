@@ -74,6 +74,18 @@ message("Looking for Eigen...")
 find_package(Eigen3 REQUIRED)
 include_directories(${EIGEN3_INCLUDE_DIR})
 
+# Look for Gromacs
+message("Looking for Gromacs...")
+find_package(gromacs QUIET)
+if(${gromacs_FOUND})
+    message("-- Found Gromacs at ${GROMACS_INCLUDE_DIRS}")
+    add_definitions(-DUSE_GROMACS)
+    include_directories(${GROMACS_INCLUDE_DIRS})
+    link_libraries(${GROMACS_LIBRARIES})
+else()
+    message("-- Gromacs not found! Gromacs-related features are disabled!")
+endif()
+
 # Main Pteros include dir (for build time, not yet installed)
 include_directories(include)
 

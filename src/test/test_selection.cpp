@@ -253,19 +253,22 @@ int main(int argc, char** argv)
         {"POPC","resname POPC", "name P N", "name C316 C317 C318 C216 C217 C218", "name C22 C21 C23 C31 C32 C33"},
     };
 
+    System sys("/home/semen/work/current/Projects/Masato/symmetric/topol.tpr");
+    sys().write("a.pdb");
+    /*
     System sys("/home/semen/work/current/Projects/Masato/symmetric/after_em.gro");
 
     Membrane membr(&sys,species);
     membr.compute_properties(2.0, Vector3f(0,0,1));
-    //membr.compute_properties(2.0);
     membr.write_vmd_arrows("normals.tcl");
-    membr.write_smoothed("smoothed.pdb");
+    membr.write_smoothed("smoothed.pdb");    
 
     // lip properties
 
     for(int i=0;i<membr.lipids.size();++i){
         cout << i << " " << membr.lipids[i].normal(2) << " " << membr.lipids[i].area << endl;
     }
+    */
 
     return 1;
 

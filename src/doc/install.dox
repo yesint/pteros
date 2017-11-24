@@ -133,6 +133,11 @@ By default this code is NOT compiled. Pteros doesn't support SASA computations w
 \note
 I contacted the authors of POWERSASA several times and asked for official permision to use their code but got no reply. It seems that the project is abandoned and nobody is concerned about the licensing of POWERSASA now.
 
+\subsection sasa Enabling Gromacs support
+
+Pteros could be linked against Gromacs. In this case it can read Gromacs TPR files and make advantage of Gromacs topologies.
+CMake can only find Gromacs if it is installed from repository package into standard location (/lib). However, in most cases Gromacs is compiled from source and installed into other location (typically into /usr/local). In this case you should provide path to the directory containing gromacs-config.cmake file. For example:
+\code{.unparsed} -Dgromacs_DIR="/usr/local/gromacs/share/cmake/gromacs" \endcode
 
 \subsection no_python 	Building without Python
 

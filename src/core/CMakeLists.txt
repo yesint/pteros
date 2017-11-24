@@ -21,10 +21,13 @@ else()
     SET(SASA_FILES "")
 endif()
 
-
 #---------------------
 # Main pteros library
 #---------------------
+
+# Gromacs libs
+include_directories(/usr/local/gromacs/include)
+link_directories(/usr/local/gromacs/lib)
 
 add_library(pteros SHARED
     # General
@@ -107,6 +110,8 @@ add_library(pteros SHARED
     io/mol2_file.cpp
     io/xyz_file.h
     io/xyz_file.cpp
+    io/tpr_file.h
+    io/tpr_file.cpp
 
     #SASA (will be empty if not used)
     ${SASA_FILES}
