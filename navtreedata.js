@@ -74,7 +74,7 @@ var NAVTREEINDEX =
 "classpteros_1_1Periodic__box.html#a8a0d1bee5d70b3c4b61bc947a8e55322",
 "classpteros_1_1Selection.html#aa290dc08b6425722db037cac5d0adade",
 "classpteros_1_1Trajectory__reader.html#aa156f6827fbb55404c6dc2d86c8b7e38",
-"traj__file__reader_8h_source.html"
+"tpr__file_8h_source.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

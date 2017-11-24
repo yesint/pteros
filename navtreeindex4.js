@@ -1,8 +1,9 @@
 var NAVTREEINDEX4 =
 {
+"tpr__file_8h_source.html":[6,0,1,1,1,7],
 "traj__file__reader_8h_source.html":[6,0,1,0,3],
 "trajectory__reader_8h_source.html":[6,0,0,0,0,6],
-"trr__file_8h_source.html":[6,0,1,1,1,7],
+"trr__file_8h_source.html":[6,0,1,1,1,8],
 "tutorial.html":[4],
 "tutorial.html#analysis_plugins":[4,5],
 "tutorial.html#bindings":[4,3],
@@ -20,7 +21,7 @@ var NAVTREEINDEX4 =
 "tutorial.html#transforms":[4,2,0],
 "typedefs_8h_source.html":[6,0,0,0,1,12],
 "utilities_8h_source.html":[6,0,0,0,1,13],
-"vmd__molfile__plugin__wrapper_8h_source.html":[6,0,1,1,1,8],
-"xtc__file_8h_source.html":[6,0,1,1,1,9],
-"xyz__file_8h_source.html":[6,0,1,1,1,10]
+"vmd__molfile__plugin__wrapper_8h_source.html":[6,0,1,1,1,9],
+"xtc__file_8h_source.html":[6,0,1,1,1,10],
+"xyz__file_8h_source.html":[6,0,1,1,1,11]
 };

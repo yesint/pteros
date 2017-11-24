@@ -171,7 +171,9 @@ Testing installation</h2>
 <h2><a class="anchor" id="sasa"></a>
 Enabling SASA code</h2>
 <p>Pteros can perform the Solvent Accesible Surface Area (SASA) computatations using POWERSASA code developed in the <a href="http://www.kit.edu/english/">Karlsruhe Institute of Technology</a>. POWERSASA is licensed by specific and rather restrictive "Academic/Non-Profit SASA software license agreement". See the comment file <code>thirdparty/sasa/LICENSE</code> for details. This license is NOT Open Source and imply many restrictions! Please read it carefully. If you agree with this license use the following flag when invoking cmake: </p><div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;-DWITH_POWERSASA=&quot;ON&quot;</div></div><!-- fragment --><p> By default this code is NOT compiled. Pteros doesn't support SASA computations without it. </p><dl class="section note"><dt>Note</dt><dd>I contacted the authors of POWERSASA several times and asked for official permision to use their code but got no reply. It seems that the project is abandoned and nobody is concerned about the licensing of POWERSASA now.</dd></dl>
-<h2><a class="anchor" id="no_python"></a>
+<h2><a class="anchor" id="sasa"></a>
+Enabling SASA code</h2>
+<p>Pteros could be linked against Gromacs. In this case it can read Gromacs TPR files and make advantage of Gromacs topologies. CMake can only find Gromacs if it is installed from repository package into standard location (/lib). However, in most cases Gromacs is compiled from source and installed into other location (typically into /usr/local). In this case you should provide path to the directory containing gromacs-config.cmake file. For example: </p><div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;-Dgromacs_DIR=&quot;/usr/local/gromacs/share/cmake/gromacs&quot; </div></div><!-- fragment --><h2><a class="anchor" id="no_python"></a>
 Building without Python</h2>
 <p>Pteros could be build without Python by specifying the following flag:</p>
 <div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;-DWITH_PYTHON=&quot;OFF&quot; </div></div><!-- fragment --><p>In this case compiled C++ plugins are not built as python extension modules and python bindings are not produced.</p>
@@ -202,7 +204,7 @@ Linking with Pteros</h1>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Mon Nov 20 2017 16:07:41 for Pteros by
+    <li class="footer">Generated on Fri Nov 24 2017 17:35:21 for Pteros by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.11 </li>
   </ul>
