@@ -53,8 +53,7 @@ public:
     std::string name;
     Eigen::Vector3f normal;
     Eigen::Vector3f smoothed_mid_xyz;
-    float tilt;
-    float splay;
+    float tilt;    
     float quad_fit_rms;
     float area;
     int leaflet;
@@ -88,26 +87,23 @@ public:
     void write_vmd_arrows(const std::string& fname);
     void write_smoothed(const std::string &fname);
 
+    int num_lipids(){ return lipids.size(); }
     const Lipid& get_lipid(int i){ return lipids[i]; }
 
+    int num_leaflets(){ return leaflets.size(); }
+    const std::vector<int>& get_leaflet(int i){ return leaflets[i]; }
+
     std::vector<Lipid> lipids;
-
     std::vector<Splay_pair> splay;
-
     std::vector<std::vector<int>> neighbors;
-
     std::vector<std::vector<int>> leaflets;
 
 private:
     System* system;
     std::vector<Lipid_descr> lipid_species;
-
-
     std::vector<Selection> leaflets_sel;
-
     std::shared_ptr<spdlog::logger> log;
     std::unordered_map<int,int> index_map;
-
     // Dynamic properties
     std::vector<Eigen::Vector2i> neighbor_pairs;
 };

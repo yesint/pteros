@@ -26,7 +26,6 @@
 #include "pteros/core/utilities.h"
 #include <Eigen/Core>
 #include <Eigen/Dense>
-#include <ctime>
 #include <fstream>
 #include "voro++/voro++.hh"
 
