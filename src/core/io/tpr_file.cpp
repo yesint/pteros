@@ -48,15 +48,10 @@ void TPR_file::open(char open_mode)
 }
 
 bool TPR_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
-    t_inputrec ir;
-    matrix box;
-    rvec *x, *v;
+    t_inputrec ir;    
     gmx_mtop_t mtop;
     t_topology top;
     t_state state;
-
-    //read_tpx(fname.c_str(),&ir,box,&natoms,x,v,&mtop);
-    //read_tpx_top(fname.c_str(), &ir, box, &natoms, x, v, &top);
 
     read_tpx_state(fname.c_str(), &ir, &state, &mtop);
     top = gmx_mtop_t_to_t_topology(&mtop);

@@ -25,6 +25,9 @@ Core dependencies:
 - <a href="http://eigen.tuxfamily.org/index.php?title=Main_Page">Eigen</a> linear algebra library (>=3.2).
 - <a href="http://git-scm.com/">Git</a> for getting the source code.
 
+For reading Gromacs TPR files and using Gromacs topologies (optional):
+- <a href="http://www.gromacs.org/">Gromacs</a> version 2016.x or higher.
+
 For compiling dynamic plugins and python bindings (optional if you only want C++ core):
 - <a href="https://www.python.org/">Python</a> 2.7 or higher (>=3.5 recommended).
 - <a href="https://github.com/pybind/pybind11">Pybind11</a> binding generator library.
@@ -37,6 +40,8 @@ If you are using latest Ubuntu or other debian-based system it should be enough 
 \code{.unparsed}
 sudo apt-get install g++ cmake libeigen3-dev libboost-all-dev python3.5-dev python3.5-numpy pybind11-dev git doxygen python-sphinx
 \endcode
+
+\note If you need Gromacs support it is highly recommended to install it from source because version in the repositories is usually outdated significantly.
 
 In older Ubuntu releases pybind11 is not yet packaged so it should be installed from source:
 \code{.unparsed}
@@ -133,7 +138,7 @@ By default this code is NOT compiled. Pteros doesn't support SASA computations w
 \note
 I contacted the authors of POWERSASA several times and asked for official permision to use their code but got no reply. It seems that the project is abandoned and nobody is concerned about the licensing of POWERSASA now.
 
-\subsection sasa Enabling Gromacs support
+\subsection gmx Enabling Gromacs support
 
 Pteros could be linked against Gromacs. In this case it can read Gromacs TPR files and make advantage of Gromacs topologies.
 CMake can only find Gromacs if it is installed from repository package into standard location (/lib). However, in most cases Gromacs is compiled from source and installed into other location (typically into /usr/local). In this case you should provide path to the directory containing gromacs-config.cmake file. For example:
