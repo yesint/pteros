@@ -155,7 +155,7 @@ int main(int argc, char* argv[]){
             // Find the end of this residue
             do {
                 ++at;
-            } while(solute_all.Resindex(at) == resind && at<solute_all.size());
+            } while( at<solute_all.size() && solute_all.Resindex(at) == resind);
 
             if(residues.count(resname)){
                 // such resname is present
