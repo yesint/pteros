@@ -2,6 +2,7 @@
 #include "pteros/core/logging.h"
 #include "bindings_util.h"
 #include "pteros/core/utilities.h"
+#include "pteros/core/pteros_error.h"
 
 namespace py = pybind11;
 using namespace std;
@@ -32,11 +33,9 @@ PYBIND11_MODULE(_pteros, m) {
     make_bindings_Trajectory_reader(m);
 
     // Globas stuff
-    py::class_<spdlog::logger>(m,"Logger")
-        .def(py::init([](const string& name){
-            auto p = std::unique_ptr<spdlog::logger>(new spdlog::logger(name,Log::instance().console_sink));
-            p->set_pattern(Log::instance().generic_pattern);
-            return p;
+    py::class_<spdlog::logger,shared_ptr<spdlog::logger>>(m,"Logger")
+        .def(py::init([](const string& name){            
+            return create_logger(name);
         }))
         .def("info",[](spdlog::logger* log, const string& str){log->info(str);})
         .def("warn",[](spdlog::logger* log, const string& str){log->warn(str);})
@@ -44,9 +43,10 @@ PYBIND11_MODULE(_pteros, m) {
         .def("debug",[](spdlog::logger* log, const string& str){log->debug(str);})
         .def("critical",[](spdlog::logger* log, const string& str){log->critical(str);})
     ;
+    m.def("set_log_level",&set_log_level);
 
     m.def("angle_between_vectors",&angle_between_vectors);
-    m.def("project_vector",&project_vector);
+    m.def("project_vector",&project_vector);            
 
     py::class_<Histogram>(m,"Histogram")
             .def(py::init<float,float,int>())

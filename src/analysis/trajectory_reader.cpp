@@ -114,7 +114,7 @@ void Trajectory_reader::run(){
     auto log = create_logger("trj_processor");
 
     // Preparation stage
-    log->trace("Starting trajectory processing");
+    log->debug("Starting trajectory processing");
     auto start = chrono::steady_clock::now();
 
     // Get file path
@@ -197,7 +197,7 @@ void Trajectory_reader::run(){
             if(c.atoms() && c.traj()){
                 structure_file = s;
                 // We only need to load only atoms from TNG here
-                log->info("Using TNG trajectory file 's' to read structure...", s);
+                log->debug("Using TNG trajectory file 's' to read structure...", s);
                 trj->open('r');
                 Frame fr;
                 trj->read(&system, &fr, Mol_file_content().atoms(true));
@@ -233,8 +233,8 @@ void Trajectory_reader::run(){
     reader_channel->set_buffer_size(buf_size);
 
     int Nproc = std::thread::hardware_concurrency();
-    log->info("Physical cores: {}", Nproc);
-    log->info("\tFile reading thread: 1");
+    log->debug("Physical cores: {}", Nproc);
+    log->debug("\tFile reading thread: 1");
 
     // Create traj file reader
     Traj_file_reader reader(options);
@@ -261,8 +261,8 @@ void Trajectory_reader::run(){
         // We have Nproc-2 remote threads + this thread = Nproc-1 in total        
         int num_threads = Nproc-1;
 
-        log->info("\tThreads running parallel task: {}", num_threads+1);
-        log->info("\t({} separate + 1 master)", num_threads);
+        log->debug("\tThreads running parallel task: {}", num_threads+1);
+        log->debug("\t({} separate + 1 master)", num_threads);
 
         // We have to reserve memory for all tasks in advance!
         // Otherwise due to reallocation of array pointers sent to threads may become invalid
@@ -317,7 +317,7 @@ void Trajectory_reader::run(){
         for(int i=1; i<tasks.size();++i)
             if(tasks[i]->n_consumed) resultive_tasks.push_back(tasks[i]);
 
-        log->info("Collecting results from {} task instances...", resultive_tasks.size()+1);
+        log->debug("Collecting results from {} task instances...", resultive_tasks.size()+1);
         tasks[0]->collect_data(resultive_tasks);
 
         // Call post-process on master instance
@@ -337,8 +337,8 @@ void Trajectory_reader::run(){
             // More than 1 consumer, start all of them in separate threads
             // Master thread will work as dispatcher
 
-            log->info("\tRunning {} serial tasks in separate threads", tasks.size());
-            log->info("\t(master thread is dispatching frames)");
+            log->debug("\tRunning {} serial tasks in separate threads", tasks.size());
+            log->debug("\t(master thread is dispatching frames)");
 
             // We have to reserve memory for all channels in advance!
             // Otherwise due to reallocation of array pointers sent to threads may become invalid
@@ -374,7 +374,7 @@ void Trajectory_reader::run(){
 
         } else {            
             // There is only one consumer, no need for multiple threads
-            log->info("\tRunning single serial task in master thread");
+            log->debug("\tRunning single serial task in master thread");
             tasks[0]->set_id(0);
             tasks[0]->driver->set_data_channel(reader_channel);
             tasks[0]->driver->process_all(system);
@@ -384,7 +384,7 @@ void Trajectory_reader::run(){
     // Join reader thread
     reader.join();
 
-    log->info("Trajectory processing finished!");
+    log->debug("Trajectory processing finished!");
 
     auto end = chrono::steady_clock::now();
 

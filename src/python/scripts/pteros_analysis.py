@@ -23,14 +23,7 @@ pteros_analysis.py -f <files> <processing options>... -task name1 <task1 options
 """)
 #--------------------------------------
 
-if __name__ == '__main__':        
-    print("+--------------------------------+")
-    print("+ This is pteros_analysis script +")
-    print("+--------------------------------+")
-
-    # Create logger
-    log = Logger('analysis')
-
+if __name__ == '__main__':            
     # Check if we have at least one command-line argument:
     if len(sys.argv)==1:
         # Show usage message
@@ -44,6 +37,18 @@ if __name__ == '__main__':
 
     # Parse command line
     opt,task_opts = parse_command_line(sys.argv,"task")
+
+    # Set global logging level
+    log_level = opt('log_level','info').as_string()
+    set_log_level(log_level)
+
+    if log_level != 'off':
+        print("+--------------------------------+")
+        print("+ This is pteros_analysis script +")
+        print("+--------------------------------+")
+
+    # Create logger
+    log = Logger('analysis')
 
     if len(task_opts)==0:        
         general_help()
@@ -73,7 +78,7 @@ if __name__ == '__main__':
             files_to_load.add(f)
 
     task_num = 0
-    log.info("Creating task instances:")
+    log.debug("Creating task instances:")
     for f in files_to_load:
         # If file ends explicitly by .py then it is custom plugin
         if f.split('.')[-1] == "py":
@@ -83,7 +88,7 @@ if __name__ == '__main__':
             (mod_name,ext) = os.path.splitext(os.path.basename(full))
             # Append module search path
             sys.path.append(os.path.dirname(full))
-            log.info("\tLoading custom plugin '%s'" % f)
+            log.debug("\tLoading custom plugin '%s'" % f)
             module = __import__(mod_name, fromlist="dummy")
             # See what is inside
             class_list = [o for o in getmembers(module) if (isclass(o[1]) and not ('pteros' in str(o[1]))) ]
@@ -102,7 +107,7 @@ if __name__ == '__main__':
 
         else:
             # Seems to be plugin from standard location
-            log.info("\tLoading standard plugin '%s'" % f)
+            log.debug("\tLoading standard plugin '%s'" % f)
             module = __import__(pteros_analysis_plugins.__name__ + "." + f, fromlist="dummy")            
             class_name = f
 
@@ -117,7 +122,7 @@ if __name__ == '__main__':
                     obj._class_name = obj.__class__.__name__
                 task_num += 1
                 reader.add_task( obj )
-                log.info('\t\tCreated instance of task {}'.format(class_name))
+                log.debug('\t\tCreated instance of task {}'.format(class_name))
                 if f.split('.')[-1] == "py":
                     # For pure python plugins
                     python_tasks.append(obj) # Save it
