@@ -18,6 +18,9 @@ IF(WITH_PYTHON)
         ${PROJECT_SOURCE_DIR}/include/pteros/python/compiled_plugin.h
     )
 
+    ####################################
+    # pteros_extras python module files
+    ####################################
     SET(EXTRAS_FILES
         bindings_extras.cpp
         bindings_membrane.cpp

@@ -101,7 +101,7 @@ if __name__ == '__main__':
                        class_name = c[0]
 
             if nparent!=1:
-                log.error('Plugin file must contain exactly one class derived from Plugin_base!')
+                log.error('Plugin file "{}" must contain exactly one class derived from Task_base!'.format(f))
                 print(class_list)
                 exit()
 
