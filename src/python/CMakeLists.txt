@@ -4,8 +4,9 @@ if(WITH_PYTHON)
             scripts/pteros_analysis.py
             scripts/tpr2pteros.py
             DESTINATION bin)
-    # Install wrapper for main extension module
-    install(PROGRAMS scripts/pteros.py DESTINATION ${PY_INST_DIR})    
+
+    # Install wrapper for main extension modules
+    install(DIRECTORY pteros DESTINATION ${PY_INST_DIR})
 
     add_subdirectory(bindings)
 

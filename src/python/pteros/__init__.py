@@ -1,5 +1,7 @@
-from _pteros import *
+import sys, os
+sys.path.append(os.path.dirname(os.path.realpath(__file__)))
 
+from _pteros import *
 
 # Splitting selection by callback
 def _split_by_callback(self,cb):

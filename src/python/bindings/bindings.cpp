@@ -17,7 +17,6 @@ void make_bindings_Frame(py::module&);
 void make_bindings_Distance_search(py::module&);
 void make_bindings_Options(py::module&);
 void make_bindings_Trajectory_reader(py::module&);
-void make_bindings_Membrane(py::module&);
 
 
 PYBIND11_MODULE(_pteros, m) {
@@ -60,9 +59,4 @@ PYBIND11_MODULE(_pteros, m) {
             .def_property_readonly("num_bins",&Histogram::num_bins)
             .def("save_to_file",&Histogram::save_to_file)
     ;
-
-    // Extras submodule
-    py::module ex = m.def_submodule("extras","Pteros extras bindings");
-
-    make_bindings_Membrane(ex);
 }
