@@ -1589,6 +1589,7 @@ MatrixXf Selection::atom_traj(int ind, int b, int e, bool make_row_major_matrix)
 void Selection::split_by_connectivity(float d, std::vector<Selection> &res, bool periodic) {
 
     vector<vector<int>> con(size());
+    res.clear();
 
     if(d==0){
         // Use bonds from topology
@@ -1707,6 +1708,30 @@ void Selection::split_by_residue(std::vector<Selection> &res)
     for(int i=0; i<size(); ++i){
         m[Resindex(i)].push_back(Index(i));
     }
+    // Create selections
+    map<int,vector<int> >::iterator it;
+    for(it=m.begin();it!=m.end();it++){
+        res.push_back(Selection(*system));
+        res.back().modify( it->second.begin(), it->second.end() );
+    }
+}
+
+void Selection::split_by_molecule(std::vector<Selection> &res)
+{
+    if(!system->force_field_ready()) throw Pteros_error("Can't split by molecule: no topology!");
+
+    map<int,vector<int>> m;
+    int bmol = 0;
+    for(int i=0;i<size();++i){
+        // Find molecule for this atom
+        for(int j=bmol; j<system->force_field.molecules.size(); ++j){
+            if(index[i]>=system->force_field.molecules[j](0) && index[i]<=system->force_field.molecules[j](1)){
+                bmol=j;
+                m[j].push_back(index[i]);
+            }
+        }
+    }
+
     // Create selections
     map<int,vector<int> >::iterator it;
     for(it=m.begin();it!=m.end();it++){

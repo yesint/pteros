@@ -256,6 +256,12 @@ int main(int argc, char** argv)
 
     System sys("/home/semen/work/current/Projects/Masato/symmetric/topol.tpr");
     sys().write("a.pdb");
+
+    vector<Selection> res;
+    sys().split_by_molecule(res);
+    cout << res.size() << endl;
+
+
     /*
     System sys("/home/semen/work/current/Projects/Masato/symmetric/after_em.gro");
 

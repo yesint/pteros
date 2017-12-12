@@ -166,7 +166,12 @@ bool TPR_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
             }
         }
 
+        // Molecules
+        for(int i=0; i<top.mols.nr; ++i){
+            ff_in_system(*sys).molecules.push_back({top.mols.index[i],top.mols.index[i+1]-1});
+        }
 
+        ff_in_system(*sys).ready = true;
 
     } // topology
 
