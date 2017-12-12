@@ -241,7 +241,8 @@ make_accessor(const Selection& sel){
 
 
 int main(int argc, char** argv)
-{
+{    
+
     vector<Lipid_descr> species = {
         {"YOPE","resname YOPE", "name P N", "name C314 C315 C316 C216 C217 C218", "name C22 C21 C23 C31 C32 C33"},
         {"DYPE","resname DYPE", "name P N", "name C314 C315 C316 C214 C215 C216", "name C22 C21 C23 C31 C32 C33"},

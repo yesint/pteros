@@ -71,7 +71,7 @@ public:
     std::string coulomb_type, coulomb_modifier, vdw_type, vdw_modifier;
 
     /// Topology-related infromation
-    std::vector<Eigen::Vector2i> bonds;
+    std::vector<Eigen::Vector2i> bonds;   
 
     /// Is the force field properly set up?
     bool ready;

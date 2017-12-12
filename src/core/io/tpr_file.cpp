@@ -29,6 +29,7 @@
 #include "gromacs/mdtypes/inputrec.h"
 #include "gromacs/topology/topology.h"
 #include "gromacs/topology/mtop_util.h"
+#include "gromacs/topology/idef.h"
 #endif
 
 using namespace std;
@@ -63,6 +64,7 @@ bool TPR_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
         if(what.coord()) frame->box.set_matrix(Map<Matrix3f>((float*)&state.box,3,3));
     }
 
+    // Read atoms and coordinates
     for(int i=0;i<natoms;++i){
         Atom at;
         int resi = top.atoms.atom[i].resind;
@@ -77,7 +79,7 @@ bool TPR_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
         if(top.atoms.pdbinfo){
             at.beta = top.atoms.pdbinfo[i].bfac;
             at.occupancy = top.atoms.pdbinfo[i].occup;
-        }
+        }                
 
         if(what.coord())
             for(int j=0;j<3;++j) frame->coord[i](j) = state.x[i][j];
@@ -90,6 +92,83 @@ bool TPR_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
             atom_in_system(*sys,i) = at;
         }
     }
+
+    // Read topology
+    if(what.top()){
+        ff_in_system(*sys).bonds.clear();
+
+        ff_in_system(*sys).fudgeQQ = top.idef.fudgeQQ;
+
+        map<int,bool> is_bond_type;
+        map<int,bool> is_settle_type;
+
+        //LOG()->info("ntypes={}, F_NRE={}",top.idef.ntypes,F_NRE);
+        for (int i = 0; i < top.idef.ntypes; i++) {
+            switch(top.idef.functype[i]){
+            case F_BONDS:
+            case F_G96BONDS:
+            case F_HARMONIC:
+            case F_CONSTR:
+            case F_CONSTRNC:
+                is_bond_type[i]=true;
+                break;
+            case F_SETTLE:
+                is_settle_type[i]=true;
+                break;
+            default:
+                is_bond_type[i]=false;
+                is_settle_type[i]=false;
+                break;
+            }
+        }
+
+        int type,a1,a2,a3;
+        float r0,k;
+        for(int it=0; it<F_NRE; ++it){ // Over all interaction terms
+            if(top.idef.il[it].nr>0){
+
+                if(is_bond_type[top.idef.il[it].iatoms[0]]){
+                    for (int i=0; i<top.idef.il[it].nr; ){
+                        type = top.idef.il[it].iatoms[i++];
+                        a1 = top.idef.il[it].iatoms[i++];
+                        a2 = top.idef.il[it].iatoms[i++];
+                        //ff_in_system(*sys).bonds_per_atom[a1].push_back(a2);
+                        //ff_in_system(*sys).bonds_per_atom[a2].push_back(a1);
+                        ff_in_system(*sys).bonds.push_back({a1,a2});
+
+                        //r0 = top.idef.iparams[type].harmonic.rA;
+                        //k = top.idef.iparams[type].harmonic.krA;
+                        //LOG()->info("a1={}, a2={}, r0={}, k={}",a1,a2,r0,k);
+                        //LOG()->info("a1={}, a2={}, n1={}, n2={}",a1,a2,*(top.atoms.atomname[a1]),*(top.atoms.atomname[a2]));
+                    }
+                }
+
+                else if(is_settle_type[top.idef.il[it].iatoms[0]]){
+                    for (int i=0; i<top.idef.il[it].nr; ){
+                        type = top.idef.il[it].iatoms[i++];
+                        a1 = top.idef.il[it].iatoms[i++];
+                        a2 = top.idef.il[it].iatoms[i++];
+                        a3 = top.idef.il[it].iatoms[i++];
+                        // One settles entry is *two* O-H bonds!
+                        //ff_in_system(*sys).bonds_per_atom[a1].push_back(a2);
+                        //ff_in_system(*sys).bonds_per_atom[a2].push_back(a1);
+
+                        //ff_in_system(*sys).bonds_per_atom[a1].push_back(a3);
+                        //ff_in_system(*sys).bonds_per_atom[a3].push_back(a1);
+                        ff_in_system(*sys).bonds.push_back({a1,a2});
+                        ff_in_system(*sys).bonds.push_back({a1,a3});
+
+
+                        //LOG()->info("a1={}, a2={}, n1={}, n2={}",a1,a2,*(top.atoms.atomname[a1]),*(top.atoms.atomname[a2]));
+                        //LOG()->info("a1={}, a2={}, n1={}, n2={}",a1,a3,*(top.atoms.atomname[a1]),*(top.atoms.atomname[a3]));
+                    }
+                }
+            }
+        }
+
+
+
+    } // topology
 
     return true;
 }

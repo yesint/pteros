@@ -1587,15 +1587,42 @@ MatrixXf Selection::atom_traj(int ind, int b, int e, bool make_row_major_matrix)
 }
 
 void Selection::split_by_connectivity(float d, std::vector<Selection> &res, bool periodic) {
-    // Find all connectivity pairs for given cut-off
-    vector<Vector2i> pairs;
-    search_contacts(d,*this,pairs,false,periodic);
 
-    // Form a connectivity structure in the form con[i]->1,2,5...
-    vector<vector<int> > con(size());
-    for(int i=0; i<pairs.size(); ++i){
-        con[pairs[i](0)].push_back(pairs[i](1));
-        con[pairs[i](1)].push_back(pairs[i](0));
+    vector<vector<int>> con(size());
+
+    if(d==0){
+        // Use bonds from topology
+        if(!system->force_field_ready()) throw Pteros_error("Can't split by topology: no topology!");
+        if(system->force_field.bonds.size()==0) throw Pteros_error("Can't split by topology: no bonds in topology!");
+
+        int bind = Index(0);
+        int eind = Index(size()-1);
+        int a1,a2;
+        auto bit = std::begin(index);
+        auto cur_b = bit;
+        auto eit = std::end(index);
+        vector<int>::iterator it1,it2;
+        for(int i=0;i<system->force_field.bonds.size();++i){
+            a1 = system->force_field.bonds[i](0);
+            a2 = system->force_field.bonds[i](1);
+            if(a1>=bind && a1<=eind && a2>=bind && a2<=eind){
+                it1 = std::find(cur_b,eit,a1);
+                cur_b = it1;
+                it2 = std::find(cur_b,eit,a2);
+                con[it1-bit].push_back(it2-bit);
+                con[it2-bit].push_back(it1-bit);
+            }
+        }
+    } else {
+        // Find all connectivity pairs for given cut-off
+        vector<Vector2i> pairs;
+        search_contacts(d,*this,pairs,false,periodic);
+
+        // Form a connectivity structure in the form con[i]->1,2,5...
+        for(int i=0; i<pairs.size(); ++i){
+            con[pairs[i](0)].push_back(pairs[i](1));
+            con[pairs[i](1)].push_back(pairs[i](0));
+        }
     }
 
     // Mask of used atoms
@@ -1628,16 +1655,15 @@ void Selection::split_by_connectivity(float d, std::vector<Selection> &res, bool
             todo.erase(todo.begin()); // And pop it from the queue
 
             // Find all atoms connected to this one
-            for(int i=0; i<con[cur].size(); ++i){
+            for(int i: con[cur]){
                 // We only add atoms, which were not yet used as centers
-                if(used(con[cur][i])==0){
-                    // Add this atom to selection
-                    //sel_atoms.insert(con[cur][i]);
-                    res.back().index.push_back(index[con[cur][i]]);
+                if(used(i)==0){
+                    // Add this atom to selection                    
+                    res.back().index.push_back(index[i]);
                     // Add this atom to centers queue
-                    todo.insert(con[cur][i]);
+                    todo.insert(i);
                     // Mark as used
-                    used[con[cur][i]] = 1;
+                    used[i] = 1;
                     ++Nused;
                 }
             }
@@ -1648,7 +1674,7 @@ void Selection::split_by_connectivity(float d, std::vector<Selection> &res, bool
             int i=0;
             while(used(i)==1){
                 ++i;
-                if(i>=size()) throw Pteros_error("Wrong connectivity?");
+                if(i>=size()) throw Pteros_error("UPS! Wrong connectivity?");
             }
 
             todo.insert(i);
@@ -1670,6 +1696,7 @@ void Selection::split_by_connectivity(float d, std::vector<Selection> &res, bool
 
     }
 }
+
 
 void Selection::split_by_residue(std::vector<Selection> &res)
 {

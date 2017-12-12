@@ -725,7 +725,8 @@ class Selection {
     /// Split current selection into several selections according to
     /// the interatomic distances. Each resulting selection is a group
     /// of atoms connected by distances less than d.
-    void split_by_connectivity(float d, std::vector<Selection>& res, bool periodic=true);
+    /// if d==0 the bonds from topology are used instead and periodic argument is ignored
+    void split_by_connectivity(float d, std::vector<Selection>& res, bool periodic=true);    
 
     /// Split selection by residue index
     void split_by_residue(std::vector<Selection>& res);
