@@ -29,6 +29,15 @@ add_executable(pteros_solvate
 )
 target_link_libraries(pteros_solvate pteros pteros_analysis ${Boost_LIBRARIES})
 
+#------------------------
+# pteros_rearrange
+#------------------------
+
+add_executable(pteros_rearrange
+    rearrange.cpp
+)
+target_link_libraries(pteros_rearrange pteros pteros_analysis ${Boost_LIBRARIES})
+
 
 #--------------
 # Installation
@@ -38,6 +47,7 @@ install(TARGETS
     #pteros_rmsf
     pteros_contacts_finder
     pteros_solvate
+    pteros_rearrange
 
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib

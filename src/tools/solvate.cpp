@@ -120,11 +120,10 @@ int main(int argc, char* argv[]){
 
         // select overlapping water
         float d = opt("d","0.25").as_float();
-        string s = "by residue (index " + to_string(last_solute_ind+1)
-                + "-" + to_string(solute.num_atoms()-1)
-                + " and within "
-                + to_string(d)+ " pbc of index 0-"
-                + to_string(last_solute_ind) +")";
+        string s = fmt::format("by residue (index {}-{} and within {} pbc of index 0-{})",
+                               last_solute_ind+1,
+                               solute.num_atoms()-1,
+                               d, last_solute_ind);
 
         Selection sel(solute, s);
 
