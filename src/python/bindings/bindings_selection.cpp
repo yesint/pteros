@@ -278,6 +278,12 @@ void make_bindings_Selection(py::module& m){
                 return res;
             })
 
+        .def("split_by_molecule", [](Selection* sel){
+                std::vector<Selection> res;
+                sel->split_by_molecule(res);
+                return res;
+            })
+
         .def("split_by_contiguous_index", [](Selection* sel){
                 std::vector<Selection> res;
                 sel->split_by_contiguous_index(res);
