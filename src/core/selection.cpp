@@ -1209,9 +1209,9 @@ void copy_coord(const Selection &from, int from_fr, Selection &to, int to_fr)
 
 Energy_components non_bond_energy(const Selection& sel1,
                                   const Selection& sel2,
-                                  float cutoff = 0.25,
-                                  int fr = -1,
-                                  bool periodic = true)
+                                  float cutoff,
+                                  int fr,
+                                  bool periodic)
 {
     // Check if both selections are from the same system
     if(sel1.get_system()!=sel2.get_system())
@@ -1219,7 +1219,7 @@ Energy_components non_bond_energy(const Selection& sel1,
 
     if(fr<0) fr = sel1.get_frame();
 
-    if(cutoff>0){
+    if(cutoff>=0){
         // Need to set frame fr for both selection to get correct grid search
         int fr1 = sel1.get_frame();
         int fr2 = sel2.get_frame();
@@ -1227,16 +1227,23 @@ Energy_components non_bond_energy(const Selection& sel1,
         const_cast<Selection&>(sel1).set_frame(fr);
         const_cast<Selection&>(sel2).set_frame(fr);
 
+        float d;
+        if(cutoff==0){
+            d = std::min(sel1.get_system()->get_force_field()->rcoulomb,sel1.get_system()->get_force_field()->rvdw);
+        } else {
+            d = cutoff;
+        }
+
         // Perform grid search
         vector<Vector2i> bon;
-        search_contacts(cutoff,sel1,sel2,bon,true,periodic);
+        search_contacts(d,sel1,sel2,bon,true,periodic);
 
         // Restore frames
         const_cast<Selection&>(sel1).set_frame(fr1);
         const_cast<Selection&>(sel2).set_frame(fr2);
 
         return sel1.get_system()->non_bond_energy(bon,fr);
-    } else {
+    } else if(cutoff < 0) {
         // Compute for all pairs
         int n1 = sel1.size();
         int n2 = sel2.size();

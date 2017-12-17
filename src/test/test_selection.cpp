@@ -254,12 +254,14 @@ int main(int argc, char** argv)
         {"POPC","resname POPC", "name P N", "name C316 C317 C318 C216 C217 C218", "name C22 C21 C23 C31 C32 C33"},
     };
 
-    System sys("/home/semen/work/current/Projects/Masato/symmetric/topol.tpr");
-    sys().write("a.pdb");
+    LOG()->set_level(spdlog::level::trace);
 
-    vector<Selection> res;
-    sys().split_by_molecule(res);
-    cout << res.size() << endl;
+    System sys("/home/semen/work/current/Projects/Masato/symmetric/topol.tpr");
+
+    Selection sel1(sys,"resid 1-10");
+    Selection sel2(sys,"resid 11-21");
+
+    cout << non_bond_energy(sel1,sel2).total << endl;
 
 
     /*

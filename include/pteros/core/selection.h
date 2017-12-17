@@ -663,9 +663,9 @@ class Selection {
     // Default value should be given in definition of friend function!
     friend Energy_components non_bond_energy(const Selection& sel1,
                                              const Selection& sel2,
-                                             float cutoff,
-                                             int fr,
-                                             bool periodic);
+                                             float cutoff = 0,
+                                             int fr = -1,
+                                             bool periodic = true);
 
     /// @}
 

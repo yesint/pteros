@@ -27,6 +27,7 @@
 #include <cmath>
 #include <functional>
 #include "pteros/core/logging.h"
+#include <boost/algorithm/string.hpp>
 
 using namespace std;
 using namespace pteros;
@@ -103,15 +104,21 @@ inline float Force_field::Coulomb_en_kernel_shifted(float q1, float q2, float r)
                                      );
 }
 
+#define LOWER(s) boost::algorithm::to_lower_copy(string(s))
 
 void Force_field::setup_kernels(){
     using namespace placeholders;
+
+    LOG()->debug("Coulomb type: {}",coulomb_type);
+    LOG()->debug("Coulomb modifier: {}",coulomb_modifier);
+    LOG()->debug("VdW type: {}",vdw_type);
+    LOG()->debug("VdW modifier: {}",vdw_modifier);
 
     // Set Coulomb prefactor
     coulomb_prefactor = ONE_4PI_EPS0 / epsilon_r;
 
     // Set Coulomb kernel
-    if(coulomb_type=="reaction-field"){
+    if(LOWER(coulomb_type)=="reaction-field"){
         // In case of reaction field precompute constanst
         if(epsilon_rf){
             k_rf = (1.0/(rcoulomb*rcoulomb*rcoulomb))
@@ -126,15 +133,18 @@ void Force_field::setup_kernels(){
         coulomb_kernel_ptr = bind(&Force_field::Coulomb_en_kernel_rf,this,_1,_2,_3);
         LOG()->debug("\tCoulomb kernel: reaction_field");
 
-    } else if((coulomb_type=="cut-off" && coulomb_modifier=="potential-shift")
-              || coulomb_type=="shift"  || coulomb_type=="pme") {
+    } else if( ( LOWER(coulomb_type)=="cut-off"
+                 && LOWER(coulomb_modifier)== "potential-shift"
+               )
+              || LOWER(coulomb_type)=="shift"
+              || LOWER(coulomb_type)=="pme") {
         // Compute shift constants for power 1
         shift_1 = get_shift_coefs(1,rcoulomb_switch,rcoulomb);
 
         coulomb_kernel_ptr = bind(&Force_field::Coulomb_en_kernel_shifted,this,_1,_2,_3);
         LOG()->debug("\tCoulomb kernel: shifted");
 
-    } else if(coulomb_type=="cut-off") {
+    } else if(LOWER(coulomb_type)==LOWER("cut-off")) {
         // In other cases set plain Coulomb interaction
         coulomb_kernel_ptr = bind(&Force_field::Coulomb_en_kernel_cutoff,this,_1,_2,_3);
         LOG()->debug("\tCoulomb kernel: cutoff");
@@ -144,7 +154,7 @@ void Force_field::setup_kernels(){
     }
 
     // Set LJ kernel
-    if(vdw_type== "shift"){
+    if(LOWER(vdw_type)== "shift"){
         // Compute shift constants for powers 6 and 12
         shift_6 = get_shift_coefs(6,rvdw_switch,rvdw);
         shift_12 = get_shift_coefs(12,rvdw_switch,rvdw);
@@ -152,7 +162,7 @@ void Force_field::setup_kernels(){
         LJ_kernel_ptr = bind(&Force_field::LJ_en_kernel_shifted,this,_1,_2,_3);
         LOG()->debug("\tLJ kernel: shifted");
 
-    } else if(vdw_type== "cut-off") {
+    } else if(LOWER(vdw_type)== "cut-off") {
         LJ_kernel_ptr = bind(&Force_field::LJ_en_kernel_cutoff,this,_1,_2,_3);
         LOG()->debug("\tLJ kernel: cutoff");
 
