@@ -1175,25 +1175,6 @@ void Selection::apply_transform(const Affine3f &t){
     }
 }
 
-Energy_components Selection::non_bond_energy(float cutoff, bool periodic) const
-{
-    if(cutoff>0){
-        // Perform grid search
-        vector<Vector2i> bon;
-        search_contacts(cutoff,*this,bon,true,periodic);
-        return system->non_bond_energy(bon,frame, periodic);
-    } else {
-        // Compute all-with-all
-        Energy_components e;
-        int i,j,n;
-        n = size();
-        for(i=0; i<n-1; ++i)
-            for(j=i+1; j<n; ++j)
-                e += system->non_bond_energy(Index(i),Index(j),frame,periodic);
-        return e;
-    }
-}
-
 namespace pteros {
 
 void copy_coord(const Selection &from, int from_fr, Selection &to, int to_fr)
@@ -1207,11 +1188,36 @@ void copy_coord(const Selection &from, int from_fr, Selection &to, int to_fr)
 }
 
 
-Energy_components non_bond_energy(const Selection& sel1,
-                                  const Selection& sel2,
-                                  float cutoff,
-                                  int fr,
-                                  bool periodic)
+Vector2f get_energy_for_list(const vector<Vector2i>& pairs, const vector<float>& dist, const System& sys){
+    Force_field& ff = const_cast<System&>(sys).get_force_field();
+    Vector2f e_total(0,0);
+    #pragma omp parallel
+    {
+        int at1,at2;
+        Vector2f e(0,0);
+        #pragma omp for nowait
+        for(int i=0;i<pairs.size();++i){
+            at1 = pairs[i](0);
+            at2 = pairs[i](1);
+            e += ff.pair_energy(at1, at2, dist[i],
+                                sys.Atom_data(at1).charge, sys.Atom_data(at2).charge,
+                                sys.Atom_data(at1).type,   sys.Atom_data(at2).type);
+        }
+
+        #pragma omp critical
+        {
+            e_total += e;
+        }
+    }
+    return e_total;
+}
+
+
+Vector2f non_bond_energy(const Selection& sel1,
+                         const Selection& sel2,
+                         float cutoff,
+                         int fr,
+                         bool periodic)
 {
     // Check if both selections are from the same system
     if(sel1.get_system()!=sel2.get_system())
@@ -1219,44 +1225,31 @@ Energy_components non_bond_energy(const Selection& sel1,
 
     if(fr<0) fr = sel1.get_frame();
 
-    if(cutoff>=0){
-        // Need to set frame fr for both selection to get correct grid search
-        int fr1 = sel1.get_frame();
-        int fr2 = sel2.get_frame();
+    // Need to set frame fr for both selection to get correct grid search
+    int fr1 = sel1.get_frame();
+    int fr2 = sel2.get_frame();
 
-        const_cast<Selection&>(sel1).set_frame(fr);
-        const_cast<Selection&>(sel2).set_frame(fr);
+    if(fr1!=fr) const_cast<Selection&>(sel1).set_frame(fr);
+    if(fr2!=fr) const_cast<Selection&>(sel2).set_frame(fr);
 
-        float d;
-        if(cutoff==0){
-            d = std::min(sel1.get_system()->get_force_field()->rcoulomb,sel1.get_system()->get_force_field()->rvdw);
-        } else {
-            d = cutoff;
-        }
-
-        // Perform grid search
-        vector<Vector2i> bon;
-        search_contacts(d,sel1,sel2,bon,true,periodic);
-
-        // Restore frames
-        const_cast<Selection&>(sel1).set_frame(fr1);
-        const_cast<Selection&>(sel2).set_frame(fr2);
-
-        return sel1.get_system()->non_bond_energy(bon,fr);
-    } else if(cutoff < 0) {
-        // Compute for all pairs
-        int n1 = sel1.size();
-        int n2 = sel2.size();
-        int i,j;
-
-        Energy_components e;
-
-        for(i=0;i<n1;++i)
-            for(j=0;j<n2;++j)
-                e += sel1.get_system()->non_bond_energy(sel1.Index(i),sel2.Index(j),fr,periodic);
-
-        return e;
+    float d;
+    if(cutoff==0){
+        d = std::min(sel1.get_system()->get_force_field().rcoulomb, sel1.get_system()->get_force_field().rvdw);
+    } else {
+        d = cutoff;
     }
+
+    // Perform grid search
+    vector<Vector2i> pairs;
+    vector<float> dist;
+    search_contacts(d,sel1,sel2,pairs,true,periodic,&dist);
+
+    // Restore frames if needed
+    if(fr1!=fr) const_cast<Selection&>(sel1).set_frame(fr1);
+    if(fr2!=fr) const_cast<Selection&>(sel2).set_frame(fr2);
+
+    // Now get energy using pair list and distances
+    return get_energy_for_list(pairs,dist,*sel1.get_system());
 }
 
 
@@ -1384,6 +1377,25 @@ void fit(Selection& sel1, const Selection& sel2){
 }
 
 } //namespace pteros
+
+
+Vector2f Selection::non_bond_energy(float cutoff, bool periodic) const
+{
+    float d;
+    if(cutoff==0){
+        d = std::min(system->get_force_field().rcoulomb, system->get_force_field().rvdw);
+    } else {
+        d = cutoff;
+    }
+
+    // Perform grid search
+    vector<Vector2i> pairs;
+    vector<float> dist;
+    search_contacts(d,*this,pairs,true,periodic,&dist);
+
+    // Now get energy using pair list and distances
+    return get_energy_for_list(pairs,dist,*system);
+}
 
 // Fit all frames in trajectory
 void Selection::fit_trajectory(int ref_frame, int b, int e){
@@ -1600,7 +1612,7 @@ void Selection::split_by_connectivity(float d, std::vector<Selection> &res, bool
 
     if(d==0){
         // Use bonds from topology
-        if(!system->force_field_ready()) throw Pteros_error("Can't split by topology: no topology!");
+        if(!system->force_field.ready) throw Pteros_error("Can't split by topology: no topology!");
         if(system->force_field.bonds.size()==0) throw Pteros_error("Can't split by topology: no bonds in topology!");
 
         int bind = Index(0);
@@ -1725,7 +1737,7 @@ void Selection::split_by_residue(std::vector<Selection> &res)
 
 void Selection::split_by_molecule(std::vector<Selection> &res)
 {
-    if(!system->force_field_ready()) throw Pteros_error("Can't split by molecule: no topology!");
+    if(!system->force_field.ready) throw Pteros_error("Can't split by molecule: no topology!");
 
     map<int,vector<int>> m;
     int bmol = 0;

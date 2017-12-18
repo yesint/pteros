@@ -107,7 +107,10 @@ bool TPR_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
 
     // Read topology
     if(what.top()){
-        ff_in_system(*sys).bonds.clear();       
+        Force_field& ff = sys->get_force_field();
+        ff.bonds.clear();
+
+        ff.natoms = natoms;
 
         map<int,bool> is_bond_type;
         map<int,bool> is_lj14_type;
@@ -140,8 +143,8 @@ bool TPR_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
                 break;
             case F_LJ14:
                 is_lj14_type[i]=true;
-                ff_in_system(*sys).LJ14_interactions.push_back({top.idef.iparams[i].lj14.c6A,top.idef.iparams[i].lj14.c12A});
-                lj14_type_map[i] = ff_in_system(*sys).LJ14_interactions.size()-1;
+                ff.LJ14_interactions.push_back({top.idef.iparams[i].lj14.c6A,top.idef.iparams[i].lj14.c12A});
+                lj14_type_map[i] = ff.LJ14_interactions.size()-1;
                 break;
             default:
                 is_bond_type[i]=false;
@@ -161,7 +164,7 @@ bool TPR_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
                         type = top.idef.il[it].iatoms[i++];
                         a1 = top.idef.il[it].iatoms[i++];
                         a2 = top.idef.il[it].iatoms[i++];
-                        ff_in_system(*sys).bonds.push_back({a1,a2});
+                        ff.bonds.push_back({a1,a2});
                     }
                 }
 
@@ -173,18 +176,19 @@ bool TPR_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
                         a3 = top.idef.il[it].iatoms[i++];
                         // One settles entry is *two* O-H bonds!
 
-                        ff_in_system(*sys).bonds.push_back({a1,a2});
-                        ff_in_system(*sys).bonds.push_back({a1,a3});
+                        ff.bonds.push_back({a1,a2});
+                        ff.bonds.push_back({a1,a3});
                     }
                 }
 
                 else if(is_lj14_type[top.idef.il[it].iatoms[0]]){
-                    int Nlj14 = ff_in_system(*sys).LJ14_interactions.size();
+                    int Nlj14 = ff.LJ14_interactions.size();
                     for (int i=0; i<top.idef.il[it].nr; ){
                         type = top.idef.il[it].iatoms[i++];
                         a1 = top.idef.il[it].iatoms[i++];
                         a2 = top.idef.il[it].iatoms[i++];
-                        ff_in_system(*sys).LJ14_pairs[a1*Nlj14+a2]=lj14_type_map[type];
+                        if(a1>a2) std::swap(a1,a2);
+                        ff.LJ14_pairs[a1*natoms+a2]=lj14_type_map[type];
                     }
                 }
 
@@ -195,26 +199,27 @@ bool TPR_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
         // Here is how access is given in GROMACS between atoms with atomtypes A and B:
         // float c6=mtop->ffparams.iparams[B*atnr+A].lj.c6;
         // float c12=mtop->ffparams.iparams[B*atnr+A].lj.c12;
-        ff_in_system(*sys).LJ_C6.resize(atnr,atnr);
-        ff_in_system(*sys).LJ_C12.resize(atnr,atnr);
+
+        ff.LJ_C6.resize(atnr,atnr);
+        ff.LJ_C12.resize(atnr,atnr);
 
         for(int A=0; A<atnr; ++A){
             for(int B=0; B<atnr; ++B){
-                ff_in_system(*sys).LJ_C6(A,B) = c6_l[B*atnr+A];
-                ff_in_system(*sys).LJ_C6(B,A) = c6_l[B*atnr+A];
-                ff_in_system(*sys).LJ_C12(A,B) = c12_l[B*atnr+A];
-                ff_in_system(*sys).LJ_C12(B,A) = c12_l[B*atnr+A];
+                ff.LJ_C6(A,B) = c6_l[B*atnr+A];
+                ff.LJ_C6(B,A) = c6_l[B*atnr+A];
+                ff.LJ_C12(A,B) = c12_l[B*atnr+A];
+                ff.LJ_C12(B,A) = c12_l[B*atnr+A];
             }
         }
 
 
         // Molecules
         for(int i=0; i<top.mols.nr; ++i){
-            ff_in_system(*sys).molecules.push_back({top.mols.index[i],top.mols.index[i+1]-1});
+            ff.molecules.push_back({top.mols.index[i],top.mols.index[i+1]-1});
         }
 
         // Exclusions
-        ff_in_system(*sys).exclusions.resize(natoms);
+        ff.exclusions.resize(natoms);
         int b,e;
         for(int i=0; i<top.excls.nr; ++i){
             //cout << top.excls.index[i] << " " << top.excls.index[i+1]-1 << endl;
@@ -222,25 +227,25 @@ bool TPR_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
             e = top.excls.a[top.excls.index[i+1]-1];
             for(int j=b; j<e; ++j){
                 //cout << i << " " << j << endl;
-                if(j!=i) ff_in_system(*sys).exclusions[i].insert(j);
+                if(j!=i) ff.exclusions[i].insert(j);
             }
             //LOG()->info("{}:{}",top.excls.a[top.excls.index[i]],top.excls.a[top.excls.index[i+1]-1]);
         }
 
-        ff_in_system(*sys).fudgeQQ = top.idef.fudgeQQ;
-        ff_in_system(*sys).rcoulomb = ir.rcoulomb;
-        ff_in_system(*sys).epsilon_r = ir.epsilon_r;
-        ff_in_system(*sys).epsilon_rf = ir.epsilon_rf;
-        ff_in_system(*sys).rcoulomb_switch= ir.rcoulomb_switch;
-        ff_in_system(*sys).rvdw_switch= ir.rvdw_switch;
-        ff_in_system(*sys).rvdw= ir.rvdw;
-        ff_in_system(*sys).coulomb_type= coulomb_names[ir.coulombtype];
-        ff_in_system(*sys).coulomb_modifier= mod_names[ir.coulomb_modifier];
-        ff_in_system(*sys).vdw_type= vdw_names[ir.vdwtype];
-        ff_in_system(*sys).vdw_modifier= mod_names[ir.vdw_modifier];
+        ff.fudgeQQ = top.idef.fudgeQQ;
+        ff.rcoulomb = ir.rcoulomb;
+        ff.epsilon_r = ir.epsilon_r;
+        ff.epsilon_rf = ir.epsilon_rf;
+        ff.rcoulomb_switch= ir.rcoulomb_switch;
+        ff.rvdw_switch= ir.rvdw_switch;
+        ff.rvdw= ir.rvdw;
+        ff.coulomb_type= coulomb_names[ir.coulombtype];
+        ff.coulomb_modifier= mod_names[ir.coulomb_modifier];
+        ff.vdw_type= vdw_names[ir.vdwtype];
+        ff.vdw_modifier= mod_names[ir.vdw_modifier];
 
-        ff_in_system(*sys).setup_kernels(); // Setup kernels
-        ff_in_system(*sys).ready = true;
+        ff.setup_kernels(); // Setup kernels
+        ff.ready = true;
 
     } // topology
 

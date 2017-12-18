@@ -13,12 +13,12 @@
 # pteros_contacts_finder
 #------------------------
 
-add_executable(pteros_contacts_finder
-    contacts_finder_program.cpp
-    contacts_finder.h
-    contacts_finder.cpp
-)
-target_link_libraries(pteros_contacts_finder pteros pteros_analysis ${Boost_LIBRARIES})
+#add_executable(pteros_contacts_finder
+#    contacts_finder_program.cpp
+#    contacts_finder.h
+#    contacts_finder.cpp
+#)
+#target_link_libraries(pteros_contacts_finder pteros pteros_analysis ${Boost_LIBRARIES})
 
 #------------------------
 # pteros_solvate
@@ -45,7 +45,7 @@ target_link_libraries(pteros_rearrange pteros pteros_analysis ${Boost_LIBRARIES}
 
 install(TARGETS
     #pteros_rmsf
-    pteros_contacts_finder
+    #pteros_contacts_finder
     pteros_solvate
     pteros_rearrange
 

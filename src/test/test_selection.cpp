@@ -261,7 +261,7 @@ int main(int argc, char** argv)
     Selection sel1(sys,"resid 1-10");
     Selection sel2(sys,"resid 11-21");
 
-    cout << non_bond_energy(sel1,sel2).total << endl;
+    cout << non_bond_energy(sel1,sel2) << endl;
 
 
     /*

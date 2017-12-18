@@ -43,7 +43,7 @@ Vector3f get_shift_coefs(int alpha, float r1, float rc){
 
 
 // Plain LJ kernel
-float Force_field::LJ_en_kernel(float C6, float C12, float r){    
+float LJ_en_kernel(float C6, float C12, float r, const Force_field& ff){
     float r_inv = 1.0/r;
     float tmp = r_inv*r_inv; // (1/r)^2
     tmp = tmp*tmp*tmp; // (1/r)^6
@@ -51,8 +51,8 @@ float Force_field::LJ_en_kernel(float C6, float C12, float r){
 }
 
 // Cutoff LJ kernel
-float Force_field::LJ_en_kernel_cutoff(float C6, float C12, float r){
-    if(r>rvdw) return 0.0;
+float LJ_en_kernel_cutoff(float C6, float C12, float r, const Force_field& ff){
+    if(r>ff.rvdw) return 0.0;
     float r_inv = 1.0/r;
     float tmp = r_inv*r_inv; // (1/r)^2
     tmp = tmp*tmp*tmp; // (1/r)^6
@@ -60,17 +60,17 @@ float Force_field::LJ_en_kernel_cutoff(float C6, float C12, float r){
 }
 
 // Shifted LJ kernel
-float Force_field::LJ_en_kernel_shifted(float C6, float C12, float r){
-    if(r>rvdw) return 0.0;
+float LJ_en_kernel_shifted(float C6, float C12, float r, const Force_field& ff){
+    if(r>ff.rvdw) return 0.0;
 
     float val12 = pow(r,-12)
-            -(shift_12(0)/3.0)*pow(r-rvdw_switch,3)
-            -(shift_12(1)/4.0)*pow(r-rvdw_switch,4)
-            -shift_12(2);
+            -(ff.shift_12(0)/3.0)*pow(r-ff.rvdw_switch,3)
+            -(ff.shift_12(1)/4.0)*pow(r-ff.rvdw_switch,4)
+            -ff.shift_12(2);
     float val6 = pow(r,-6)
-            -(shift_6(0)/3.0)*pow(r-rvdw_switch,3)
-            -(shift_6(1)/4.0)*pow(r-rvdw_switch,4)
-            -shift_6(2);
+            -(ff.shift_6(0)/3.0)*pow(r-ff.rvdw_switch,3)
+            -(ff.shift_6(1)/4.0)*pow(r-ff.rvdw_switch,4)
+            -ff.shift_6(2);
 
     return C12*val12 - C6*val6;
 }
@@ -79,30 +79,32 @@ float Force_field::LJ_en_kernel_shifted(float C6, float C12, float r){
 #define ONE_4PI_EPS0      138.935456
 
 // Plane Coulomb kernel
-inline float Force_field::Coulomb_en_kernel(float q1, float q2, float r){
-    return coulomb_prefactor*q1*q2/r;
+float Coulomb_en_kernel(float q1, float q2, float r, const Force_field& ff){
+    return ff.coulomb_prefactor*q1*q2/r;
 }
 
 // Cutoff Coulomb kernel
-inline float Force_field::Coulomb_en_kernel_cutoff(float q1, float q2, float r){
-    if(r>rcoulomb) return 0.0;
-    return coulomb_prefactor*q1*q2/r;
+float Coulomb_en_kernel_cutoff(float q1, float q2, float r, const Force_field& ff){
+    if(r>ff.rcoulomb) return 0.0;
+    return ff.coulomb_prefactor*q1*q2/r;
 }
 
 
 // Reaction field Coulomb kernel
-inline float Force_field::Coulomb_en_kernel_rf(float q1, float q2, float r){
-    return coulomb_prefactor*q1*q2*(1.0/r + k_rf*r*r - c_rf);
+float Coulomb_en_kernel_rf(float q1, float q2, float r, const Force_field& ff){
+    return ff.coulomb_prefactor*q1*q2*(1.0/r + ff.k_rf*r*r - ff.c_rf);
 }
 
 // Shifted Coulomb kernel
-inline float Force_field::Coulomb_en_kernel_shifted(float q1, float q2, float r){
-    return coulomb_prefactor*q1*q2*( 1.0/r
-                                     -(shift_1(0)/3.0)*pow(r-rcoulomb_switch,3)
-                                     -(shift_1(1)/4.0)*pow(r-rcoulomb_switch,4)
-                                     -shift_1(2)
+float Coulomb_en_kernel_shifted(float q1, float q2, float r, const Force_field& ff){
+    return ff.coulomb_prefactor*q1*q2*( 1.0/r
+                                     -(ff.shift_1(0)/3.0)*pow(r-ff.rcoulomb_switch,3)
+                                     -(ff.shift_1(1)/4.0)*pow(r-ff.rcoulomb_switch,4)
+                                     -ff.shift_1(2)
                                      );
 }
+
+
 
 #define LOWER(s) boost::algorithm::to_lower_copy(string(s))
 
@@ -130,7 +132,7 @@ void Force_field::setup_kernels(){
         c_rf = (1.0/rcoulomb) + k_rf*rcoulomb*rcoulomb;
 
         // Set coulomb kernel pointer
-        coulomb_kernel_ptr = bind(&Force_field::Coulomb_en_kernel_rf,this,_1,_2,_3);
+        coulomb_kernel_ptr = &Coulomb_en_kernel_rf;
         LOG()->debug("\tCoulomb kernel: reaction_field");
 
     } else if( ( LOWER(coulomb_type)=="cut-off"
@@ -141,15 +143,15 @@ void Force_field::setup_kernels(){
         // Compute shift constants for power 1
         shift_1 = get_shift_coefs(1,rcoulomb_switch,rcoulomb);
 
-        coulomb_kernel_ptr = bind(&Force_field::Coulomb_en_kernel_shifted,this,_1,_2,_3);
+        coulomb_kernel_ptr = &Coulomb_en_kernel_shifted;
         LOG()->debug("\tCoulomb kernel: shifted");
 
     } else if(LOWER(coulomb_type)==LOWER("cut-off")) {
         // In other cases set plain Coulomb interaction
-        coulomb_kernel_ptr = bind(&Force_field::Coulomb_en_kernel_cutoff,this,_1,_2,_3);
+        coulomb_kernel_ptr = &Coulomb_en_kernel_cutoff;
         LOG()->debug("\tCoulomb kernel: cutoff");
     } else {
-        coulomb_kernel_ptr = bind(&Force_field::Coulomb_en_kernel,this,_1,_2,_3);
+        coulomb_kernel_ptr = &Coulomb_en_kernel;
         LOG()->debug("\tCoulomb kernel: plain");
     }
 
@@ -159,23 +161,49 @@ void Force_field::setup_kernels(){
         shift_6 = get_shift_coefs(6,rvdw_switch,rvdw);
         shift_12 = get_shift_coefs(12,rvdw_switch,rvdw);
 
-        LJ_kernel_ptr = bind(&Force_field::LJ_en_kernel_shifted,this,_1,_2,_3);
+        LJ_kernel_ptr = &LJ_en_kernel_shifted;
         LOG()->debug("\tLJ kernel: shifted");
 
     } else if(LOWER(vdw_type)== "cut-off") {
-        LJ_kernel_ptr = bind(&Force_field::LJ_en_kernel_cutoff,this,_1,_2,_3);
+        LJ_kernel_ptr = &LJ_en_kernel_cutoff;
         LOG()->debug("\tLJ kernel: cutoff");
 
     } else {
-        LJ_kernel_ptr = bind(&Force_field::LJ_en_kernel,this,_1,_2,_3);
+        LJ_kernel_ptr = &LJ_en_kernel;
         LOG()->debug("\tLJ kernel: plain");
+    }
+}
+
+
+Vector2f Force_field::pair_energy(int at1, int at2, float r, float q1, float q2, int type1, int type2)
+{
+    float c6,c12;
+    // indexes have to be in increasing order
+    if(at1>at2){
+        std::swap(at1,at2);
+        std::swap(q1,q2);
+        std::swap(type1,type2);
+    }
+    // Check is the pair is excluded
+    if(exclusions[at1].count(at2)) return {0,0};
+    // Check if this pair is 1-4 pair
+    auto it = LJ14_pairs.find(at1*natoms+at2);
+    if(it==std::end(LJ14_pairs)){
+        // normal pair
+        c6 = LJ_C6(type1,type2);
+        c12 = LJ_C12(type1,type2);
+        return {coulomb_kernel_ptr(q1,q2,r,*this), LJ_kernel_ptr(c6,c12,r,*this)};
+    } else {
+        // 1-4 pair
+        c6 = LJ14_interactions[it->second](0);
+        c12 = LJ14_interactions[it->second](1);
+        return {coulomb_kernel_ptr(q1,q2,r,*this)*fudgeQQ, LJ_kernel_ptr(c6,c12,r,*this)};
     }
 }
 
 Force_field::Force_field():  ready(false) {}
 
 Force_field::Force_field(const Force_field &other){
-    charge_groups = other.charge_groups;
     exclusions = other.exclusions;
     LJ_C6 = other.LJ_C6;
     LJ_C12 = other.LJ_C12;
@@ -198,8 +226,7 @@ Force_field::Force_field(const Force_field &other){
     if(ready) setup_kernels();
 }
 
-Force_field &Force_field::operator=(Force_field other){
-    charge_groups = other.charge_groups;
+Force_field &Force_field::operator=(Force_field other){    
     exclusions = other.exclusions;
     LJ_C6 = other.LJ_C6;
     LJ_C12 = other.LJ_C12;
@@ -224,8 +251,7 @@ Force_field &Force_field::operator=(Force_field other){
     return *this;
 }
 
-void Force_field::clear(){
-    charge_groups.clear();
+void Force_field::clear(){    
     exclusions.clear();
     LJ_C6.fill(0.0);
     LJ_C12.fill(0.0);
@@ -235,4 +261,3 @@ void Force_field::clear(){
 
     ready = false;
 }
-

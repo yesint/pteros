@@ -46,24 +46,27 @@ namespace pteros {
 
 class Force_field {
 public:
-    /// Charge groups. Currently not used and could be deleted later.
-    std::vector<Eigen::Vector2i> charge_groups;
+    int natoms;
     /// Exclusions.
     /// The storage order is: (atom)-->[i1,i2,i3...in]
     /// which means that all interactions (atom:i1), (atom:i2) ... (atom:in) are excluded
     /// If atom has no exclusions the set is empty
     std::vector<std::unordered_set<int> > exclusions;
+
     /// Matrices of normal (not excluded, not 1-4) LJ interactions.
     /// The size of the matrix == the number of distinct LJ types.
     /// The types themselves are integers and are stored in Atom.type
     /// Matrices are symmetric.
     Eigen::MatrixXf LJ_C6, LJ_C12;
+
     /// The list of distinct types of LJ14 interactions in the format [C6,C12]
     std::vector<Eigen::Vector2f> LJ14_interactions;
-    /// The list of LJ14 pairs. Each (a,b) pair is encoded as (a*LJ14_interactions.size()+b)
-    /// There is a mapping:
-    /// (a*LJ14_interactions.size()+b) --> LJ14_interaction
+
+    /// The list of LJ14 pairs.
+    /// The mapping is (a*Natoms+b)->index in LJ14_interactions
+    /// a<=b! This is important
     std::unordered_map<int,int> LJ14_pairs;
+
     /// Scaling factor of 1-4 Coulomb interactions
     float fudgeQQ;
 
@@ -80,10 +83,10 @@ public:
     bool ready;
 
     /// Pointer to chosen coulomb kernel
-    std::function<float(float,float,float)> coulomb_kernel_ptr;
+    float (*coulomb_kernel_ptr)(float,float,float,const Force_field&);
 
     /// Pointer to chosen VDW kernel
-    std::function<float(float,float,float)> LJ_kernel_ptr;
+    float (*LJ_kernel_ptr)(float,float,float,const Force_field&);
 
     // Aux constants to be precomputed by set_kernels()
     float coulomb_prefactor, k_rf, c_rf;
@@ -105,15 +108,10 @@ public:
     // Setup coulomb and VDW kernel pointers
     void setup_kernels();
 
-    float LJ_en_kernel(float C6, float C12, float r);
-    float LJ_en_kernel_cutoff(float C6, float C12, float r);
-    float LJ_en_kernel_shifted(float C6, float C12, float r);
-    float Coulomb_en_kernel(float q1, float q2, float r);
-    float Coulomb_en_kernel_rf(float q1, float q2, float r);
-    float Coulomb_en_kernel_shifted(float q1, float q2, float r);
-    float Coulomb_en_kernel_cutoff(float q1, float q2, float r);
+    // Computes energy of atom pair at given distance
+    // Returns {Coulomb_en,LJ_en}
+    Eigen::Vector2f pair_energy(int at1, int at2, float r, float q1, float q2, int type1, int type2);
 };
-
 
 }
 

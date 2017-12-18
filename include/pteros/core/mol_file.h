@@ -105,7 +105,6 @@ protected:
     void set_atom_in_system(System& sys, int i, Atom& at);
     Atom& atom_in_system(System& sys, int i);
     void append_atom_in_system(System& sys, Atom& at);
-    Force_field& ff_in_system(System& sys);
 
     // Method to sanity check parameters send to read and write
     void sanity_check_read(System* sys, Frame* frame, const Mol_file_content &what) const;

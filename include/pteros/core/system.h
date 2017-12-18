@@ -38,30 +38,6 @@
 
 namespace pteros {
 
-/// Components of the non-bond energy
-struct Energy_components {
-    /// Total energy
-    float total;
-    /// Lenard-Jones energy of 1-4 pairs
-    float lj_14;
-    /// Coloumb energy of 1-4 pairs
-    float q_14;
-    /// Short-range Lenard-Jones energy (within cut-off)
-    float lj_sr;
-    /// Short-range Coloumb energy (within cut-off)
-    float q_sr;
-
-    Energy_components(): total(0.0), lj_14(0.0), q_14(0.0), lj_sr(0.0), q_sr(0.0) {}
-
-    /// Writes all energy components to string in the following order:
-    /// total, lj_sr, lj_14, q_sr, q_14
-    std::string to_str();
-
-    /// Addition of energies
-    Energy_components operator+(const Energy_components& other) const;
-    Energy_components& operator+=(const Energy_components& other);
-};
-
 /// Definition of single trajectory frame.
 /// Frames are stored in System class. They represent actual trajectory frames,
 /// which are loaded from MD trajectories.
@@ -469,37 +445,18 @@ public:
     /// @}
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    /// @name Energy functions
-    /// @{
-
-    /// Compute non-bond energy between two atoms        
-    Energy_components non_bond_energy(int at1, int at2, int frame, bool is_periodic = true) const;
-
-    /// Non-bond energy for given list of atom pairs
-    Energy_components non_bond_energy(const std::vector<Eigen::Vector2i>& nlist, int fr, bool is_periodic=true) const;
-
-    /// @}
-
-
-    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     /// @name Utility functions
     /// @{
 
     /// Clears the system and prepares for loading completely new structure
     void clear();
 
-    /// Returns true if the force field is set up properly and is able to compute energies
-    bool force_field_ready(){
-        return force_field.ready;
-    }
+    bool force_field_ready(){return force_field.ready;}
 
     /// Returns pointer to internal Force_field object for direct manipulation
     /// or NULL if force field is not ready
-    Force_field* get_force_field(){
-        if(force_field.ready)
-            return &force_field;
-        else
-            return nullptr;
+    Force_field& get_force_field(){
+        return force_field;
     }
 
     /// Assign unique resindexes

@@ -28,7 +28,6 @@
 #include "gro_file.h"
 #include "trr_file.h"
 #include "xtc_file.h"
-#include "pttop_file.h"
 #include "tng_file.h"
 #include "mol2_file.h"
 #include "xyz_file.h"
@@ -71,9 +70,6 @@ void Mol_file::append_atom_in_system(System &sys, Atom &at){
     sys.atoms.push_back(at);
 }
 
-Force_field &Mol_file::ff_in_system(System &sys){
-    return sys.force_field;
-}
 
 void Mol_file::sanity_check_read(System *sys, Frame *frame, const Mol_file_content& what) const {
     auto c = get_content_type();
@@ -130,8 +126,7 @@ unique_ptr<Mol_file> Mol_file::recognize(string fname){
     else if(ext=="trr")     return unique_ptr<Mol_file>(new TRR_file(fname));
     else if(ext=="pdb")     return unique_ptr<Mol_file>(new PDB_file(fname));
     else if(ext=="gro")     return unique_ptr<Mol_file>(new GRO_file(fname));
-    else if(ext=="dcd")     return unique_ptr<Mol_file>(new DCD_file(fname));
-    else if(ext=="pttop")   return unique_ptr<Mol_file>(new PTTOP_file(fname));
+    else if(ext=="dcd")     return unique_ptr<Mol_file>(new DCD_file(fname));    
     else if(ext=="tng")     return unique_ptr<Mol_file>(new TNG_file(fname));
     else if(ext=="mol2")    return unique_ptr<Mol_file>(new MOL2_file(fname));
     else if(ext=="xyz")     return unique_ptr<Mol_file>(new XYZ_file(fname));

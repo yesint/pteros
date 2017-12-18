@@ -450,7 +450,7 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
     //---------------------------------------------------------------------------
     else if(node->code == TOK_TYPE)
     {
-        if(!sys->force_field_ready()) throw Pteros_error("Can't select type names from system with no valid force field!");
+        if(!sys->force_field.ready) throw Pteros_error("Can't select type names from system with no valid force field!");
 
         int Nchildren = node->children.size(); // Get number of children
         string str;

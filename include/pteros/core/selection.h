@@ -655,13 +655,14 @@ class Selection {
     /// Self-energy of selection computed within given interaction cut-off.
     /// If cutoff is 0 or negative computes interaction of all atoms
     /// (very slow for large selections)
-    Energy_components non_bond_energy(float cutoff=0.25, bool periodic=true) const;
+    Eigen::Vector2f non_bond_energy(float cutoff=0, bool periodic=true) const;
 
     /// Non-bond energy between two selections computed within given interaction cut-off.
     /// If cutoff is 0 or negative computes all pairs of atoms (very slow for large selections)
     /// fr = -1 computes for current frame of selection 1.
     // Default value should be given in definition of friend function!
-    friend Energy_components non_bond_energy(const Selection& sel1,
+
+    friend Eigen::Vector2f non_bond_energy(const Selection& sel1,
                                              const Selection& sel2,
                                              float cutoff = 0,
                                              int fr = -1,

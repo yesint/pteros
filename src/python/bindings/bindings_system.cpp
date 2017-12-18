@@ -120,27 +120,11 @@ void make_bindings_System(py::module& m){
         .def("angle", &System::angle, "i"_a, "j"_a, "k"_a, "fr"_a, "periodic"_a=true, "dims"_a=Eigen::Vector3i::Ones())
         .def("dihedral", &System::dihedral, "i"_a, "j"_a, "k"_a, "l"_a, "fr"_a, "periodic"_a=true, "dims"_a=Eigen::Vector3i::Ones())
 
-        // Energy
-        .def("non_bond_energy", py::overload_cast<int,int,int,bool>(&System::non_bond_energy,py::const_), "at1"_a, "at2"_a, "fr"_a, "periodic"_a=true)
-        .def("non_bond_energy", py::overload_cast<const std::vector<Eigen::Vector2i>&,int,bool>(&System::non_bond_energy,py::const_), "nlist"_a, "fr"_a, "periodic"_a=true)
-
-        // Unit
+         // Until
         .def("clear", &System::clear)
         .def("force_field_ready", &System::force_field_ready)
         .def("assign_resindex", &System::assign_resindex, "start"_a=0)
         .def("sort_by_resindex", &System::sort_by_resindex)
 
-    ;
-
-    // Energy components class
-    py::class_<Energy_components>(m, "Energy_components")
-        .def(py::init<>())
-        .def_readonly("total",&Energy_components::total)
-        .def_readonly("lj_14",&Energy_components::lj_14)
-        .def_readonly("q_14",&Energy_components::q_14)
-        .def_readonly("lj_sr",&Energy_components::lj_sr)
-        .def_readonly("q_sr",&Energy_components::q_sr)
-        .def(py::self + py::self)
-        .def(py::self += py::self)
     ;
 }

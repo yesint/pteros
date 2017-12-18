@@ -236,7 +236,7 @@ void make_bindings_Selection(py::module& m){
             })
 
         // Energy
-        .def("non_bond_energy", &Selection::non_bond_energy, "cutoff"_a=0.25, "periodic"_a=true)
+        .def("non_bond_energy", &Selection::non_bond_energy, "cutoff"_a=0.0, "periodic"_a=true)
 
         // IO
         .def("write", py::overload_cast<string,int,int>(&Selection::write), "fname"_a, "b"_a=0, "e"_a=-1)
@@ -319,7 +319,7 @@ void make_bindings_Selection(py::module& m){
     m.def("fit",[](Selection& sel1, const Selection& sel2){ fit(sel1,sel2); });
     m.def("non_bond_energy", [](const Selection& sel1, const Selection& sel2,float cutoff,int fr,bool periodic){
         return non_bond_energy(sel1,sel2,cutoff,fr,periodic);
-    },"sel1"_a, "sel2"_a, "cutoff"_a=0.25, "fr"_a=-1, "periodic"_a=true);
+    },"sel1"_a, "sel2"_a, "cutoff"_a=0.0, "fr"_a=-1, "periodic"_a=true);
     m.def("copy_coord",[](const Selection& sel1, int fr1, Selection& sel2, int fr2){ return copy_coord(sel1,fr1,sel2,fr2); });
 
 }

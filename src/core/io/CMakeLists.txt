@@ -18,9 +18,7 @@ add_library(pteros_io STATIC
     trr_file.h
     trr_file.cpp
     xtc_file.h
-    xtc_file.cpp
-    pttop_file.h
-    pttop_file.cpp
+    xtc_file.cpp    
     tng_file.h
     tng_file.cpp
     mol2_file.h
