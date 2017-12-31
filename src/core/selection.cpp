@@ -22,11 +22,8 @@
 
 #include <iostream>
 #include <fstream>
-#include <sstream>
-#include <iomanip>
 #include <algorithm>
 #include <set>
-#include <queue>
 #include <map>
 #include <boost/algorithm/string.hpp> // String algorithms
 #include "pteros/core/atom.h"
@@ -565,39 +562,6 @@ Selection operator-(const Selection &sel1, const Selection &sel2)
                         back_inserter(res.index));
     return res;
 }
-
-Selection_coord_container::iterator Selection_coord_container::begin()
-{
-    return iterator(parent,0);
-}
-
-Selection_coord_container::const_iterator Selection_coord_container::begin() const
-{
-    return const_iterator(parent,0);
-}
-
-Selection_coord_container::const_iterator Selection_coord_container::cbegin() const
-{
-    return const_iterator(parent,0);
-}
-
-Selection_coord_container::iterator Selection_coord_container::end()
-{
-    return iterator(parent,parent->size());
-}
-
-Selection_coord_container::const_iterator Selection_coord_container::end() const
-{
-    return const_iterator(parent,parent->size());
-}
-
-Selection_coord_container::const_iterator Selection_coord_container::cend() const
-{
-    return const_iterator(parent,parent->size());
-}
-
-
-
 
 } // namespace pteros
 
@@ -2073,6 +2037,56 @@ void Selection::principal_orient(bool is_periodic){
 
 #ifdef USE_POWERSASA
 
+//=====================================================================================
+// aux classes which allows to use Selection as container for coordinates with iterator
+
+template<class ValueType>
+class Selection_container_it_t {
+public:
+    typedef ValueType value_type;
+    typedef int difference_type;
+    typedef ValueType* pointer;
+    typedef ValueType& reference;
+    typedef std::forward_iterator_tag iterator_category;
+
+    Selection_container_it_t(Selection* sel, int n) {parent = sel; pos = n;}
+
+    Selection_container_it_t operator++(int junk) { Selection_container_it_t tmp = *this; ++pos; return tmp; }
+    Selection_container_it_t& operator++() { ++pos; return *this; }
+    reference operator*() const { return parent->XYZ(pos); }
+    pointer operator->() { return parent->XYZ_ptr(pos); }
+    bool operator==(const Selection_container_it_t& rhs) { return pos == rhs.pos && parent == rhs.parent; }
+    bool operator!=(const Selection_container_it_t& rhs) { return pos != rhs.pos || parent != rhs.parent; }
+
+    operator Selection_container_it_t<const Eigen::Vector3f>() const { return *this; }
+private:
+    Selection* parent;
+    int pos;
+};
+
+
+class Selection_coord_container {
+public:
+    Selection_coord_container(Selection& sel): parent(&sel){}
+
+    typedef Selection_container_it_t<Eigen::Vector3f> iterator;
+    typedef Selection_container_it_t<const Eigen::Vector3f> const_iterator;
+
+    iterator begin(){ return iterator(parent,0); }
+    const_iterator begin() const{ return const_iterator(parent,0); }
+    const_iterator cbegin() const{ return const_iterator(parent,0); }
+    iterator end(){ return iterator(parent,parent->size()); }
+    const_iterator end() const { return const_iterator(parent,parent->size()); }
+    const_iterator cend() const { return const_iterator(parent,parent->size()); }
+
+    int size() const {return parent->size();}
+private:
+    Selection* parent;
+};
+
+//==============================================================================
+
+
 float Selection::powersasa(float probe_r, vector<float> *area_per_atom,
                            float *total_volume, vector<float> *volume_per_atom) const
 {
@@ -2084,7 +2098,7 @@ float Selection::powersasa(float probe_r, vector<float> *area_per_atom,
     bool do_a_per_atom = area_per_atom ? true : false;
     bool do_v_per_atom = volume_per_atom ? true : false;
 
-
+    // Create aux container which allows not to copy selection coordinates locally
     Selection_coord_container cont(const_cast<Selection&>(*this));
 
     // Call POWERSASA
@@ -2156,5 +2170,13 @@ float Selection::sasa(float probe_r, vector<float> *area_per_atom, int n_sphere_
 
     return Map<VectorXf>(out_ptr,size()).sum();
 }
+
+
+
+
+
+
+
+
 
 

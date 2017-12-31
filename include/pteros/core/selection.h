@@ -1178,52 +1178,5 @@ private:
     Atom_proxy proxy;
 };
 
-//==============================================================================
-
-template<class ValueType>
-class Selection_container_it_t {
-public:
-    typedef ValueType value_type;
-    typedef int difference_type;
-    typedef ValueType* pointer;
-    typedef ValueType& reference;
-    typedef std::forward_iterator_tag iterator_category;
-
-    Selection_container_it_t(Selection* sel, int n) {parent = sel; pos = n;}
-
-    Selection_container_it_t operator++(int junk) { Selection_container_it_t tmp = *this; ++pos; return tmp; }
-    Selection_container_it_t& operator++() { ++pos; return *this; }
-    reference operator*() const { return parent->XYZ(pos); }
-    pointer operator->() { return parent->XYZ_ptr(pos); }
-    bool operator==(const Selection_container_it_t& rhs) { return pos == rhs.pos && parent == rhs.parent; }
-    bool operator!=(const Selection_container_it_t& rhs) { return pos != rhs.pos || parent != rhs.parent; }
-
-    operator Selection_container_it_t<const Eigen::Vector3f>() const { return *this; }
-private:
-    Selection* parent;
-    int pos;
-};
-
-
-class Selection_coord_container {
-public:
-    Selection_coord_container(Selection& sel): parent(&sel){}
-
-    typedef Selection_container_it_t<Eigen::Vector3f> iterator;
-    typedef Selection_container_it_t<const Eigen::Vector3f> const_iterator;
-
-    iterator begin();
-    const_iterator begin() const;
-    const_iterator cbegin() const;
-    iterator end();
-    const_iterator end() const;
-    const_iterator cend() const;
-
-    int size() const {return parent->size();}
-private:
-    Selection* parent;
-};
-
-
 } // namespace pteros
 #endif /* SELECTION_H */
