@@ -209,9 +209,9 @@ void VMD_molfile_plugin_wrapper::do_write(const Selection &sel, const Mol_file_c
             w_handle = plugin->open_file_write(fname.c_str(), plugin->name, sel.size());
 
         vector<molfile_atom_t> atoms(sel.size());        
-        for(int i=0; i<sel.size(); ++i){            
-            strcpy( atoms[i].name, sel.Name(i).c_str() );            
-            strcpy( atoms[i].resname, sel.Resname(i).c_str() );            
+        for(int i=0; i<sel.size(); ++i){
+            strcpy( atoms[i].name, sel.Name(i).c_str() );
+            strcpy( atoms[i].resname, sel.Resname(i).c_str() );
             atoms[i].resid = sel.Resid(i);
             stringstream ss;
             ss << sel.Chain(i);
@@ -219,12 +219,11 @@ void VMD_molfile_plugin_wrapper::do_write(const Selection &sel, const Mol_file_c
             atoms[i].occupancy = sel.Occupancy(i);
             atoms[i].bfactor = sel.Beta(i);
             atoms[i].mass = sel.Mass(i);
-            atoms[i].charge = sel.Charge(i);
-            // Try to deduce an element number from tag field
-            atoms[i].atomicnumber = get_pte_idx_from_string(sel.Tag(i).c_str());
+            atoms[i].charge = sel.Charge(i);            
+            atoms[i].atomicnumber = sel.Element_number(i);
+
             // For MOL2 we also need to set atom type as a string
-            // We just set it to "?"
-            sprintf(atoms[i].type,"?");
+            strcpy( atoms[i].type, sel.Element_name(i).c_str() );
         }
         int flags = MOLFILE_OCCUPANCY | MOLFILE_BFACTOR | MOLFILE_ATOMICNUMBER
                     | MOLFILE_CHARGE | MOLFILE_MASS;
