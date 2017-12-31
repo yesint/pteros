@@ -144,10 +144,7 @@ bool VMD_molfile_plugin_wrapper::do_read(System *sys, Frame *frame, const Mol_fi
             at.occupancy = atoms[i].occupancy;
             at.beta = atoms[i].bfactor;
             at.charge = atoms[i].charge;
-            // VMD gets element as an atomic number. We convert it back
-            // to textual representation and store in tag field
-            if(atoms[i].atomicnumber > 0)
-                at.tag = get_pte_label(atoms[i].atomicnumber);
+            at.element_number = atoms[i].atomicnumber;
 
             // pdb_plugin guesses mass based on element record, which is
             // often absent. So it is likely that mass will be zero here!

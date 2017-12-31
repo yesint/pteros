@@ -50,12 +50,15 @@ void make_bindings_Selection(py::module& m){
         DEF_PROPERTY(mass,float,Mass)
         DEF_PROPERTY(charge,float,Charge)
         DEF_PROPERTY(type,int,Type)
+        DEF_PROPERTY(element_number,int,Element_number)
         DEF_PROPERTY(type_name,string,Type_name)
         DEF_PROPERTY(atom,Atom,Atom_data)
         DEF_PROPERTY(x,float,X)
         DEF_PROPERTY(y,float,Y)
         DEF_PROPERTY(z,float,Z)
         .def_property("xyz", [](Atom_proxy* obj){return obj->XYZ();}, [](Atom_proxy* obj,Vector3f_const_ref val){obj->XYZ()=val;})
+        .def_property_readonly("Element_name", [](Atom_proxy* obj){return obj->Element_name();})
+        .def_property_readonly("VDW", [](Atom_proxy* obj){return obj->VDW();})
         // For other frame
         .def("getX", [](Atom_proxy* ap, int fr){ return ap->X(fr); })
         .def("getY", [](Atom_proxy* ap, int fr){ return ap->Y(fr); })
@@ -318,6 +321,7 @@ void make_bindings_Selection(py::module& m){
 
         // Accessors
         .def("VDW",&Selection::VDW)
+        .def("Element_name",&Selection::Element_name)
         .def_property("box", [](Selection* obj){return obj->Box();}, [](Selection* obj,const Periodic_box& val){obj->Box()=val;})
         .def_property("time", [](Selection* obj){return obj->Time();}, [](Selection* obj, float val){obj->Time()=val;})
 

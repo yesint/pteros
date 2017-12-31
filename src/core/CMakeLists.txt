@@ -63,6 +63,9 @@ add_library(pteros SHARED
     ${PROJECT_SOURCE_DIR}/src/core/pteros_dssp_wrapper.h
 )
 
+# Add path to molfile plugins directory to use VMD periodic table routines
+target_include_directories(pteros PRIVATE ${PROJECT_SOURCE_DIR}/thirdparty/molfile_plugins)
+
 target_link_libraries(pteros pteros_io pteros_distance_search dssp sasa)
 
 #--------------

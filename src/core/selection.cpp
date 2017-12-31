@@ -33,6 +33,8 @@
 #include "pteros/core/distance_search.h"
 #include "selection_parser.h"
 #include "pteros/core/mol_file.h"
+// Periodic table from VMD molfile plugins
+#include "periodic_table.h"
 
 #ifdef USE_POWERSASA
 #include "power_sasa.h"
@@ -1582,6 +1584,30 @@ void Selection::each_residue(std::vector<Selection>& sel) const {
         // Mark as used
         used.insert(ind);
     }
+}
+
+float Selection::VDW(int ind) const {
+    int el = Element_number(ind);
+    if(el==0){
+        switch(Name(ind)[0]){
+            case 'H': return  0.12;
+            case 'C': return  0.17;
+            case 'N': return  0.155;
+            case 'O': return  0.152;
+            case 'S': return  0.18;
+            case 'P': return  0.18;
+            case 'F': return  0.147;
+            default:  return  0.15;
+        }
+    } else {
+        // Use periodic table from VMD plugins
+        return (el<nr_pte_entries) ? 0.1*pte_vdw_radius[el] : 0.15;
+    }
+}
+
+string Selection::Element_name(int ind) const {
+    int el = Element_number(ind);
+    return (el<nr_pte_entries) ? string(pte_label[el]) : "X";
 }
 
 

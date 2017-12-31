@@ -990,19 +990,22 @@ class Selection {
         return system->atoms[index[ind]].resindex;
     }
 
-    /// Computes VDW radius. Read only. Values from Gromacs vdwradii.dat
-    inline float VDW(int ind) const {
-        switch(system->atoms[index[ind]].name[0]){
-            case 'H': return  0.12;
-            case 'C': return  0.17;
-            case 'N': return  0.155;
-            case 'O': return  0.152;
-            case 'S': return  0.18;
-            case 'P': return  0.18;
-            case 'F': return  0.147;
-            default:  return  0.17;
-        }
+    /// Extracts atomic number
+    inline int& Element_number(int ind){
+        return system->atoms[index[ind]].element_number;
     }
+
+    inline const int& Element_number(int ind) const {
+        return system->atoms[index[ind]].element_number;
+    }
+
+    /// Computes VDW radius. Read only.
+    /// If atomic number is set uses whole periodic table from VMD
+    /// If no atomic number uses rough guess from Gromacs vdwradii.dat
+    float VDW(int ind) const;
+
+    /// Extracts element name based on element_number. Read only.
+    std::string Element_name(int ind) const;
 
     /** Returns periodic box of the frame pointed by selection
         The same as:
@@ -1130,6 +1133,12 @@ public:
 
     inline Eigen::Vector3f& XYZ(int fr){ return sel->XYZ(ind,fr); }
     inline const Eigen::Vector3f& XYZ(int fr) const { return sel->XYZ(ind,fr); }
+
+    inline int& Element_number(){ return sel->Element_number(ind); }
+    inline const int& Element_number() const { return sel->Element_number(ind); }
+
+    std::string Element_name() const { return sel->Element_name(ind); }
+    float VDW() const { return sel->VDW(ind); }
 
     inline Atom& Atom_data(){ return sel->Atom_data(ind); }
     inline const Atom& Atom_data() const { return sel->Atom_data(ind); }

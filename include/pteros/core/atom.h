@@ -53,6 +53,9 @@ class Atom {
     /// For multi-chain proteins this marks each residue in unique way
     /// regardless of the chain
     int  resindex;
+    /// Element atomic number
+    /// zero means particle, which is not real atom (for example dummy)
+    int element_number;
     /// @}
 
     /// @name Force-field related fields
@@ -80,7 +83,8 @@ class Atom {
         mass(0),
         charge(0),
         type(-1),
-        type_name("")
+        type_name(""),
+        element_number(0)
     {}
 };
 

@@ -270,6 +270,7 @@ int main(int argc, char** argv)
 
     cout << A << " " << AP << endl;
     //cout << A << endl;
+    cout << sel1.Element_number(0) << " " << sel1.Element_name(0) << endl;
 
 
     /*
