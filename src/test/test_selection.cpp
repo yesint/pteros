@@ -260,8 +260,16 @@ int main(int argc, char** argv)
 
     Selection sel1(sys,"resid 1-10");
     Selection sel2(sys,"resid 11-21");
+    Selection all(sys,"all");
 
     cout << non_bond_energy(sel1,sel2) << endl;
+
+    vector<float> area;
+    float A = sel1.sasa(0.14,&area);
+    float AP = sel1.powersasa(0.14,nullptr,&area);
+
+    cout << A << " " << AP << endl;
+    //cout << A << endl;
 
 
     /*

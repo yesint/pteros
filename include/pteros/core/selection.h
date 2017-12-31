@@ -485,10 +485,13 @@ class Selection {
     /// Get minimal and maximal coordinates in selection
     void minmax(Vector3f_ref min, Vector3f_ref max) const;
 
-    /// Get the SASA. Returns area and computes volume and per-atom values if asked
-    float sasa(float probe_r = 0.14, float* total_volume = nullptr,
+    /// Get the SASA using powersasa algorithm. Returns area and computes volume and per-atom values if asked
+    float powersasa(float probe_r = 0.14, float* total_volume = nullptr,
                std::vector<float>* area_per_atom = nullptr,
                std::vector<float>* volume_per_atom = nullptr) const;
+
+    /// Get SASA using Shrake and Rupley algorithm
+    float sasa(float probe_r = 0.14, std::vector<float>* area_per_atom = nullptr, int n_sphere_points = 960) const;
 
     /// Computes average structure over the range of frames
     Eigen::MatrixXf average_structure(int b=0, int e=-1, bool make_row_major_matrix = false) const;
@@ -653,21 +656,17 @@ class Selection {
     /// @{
 
     /// Self-energy of selection computed within given interaction cut-off.
-    /// If cutoff is 0 or negative computes interaction of all atoms
-    /// (very slow for large selections)
+    /// If cutoff is 0 the cutoff from topology is used.
     Eigen::Vector2f non_bond_energy(float cutoff=0, bool periodic=true) const;
 
     /// Non-bond energy between two selections computed within given interaction cut-off.
-    /// If cutoff is 0 or negative computes all pairs of atoms (very slow for large selections)
+    /// If cutoff is 0 the cutoff from topology is used.
     /// fr = -1 computes for current frame of selection 1.
-    // Default value should be given in definition of friend function!
-
     friend Eigen::Vector2f non_bond_energy(const Selection& sel1,
                                              const Selection& sel2,
                                              float cutoff = 0,
                                              int fr = -1,
                                              bool periodic = true);
-
     /// @}
 
 
@@ -1168,8 +1167,8 @@ public:
     typedef std::forward_iterator_tag iterator_category;
 
     iterator(Selection* sel, int pos) { proxy.set(sel,pos); }
-    iterator operator++() { iterator tmp = *this; proxy.next(); return tmp; }
-    iterator operator++(int junk) { proxy.next(); return *this; }
+    iterator operator++(int junk) { iterator tmp = *this; proxy.next(); return tmp; }
+    iterator& operator++() { proxy.next(); return *this; }
     Atom_proxy& operator*() { return proxy; }
     Atom_proxy* operator->() { return &proxy; }
     bool operator==(const iterator& rhs) { return proxy == rhs.proxy; }
@@ -1177,6 +1176,53 @@ public:
 private:
     Atom_proxy proxy;
 };
+
+//==============================================================================
+
+template<class ValueType>
+class Selection_container_it_t {
+public:
+    typedef ValueType value_type;
+    typedef int difference_type;
+    typedef ValueType* pointer;
+    typedef ValueType& reference;
+    typedef std::forward_iterator_tag iterator_category;
+
+    Selection_container_it_t(Selection* sel, int n) {parent = sel; pos = n;}
+
+    Selection_container_it_t operator++(int junk) { Selection_container_it_t tmp = *this; ++pos; return tmp; }
+    Selection_container_it_t& operator++() { ++pos; return *this; }
+    reference operator*() const { return parent->XYZ(pos); }
+    pointer operator->() { return parent->XYZ_ptr(pos); }
+    bool operator==(const Selection_container_it_t& rhs) { return pos == rhs.pos && parent == rhs.parent; }
+    bool operator!=(const Selection_container_it_t& rhs) { return pos != rhs.pos || parent != rhs.parent; }
+
+    operator Selection_container_it_t<const Eigen::Vector3f>() const { return *this; }
+private:
+    Selection* parent;
+    int pos;
+};
+
+
+class Selection_coord_container {
+public:
+    Selection_coord_container(Selection& sel): parent(&sel){}
+
+    typedef Selection_container_it_t<Eigen::Vector3f> iterator;
+    typedef Selection_container_it_t<const Eigen::Vector3f> const_iterator;
+
+    iterator begin();
+    const_iterator begin() const;
+    const_iterator cbegin() const;
+    iterator end();
+    const_iterator end() const;
+    const_iterator cend() const;
+
+    int size() const {return parent->size();}
+private:
+    Selection* parent;
+};
+
 
 } // namespace pteros
 #endif /* SELECTION_H */

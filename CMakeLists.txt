@@ -51,7 +51,7 @@ endif()
 # Find Python only if we need bindings
 if(WITH_PYTHON)    
     # Configure pybind11
-    message("Configuring Pybind11...")
+    message("Looking for Pybind11...")
     find_package(pybind11 REQUIRED)
     # Set python install dir
     set(PY_INST_DIR python)
@@ -77,6 +77,13 @@ include_directories(${EIGEN3_INCLUDE_DIR})
 # Look for Gromacs
 message("Looking for Gromacs...")
 find_package(gromacs QUIET)
+if(NOT ${gromacs_FOUND})
+    # Try /usr/local
+    message("   Trying /usr/local...")
+    set(gromacs_DIR "/usr/local/gromacs/share/cmake/gromacs")
+    find_package(gromacs QUIET)
+endif()
+
 if(${gromacs_FOUND})
     message("-- Found Gromacs at ${GROMACS_INCLUDE_DIRS}")
     add_definitions(-DUSE_GROMACS)
@@ -115,7 +122,7 @@ ENDIF()
 message("Looking for spdlog...")
 find_package(spdlog CONFIG QUIET)
 if(NOT ${spdlog_FOUND})
-    message("spdlog not found! Using internal one.")
+    message("-- spdlog not found! Using internal one.")
     include_directories(${PROJECT_SOURCE_DIR}/thirdparty)
     # Install spdlog headers
     if(${INSTALL_INTERNAL_SPDLOG})
@@ -143,6 +150,9 @@ include_directories(thirdparty/xdrfile)
 add_subdirectory(thirdparty/voro++)
 include_directories(thirdparty/voro++)
 
+# SASA library (only if powersasa is not used)
+add_subdirectory(thirdparty/sasa)
+include_directories(thirdparty/sasa)
 
 #---------------------------------------------
 # Compiling pteros itself

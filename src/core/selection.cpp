@@ -41,6 +41,9 @@
 #include "power_sasa.h"
 #endif
 
+#include "sasa.h" // From MDTraj
+
+
 #include <Eigen/Geometry>
 #include <Eigen/Dense>
 
@@ -562,6 +565,39 @@ Selection operator-(const Selection &sel1, const Selection &sel2)
                         back_inserter(res.index));
     return res;
 }
+
+Selection_coord_container::iterator Selection_coord_container::begin()
+{
+    return iterator(parent,0);
+}
+
+Selection_coord_container::const_iterator Selection_coord_container::begin() const
+{
+    return const_iterator(parent,0);
+}
+
+Selection_coord_container::const_iterator Selection_coord_container::cbegin() const
+{
+    return const_iterator(parent,0);
+}
+
+Selection_coord_container::iterator Selection_coord_container::end()
+{
+    return iterator(parent,parent->size());
+}
+
+Selection_coord_container::const_iterator Selection_coord_container::end() const
+{
+    return const_iterator(parent,parent->size());
+}
+
+Selection_coord_container::const_iterator Selection_coord_container::cend() const
+{
+    return const_iterator(parent,parent->size());
+}
+
+
+
 
 } // namespace pteros
 
@@ -2037,7 +2073,7 @@ void Selection::principal_orient(bool is_periodic){
 
 #ifdef USE_POWERSASA
 
-float Selection::sasa(float probe_r, float *total_volume,
+float Selection::powersasa(float probe_r, float *total_volume,
                       vector<float> *area_per_atom, vector<float> *volume_per_atom) const
 {
     // First obtain the VDW radii of all atoms in selection and add probe radius to them
@@ -2048,8 +2084,11 @@ float Selection::sasa(float probe_r, float *total_volume,
     bool do_a_per_atom = area_per_atom ? true : false;
     bool do_v_per_atom = volume_per_atom ? true : false;
 
+
+    Selection_coord_container cont(const_cast<Selection&>(*this));
+
     // Call POWERSASA
-    POWERSASA::PowerSasa<float,Eigen::Vector3f> ps(system->traj[frame].coord, radii, 1, 0, do_v || do_v_per_atom, 0);
+    POWERSASA::PowerSasa<float,Eigen::Vector3f> ps(cont, radii, 1, 0, do_v || do_v_per_atom, 0);
     ps.calc_sasa_all();
 
     float v,surf;
@@ -2066,6 +2105,7 @@ float Selection::sasa(float probe_r, float *total_volume,
     if(area_per_atom) area_per_atom->resize(size());
     for(int i = 0; i < size(); ++i){        
         v = ps.getSasa()[i];
+        cout << i << " " << v << endl;
         if(do_a_per_atom) (*area_per_atom)[i] = v;
         surf += v;
     }
@@ -2074,11 +2114,47 @@ float Selection::sasa(float probe_r, float *total_volume,
 }
 
 #else
-
-float Selection::sasa(float probe_r, float *total_volume,
+float Selection::powersasa(float probe_r, float *total_volume,
                       vector<float> *area_per_atom, vector<float> *volume_per_atom) const
 {
-    throw Pteros_error("Pteros is compiled without POWERSASA support. Can't compute SASA!");
+    throw Pteros_error("Pteros is compiled without powersasa support!");
 }
 
 #endif
+
+
+// sasa implementation from MDTraj
+
+float Selection::sasa(float probe_r, vector<float> *area_per_atom, int n_sphere_points) const
+{
+    // SASA code works for a range of frames. We use only current frame here
+
+    // Make contigous array of coordinates
+    vector<Vector3f> coord(size());
+    for(int i=0;i<size();++i) coord[i] = XYZ(i);
+
+    vector<float> radii(size());
+    for(int i=0; i<size(); ++i) radii[i] = VDW(i) + probe_r;
+
+    vector<int> atom_mapping(size());
+    for(int i=0; i<size(); ++i) atom_mapping[i]=i;
+
+    vector<float> out;
+    float* out_ptr;
+
+    if(area_per_atom){
+        area_per_atom->resize(size());
+        out_ptr = area_per_atom->data();
+    } else {
+        out.resize(size());
+        out_ptr = out.data();
+    }
+
+    for(int i=0; i<size(); ++i) out_ptr[i]=0.0;
+
+    ::sasa(1,size(),(float*)coord.data(),radii.data(),n_sphere_points,atom_mapping.data(),size(),out_ptr);
+
+    return Map<VectorXf>(out_ptr,size()).sum();
+}
+
+

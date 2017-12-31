@@ -9,19 +9,19 @@ if(WITH_POWERSASA)
     # Set definition for conditional compilation
     add_definitions(-DUSE_POWERSASA)
     # Add includes
-    include_directories(${PROJECT_SOURCE_DIR}/thirdparty/sasa)
+    include_directories(${PROJECT_SOURCE_DIR}/thirdparty/powersasa)
     # Make list of SASA files
     SET(SASA_FILES
-        ${PROJECT_SOURCE_DIR}/thirdparty/sasa/power_diagram.h
-        ${PROJECT_SOURCE_DIR}/thirdparty/sasa/power_sasa.h
-    )
+        ${PROJECT_SOURCE_DIR}/thirdparty/powersasa/power_diagram.h
+        ${PROJECT_SOURCE_DIR}/thirdparty/powersasa/power_sasa.h
+    )    
 
     message("------------------------------")
     message("POWERSASA code is used! \n This implies severe license restrictions! \n Read the comment in src/thirdparty/sasa/LICENSE carefully. \n If you don't agree with this license please use flag -DPOWERSASA=\"OFF\" !")
     message("------------------------------")
 
 else()
-    SET(SASA_FILES "")
+    SET(SASA_FILES "")    
 endif()
 
 #---------------------
@@ -63,7 +63,7 @@ add_library(pteros SHARED
     ${PROJECT_SOURCE_DIR}/src/core/pteros_dssp_wrapper.h
 )
 
-target_link_libraries(pteros pteros_io pteros_distance_search dssp)
+target_link_libraries(pteros pteros_io pteros_distance_search dssp sasa)
 
 #--------------
 # Installation
