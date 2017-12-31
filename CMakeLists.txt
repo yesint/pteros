@@ -150,7 +150,7 @@ include_directories(thirdparty/xdrfile)
 add_subdirectory(thirdparty/voro++)
 include_directories(thirdparty/voro++)
 
-# SASA library (only if powersasa is not used)
+# SASA library from MDTraj
 add_subdirectory(thirdparty/sasa)
 include_directories(thirdparty/sasa)
 

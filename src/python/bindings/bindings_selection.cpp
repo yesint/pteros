@@ -164,7 +164,7 @@ void make_bindings_Selection(py::module& m){
         .def("center",&Selection::center,"mass_weighted"_a=false,"periodic"_a=false)
         .def("minmax",[](Selection* sel){Vector3f min,max; sel->minmax(min,max); return py::make_tuple(min,max);})
 
-        .def("powersasa", [](Selection* sel, float probe_r, bool do_total_volume, bool do_area_per_atom, bool do_vol_per_atom){
+        .def("powersasa", [](Selection* sel, float probe_r, bool do_area_per_atom, bool do_total_volume, bool do_vol_per_atom){
             float vol;
             std::vector<float> area_per_atom;
             std::vector<float> volume_per_atom;
@@ -173,14 +173,25 @@ void make_bindings_Selection(py::module& m){
             vol_ptr = do_total_volume ? &vol : nullptr;
             area_per_atom_ptr = do_area_per_atom ? &area_per_atom : nullptr;
             volume_per_atom_ptr = do_vol_per_atom ? &volume_per_atom : nullptr;
-            float a = sel->powersasa(probe_r,vol_ptr,area_per_atom_ptr,volume_per_atom_ptr);
+            float a = sel->powersasa(probe_r,area_per_atom_ptr,vol_ptr,volume_per_atom_ptr);
             py::list ret;
-            ret.append(a);
-            if(do_total_volume) ret.append(vol);
+            ret.append(a);            
             if(do_area_per_atom) ret.append(area_per_atom);
+            if(do_total_volume) ret.append(vol);
             if(do_vol_per_atom) ret.append(volume_per_atom);
             return ret;
-         }, "probe_r"_a=0.14, "do_total_volume"_a=false, "do_area_per_atom"_a=false, "do_vol_per_atom"_a=false)
+         }, "probe_r"_a=0.14, "do_area_per_atom"_a=false, "do_total_volume"_a=false, "do_vol_per_atom"_a=false)
+
+        .def("sasa", [](Selection* sel, float probe_r, bool do_area_per_atom, int n_sphere_points){
+            std::vector<float> area_per_atom;
+            std::vector<float> *area_per_atom_ptr;
+            area_per_atom_ptr = do_area_per_atom ? &area_per_atom : nullptr;
+            float a = sel->sasa(probe_r,area_per_atom_ptr,n_sphere_points);
+            py::list ret;
+            ret.append(a);
+            if(do_area_per_atom) ret.append(area_per_atom);
+            return ret;
+        }, "probe_r"_a=0.14, "do_area_per_atom"_a=false, "n_sphere_points"_a=960)
 
         .def("average_structure", [](Selection* sel, int b, int e){
                 return sel->average_structure(b,e,true); // pass true for row-major matrix

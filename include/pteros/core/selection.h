@@ -486,11 +486,12 @@ class Selection {
     void minmax(Vector3f_ref min, Vector3f_ref max) const;
 
     /// Get the SASA using powersasa algorithm. Returns area and computes volume and per-atom values if asked
-    float powersasa(float probe_r = 0.14, float* total_volume = nullptr,
+    float powersasa(float probe_r = 0.14,
                std::vector<float>* area_per_atom = nullptr,
+               float* total_volume = nullptr,
                std::vector<float>* volume_per_atom = nullptr) const;
 
-    /// Get SASA using Shrake and Rupley algorithm
+    /// Get SASA using Shrake and Rupley algorithm (slower than powersasa)
     float sasa(float probe_r = 0.14, std::vector<float>* area_per_atom = nullptr, int n_sphere_points = 960) const;
 
     /// Computes average structure over the range of frames

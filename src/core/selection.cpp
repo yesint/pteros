@@ -2073,8 +2073,8 @@ void Selection::principal_orient(bool is_periodic){
 
 #ifdef USE_POWERSASA
 
-float Selection::powersasa(float probe_r, float *total_volume,
-                      vector<float> *area_per_atom, vector<float> *volume_per_atom) const
+float Selection::powersasa(float probe_r, vector<float> *area_per_atom,
+                           float *total_volume, vector<float> *volume_per_atom) const
 {
     // First obtain the VDW radii of all atoms in selection and add probe radius to them
     vector<float> radii(size());

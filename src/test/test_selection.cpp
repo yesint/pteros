@@ -266,7 +266,7 @@ int main(int argc, char** argv)
 
     vector<float> area;
     float A = sel1.sasa(0.14,&area);
-    float AP = sel1.powersasa(0.14,nullptr,&area);
+    float AP = sel1.powersasa(0.14,&area);
 
     cout << A << " " << AP << endl;
     //cout << A << endl;
