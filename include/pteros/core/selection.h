@@ -713,9 +713,9 @@ class Selection {
 
     /// Returns a string formatted as Gromacs ndx file containing the current selection with given name.
     /// \warning Indexex in Gromacs ndx are starting from 1! Thus one is added to all pteros indexes!
-    std::string gromacs_ndx(std::string name);
+    std::string to_gromacs_ndx(std::string name);
 
-    friend void copy_coord(const Selection& from, int from_fr, Selection& to, int to_fr);
+    friend void copy_coord(const Selection& from, int from_fr, Selection& to, int to_fr);        
 
     /// @}
 

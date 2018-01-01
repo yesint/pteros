@@ -1537,7 +1537,7 @@ void Selection::flatten()
     sel_text = "";
 }
 
-string Selection::gromacs_ndx(string name)
+string Selection::to_gromacs_ndx(string name)
 {
     stringstream s;
     s << "[ " << name << " ]" << endl;

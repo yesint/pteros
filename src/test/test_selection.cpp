@@ -257,11 +257,14 @@ int main(int argc, char** argv)
     LOG()->set_level(spdlog::level::trace);
 
     System sys("/home/semen/work/current/Projects/Masato/symmetric/topol.tpr");
+    auto res = sys.load_gromacs_ndx("/home/semen/work/current/Projects/Masato/symmetric/index.ndx");
+    cout << res.size() << endl;
+    for(auto el: res) cout << el.first << " " << el.second.size() << endl;
 
     Selection sel1(sys,"resid 1-10");
     Selection sel2(sys,"resid 11-21");
     Selection all(sys,"all");
-
+/*
     cout << non_bond_energy(sel1,sel2) << endl;
 
     vector<float> area;
@@ -271,7 +274,7 @@ int main(int argc, char** argv)
     cout << A << " " << AP << endl;
     //cout << A << endl;
     cout << sel1.Element_number(0) << " " << sel1.Element_name(0) << endl;
-
+*/
 
     /*
     System sys("/home/semen/work/current/Projects/Masato/symmetric/after_em.gro");

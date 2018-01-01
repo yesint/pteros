@@ -248,6 +248,10 @@ public:
               std::function<bool(System*,int)> on_frame = 0);    
 
 
+    /// Load Gromacs .ndx file and crease selections acording to it from existing system
+    /// Returns a vector of pairs {name,Selection}
+    std::vector<std::pair<std::string, Selection> > load_gromacs_ndx(std::string fname);
+
     /// @name Input filtering
     /** Filters narrow set of atoms and coordinates which are loaded from data files. Only atoms
         specified by filter are kept in the system.

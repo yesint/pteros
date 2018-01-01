@@ -261,7 +261,7 @@ void make_bindings_Selection(py::module& m){
         .def("text_based",&Selection::text_based)
         .def("coord_dependent",&Selection::coord_dependent)
         .def("flatten",&Selection::flatten)
-        .def("gromacs_ndx",&Selection::gromacs_ndx)
+        .def("to_gromacs_ndx",&Selection::to_gromacs_ndx)
 
         // Indexing and iterating
         .def("__iter__", [](Selection* s) {

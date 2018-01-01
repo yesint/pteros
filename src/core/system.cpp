@@ -294,6 +294,40 @@ bool System::load(const std::unique_ptr<Mol_file>& handler, Mol_file_content wha
     return true;
 }
 
+std::vector<std::pair<string,Selection>> System::load_gromacs_ndx(string fname)
+{
+    stringstream ss;
+    string dum, grname="", line;
+    int ind;
+    std::vector<std::pair<string,Selection>> res;
+    vector<int> vec;
+
+    ifstream f(fname);
+    if(!f) throw Pteros_error("Can't open ndx file '{}'!",fname);
+    while(getline(f,line)){
+        ss.clear(); ss.str(line);
+        // Check if this is group name
+        if(line.find_first_of('[')!=std::string::npos){
+            if(grname!="") res.back().second.modify(vec);
+            ss >> dum >> grname;
+            res.push_back({grname,Selection(*this)});
+            vec.clear();
+        } else {
+            // not a name. Try getting numbers
+            for(;;) {
+                 ss >> ind;
+                 if(ss.good())
+                    vec.push_back(ind-1);
+                 else
+                     break;
+            }
+        }
+    }
+    if(grname!="") res.back().second.modify(vec);
+    if(res.empty()) throw Pteros_error("File '{}' contains no index groups!",fname);
+    return res;
+}
+
 void System::set_filter(string str)
 {
     if(atoms.size()) throw Pteros_error("Filter could be set to empty system only!");
