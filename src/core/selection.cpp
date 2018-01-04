@@ -1462,24 +1462,7 @@ void Selection::split_by_connectivity(float d, std::vector<Selection> &res, bool
         if(!system->force_field.ready) throw Pteros_error("Can't split by topology: no topology!");
         if(system->force_field.bonds.size()==0) throw Pteros_error("Can't split by topology: no bonds in topology!");
 
-        int bind = Index(0);
-        int eind = Index(size()-1);
-        int a1,a2;
-        auto bit = std::begin(index);
-        auto cur_b = bit;
-        auto eit = std::end(index);
-        vector<int>::iterator it1,it2;
-        for(int i=0;i<system->force_field.bonds.size();++i){
-            a1 = system->force_field.bonds[i](0);
-            a2 = system->force_field.bonds[i](1);
-            if(a1>=bind && a1<=eind && a2>=bind && a2<=eind){
-                it1 = std::find(cur_b,eit,a1);
-                cur_b = it1;
-                it2 = std::find(cur_b,eit,a2);
-                con[it1-bit].push_back(it2-bit);
-                con[it2-bit].push_back(it1-bit);
-            }
-        }
+        get_local_bonds_from_topology(con);
     } else {
         // Find all connectivity pairs for given cut-off
         vector<Vector2i> pairs;
@@ -1771,15 +1754,24 @@ void Selection::unwrap(int leading_index, Vector3i_const_ref dims){
 int Selection::unwrap_bonds(float d, int leading_index, Vector3i_const_ref dims){
     int Nparts = 1;
 
-    // Find all connectivity pairs for given cut-off
-    vector<Vector2i> pairs;
-    search_contacts(d,*this,pairs,false,true); // Periodic by definition
-
-    // Form a connectivity structure in the form con[i]->1,2,5...
+    // a connectivity structure in the form con[i]->1,2,5...
     vector<vector<int> > con(size());
-    for(int i=0; i<pairs.size(); ++i){
-        con[pairs[i](0)].push_back(pairs[i](1));
-        con[pairs[i](1)].push_back(pairs[i](0));
+
+    if(d==0){
+        // Use bonds from topology
+        if(!system->force_field.ready) throw Pteros_error("Can't unwrap by topology: no topology!");
+        if(system->force_field.bonds.size()==0) throw Pteros_error("Can't unwrap by topology: no bonds in topology!");
+
+        get_local_bonds_from_topology(con);
+    } else {
+        // Find all connectivity pairs for given cut-off
+        vector<Vector2i> pairs;
+        search_contacts(d,*this,pairs,false,true); // Periodic by definition
+
+        for(int i=0; i<pairs.size(); ++i){
+            con[pairs[i](0)].push_back(pairs[i](1));
+            con[pairs[i](1)].push_back(pairs[i](0));
+        }
     }
 
     // Mask of used atoms
@@ -2019,11 +2011,23 @@ float Selection::sasa(float probe_r, vector<float> *area_per_atom, int n_sphere_
 }
 
 
-
-
-
-
-
-
-
-
+void Selection::get_local_bonds_from_topology(vector<vector<int>>& con){
+    int bind = Index(0);
+    int eind = Index(size()-1);
+    int a1,a2;
+    auto bit = std::begin(index);
+    auto cur_b = bit;
+    auto eit = std::end(index);
+    vector<int>::iterator it1,it2;
+    for(int i=0;i<system->force_field.bonds.size();++i){
+        a1 = system->force_field.bonds[i](0);
+        a2 = system->force_field.bonds[i](1);
+        if(a1>=bind && a1<=eind && a2>=bind && a2<=eind){
+            it1 = std::find(cur_b,eit,a1);
+            cur_b = it1;
+            it2 = std::find(cur_b,eit,a2);
+            con[it1-bit].push_back(it2-bit);
+            con[it2-bit].push_back(it1-bit);
+        }
+    }
+}

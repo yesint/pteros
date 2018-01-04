@@ -583,11 +583,11 @@ class Selection {
     /** Unwraps selection to make it whole (without jumps over periodic box boundary).
      * based on preserving all bonds.
      * This method works reliably in any case, but is much slower than unwrap()
-     * @param d Maximal bond length.
+     * @param d Maximal bond length. If 0 bonds from topology are used (if present).
      * @param leading_index Local index of the reference atom, which doesn't move.
      * @return Number of disconnected pieces after unwrapping. 1 means solid selection.
      */
-    int unwrap_bonds(float d = 0.2, int leading_index = 0,
+    int unwrap_bonds(float d, int leading_index = 0,
                      Vector3i_const_ref dims = Eigen::Vector3i::Ones());
 
     /** Get transform for orienting selection by principal axes.
@@ -1052,6 +1052,7 @@ protected:
     std::unique_ptr<Selection_parser> parser;
     void allocate_parser();
     void sort_and_remove_duplicates();
+    void get_local_bonds_from_topology(std::vector<std::vector<int>>& con);
 };
 
 //==============================================================================
