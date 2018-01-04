@@ -781,8 +781,7 @@ class Selection {
     *   is the selection index, not the global system %index. I.e. passing 10 will
     *   extract the property of %atom with global %index index[10]
     *   <br>All these function except Index could be used as lvalue, which means that
-    *   it is possible to assign value to them. For example X(10) = 3.14 will assign the
-    *   value 3.14 to the atom with global index index[10].
+    *   it is possible to assign value to them. For example X(10) = 3.14
     */
     /// @{
 
@@ -1067,81 +1066,81 @@ class Atom_proxy {
     friend class Selection::iterator;
     friend class Selection;
 public:    
-    Selection* get_selection(){ return sel; }
-    System* get_system(){ return sel->get_system(); }
+    const Selection& selection(){ return *sel; }
+    const System& system(){ return *(sel->get_system()); }
 
     /// @name Inline accessors. Const and non-const versions.
     /// @{
-    inline int& Resid(){ return sel->Resid(ind); }
-    inline const int& Resid() const { return sel->Resid(ind); }
+    inline int& resid(){ return sel->Resid(ind); }
+    inline const int& resid() const { return sel->Resid(ind); }
 
-    inline const int& Index() const { return sel->Index(ind); }
+    inline const int& index() const { return sel->Index(ind); }
 
-    inline std::string& Name(){ return sel->Name(ind); }
-    inline const std::string& Name() const { return sel->Name(ind); }
+    inline std::string& name(){ return sel->Name(ind); }
+    inline const std::string& name() const { return sel->Name(ind); }
 
-    inline char& Chain(){ return sel->Chain(ind); }
-    inline const char& Chain() const { return sel->Chain(ind); }
+    inline char& chain(){ return sel->Chain(ind); }
+    inline const char& chain() const { return sel->Chain(ind); }
 
-    inline std::string& Resname(){ return sel->Resname(ind); }
-    inline const std::string& Resname() const { return sel->Resname(ind); }
+    inline std::string& resname(){ return sel->Resname(ind); }
+    inline const std::string& resname() const { return sel->Resname(ind); }
 
-    inline std::string& Tag(){ return sel->Tag(ind); }
-    inline const std::string& Tag() const { return sel->Tag(ind); }
+    inline std::string& tag(){ return sel->Tag(ind); }
+    inline const std::string& tag() const { return sel->Tag(ind); }
 
-    inline float& Occupancy(){ return sel->Occupancy(ind); }
-    inline const float& Occupancy() const { return sel->Occupancy(ind); }
+    inline float& occupancy(){ return sel->Occupancy(ind); }
+    inline const float& occupancy() const { return sel->Occupancy(ind); }
 
-    inline float& Beta(){ return sel->Beta(ind); }
-    inline const float& Beta() const { return sel->Beta(ind); }
+    inline float& beta(){ return sel->Beta(ind); }
+    inline const float& beta() const { return sel->Beta(ind); }
 
-    inline int& Resindex(){ return sel->Resindex(ind); }
-    inline const int& Resindex() const { return sel->Resindex(ind); }
+    inline int& resindex(){ return sel->Resindex(ind); }
+    inline const int& resindex() const { return sel->Resindex(ind); }
 
-    inline float& Mass(){ return sel->Mass(ind); }
-    inline const float& Mass() const { return sel->Mass(ind); }
+    inline float& mass(){ return sel->Mass(ind); }
+    inline const float& mass() const { return sel->Mass(ind); }
 
-    inline float& Charge(){ return sel->Charge(ind); }
-    inline const float& Charge() const { return sel->Charge(ind); }
+    inline float& charge(){ return sel->Charge(ind); }
+    inline const float& charge() const { return sel->Charge(ind); }
 
-    inline int& Type(){ return sel->Type(ind); }
-    inline const int& Type() const { return sel->Type(ind); }
+    inline int& type(){ return sel->Type(ind); }
+    inline const int& type() const { return sel->Type(ind); }
 
-    inline std::string& Type_name(){ return sel->Type_name(ind); }
-    inline const std::string& Type_name() const { return sel->Type_name(ind); }
+    inline std::string& type_name(){ return sel->Type_name(ind); }
+    inline const std::string& type_name() const { return sel->Type_name(ind); }
 
-    inline float& X(){ return sel->X(ind); }
-    inline const float& X() const { return sel->X(ind); }
+    inline float& x(){ return sel->X(ind); }
+    inline const float& x() const { return sel->X(ind); }
 
-    inline float& Y(){ return sel->Y(ind); }
-    inline const float& Y() const { return sel->Y(ind); }
+    inline float& y(){ return sel->Y(ind); }
+    inline const float& y() const { return sel->Y(ind); }
 
-    inline float& Z(){ return sel->Z(ind); }
-    inline const float& Z() const { return sel->Z(ind); }
+    inline float& z(){ return sel->Z(ind); }
+    inline const float& z() const { return sel->Z(ind); }
 
-    inline Eigen::Vector3f& XYZ(){ return sel->XYZ(ind); }
-    inline const Eigen::Vector3f& XYZ() const { return sel->XYZ(ind); }
+    inline Eigen::Vector3f& xyz(){ return sel->XYZ(ind); }
+    inline const Eigen::Vector3f& xyz() const { return sel->XYZ(ind); }
 
-    inline float& X(int fr){ return sel->X(ind,fr); }
-    inline const float& X(int fr) const { return sel->X(ind,fr); }
+    inline float& x(int fr){ return sel->X(ind,fr); }
+    inline const float& x(int fr) const { return sel->X(ind,fr); }
 
-    inline float& Y(int fr){ return sel->Y(ind,fr); }
-    inline const float& Y(int fr) const { return sel->Y(ind,fr); }
+    inline float& y(int fr){ return sel->Y(ind,fr); }
+    inline const float& y(int fr) const { return sel->Y(ind,fr); }
 
-    inline float& Z(int fr){ return sel->Z(ind,fr); }
-    inline const float& Z(int fr) const { return sel->Z(ind,fr); }
+    inline float& z(int fr){ return sel->Z(ind,fr); }
+    inline const float& z(int fr) const { return sel->Z(ind,fr); }
 
-    inline Eigen::Vector3f& XYZ(int fr){ return sel->XYZ(ind,fr); }
-    inline const Eigen::Vector3f& XYZ(int fr) const { return sel->XYZ(ind,fr); }
+    inline Eigen::Vector3f& xyz(int fr){ return sel->XYZ(ind,fr); }
+    inline const Eigen::Vector3f& xyz(int fr) const { return sel->XYZ(ind,fr); }
 
-    inline int& Element_number(){ return sel->Element_number(ind); }
-    inline const int& Element_number() const { return sel->Element_number(ind); }
+    inline int& element_number(){ return sel->Element_number(ind); }
+    inline const int& element_number() const { return sel->Element_number(ind); }
 
-    std::string Element_name() const { return sel->Element_name(ind); }
-    float VDW() const { return sel->VDW(ind); }
+    std::string element_name() const { return sel->Element_name(ind); }
+    float vdw() const { return sel->VDW(ind); }
 
-    inline Atom& Atom_data(){ return sel->Atom_data(ind); }
-    inline const Atom& Atom_data() const { return sel->Atom_data(ind); }
+    inline Atom& atom(){ return sel->Atom_data(ind); }
+    inline const Atom& atom() const { return sel->Atom_data(ind); }
 
     /// @}
 
@@ -1157,9 +1156,7 @@ public:
 
 private:
     Atom_proxy(){}
-    Atom_proxy(Selection* s, int i): sel(s), ind(i) {}
-    void set(Selection* s, int i){ sel=s; ind=i; }
-    void next(){ ++ind; }
+    Atom_proxy(Selection* s, int i): sel(s), ind(i) {}    
 
     Selection* sel;
     int ind;        
@@ -1176,9 +1173,9 @@ public:
     typedef Atom_proxy& reference;
     typedef std::forward_iterator_tag iterator_category;
 
-    iterator(Selection* sel, int pos) { proxy.set(sel,pos); }
-    iterator operator++(int junk) { iterator tmp = *this; proxy.next(); return tmp; }
-    iterator& operator++() { proxy.next(); return *this; }
+    iterator(Selection* sel, int pos) { proxy.sel = sel; proxy.ind = pos; }
+    iterator operator++(int junk) { iterator tmp = *this; ++proxy.ind; return tmp; }
+    iterator& operator++() { ++proxy.ind; return *this; }
     Atom_proxy& operator*() { return proxy; }
     Atom_proxy* operator->() { return &proxy; }
     bool operator==(const iterator& rhs) { return proxy == rhs.proxy; }

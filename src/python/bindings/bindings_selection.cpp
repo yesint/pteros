@@ -30,44 +30,45 @@ using namespace std;
 using namespace Eigen;
 using namespace pybind11::literals;
 
-#define DEF_PROPERTY(_name,_dtype,_func) \
-    .def_property(#_name, [](Atom_proxy* obj){return obj->_func();}, [](Atom_proxy* obj,const _dtype& val){obj->_func()=val;})
+#define DEF_PROPERTY(_name,_dtype) \
+    .def_property(#_name, [](Atom_proxy* obj){return obj->_name();}, [](Atom_proxy* obj,const _dtype& val){obj->_name()=val;})
 
 void make_bindings_Selection(py::module& m){
 
     using RowMatrixXf = Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
 
     py::class_<Atom_proxy>(m, "Atom_proxy")
-        .def_property_readonly("index", [](Atom_proxy* obj){return obj->Index();})
-        DEF_PROPERTY(resid,int,Resid)
-        DEF_PROPERTY(resindex,int,Resindex)
-        DEF_PROPERTY(resname,string,Resname)
-        DEF_PROPERTY(name,string,Name)
-        DEF_PROPERTY(chain,char,Chain)
-        DEF_PROPERTY(tag,string,Tag)
-        DEF_PROPERTY(occupancy,float,Occupancy)
-        DEF_PROPERTY(beta,float,Beta)
-        DEF_PROPERTY(mass,float,Mass)
-        DEF_PROPERTY(charge,float,Charge)
-        DEF_PROPERTY(type,int,Type)
-        DEF_PROPERTY(element_number,int,Element_number)
-        DEF_PROPERTY(type_name,string,Type_name)
-        DEF_PROPERTY(atom,Atom,Atom_data)
-        DEF_PROPERTY(x,float,X)
-        DEF_PROPERTY(y,float,Y)
-        DEF_PROPERTY(z,float,Z)
-        .def_property("xyz", [](Atom_proxy* obj){return obj->XYZ();}, [](Atom_proxy* obj,Vector3f_const_ref val){obj->XYZ()=val;})
-        .def_property_readonly("Element_name", [](Atom_proxy* obj){return obj->Element_name();})
-        .def_property_readonly("VDW", [](Atom_proxy* obj){return obj->VDW();})
+        .def_property_readonly("index", [](Atom_proxy* obj){return obj->index();})
+        DEF_PROPERTY(resid,int)
+        DEF_PROPERTY(resindex,int)
+        DEF_PROPERTY(resname,string)
+        DEF_PROPERTY(name,string)
+        DEF_PROPERTY(chain,char)
+        DEF_PROPERTY(tag,string)
+        DEF_PROPERTY(occupancy,float)
+        DEF_PROPERTY(beta,float)
+        DEF_PROPERTY(mass,float)
+        DEF_PROPERTY(charge,float)
+        DEF_PROPERTY(type,int)
+        DEF_PROPERTY(element_number,int)
+        DEF_PROPERTY(type_name,string)
+        DEF_PROPERTY(atom,Atom)
+        DEF_PROPERTY(x,float)
+        DEF_PROPERTY(y,float)
+        DEF_PROPERTY(z,float)
+        .def_property("xyz", [](Atom_proxy* obj){return obj->xyz();}, [](Atom_proxy* obj,Vector3f_const_ref val){obj->xyz()=val;})
+        .def_property_readonly("element_name", [](Atom_proxy* obj){return obj->element_name();})
+        .def_property_readonly("vdw", [](Atom_proxy* obj){return obj->vdw();})
+
         // For other frame
-        .def("getX", [](Atom_proxy* ap, int fr){ return ap->X(fr); })
-        .def("getY", [](Atom_proxy* ap, int fr){ return ap->Y(fr); })
-        .def("getZ", [](Atom_proxy* ap, int fr){ return ap->Z(fr); })
-        .def("getXYZ", [](Atom_proxy* ap, int fr){ return ap->XYZ(fr); })
-        .def("setX", [](Atom_proxy* ap, int fr, float data){ ap->X(fr) = data; })
-        .def("setY", [](Atom_proxy* ap, int fr, float data){ ap->Y(fr) = data; })
-        .def("setZ", [](Atom_proxy* ap, int fr, float data){ ap->Z(fr) = data; })
-        .def("setXYZ", [](Atom_proxy* ap, int fr, Vector3f_const_ref data){ ap->XYZ(fr) = data; })
+        .def("getX", [](Atom_proxy* ap, int fr){ return ap->x(fr); })
+        .def("getY", [](Atom_proxy* ap, int fr){ return ap->y(fr); })
+        .def("getZ", [](Atom_proxy* ap, int fr){ return ap->z(fr); })
+        .def("getXYZ", [](Atom_proxy* ap, int fr){ return ap->xyz(fr); })
+        .def("setX", [](Atom_proxy* ap, int fr, float data){ ap->x(fr) = data; })
+        .def("setY", [](Atom_proxy* ap, int fr, float data){ ap->y(fr) = data; })
+        .def("setZ", [](Atom_proxy* ap, int fr, float data){ ap->z(fr) = data; })
+        .def("setXYZ", [](Atom_proxy* ap, int fr, Vector3f_const_ref data){ ap->xyz(fr) = data; })
     ;
 
     py::class_<Selection>(m, "Selection")

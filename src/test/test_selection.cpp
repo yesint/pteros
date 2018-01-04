@@ -237,8 +237,7 @@ make_accessor(const Selection& sel){
         return (*data)[i];
     };
 }
-
-
+//-----------------------------
 
 int main(int argc, char** argv)
 {    
@@ -264,6 +263,9 @@ int main(int argc, char** argv)
     Selection sel1(sys,"resid 1-10");
     Selection sel2(sys,"resid 11-21");
     Selection all(sys,"all");
+
+    for(auto& a: sel1) cout << a.vdw() << endl;
+
 /*
     cout << non_bond_energy(sel1,sel2) << endl;
 

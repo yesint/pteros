@@ -63,9 +63,9 @@ Membrane::Membrane(System *sys, const std::vector<Lipid_descr> &species): system
     for(int i=0;i<leafs.size();++i){
         leaflets_sel[i].set_system(*system);
         for(auto& a: leafs[i]){
-            lipids[index_map[a.Index()]].leaflet = i;
-            leaflets[i].push_back(index_map[a.Index()]);
-            leaflets_sel[i].append(a.Index());
+            lipids[index_map[a.index()]].leaflet = i;
+            leaflets[i].push_back(index_map[a.index()]);
+            leaflets_sel[i].append(a.index());
         }
     }
 
