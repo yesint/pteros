@@ -357,7 +357,7 @@ class Selection {
     std::vector<int> get_index() const { return index; }    
 
     /// Get vector of all chains in selection
-    std::vector<char> get_chain() const;
+    std::vector<char> get_chain(bool unique=false) const;
 
     /// Set chains from supplied vector.
     /// \note Vector size must be the save as the size of selection.
@@ -366,18 +366,10 @@ class Selection {
     /// Sets chain of all selected atoms to the same given value.
     void set_chain(char data);
 
-    /// Get vector of unique chains in selection
-    std::vector<char> get_unique_chain() const;
 
     /// Get vector of all resid's in selection
     /// \warning Same resid's could be present in different chains!
-    std::vector<int> get_resid() const;
-
-    /// Get vector of unique resid's in selection
-    std::vector<int> get_unique_resid() const;
-
-    /// Get vector of unique resnames in selection
-    std::vector<std::string> get_unique_resname() const;
+    std::vector<int> get_resid(bool unique=false) const;
 
     /// Set resid's in selection from supplied vector.
     /// \note Vector size must be the save as the size of selection.
@@ -386,32 +378,33 @@ class Selection {
     /// Sets resid of all selected atoms to the same given value.
     void set_resid(int data);
 
-    /// Get vector of all resindexes in selection. Resindexes are unique
-    /// regardless the number of the chains.
-    std::vector<int> get_resindex() const;
-
-    /// Get vector of unique resindexes's in selection
-    std::vector<int> get_unique_resindex() const;
 
     /// Get vector of all atom names in selection
-    std::vector<std::string> get_name() const;
+    std::vector<std::string> get_name(bool unique=false) const;
 
     /// Set atom names in selection from supplied vector.
     /// \note Vector size must be the save as the size of selection.
     void set_name(const std::vector<std::string>& data);
 
     /// Sets atom names of all selected atoms to the same given value.
-    void set_name(std::string& data);
+    void set_name(std::string data);
+
 
     /// Get vector of all resnames in selection
-    std::vector<std::string> get_resname() const;
+    std::vector<std::string> get_resname(bool unique=false) const;
 
     /// Set resnames in selection from supplied vector.
     /// \note Vector size must be the save as the size of selection.
     void set_resname(const std::vector<std::string>& data);
 
     /// Sets resnames of all selected atoms to the same given value.
-    void set_resname(std::string& data);
+    void set_resname(std::string data);
+
+
+    /// Get vector of all resindexes in selection. Resindexes are unique
+    /// regardless the number of the chains.
+    std::vector<int> get_resindex(bool unique=false) const;
+
 
     /// Get coordinates of all atoms in this selection for the current frame
     /// By default columnt of the matrix contain atom coordinates.
@@ -424,15 +417,17 @@ class Selection {
     /// Set coordinates of this selection for current frame
     void set_xyz(MatrixXf_const_ref coord);
 
+
     /// Get masses of all atoms in selection
     std::vector<float> get_mass() const;
 
     /// Set atom masses in selection to the values from supplied vector.
     /// \note Vector size must be the save as the size of selection.
-    void set_mass(const std::vector<float> m);
+    void set_mass(const std::vector<float>& m);
 
     /// Sets masses of all selected atoms to the same given value.
     void set_mass(float data);        
+
 
     /// Get beta
     std::vector<float> get_beta() const;
@@ -444,6 +439,7 @@ class Selection {
     /// Sets beta of all selected atoms to the same given value.
     void set_beta(float data);
 
+
     /// Get occupancy
     std::vector<float> get_occupancy() const;
 
@@ -454,15 +450,16 @@ class Selection {
     /// Sets occupancy of all selected atoms to the same given value.
     void set_occupancy(float data);
 
+
     /// Get tags
-    std::vector<std::string> get_tag() const;
+    std::vector<std::string> get_tag(bool unique=false) const;
 
     /// Set tags in selection to the values from supplied vector.
     /// \note Vector size must be the save as the size of selection.
     void set_tag(const std::vector<std::string>& data);
 
     /// Set tags of all selected atoms to the same given value.
-    void set_tag(std::string& data);
+    void set_tag(std::string data);
     /// @}
 
 
@@ -480,7 +477,7 @@ class Selection {
      This is not checked automatically!
      In this case use one of unwrapping options first.
     */
-    Eigen::Vector3f center(bool mass_weighted = false, bool periodic = false) const;
+    Eigen::Vector3f center(bool mass_weighted = false, bool periodic = false, int leading_index = 0) const;
 
     /// Get minimal and maximal coordinates in selection
     void minmax(Vector3f_ref min, Vector3f_ref max) const;
@@ -510,7 +507,7 @@ class Selection {
      This is not checked automatically!
      In this case use one of unwrapping options first.
     */
-    void inertia(Vector3f_ref moments, Matrix3f_ref axes, bool periodic = false) const;
+    void inertia(Vector3f_ref moments, Matrix3f_ref axes, bool periodic = false, bool leading_index = 0) const;
 
     /** Computes radius of gyration for selection
      \warning
@@ -519,7 +516,7 @@ class Selection {
      This is not checked automatically!
      In this case use one of unwrapping options first.
     */
-    float gyration(bool periodic = false) const;
+    float gyration(bool periodic = false, bool leading_index = 0) const;
 
     /// Get distance between two atoms (periodic in given dimensions if needed).
     /// \note
@@ -598,7 +595,7 @@ class Selection {
      * If the size of selection is larger than 1/2 of the box size in
      * any dimension you will get funny results if @param is_periodic is set to true.
      */    
-    Eigen::Affine3f principal_transform(bool is_periodic = false) const;
+    Eigen::Affine3f principal_transform(bool is_periodic = false, bool leading_index = 0) const;
 
     /** Orient molecule by its principal axes.
      * The same as
@@ -607,7 +604,7 @@ class Selection {
      * sel.apply_transform(tr);
      * \endcode
      */
-    void principal_orient(bool is_periodic = false);
+    void principal_orient(bool is_periodic = false, bool leading_index = 0);
     /// @}
 
 

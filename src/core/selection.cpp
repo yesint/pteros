@@ -630,6 +630,74 @@ Selection::iterator Selection::end(){
 // Get and set functions
 /////////////////////////
 
+#define GET_ATOM_PROP(T,prop) \
+vector<T> Selection::get_##prop() const { \
+    vector<T> tmp; \
+    int i,n; \
+    n = index.size(); \
+    tmp.resize(n); \
+    for(i=0; i<n; ++i) tmp[i] = system->atoms[index[i]].prop; \
+    return tmp; \
+} \
+
+
+#define GET_ATOM_PROP_WITH_UNIQUE(T,prop) \
+vector<T> Selection::get_##prop(bool unique) const { \
+    vector<T> tmp; \
+    int i,n; \
+    n = index.size(); \
+    tmp.resize(n); \
+    for(i=0; i<n; ++i) tmp[i] = system->atoms[index[i]].prop; \
+    if(unique){ \
+        vector<T> res; \
+        unique_copy(tmp.begin(),tmp.end(), back_inserter(res)); \
+        return res; \
+    } \
+    return tmp; \
+} \
+
+
+#define SET_ATOM_PROP(T,prop) \
+void Selection::set_##prop(const vector<T>& data){ \
+    int i,n; \
+    n = index.size(); \
+    if(data.size()!=n) throw Pteros_error("Invalid data size {} for selection of size {}", data.size(),n); \
+    for(i=0; i<n; ++i) system->atoms[index[i]].prop = data[i]; \
+} \
+void Selection::set_##prop(T data){ \
+    int i,n; \
+    n = index.size(); \
+    for(i=0; i<n; ++i) system->atoms[index[i]].prop = data; \
+}
+
+
+GET_ATOM_PROP_WITH_UNIQUE(char,chain)
+SET_ATOM_PROP(char,chain)
+
+GET_ATOM_PROP_WITH_UNIQUE(int,resid)
+SET_ATOM_PROP(int,resid)
+
+GET_ATOM_PROP_WITH_UNIQUE(string,name)
+SET_ATOM_PROP(string,name)
+
+GET_ATOM_PROP_WITH_UNIQUE(string,resname)
+SET_ATOM_PROP(string,resname)
+
+GET_ATOM_PROP_WITH_UNIQUE(int,resindex)
+
+GET_ATOM_PROP(float,mass)
+SET_ATOM_PROP(float,mass)
+
+GET_ATOM_PROP(float,beta)
+SET_ATOM_PROP(float,beta)
+
+GET_ATOM_PROP(float,occupancy)
+SET_ATOM_PROP(float,occupancy)
+
+GET_ATOM_PROP_WITH_UNIQUE(string,tag)
+SET_ATOM_PROP(string,tag)
+
+
 std::string Selection::get_text() const {
     if(sel_text.size()>0){
         return sel_text;
@@ -641,179 +709,6 @@ std::string Selection::get_text() const {
         return ss.str();
     }
 }
-
-vector<char> Selection::get_chain() const {
-    vector<char> res;
-    int i,n;
-    n = index.size();
-    res.resize(n);
-    for(i=0; i<n; ++i) res[i] = system->atoms[index[i]].chain;
-    return res;
-}
-
-void Selection::set_chain(const vector<char>& data){
-    int i,n;
-    n = index.size();
-    // Sanity check
-    if(data.size()!=n) throw Pteros_error("Invalid data size {} for selection of size {}", data.size(),n);
-    for(i=0; i<n; ++i) system->atoms[index[i]].chain = data[i];
-}
-
-void Selection::set_chain(char data){
-    int i,n;
-    n = index.size();
-    for(i=0; i<n; ++i) system->atoms[index[i]].chain = data;
-}
-
-vector<char> Selection::get_unique_chain() const {
-    vector<char> tmp,res;
-    int i,n;
-    n = index.size();
-    tmp.resize(n,0);
-    for(i=0; i<n; ++i) tmp[i] = system->atoms[index[i]].chain;
-    unique_copy(tmp.begin(),tmp.end(), back_inserter(res));
-    return res;
-}
-
-
-vector<int> Selection::get_resid() const {
-    vector<int> res;
-    int i,n;
-    n = index.size();
-    res.resize(n,0);
-    for(i=0; i<n; ++i) res[i] = system->atoms[index[i]].resid;
-    return res;
-}
-
-void Selection::set_resid(const vector<int>& data){
-    int i,n;
-    n = index.size();
-    // Sanity check
-    if(data.size()!=n) throw Pteros_error("Invalid data size {} for selection of size {}", data.size(),n);
-    for(i=0; i<n; ++i) system->atoms[index[i]].resid = data[i];
-}
-
-void Selection::set_resid(int data){
-    int i,n;
-    n = index.size();
-    for(i=0; i<n; ++i) system->atoms[index[i]].resid = data;
-}
-
-vector<int> Selection::get_resindex() const {
-    vector<int> res;
-    int i,n;
-    n = index.size();
-    res.resize(n);
-    for(i=0; i<n; ++i) res[i] = system->atoms[index[i]].resindex;
-    return res;
-}
-
-std::vector<float> Selection::get_mass() const {
-    vector<float> res;
-    int i,n;
-    n = index.size();
-    res.resize(n);
-    for(i=0; i<n; ++i) res[i] = system->atoms[index[i]].mass;
-    return res;
-}
-
-vector<int> Selection::get_unique_resid() const{
-    vector<int> tmp,res;
-    int i,n;
-    n = index.size();
-    tmp.resize(n);
-    for(i=0; i<n; ++i) tmp[i] = system->atoms[index[i]].resid;
-    unique_copy(tmp.begin(),tmp.end(), back_inserter(res));
-    return res;
-}
-
-vector<string> Selection::get_unique_resname() const{
-    vector<string> res;
-    int i,n;
-    n = index.size();
-    int prevResIndex=-1;
-    for(i=0; i<n; ++i) {
-      if(system->atoms[index[i]].resindex!=prevResIndex) {
-        res.push_back(system->atoms[index[i]].resname);
-        prevResIndex=system->atoms[index[i]].resindex;
-      }
-    }
-    return res;
-}
-
-
-vector<int> Selection::get_unique_resindex() const {
-    vector<int> tmp,res;
-    int i,n;
-    n = index.size();
-    tmp.resize(n);
-    for(i=0; i<n; ++i) tmp[i] = system->atoms[index[i]].resindex;
-    unique_copy(tmp.begin(),tmp.end(), back_inserter(res));
-    return res;
-}
-
-void Selection::set_mass(const std::vector<float> m){
-    int i,n;
-    n = index.size();
-    if(m.size()!=n) throw Pteros_error("Invalid data size {} for selection of size {}", m.size(),n);
-    for(i=0; i<n; ++i) Mass(i) = m[i];
-}
-
-void Selection::set_mass(float data){
-    int i,n;
-    n = index.size();
-    for(i=0; i<n; ++i) system->atoms[index[i]].mass = data;
-}
-
-
-vector<string> Selection::get_name() const {
-    vector<string> res;
-    int i,n;
-    n = index.size();
-    res.resize(n);
-    for(i=0; i<n; ++i) res[i] = system->atoms[index[i]].name;
-    return res;
-}
-
-
-void Selection::set_name(const vector<string>& data){
-    int i,n;
-    n = index.size();
-    // Sanity check
-    if(data.size()!=n) throw Pteros_error("Invalid data size {} for selection of size {}", data.size(),n);
-    for(i=0; i<n; ++i) system->atoms[index[i]].name = data[i];
-}
-
-void Selection::set_name(string& data){
-    int i,n;
-    n = index.size();
-    for(i=0; i<n; ++i) system->atoms[index[i]].name = data;
-}
-
-vector<string> Selection::get_resname() const {
-    vector<string> res;
-    int i,n;
-    n = index.size();
-    res.resize(n);
-    for(i=0; i<n; ++i) res[i] = system->atoms[index[i]].resname;
-    return res;
-}
-
-
-void Selection::set_resname(const vector<string>& data){
-    int i,n;
-    n = index.size();
-    // Sanity check
-    if(data.size()!=n) throw Pteros_error("Invalid data size {} for selection of size {}", data.size(),n);
-    for(i=0; i<n; ++i) system->atoms[index[i]].resname = data[i];
-}
-
-void Selection::set_resname(string& data){
-    int i,n;
-    n = index.size();
-    for(i=0; i<n; ++i) system->atoms[index[i]].resname = data;
-}
-
 
 MatrixXf Selection::get_xyz(bool make_row_major_matrix) const {
     int n = index.size();
@@ -836,6 +731,16 @@ void Selection::get_xyz(MatrixXf_ref res) const {
     for(i=0; i<n; ++i) res.col(i) = system->traj[frame].coord[index[i]];
 }
 
+void Selection::set_xyz(pteros::MatrixXf_const_ref coord){
+    int n = index.size();
+    // Sanity check
+    if(coord.cols()!=n && coord.rows()!=n) throw Pteros_error("Invalid data size {} for selection of size {}", coord.size(),n);
+    if(coord.cols()==n){ // Column major, default
+        for(int i=0; i<n; ++i) XYZ(i) = coord.col(i);
+    } else { // row-major, from python bindings
+        for(int i=0; i<n; ++i) XYZ(i) = coord.row(i);
+    }
+}
 
 // Compute average structure
 MatrixXf Selection::average_structure(int b, int e, bool make_row_major_matrix) const {
@@ -864,96 +769,12 @@ MatrixXf Selection::average_structure(int b, int e, bool make_row_major_matrix) 
 }
 
 
-void Selection::set_xyz(pteros::MatrixXf_const_ref coord){
-    int n = index.size();
-    // Sanity check
-    if(coord.cols()!=n && coord.rows()!=n) throw Pteros_error("Invalid data size {} for selection of size {}", coord.size(),n);
-    if(coord.cols()==n){ // Column major, default
-        for(int i=0; i<n; ++i) XYZ(i) = coord.col(i);
-    } else { // row-major, from python bindings
-        for(int i=0; i<n; ++i) XYZ(i) = coord.row(i);
-    }
-}
-
-vector<float> Selection::get_beta() const{
-    vector<float> res;
-    int i,n;
-    n = index.size();
-    res.resize(n);
-    for(i=0; i<n; ++i) res[i] = system->atoms[index[i]].beta;
-    return res;
-}
-
-void Selection::set_beta(const std::vector<float>& data){
-    int i,n;
-    n = index.size();
-    // Sanity check
-    if(data.size()!=n) throw Pteros_error("Invalid data size {} for selection of size {}", data.size(),n);
-    for(i=0; i<n; ++i) system->atoms[index[i]].beta = data[i];
-}
-
-void Selection::set_beta(float data){
-    int i,n;
-    n = index.size();
-    for(i=0; i<n; ++i) system->atoms[index[i]].beta = data;
-}
-
-
-vector<float> Selection::get_occupancy() const{
-    vector<float> res;
-    int i,n;
-    n = index.size();
-    res.resize(n);
-    for(i=0; i<n; ++i) res[i] = system->atoms[index[i]].occupancy;
-    return res;
-}
-
-void Selection::set_occupancy(const std::vector<float>& data){
-    int i,n;
-    n = index.size();
-    // Sanity check
-    if(data.size()!=n) throw Pteros_error("Invalid data size {} for selection of size {}", data.size(),n);
-    for(i=0; i<n; ++i) system->atoms[index[i]].occupancy = data[i];
-}
-
-void Selection::set_occupancy(float data){
-    int i,n;
-    n = index.size();
-    for(i=0; i<n; ++i) system->atoms[index[i]].occupancy = data;
-}
-
-std::vector<string> Selection::get_tag() const
-{
-    vector<string> res;
-    int i,n;
-    n = index.size();
-    res.resize(n);
-    for(i=0; i<n; ++i) res[i] = system->atoms[index[i]].tag;
-    return res;
-}
-
-void Selection::set_tag(const std::vector<string> &data)
-{
-    int i,n;
-    n = index.size();
-    // Sanity check
-    if(data.size()!=n) throw Pteros_error("Invalid data size {} for selection of size {}", data.size(),n);
-    for(i=0; i<n; ++i) system->atoms[index[i]].tag = data[i];
-}
-
-void Selection::set_tag(string& data)
-{
-    for(int i=0; i<index.size(); ++i) system->atoms[index[i]].tag = data;
-}
-
-
-
 ////////////////////////////////////////////
 // Transformations and inquery functions
 ////////////////////////////////////////////
 
 // Center of geometry
-Vector3f Selection::center(bool mass_weighted, bool periodic) const {
+Vector3f Selection::center(bool mass_weighted, bool periodic, int leading_index) const {
     Vector3f res;
     int i;
     int n = index.size();
@@ -998,7 +819,7 @@ Vector3f Selection::center(bool mass_weighted, bool periodic) const {
         // Periodic center
         // We will find closest periodic images of all points
         // using first point as a reference
-        Vector3f ref_point = XYZ(0);
+        Vector3f ref_point = XYZ(leading_index);
         Periodic_box& b = system->Box(frame);
         if(mass_weighted){
             float mass = 0.0;
@@ -1832,14 +1653,14 @@ void Selection::split_by_contiguous_residue(std::vector<Selection> &parts)
     }
 }
 
-void Selection::inertia(Vector3f_ref moments, Matrix3f_ref axes, bool periodic) const{
+void Selection::inertia(Vector3f_ref moments, Matrix3f_ref axes, bool periodic, bool leading_index) const{
     int n = size();
     int i;
     // Compute the central tensor of inertia. Place it into axes
 
     float axes00=0.0, axes11=0.0, axes22=0.0, axes01=0.0, axes02=0.0, axes12=0.0;
 
-    Vector3f c = center(true,periodic);    
+    Vector3f c = center(true,periodic,leading_index);
 
     if(periodic){
         Vector3f anchor = XYZ(0);
@@ -1895,11 +1716,11 @@ void Selection::inertia(Vector3f_ref moments, Matrix3f_ref axes, bool periodic) 
     moments = solver.eigenvalues();
 }
 
-float Selection::gyration(bool periodic) const {
+float Selection::gyration(bool periodic, bool leading_index) const {
     int n = size();
     int i;
     float d, a = 0.0, b = 0.0;
-    Vector3f c = center(true,periodic);
+    Vector3f c = center(true,periodic,leading_index);
 
     #pragma omp parallel for private(d) reduction(+:a,b)
     for(i=0;i<n;++i){
@@ -2021,9 +1842,9 @@ int Selection::unwrap_bonds(float d, int leading_index, Vector3i_const_ref dims)
     return Nparts;
 }
 
-Eigen::Affine3f Selection::principal_transform(bool is_periodic) const {
+Eigen::Affine3f Selection::principal_transform(bool is_periodic, bool leading_index) const {
     Affine3f rot;
-    Vector3f cm = center(true,is_periodic);
+    Vector3f cm = center(true,is_periodic,leading_index);
     // We need to const-cast in order to call non-const translate() from const method
     // It's Ok because we'll translate back later
     const_cast<Selection*>(this)->translate(-cm);
@@ -2056,8 +1877,8 @@ Eigen::Affine3f Selection::principal_transform(bool is_periodic) const {
     return Translation3f(cm) * rot * Translation3f(-cm) ;
 }
 
-void Selection::principal_orient(bool is_periodic){
-    Affine3f tr = principal_transform(is_periodic);
+void Selection::principal_orient(bool is_periodic,bool leading_index){
+    Affine3f tr = principal_transform(is_periodic,leading_index);
     apply_transform(tr);
 }
 

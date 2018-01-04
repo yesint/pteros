@@ -123,26 +123,22 @@ void make_bindings_Selection(py::module& m){
         .def("get_text",&Selection::get_text)
         .def("get_index",&Selection::get_index)
 
-        .def("get_chain",&Selection::get_chain)
-        .def("get_unique_chain",&Selection::get_unique_chain)
+        .def("get_chain",&Selection::get_chain,"unique"_a=false)
         .def("set_chain",py::overload_cast<char>(&Selection::set_chain))
         .def("set_chain",py::overload_cast<const std::vector<char>&>(&Selection::set_chain))
 
-        .def("get_resid",&Selection::get_resid)
-        .def("get_unique_resid",&Selection::get_unique_resid)
+        .def("get_resid",&Selection::get_resid,"unique"_a=false)
         .def("set_resid",py::overload_cast<int>(&Selection::set_resid))
         .def("set_resid",py::overload_cast<const std::vector<int>&>(&Selection::set_resid))
 
-        .def("get_resindex",&Selection::get_resindex)
-        .def("get_unique_resindex",&Selection::get_unique_resindex)
+        .def("get_resindex",&Selection::get_resindex,"unique"_a=false)
 
-        .def("get_name",&Selection::get_name)
-        .def("set_name",py::overload_cast<string&>(&Selection::set_name))
+        .def("get_name",&Selection::get_name,"unique"_a=false)
+        .def("set_name",py::overload_cast<string>(&Selection::set_name))
         .def("set_name",py::overload_cast<const std::vector<string>&>(&Selection::set_name))
 
-        .def("get_resname",&Selection::get_resname)
-        .def("get_unique_resname",&Selection::get_unique_resname)
-        .def("set_resname",py::overload_cast<string&>(&Selection::set_resname))
+        .def("get_resname",&Selection::get_resname,"unique"_a=false)
+        .def("set_resname",py::overload_cast<string>(&Selection::set_resname))
         .def("set_resname",py::overload_cast<const std::vector<string>&>(&Selection::set_resname))
 
         .def("get_xyz", [](Selection* sel){ return sel->get_xyz(true); }) // pass true for row-major matrix
@@ -150,7 +146,7 @@ void make_bindings_Selection(py::module& m){
 
         .def("get_mass",&Selection::get_mass)
         .def("set_mass",py::overload_cast<float>(&Selection::set_mass))
-        .def("set_mass",py::overload_cast<const std::vector<float>>(&Selection::set_mass))
+        .def("set_mass",py::overload_cast<const std::vector<float>&>(&Selection::set_mass))
 
         .def("get_beta",&Selection::get_beta)
         .def("set_beta",py::overload_cast<float>(&Selection::set_beta))
@@ -160,12 +156,12 @@ void make_bindings_Selection(py::module& m){
         .def("set_occupancy",py::overload_cast<float>(&Selection::set_occupancy))
         .def("set_occupancy",py::overload_cast<const std::vector<float>&>(&Selection::set_occupancy))
 
-        .def("get_tag",&Selection::get_tag)
-        .def("set_tag",py::overload_cast<string&>(&Selection::set_tag))
+        .def("get_tag",&Selection::get_tag,"unique"_a=false)
+        .def("set_tag",py::overload_cast<string>(&Selection::set_tag))
         .def("set_tag",py::overload_cast<const std::vector<string>&>(&Selection::set_tag))
 
         // Properties
-        .def("center",&Selection::center,"mass_weighted"_a=false,"periodic"_a=false)
+        .def("center",&Selection::center,"mass_weighted"_a=false,"periodic"_a=false,"leading_index"_a=0)
         .def("minmax",[](Selection* sel){Vector3f min,max; sel->minmax(min,max); return py::make_tuple(min,max);})
 
         .def("powersasa", [](Selection* sel, float probe_r, bool do_area_per_atom, bool do_total_volume, bool do_vol_per_atom){
@@ -205,14 +201,14 @@ void make_bindings_Selection(py::module& m){
                 return sel->atom_traj(i,b,e,true); // pass true for row-major matrix
             }, "i"_a, "b"_a=0, "e"_a=-1)
 
-        .def("inertia",[](Selection* sel, bool is_periodic){
+        .def("inertia",[](Selection* sel, bool is_periodic, bool leading_index){
                 Vector3f m;
                 Matrix3f ax;
                 sel->inertia(m,ax,is_periodic);
                 return py::make_tuple(m,ax.transpose());
-            },"is_periodic"_a=false)
+            },"is_periodic"_a=false,"leading_index"_a=0)
 
-        .def("gyration",&Selection::gyration, "periodic"_a=false)
+        .def("gyration",&Selection::gyration, "periodic"_a=false,"leading_index"_a=0)
 
         .def("distance", &Selection::distance, "i"_a, "j"_a, "periodic"_a=true, "dims"_a=Eigen::Vector3i::Ones())
         .def("angle", &Selection::angle, "i"_a, "j"_a, "k"_a, "periodic"_a=true, "dims"_a=Eigen::Vector3i::Ones())
@@ -228,12 +224,12 @@ void make_bindings_Selection(py::module& m){
         .def("wrap", &Selection::wrap, "dims"_a=Eigen::Vector3i::Ones())
         .def("unwrap", &Selection::unwrap, "lead_ind"_a=-1, "dims"_a=Eigen::Vector3i::Ones())
         .def("unwrap_bonds", &Selection::unwrap_bonds, "d"_a=0.2, "lead_ind"_a=0, "dims"_a=Eigen::Vector3i::Ones())
-        .def("principal_transform", [](Selection* sel, bool periodic){
+        .def("principal_transform", [](Selection* sel, bool periodic, bool leading_index){
                 Matrix4f m = sel->principal_transform(periodic).matrix().transpose();
                 return m;
-            }, "periodic"_a=false)
+            }, "periodic"_a=false,"leading_index"_a=0)
 
-        .def("principal_orient",&Selection::principal_orient, "periodic"_a=false)
+        .def("principal_orient",&Selection::principal_orient, "periodic"_a=false,"leading_index"_a=0)
 
         // Fitting and rmsd
         .def("rmsd",py::overload_cast<int>(&Selection::rmsd,py::const_))
