@@ -161,7 +161,7 @@ void make_bindings_Selection(py::module& m){
         .def("set_tag",py::overload_cast<const std::vector<string>&>(&Selection::set_tag))
 
         // Properties
-        .def("center",&Selection::center,"mass_weighted"_a=false,"periodic"_a=false,"leading_index"_a=0)
+        .def("center",&Selection::center,"mass_weighted"_a=false,"dims"_a=Eigen::Vector3i::Zero(),"leading_index"_a=0)
         .def("minmax",[](Selection* sel){Vector3f min,max; sel->minmax(min,max); return py::make_tuple(min,max);})
 
         .def("powersasa", [](Selection* sel, float probe_r, bool do_area_per_atom, bool do_total_volume, bool do_vol_per_atom){
@@ -201,18 +201,18 @@ void make_bindings_Selection(py::module& m){
                 return sel->atom_traj(i,b,e,true); // pass true for row-major matrix
             }, "i"_a, "b"_a=0, "e"_a=-1)
 
-        .def("inertia",[](Selection* sel, bool is_periodic, bool leading_index){
+        .def("inertia",[](Selection* sel, Vector3i_const_ref dims, bool leading_index){
                 Vector3f m;
                 Matrix3f ax;
-                sel->inertia(m,ax,is_periodic);
+                sel->inertia(m,ax,dims,leading_index);
                 return py::make_tuple(m,ax.transpose());
-            },"is_periodic"_a=false,"leading_index"_a=0)
+            },"dims"_a=Eigen::Vector3i::Zero(),"leading_index"_a=0)
 
-        .def("gyration",&Selection::gyration, "periodic"_a=false,"leading_index"_a=0)
+        .def("gyration",&Selection::gyration, "dims"_a=Eigen::Vector3i::Zero(),"leading_index"_a=0)
 
-        .def("distance", &Selection::distance, "i"_a, "j"_a, "periodic"_a=true, "dims"_a=Eigen::Vector3i::Ones())
-        .def("angle", &Selection::angle, "i"_a, "j"_a, "k"_a, "periodic"_a=true, "dims"_a=Eigen::Vector3i::Ones())
-        .def("dihedral", &Selection::dihedral, "i"_a, "j"_a, "k"_a, "l"_a, "periodic"_a=true, "dims"_a=Eigen::Vector3i::Ones())
+        .def("distance", &Selection::distance, "i"_a, "j"_a, "dims"_a=Eigen::Vector3i::Ones())
+        .def("angle", &Selection::angle, "i"_a, "j"_a, "k"_a, "dims"_a=Eigen::Vector3i::Ones())
+        .def("dihedral", &Selection::dihedral, "i"_a, "j"_a, "k"_a, "l"_a, "dims"_a=Eigen::Vector3i::Ones())
 
         // Geometry transforms
         .def("translate", &Selection::translate)
@@ -224,12 +224,12 @@ void make_bindings_Selection(py::module& m){
         .def("wrap", &Selection::wrap, "dims"_a=Eigen::Vector3i::Ones())
         .def("unwrap", &Selection::unwrap, "lead_ind"_a=-1, "dims"_a=Eigen::Vector3i::Ones())
         .def("unwrap_bonds", &Selection::unwrap_bonds, "d"_a, "lead_ind"_a=0, "dims"_a=Eigen::Vector3i::Ones())
-        .def("principal_transform", [](Selection* sel, bool periodic, bool leading_index){
-                Matrix4f m = sel->principal_transform(periodic).matrix().transpose();
+        .def("principal_transform", [](Selection* sel, Vector3i_const_ref dims, bool leading_index){
+                Matrix4f m = sel->principal_transform(dims,leading_index).matrix().transpose();
                 return m;
-            }, "periodic"_a=false,"leading_index"_a=0)
+            }, "dims"_a=Eigen::Vector3i::Zero(),"leading_index"_a=0)
 
-        .def("principal_orient",&Selection::principal_orient, "periodic"_a=false,"leading_index"_a=0)
+        .def("principal_orient",&Selection::principal_orient,"dims"_a=Eigen::Vector3i::Zero(),"leading_index"_a=0)
 
         // Fitting and rmsd
         .def("rmsd",py::overload_cast<int>(&Selection::rmsd,py::const_))
@@ -247,7 +247,7 @@ void make_bindings_Selection(py::module& m){
             })
 
         // Energy
-        .def("non_bond_energy", &Selection::non_bond_energy, "cutoff"_a=0.0, "periodic"_a=true)
+        .def("non_bond_energy", &Selection::non_bond_energy, "cutoff"_a=0.0, "dims"_a=Eigen::Vector3i::Ones())
 
         // IO
         .def("write", py::overload_cast<string,int,int>(&Selection::write), "fname"_a, "b"_a=0, "e"_a=-1)
@@ -329,9 +329,9 @@ void make_bindings_Selection(py::module& m){
     m.def("rmsd",[](const Selection& sel1, const Selection& sel2){ return rmsd(sel1,sel2); });
     m.def("rmsd",[](const Selection& sel1, int fr1, const Selection& sel2, int fr2){ return rmsd(sel1,fr1,sel2,fr2); });
     m.def("fit",[](Selection& sel1, const Selection& sel2){ fit(sel1,sel2); });
-    m.def("non_bond_energy", [](const Selection& sel1, const Selection& sel2,float cutoff,int fr,bool periodic){
-        return non_bond_energy(sel1,sel2,cutoff,fr,periodic);
-    },"sel1"_a, "sel2"_a, "cutoff"_a=0.0, "fr"_a=-1, "periodic"_a=true);
+    m.def("non_bond_energy", [](const Selection& sel1, const Selection& sel2,float cutoff,int fr,Vector3i_const_ref dims){
+        return non_bond_energy(sel1,sel2,cutoff,fr,dims);
+    },"sel1"_a, "sel2"_a, "cutoff"_a=0.0, "fr"_a=-1, "dims"_a=Eigen::Vector3i::Ones());
     m.def("copy_coord",[](const Selection& sel1, int fr1, Selection& sel2, int fr2){ return copy_coord(sel1,fr1,sel2,fr2); });
 
 }

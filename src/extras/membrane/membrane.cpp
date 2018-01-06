@@ -266,7 +266,7 @@ void Membrane::compute_properties(float d, Vector3f_const_ref external_normal)
             // Get inertial axes
             Vector3f moments;
             Matrix3f axes;
-            local_self.inertia(moments,axes,true); // Have to use periodic variant
+            local_self.inertia(moments,axes,Vector3i(1,1,1)); // Have to use periodic variant
 
             Vector3f normal = (use_external_normal) ? external_normal : axes.col(2);
 

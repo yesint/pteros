@@ -864,8 +864,8 @@ inline void wrap_coord(Vector3f& point, const Matrix3f& box,
     point = b*prj;
 }
 
-float System::distance(int i, int j, int fr, bool is_periodic, Vector3i_const_ref dims) const {
-    if(is_periodic){
+float System::distance(int i, int j, int fr, Vector3i_const_ref dims) const {
+    if(dims(0)!=0 || dims(1)!=0 || dims(2)!=0){
         return traj[fr].box.distance(traj[fr].coord[i], traj[fr].coord[j], dims);
     } else {
         return (traj[fr].coord[i] - traj[fr].coord[j]).norm();
@@ -873,10 +873,10 @@ float System::distance(int i, int j, int fr, bool is_periodic, Vector3i_const_re
 }
 
 
-float System::angle(int i, int j, int k, int fr, bool is_periodic, Vector3i_const_ref dims) const
+float System::angle(int i, int j, int k, int fr, Vector3i_const_ref dims) const
 {
     Vector3f v1,v2;
-    if(is_periodic){
+    if(dims(0)!=0 || dims(1)!=0 || dims(2)!=0){
         v1 = Box(fr).shortest_vector(XYZ(i,fr),XYZ(j,fr),dims);
         v2 = Box(fr).shortest_vector(XYZ(k,fr),XYZ(j,fr),dims);
     } else {
@@ -886,14 +886,14 @@ float System::angle(int i, int j, int k, int fr, bool is_periodic, Vector3i_cons
     return acos(v1.dot(v2)/(v1.norm()*v2.norm()));
 }
 
-float System::dihedral(int i, int j, int k, int l, int fr, bool is_periodic, Vector3i_const_ref dims) const
+float System::dihedral(int i, int j, int k, int l, int fr, Vector3i_const_ref dims) const
 {
     Vector3f b1,b2,b3;
-    if(is_periodic){
+    if(dims(0)!=0 || dims(1)!=0 || dims(2)!=0){
         Vector3f _i = XYZ(i,fr);
-        Vector3f _j = Box(fr).get_closest_image(XYZ(j,fr),_i);
-        Vector3f _k = Box(fr).get_closest_image(XYZ(k,fr),_i);
-        Vector3f _l = Box(fr).get_closest_image(XYZ(l,fr),_i);
+        Vector3f _j = Box(fr).get_closest_image(XYZ(j,fr),_i,dims);
+        Vector3f _k = Box(fr).get_closest_image(XYZ(k,fr),_i,dims);
+        Vector3f _l = Box(fr).get_closest_image(XYZ(l,fr),_i,dims);
         b1 = _j - _i;
         b2 = _k - _j;
         b3 = _l - _k;

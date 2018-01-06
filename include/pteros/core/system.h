@@ -436,16 +436,13 @@ public:
     /// @{
 
     /// Get distance between two atoms for given frame (periodic in given dimensions if needed).
-    float distance(int i, int j, int fr, bool is_periodic = true,
-                   Vector3i_const_ref dims = Eigen::Vector3i::Ones()) const;
+    float distance(int i, int j, int fr, Vector3i_const_ref dims = Eigen::Vector3i::Ones()) const;
 
     /// Get angle in degrees between three atoms for given frame (periodic in given dimensions if needed).
-    float angle(int i, int j, int k, int fr, bool is_periodic = true,
-                Vector3i_const_ref dims = Eigen::Vector3i::Ones()) const;
+    float angle(int i, int j, int k, int fr, Vector3i_const_ref dims = Eigen::Vector3i::Ones()) const;
 
     /// Get dihedral angle in degrees between three atoms for given frame (periodic in given dimensions if needed).
-    float dihedral(int i, int j, int k, int l, int fr, bool is_periodic = true,
-                Vector3i_const_ref dims = Eigen::Vector3i::Ones()) const;
+    float dihedral(int i, int j, int k, int l, int fr, Vector3i_const_ref dims = Eigen::Vector3i::Ones()) const;
 
     /// @}
 

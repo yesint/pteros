@@ -477,7 +477,9 @@ class Selection {
      This is not checked automatically!
      In this case use one of unwrapping options first.
     */
-    Eigen::Vector3f center(bool mass_weighted = false, bool periodic = false, int leading_index = 0) const;
+    Eigen::Vector3f center(bool mass_weighted = false,
+                           Vector3i_const_ref dims = Eigen::Vector3i::Zero(),
+                           int leading_index = 0) const;
 
     /// Get minimal and maximal coordinates in selection
     void minmax(Vector3f_ref min, Vector3f_ref max) const;
@@ -488,7 +490,7 @@ class Selection {
                float* total_volume = nullptr,
                std::vector<float>* volume_per_atom = nullptr) const;
 
-    /// Get SASA using Shrake and Rupley algorithm (slower than powersasa)
+    /// Get SASA using Shrake and Rupley algorithm (slower than powersasa and can't compute volumes)
     float sasa(float probe_r = 0.14, std::vector<float>* area_per_atom = nullptr, int n_sphere_points = 960) const;
 
     /// Computes average structure over the range of frames
@@ -507,7 +509,9 @@ class Selection {
      This is not checked automatically!
      In this case use one of unwrapping options first.
     */
-    void inertia(Vector3f_ref moments, Matrix3f_ref axes, bool periodic = false, bool leading_index = 0) const;
+    void inertia(Vector3f_ref moments, Matrix3f_ref axes,
+                 Vector3i_const_ref dims = Eigen::Vector3i::Zero(),
+                 bool leading_index = 0) const;
 
     /** Computes radius of gyration for selection
      \warning
@@ -516,25 +520,22 @@ class Selection {
      This is not checked automatically!
      In this case use one of unwrapping options first.
     */
-    float gyration(bool periodic = false, bool leading_index = 0) const;
+    float gyration(Vector3i_const_ref dims = Eigen::Vector3i::Zero(), bool leading_index = 0) const;
 
     /// Get distance between two atoms (periodic in given dimensions if needed).
     /// \note
     /// This function takes selection indexes, not absolute indexes.
-    float distance(int i, int j, bool is_periodic = true,
-                   Vector3i_const_ref dims = Eigen::Vector3i::Ones()) const;
+    float distance(int i, int j, Vector3i_const_ref dims = Eigen::Vector3i::Ones()) const;
 
     /// Get angle in degrees between three atoms (periodic in given dimensions if needed).
     /// \note
     /// This function takes selection indexes, not absolute indexes.
-    float angle(int i, int j, int k, bool is_periodic = true,
-                Vector3i_const_ref dims = Eigen::Vector3i::Ones()) const;
+    float angle(int i, int j, int k, Vector3i_const_ref dims = Eigen::Vector3i::Ones()) const;
 
     /// Get dihedral angle in degrees between three atoms (periodic in given dimensions if needed).
     /// \note
     /// This function takes selection indexes, not absolute indexes.
-    float dihedral(int i, int j, int k, int l, bool is_periodic = true,
-                Vector3i_const_ref dims = Eigen::Vector3i::Ones()) const;
+    float dihedral(int i, int j, int k, int l, Vector3i_const_ref dims = Eigen::Vector3i::Ones()) const;
 
     /// @}
 
@@ -595,7 +596,7 @@ class Selection {
      * If the size of selection is larger than 1/2 of the box size in
      * any dimension you will get funny results if @param is_periodic is set to true.
      */    
-    Eigen::Affine3f principal_transform(bool is_periodic = false, bool leading_index = 0) const;
+    Eigen::Affine3f principal_transform(Vector3i_const_ref dims = Eigen::Vector3i::Zero(), bool leading_index = 0) const;
 
     /** Orient molecule by its principal axes.
      * The same as
@@ -604,7 +605,7 @@ class Selection {
      * sel.apply_transform(tr);
      * \endcode
      */
-    void principal_orient(bool is_periodic = false, bool leading_index = 0);
+    void principal_orient(Vector3i_const_ref dims = Eigen::Vector3i::Zero(), bool leading_index = 0);
     /// @}
 
 
@@ -655,16 +656,16 @@ class Selection {
 
     /// Self-energy of selection computed within given interaction cut-off.
     /// If cutoff is 0 the cutoff from topology is used.
-    Eigen::Vector2f non_bond_energy(float cutoff=0, bool periodic=true) const;
+    Eigen::Vector2f non_bond_energy(float cutoff=0, Vector3i_const_ref dims = Eigen::Vector3i::Ones()) const;
 
     /// Non-bond energy between two selections computed within given interaction cut-off.
     /// If cutoff is 0 the cutoff from topology is used.
     /// fr = -1 computes for current frame of selection 1.
     friend Eigen::Vector2f non_bond_energy(const Selection& sel1,
-                                             const Selection& sel2,
-                                             float cutoff = 0,
-                                             int fr = -1,
-                                             bool periodic = true);
+                                           const Selection& sel2,
+                                           float cutoff = 0,
+                                           int fr = -1,
+                                           Vector3i_const_ref dims = Eigen::Vector3i::Ones());
     /// @}
 
 

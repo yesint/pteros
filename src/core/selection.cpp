@@ -774,7 +774,7 @@ MatrixXf Selection::average_structure(int b, int e, bool make_row_major_matrix) 
 ////////////////////////////////////////////
 
 // Center of geometry
-Vector3f Selection::center(bool mass_weighted, bool periodic, int leading_index) const {
+Vector3f Selection::center(bool mass_weighted, Vector3i_const_ref dims, int leading_index) const {
     Vector3f res;
     int i;
     int n = index.size();
@@ -783,7 +783,7 @@ Vector3f Selection::center(bool mass_weighted, bool periodic, int leading_index)
 
     res.fill(0.0);
 
-    if(periodic==false){
+    if(dims(0)==0 && dims(1)==0 && dims(2)==0){
         if(mass_weighted){
             float mass = 0.0;
             #pragma omp parallel
@@ -828,7 +828,7 @@ Vector3f Selection::center(bool mass_weighted, bool periodic, int leading_index)
                 Vector3f r(Vector3f::Zero());
                 #pragma omp for nowait reduction(+:mass)
                 for(i=0; i<n; ++i){
-                    r += b.get_closest_image(XYZ(i),ref_point) * Mass(i);
+                    r += b.get_closest_image(XYZ(i),ref_point,dims) * Mass(i);
                     mass += Mass(i);
                 }
                 #pragma omp critical
@@ -844,7 +844,7 @@ Vector3f Selection::center(bool mass_weighted, bool periodic, int leading_index)
                 Vector3f r(Vector3f::Zero()); // local to omp thread
                 #pragma omp for nowait
                 for(i=0; i<n; ++i)
-                    r += b.get_closest_image(XYZ(i),ref_point);
+                    r += b.get_closest_image(XYZ(i),ref_point,dims);
                 #pragma omp critical
                 {
                     res += r;
@@ -1040,7 +1040,7 @@ Vector2f non_bond_energy(const Selection& sel1,
                          const Selection& sel2,
                          float cutoff,
                          int fr,
-                         bool periodic)
+                         Vector3i_const_ref dims)
 {
     // Check if both selections are from the same system
     if(sel1.get_system()!=sel2.get_system())
@@ -1065,7 +1065,7 @@ Vector2f non_bond_energy(const Selection& sel1,
     // Perform grid search
     vector<Vector2i> pairs;
     vector<float> dist;
-    search_contacts(d,sel1,sel2,pairs,true,periodic,&dist);
+    search_contacts(d,sel1,sel2,pairs,true, dims.sum()>0 ,&dist);
 
     // Restore frames if needed
     if(fr1!=fr) const_cast<Selection&>(sel1).set_frame(fr1);
@@ -1202,7 +1202,7 @@ void fit(Selection& sel1, const Selection& sel2){
 } //namespace pteros
 
 
-Vector2f Selection::non_bond_energy(float cutoff, bool periodic) const
+Vector2f Selection::non_bond_energy(float cutoff, Vector3i_const_ref dims) const
 {
     float d;
     if(cutoff==0){
@@ -1213,8 +1213,8 @@ Vector2f Selection::non_bond_energy(float cutoff, bool periodic) const
 
     // Perform grid search
     vector<Vector2i> pairs;
-    vector<float> dist;
-    search_contacts(d,*this,pairs,true,periodic,&dist);
+    vector<float> dist;    
+    search_contacts(d,*this,pairs,true, dims.sum()>0 ,&dist);
 
     // Now get energy using pair list and distances
     return get_energy_for_list(pairs,dist,*system);
@@ -1636,17 +1636,17 @@ void Selection::split_by_contiguous_residue(std::vector<Selection> &parts)
     }
 }
 
-void Selection::inertia(Vector3f_ref moments, Matrix3f_ref axes, bool periodic, bool leading_index) const{
+void Selection::inertia(Vector3f_ref moments, Matrix3f_ref axes, Vector3i_const_ref dims, bool leading_index) const{
     int n = size();
     int i;
     // Compute the central tensor of inertia. Place it into axes
 
     float axes00=0.0, axes11=0.0, axes22=0.0, axes01=0.0, axes02=0.0, axes12=0.0;
 
-    Vector3f c = center(true,periodic,leading_index);
+    Vector3f c = center(true,dims,leading_index);
 
-    if(periodic){
-        Vector3f anchor = XYZ(0);
+    if(dims(0)!=0 || dims(1)!=0 || dims(2)!=0){
+        Vector3f anchor = XYZ(leading_index);
         Periodic_box& b = system->Box(frame);
         #pragma omp parallel
         {
@@ -1656,7 +1656,7 @@ void Selection::inertia(Vector3f_ref moments, Matrix3f_ref axes, bool periodic, 
             for(i=0;i<n;++i){
                 // 0 point was used as an anchor in periodic center calculation,
                 // so we have to use it as an anchor here as well!
-                p = b.get_closest_image(XYZ(i),anchor);
+                p = b.get_closest_image(XYZ(i),anchor,dims);
                 d = p-c;
                 m = Mass(i);
                 axes00 += m*( d(1)*d(1) + d(2)*d(2) );
@@ -1699,16 +1699,16 @@ void Selection::inertia(Vector3f_ref moments, Matrix3f_ref axes, bool periodic, 
     moments = solver.eigenvalues();
 }
 
-float Selection::gyration(bool periodic, bool leading_index) const {
+float Selection::gyration(Vector3i_const_ref dims, bool leading_index) const {
     int n = size();
     int i;
     float d, a = 0.0, b = 0.0;
-    Vector3f c = center(true,periodic,leading_index);
+    Vector3f c = center(true,dims,leading_index);
 
     #pragma omp parallel for private(d) reduction(+:a,b)
     for(i=0;i<n;++i){
-        if(periodic){
-            d = system->Box(frame).distance(XYZ(i),c);
+        if(dims(0)!=0 || dims(1)!=0 || dims(2)!=0){
+            d = system->Box(frame).distance(XYZ(i),c,dims);
         } else {
             d = (XYZ(i)-c).norm();
         }        
@@ -1718,19 +1718,19 @@ float Selection::gyration(bool periodic, bool leading_index) const {
     return sqrt(a/b);
 }
 
-float Selection::distance(int i, int j, bool is_periodic, Vector3i_const_ref dims) const
+float Selection::distance(int i, int j, Vector3i_const_ref dims) const
 {
-    return system->distance(Index(i),Index(j),frame,is_periodic,dims);
+    return system->distance(Index(i),Index(j),frame, dims);
 }
 
-float Selection::angle(int i, int j, int k, bool is_periodic, Vector3i_const_ref dims) const
+float Selection::angle(int i, int j, int k, Vector3i_const_ref dims) const
 {
-    return system->angle(Index(i),Index(j),Index(k),frame,is_periodic,dims);
+    return system->angle(Index(i),Index(j),Index(k),frame,dims);
 }
 
-float Selection::dihedral(int i, int j, int k, int l, bool is_periodic, Vector3i_const_ref dims) const
+float Selection::dihedral(int i, int j, int k, int l, Vector3i_const_ref dims) const
 {
-    return system->dihedral(Index(i),Index(j),Index(k),Index(l),frame,is_periodic,dims);
+    return system->dihedral(Index(i),Index(j),Index(k),Index(l),frame,dims);
 }
 
 void Selection::wrap(Vector3i_const_ref dims){
@@ -1744,7 +1744,7 @@ void Selection::unwrap(int leading_index, Vector3i_const_ref dims){
     if(leading_index>=0){
         c = XYZ(leading_index);
     } else {
-        c = center(true,true);
+        c = center(true,dims,leading_index);
     }
     for(int i=0;i<size();++i){
         XYZ(i) = Box().get_closest_image(XYZ(i),c,dims);
@@ -1834,9 +1834,9 @@ int Selection::unwrap_bonds(float d, int leading_index, Vector3i_const_ref dims)
     return Nparts;
 }
 
-Eigen::Affine3f Selection::principal_transform(bool is_periodic, bool leading_index) const {
+Eigen::Affine3f Selection::principal_transform(Vector3i_const_ref dims, bool leading_index) const {
     Affine3f rot;
-    Vector3f cm = center(true,is_periodic,leading_index);
+    Vector3f cm = center(true,dims,leading_index);
     // We need to const-cast in order to call non-const translate() from const method
     // It's Ok because we'll translate back later
     const_cast<Selection*>(this)->translate(-cm);
@@ -1845,7 +1845,7 @@ Eigen::Affine3f Selection::principal_transform(bool is_periodic, bool leading_in
     // Compute principal axes
     Vector3f moments;
     Matrix3f axes;
-    inertia(moments,axes,is_periodic);
+    inertia(moments,axes,dims,leading_index);
     // Normalize axes
     for(int i=0;i<3;++i) axes.col(i).normalize();
     // Now orient
@@ -1869,8 +1869,8 @@ Eigen::Affine3f Selection::principal_transform(bool is_periodic, bool leading_in
     return Translation3f(cm) * rot * Translation3f(-cm) ;
 }
 
-void Selection::principal_orient(bool is_periodic,bool leading_index){
-    Affine3f tr = principal_transform(is_periodic,leading_index);
+void Selection::principal_orient(Vector3i_const_ref dims, bool leading_index){
+    Affine3f tr = principal_transform(dims,leading_index);
     apply_transform(tr);
 }
 
