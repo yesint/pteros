@@ -51,7 +51,7 @@ void Jump_remover::add_atoms(const Selection &sel)
     no_jump_ind.resize( it - no_jump_ind.begin() );
 }
 
-void Jump_remover::set_pbc(Vector3i_const_ref pbc)
+void Jump_remover::set_pbc(Array3i_const_ref pbc)
 {
     dims = pbc;
     if(dims.sum()==0) LOG()->warn("No periodic dimensions, skipping jump removing.");
@@ -69,19 +69,17 @@ void Jump_remover::set_leading_index(int ind)
 
 void Jump_remover::remove_jumps(System& system){
     // Exit immediately if no atoms or no valid dimensions
-    if(no_jump_ind.empty() || dims.sum()==0) return;
     // If not periodic also do nothing
-    if(!system.Box(0).is_periodic()) return;
+    if(no_jump_ind.empty() || dims.sum()==0 || !system.Box(0).is_periodic()) return;
 
     if(!initialized){
         // Do initial unwrapping
         // Make temp selection from no_jump_ind
-        Selection sel(system);
-        sel.modify(no_jump_ind);
+        Selection sel(system,no_jump_ind);
 
         // Do unwrapping if more than 1 atom and distance >0
         if(no_jump_ind.size()>1 && unwrap_d>=0){
-            LOG()->info("Initial unwrapping of atoms with jump removal...");
+            LOG()->info("Initial unwrapping of atoms for jump remover...");
             if(unwrap_d==0){
                 // Auto find distance
                 unwrap_d = 0.2;
@@ -94,9 +92,8 @@ void Jump_remover::remove_jumps(System& system){
                             min_extent = sel.Box().extent(i);
 
                 while(sel.unwrap_bonds(unwrap_d,leading_index,dims)>1){
-                    LOG()->info("Cutoff {} too small for unwrapping.", unwrap_d);
-                    unwrap_d *= 2.0;
-                    LOG()->info("Trying {}...", unwrap_d);
+                    LOG()->info("Cutoff {} is too small, trying {}...", unwrap_d, 2.0*unwrap_d);
+                    unwrap_d *= 2.0;                    
                     if(unwrap_d > 0.5*min_extent){
                         LOG()->warn("Reached cutoff > 0.5 of box extents!\n"
                                 "Selection is likely to consist of disconnected parts.\n"

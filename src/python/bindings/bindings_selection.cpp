@@ -201,7 +201,7 @@ void make_bindings_Selection(py::module& m){
                 return sel->atom_traj(i,b,e,true); // pass true for row-major matrix
             }, "i"_a, "b"_a=0, "e"_a=-1)
 
-        .def("inertia",[](Selection* sel, Vector3i_const_ref pbc, bool leading_index){
+        .def("inertia",[](Selection* sel, Array3i_const_ref pbc, bool leading_index){
                 Vector3f m;
                 Matrix3f ax;
                 sel->inertia(m,ax,pbc,leading_index);
@@ -224,7 +224,7 @@ void make_bindings_Selection(py::module& m){
         .def("wrap", &Selection::wrap, "pbc"_a=Eigen::Vector3i::Ones())
         .def("unwrap", &Selection::unwrap, "lead_ind"_a=-1, "pbc"_a=Eigen::Vector3i::Ones())
         .def("unwrap_bonds", &Selection::unwrap_bonds, "d"_a, "lead_ind"_a=0, "pbc"_a=Eigen::Vector3i::Ones())
-        .def("principal_transform", [](Selection* sel, Vector3i_const_ref pbc, bool leading_index){
+        .def("principal_transform", [](Selection* sel, Array3i_const_ref pbc, bool leading_index){
                 Matrix4f m = sel->principal_transform(pbc,leading_index).matrix().transpose();
                 return m;
             }, "pbc"_a=Eigen::Vector3i::Zero(),"leading_index"_a=0)
@@ -329,7 +329,7 @@ void make_bindings_Selection(py::module& m){
     m.def("rmsd",[](const Selection& sel1, const Selection& sel2){ return rmsd(sel1,sel2); });
     m.def("rmsd",[](const Selection& sel1, int fr1, const Selection& sel2, int fr2){ return rmsd(sel1,fr1,sel2,fr2); });
     m.def("fit",[](Selection& sel1, const Selection& sel2){ fit(sel1,sel2); });
-    m.def("non_bond_energy", [](const Selection& sel1, const Selection& sel2,float cutoff,int fr,Vector3i_const_ref pbc){
+    m.def("non_bond_energy", [](const Selection& sel1, const Selection& sel2,float cutoff,int fr,Array3i_const_ref pbc){
         return non_bond_energy(sel1,sel2,cutoff,fr,pbc);
     },"sel1"_a, "sel2"_a, "cutoff"_a=0.0, "fr"_a=-1, "pbc"_a=Eigen::Vector3i::Ones());
     m.def("copy_coord",[](const Selection& sel1, int fr1, Selection& sel2, int fr2){ return copy_coord(sel1,fr1,sel2,fr2); });

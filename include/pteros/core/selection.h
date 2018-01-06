@@ -478,7 +478,7 @@ class Selection {
      In this case use one of unwrapping options first.
     */
     Eigen::Vector3f center(bool mass_weighted = false,
-                           Vector3i_const_ref pbc = noPBC,
+                           Array3i_const_ref pbc = noPBC,
                            int leading_index = 0) const;
 
     /// Get minimal and maximal coordinates in selection
@@ -510,7 +510,7 @@ class Selection {
      In this case use one of unwrapping options first.
     */
     void inertia(Vector3f_ref moments, Matrix3f_ref axes,
-                 Vector3i_const_ref pbc = noPBC,
+                 Array3i_const_ref pbc = noPBC,
                  bool leading_index = 0) const;
 
     /** Computes radius of gyration for selection
@@ -520,22 +520,22 @@ class Selection {
      This is not checked automatically!
      In this case use one of unwrapping options first.
     */
-    float gyration(Vector3i_const_ref pbc = noPBC, bool leading_index = 0) const;
+    float gyration(Array3i_const_ref pbc = noPBC, bool leading_index = 0) const;
 
     /// Get distance between two atoms (periodic in given dimensions if needed).
     /// \note
     /// This function takes selection indexes, not absolute indexes.
-    float distance(int i, int j, Vector3i_const_ref pbc = fullPBC) const;
+    float distance(int i, int j, Array3i_const_ref pbc = fullPBC) const;
 
     /// Get angle in degrees between three atoms (periodic in given dimensions if needed).
     /// \note
     /// This function takes selection indexes, not absolute indexes.
-    float angle(int i, int j, int k, Vector3i_const_ref pbc = fullPBC) const;
+    float angle(int i, int j, int k, Array3i_const_ref pbc = fullPBC) const;
 
     /// Get dihedral angle in degrees between three atoms (periodic in given dimensions if needed).
     /// \note
     /// This function takes selection indexes, not absolute indexes.
-    float dihedral(int i, int j, int k, int l, Vector3i_const_ref pbc = fullPBC) const;
+    float dihedral(int i, int j, int k, int l, Array3i_const_ref pbc = fullPBC) const;
 
     /// @}
 
@@ -571,7 +571,7 @@ class Selection {
     void rotate(Vector3f_const_ref angles, Vector3f_const_ref pivot);
 
     /// Wraps whole selection to the periodic box
-    void wrap(Vector3i_const_ref pbc = fullPBC);
+    void wrap(Array3i_const_ref pbc = fullPBC);
 
     /** Unwraps selection to make it whole if possible (without jumps over periodic box boundary).
       The periodic center of mass is used as an anchor point.
@@ -579,7 +579,7 @@ class Selection {
       If the size of selection is larger than 1/2 of the box size in
       any dimension unwrap() will not work as expected and will not make selection "compact"!
     */
-    void unwrap(int leading_index = -1, Vector3i_const_ref pbc = fullPBC);
+    void unwrap(int leading_index = -1, Array3i_const_ref pbc = fullPBC);
 
     /** Unwraps selection to make it whole (without jumps over periodic box boundary).
      * based on preserving all bonds.
@@ -589,14 +589,14 @@ class Selection {
      * @return Number of disconnected pieces after unwrapping. 1 means solid selection.
      */
     int unwrap_bonds(float d, int leading_index = 0,
-                     Vector3i_const_ref pbc = fullPBC);
+                     Array3i_const_ref pbc = fullPBC);
 
     /** Get transform for orienting selection by principal axes.
      * \warning
      * If the size of selection is larger than 1/2 of the box size in
      * any dimension you will get funny results if @param is_periodic is set to true.
      */    
-    Eigen::Affine3f principal_transform(Vector3i_const_ref pbc = noPBC, bool leading_index = 0) const;
+    Eigen::Affine3f principal_transform(Array3i_const_ref pbc = noPBC, bool leading_index = 0) const;
 
     /** Orient molecule by its principal axes.
      * The same as
@@ -605,7 +605,7 @@ class Selection {
      * sel.apply_transform(tr);
      * \endcode
      */
-    void principal_orient(Vector3i_const_ref pbc = noPBC, bool leading_index = 0);
+    void principal_orient(Array3i_const_ref pbc = noPBC, bool leading_index = 0);
     /// @}
 
 
@@ -656,7 +656,7 @@ class Selection {
 
     /// Self-energy of selection computed within given interaction cut-off.
     /// If cutoff is 0 the cutoff from topology is used.
-    Eigen::Vector2f non_bond_energy(float cutoff=0, Vector3i_const_ref pbc = fullPBC) const;
+    Eigen::Vector2f non_bond_energy(float cutoff=0, Array3i_const_ref pbc = fullPBC) const;
 
     /// Non-bond energy between two selections computed within given interaction cut-off.
     /// If cutoff is 0 the cutoff from topology is used.
@@ -665,7 +665,7 @@ class Selection {
                                            const Selection& sel2,
                                            float cutoff = 0,
                                            int fr = -1,
-                                           Vector3i_const_ref pbc = fullPBC);
+                                           Array3i_const_ref pbc = fullPBC);
     /// @}
 
 

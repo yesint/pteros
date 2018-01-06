@@ -109,17 +109,17 @@ public:
     ///\endcode
     float distance(Vector3f_const_ref point1,
                    Vector3f_const_ref point2,         
-                   Vector3i_const_ref pbc = Eigen::Vector3i::Ones()) const;
+                   Array3i_const_ref pbc = Eigen::Vector3i::Ones()) const;
 
     /// The same as distance but returns squared distance
     float distance_squared(Vector3f_const_ref point1,
                    Vector3f_const_ref point2,                   
-                   Vector3i_const_ref pbc = Eigen::Vector3i::Ones()) const;
+                   Array3i_const_ref pbc = Eigen::Vector3i::Ones()) const;
 
     /// Wrap point to the box for given set of dimensions
     /// Origin of the box coordinates is assumed to be {0,0,0}.
     void wrap_point(Vector3f_ref point,
-                    Vector3i_const_ref pbc = Eigen::Vector3i::Ones()) const;
+                    Array3i_const_ref pbc = Eigen::Vector3i::Ones()) const;
 
     /// Determine if the point is inside the box
     /// Origin of the box coordinates defaults to {0,0,0}.
@@ -128,12 +128,12 @@ public:
     /// Finds a periodic image of point, which is closest in space to target and returns it    
     Eigen::Vector3f get_closest_image(Vector3f_const_ref point,
                                       Vector3f_const_ref target,
-                                      Vector3i_const_ref pbc = Eigen::Vector3i::Ones()) const;
+                                      Array3i_const_ref pbc = Eigen::Vector3i::Ones()) const;
 
     /// Computes shortest vector from point1 to point2 between their closest images
     Eigen::Vector3f shortest_vector(Vector3f_const_ref point1,
                                     Vector3f_const_ref point2,
-                                    Vector3i_const_ref pbc = Eigen::Vector3i::Ones()) const;
+                                    Array3i_const_ref pbc = Eigen::Vector3i::Ones()) const;
 
     /// Returns box volume
     float volume();

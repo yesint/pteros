@@ -105,12 +105,12 @@ Vector3f Periodic_box::extents() const {
     return _box.colwise().norm();
 }
 
-float Periodic_box::distance_squared(Vector3f_const_ref point1, Vector3f_const_ref point2, Vector3i_const_ref pbc) const
+float Periodic_box::distance_squared(Vector3f_const_ref point1, Vector3f_const_ref point2, Array3i_const_ref pbc) const
 {
     return shortest_vector(point1,point2,pbc).squaredNorm();
 }
 
-float Periodic_box::distance(Vector3f_const_ref point1, Vector3f_const_ref point2, Vector3i_const_ref pbc) const
+float Periodic_box::distance(Vector3f_const_ref point1, Vector3f_const_ref point2, Array3i_const_ref pbc) const
 {
     return shortest_vector(point1,point2,pbc).norm();
 }
@@ -119,7 +119,7 @@ float Periodic_box::volume(){
     return _box.col(1).cross( _box.col(2) ).dot( _box.col(0) );
 }
 
-void Periodic_box::wrap_point(Vector3f_ref point, Vector3i_const_ref pbc) const
+void Periodic_box::wrap_point(Vector3f_ref point, Array3i_const_ref pbc) const
 {
     point = _box_inv*point;
     for(int i=0;i<3;++i){
@@ -142,12 +142,12 @@ bool Periodic_box::in_box(Vector3f_const_ref point, Vector3f_const_ref origin) c
 }
 
 
-Eigen::Vector3f Periodic_box::get_closest_image(Vector3f_const_ref point, Vector3f_const_ref target, Vector3i_const_ref pbc) const
+Eigen::Vector3f Periodic_box::get_closest_image(Vector3f_const_ref point, Vector3f_const_ref target, Array3i_const_ref pbc) const
 {    
     return target + shortest_vector(target,point,pbc);
 }
 
-Vector3f Periodic_box::shortest_vector(Vector3f_const_ref point1, Vector3f_const_ref point2, Vector3i_const_ref pbc) const
+Vector3f Periodic_box::shortest_vector(Vector3f_const_ref point1, Vector3f_const_ref point2, Array3i_const_ref pbc) const
 {
     if(_is_periodic){
         Vector3f d = _box_inv*(point2-point1);

@@ -427,7 +427,7 @@ public:
     /// @{
 
     /// Wrap all system to the periodic box for given frame
-    void wrap(int fr, Vector3i_const_ref pbc = fullPBC);
+    void wrap(int fr, Array3i_const_ref pbc = fullPBC);
 
     /// @}
 
@@ -436,13 +436,13 @@ public:
     /// @{
 
     /// Get distance between two atoms for given frame (periodic in given dimensions if needed).
-    float distance(int i, int j, int fr, Vector3i_const_ref pbc = fullPBC) const;
+    float distance(int i, int j, int fr, Array3i_const_ref pbc = fullPBC) const;
 
     /// Get angle in degrees between three atoms for given frame (periodic in given dimensions if needed).
-    float angle(int i, int j, int k, int fr, Vector3i_const_ref pbc = fullPBC) const;
+    float angle(int i, int j, int k, int fr, Array3i_const_ref pbc = fullPBC) const;
 
     /// Get dihedral angle in degrees between three atoms for given frame (periodic in given dimensions if needed).
-    float dihedral(int i, int j, int k, int l, int fr, Vector3i_const_ref pbc = fullPBC) const;
+    float dihedral(int i, int j, int k, int l, int fr, Array3i_const_ref pbc = fullPBC) const;
 
     /// @}
 

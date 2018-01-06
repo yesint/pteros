@@ -864,8 +864,8 @@ inline void wrap_coord(Vector3f& point, const Matrix3f& box,
     point = b*prj;
 }
 
-float System::distance(int i, int j, int fr, Vector3i_const_ref pbc) const {
-    if(pbc(0)!=0 || pbc(1)!=0 || pbc(2)!=0){
+float System::distance(int i, int j, int fr, Array3i_const_ref pbc) const {
+    if( (pbc!=0).any() ){
         return traj[fr].box.distance(traj[fr].coord[i], traj[fr].coord[j], pbc);
     } else {
         return (traj[fr].coord[i] - traj[fr].coord[j]).norm();
@@ -873,10 +873,10 @@ float System::distance(int i, int j, int fr, Vector3i_const_ref pbc) const {
 }
 
 
-float System::angle(int i, int j, int k, int fr, Vector3i_const_ref pbc) const
+float System::angle(int i, int j, int k, int fr, Array3i_const_ref pbc) const
 {
     Vector3f v1,v2;
-    if(pbc(0)!=0 || pbc(1)!=0 || pbc(2)!=0){
+    if( (pbc!=0).any() ){
         v1 = Box(fr).shortest_vector(XYZ(i,fr),XYZ(j,fr),pbc);
         v2 = Box(fr).shortest_vector(XYZ(k,fr),XYZ(j,fr),pbc);
     } else {
@@ -886,10 +886,10 @@ float System::angle(int i, int j, int k, int fr, Vector3i_const_ref pbc) const
     return acos(v1.dot(v2)/(v1.norm()*v2.norm()));
 }
 
-float System::dihedral(int i, int j, int k, int l, int fr, Vector3i_const_ref pbc) const
+float System::dihedral(int i, int j, int k, int l, int fr, Array3i_const_ref pbc) const
 {
     Vector3f b1,b2,b3;
-    if(pbc(0)!=0 || pbc(1)!=0 || pbc(2)!=0){
+    if( (pbc!=0).any() ){
         Vector3f _i = XYZ(i,fr);
         Vector3f _j = Box(fr).get_closest_image(XYZ(j,fr),_i,pbc);
         Vector3f _k = Box(fr).get_closest_image(XYZ(k,fr),_i,pbc);
@@ -908,7 +908,7 @@ float System::dihedral(int i, int j, int k, int l, int fr, Vector3i_const_ref pb
                   (b1.cross(b2)).dot(b2.cross(b3)) );
 }
 
-void System::wrap(int fr, Vector3i_const_ref pbc){
+void System::wrap(int fr, Array3i_const_ref pbc){
     for(int i=0;i<num_atoms();++i){
         traj[fr].box.wrap_point(XYZ(i,fr),pbc);
     }
