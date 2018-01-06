@@ -588,8 +588,7 @@ class Selection {
      * @param leading_index Local index of the reference atom, which doesn't move.
      * @return Number of disconnected pieces after unwrapping. 1 means solid selection.
      */
-    int unwrap_bonds(float d, int leading_index = 0,
-                     Array3i_const_ref pbc = fullPBC);
+    int unwrap_bonds(float d, Array3i_const_ref pbc = fullPBC, int leading_index = 0);
 
     /** Get transform for orienting selection by principal axes.
      * \warning

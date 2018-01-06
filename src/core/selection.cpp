@@ -1751,7 +1751,7 @@ void Selection::unwrap(int leading_index, Array3i_const_ref pbc){
     }
 }
 
-int Selection::unwrap_bonds(float d, int leading_index, Array3i_const_ref pbc){
+int Selection::unwrap_bonds(float d, Array3i_const_ref pbc, int leading_index){
     int Nparts = 1;
 
     // a connectivity structure in the form con[i]->1,2,5...

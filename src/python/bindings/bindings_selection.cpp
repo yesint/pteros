@@ -223,7 +223,7 @@ void make_bindings_Selection(py::module& m){
         .def("rotate",py::overload_cast<Vector3f_const_ref,Vector3f_const_ref>(&Selection::rotate))
         .def("wrap", &Selection::wrap, "pbc"_a=Eigen::Vector3i::Ones())
         .def("unwrap", &Selection::unwrap, "lead_ind"_a=-1, "pbc"_a=Eigen::Vector3i::Ones())
-        .def("unwrap_bonds", &Selection::unwrap_bonds, "d"_a, "lead_ind"_a=0, "pbc"_a=Eigen::Vector3i::Ones())
+        .def("unwrap_bonds", &Selection::unwrap_bonds, "d"_a, "pbc"_a=Eigen::Vector3i::Ones(), "lead_ind"_a=0)
         .def("principal_transform", [](Selection* sel, Array3i_const_ref pbc, bool leading_index){
                 Matrix4f m = sel->principal_transform(pbc,leading_index).matrix().transpose();
                 return m;

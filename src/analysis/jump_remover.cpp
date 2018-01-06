@@ -91,7 +91,7 @@ void Jump_remover::remove_jumps(System& system){
                         if(sel.Box().extent(i)<min_extent)
                             min_extent = sel.Box().extent(i);
 
-                while(sel.unwrap_bonds(unwrap_d,leading_index,dims)>1){
+                while(sel.unwrap_bonds(unwrap_d,dims,leading_index)>1){
                     LOG()->info("Cutoff {} is too small, trying {}...", unwrap_d, 2.0*unwrap_d);
                     unwrap_d *= 2.0;                    
                     if(unwrap_d > 0.5*min_extent){
@@ -103,7 +103,7 @@ void Jump_remover::remove_jumps(System& system){
                 }
             } else {
                 // Unwrap with given distance
-                sel.unwrap_bonds(unwrap_d,leading_index,dims);
+                sel.unwrap_bonds(unwrap_d,dims,leading_index);
             }
             LOG()->info("Unwrapping done.");
         }
