@@ -24,6 +24,7 @@
  *
 */
 
+
 #ifndef SELECTION_H
 #define SELECTION_H
 
@@ -1188,3 +1189,4 @@ private:
 
 } // namespace pteros
 #endif /* SELECTION_H */
+

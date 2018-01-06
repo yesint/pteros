@@ -1,24 +1,29 @@
 /*
+ * This file is a part of
  *
- *                This source code is part of
- *                    ******************
- *                    ***   Pteros   ***
- *                    ******************
- *                 molecular modeling library
+ * ============================================
+ * ###   Pteros molecular modeling library  ###
+ * ============================================
  *
- * Copyright (c) 2009-2017, Semen Yesylevskyy
+ * (C) 2009-2018, Semen Yesylevskyy
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of Artistic License:
+ * All works, which use Pteros, should cite the following papers:
+ *  
+ *  1.  Semen O. Yesylevskyy, "Pteros 2.0: Evolution of the fast parallel
+ *      molecular analysis library for C++ and python",
+ *      Journal of Computational Chemistry, 2015, 36(19), 1480–1488.
+ *      doi: 10.1002/jcc.23943.
  *
- * Please note, that Artistic License is slightly more restrictive
- * then GPL license in terms of distributing the modified versions
- * of this software (they should be approved first).
- * Read http://www.opensource.org/licenses/artistic-license-2.0.php
- * for details. Such license fits scientific software better then
- * GPL because it prevents the distribution of bugged derivatives.
+ *  2.  Semen O. Yesylevskyy, "Pteros: Fast and easy to use open-source C++
+ *      library for molecular analysis",
+ *      Journal of Computational Chemistry, 2012, 33(19), 1632–1636.
+ *      doi: 10.1002/jcc.22989.
+ *
+ * This is free software distributed under Artistic License:
+ * http://www.opensource.org/licenses/artistic-license-2.0.php
  *
 */
+
 
 #include "pteros/core/periodic_box.h"
 #include "bindings_util.h"
@@ -64,3 +69,4 @@ void make_bindings_Periodic_box(py::module& m){
         })
     ;
 }
+
