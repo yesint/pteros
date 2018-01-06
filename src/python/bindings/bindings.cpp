@@ -47,6 +47,9 @@ PYBIND11_MODULE(_pteros, m) {
     m.def("angle_between_vectors",&angle_between_vectors);
     m.def("project_vector",&project_vector);            
 
+    m.attr("noPBC") = py::cast(noPBC);
+    m.attr("fullPBC") = py::cast(fullPBC);
+
     py::class_<Histogram>(m,"Histogram")
             .def(py::init<float,float,int>())
             .def("add",py::overload_cast<float>(&Histogram::add))

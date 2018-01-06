@@ -864,21 +864,21 @@ inline void wrap_coord(Vector3f& point, const Matrix3f& box,
     point = b*prj;
 }
 
-float System::distance(int i, int j, int fr, Vector3i_const_ref dims) const {
-    if(dims(0)!=0 || dims(1)!=0 || dims(2)!=0){
-        return traj[fr].box.distance(traj[fr].coord[i], traj[fr].coord[j], dims);
+float System::distance(int i, int j, int fr, Vector3i_const_ref pbc) const {
+    if(pbc(0)!=0 || pbc(1)!=0 || pbc(2)!=0){
+        return traj[fr].box.distance(traj[fr].coord[i], traj[fr].coord[j], pbc);
     } else {
         return (traj[fr].coord[i] - traj[fr].coord[j]).norm();
     }
 }
 
 
-float System::angle(int i, int j, int k, int fr, Vector3i_const_ref dims) const
+float System::angle(int i, int j, int k, int fr, Vector3i_const_ref pbc) const
 {
     Vector3f v1,v2;
-    if(dims(0)!=0 || dims(1)!=0 || dims(2)!=0){
-        v1 = Box(fr).shortest_vector(XYZ(i,fr),XYZ(j,fr),dims);
-        v2 = Box(fr).shortest_vector(XYZ(k,fr),XYZ(j,fr),dims);
+    if(pbc(0)!=0 || pbc(1)!=0 || pbc(2)!=0){
+        v1 = Box(fr).shortest_vector(XYZ(i,fr),XYZ(j,fr),pbc);
+        v2 = Box(fr).shortest_vector(XYZ(k,fr),XYZ(j,fr),pbc);
     } else {
         v1 = XYZ(i,fr)-XYZ(j,fr);
         v2 = XYZ(k,fr)-XYZ(j,fr);
@@ -886,14 +886,14 @@ float System::angle(int i, int j, int k, int fr, Vector3i_const_ref dims) const
     return acos(v1.dot(v2)/(v1.norm()*v2.norm()));
 }
 
-float System::dihedral(int i, int j, int k, int l, int fr, Vector3i_const_ref dims) const
+float System::dihedral(int i, int j, int k, int l, int fr, Vector3i_const_ref pbc) const
 {
     Vector3f b1,b2,b3;
-    if(dims(0)!=0 || dims(1)!=0 || dims(2)!=0){
+    if(pbc(0)!=0 || pbc(1)!=0 || pbc(2)!=0){
         Vector3f _i = XYZ(i,fr);
-        Vector3f _j = Box(fr).get_closest_image(XYZ(j,fr),_i,dims);
-        Vector3f _k = Box(fr).get_closest_image(XYZ(k,fr),_i,dims);
-        Vector3f _l = Box(fr).get_closest_image(XYZ(l,fr),_i,dims);
+        Vector3f _j = Box(fr).get_closest_image(XYZ(j,fr),_i,pbc);
+        Vector3f _k = Box(fr).get_closest_image(XYZ(k,fr),_i,pbc);
+        Vector3f _l = Box(fr).get_closest_image(XYZ(l,fr),_i,pbc);
         b1 = _j - _i;
         b2 = _k - _j;
         b3 = _l - _k;
@@ -908,9 +908,9 @@ float System::dihedral(int i, int j, int k, int l, int fr, Vector3i_const_ref di
                   (b1.cross(b2)).dot(b2.cross(b3)) );
 }
 
-void System::wrap(int fr, Vector3i_const_ref dims_to_wrap){
+void System::wrap(int fr, Vector3i_const_ref pbc){
     for(int i=0;i<num_atoms();++i){
-        traj[fr].box.wrap_point(XYZ(i,fr),dims_to_wrap);
+        traj[fr].box.wrap_point(XYZ(i,fr),pbc);
     }
 }
 

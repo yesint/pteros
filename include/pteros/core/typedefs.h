@@ -39,6 +39,9 @@ using VectorXf_const_ref = const Eigen::Ref<const Eigen::VectorXf>& ;
 using MatrixXf_const_ref = const Eigen::Ref<const Eigen::MatrixXf>& ;
 using Vector3i_const_ref = const Eigen::Ref<const Eigen::Vector3i>& ;
 
+static const Eigen::Vector3i fullPBC = Eigen::Vector3i::Ones();
+static const Eigen::Vector3i noPBC   = Eigen::Vector3i::Zero();
+
 }
 
 #endif
