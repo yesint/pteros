@@ -51,9 +51,9 @@ void Jump_remover::add_atoms(const Selection &sel)
     no_jump_ind.resize( it - no_jump_ind.begin() );
 }
 
-void Jump_remover::set_dimensions(Vector3i_const_ref dim)
+void Jump_remover::set_pbc(Vector3i_const_ref pbc)
 {
-    dims = dim;
+    dims = pbc;
     if(dims.sum()==0) LOG()->warn("No periodic dimensions, skipping jump removing.");
 }
 

@@ -105,25 +105,25 @@ Vector3f Periodic_box::extents() const {
     return _box.colwise().norm();
 }
 
-float Periodic_box::distance_squared(Vector3f_const_ref point1, Vector3f_const_ref point2, Vector3i_const_ref dims) const
+float Periodic_box::distance_squared(Vector3f_const_ref point1, Vector3f_const_ref point2, Vector3i_const_ref pbc) const
 {
-    return shortest_vector(point1,point2,dims).squaredNorm();
+    return shortest_vector(point1,point2,pbc).squaredNorm();
 }
 
-float Periodic_box::distance(Vector3f_const_ref point1, Vector3f_const_ref point2, Vector3i_const_ref dims) const
+float Periodic_box::distance(Vector3f_const_ref point1, Vector3f_const_ref point2, Vector3i_const_ref pbc) const
 {
-    return shortest_vector(point1,point2,dims).norm();
+    return shortest_vector(point1,point2,pbc).norm();
 }
 
 float Periodic_box::volume(){
     return _box.col(1).cross( _box.col(2) ).dot( _box.col(0) );
 }
 
-void Periodic_box::wrap_point(Vector3f_ref point, Vector3i_const_ref dims) const
+void Periodic_box::wrap_point(Vector3f_ref point, Vector3i_const_ref pbc) const
 {
     point = _box_inv*point;
     for(int i=0;i<3;++i){
-        if(dims(i)!=0){
+        if(pbc(i)!=0){
             point(i) -= round(point(i));
             if(point(i)<0) point(i) += 1.0;
         }
@@ -142,17 +142,17 @@ bool Periodic_box::in_box(Vector3f_const_ref point, Vector3f_const_ref origin) c
 }
 
 
-Eigen::Vector3f Periodic_box::get_closest_image(Vector3f_const_ref point, Vector3f_const_ref target, Vector3i_const_ref dims) const
+Eigen::Vector3f Periodic_box::get_closest_image(Vector3f_const_ref point, Vector3f_const_ref target, Vector3i_const_ref pbc) const
 {    
-    return target + shortest_vector(target,point,dims);
+    return target + shortest_vector(target,point,pbc);
 }
 
-Vector3f Periodic_box::shortest_vector(Vector3f_const_ref point1, Vector3f_const_ref point2, Vector3i_const_ref dims) const
+Vector3f Periodic_box::shortest_vector(Vector3f_const_ref point1, Vector3f_const_ref point2, Vector3i_const_ref pbc) const
 {
     if(_is_periodic){
         Vector3f d = _box_inv*(point2-point1);
         for(int i=0;i<3;++i){
-            if(dims(i)!=0){
+            if(pbc(i)!=0){
                 d(i) -= round(d(i));
             }
         }

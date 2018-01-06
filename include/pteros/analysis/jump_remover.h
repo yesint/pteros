@@ -32,7 +32,7 @@ class Jump_remover {
 public:    
     Jump_remover();
     void add_atoms(const Selection &sel);
-    void set_dimensions(Vector3i_const_ref dim);
+    void set_pbc(Vector3i_const_ref pbc);
     /// -1 means do not unwrap, 0 means auto find distance
     void set_unwrap_dist(float d);
     void set_leading_index(int ind);

@@ -113,12 +113,12 @@ void make_bindings_System(py::module& m){
         .def("atom_clone", &System::atom_clone)
 
         // wrap
-        .def("wrap", &System::wrap, "fr"_a, "dims"_a=Eigen::Vector3i::Ones())
+        .def("wrap", &System::wrap, "fr"_a, "pbc"_a=Eigen::Vector3i::Ones())
 
         // measuring
-        .def("distance", &System::distance, "i"_a, "j"_a, "fr"_a, "dims"_a=Eigen::Vector3i::Ones())
-        .def("angle", &System::angle, "i"_a, "j"_a, "k"_a, "fr"_a, "dims"_a=Eigen::Vector3i::Ones())
-        .def("dihedral", &System::dihedral, "i"_a, "j"_a, "k"_a, "l"_a, "fr"_a, "dims"_a=Eigen::Vector3i::Ones())
+        .def("distance", &System::distance, "i"_a, "j"_a, "fr"_a, "pbc"_a=Eigen::Vector3i::Ones())
+        .def("angle", &System::angle, "i"_a, "j"_a, "k"_a, "fr"_a, "pbc"_a=Eigen::Vector3i::Ones())
+        .def("dihedral", &System::dihedral, "i"_a, "j"_a, "k"_a, "l"_a, "fr"_a, "pbc"_a=Eigen::Vector3i::Ones())
 
          // Until
         .def("clear", &System::clear)
