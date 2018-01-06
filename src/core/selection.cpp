@@ -1739,9 +1739,9 @@ void Selection::wrap(Array3i_const_ref pbc){
     }
 }
 
-void Selection::unwrap(int leading_index, Array3i_const_ref pbc){
+void Selection::unwrap(Array3i_const_ref pbc, int leading_index){
     Vector3f c;
-    if(leading_index>=0){
+    if( (pbc==0).all() && leading_index>=0){
         c = XYZ(leading_index);
     } else {
         c = center(true,pbc,leading_index);

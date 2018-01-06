@@ -574,12 +574,12 @@ class Selection {
     void wrap(Array3i_const_ref pbc = fullPBC);
 
     /** Unwraps selection to make it whole if possible (without jumps over periodic box boundary).
-      The periodic center of mass is used as an anchor point.
+      The periodic center of mass is used as an anchor point if leading_index<0.
       \warning
       If the size of selection is larger than 1/2 of the box size in
       any dimension unwrap() will not work as expected and will not make selection "compact"!
     */
-    void unwrap(int leading_index = -1, Array3i_const_ref pbc = fullPBC);
+    void unwrap(Array3i_const_ref pbc = fullPBC, int leading_index = 0);
 
     /** Unwraps selection to make it whole (without jumps over periodic box boundary).
      * based on preserving all bonds.

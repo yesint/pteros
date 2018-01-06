@@ -161,7 +161,7 @@ void make_bindings_Selection(py::module& m){
         .def("set_tag",py::overload_cast<const std::vector<string>&>(&Selection::set_tag))
 
         // Properties
-        .def("center",&Selection::center,"mass_weighted"_a=false,"pbc"_a=Eigen::Vector3i::Zero(),"leading_index"_a=0)
+        .def("center",&Selection::center,"mass_weighted"_a=false,"pbc"_a=noPBC,"leading_index"_a=0)
         .def("minmax",[](Selection* sel){Vector3f min,max; sel->minmax(min,max); return py::make_tuple(min,max);})
 
         .def("powersasa", [](Selection* sel, float probe_r, bool do_area_per_atom, bool do_total_volume, bool do_vol_per_atom){
@@ -206,13 +206,13 @@ void make_bindings_Selection(py::module& m){
                 Matrix3f ax;
                 sel->inertia(m,ax,pbc,leading_index);
                 return py::make_tuple(m,ax.transpose());
-            },"pbc"_a=Eigen::Vector3i::Zero(),"leading_index"_a=0)
+            },"pbc"_a=noPBC,"leading_index"_a=0)
 
-        .def("gyration",&Selection::gyration, "pbc"_a=Eigen::Vector3i::Zero(),"leading_index"_a=0)
+        .def("gyration",&Selection::gyration, "pbc"_a=noPBC,"leading_index"_a=0)
 
-        .def("distance", &Selection::distance, "i"_a, "j"_a, "pbc"_a=Eigen::Vector3i::Ones())
-        .def("angle", &Selection::angle, "i"_a, "j"_a, "k"_a, "pbc"_a=Eigen::Vector3i::Ones())
-        .def("dihedral", &Selection::dihedral, "i"_a, "j"_a, "k"_a, "l"_a, "pbc"_a=Eigen::Vector3i::Ones())
+        .def("distance", &Selection::distance, "i"_a, "j"_a, "pbc"_a=fullPBC)
+        .def("angle", &Selection::angle, "i"_a, "j"_a, "k"_a, "pbc"_a=fullPBC)
+        .def("dihedral", &Selection::dihedral, "i"_a, "j"_a, "k"_a, "l"_a, "pbc"_a=fullPBC)
 
         // Geometry transforms
         .def("translate", &Selection::translate)
@@ -221,15 +221,15 @@ void make_bindings_Selection(py::module& m){
         .def("rotate",py::overload_cast<Vector3f_const_ref,float,Vector3f_const_ref>(&Selection::rotate))
         .def("rotate",[](Selection* sel, Matrix3f_const_ref m){ sel->rotate(m.transpose()); })
         .def("rotate",py::overload_cast<Vector3f_const_ref,Vector3f_const_ref>(&Selection::rotate))
-        .def("wrap", &Selection::wrap, "pbc"_a=Eigen::Vector3i::Ones())
-        .def("unwrap", &Selection::unwrap, "lead_ind"_a=-1, "pbc"_a=Eigen::Vector3i::Ones())
-        .def("unwrap_bonds", &Selection::unwrap_bonds, "d"_a, "pbc"_a=Eigen::Vector3i::Ones(), "lead_ind"_a=0)
+        .def("wrap", &Selection::wrap, "pbc"_a=fullPBC)
+        .def("unwrap", &Selection::unwrap, "pbc"_a=fullPBC, "lead_ind"_a=-1)
+        .def("unwrap_bonds", &Selection::unwrap_bonds, "d"_a, "pbc"_a=fullPBC, "lead_ind"_a=0)
         .def("principal_transform", [](Selection* sel, Array3i_const_ref pbc, bool leading_index){
                 Matrix4f m = sel->principal_transform(pbc,leading_index).matrix().transpose();
                 return m;
-            }, "pbc"_a=Eigen::Vector3i::Zero(),"leading_index"_a=0)
+            }, "pbc"_a=noPBC,"leading_index"_a=0)
 
-        .def("principal_orient",&Selection::principal_orient,"pbc"_a=Eigen::Vector3i::Zero(),"leading_index"_a=0)
+        .def("principal_orient",&Selection::principal_orient,"pbc"_a=noPBC,"leading_index"_a=0)
 
         // Fitting and rmsd
         .def("rmsd",py::overload_cast<int>(&Selection::rmsd,py::const_))
@@ -247,7 +247,7 @@ void make_bindings_Selection(py::module& m){
             })
 
         // Energy
-        .def("non_bond_energy", &Selection::non_bond_energy, "cutoff"_a=0.0, "pbc"_a=Eigen::Vector3i::Ones())
+        .def("non_bond_energy", &Selection::non_bond_energy, "cutoff"_a=0.0, "pbc"_a=fullPBC)
 
         // IO
         .def("write", py::overload_cast<string,int,int>(&Selection::write), "fname"_a, "b"_a=0, "e"_a=-1)
@@ -331,7 +331,7 @@ void make_bindings_Selection(py::module& m){
     m.def("fit",[](Selection& sel1, const Selection& sel2){ fit(sel1,sel2); });
     m.def("non_bond_energy", [](const Selection& sel1, const Selection& sel2,float cutoff,int fr,Array3i_const_ref pbc){
         return non_bond_energy(sel1,sel2,cutoff,fr,pbc);
-    },"sel1"_a, "sel2"_a, "cutoff"_a=0.0, "fr"_a=-1, "pbc"_a=Eigen::Vector3i::Ones());
+    },"sel1"_a, "sel2"_a, "cutoff"_a=0.0, "fr"_a=-1, "pbc"_a=fullPBC);
     m.def("copy_coord",[](const Selection& sel1, int fr1, Selection& sel2, int fr2){ return copy_coord(sel1,fr1,sel2,fr2); });
 
 }

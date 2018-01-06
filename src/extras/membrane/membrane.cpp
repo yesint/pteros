@@ -412,7 +412,7 @@ Lipid::Lipid(const Selection &sel, const Lipid_descr &descr){
 void Lipid::set_markers()
 {
     // Unwrap this lipid with leading index of position[0]
-    whole_sel.unwrap(mid_sel.Index(0)-whole_sel.Index(0));
+    whole_sel.unwrap(fullPBC, mid_sel.Index(0)-whole_sel.Index(0));
 
     // save coords of first atoms
     saved_head0 = head_sel.XYZ(0);

@@ -29,7 +29,7 @@ using namespace pteros;
 
 
 Jump_remover::Jump_remover():
-    dims(Eigen::Vector3i::Ones()),
+    dims(fullPBC),
     unwrap_d(-1.0),
     leading_index(0),
     initialized(false)
