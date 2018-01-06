@@ -46,7 +46,7 @@ private:
     // Running reference coordinates for removing jumps
     Eigen::MatrixXf no_jump_ref;
     // Dimensions to consider
-    Eigen::Vector3i dims;
+    Eigen::Array3i dims;
     // Starting distance for unwrapping. -1 means no unwrapping (default)
     float unwrap_d;
     // Leading index for unwrapping
