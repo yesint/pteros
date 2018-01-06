@@ -4,7 +4,7 @@
                     ******************
                  Molecular Modeling Library
 
-Copyright (c) 2009-2017, Semen Yesylevskyy
+Copyright (c) 2009-2018, Semen Yesylevskyy
 Contact e-mail: yesint4@yahoo.com
 
 This program is free software. You can redistribute and
@@ -13,27 +13,36 @@ modify it under the terms of Artistic License 2.0 (http://opensource.org/license
 Artistic License prohibits distribution of the modified versions
 of this software without approval!
 
-Additionally you are obliged to cite the following paper in any work, which uses Pteros:
+Additionally you are obliged to cite the following papers in any work, which uses Pteros:
 
-Yesylevskyy S.O. "Pteros: fast and easy to use open-source C++ library for molecular analysis", 
-J Comput Chem. 2012 33(19) 1632-1636. doi: 10.1002/jcc.22989
+  1.  Semen O. Yesylevskyy, "Pteros 2.0: Evolution of the fast parallel
+      molecular analysis library for C++ and python",
+      Journal of Computational Chemistry, 2015, 36(19), 1480–1488.
+      doi: 10.1002/jcc.23943.
 
+  2.  Semen O. Yesylevskyy, "Pteros: Fast and easy to use open-source C++
+      library for molecular analysis",
+      Journal of Computational Chemistry, 2012, 33(19), 1632–1636.
+      doi: 10.1002/jcc.22989.
  
-The following parts of this software are written by other people and are distributed with different licenses:
+The following parts of the code are written by other people and are distributed under different licenses:
 
-* include/Eigen - MPL2 license (http://www.mozilla.org/MPL/2.0/)
+* thirdparty/dssp - Boost License (http://www.boost.org/LICENSE_1_0.txt)
 
-* src/core/molfile_plugins -  UIUC Open Source License (http://www.ks.uiuc.edu/Research/vmd/plugins/pluginlicense.html)
+* thirdparty/molfile_plugins -  UIUC Open Source License 
+		(http://www.ks.uiuc.edu/Research/vmd/plugins/pluginlicense.html)
 
-* src/core/xdrfile - GNU LGPL 3 license (http://www.gnu.org/licenses/lgpl.html)
-
-* src/core/dssp - Boost License (http://www.boost.org/LICENSE_1_0.txt)
-
-* src/core/sasa - Academic/Non-Profit SASA software license agreement. 
-		  See comment in the file src/core/sasa/power_sasa.h for details.
-		  This license is NOT Open Source and imply many restrictions!
+* thirdparty/powersasa - Academic/Non-Profit SASA software license agreement.
+		  See comment in thirdparty/powersasa/power_diagram.h for details.
+		  This license is NOT Open Source and imply restrictions!
 		  Please read it carefully. If you agree with this license and performed all required steps
-		  than use the following flag when invoking cmake: -DPOWERSASA="ON"
+		  than use the following flag when invoking cmake: -DWITH_POWERSASA="ON"
 		  By default this code is NOT compiled. Pteros dosn't support SASA computations without it.
 
+* thirdparty/sasa - GNU LGPL 2.1 license (http://www.gnu.org/licenses/lgpl.html)
 
+* thirdparty/tng_io - BSD license (https://opensource.org/licenses/BSD-3-Clause)
+
+* thirdparty/voro++ - BSD license (https://opensource.org/licenses/BSD-3-Clause)
+
+* thirdparty/xdrfile - GNU LGPL 3 license (http://www.gnu.org/licenses/lgpl.html)
