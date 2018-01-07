@@ -57,13 +57,21 @@ System::System(string fname) {
 }
 
 System::System(const System& other){
+    if(&other==this) return;
     clear();
     atoms = other.atoms;
     traj = other.traj;
     force_field = other.force_field;
 }
 
-System& System::operator=(System other){
+System::System(const Selection &sel){
+    if(sel.get_system()==this) throw Pteros_error("Can't construct system from selection of itself!");
+    append(sel);
+}
+
+
+System& System::operator=(const System& other){
+    if(&other==this) return *this;
     clear();
     atoms = other.atoms;
     traj = other.traj;
@@ -646,11 +654,11 @@ Selection System::append(const Selection &sel){
     int first_added = num_atoms();    
 
     // Merge atoms
-    //atoms.reserve(atoms.size()+sel.size());
+    atoms.reserve(atoms.size()+sel.size());
     for(int i=0;i<sel.size();++i) atoms.push_back(sel.Atom_data(i));
     // Merge coordinates    
     for(int fr=0; fr<num_frames(); ++fr){
-        //traj[fr].coord.reserve(atoms.size()+sel.size());
+        traj[fr].coord.reserve(atoms.size());
         if(transfer_time_box){
             traj[fr].time = sel.get_system()->Time(fr);
             traj[fr].box = sel.get_system()->Box(fr);
@@ -661,7 +669,6 @@ Selection System::append(const Selection &sel){
     }
     // Reassign resindex
     assign_resindex(first_added-1);
-
 
     return Selection(*this,first_added,num_atoms()-1);
 }

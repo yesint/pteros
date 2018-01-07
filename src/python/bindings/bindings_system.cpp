@@ -39,6 +39,7 @@ void make_bindings_System(py::module& m){
     py::class_<System>(m, "System")
         .def(py::init<>())
         .def(py::init<const std::string &>())
+        .def(py::init<const Selection &>())
 
         // Size
         .def("num_atoms", &System::num_atoms)

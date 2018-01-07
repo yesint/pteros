@@ -98,7 +98,10 @@ public:
     System(const System& other);
 
     /// Assignment operator
-    System& operator=(System other);
+    System& operator=(const System& other);
+
+    /// Constructing new System from Selection of other system
+    System(const Selection& sel);
 
     /// Destructor
     virtual ~System();

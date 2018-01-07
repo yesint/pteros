@@ -457,24 +457,27 @@ void Selection::modify(const System &sys, const std::function<void (const System
 }
 
 // Assignment
-Selection& Selection::operator=(Selection sel){
+Selection& Selection::operator=(const Selection& other){
     // Sanity check
-    if(sel.system==nullptr) Pteros_error("Operator '=' with selection, which does not belong to the system!");
+    if(other.system==nullptr) Pteros_error("Operator '=' with selection, which does not belong to the system!");
+
+    // Self-assigmnet check
+    if(&other==this) return *this;
 
     // Kill all current data
     clear();
 
     // Copy selection text, index and frame
-    sel_text = sel.sel_text;
-    index = sel.index;
-    frame = sel.frame;
+    sel_text = other.sel_text;
+    index = other.index;
+    frame = other.frame;
 
     // Add to new parent
-    system = sel.system;
+    system = other.system;
 
-    if(sel.parser){
+    if(other.parser){
         parser.reset(new Selection_parser);
-        *parser = *(sel.parser);
+        *parser = *(other.parser);
     };
 
     return *this;
@@ -482,11 +485,11 @@ Selection& Selection::operator=(Selection sel){
 
 // Equality operator
 bool Selection::operator==(const Selection &other) const {
-    return index == other.index;
+    return (system == other.system) && (index == other.index);
 }
 
-Atom_proxy Selection::operator[](int ind) const {    
-    return Atom_proxy(const_cast<Selection*>(this),ind);
+Atom_proxy Selection::operator[](int ind) {
+    return Atom_proxy(this,ind);
 }
 
 Selection Selection::operator~() const {
@@ -573,8 +576,10 @@ Selection operator-(const Selection &sel1, const Selection &sel2)
 } // namespace pteros
 
 // Copy constructor
-Selection::Selection(const Selection& sel){
-    if(sel.system==nullptr){
+Selection::Selection(const Selection& other){
+    if(&other==this) return;
+
+    if(other.system==nullptr){
         // Making copy of empty selection
         system = nullptr;
         sel_text = "";
@@ -584,16 +589,16 @@ Selection::Selection(const Selection& sel){
     }
 
     // Add new data
-    sel_text = sel.sel_text;
-    index = sel.index;
-    frame = sel.frame;
+    sel_text = other.sel_text;
+    index = other.index;
+    frame = other.frame;
     // Add to new parent
-    system = sel.system;
+    system = other.system;
 
     // If parser in sel is persistent, allocate it
-    if(sel.parser){
+    if(other.parser){
         parser.reset(new Selection_parser);
-        *parser = *(sel.parser);
+        *parser = *(other.parser);
     }
 }
 

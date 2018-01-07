@@ -62,7 +62,10 @@ public:
     Periodic_box(Vector3f_const_ref vectors, Vector3f_const_ref angles);
 
     /// Copy constructor
-    Periodic_box& operator=(Periodic_box other);
+    Periodic_box(const Periodic_box& other);
+
+    /// Assignment operator
+    Periodic_box& operator=(const Periodic_box& other);
 
     /// Get i-th box vector
     Eigen::Vector3f get_vector(int i) const;

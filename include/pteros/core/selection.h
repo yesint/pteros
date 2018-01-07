@@ -118,13 +118,13 @@ class Selection {
               int fr = 0);
 
     /// Copy constructor
-    Selection(const Selection& sel);
+    Selection(const Selection& other);
 
     /// Destructor
     virtual ~Selection();
 
     /// Assignment operator
-    Selection& operator=(Selection sel);
+    Selection& operator=(const Selection& other);
 
     /// Equality operator
     /// Selection are compared by their indexes
@@ -157,7 +157,7 @@ class Selection {
 
      Otherwise it is slower than conventional syntax like sel.Name(i)
      */
-    Atom_proxy operator[](int ind) const;
+    Atom_proxy operator[](int ind);
 
     /// Writing selection to stream.
     /// Outputs indexes as a space separated list

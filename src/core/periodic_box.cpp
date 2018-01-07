@@ -53,7 +53,14 @@ Periodic_box::Periodic_box(Vector3f_const_ref vectors, Vector3f_const_ref angles
     from_vectors_angles(vectors,angles);
 }
 
-Periodic_box& Periodic_box::operator=(Periodic_box other){
+Periodic_box::Periodic_box(const Periodic_box &other)
+{
+    if(&other == this) return;
+    set_matrix(other._box);
+}
+
+Periodic_box& Periodic_box::operator=(const Periodic_box& other){
+    if(&other == this) return *this;
     set_matrix(other._box);
     return *this;
 }
@@ -61,7 +68,7 @@ Periodic_box& Periodic_box::operator=(Periodic_box other){
 void Periodic_box::set_matrix(Matrix3f_const_ref matr)
 {
     _box = matr;
-    _is_periodic = (_box.array().abs().sum()>0) ? true : false;
+    _is_periodic = (_box.array()!=0).any() ? true : false;
     if(!_is_periodic) return;
     _box_inv = _box.inverse();
     _is_triclinic = (_box(0,1)||_box(0,2)||_box(1,0)||_box(1,2)||_box(2,0)||_box(2,1));
