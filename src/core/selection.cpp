@@ -385,6 +385,7 @@ void Selection::modify(int ind1, int ind2){
     // Populate selection directly
     if(ind2<ind1) throw Pteros_error("Wrong order of indexes {} and {} (must be ascending)", ind1,ind2);
     index.clear();
+    index.reserve(ind2-ind1+1);
     for(int i=ind1; i<=ind2; ++i) index.push_back(i);       
 }
 
@@ -2041,4 +2042,3 @@ void Selection::get_local_bonds_from_topology(vector<vector<int>>& con){
         }
     }
 }
-

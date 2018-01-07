@@ -747,9 +747,12 @@ class Selection {
     void split_by_contiguous_residue(std::vector<Selection>& parts);
 
     /// Split selection by the values returned by custom callback function.
+    /// Signature of callback is:
+    /// T cb(const Selection&,int)
     /// Callback is called for each atom in selection (local index is passed as its second argument)    
     /// Callback can return any type usable as a key of std::map.
-    /// Selection is split into parts according to returned value.
+    /// Selection is split into parts according to returned values - all identical values
+    /// go to the same part.
     template<class F>
     void split(std::vector<Selection>& parts, F callback){
         using namespace std;
@@ -1013,7 +1016,7 @@ class Selection {
         \code
         sel.get_system()->Box(sel.get_frame());
         \endcode
-        This is a convenience method. The same box is returnedby all selection
+        This is a convenience method. The same box is returned by all selection
         which point to the same frame.
     */
     inline Periodic_box& Box() {
