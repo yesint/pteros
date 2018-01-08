@@ -24,24 +24,11 @@
  *
 */
 
-
-// Remove this define to use internal PDB reader.
-/*
-Internal reader is currently broken!
-On write very large files fail to align coordinate records correctly
-For now VMD molfile plugin is used for PDB files
-*/
-
-#define VMD_PDB
-
-#ifndef PDB_FILE_H
-#define PDB_FILE_H
+#pragma once
 
 #include "vmd_molfile_plugin_wrapper.h"
 
 namespace pteros {
-
-#ifdef VMD_PDB
 
 /// Use VMD plugin for PDB
 class PDB_file: public VMD_molfile_plugin_wrapper {
@@ -55,38 +42,6 @@ public:
 
 };
 
-
-#else
-// Use internal PDB reader
-
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
-This implementation is currently broken!
-On write very large files fail to align coordinate records correctly
-For now VMD molfile plugin is used for PDB files
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
-
-class PDB_file: public Mol_file {
-public:
-
-    PDB_file(std::string fname, char open_mode);
-    ~PDB_file();
-
-    virtual bool do_read(System *sys, Frame *frame, Mol_file_content what);
-    virtual void do_write(Selection &sel, Mol_file_content what);
-
-    virtual Mol_file_content get_content_type(){
-        Mol_file_content c;
-        c.structure = true;
-        c.coordinates = true;
-        return c;
-    }
-
-protected:
-    std::fstream f;    
-};
-
-#endif
-
 }
-#endif /* MOL_FILE_H */
+
 
