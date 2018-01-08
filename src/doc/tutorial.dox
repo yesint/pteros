@@ -1,4 +1,4 @@
-/** \page tutorial Tutorial
+/** \page cpptutorial C++ Tutorial
 
 \tableofcontents
 
@@ -17,9 +17,9 @@ using namespace pteros;
 \endcode
 
 \note
-More advanced usage requires additional headers. For example: `#include "pteros/core/mol_file.h"`
+More advanced usage requires additional headers.
 
-The fundamental objects in Pteros are \e systems and \e selections. System is what its name suggests - the whole molecular system with atoms and their coordinates. The attributes and the coordinates of atoms are physically stored in the system. Typically the system is loaded from one or several files (such as PDB or GRO). The system can contain several sets of coordinates, called \e frames, which are typically loaded from trajectory files of MD simulations. The system can be created in two ways:
+The fundamental objects in Pteros are \e systems and \e selections. System is what its name suggests - the whole molecular system with atoms and their coordinates (plus optional information about bonds, periodic box and force field parameters). The attributes and the coordinates of atoms are physically stored in the system. Typically the system is loaded from one or several files (such as PDB or GRO). The system can contain several sets of coordinates, called \e frames, which are typically loaded from trajectory files of MD simulations (such as XTC or DCD). The system can be created in two ways:
 
 \code
 // 1)
@@ -37,13 +37,13 @@ Atoms and frames are stored inside the system are usually not accessed directly.
 \section selections 	Selections
 
 Selection is a subset of atoms in the System. Selection does not hold any data, but merely
-point to particular group of atoms. There are several ways of creating a selection - from textual description, from the sequence of indexes or using custom selection functions. Every selection is associated with one and only one system. You can't select atoms from several systems simultaneously.
+point to particular group of atoms. There are several ways of creating a selection - from textual description, from the sequence of indexes, by using custom selection functions, etc. (see \ref making_selections "here" for details). Every selection is associated with one and only one system. You can't select atoms from several systems simultaneously.
 
 \subsection text_sel Textual selections
 
 In order to create a selection from the textual dexcription you must supply the parent system and selection string. The selection syntax in Pteros is very similar to one used in <a href="http://www.ks.uiuc.edu/Research/vmd/">VMD</a>.
 
-Instead of giving long and boring formal description of the selection syntax, let's learn it by example:
+Instead of giving long and boring formal description of the selection syntax (available \ref sel_lang "here"), let's learn it by example:
 \code
 // Create a system
 System sys("some-protein.pdb");
