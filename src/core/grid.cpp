@@ -126,12 +126,20 @@ void Grid::populate_periodic(const Selection &sel, const Periodic_box &box, bool
         n3 = floor(NZ*coor(2));
 
         // if coor(i) is 1.000001 or -0.00001 due to numerucal errors correct manually
-        if(n1>=NX) n1=NX-1;
-        if(n1<0) n1=0;
-        if(n2>=NY) n2=NY-1;
-        if(n2<0) n2=0;
-        if(n3>=NZ) n3=NZ-1;
-        if(n3<0) n3=0;
+        if(n1>=NX)
+            n1=NX-1;
+        else if(n1<0)
+            n1=0;
+
+        if(n2>=NY)
+            n2=NY-1;
+        else if(n2<0)
+            n2=0;
+
+        if(n3>=NZ)
+            n3=NZ-1;
+        else if(n3<0)
+            n3=0;
 
         // Assign to grid
         if(abs_index){

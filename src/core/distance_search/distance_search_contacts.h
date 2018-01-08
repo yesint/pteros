@@ -35,7 +35,7 @@ namespace pteros {
 class Distance_search_contacts: public Distance_search_base {
 public:
 protected:
-    // withited array
+    // wisited array
     boost::multi_array<bool, 3> visited;
     // Pointers for final results
     std::vector<Eigen::Vector2i>* result_pairs;
