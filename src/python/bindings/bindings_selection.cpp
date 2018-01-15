@@ -161,6 +161,10 @@ void make_bindings_Selection(py::module& m){
         .def("set_occupancy",py::overload_cast<float>(&Selection::set_occupancy))
         .def("set_occupancy",py::overload_cast<const std::vector<float>&>(&Selection::set_occupancy))
 
+        .def("get_charge",&Selection::get_charge)
+        .def("set_charge",py::overload_cast<float>(&Selection::set_charge))
+        .def("set_charge",py::overload_cast<const std::vector<float>&>(&Selection::set_charge))
+
         .def("get_tag",&Selection::get_tag,"unique"_a=false)
         .def("set_tag",py::overload_cast<string>(&Selection::set_tag))
         .def("set_tag",py::overload_cast<const std::vector<string>&>(&Selection::set_tag))

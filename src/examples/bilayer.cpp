@@ -48,14 +48,14 @@ void Bilayer::create(Selection &sel, std::string head_marker_atom, float d){
     string str;
 
     // Monolayer 1
-    ind = surf[0].get_unique_resindex();
+    ind = surf[0].get_resindex(true);
     str = "resindex";
     for(int i=0; i<ind.size(); ++i) str += " "+to_string(ind[i]);    
     mono1.modify(*sel.get_system(),str);
     cout << "Monolayer 1 contains " << mono1.size() << " atoms in " << surf[0].size() << " lipids " << endl;
 
     // Monolayer 2
-    ind = surf[1].get_unique_resindex();
+    ind = surf[1].get_resindex(true);
     str = "resindex";
     for(int i=0; i<ind.size(); ++i) str += " "+to_string(ind[i]);    
     mono2.modify(*sel.get_system(),str);
@@ -102,8 +102,8 @@ Bilayer_point_info Bilayer::point_info(Eigen::Vector3f &point){
         //spot2.set_chain('Q');
     }
 
-    ret.proj1 = ret.spot1_ptr->center(true,true);
-    ret.proj2 = ret.spot2_ptr->center(true,true);
+    ret.proj1 = ret.spot1_ptr->center(true,fullPBC);
+    ret.proj2 = ret.spot2_ptr->center(true,fullPBC);
     // We use get_closest_image to bring projections close to the point according to pbc
     ret.proj1 = bilayer_ptr->Box().get_closest_image(ret.proj1,point);
     ret.proj2 = bilayer_ptr->Box().get_closest_image(ret.proj2,point);

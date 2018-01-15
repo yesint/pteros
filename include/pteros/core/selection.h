@@ -456,6 +456,18 @@ class Selection {
     void set_occupancy(float data);
 
 
+    /// Get charge
+    std::vector<float> get_charge() const;
+
+    /// Set charge in selection to the values from supplied vector.
+    /// \note Vector size must be the save as the size of selection.
+    void set_charge(const std::vector<float>& data);
+
+    /// Sets charge of all selected atoms to the same given value.
+    void set_charge(float data);
+
+
+
     /// Get tags
     std::vector<std::string> get_tag(bool unique=false) const;
 

@@ -705,6 +705,10 @@ SET_ATOM_PROP(float,beta)
 GET_ATOM_PROP(float,occupancy)
 SET_ATOM_PROP(float,occupancy)
 
+GET_ATOM_PROP(float,charge)
+SET_ATOM_PROP(float,charge)
+
+
 GET_ATOM_PROP_WITH_UNIQUE(string,tag)
 SET_ATOM_PROP(string,tag)
 
@@ -1439,7 +1443,7 @@ float Selection::VDW(int ind) const {
 
 string Selection::Element_name(int ind) const {
     int el = Element_number(ind);
-    return (el<nr_pte_entries) ? string(pte_label[el]) : "X";
+    return (el<nr_pte_entries && el>=0) ? string(pte_label[el]) : "X";
 }
 
 
