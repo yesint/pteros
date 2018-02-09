@@ -5,6 +5,7 @@ project(pteros)
 OPTION(WITH_PYTHON "Build python bindings and compile analysis plugins as Python modules" ON)
 OPTION(WITH_OPENMP "Use OpenMP parallelization if supported" ON)
 OPTION(WITH_POWERSASA "Use POWERSASA code. This implies severe license restrictions! \n Read the comment in thirdparty/sasa/LICENSE carefully before enabling this option!" OFF)
+OPTION(WITH_TNG "Include support for TNG files with tng_io library " ON)
 OPTION(STANDALONE_PLUGINS "Compile analysis plugins as stand-alone executables" OFF)
 OPTION(MAKE_PACKAGE "Generate package" OFF)
 OPTION(INSTALL_INTERNAL_SPDLOG "Install internal spdlog headers in the case if there is no system-wide spdlog" ON)
@@ -130,9 +131,13 @@ if(NOT ${spdlog_FOUND})
     endif()
 endif()
 
-# Build separate tng_io library
-add_subdirectory(thirdparty/tng_io)
-include_directories(thirdparty/tng_io/include)
+if(WITH_TNG)
+    # Build separate tng_io library
+    add_subdirectory(thirdparty/tng_io)
+    include_directories(thirdparty/tng_io/include)
+    # Set compilation flag
+    add_definitions(-DUSE_TNGIO)
+endif()
 
 # DSSP library
 add_subdirectory(thirdparty/dssp)

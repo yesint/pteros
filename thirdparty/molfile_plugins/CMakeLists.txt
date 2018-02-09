@@ -6,7 +6,12 @@
 # Build machinery
 #---------------------------
 
-SET(MOLFILE_PLUGINS pdbplugin tngplugin dcdplugin mol2plugin xyzplugin)
+SET(MOLFILE_PLUGINS pdbplugin dcdplugin mol2plugin xyzplugin)
+
+if(WITH_TNG)
+    list(APPEND MOLFILE_PLUGINS tngplugin)
+endif()
+
 SET(MOLFILE_PLUGINS_FILE_LIST "")
 
 foreach(PLUGIN ${MOLFILE_PLUGINS})

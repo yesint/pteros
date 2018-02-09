@@ -30,7 +30,10 @@
 
 #include <string>
 #include "vmd_molfile_plugin_wrapper.h"
+
+#ifdef USE_TNGIO
 #include "tng/tng_io.h"
+#endif
 
 namespace pteros {
 
