@@ -25,7 +25,7 @@ add_library(pteros_analysis SHARED
 target_link_libraries(pteros_analysis PRIVATE pteros ${Boost_LIBRARIES})
 
 if(WITH_TNG)
-    target_link_libraries(pteros_analysis tng_io)
+    target_link_libraries(pteros_analysis PRIVATE tng_io)
 endif()
 
 
