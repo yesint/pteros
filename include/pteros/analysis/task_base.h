@@ -3,6 +3,7 @@
 
 #include "pteros/core/system.h"
 #include "pteros/analysis/frame_info.h"
+#include <spdlog/spdlog.h>
 
 // Forward declaration of the message channel
 template<class T>

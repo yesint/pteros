@@ -29,6 +29,7 @@
 #define UTILITIES_H
 
 #include "pteros/core/typedefs.h"
+#include <vector>
 
 namespace pteros {
 
