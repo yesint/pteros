@@ -48,7 +48,7 @@ string decode(const sequence& s)
 //#include <boost/filesystem/fstream.hpp>
 //#include <boost/foreach.hpp>
 //#define foreach BOOST_FOREACH
-//#include <boost/tr1/tuple.hpp>
+//#include <boost/tuple/tuple.hpp>
 //#include <boost/iostreams/filtering_stream.hpp>
 //#include <boost/iostreams/copy.hpp>
 //#include <boost/iostreams/filter/bzip2.hpp>
@@ -364,8 +364,8 @@ using namespace std;
 //
 //// we use as many threads as is useful to do the distance calculation
 //// which is quite easy to do using a thread safe queue
-//typedef buffer<tr1::tuple<uint32,uint32> > 	distance_queue;
-//const tr1::tuple<uint32,uint32>	kSentinel = tr1::make_tuple(numeric_limits<uint32>::max(), 0);
+//typedef buffer<tuple<uint32,uint32> > 	distance_queue;
+//const tuple<uint32,uint32>	kSentinel = make_tuple(numeric_limits<uint32>::max(), 0);
 //
 //void calculateDistance(distance_queue& queue, symmetric_matrix<float>& d, vector<entry>& data,
 //	progress& pr)
@@ -373,7 +373,7 @@ using namespace std;
 //	for (;;)
 //	{
 //		uint32 a, b;
-//		tr1::tie(a, b) = queue.get();
+//		tie(a, b) = queue.get();
 //
 //		if (a == numeric_limits<uint32>::max()) // sentinel found, quit loop
 //			break;
@@ -404,7 +404,7 @@ using namespace std;
 //	for (uint32 a = 0; a < data.size() - 1; ++a)
 //	{
 //		for (uint32 b = a + 1; b < data.size(); ++b)
-//			queue.put(tr1::make_tuple(a, b));
+//			queue.put(make_tuple(a, b));
 //	}
 //	
 //	queue.put(kSentinel);

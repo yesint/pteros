@@ -1982,8 +1982,8 @@ float Selection::powersasa(float probe_r, vector<float> *area_per_atom,
 }
 
 #else
-float Selection::powersasa(float probe_r, float *total_volume,
-                      vector<float> *area_per_atom, vector<float> *volume_per_atom) const
+float Selection::powersasa(float probe_r, vector<float> *area_per_atom,
+                           float *total_volume, vector<float> *volume_per_atom) const
 {
     throw Pteros_error("Pteros is compiled without powersasa support!");
 }
