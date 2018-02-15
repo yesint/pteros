@@ -22,7 +22,7 @@ add_library(pteros_analysis SHARED
     data_container.h
     )
 
-target_link_libraries(pteros_analysis PRIVATE ${Boost_LIBRARIES})
+target_link_libraries(pteros_analysis PRIVATE pteros ${Boost_LIBRARIES})
 
 if(WITH_TNG)
     target_link_libraries(pteros_analysis tng_io)
