@@ -24,23 +24,14 @@
  *
 */
 
+
 #include "tng_file.h"
-#include "pteros/core/pteros_error.h"
 
 using namespace std;
 using namespace pteros;
 using namespace Eigen;
 
-#ifdef USE_TNGIO
-
 TNG_file::TNG_file(string &fname): VMD_molfile_plugin_wrapper(fname){
    plugin = molfile_plugins["tng"];
 }
 
-#else
-
-TNG_file::TNG_file(string &fname): VMD_molfile_plugin_wrapper(fname){
-    throw Pteros_error("Pteros is compled without TNG support. Can't read TNG files!");
-}
-
-#endif

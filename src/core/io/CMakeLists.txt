@@ -29,8 +29,4 @@ add_library(pteros_io STATIC
     tpr_file.cpp
 )
 
-target_link_libraries(pteros_io molfile_plugins xdrfile)
-
-if(WITH_TNG)
-    target_link_libraries(pteros_io tng_io)
-endif()
+target_link_libraries(pteros_io molfile_plugins xdrfile tng_io)
