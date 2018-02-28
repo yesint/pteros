@@ -327,32 +327,32 @@ public:
     /// @{
 
     /// Read/write access for periodic box for given frame
-    inline Periodic_box& Box(int fr){
+    inline Periodic_box& Box(int fr=0){
         return traj[fr].box;
     }
 
     /// Read only access for periodic box for given frame
-    inline const Periodic_box& Box(int fr) const {
+    inline const Periodic_box& Box(int fr=0) const {
         return traj[fr].box;
     }
 
     /// Read/Write access to the time stamp of given frame
-    inline float& Time(int fr){
+    inline float& Time(int fr=0){
         return traj[fr].time;
     }
 
     /// Read only access to the time stamp of given frame
-    inline const float& Time(int fr) const {
+    inline const float& Time(int fr=0) const {
         return traj[fr].time;
     }
 
     /// Read/Write access for given coordinate of given frame
-    inline Eigen::Vector3f& XYZ(int ind, int fr){
+    inline Eigen::Vector3f& XYZ(int ind, int fr=0){
         return traj[fr].coord[ind];
     }
 
     /// Read only access for given coordinate of given frame
-    inline const Eigen::Vector3f& XYZ(int ind, int fr) const {
+    inline const Eigen::Vector3f& XYZ(int ind, int fr=0) const {
         return traj[fr].coord[ind];
     }
 

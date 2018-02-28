@@ -338,6 +338,10 @@ void make_bindings_Selection(py::module& m){
     m.def("rmsd",[](const Selection& sel1, const Selection& sel2){ return rmsd(sel1,sel2); });
     m.def("rmsd",[](const Selection& sel1, int fr1, const Selection& sel2, int fr2){ return rmsd(sel1,fr1,sel2,fr2); });
     m.def("fit",[](Selection& sel1, const Selection& sel2){ fit(sel1,sel2); });
+    m.def("fit_transform",[](Selection& sel1, const Selection& sel2){
+        Matrix4f m = fit_transform(sel1,sel2).matrix().transpose();
+        return m;
+    });
     m.def("non_bond_energy", [](const Selection& sel1, const Selection& sel2,float cutoff,int fr,Array3i_const_ref pbc){
         return non_bond_energy(sel1,sel2,cutoff,fr,pbc);
     },"sel1"_a, "sel2"_a, "cutoff"_a=0.0, "fr"_a=-1, "pbc"_a=fullPBC);
