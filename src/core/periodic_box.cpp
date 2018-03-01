@@ -154,7 +154,7 @@ bool Periodic_box::in_box(Vector3f_const_ref point, Vector3f_const_ref origin) c
 }
 
 
-Eigen::Vector3f Periodic_box::get_closest_image(Vector3f_const_ref point, Vector3f_const_ref target, Array3i_const_ref pbc) const
+Eigen::Vector3f Periodic_box::closest_image(Vector3f_const_ref point, Vector3f_const_ref target, Array3i_const_ref pbc) const
 {    
     return target + shortest_vector(target,point,pbc);
 }
@@ -208,7 +208,7 @@ static inline float cos_angle_no_table(const Eigen::Vector3f a,const Eigen::Vect
   return cos;
 }
 
-void Periodic_box::read_pdb_box(const char *line)
+void Periodic_box::from_pdb_box(const char *line)
 {
 #define SG_SIZE 11
     char sa[12],sb[12],sc[12],sg[SG_SIZE+1],ident;
@@ -300,7 +300,7 @@ void Periodic_box::to_vectors_angles(Vector3f_ref vectors, Vector3f_ref angles) 
     vectors(2) = boxT.row(ZZ).norm();
 }
 
-std::string Periodic_box::write_pdb_box() const {
+std::string Periodic_box::to_pdb_box() const {
   float alpha,beta,gamma;
   char ch[80];
 

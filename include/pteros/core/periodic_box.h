@@ -135,7 +135,7 @@ public:
     bool in_box(Vector3f_const_ref point, Vector3f_const_ref origin = Eigen::Vector3f::Zero()) const;
 
     /// Finds a periodic image of point, which is closest in space to target and returns it    
-    Eigen::Vector3f get_closest_image(Vector3f_const_ref point,
+    Eigen::Vector3f closest_image(Vector3f_const_ref point,
                                       Vector3f_const_ref target,
                                       Array3i_const_ref pbc = fullPBC) const;
 
@@ -148,10 +148,10 @@ public:
     float volume();
 
     /// Read box from CRYST string in PDB format. Overwrites current box!
-    void read_pdb_box(const char *line);
+    void from_pdb_box(const char *line);
 
     /// Write box as CRYST string in PDB format
-    std::string write_pdb_box() const;
+    std::string to_pdb_box() const;
 
     /// Returns representation of the box as vector lengths and angles
     void to_vectors_angles(Vector3f_ref vectors, Vector3f_ref angles) const;

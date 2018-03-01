@@ -55,11 +55,11 @@ void make_bindings_Periodic_box(py::module& m){
         .def("distance_squared",&Periodic_box::distance_squared, "point1"_a, "point2"_a, "pbc"_a=fullPBC)
         .def("wrap_point",&Periodic_box::wrap_point, "point"_a, "pbc"_a=fullPBC, "origin"_a=Eigen::Vector3f::Zero())
         .def("in_box",&Periodic_box::in_box, "point"_a, "origin"_a=noPBC)
-        .def("get_closest_image",&Periodic_box::get_closest_image, "point"_a, "target"_a, "pbc"_a=fullPBC)
+        .def("closest_image",&Periodic_box::closest_image, "point"_a, "target"_a, "pbc"_a=fullPBC)
         .def("shortest_vector",&Periodic_box::shortest_vector, "point1"_a, "point2"_a, "pbc"_a=fullPBC)
         .def("volume",&Periodic_box::volume)
-        .def("read_pdb_box",&Periodic_box::read_pdb_box)
-        .def("write_pdb_box",&Periodic_box::write_pdb_box)
+        .def("from_pdb_box",&Periodic_box::from_pdb_box)
+        .def("to_pdb_box",&Periodic_box::to_pdb_box)
         .def("from_vectors_angles",&Periodic_box::from_vectors_angles)
         .def("to_vectors_angles",[](Periodic_box* b){
             Vector3f vec;

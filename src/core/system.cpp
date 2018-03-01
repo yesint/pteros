@@ -791,8 +791,7 @@ void System::distribute(const Selection sel, Vector3i_const_ref ncopies, Matrix3
                     v = shift.col(0)*x + shift.col(1)*y + shift.col(2)*z;
                     tmp.translate(v);
                     // Increment all resindexes of added selection
-                    for(int i=0;i<tmp.size();++i) tmp.Resindex(i) += n;
-                    //++n;
+                    for(int i=0;i<tmp.size();++i) tmp.Resindex(i) += n;                    
                 }
             }
 }
@@ -907,9 +906,9 @@ float System::dihedral(int i, int j, int k, int l, int fr, Array3i_const_ref pbc
     Vector3f b1,b2,b3;
     if( (pbc!=0).any() ){
         Vector3f _i = XYZ(i,fr);
-        Vector3f _j = Box(fr).get_closest_image(XYZ(j,fr),_i,pbc);
-        Vector3f _k = Box(fr).get_closest_image(XYZ(k,fr),_i,pbc);
-        Vector3f _l = Box(fr).get_closest_image(XYZ(l,fr),_i,pbc);
+        Vector3f _j = Box(fr).closest_image(XYZ(j,fr),_i,pbc);
+        Vector3f _k = Box(fr).closest_image(XYZ(k,fr),_i,pbc);
+        Vector3f _l = Box(fr).closest_image(XYZ(l,fr),_i,pbc);
         b1 = _j - _i;
         b2 = _k - _j;
         b3 = _l - _k;

@@ -843,7 +843,7 @@ Vector3f Selection::center(bool mass_weighted, Array3i_const_ref pbc, int leadin
                 Vector3f r(Vector3f::Zero());
                 #pragma omp for nowait reduction(+:mass)
                 for(i=0; i<n; ++i){
-                    r += b.get_closest_image(XYZ(i),ref_point,pbc) * Mass(i);
+                    r += b.closest_image(XYZ(i),ref_point,pbc) * Mass(i);
                     mass += Mass(i);
                 }
                 #pragma omp critical
@@ -859,7 +859,7 @@ Vector3f Selection::center(bool mass_weighted, Array3i_const_ref pbc, int leadin
                 Vector3f r(Vector3f::Zero()); // local to omp thread
                 #pragma omp for nowait
                 for(i=0; i<n; ++i)
-                    r += b.get_closest_image(XYZ(i),ref_point,pbc);
+                    r += b.closest_image(XYZ(i),ref_point,pbc);
                 #pragma omp critical
                 {
                     res += r;
@@ -1671,7 +1671,7 @@ void Selection::inertia(Vector3f_ref moments, Matrix3f_ref axes, Array3i_const_r
             for(i=0;i<n;++i){
                 // 0 point was used as an anchor in periodic center calculation,
                 // so we have to use it as an anchor here as well!
-                p = b.get_closest_image(XYZ(i),anchor,pbc);
+                p = b.closest_image(XYZ(i),anchor,pbc);
                 d = p-c;
                 m = Mass(i);
                 axes00 += m*( d(1)*d(1) + d(2)*d(2) );
@@ -1762,7 +1762,7 @@ void Selection::unwrap(Array3i_const_ref pbc, int leading_index){
         c = center(true,pbc,leading_index);
     }
     for(int i=0;i<size();++i){
-        XYZ(i) = Box().get_closest_image(XYZ(i),c,pbc);
+        XYZ(i) = Box().closest_image(XYZ(i),c,pbc);
     }
 }
 
@@ -1816,7 +1816,7 @@ int Selection::unwrap_bonds(float d, Array3i_const_ref pbc, int leading_index){
                 // We only add atoms, which were not yet used as centers
                 if(used(con[cur][i])==0){
                     // Unwrap atom
-                    XYZ(con[cur][i]) = b.get_closest_image(XYZ(con[cur][i]),leading,pbc);
+                    XYZ(con[cur][i]) = b.closest_image(XYZ(con[cur][i]),leading,pbc);
                     // Add this atom to centers queue
                     todo.insert(con[cur][i]);
                     // Mark as used

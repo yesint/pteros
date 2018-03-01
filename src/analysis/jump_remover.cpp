@@ -129,7 +129,7 @@ void Jump_remover::remove_jumps(System& system){
         for(int i=0;i<no_jump_ind.size();++i){
             ind = no_jump_ind[i];
             // Get image closest to running reference
-            system.XYZ(ind,0) = system.Box(0).get_closest_image(system.XYZ(ind,0),
+            system.XYZ(ind,0) = system.Box(0).closest_image(system.XYZ(ind,0),
                                                                 no_jump_ref.col(i),
                                                                 dims);
             // Update running reference

@@ -105,8 +105,8 @@ Bilayer_point_info Bilayer::point_info(Eigen::Vector3f &point){
     ret.proj1 = ret.spot1_ptr->center(true,fullPBC);
     ret.proj2 = ret.spot2_ptr->center(true,fullPBC);
     // We use get_closest_image to bring projections close to the point according to pbc
-    ret.proj1 = bilayer_ptr->Box().get_closest_image(ret.proj1,point);
-    ret.proj2 = bilayer_ptr->Box().get_closest_image(ret.proj2,point);
+    ret.proj1 = bilayer_ptr->Box().closest_image(ret.proj1,point);
+    ret.proj2 = bilayer_ptr->Box().closest_image(ret.proj2,point);
 
     ret.center = (ret.proj1+ret.proj2)/2.0;
     ret.normal = (ret.proj2-ret.proj1).normalized();
