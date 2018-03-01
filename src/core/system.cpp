@@ -712,16 +712,18 @@ void System::rearrange(const std::vector<string> &sel_strings){
 void System::rearrange(const std::vector<Selection> &sel_vec){
     // Sanity check
     for(auto &s: sel_vec){
-        if(s.size()==0) throw Pteros_error("Empty selections are not permitted in rearrange!");
-        if(s.get_system()!=this) throw Pteros_error("rearrange need selections from the same system!");
+        if(s.size()==0) LOG()->warn("Empty selection in rearrange will be ignored!");
+        if(s.get_system()!=this) throw Pteros_error("Rearrange needs selections from the same system!");
     }
     // Overlap check
     vector<int> inters;
     for (int i=0; i<sel_vec.size()-1; ++i){
         for (int j=i+1; j<sel_vec.size(); ++j){
-            set_intersection(sel_vec[i].index_begin(), sel_vec[i].index_end(),
-                             sel_vec[j].index_begin(), sel_vec[j].index_end(),
-                             back_inserter(inters));
+            if(sel_vec[i].size()>0 && sel_vec[j].size()>0){
+                set_intersection(sel_vec[i].index_begin(), sel_vec[i].index_end(),
+                                 sel_vec[j].index_begin(), sel_vec[j].index_end(),
+                                 back_inserter(inters));
+            }
             if (!inters.empty()) throw Pteros_error("Selections for rearrange should not overlap!");
         }
     }
@@ -731,8 +733,10 @@ void System::rearrange(const std::vector<Selection> &sel_vec){
 
     // Append all explicitly given selections to result
     for (auto &s: sel_vec){
-        result.append(s);
-        rest.append(s);
+        if(s.size()>0){
+            result.append(s);
+            rest.append(s);
+        }
     }
     // Invert to get rest
     rest = ~rest;
