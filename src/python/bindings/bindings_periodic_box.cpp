@@ -53,7 +53,7 @@ void make_bindings_Periodic_box(py::module& m){
         .def("is_periodic",&Periodic_box::is_periodic)
         .def("distance",&Periodic_box::distance, "point1"_a, "point2"_a, "pbc"_a=fullPBC)
         .def("distance_squared",&Periodic_box::distance_squared, "point1"_a, "point2"_a, "pbc"_a=fullPBC)
-        .def("wrap_point",&Periodic_box::wrap_point, "point"_a, "pbc"_a=fullPBC)
+        .def("wrap_point",&Periodic_box::wrap_point, "point"_a, "pbc"_a=fullPBC, "origin"_a=Eigen::Vector3f::Zero())
         .def("in_box",&Periodic_box::in_box, "point"_a, "origin"_a=noPBC)
         .def("get_closest_image",&Periodic_box::get_closest_image, "point"_a, "target"_a, "pbc"_a=fullPBC)
         .def("shortest_vector",&Periodic_box::shortest_vector, "point1"_a, "point2"_a, "pbc"_a=fullPBC)

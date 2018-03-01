@@ -55,8 +55,8 @@ public:
     /// Default constructor
     Periodic_box();
 
-    /// Constructor from other box
-    Periodic_box(Matrix3f_const_ref box);
+    /// Constructor from matrix
+    Periodic_box(Matrix3f_const_ref m);
 
     /// Constructor from vector lengths and angles
     Periodic_box(Vector3f_const_ref vectors, Vector3f_const_ref angles);
@@ -125,9 +125,10 @@ public:
                    Array3i_const_ref pbc = fullPBC) const;
 
     /// Wrap point to the box for given set of dimensions
-    /// Origin of the box coordinates is assumed to be {0,0,0}.
+    /// Origin of the box coordinates defaults to {0,0,0}.
     void wrap_point(Vector3f_ref point,
-                    Array3i_const_ref pbc = fullPBC) const;
+                    Array3i_const_ref pbc = fullPBC,
+                    Vector3f_const_ref origin = Eigen::Vector3f::Zero()) const;
 
     /// Determine if the point is inside the box
     /// Origin of the box coordinates defaults to {0,0,0}.
