@@ -41,21 +41,23 @@ using namespace std;
 using namespace pteros;
 using namespace Eigen;
 
-string coulomb_names[] = {"Cut-off", "Reaction-Field", "Generalized-Reaction-Field",
-"PME", "Ewald", "P3M-AD", "Poisson", "Switch", "Shift", "User",
-"Generalized-Born", "Reaction-Field-nec", "Encad-shift",
-"PME-User", "PME-Switch", "PME-User-Switch",
-"Reaction-Field-zero"};
-
-string vdw_names[] = {"Cut-off", "Switch", "Shift", "User", "Encad-shift","PME"};
-
-string mod_names[] = {"Potential-shift-Verlet", "Potential-shift", "None", "Potential-switch", "Exact-cutoff", "Force-switch"};
-
 
 TPR_file::~TPR_file(){
 }
 
 #ifdef USE_GROMACS
+
+string coulomb_names[] = {"Cut-off", "Reaction-Field", "Generalized-Reaction-Field",
+                          "PME", "Ewald", "P3M-AD", "Poisson", "Switch", "Shift", "User",
+                          "Generalized-Born", "Reaction-Field-nec", "Encad-shift",
+                          "PME-User", "PME-Switch", "PME-User-Switch",
+                          "Reaction-Field-zero"};
+
+string vdw_names[] = {"Cut-off", "Switch", "Shift", "User", "Encad-shift","PME"};
+
+string mod_names[] = {"Potential-shift-Verlet", "Potential-shift", "None", "Potential-switch",
+                      "Exact-cutoff", "Force-switch"};
+
 
 void TPR_file::open(char open_mode)
 {
@@ -97,7 +99,6 @@ bool TPR_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
             at.beta = top.atoms.pdbinfo[i].bfac;
             at.occupancy = top.atoms.pdbinfo[i].occup;
         }
-
 
         if(what.coord())
             for(int j=0;j<3;++j) frame->coord[i](j) = state.x[i][j];
