@@ -44,8 +44,8 @@ using namespace Eigen;
 
 Periodic_box::Periodic_box():_is_periodic(false),_is_triclinic(false),_box(Eigen::Matrix3f::Zero()){}
 
-Periodic_box::Periodic_box(Matrix3f_const_ref box){
-    set_matrix(box);
+Periodic_box::Periodic_box(Matrix3f_const_ref m){
+    set_matrix(m);
 }
 
 Periodic_box::Periodic_box(Vector3f_const_ref vectors, Vector3f_const_ref angles)
@@ -131,16 +131,16 @@ float Periodic_box::volume(){
     return _box.col(1).cross( _box.col(2) ).dot( _box.col(0) );
 }
 
-void Periodic_box::wrap_point(Vector3f_ref point, Array3i_const_ref pbc) const
+void Periodic_box::wrap_point(Vector3f_ref point, Array3i_const_ref pbc, Vector3f_const_ref origin) const
 {
-    point = _box_inv*point;
+    point = _box_inv*(point-origin);
     for(int i=0;i<3;++i){
         if(pbc(i)!=0){
             point(i) -= round(point(i));
             if(point(i)<0) point(i) += 1.0;
         }
     }
-    point = _box*point;
+    point = _box*point + origin;
 }
 
 bool Periodic_box::in_box(Vector3f_const_ref point, Vector3f_const_ref origin) const
