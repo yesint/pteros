@@ -38,6 +38,7 @@ void make_bindings_Periodic_box(py::module& m){
 
     py::class_<Periodic_box>(m, "Periodic_box")
         .def(py::init<Vector3f_const_ref,Vector3f_const_ref>())
+        .def(py::init<const Periodic_box&>())
         .def("get_vector",&Periodic_box::get_vector)
         .def("get_matrix",[](Periodic_box* b){Matrix3f m = b->get_matrix().transpose(); return m;})
         .def("set_matrix",[](Periodic_box* b, Matrix3f_const_ref m){ b->set_matrix(m.transpose()); })
