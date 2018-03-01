@@ -490,10 +490,6 @@ protected:
     // Force field parameters
     Force_field force_field;
 
-    // Supplementary function to check if last added frame contains same number
-    // of atoms as topology
-    void check_num_atoms_in_last_frame();
-
     // Indexes for filtering
     std::vector<int> filter;
     // Filter selection text for text-based filters

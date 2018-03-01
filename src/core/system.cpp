@@ -88,10 +88,10 @@ void System::clear(){
     filter_text = "";
 }
 
-void System::check_num_atoms_in_last_frame(){
-    if(Frame_data(num_frames()-1).coord.size()!=num_atoms())        
+void check_num_atoms_in_last_frame(const System& sys){
+    if(sys.Frame_data(sys.num_frames()-1).coord.size()!=sys.num_atoms())
         throw Pteros_error("File contains {} atoms while the system has {}",
-                       Frame_data(num_frames()-1).coord.size(),num_atoms() );
+                       sys.Frame_data(sys.num_frames()-1).coord.size(), sys.num_atoms() );
 }
 
 void System::filter_atoms()
@@ -139,7 +139,7 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
             filter_atoms();
             filter_coord(num_frames()-1);
 
-            check_num_atoms_in_last_frame();
+            check_num_atoms_in_last_frame(*this);
             ++num_stored;
 
             assign_resindex();
@@ -205,7 +205,7 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
                 }
 
                 filter_coord(num_frames()-1);
-                check_num_atoms_in_last_frame();
+                check_num_atoms_in_last_frame(*this);
 
                 ++cur;
                 ++actually_read;
@@ -233,7 +233,7 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
             // Read it            
             f->read(nullptr, &Frame_data(num_frames()-1), Mol_file_content().coord(true));
             filter_coord(num_frames()-1);
-            check_num_atoms_in_last_frame();
+            check_num_atoms_in_last_frame(*this);
             ++num_stored;
             // Call a callback if asked
             if(on_frame) on_frame(this,num_frames()-1);
@@ -272,7 +272,7 @@ bool System::load(const std::unique_ptr<Mol_file>& handler, Mol_file_content wha
             filter_atoms();
             filter_coord(num_frames()-1);
 
-            check_num_atoms_in_last_frame();
+            check_num_atoms_in_last_frame(*this);
             if(what.atoms()) assign_resindex();
             // Call a callback if asked
             if(on_frame) on_frame(this,num_frames()-1);
@@ -297,7 +297,7 @@ bool System::load(const std::unique_ptr<Mol_file>& handler, Mol_file_content wha
         }
 
         filter_coord(num_frames()-1);
-        check_num_atoms_in_last_frame();
+        check_num_atoms_in_last_frame(*this);
 
         // Call a callback if asked
         if(on_frame) on_frame(this,num_frames()-1);
