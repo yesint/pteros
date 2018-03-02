@@ -48,12 +48,12 @@ Vector3f pteros::project_vector(Vector3f_const_ref vec1, Vector3f_const_ref vec2
 }
 
 
-float pteros::rad_to_deg(float ang)
+float pteros::deg_to_rad(float ang)
 {
     return ang*3.141592/180.0;
 }
 
-float deg_to_rad(float ang)
+float pteros::rad_to_deg(float ang)
 {
     return ang*180.0/3.141592;
 }

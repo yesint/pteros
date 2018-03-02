@@ -427,6 +427,17 @@ public:
     /// If using many times this procedure is slower than doing atoms_dup() and than assign_resindex().
     Selection atom_clone(int source);
 
+    /// Swap two atoms
+    void atom_swap(int i, int j);
+
+    /// Add single hydrogen to target atom according to previous and next atoms in chain.
+    /// Hydrogen is added in plane formed by {target,prev,next} at bond length dist
+    Selection atom_add_1h(int target, int at1, int at2, int at3, float dist=0.109, bool pbc=true);
+
+    Selection atom_add_2h(int target, int at1, int at2, float dist=0.109, bool pbc=true);
+
+    Selection atom_add_3h(int target, int at1, float dist=0.109, bool pbc=true);
+
     /// @}
 
 

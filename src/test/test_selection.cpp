@@ -247,8 +247,14 @@ make_accessor(const Selection& sel){
 int main(int argc, char** argv)
 {    
 
-    System sys("/home/semen/work/current/Projects/Squalene/Dox_cylinder_grow/topol.tpr");
-    sys("not water").write("1.pdb");
+   System sys("/home/semen/work/current/Projects/plasma_symm/DOPC-noH.pdb");
+   sys.atom_add_1h(19,18,20,21);
+   sys.atom_add_2h(5,1,9);
+   sys.atom_add_3h(2,0);
+   sys().write("/home/semen/work/current/Projects/plasma_symm/DOPC-noH-1.pdb");
+
+    //System sys("/home/semen/work/current/Projects/Squalene/Dox_cylinder_grow/topol.tpr");
+    //sys("not water").write("1.pdb");
 
     /*
     vector<Lipid_descr> species = {

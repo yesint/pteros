@@ -33,6 +33,7 @@
 #include "pteros/core/pteros_error.h"
 #include "pteros/core/distance_search.h"
 #include "pteros/core/mol_file.h"
+#include "pteros/core/utilities.h"
 #include "selection_parser.h"
 // DSSP
 #include "pteros_dssp_wrapper.h"
@@ -574,7 +575,7 @@ void System::atom_move(int i, int j)
 {
     // Sanity check
     if(i<0 || i>=num_atoms()) throw Pteros_error(format("Index of atom to move ({}}) is out of range ({}:{})!", i,0,num_atoms()));
-    if(j<0 || i>=num_atoms()) throw Pteros_error(format("Target index to move ({}}) is out of range ({}:{}})!", i,0,num_atoms()));
+    if(j<0 || j>=num_atoms()) throw Pteros_error(format("Target index to move ({}}) is out of range ({}:{}})!", j,0,num_atoms()));
     if(i==j) return; // Nothing to do
 
     // Move atom
@@ -606,6 +607,114 @@ Selection System::atom_clone(int source)
     atoms_dup({source});
     atom_move(num_atoms()-1,source+1);
     return Selection(*this,source+1,source+1);
+}
+
+void System::atom_swap(int i, int j)
+{
+    if(i<0 || i>=num_atoms()) throw Pteros_error(format("Index of atom 1 to swap ({}}) is out of range ({}:{})!", i,0,num_atoms()));
+    if(j<0 || j>=num_atoms()) throw Pteros_error(format("Index of atom 2 to swap ({}}) is out of range ({}:{}})!", j,0,num_atoms()));
+
+    std::swap(atoms[i],atoms[j]);
+    for(int fr=0; fr<num_frames(); ++fr){
+        std::swap(traj[fr].coord[i],traj[fr].coord[j]);
+    }
+
+}
+
+Selection System::atom_add_1h(int target, int at1, int at2, int at3, float dist, bool pbc)
+{
+    Selection newat = atoms_dup({target});
+    newat.Name(0) = "H";
+    newat.Mass(0) = 1.0;
+    newat.Element_number(0) = 1;
+
+    for(int fr=0; fr<num_frames(); ++fr){
+        auto coor0 = XYZ(target,fr);
+        Vector3f coor1,coor2,coor3;
+
+        if(pbc){
+            coor1 = Box(fr).closest_image(XYZ(at1,fr),coor0);
+            coor2 = Box(fr).closest_image(XYZ(at2,fr),coor0);
+            coor3 = Box(fr).closest_image(XYZ(at3,fr),coor0);
+        } else {
+            coor1 = XYZ(at1,fr);
+            coor2 = XYZ(at2,fr);
+            coor3 = XYZ(at3,fr);
+        }
+
+        // Coordinate of new atom
+        Vector3f point = coor0-(coor1+coor2+coor3)/3.0;
+        point = coor0-((point-coor1).cross(point-coor2)).normalized()*dist;
+
+        newat.XYZ(0,fr) = point;
+    }
+
+    return newat;
+}
+
+Selection System::atom_add_2h(int target, int at1, int at2, float dist, bool pbc)
+{
+    Selection newat1 = atoms_dup({target});
+    newat1.Name(0) = "H";
+    newat1.Mass(0) = 1.0;
+    newat1.Element_number(0) = 1;
+    Selection newat2 = atoms_dup({newat1.Index(0)});
+
+    for(int fr=0; fr<num_frames(); ++fr){
+        auto coor0 = XYZ(target,fr);
+        Vector3f coor1,coor2;
+
+        if(pbc){
+            coor1 = Box(fr).closest_image(XYZ(at1,fr),coor0);
+            coor2 = Box(fr).closest_image(XYZ(at2,fr),coor0);
+        } else {
+            coor1 = XYZ(at1,fr);
+            coor2 = XYZ(at2,fr);
+        }
+
+        // Coordinates of new atoms
+        Vector3f up = (coor0-(coor1+coor2)/2.0).normalized()*dist;
+        //Vector3f side = ((coor0-coor1).cross(coor0-coor2)).normalized();
+
+        newat1.XYZ(0,fr) = coor0+up;
+        newat1.rotate(coor2-coor1,deg_to_rad(0.5*109.47),coor0);
+        newat2.XYZ(0,fr) = coor0+up;
+        newat2.rotate(coor2-coor1,deg_to_rad(-0.5*109.47),coor0);
+    }
+
+    return Selection(*this,newat1.Index(0),newat2.Index(0));
+}
+
+Selection System::atom_add_3h(int target, int at1, float dist, bool pbc)
+{
+    Selection newat1 = atoms_dup({target});
+    newat1.Name(0) = "H";
+    newat1.Mass(0) = 1.0;
+    newat1.Element_number(0) = 1;
+    Selection newat2 = atoms_dup({newat1.Index(0)});
+    Selection newat3 = atoms_dup({newat2.Index(0)});
+
+    for(int fr=0; fr<num_frames(); ++fr){
+        auto coor0 = XYZ(target,fr);
+        Vector3f coor1;
+
+        if(pbc){
+            coor1 = Box(fr).closest_image(XYZ(at1,fr),coor0);
+        } else {
+            coor1 = XYZ(at1,fr);
+        }
+
+        // Coordinates of new atoms
+        Vector3f up = (coor0-coor1).normalized()/sqrt(24);
+        Vector3f side = ((coor0-coor1).cross(Vector3f(1,0,0))).normalized()/sqrt(3);
+
+        newat1.XYZ(0,fr) = coor0+(up+side).normalized()*dist;
+        newat2.XYZ(0,fr) = coor0+(up+side).normalized()*dist;
+        newat2.rotate(coor0-coor1,2.0*M_PI/3.0,coor0);
+        newat3.XYZ(0,fr) = coor0+(up+side).normalized()*dist;;
+        newat3.rotate(coor0-coor1,4.0*M_PI/3.0,coor0);
+    }
+    return Selection(*this,newat1.Index(0),newat3.Index(0));
 }
 
 Selection System::append(const System &sys){
