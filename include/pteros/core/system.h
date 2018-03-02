@@ -430,12 +430,13 @@ public:
     /// Swap two atoms
     void atom_swap(int i, int j);
 
-    /// Add single hydrogen to target atom according to previous and next atoms in chain.
-    /// Hydrogen is added in plane formed by {target,prev,next} at bond length dist
+    /// Add single hydrogen to target atom according to positions of 3 adjacent atoms assuming tetrahedral symmetry.
     Selection atom_add_1h(int target, int at1, int at2, int at3, float dist=0.109, bool pbc=true);
 
+    /// Add two hydrogens to target atom according to positions of 2 adjacent atoms assuming tetrahedral symmetry.
     Selection atom_add_2h(int target, int at1, int at2, float dist=0.109, bool pbc=true);
 
+    /// Add 3 hydrogens to target atom according to positions of single adjacent atom assuming tetrahedral symmetry.
     Selection atom_add_3h(int target, int at1, float dist=0.109, bool pbc=true);
 
     /// @}
