@@ -564,28 +564,11 @@ class Selection {
     /// Translate selection by given vector
     void translate(Vector3f_const_ref v);
 
-    /// Rotate selection around given axis relative to center of masses
-    /// @param axis Axis of rotation 0=X, 1=Y, 2=Z
-    /// @param angle Rotation angle in radians
-    void rotate(int axis, float angle);
-
     /// Rotate selection around given axis relative to given pivot
-    /// @param axis Axis of rotation 0=X, 1=Y, 2=Z
+    /// @param axis Rotate around this vector
     /// @param angle Rotation angle in radians
     /// @param pivot Rotation around this pivot
-    void rotate(int axis, float angle, Vector3f_const_ref pivot);
-
-    /// Rotate selection around given vector relative to given pivot
-    /// @param direction Rotate around this vector
-    /// @param angle Rotation angle in radians
-    /// @param pivot Rotation around this pivot
-    void rotate(Vector3f_const_ref direction, float angle, Vector3f_const_ref pivot);
-
-    /// Rotation with the given 3x3 rotation matrix around point (0,0,0)
-    void rotate(Matrix3f_const_ref m);
-
-    /// Rotation by given angles around X, Y and Z with given pivot
-    void rotate(Vector3f_const_ref angles, Vector3f_const_ref pivot);
+    void rotate(Vector3f_const_ref pivot, Vector3f_const_ref axis, float angle);
 
     /// Wraps whole selection to the periodic box
     void wrap(Array3i_const_ref pbc = fullPBC);

@@ -224,12 +224,9 @@ void make_bindings_Selection(py::module& m){
         .def("dihedral", &Selection::dihedral, "i"_a, "j"_a, "k"_a, "l"_a, "pbc"_a=fullPBC)
 
         // Geometry transforms
-        .def("translate", &Selection::translate)
-        .def("rotate",py::overload_cast<int,float>(&Selection::rotate))
-        .def("rotate",py::overload_cast<int,float,Vector3f_const_ref>(&Selection::rotate))
-        .def("rotate",py::overload_cast<Vector3f_const_ref,float,Vector3f_const_ref>(&Selection::rotate))
-        .def("rotate",[](Selection* sel, Matrix3f_const_ref m){ sel->rotate(m.transpose()); })
-        .def("rotate",py::overload_cast<Vector3f_const_ref,Vector3f_const_ref>(&Selection::rotate))
+        .def("translate", &Selection::translate)        
+        .def("rotate",&Selection::rotate)
+
         .def("wrap", &Selection::wrap, "pbc"_a=fullPBC)
         .def("unwrap", &Selection::unwrap, "pbc"_a=fullPBC, "lead_ind"_a=-1)
         .def("unwrap_bonds", &Selection::unwrap_bonds, "d"_a, "pbc"_a=fullPBC, "lead_ind"_a=0)

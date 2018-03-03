@@ -677,9 +677,10 @@ Selection System::atom_add_2h(int target, int at1, int at2, float dist, bool pbc
         //Vector3f side = ((coor0-coor1).cross(coor0-coor2)).normalized();
 
         newat1.XYZ(0,fr) = coor0+up;
-        newat1.rotate(coor2-coor1,deg_to_rad(0.5*109.47),coor0);
+        newat1.rotate(coor0,coor2-coor1,deg_to_rad(0.5*109.47));
+
         newat2.XYZ(0,fr) = coor0+up;
-        newat2.rotate(coor2-coor1,deg_to_rad(-0.5*109.47),coor0);
+        newat2.rotate(coor0,coor2-coor1,deg_to_rad(-0.5*109.47));
     }
 
     return Selection(*this,newat1.Index(0),newat2.Index(0));
@@ -708,11 +709,11 @@ Selection System::atom_add_3h(int target, int at1, float dist, bool pbc)
         Vector3f up = (coor0-coor1).normalized()/sqrt(24);
         Vector3f side = ((coor0-coor1).cross(Vector3f(1,0,0))).normalized()/sqrt(3);
 
-        newat1.XYZ(0,fr) = coor0+(up+side).normalized()*dist;
-        newat2.XYZ(0,fr) = coor0+(up+side).normalized()*dist;
-        newat2.rotate(coor0-coor1,2.0*M_PI/3.0,coor0);
-        newat3.XYZ(0,fr) = coor0+(up+side).normalized()*dist;;
-        newat3.rotate(coor0-coor1,4.0*M_PI/3.0,coor0);
+        newat1.XYZ(0,fr) = newat2.XYZ(0,fr) = newat3.XYZ(0,fr) = coor0+(up+side).normalized()*dist;
+
+        auto m = rotation_matrix(coor0, coor0-coor1, 2.0*M_PI/3.0);
+        newat2.apply_transform(m);
+        newat3.apply_transform(m*m);
     }
     return Selection(*this,newat1.Index(0),newat3.Index(0));
 }

@@ -38,6 +38,7 @@
 #include "pteros/core/distance_search.h"
 #include "selection_parser.h"
 #include "pteros/core/mol_file.h"
+#include "pteros/core/utilities.h"
 // Periodic table from VMD molfile plugins
 #include "periodic_table.h"
 
@@ -877,103 +878,9 @@ void Selection::translate(Vector3f_const_ref v){
     for(i=0; i<n; ++i) XYZ(i) += v;
 }
 
-
-// Rotation with given rotation matrix around 0
-void Selection::rotate(Matrix3f_const_ref m){
-    int n = index.size();
-    #pragma omp parallel for
-    for(int i=0; i<n; ++i){
-        XYZ(i) = m * XYZ(i);
-    }
-}
-
-// Rotation around specified axis relative to cm
-void Selection::rotate(int axis, float angle){
-    if(axis<0 || axis>2) throw Pteros_error("Invalid rotation axis!");
-    int n = index.size();
-    Affine3f m;
-    switch(axis){
-    case 0:
-        m = AngleAxisf(angle,Vector3f::UnitX());
-        break;
-    case 1:
-        m = AngleAxisf(angle,Vector3f::UnitY());
-        break;
-    case 2:
-        m = AngleAxisf(angle,Vector3f::UnitZ());
-        break;
-    }
-    Vector3f cm = center();
-    // Translate to 0
-    translate(-cm);
-    #pragma omp parallel for
-    for(int i=0; i<n; ++i){
-        XYZ(i) = m * XYZ(i);
-    }
-    // Translate back
-    translate(cm);
-}
-
-// Sequence of rotations around x,y,z relative to pivot
-void Selection::rotate(Vector3f_const_ref angles, Vector3f_const_ref pivot){
-    int n = index.size();
-    Affine3f m( AngleAxisf(angles[0],Vector3f::UnitX()) *
-               AngleAxisf(angles[1],Vector3f::UnitY()) *
-               AngleAxisf(angles[2],Vector3f::UnitZ()) );
-
-    // Translate to pivot
-    translate(-pivot);
-    #pragma omp parallel for
-    for(int i=0; i<n; ++i){
-        XYZ(i) = m * XYZ(i);
-    }
-    // Translate back
-    translate(pivot);
-}
-
-
-// Rotation around specified axis relative to given pivot
-void Selection::rotate(int axis, float angle, Vector3f_const_ref pivot){
-    if(axis<0 || axis>2) throw Pteros_error("Invalid rotation axis!");
-    int n = index.size();
-
-    Affine3f m;
-    switch(axis){
-    case 0:
-        m = AngleAxisf(angle,Vector3f::UnitX());
-        break;
-    case 1:
-        m = AngleAxisf(angle,Vector3f::UnitY());
-        break;
-    case 2:
-        m = AngleAxisf(angle,Vector3f::UnitZ());
-        break;
-    }
-
-    // Translate to 0
-    translate(-pivot);
-    #pragma omp parallel for
-    for(int i=0; i<n; ++i){
-        XYZ(i) = m * XYZ(i);
-    }
-    // Translate back
-    translate(pivot);
-}
-
 // Rotation around given vector relative to pivot
-void Selection::rotate(Vector3f_const_ref direction, float angle, Vector3f_const_ref pivot){
-    int n = index.size();
-
-    Affine3f m( AngleAxisf(angle,direction.normalized()) );
-
-    // Translate to pivot
-    translate(-pivot);
-    #pragma omp parallel for
-    for(int i=0; i<n; ++i){
-        XYZ(i) = m * XYZ(i);
-    }
-    // Translate back
-    translate(pivot);
+void Selection::rotate(Vector3f_const_ref pivot, Vector3f_const_ref axis, float angle){
+    apply_transform( rotation_matrix(pivot,axis,angle) );
 }
 
 ////////////////////////////////////
@@ -1205,7 +1112,7 @@ Affine3f fit_transform(const Selection& sel1, const Selection& sel2){
     //Clear translation part. This is important!
     rot.translation().fill(0.0);
     // Add translation part to transform. Note reverse order of translations! This is important.
-    return Translation3f(cm2) * rot * Translation3f(-cm1) ;
+    return Translation3f(cm2) * rot * Translation3f(-cm1);
 }
 
 // Fit two selection directly

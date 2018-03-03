@@ -122,5 +122,12 @@ void Histogram::save_to_file(const string &fname)
     f.close();
 }
 
+//-----------------------------------------
 
-
+Affine3f pteros::rotation_matrix(Vector3f_const_ref pivot, Vector3f_const_ref axis, float angle)
+{
+    Affine3f m;
+    m = AngleAxisf(angle,axis.normalized());
+    m.translation().fill(0.0);
+    return Translation3f(pivot)*m*Translation3f(-pivot);
+}
