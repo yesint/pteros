@@ -172,6 +172,7 @@ void make_bindings_Selection(py::module& m){
         // Properties
         .def("center",&Selection::center,"mass_weighted"_a=false,"pbc"_a=noPBC,"leading_index"_a=0)
         .def("minmax",[](Selection* sel){Vector3f min,max; sel->minmax(min,max); return py::make_tuple(min,max);})
+        .def("is_large",&Selection::is_large)
 
         .def("powersasa", [](Selection* sel, float probe_r, bool do_area_per_atom, bool do_total_volume, bool do_vol_per_atom){
             float vol;

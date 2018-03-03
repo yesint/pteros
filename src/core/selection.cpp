@@ -789,6 +789,13 @@ MatrixXf Selection::average_structure(int b, int e, bool make_row_major_matrix) 
 // Transformations and inquery functions
 ////////////////////////////////////////////
 
+bool Selection::is_large(){
+    Vector3f _min,_max;
+    minmax(_min,_max);
+    return ( (Box().lab_to_box(_max-_min) - 0.5*Box().extents()).array() > 0).any();
+}
+
+
 // Center of geometry
 Vector3f Selection::center(bool mass_weighted, Array3i_const_ref pbc, int leading_index) const {
     Vector3f res;
@@ -800,6 +807,7 @@ Vector3f Selection::center(bool mass_weighted, Array3i_const_ref pbc, int leadin
     res.fill(0.0);
 
     if( (pbc==0).all() ){
+        // Non-periodic variant
         if(mass_weighted){
             float mass = 0.0;
             #pragma omp parallel
@@ -834,7 +842,7 @@ Vector3f Selection::center(bool mass_weighted, Array3i_const_ref pbc, int leadin
     } else {
         // Periodic center
         // We will find closest periodic images of all points
-        // using first point as a reference
+        // using leading point as a reference
         Vector3f ref_point = XYZ(leading_index);
         Periodic_box& b = system->Box(frame);
         if(mass_weighted){
@@ -880,7 +888,7 @@ void Selection::translate(Vector3f_const_ref v){
 
 // Rotation around given vector relative to pivot
 void Selection::rotate(Vector3f_const_ref pivot, Vector3f_const_ref axis, float angle){
-    apply_transform( rotation_matrix(pivot,axis,angle) );
+    apply_transform( rotation_transform(pivot,axis,angle) );
 }
 
 ////////////////////////////////////

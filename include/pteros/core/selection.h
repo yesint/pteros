@@ -484,6 +484,10 @@ class Selection {
     /// @name Computing properties of selection
     /// @{
 
+    /// Checks if selection is larger than 1/2 of the box size in
+    /// any dimension. Returns true if so.
+    bool is_large();
+
     /** Get the center of selection.
      @param mass_weighted Use mass-weighting
      @param periodic Account for periodic boundary conditions.
@@ -514,7 +518,7 @@ class Selection {
     Eigen::MatrixXf average_structure(int b=0, int e=-1, bool make_row_major_matrix = false) const;
 
     /** Extracts X,Y,Z for given atom index for specified range of frames
-        (gets trajectory of given atom).
+    *   (gets trajectory of given atom).
     *   Result is returned as MatrixXf, where i-th column (or row) is an XYZ vector for frame i.
     */
     Eigen::MatrixXf atom_traj(int ind, int b=0, int e=-1, bool make_row_major_matrix = false) const;
@@ -644,7 +648,7 @@ class Selection {
     /// Fits frame fr1 to fr2
     void fit(int fr1, int fr2);
 
-    /// Apply fitting transformation
+    /// Apply transformation
     void apply_transform(const Eigen::Affine3f& t);
     /// @}
 
@@ -709,9 +713,11 @@ class Selection {
     void flatten();
 
     /// Returns a string formatted as Gromacs ndx file containing the current selection with given name.
-    /// \warning Indexex in Gromacs ndx are starting from 1! Thus one is added to all pteros indexes!
+    /// \warning Indexes in Gromacs ndx are starting from 1! Thus one is added to all pteros indexes!
     std::string to_gromacs_ndx(std::string name);
 
+    /// Copy coordinates from one selection to the other using given frames.
+    /// \warning Size of selections should be the same.
     friend void copy_coord(const Selection& from, int from_fr, Selection& to, int to_fr);        
 
     /// @}

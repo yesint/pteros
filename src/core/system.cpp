@@ -711,7 +711,7 @@ Selection System::atom_add_3h(int target, int at1, float dist, bool pbc)
 
         newat1.XYZ(0,fr) = newat2.XYZ(0,fr) = newat3.XYZ(0,fr) = coor0+(up+side).normalized()*dist;
 
-        auto m = rotation_matrix(coor0, coor0-coor1, 2.0*M_PI/3.0);
+        auto m = rotation_transform(coor0, coor0-coor1, 2.0*M_PI/3.0);
         newat2.apply_transform(m);
         newat3.apply_transform(m*m);
     }

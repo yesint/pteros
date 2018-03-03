@@ -50,7 +50,7 @@ namespace pteros {
 
 
     /// Returns rotation matrix given pivot, axis and angle in radians
-    Eigen::Affine3f rotation_matrix(Vector3f_const_ref pivot, Vector3f_const_ref axis, float angle);
+    Eigen::Affine3f rotation_transform(Vector3f_const_ref pivot, Vector3f_const_ref axis, float angle);
 
     /// Simple histogram class
     class Histogram {
