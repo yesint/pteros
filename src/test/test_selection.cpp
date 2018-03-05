@@ -248,10 +248,21 @@ int main(int argc, char** argv)
 {    
 
    System sys("/home/semen/work/current/Projects/Curved_membranes/plasma_symm/DOPC-noH.pdb");
-   sys.atom_add_1h(19,18,20,21);
-   sys.atom_add_2h(5,1,9);
-   sys.atom_add_3h(2,0);
-   sys().write("/home/semen/work/current/Projects/Curved_membranes/plasma_symm/DOPC-noH-1.pdb");
+   sys.load("/home/semen/work/current/Projects/Curved_membranes/plasma_symm/DOPC-noH.pdb");
+   //sys.atom_add_1h(19,18,20,21);
+   //sys.atom_add_2h(5,1,9);
+   //sys.atom_add_3h(2,0);
+   //sys().write("/home/semen/work/current/Projects/Curved_membranes/plasma_symm/DOPC-noH-1.pdb");
+
+   auto sel = sys();
+
+   sel[{0,0}].x() = sel[{0,1}].x()+100;
+
+   cout << sel[0].xyz().transpose() << endl;
+   cout << sel[{0,1}].xyz().transpose() << endl;
+   for(auto it=sel.begin(); it!=sel.begin()+10; it++){
+       cout << it->x() << " " << it->name() << endl;
+   }
 
     //System sys("/home/semen/work/current/Projects/Squalene/Dox_cylinder_grow/topol.tpr");
     //sys("not water").write("1.pdb");

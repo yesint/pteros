@@ -60,9 +60,9 @@ struct Frame {
 
 //Forward declarations
 class Selection;
-class Atom_proxy;
 class Mol_file;
 class Mol_file_content;
+class Atom_proxy;
 
 /**
 *  The system of atoms.

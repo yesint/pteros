@@ -42,8 +42,7 @@ void make_bindings_Selection(py::module& m){
 
     using RowMatrixXf = Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
 
-    py::class_<Atom_proxy>(m, "Atom_proxy")
-        .def_property_readonly("index", [](Atom_proxy* obj){return obj->index();})
+    py::class_<Atom_proxy>(m, "Atom_proxy")        
         DEF_PROPERTY(resid,int)
         DEF_PROPERTY(resindex,int)
         DEF_PROPERTY(resname,string)
@@ -63,17 +62,7 @@ void make_bindings_Selection(py::module& m){
         DEF_PROPERTY(z,float)
         .def_property("xyz", [](Atom_proxy* obj){return obj->xyz();}, [](Atom_proxy* obj,Vector3f_const_ref val){obj->xyz()=val;})
         .def_property_readonly("element_name", [](Atom_proxy* obj){return obj->element_name();})
-        .def_property_readonly("vdw", [](Atom_proxy* obj){return obj->vdw();})
-
-        // For other frame
-        .def("getX", [](Atom_proxy* ap, int fr){ return ap->x(fr); })
-        .def("getY", [](Atom_proxy* ap, int fr){ return ap->y(fr); })
-        .def("getZ", [](Atom_proxy* ap, int fr){ return ap->z(fr); })
-        .def("getXYZ", [](Atom_proxy* ap, int fr){ return ap->xyz(fr); })
-        .def("setX", [](Atom_proxy* ap, int fr, float data){ ap->x(fr) = data; })
-        .def("setY", [](Atom_proxy* ap, int fr, float data){ ap->y(fr) = data; })
-        .def("setZ", [](Atom_proxy* ap, int fr, float data){ ap->z(fr) = data; })
-        .def("setXYZ", [](Atom_proxy* ap, int fr, Vector3f_const_ref data){ ap->xyz(fr) = data; })
+        .def_property_readonly("vdw", [](Atom_proxy* obj){return obj->vdw();})        
     ;
 
     py::class_<Selection>(m, "Selection")
@@ -260,6 +249,7 @@ void make_bindings_Selection(py::module& m){
         .def("write", py::overload_cast<string,int,int>(&Selection::write), "fname"_a, "b"_a=0, "e"_a=-1)
 
         // Util
+        .def("is_large",&Selection::is_large)
         .def("size",&Selection::size)
         .def("__len__", &Selection::size)
         .def("text_based",&Selection::text_based)
@@ -275,6 +265,13 @@ void make_bindings_Selection(py::module& m){
         .def("__getitem__", [](Selection &s, size_t i) {
                 if(i >= s.size()) throw py::index_error();                
                 return s[i]; // Returns atom proxy object
+            }, py::keep_alive<0,1>())
+
+        .def("__getitem__", [](Selection &s, py::tuple ind_fr) {
+                int i = ind_fr[0].cast<int>();
+                int fr = ind_fr[1].cast<int>();
+                if(i >= s.size() || fr<0 || fr>=s.get_system()->num_frames()) throw py::index_error();
+                return s[{i,fr}]; // Returns atom proxy object
             }, py::keep_alive<0,1>())
 
         // Splitting

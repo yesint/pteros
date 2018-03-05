@@ -98,10 +98,7 @@ int main(int argc, char** argv){
                 sel.translate(v);
                 break;
             }
-            case 5: {
-                sel.rotate(0,0.1);
-                break;
-            }
+            case 5:
             case 6: {
                 sel.center();
                 break;

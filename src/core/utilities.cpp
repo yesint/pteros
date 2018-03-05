@@ -28,6 +28,9 @@
 #include "pteros/core/utilities.h"
 #include "pteros/core/pteros_error.h"
 #include <fstream>
+// Periodic table from VMD molfile plugins
+#include "periodic_table.h"
+
 
 using namespace std;
 using namespace pteros;
@@ -130,4 +133,26 @@ Affine3f pteros::rotation_transform(Vector3f_const_ref pivot, Vector3f_const_ref
     m = AngleAxisf(angle,axis.normalized());
     m.translation().fill(0.0);
     return Translation3f(pivot)*m*Translation3f(-pivot);
+}
+
+string pteros::get_element_name(int elnum){
+    return (elnum<nr_pte_entries && elnum>=0) ? string(pte_label[elnum]) : "X";
+}
+
+float pteros::get_vdw_radius(int elnum, const string &name) {
+    if(elnum==0){
+        switch(name[0]){
+        case 'H': return  0.12;
+        case 'C': return  0.17;
+        case 'N': return  0.155;
+        case 'O': return  0.152;
+        case 'S': return  0.18;
+        case 'P': return  0.18;
+        case 'F': return  0.147;
+        default:  return  0.15;
+        }
+    } else {
+        // Use periodic table from VMD plugins
+        return (elnum<nr_pte_entries) ? 0.1*pte_vdw_radius[elnum] : 0.15;
+    }
 }
