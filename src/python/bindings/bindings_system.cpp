@@ -117,6 +117,9 @@ void make_bindings_System(py::module& m){
         .def("atoms_delete", &System::atoms_delete)
         .def("atom_move", &System::atom_move)
         .def("atom_clone", &System::atom_clone)
+        .def("atom_add_1h", &System::atom_add_1h,"target"_a,"at1"_a,"at2"_a,"at3"_a,"dist"_a=0.109,"pbc"_a=true)
+        .def("atom_add_2h", &System::atom_add_2h,"target"_a,"at1"_a,"at2"_a,"dist"_a=0.109,"pbc"_a=true)
+        .def("atom_add_3h", &System::atom_add_3h,"target"_a,"at1"_a,"dist"_a=0.109,"pbc"_a=true)
 
         // wrap
         .def("wrap", &System::wrap, "fr"_a, "pbc"_a=fullPBC)
