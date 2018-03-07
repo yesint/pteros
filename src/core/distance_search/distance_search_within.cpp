@@ -60,7 +60,7 @@ public:
         cutoff = d;
         is_periodic = periodic;
         abs_index = absolute_index;
-        box = src.Box();
+        box = src.box();
 
         // Grid creation
         if(!is_periodic){

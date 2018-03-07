@@ -327,54 +327,34 @@ public:
     /// @{
 
     /// Read/write access for periodic box for given frame
-    inline Periodic_box& Box(int fr=0){
-        return traj[fr].box;
-    }
+    inline Periodic_box& box(int fr=0){ return traj[fr].box; }
 
     /// Read only access for periodic box for given frame
-    inline const Periodic_box& Box(int fr=0) const {
-        return traj[fr].box;
-    }
+    inline const Periodic_box& box(int fr=0) const { return traj[fr].box; }
 
     /// Read/Write access to the time stamp of given frame
-    inline float& Time(int fr=0){
-        return traj[fr].time;
-    }
+    inline float& time(int fr=0){ return traj[fr].time; }
 
     /// Read only access to the time stamp of given frame
-    inline const float& Time(int fr=0) const {
-        return traj[fr].time;
-    }
+    inline const float& time(int fr=0) const { return traj[fr].time; }
 
     /// Read/Write access for given coordinate of given frame
-    inline Eigen::Vector3f& XYZ(int ind, int fr=0){
-        return traj[fr].coord[ind];
-    }
+    inline Eigen::Vector3f& xyz(int ind, int fr=0){ return traj[fr].coord[ind]; }
 
     /// Read only access for given coordinate of given frame
-    inline const Eigen::Vector3f& XYZ(int ind, int fr=0) const {
-        return traj[fr].coord[ind];
-    }
+    inline const Eigen::Vector3f& xyz(int ind, int fr=0) const { return traj[fr].coord[ind]; }
 
     /// Read/Write access for given atom
-    inline Atom& Atom_data(int ind) {
-        return atoms[ind];
-    }
+    inline Atom& atom(int ind) { return atoms[ind]; }
 
     /// Read only access for given atom
-    inline const Atom& Atom_data(int ind) const {
-        return atoms[ind];
-    }
+    inline const Atom& atom(int ind) const { return atoms[ind]; }
 
     /// Get read/write reference for given frame
-    inline Frame& Frame_data(int fr){
-        return traj[fr];
-    }
+    inline Frame& frame(int fr){ return traj[fr]; }
 
     /// Get read only reference for given frame
-    inline const Frame& Frame_data(int fr) const {
-        return traj[fr];
-    }
+    inline const Frame& frame(int fr) const { return traj[fr]; }
 
     /// @}
 

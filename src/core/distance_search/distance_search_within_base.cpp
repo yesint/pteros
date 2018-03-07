@@ -40,7 +40,7 @@ void Distance_search_within_base::used_to_result(vector<int>& res, bool include_
     if(include_self){
         if(abs_index){
             for(int i=0;i<used.size();++i)
-                if(used[i].load()) res.push_back(src.Index(i));
+                if(used[i].load()) res.push_back(src.index(i));
         } else {
             for(int i=0;i<used.size();++i)
                 if(used[i].load()) res.push_back(i);
@@ -50,7 +50,7 @@ void Distance_search_within_base::used_to_result(vector<int>& res, bool include_
 
         if(abs_index){
             for(int i=0;i<used.size();++i)
-                if(used[i].load()) dum.push_back(src.Index(i));
+                if(used[i].load()) dum.push_back(src.index(i));
         } else {
             for(int i=0;i<used.size();++i)
                 if(used[i].load()) dum.push_back(i);

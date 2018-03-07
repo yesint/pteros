@@ -92,20 +92,20 @@ void make_bindings_System(py::module& m){
         .def("frame_swap", &System::frame_swap)
 
         // Accessors
-        .def("getBox", py::overload_cast<int>(&System::Box, py::const_), "fr"_a=0)
-        .def("setBox", [](System* s,const Periodic_box& b, int fr){ s->Box(fr)=b; }, "box"_a, "fr"_a=0)
+        .def("getBox", py::overload_cast<int>(&System::box, py::const_), "fr"_a=0)
+        .def("setBox", [](System* s,const Periodic_box& b, int fr){ s->box(fr)=b; }, "box"_a, "fr"_a=0)
 
-        .def("getTime", py::overload_cast<int>(&System::Time, py::const_), "fr"_a=0)
-        .def("setTime", [](System* s,int t,int fr){ s->Time(fr)=t; }, "t"_a, "fr"_a=0)
+        .def("getTime", py::overload_cast<int>(&System::time, py::const_), "fr"_a=0)
+        .def("setTime", [](System* s,int t,int fr){ s->time(fr)=t; }, "t"_a, "fr"_a=0)
 
-        .def("getFrame_data", py::overload_cast<int>(&System::Frame_data, py::const_))
-        .def("setFrame_data", [](System* s, int i, const Frame& fr){ s->Frame_data(i)=fr; })
+        .def("getFrame_data", py::overload_cast<int>(&System::frame, py::const_))
+        .def("setFrame_data", [](System* s, int i, const Frame& fr){ s->frame(i)=fr; })
 
-        .def("getXYZ", py::overload_cast<int,int>(&System::XYZ, py::const_), "i"_a, "fr"_a=0)
-        .def("setXYZ", [](System* s,Vector3f_const_ref v,int i,int fr){ s->XYZ(i,fr)=v; }, "xyz"_a, "i"_a, "fr"_a=0)
+        .def("getXYZ", py::overload_cast<int,int>(&System::xyz, py::const_), "i"_a, "fr"_a=0)
+        .def("setXYZ", [](System* s,Vector3f_const_ref v,int i,int fr){ s->xyz(i,fr)=v; }, "xyz"_a, "i"_a, "fr"_a=0)
 
-        .def("getAtom_data", py::overload_cast<int>(&System::Atom_data, py::const_))
-        .def("setAtom_data", [](System* s, int i, const Atom& a){ s->Atom_data(i)=a; })
+        .def("getAtom_data", py::overload_cast<int>(&System::atom, py::const_))
+        .def("setAtom_data", [](System* s, int i, const Atom& a){ s->atom(i)=a; })
 
         // dssp
         .def("dssp", py::overload_cast<string,int>(&System::dssp, py::const_))

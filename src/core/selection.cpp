@@ -63,7 +63,7 @@ void Selection::allocate_parser(){
     // we will delete it after parsing is complete
     parser.reset(new Selection_parser);
     parser->create_ast(sel_text);        
-    parser->apply(system, frame, index);    
+    parser->apply(system, frame, _index);
     if(!parser->has_coord){
         parser.reset();
     }
@@ -71,11 +71,11 @@ void Selection::allocate_parser(){
 
 void Selection::sort_and_remove_duplicates()
 {
-    if(index.size()){
-        sort(index.begin(),index.end());
-        vector<int>::iterator it = unique(index.begin(), index.end());
-        index.resize( it - index.begin() );
-        if(index[0]<0) throw Pteros_error("Negative index {} present in Selection!",index[0]);
+    if(_index.size()){
+        sort(_index.begin(),_index.end());
+        vector<int>::iterator it = unique(_index.begin(), _index.end());
+        _index.resize( it - _index.begin() );
+        if(_index[0]<0) throw Pteros_error("Negative index {} present in Selection!",_index[0]);
     } else {
         if(size()==0) LOG()->warn("Selection '{}' is empty! Any call of its methods (except size()) will crash your program!", sel_text);
     }
@@ -141,8 +141,8 @@ Selection::Selection(const System &sys, int ind1, int ind2){
     if(ind2<ind1) throw Pteros_error("Wrong order of indexes {} and {} (must be ascending)", ind1,ind2);
 
     // Populate selection directly
-    index.reserve(ind2-ind1+1);
-    for(int i=ind1; i<=ind2; ++i) index.push_back(i);
+    _index.reserve(ind2-ind1+1);
+    for(int i=ind1; i<=ind2; ++i) _index.push_back(i);
 
     // Show warning if empty selection is created
     if(size()==0)
@@ -160,7 +160,7 @@ Selection::Selection(const System &sys, const std::vector<int> &ind){
     parser.reset();
 
     // populate selection    
-    index = ind;
+    _index = ind;
     sort_and_remove_duplicates();
 }
 
@@ -174,7 +174,7 @@ Selection::Selection(const System &sys, std::vector<int>::iterator it1, std::vec
     // No parser needed
     parser.reset();
 
-    copy(it1,it2,back_inserter(index));
+    copy(it1,it2,back_inserter(_index));
     sort_and_remove_duplicates();
 }
 
@@ -192,7 +192,7 @@ Selection::Selection(const System& sys,
     // set system
     system = const_cast<System*>(&sys);
     // call callback
-    callback(*system,frame,index);
+    callback(*system,frame,_index);
 }
 
 // Destructor
@@ -205,7 +205,7 @@ void Selection::append(const Selection &sel){
     if(!sel.system) throw Pteros_error("Can't append selection with undefined system!");
     if(sel.system!=system) throw Pteros_error("Can't append atoms from other system!");
 
-    copy(sel.index.begin(),sel.index.end(),back_inserter(index));
+    copy(sel._index.begin(),sel._index.end(),back_inserter(_index));
 
     sort_and_remove_duplicates();
 
@@ -217,9 +217,9 @@ void Selection::append(int ind){
     if(!system) throw Pteros_error("Can't append to selection with undefined system!");
     if(ind<0 || ind>=system->num_atoms()) throw Pteros_error("Appended index is out of range!");
 
-    if(find(index.begin(),index.end(),ind)==index.end()){
-        index.push_back(ind);
-        sort(index.begin(),index.end());
+    if(find(_index.begin(),_index.end(),ind)==_index.end()){
+        _index.push_back(ind);
+        sort(_index.begin(),_index.end());
     }
 
     sel_text = "";
@@ -229,9 +229,9 @@ void Selection::append(int ind){
 void Selection::remove(const Selection &sel)
 {
     vector<int> tmp;
-    set_difference(index.begin(),index.end(),
+    set_difference(_index.begin(),_index.end(),
                    sel.index_begin(),sel.index_end(),back_inserter(tmp));
-    index = tmp;
+    _index = tmp;
     sel_text = "";
     parser.reset();
 }
@@ -239,8 +239,8 @@ void Selection::remove(const Selection &sel)
 void Selection::remove(int ind)
 {
     vector<int> tmp;
-    remove_copy(index.begin(),index.end(),back_inserter(tmp),ind);
-    index = tmp;
+    remove_copy(_index.begin(),_index.end(),back_inserter(tmp),ind);
+    _index = tmp;
     sel_text = "";
     parser.reset();
 }
@@ -249,9 +249,9 @@ void Selection::invert()
 {
     // Not textual
     sel_text = "";
-    auto old_ind = index;
-    index.clear();
-    index.reserve(system->num_atoms()-old_ind.size()+1);
+    auto old_ind = _index;
+    _index.clear();
+    _index.reserve(system->num_atoms()-old_ind.size()+1);
     // Assign index
     // We can speed up negation a bit by filling only the "gaps"
     int n = old_ind.size();
@@ -259,13 +259,13 @@ void Selection::invert()
 
     if(n!=0){
 
-        for(j=0;j<old_ind[0];++j) index.push_back(j); //Before first
+        for(j=0;j<old_ind[0];++j) _index.push_back(j); //Before first
         for(i=1;i<n;++i)
-            for(j=old_ind[i-1]+1;j<old_ind[i];++j) index.push_back(j); // between any two
-        for(j=old_ind[n-1]+1;j<system->num_atoms();++j) index.push_back(j); // after last
+            for(j=old_ind[i-1]+1;j<old_ind[i];++j) _index.push_back(j); // between any two
+        for(j=old_ind[n-1]+1;j<system->num_atoms();++j) _index.push_back(j); // after last
 
     } else {
-        for(j=0;j<system->num_atoms();++j) index.push_back(j); //All
+        for(j=0;j<system->num_atoms();++j) _index.push_back(j); //All
     }
 }
 
@@ -278,7 +278,7 @@ void Selection::set_system(const System &sys){
 // Selection is still present in parent.
 void Selection::clear(){
     // Clear index
-    index.clear();
+    _index.clear();
     // If parser is present (persistent), delete it
     parser.reset();
     sel_text = "";
@@ -311,9 +311,9 @@ Selection Selection::select(string str)
         throw Pteros_error("Can't make selection for non-existent frame {} (# of frames is {})", sub.frame, sub.system->num_frames());
 
     // Manually allocate parser with subset from parent index
-    sub.parser.reset(new Selection_parser(&index));
+    sub.parser.reset(new Selection_parser(&_index));
     sub.parser->create_ast(sub.sel_text);
-    sub.parser->apply(sub.system, sub.frame, sub.index);
+    sub.parser->apply(sub.system, sub.frame, sub._index);
     if(!sub.parser->has_coord){
         sub.parser.reset();
     }
@@ -335,8 +335,8 @@ Selection Selection::select(int ind1, int ind2)
 {
     // ind1 and ind2 are LOCAL indexes, convert them to global and just
     // use normal range constructor
-    ind1 = index[ind1];
-    ind2 = index[ind2];
+    ind1 = _index[ind1];
+    ind2 = _index[ind2];
     return Selection(*system,ind1,ind2);
 }
 
@@ -350,7 +350,7 @@ Selection Selection::select(const std::vector<int> &ind)
     // LOCAL indexes are given, convert them to global and just
     // use normal range constructor
     vector<int> glob_ind(ind.size());
-    for(int i=0; i<ind.size(); ++i) glob_ind[i] = index[ind[i]];
+    for(int i=0; i<ind.size(); ++i) glob_ind[i] = _index[ind[i]];
     return Selection(*system,glob_ind);
 }
 
@@ -367,7 +367,7 @@ void Selection::modify(string str, int fr){
     // Expand macro-definitions in the string
     expand_macro(sel_text);
 
-    index.clear();
+    _index.clear();
     frame = fr;
     // Sanity check
     if(frame<0 || frame>=system->num_frames())        
@@ -383,9 +383,9 @@ void Selection::modify(int ind1, int ind2){
     sel_text = "";    
     // Populate selection directly
     if(ind2<ind1) throw Pteros_error("Wrong order of indexes {} and {} (must be ascending)", ind1,ind2);
-    index.clear();
-    index.reserve(ind2-ind1+1);
-    for(int i=ind1; i<=ind2; ++i) index.push_back(i);       
+    _index.clear();
+    _index.reserve(ind2-ind1+1);
+    for(int i=ind1; i<=ind2; ++i) _index.push_back(i);
 }
 
 void Selection::modify(const std::vector<int> &ind){
@@ -395,7 +395,7 @@ void Selection::modify(const std::vector<int> &ind){
     // not textual
     sel_text = "";
     // populate selection    
-    index = ind;
+    _index = ind;
     sort_and_remove_duplicates();
 }
 
@@ -406,8 +406,8 @@ void Selection::modify(std::vector<int>::iterator it1, std::vector<int>::iterato
     // not textual
     sel_text = "";
     // Populate selection
-    index.clear();
-    copy(it1,it2,back_inserter(index));
+    _index.clear();
+    copy(it1,it2,back_inserter(_index));
     sort_and_remove_duplicates();
 }
 
@@ -419,13 +419,13 @@ void Selection::modify(const std::function<void (const System &, int, std::vecto
     // not textual
     sel_text = "";
     // clear index
-    index.clear();
+    _index.clear();
     frame = fr;
     // Sanity check
     if(frame<0 || frame>=system->num_frames())
         throw Pteros_error("Can't make selection for non-existent frame {} (# of frames is {})", frame, system->num_frames());
     // fill
-    callback(*system,frame,index);
+    callback(*system,frame,_index);
 
     sort_and_remove_duplicates();
 }
@@ -469,7 +469,7 @@ Selection& Selection::operator=(const Selection& other){
 
     // Copy selection text, index and frame
     sel_text = other.sel_text;
-    index = other.index;
+    _index = other._index;
     frame = other.frame;
 
     // Add to new parent
@@ -485,15 +485,15 @@ Selection& Selection::operator=(const Selection& other){
 
 // Equality operator
 bool Selection::operator==(const Selection &other) const {
-    return (system == other.system) && (index == other.index);
+    return (system == other.system) && (_index == other._index);
 }
 
 Atom_proxy Selection::operator[](int ind) {
-    return Atom_proxy(system,index[ind],frame);
+    return Atom_proxy(system,_index[ind],frame);
 }
 
 Atom_proxy Selection::operator[](const std::pair<int, int> &ind_fr) {
-    return Atom_proxy(system,index[ind_fr.first],ind_fr.second);
+    return Atom_proxy(system,_index[ind_fr.first],ind_fr.second);
 }
 
 Selection Selection::operator~() const {
@@ -503,17 +503,17 @@ Selection Selection::operator~() const {
     res.sel_text = "";
     // Assign index
     // We can speed up negation a bit by filling only the "gaps"
-    int n = index.size();
+    int n = _index.size();
     int i,j;
     if(n!=0){
-        res.index.reserve(system->num_atoms()-n);
-        for(j=0;j<index[0];++j) res.index.push_back(j); //Before first
+        res._index.reserve(system->num_atoms()-n);
+        for(j=0;j<_index[0];++j) res._index.push_back(j); //Before first
         for(i=1;i<n;++i)
-            for(j=index[i-1]+1;j<index[i];++j) res.index.push_back(j); // between any two
-        for(j=index[n-1]+1;j<system->num_atoms();++j) res.index.push_back(j); // after last
+            for(j=_index[i-1]+1;j<_index[i];++j) res._index.push_back(j); // between any two
+        for(j=_index[n-1]+1;j<system->num_atoms();++j) res._index.push_back(j); // after last
     } else {
-        res.index.resize(system->num_atoms());
-        for(j=0;j<system->num_atoms();++j) res.index[j] = j; //All
+        res._index.resize(system->num_atoms());
+        for(j=0;j<system->num_atoms();++j) res._index[j] = j; //All
     }
     return res;
 }
@@ -532,9 +532,9 @@ Selection operator|(const Selection &sel1, const Selection &sel2){
     // Set frame
     res.frame = sel1.frame;
     // Combine indexes
-    std::set_union(sel1.index.begin(),sel1.index.end(),
-                   sel2.index.begin(),sel2.index.end(),
-                   back_inserter(res.index));
+    std::set_union(sel1._index.begin(),sel1._index.end(),
+                   sel2._index.begin(),sel2._index.end(),
+                   back_inserter(res._index));
     return res;
 }
 
@@ -550,17 +550,17 @@ Selection operator&(const Selection &sel1, const Selection &sel2){
     // Set frame
     res.frame = sel1.frame;
     // Combine indexes
-    std::set_intersection(sel1.index.begin(),sel1.index.end(),
-                          sel2.index.begin(),sel2.index.end(),
-                          back_inserter(res.index));
+    std::set_intersection(sel1._index.begin(),sel1._index.end(),
+                          sel2._index.begin(),sel2._index.end(),
+                          back_inserter(res._index));
     return res;
 }
 
 
 ostream& operator<<(ostream &os, const Selection &sel){
     if(sel.size()>0){
-        for(int i=0;i<sel.size()-1;++i) os << sel.Index(i) << " ";
-        os << sel.Index(sel.size()-1);
+        for(int i=0;i<sel.size()-1;++i) os << sel.index(i) << " ";
+        os << sel.index(sel.size()-1);
     }
     return os;
 }
@@ -571,9 +571,9 @@ Selection operator-(const Selection &sel1, const Selection &sel2)
     res.sel_text = "";
     res.parser.reset();
     res.frame = sel1.frame;
-    std::set_difference(sel1.index.begin(),sel1.index.end(),
-                        sel2.index.begin(),sel2.index.end(),
-                        back_inserter(res.index));
+    std::set_difference(sel1._index.begin(),sel1._index.end(),
+                        sel2._index.begin(),sel2._index.end(),
+                        back_inserter(res._index));
     return res;
 }
 
@@ -594,7 +594,7 @@ Selection::Selection(const Selection& other){
 
     // Add new data
     sel_text = other.sel_text;
-    index = other.index;
+    _index = other._index;
     frame = other.frame;
     // Add to new parent
     system = other.system;
@@ -615,7 +615,7 @@ void Selection::update(){
 void Selection::apply(){
     if(parser){
         // If parser is persistent, do quick eval using ast tree
-        parser->apply(system, frame, index);
+        parser->apply(system, frame, _index);
     }
 }
 
@@ -648,9 +648,9 @@ Selection::iterator Selection::end(){
 vector<T> Selection::get_##prop() const { \
     vector<T> tmp; \
     int i,n; \
-    n = index.size(); \
+    n = _index.size(); \
     tmp.resize(n); \
-    for(i=0; i<n; ++i) tmp[i] = system->atoms[index[i]].prop; \
+    for(i=0; i<n; ++i) tmp[i] = system->atoms[_index[i]].prop; \
     return tmp; \
 } \
 
@@ -659,9 +659,9 @@ vector<T> Selection::get_##prop() const { \
 vector<T> Selection::get_##prop(bool unique) const { \
     vector<T> tmp; \
     int i,n; \
-    n = index.size(); \
+    n = _index.size(); \
     tmp.resize(n); \
-    for(i=0; i<n; ++i) tmp[i] = system->atoms[index[i]].prop; \
+    for(i=0; i<n; ++i) tmp[i] = system->atoms[_index[i]].prop; \
     if(unique){ \
         vector<T> res; \
         unique_copy(tmp.begin(),tmp.end(), back_inserter(res)); \
@@ -674,14 +674,14 @@ vector<T> Selection::get_##prop(bool unique) const { \
 #define SET_ATOM_PROP(T,prop) \
 void Selection::set_##prop(const vector<T>& data){ \
     int i,n; \
-    n = index.size(); \
+    n = _index.size(); \
     if(data.size()!=n) throw Pteros_error("Invalid data size {} for selection of size {}", data.size(),n); \
-    for(i=0; i<n; ++i) system->atoms[index[i]].prop = data[i]; \
+    for(i=0; i<n; ++i) system->atoms[_index[i]].prop = data[i]; \
 } \
 void Selection::set_##prop(T data){ \
     int i,n; \
-    n = index.size(); \
-    for(i=0; i<n; ++i) system->atoms[index[i]].prop = data; \
+    n = _index.size(); \
+    for(i=0; i<n; ++i) system->atoms[_index[i]].prop = data; \
 }
 
 
@@ -723,40 +723,40 @@ std::string Selection::get_text() const {
         // If text is empty return dumb indexes
         stringstream ss;
         ss << "index ";
-        for(int i=0;i<index.size();++i) ss << index[i] << " ";
+        for(int i=0;i<_index.size();++i) ss << _index[i] << " ";
         return ss.str();
     }
 }
 
 MatrixXf Selection::get_xyz(bool make_row_major_matrix) const {
-    int n = index.size();
+    int n = _index.size();
     MatrixXf res;
     if(make_row_major_matrix){
         res.resize(n,3);
-        for(int i=0; i<n; ++i) res.row(i) = system->traj[frame].coord[index[i]];
+        for(int i=0; i<n; ++i) res.row(i) = system->traj[frame].coord[_index[i]];
     } else {
         // Column major, default
         res.resize(3,n);
-        for(int i=0; i<n; ++i) res.col(i) = system->traj[frame].coord[index[i]];
+        for(int i=0; i<n; ++i) res.col(i) = system->traj[frame].coord[_index[i]];
     }
     return res;
 }
 
 void Selection::get_xyz(MatrixXf_ref res) const {
     int i,n;
-    n = index.size();
+    n = _index.size();
     res.resize(3,n);
-    for(i=0; i<n; ++i) res.col(i) = system->traj[frame].coord[index[i]];
+    for(i=0; i<n; ++i) res.col(i) = system->traj[frame].coord[_index[i]];
 }
 
 void Selection::set_xyz(pteros::MatrixXf_const_ref coord){
-    int n = index.size();
+    int n = _index.size();
     // Sanity check
     if(coord.cols()!=n && coord.rows()!=n) throw Pteros_error("Invalid data size {} for selection of size {}", coord.size(),n);
     if(coord.cols()==n){ // Column major, default
-        for(int i=0; i<n; ++i) XYZ(i) = coord.col(i);
+        for(int i=0; i<n; ++i) xyz(i) = coord.col(i);
     } else { // row-major, from python bindings
-        for(int i=0; i<n; ++i) XYZ(i) = coord.row(i);
+        for(int i=0; i<n; ++i) xyz(i) = coord.row(i);
     }
 }
 
@@ -764,7 +764,7 @@ void Selection::set_xyz(pteros::MatrixXf_const_ref coord){
 MatrixXf Selection::average_structure(int b, int e, bool make_row_major_matrix) const {
     MatrixXf res;
     int i,n,fr;
-    n = index.size();
+    n = _index.size();
 
     if(e==-1) e = system->num_frames()-1;
     if(e<b || b<0 || e>system->num_frames()-1 || e<0){
@@ -776,11 +776,11 @@ MatrixXf Selection::average_structure(int b, int e, bool make_row_major_matrix) 
     if(!make_row_major_matrix){
         res.resize(3,n);
         res.fill(0.0);
-        for(fr=b;fr<=e;++fr) for(i=0; i<n; ++i) res.col(i) = system->traj[fr].coord[index[i]];
+        for(fr=b;fr<=e;++fr) for(i=0; i<n; ++i) res.col(i) = system->traj[fr].coord[_index[i]];
     } else {
         res.resize(n,3);
         res.fill(0.0);
-        for(fr=b;fr<=e;++fr) for(i=0; i<n; ++i) res.row(i) = system->traj[fr].coord[index[i]];
+        for(fr=b;fr<=e;++fr) for(i=0; i<n; ++i) res.row(i) = system->traj[fr].coord[_index[i]];
     }
     res /= (e-b+1);
     return res;
@@ -794,7 +794,7 @@ MatrixXf Selection::average_structure(int b, int e, bool make_row_major_matrix) 
 bool Selection::is_large(){
     Vector3f _min,_max;
     minmax(_min,_max);
-    return ( (Box().lab_to_box(_max-_min) - 0.5*Box().extents()).array() > 0).any();
+    return ( (box().lab_to_box(_max-_min) - 0.5*box().extents()).array() > 0).any();
 }
 
 
@@ -802,7 +802,7 @@ bool Selection::is_large(){
 Vector3f Selection::center(bool mass_weighted, Array3i_const_ref pbc, int leading_index) const {
     Vector3f res;
     int i;
-    int n = index.size();
+    int n = _index.size();
 
     if(n==0) throw Pteros_error("Can't get the center of empty selection!");
 
@@ -811,28 +811,28 @@ Vector3f Selection::center(bool mass_weighted, Array3i_const_ref pbc, int leadin
     if( (pbc==0).all() ){
         // Non-periodic variant
         if(mass_weighted){
-            float mass = 0.0;
+            float M = 0.0;
             #pragma omp parallel
             {                
                 Vector3f r(Vector3f::Zero());
-                #pragma omp for nowait reduction(+:mass)
+                #pragma omp for nowait reduction(+:M)
                 for(i=0; i<n; ++i){
-                    r += XYZ(i)*Mass(i);
-                    mass += Mass(i);
+                    r += xyz(i)*mass(i);
+                    M += mass(i);
                 }
                 #pragma omp critical
                 {
                     res += r;
                 }
             }
-            if(mass==0) throw Pteros_error("Selection has zero mass! Center of mass failed!");
-            return res/mass;
+            if(M==0) throw Pteros_error("Selection has zero mass! Center of mass failed!");
+            return res/M;
         } else {
             #pragma omp parallel
             {
                 Vector3f r(Vector3f::Zero()); // local to omp thread
                 #pragma omp for nowait
-                for(i=0; i<n; ++i) r += XYZ(i);
+                for(i=0; i<n; ++i) r += xyz(i);
                 #pragma omp critical
                 {
                     res += r;
@@ -845,32 +845,32 @@ Vector3f Selection::center(bool mass_weighted, Array3i_const_ref pbc, int leadin
         // Periodic center
         // We will find closest periodic images of all points
         // using leading point as a reference
-        Vector3f ref_point = XYZ(leading_index);
-        Periodic_box& b = system->Box(frame);
+        Vector3f ref_point = xyz(leading_index);
+        Periodic_box& b = system->box(frame);
         if(mass_weighted){
-            float mass = 0.0;
+            float M = 0.0;
             #pragma omp parallel
             {                
                 Vector3f r(Vector3f::Zero());
-                #pragma omp for nowait reduction(+:mass)
+                #pragma omp for nowait reduction(+:M)
                 for(i=0; i<n; ++i){
-                    r += b.closest_image(XYZ(i),ref_point,pbc) * Mass(i);
-                    mass += Mass(i);
+                    r += b.closest_image(xyz(i),ref_point,pbc) * mass(i);
+                    M += mass(i);
                 }
                 #pragma omp critical
                 {
                     res += r;                    
                 }
             }
-            if(mass==0) throw Pteros_error("Selection has zero mass! Center of mass failed!");
-            return res/mass;
+            if(M==0) throw Pteros_error("Selection has zero mass! Center of mass failed!");
+            return res/M;
         } else {
             #pragma omp parallel
             {
                 Vector3f r(Vector3f::Zero()); // local to omp thread
                 #pragma omp for nowait
                 for(i=0; i<n; ++i)
-                    r += b.closest_image(XYZ(i),ref_point,pbc);
+                    r += b.closest_image(xyz(i),ref_point,pbc);
                 #pragma omp critical
                 {
                     res += r;
@@ -883,9 +883,9 @@ Vector3f Selection::center(bool mass_weighted, Array3i_const_ref pbc, int leadin
 
 // Plain translation
 void Selection::translate(Vector3f_const_ref v){
-    int i,n = index.size();
+    int i,n = _index.size();
     #pragma omp parallel for
-    for(i=0; i<n; ++i) XYZ(i) += v;
+    for(i=0; i<n; ++i) xyz(i) += v;
 }
 
 // Rotation around given vector relative to pivot
@@ -899,7 +899,7 @@ void Selection::rotate(Vector3f_const_ref pivot, Vector3f_const_ref axis, float 
 
 // RMSD between two frames
 float Selection::rmsd(int fr1, int fr2) const{
-    int n = index.size();
+    int n = _index.size();
     float res = 0.0;
 
     if(fr1<0 || fr1>=system->num_frames() ||
@@ -908,7 +908,7 @@ float Selection::rmsd(int fr1, int fr2) const{
 
     #pragma omp parallel for reduction(+:res)
     for(int i=0; i<n; ++i)
-        res += (XYZ(i,fr1)-XYZ(i,fr2)).squaredNorm();
+        res += (xyz(i,fr1)-xyz(i,fr2)).squaredNorm();
 
     return sqrt(res/n);
 }
@@ -926,7 +926,7 @@ void Selection::apply_transform(const Affine3f &t){
     int n = size();    
     #pragma omp parallel for
     for(int i=0; i<n; ++i){        
-        XYZ(i) = t * XYZ(i);
+        xyz(i) = t * xyz(i);
     }
 }
 
@@ -938,7 +938,7 @@ void copy_coord(const Selection &from, int from_fr, Selection &to, int to_fr)
         throw Pteros_error("Can't copy coordinates between selections of different size!");
 
     for(int i=0; i<from.size(); ++i){
-        to.XYZ(i,to_fr) = from.XYZ(i,from_fr);
+        to.xyz(i,to_fr) = from.xyz(i,from_fr);
     }
 }
 
@@ -955,8 +955,8 @@ Vector2f get_energy_for_list(const vector<Vector2i>& pairs, const vector<float>&
             at1 = pairs[i](0);
             at2 = pairs[i](1);
             e += ff.pair_energy(at1, at2, dist[i],
-                                sys.Atom_data(at1).charge, sys.Atom_data(at2).charge,
-                                sys.Atom_data(at1).type,   sys.Atom_data(at2).type);
+                                sys.atom(at1).charge, sys.atom(at2).charge,
+                                sys.atom(at1).type,   sys.atom(at2).type);
         }
 
         #pragma omp critical
@@ -1010,8 +1010,8 @@ Vector2f non_bond_energy(const Selection& sel1,
 
 // RMSD between two selections (specified frames)
 float rmsd(const Selection& sel1, int fr1, const Selection& sel2, int fr2){
-    int n1 = sel1.index.size();
-    int n2 = sel2.index.size();
+    int n1 = sel1._index.size();
+    int n2 = sel2._index.size();
     float res = 0.0;
     if(n1!=n2) throw Pteros_error("Incompatible selections for RMSD of sizes {} and {}", n1,n2);
 
@@ -1022,7 +1022,7 @@ float rmsd(const Selection& sel1, int fr1, const Selection& sel2, int fr2){
 
     #pragma omp parallel for reduction(+:res)
     for(int i=0; i<n1; ++i)
-        res += (sel1.XYZ(i,fr1)-sel2.XYZ(i,fr2)).squaredNorm();
+        res += (sel1.xyz(i,fr1)-sel2.xyz(i,fr2)).squaredNorm();
 
     return sqrt(res/n1);
 }
@@ -1069,7 +1069,7 @@ Affine3f fit_transform(const Selection& sel1, const Selection& sel2){
         Matrix3f _u(Matrix3f::Zero());
         #pragma omp for nowait
         for(i=0;i<N;++i) // Over atoms in selection
-            _u += sel1.XYZ(i)*sel2.XYZ(i).transpose()*sel1.Mass(i);
+            _u += sel1.xyz(i)*sel2.xyz(i).transpose()*sel1.mass(i);
         #pragma omp critical
         {
             u += _u;
@@ -1202,7 +1202,7 @@ void Selection::fit(int fr1, int fr2){
 void Selection::minmax(Vector3f_ref min, Vector3f_ref max) const {
     int i,n,j;
     Vector3f* p;
-    n = index.size();
+    n = _index.size();
 
     float x_min, y_min, z_min, x_max, y_max, z_max;
     x_min = y_min = z_min = 1e10;
@@ -1210,7 +1210,7 @@ void Selection::minmax(Vector3f_ref min, Vector3f_ref max) const {
 
     #pragma omp parallel for reduction(min:x_min,y_min,z_min) reduction(max:x_max,y_max,z_max)
     for(i=0; i<n; ++i){
-        p = XYZ_ptr(i);
+        p = xyz_ptr(i);
         if((*p)(0)<x_min) x_min = (*p)(0);
         if((*p)(0)>x_max) x_max = (*p)(0);
         if((*p)(1)<y_min) y_min = (*p)(1);
@@ -1295,7 +1295,7 @@ string Selection::to_gromacs_ndx(string name)
     stringstream s;
     s << "[ " << name << " ]" << endl;
     int n=0;
-    for(int ind: index){
+    for(int ind: _index){
         s << ind+1;
         ++n;
         if(n==15){
@@ -1323,10 +1323,10 @@ void Selection::each_residue(std::vector<Selection>& sel) const {
     int ind;
     for(int i=0; i<size(); ++i){
         // Skip used
-        ind = Resindex(i);
+        ind = resindex(i);
         if(used.count(ind)) continue;
         // Starting global index
-        b = e = Index(i);
+        b = e = index(i);
         // Go backward
         while( b-1>=0 && system->atoms[b-1].resindex == ind){ --b; };
         // Go forward
@@ -1339,12 +1339,12 @@ void Selection::each_residue(std::vector<Selection>& sel) const {
     }
 }
 
-float Selection::VDW(int ind) const {
-    return get_vdw_radius(Element_number(ind),Name(ind));
+float Selection::vdw(int ind) const {
+    return get_vdw_radius(element_number(ind),name(ind));
 }
 
-string Selection::Element_name(int ind) const {
-    int el = Element_number(ind);
+string Selection::element_name(int ind) const {
+    int el = element_number(ind);
     return get_element_name(el);
 }
 
@@ -1352,7 +1352,7 @@ string Selection::Element_name(int ind) const {
 MatrixXf Selection::atom_traj(int ind, int b, int e, bool make_row_major_matrix) const {
     if(e==-1) e = system->num_frames()-1;
     // Sanity check
-    if(ind<0 || ind>=index.size()) throw Pteros_error("Selection index is out of range!");
+    if(ind<0 || ind>=_index.size()) throw Pteros_error("Selection index is out of range!");
     if(b<0 || b>=system->num_frames() || b>e) throw Pteros_error("Invalid frame range!");
 
     int Nfr = e-b+1;
@@ -1360,10 +1360,10 @@ MatrixXf Selection::atom_traj(int ind, int b, int e, bool make_row_major_matrix)
 
     if(!make_row_major_matrix){
         ret.resize(3,Nfr);
-        for(int fr=b;fr<=e;++fr) ret.col(fr) = system->traj[fr].coord[index[ind]];
+        for(int fr=b;fr<=e;++fr) ret.col(fr) = system->traj[fr].coord[_index[ind]];
     } else {
         ret.resize(Nfr,3);
-        for(int fr=b;fr<=e;++fr) ret.row(fr) = system->traj[fr].coord[index[ind]];
+        for(int fr=b;fr<=e;++fr) ret.row(fr) = system->traj[fr].coord[_index[ind]];
     }
 
     return ret;
@@ -1411,7 +1411,7 @@ void Selection::split_by_connectivity(float d, std::vector<Selection> &res, bool
         Selection tmp(*system);
         tmp.set_frame(frame);
         tmp.sel_text = "";
-        tmp.index.push_back(index[cur]);
+        tmp._index.push_back(_index[cur]);
         res.push_back(tmp);
     }
 
@@ -1426,7 +1426,7 @@ void Selection::split_by_connectivity(float d, std::vector<Selection> &res, bool
                 // We only add atoms, which were not yet used as centers
                 if(used(i)==0){
                     // Add this atom to selection                    
-                    res.back().index.push_back(index[i]);
+                    res.back()._index.push_back(_index[i]);
                     // Add this atom to centers queue
                     todo.insert(i);
                     // Mark as used
@@ -1451,12 +1451,12 @@ void Selection::split_by_connectivity(float d, std::vector<Selection> &res, bool
             Selection tmp(*system);
             tmp.set_frame(frame);
             tmp.sel_text = "";
-            tmp.index.push_back(index[i]);
+            tmp._index.push_back(_index[i]);
             res.push_back(tmp);
         } else {
             // Done.
             // Indexes of selections are not sorted sort them
-            for(auto& s: res) sort(s.index.begin(),s.index.end());
+            for(auto& s: res) sort(s._index.begin(),s._index.end());
             // And exit
             break;
         }
@@ -1472,7 +1472,7 @@ void Selection::split_by_residue(std::vector<Selection> &res)
     // Map of resindexes to indexs in selections
     map<int,vector<int> > m;
     for(int i=0; i<size(); ++i){
-        m[Resindex(i)].push_back(Index(i));
+        m[resindex(i)].push_back(index(i));
     }
     // Create selections
     map<int,vector<int> >::iterator it;
@@ -1491,9 +1491,9 @@ void Selection::split_by_molecule(std::vector<Selection> &res)
     for(int i=0;i<size();++i){
         // Find molecule for this atom
         for(int j=bmol; j<system->force_field.molecules.size(); ++j){
-            if(index[i]>=system->force_field.molecules[j](0) && index[i]<=system->force_field.molecules[j](1)){
+            if(_index[i]>=system->force_field.molecules[j](0) && _index[i]<=system->force_field.molecules[j](1)){
                 bmol=j;
-                m[j].push_back(index[i]);
+                m[j].push_back(_index[i]);
             }
         }
     }
@@ -1513,7 +1513,7 @@ void Selection::split_by_chain(std::vector<Selection> &chains)
     // Map of resindexes to indexs in selections
     map<char,vector<int> > m;
     for(int i=0; i<size(); ++i){
-        m[Chain(i)].push_back(Index(i));
+        m[chain(i)].push_back(index(i));
     }
     // Create selections
     map<char,vector<int> >::iterator it;
@@ -1529,10 +1529,10 @@ void Selection::split_by_contiguous_index(std::vector<Selection> &parts)
     // Start first contiguous part
     int b = 0, i = 0;
     while(i<size()){
-        while(i+1<size() && index[i+1]==index[i]+1) ++i;
+        while(i+1<size() && _index[i+1]==_index[i]+1) ++i;
         // Part finished
         parts.push_back(Selection(*system));
-        parts.back().modify(index[b],index[i]);
+        parts.back().modify(_index[b],_index[i]);
         b = i+1;
         i = b;
     }
@@ -1544,10 +1544,10 @@ void Selection::split_by_contiguous_residue(std::vector<Selection> &parts)
     // Start first contiguous part
     int b = 0, i = 0;
     while(i<size()){
-        while(i+1<size() && (Resindex(i+1)==Resindex(i)+1 || Resindex(i+1)==Resindex(i)) ) ++i;
+        while(i+1<size() && (resindex(i+1)==resindex(i)+1 || resindex(i+1)==resindex(i)) ) ++i;
         // Part finished
         parts.push_back(Selection(*system));
-        parts.back().modify(index[b],index[i]);
+        parts.back().modify(_index[b],_index[i]);
         b = i+1;
         i = b;
     }
@@ -1563,8 +1563,8 @@ void Selection::inertia(Vector3f_ref moments, Matrix3f_ref axes, Array3i_const_r
     Vector3f c = center(true,pbc,leading_index);
 
     if( (pbc!=0).any() ){
-        Vector3f anchor = XYZ(leading_index);
-        Periodic_box& b = system->Box(frame);
+        Vector3f anchor = xyz(leading_index);
+        Periodic_box& b = system->box(frame);
         #pragma omp parallel
         {
             Vector3f p,d;
@@ -1573,9 +1573,9 @@ void Selection::inertia(Vector3f_ref moments, Matrix3f_ref axes, Array3i_const_r
             for(i=0;i<n;++i){
                 // 0 point was used as an anchor in periodic center calculation,
                 // so we have to use it as an anchor here as well!
-                p = b.closest_image(XYZ(i),anchor,pbc);
+                p = b.closest_image(xyz(i),anchor,pbc);
                 d = p-c;
-                m = Mass(i);
+                m = mass(i);
                 axes00 += m*( d(1)*d(1) + d(2)*d(2) );
                 axes11 += m*( d(0)*d(0) + d(2)*d(2) );
                 axes22 += m*( d(0)*d(0) + d(1)*d(1) );
@@ -1591,8 +1591,8 @@ void Selection::inertia(Vector3f_ref moments, Matrix3f_ref axes, Array3i_const_r
             float m;
             #pragma omp for reduction(+:axes00,axes11,axes22,axes01,axes02,axes12)
             for(i=0;i<n;++i){
-                d = XYZ(i)-c;
-                m = Mass(i);
+                d = xyz(i)-c;
+                m = mass(i);
                 axes00 += m*( d(1)*d(1) + d(2)*d(2) );
                 axes11 += m*( d(0)*d(0) + d(2)*d(2) );
                 axes22 += m*( d(0)*d(0) + d(1)*d(1) );
@@ -1625,46 +1625,46 @@ float Selection::gyration(Array3i_const_ref pbc, bool leading_index) const {
     #pragma omp parallel for private(d) reduction(+:a,b)
     for(i=0;i<n;++i){
         if( (pbc!=0).any() ){
-            d = system->Box(frame).distance(XYZ(i),c,pbc);
+            d = system->box(frame).distance(xyz(i),c,pbc);
         } else {
-            d = (XYZ(i)-c).norm();
+            d = (xyz(i)-c).norm();
         }        
-        a += Mass(i)*d*d;
-        b += Mass(i);
+        a += mass(i)*d*d;
+        b += mass(i);
     }
     return sqrt(a/b);
 }
 
 float Selection::distance(int i, int j, Array3i_const_ref pbc) const
 {
-    return system->distance(Index(i),Index(j),frame, pbc);
+    return system->distance(index(i),index(j),frame, pbc);
 }
 
 float Selection::angle(int i, int j, int k, Array3i_const_ref pbc) const
 {
-    return system->angle(Index(i),Index(j),Index(k),frame,pbc);
+    return system->angle(index(i),index(j),index(k),frame,pbc);
 }
 
 float Selection::dihedral(int i, int j, int k, int l, Array3i_const_ref pbc) const
 {
-    return system->dihedral(Index(i),Index(j),Index(k),Index(l),frame,pbc);
+    return system->dihedral(index(i),index(j),index(k),index(l),frame,pbc);
 }
 
 void Selection::wrap(Array3i_const_ref pbc){
     for(int i=0;i<size();++i){
-        Box().wrap_point(XYZ(i),pbc);
+        box().wrap_point(xyz(i),pbc);
     }
 }
 
 void Selection::unwrap(Array3i_const_ref pbc, int leading_index){
     Vector3f c;
     if( (pbc==0).all() && leading_index>=0){
-        c = XYZ(leading_index);
+        c = xyz(leading_index);
     } else {
         c = center(true,pbc,leading_index);
     }
     for(int i=0;i<size();++i){
-        XYZ(i) = Box().closest_image(XYZ(i),c,pbc);
+        xyz(i) = box().closest_image(xyz(i),c,pbc);
     }
 }
 
@@ -1704,21 +1704,21 @@ int Selection::unwrap_bonds(float d, Array3i_const_ref pbc, int leading_index){
     todo.insert(leading_index);
     used[leading_index] = 1;
     int Nused = 1;
-    Periodic_box& b = system->Box(frame);
+    Periodic_box& b = system->box(frame);
 
     for(;;){
         while(!todo.empty()){
             // Get center from the queue
             int cur = *(todo.begin());
             todo.erase(todo.begin()); // And pop it from the queue
-            leading = XYZ(cur);
+            leading = xyz(cur);
 
             // Find all atoms connected to this one
             for(int i=0; i<con[cur].size(); ++i){
                 // We only add atoms, which were not yet used as centers
                 if(used(con[cur][i])==0){
                     // Unwrap atom
-                    XYZ(con[cur][i]) = b.closest_image(XYZ(con[cur][i]),leading,pbc);
+                    xyz(con[cur][i]) = b.closest_image(xyz(con[cur][i]),leading,pbc);
                     // Add this atom to centers queue
                     todo.insert(con[cur][i]);
                     // Mark as used
@@ -1809,8 +1809,8 @@ public:
 
     Selection_container_it_t operator++(int junk) { Selection_container_it_t tmp = *this; ++pos; return tmp; }
     Selection_container_it_t& operator++() { ++pos; return *this; }
-    reference operator*() const { return parent->XYZ(pos); }
-    pointer operator->() { return parent->XYZ_ptr(pos); }
+    reference operator*() const { return parent->xyz(pos); }
+    pointer operator->() { return parent->xyz_ptr(pos); }
     bool operator==(const Selection_container_it_t& rhs) { return pos == rhs.pos && parent == rhs.parent; }
     bool operator!=(const Selection_container_it_t& rhs) { return pos != rhs.pos || parent != rhs.parent; }
 
@@ -1848,7 +1848,7 @@ float Selection::powersasa(float probe_r, vector<float> *area_per_atom,
 {
     // First obtain the VDW radii of all atoms in selection and add probe radius to them
     vector<float> radii(size());
-    for(int i=0; i<size(); ++i) radii[i] = VDW(i) + probe_r;
+    for(int i=0; i<size(); ++i) radii[i] = vdw(i) + probe_r;
 
     bool do_v = total_volume ? true : false;
     bool do_a_per_atom = area_per_atom ? true : false;
@@ -1901,10 +1901,10 @@ float Selection::sasa(float probe_r, vector<float> *area_per_atom, int n_sphere_
 
     // Make contigous array of coordinates
     vector<Vector3f> coord(size());
-    for(int i=0;i<size();++i) coord[i] = XYZ(i);
+    for(int i=0;i<size();++i) coord[i] = xyz(i);
 
     vector<float> radii(size());
-    for(int i=0; i<size(); ++i) radii[i] = VDW(i) + probe_r;
+    for(int i=0; i<size(); ++i) radii[i] = vdw(i) + probe_r;
 
     vector<int> atom_mapping(size());
     for(int i=0; i<size(); ++i) atom_mapping[i]=i;
@@ -1929,12 +1929,12 @@ float Selection::sasa(float probe_r, vector<float> *area_per_atom, int n_sphere_
 
 
 void Selection::get_local_bonds_from_topology(vector<vector<int>>& con){
-    int bind = Index(0);
-    int eind = Index(size()-1);
+    int bind = index(0);
+    int eind = index(size()-1);
     int a1,a2;
-    auto bit = std::begin(index);
+    auto bit = std::begin(_index);
     auto cur_b = bit;
-    auto eit = std::end(index);
+    auto eit = std::end(_index);
     vector<int>::iterator it1,it2;
     for(int i=0;i<system->force_field.bonds.size();++i){
         a1 = system->force_field.bonds[i](0);

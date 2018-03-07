@@ -46,9 +46,9 @@ class Lipid {
 public:
     Lipid(const Selection& sel, const Lipid_descr& descr);   
 
-    Eigen::Vector3f get_mid_xyz() const {return mid_sel.XYZ(0);}
-    Eigen::Vector3f get_head_xyz() const {return head_sel.XYZ(0);}
-    Eigen::Vector3f get_tail_xyz() const {return tail_sel.XYZ(0);}
+    Eigen::Vector3f get_mid_xyz() const {return mid_sel.xyz(0);}
+    Eigen::Vector3f get_head_xyz() const {return head_sel.xyz(0);}
+    Eigen::Vector3f get_tail_xyz() const {return tail_sel.xyz(0);}
 
     Selection whole_sel;
     Selection head_sel;

@@ -148,23 +148,23 @@ void GRO_file::do_write(const Selection &sel, const Mol_file_content &what){
     int ind,resid;
     for(int i=0;i<n;i++){
         ind = (i%99999)+1; // Prevents overflow of index field. It's not used anyway.
-        resid = (sel.Resid(i)%99999); // Prevents overflow of resid field.
+        resid = (sel.resid(i)%99999); // Prevents overflow of resid field.
         sprintf(ch,"%5d%-5s%5s%5d%8.3f%8.3f%8.3f",
                 //  ^Resid
                 //       ^Resname
                 //          ^Name
                 //             ^ind
-                resid, sel.Resname(i).c_str(), sel.Name(i).c_str(), ind,
-                sel.X(i), sel.Y(i), sel.Z(i));
+                resid, sel.resname(i).c_str(), sel.name(i).c_str(), ind,
+                sel.x(i), sel.y(i), sel.z(i));
         f << ch << endl;
     }
 
     // Write periodic box
     Eigen::Matrix3f b;
-    if(sel.Box().is_periodic()){
+    if(sel.box().is_periodic()){
         // We store box as column-vectors, while the code below hacked from VMD use row vectors,
         // so, transpose
-        b = sel.Box().get_matrix().transpose();
+        b = sel.box().get_matrix().transpose();
     } else {
         b.fill(0.0);
     }
@@ -174,7 +174,7 @@ void GRO_file::do_write(const Selection &sel, const Mol_file_content &what){
       << b(1,1) << " "
       << b(2,2);
     // Write off-diagonal only for triclinic boxes
-    if(sel.Box().is_triclinic()){
+    if(sel.box().is_triclinic()){
         f << " "
           << b(0,1) << " "
           << b(0,2) << " "

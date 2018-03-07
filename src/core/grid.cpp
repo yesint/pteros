@@ -69,7 +69,7 @@ void Grid::populate(const Selection &sel, Vector3f_const_ref min, Vector3f_const
     Vector3f* coor;
     for(int i=0;i<Natoms;++i){
         // Get coordinates of atom
-        coor = sel.XYZ_ptr(i);
+        coor = sel.xyz_ptr(i);
 
         n1 = floor(NX*((*coor)(0)-min(0))/(max(0)-min(0)));
         if(n1<0 || n1>=NX) continue;
@@ -81,7 +81,7 @@ void Grid::populate(const Selection &sel, Vector3f_const_ref min, Vector3f_const
         if(n3<0 || n3>=NZ) continue;
 
         if(abs_index){
-            cell(n1,n2,n3).push_back(Grid_element(sel.Index(i),coor));
+            cell(n1,n2,n3).push_back(Grid_element(sel.index(i),coor));
         } else {
             cell(n1,n2,n3).push_back(Grid_element(i,coor));
         }
@@ -90,7 +90,7 @@ void Grid::populate(const Selection &sel, Vector3f_const_ref min, Vector3f_const
 
 void Grid::populate_periodic(const Selection &sel, bool abs_index)
 {
-    populate_periodic(sel, sel.Box(), abs_index);
+    populate_periodic(sel, sel.box(), abs_index);
 }
 
 void Grid::populate_periodic(const Selection &sel, const Periodic_box &box, bool abs_index)
@@ -107,14 +107,14 @@ void Grid::populate_periodic(const Selection &sel, const Periodic_box &box, bool
     Matrix3f m_inv = box.get_inv_matrix();
 
     for(int i=0;i<Natoms;++i){
-        coor = sel.XYZ(i);
+        coor = sel.xyz(i);
         // See if atom i is in box and wrap if needed
         if( !box.in_box(coor) ){
             box.wrap_point(coor);
             wrapped_atoms.push_back(coor);
             ptr = &*wrapped_atoms.rbegin();
         } else {
-            ptr = sel.XYZ_ptr(i);
+            ptr = sel.xyz_ptr(i);
         }
 
         // Now we are sure that coor is wrapped
@@ -143,7 +143,7 @@ void Grid::populate_periodic(const Selection &sel, const Periodic_box &box, bool
 
         // Assign to grid
         if(abs_index){
-            cell(n1,n2,n3).push_back(Grid_element(sel.Index(i),ptr));
+            cell(n1,n2,n3).push_back(Grid_element(sel.index(i),ptr));
         } else {
             cell(n1,n2,n3).push_back(Grid_element(i,ptr));
         }

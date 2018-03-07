@@ -51,8 +51,8 @@ protected:
     }
 
     void process_frame(const Frame_info &info) override {
-        data.push_back(system.Box(0).extents());
-        volume.push_back(system.Box(0).volume());
+        data.push_back(system.box(0).extents());
+        volume.push_back(system.box(0).volume());
     }
 
     void post_process(const Frame_info &info) override {

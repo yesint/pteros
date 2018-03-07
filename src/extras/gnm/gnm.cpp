@@ -55,7 +55,7 @@ void GNM::compute(Selection& sel, float cutoff){
     /*
     for(i=0;i<N-1;++i)        
         for(j=i+1;j<N;++j){            
-            d = (sel.XYZ(i)-sel.XYZ(j)).norm();
+            d = (sel.xyz(i)-sel.xyz(j)).norm();
             if(d<=cutoff){
                 kirk(i,j)= -1.0;
                 kirk(j,i)= -1.0;

@@ -62,14 +62,14 @@ int main(int argc, char* argv[]){
         LOG()->info("Loading solvent from '{}'...", solvent_file);
         solvent.load( solvent_file );
 
-        if(solvent.Box(0).is_triclinic())
+        if(solvent.box(0).is_triclinic())
             throw Pteros_error("Only rectangular solvent boxes are allowed!");
 
         // See how many solvent boxes should be used to cover solute
 
         // In arbitrary triclinic boxes find the maximal box coordinate
-        Vector3f max_solute_coord = solute.Box(0).box_to_lab( solute.Box(0).extents() );
-        Vector3f max_solvent_coord = solvent.Box(0).extents();
+        Vector3f max_solute_coord = solute.box(0).box_to_lab( solute.box(0).extents() );
+        Vector3f max_solvent_coord = solvent.box(0).extents();
 
         Vector3i nbox;
         for(int i=0; i<3; ++i) nbox(i) = int(ceil(max_solute_coord(i)/max_solvent_coord(i)));
@@ -79,7 +79,7 @@ int main(int argc, char* argv[]){
         // Distribute solvent boxes
         {
             auto all = solvent.select_all();
-            auto m = solvent.Box(0).get_matrix();
+            auto m = solvent.box(0).get_matrix();
             solvent.distribute(all,nbox,m);
         }
 
@@ -98,7 +98,7 @@ int main(int argc, char* argv[]){
         // Cut solvent atoms outside the solute box
         vector<int> bad;        
         for(int i=0; i<solvent_all.size(); ++i){            
-            if( !solute.Box(0).in_box(solvent_all.XYZ(i)) ) bad.push_back(solvent_all.Index(i));
+            if( !solute.box(0).in_box(solvent_all.xyz(i)) ) bad.push_back(solvent_all.index(i));
         }
 
         // Select bad atoms
@@ -148,13 +148,13 @@ int main(int argc, char* argv[]){
         map<string,int> residues;
         int at=last_solute_ind+1;
         do {
-            string resname = solute_all.Resname(at);
-            int resind = solute_all.Resindex(at);
+            string resname = solute_all.resname(at);
+            int resind = solute_all.resindex(at);
 
             // Find the end of this residue
             do {
                 ++at;
-            } while( at<solute_all.size() && solute_all.Resindex(at) == resind);
+            } while( at<solute_all.size() && solute_all.resindex(at) == resind);
 
             if(residues.count(resname)){
                 // such resname is present

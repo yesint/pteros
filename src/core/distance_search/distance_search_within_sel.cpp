@@ -45,7 +45,7 @@ Distance_search_within_sel::Distance_search_within_sel(float d,
     is_periodic = periodic;    
 
     // Get current box
-    box = src.Box();
+    box = src.box();
 
     //------------
     // Grid creation part

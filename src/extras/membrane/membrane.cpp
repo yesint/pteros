@@ -61,9 +61,9 @@ Membrane::Membrane(System *sys, const std::vector<Lipid_descr> &species): system
         for(auto& lip: res){
             auto mol = Lipid(lip,sp);
             mol.set_markers();
-            all_mid_sel.append(mol.mid_sel.Index(0));
+            all_mid_sel.append(mol.mid_sel.index(0));
             lipids.push_back(mol);
-            index_map[mol.mid_sel.Index(0)] = lipids.size()-1;
+            index_map[mol.mid_sel.index(0)] = lipids.size()-1;
         }
     }
 
@@ -274,7 +274,7 @@ void Membrane::compute_properties(float d, Vector3f_const_ref external_normal)
 
             // Create selection for locality of this lipid including itself
             Selection local_self(lip.local_sel);
-            local_self.append(leaflets_sel[l].Index(i)); // Add central atom
+            local_self.append(leaflets_sel[l].index(i)); // Add central atom
 
             // Get inertial axes
             Vector3f moments;
@@ -306,7 +306,7 @@ void Membrane::compute_properties(float d, Vector3f_const_ref external_normal)
             Vector3f c0 = lip.get_mid_xyz(); // Coord of central point - the first
             coord.col(0) = Vector3f::Zero();
             for(int j=0; j<lip.local_sel.size(); ++j)
-                coord.col(j+1) = tr_inv * system->Box(0).shortest_vector(c0,lip.local_sel.XYZ(j));
+                coord.col(j+1) = tr_inv * system->box(0).shortest_vector(c0,lip.local_sel.xyz(j));
 
             // Fit a quad surface
             Matrix<float,6,1> res;
@@ -316,7 +316,7 @@ void Membrane::compute_properties(float d, Vector3f_const_ref external_normal)
             get_curvature(res, lip.gaussian_curvature, lip.mean_curvature);
 
             // Get smoothed surface point in lab coords
-            lip.smoothed_mid_xyz = tr*sm + lip.mid_sel.XYZ(0);
+            lip.smoothed_mid_xyz = tr*sm + lip.mid_sel.xyz(0);
 
             // Do areas
             vector<int> neib;
@@ -328,9 +328,9 @@ void Membrane::compute_properties(float d, Vector3f_const_ref external_normal)
             // use only i<j to avoid adding duplicates
             // If area is -1 skip since this lipid has weird surrounding
             if(lip.area>0){
-                int cur_ind = index_map[leaflets_sel[l].Index(i)];
+                int cur_ind = index_map[leaflets_sel[l].index(i)];
                 for(int j=0; j<neib.size(); ++j){
-                    int n = index_map[lip.local_sel.Index(neib[j]-1)];
+                    int n = index_map[lip.local_sel.index(neib[j]-1)];
                     if(cur_ind<n) neighbor_pairs.push_back(Vector2i(cur_ind,n));
                 }
             }
@@ -354,7 +354,7 @@ void Membrane::compute_properties(float d, Vector3f_const_ref external_normal)
 
         if(n1.dot(n2)<0) continue;
 
-        auto x= system->Box(0).shortest_vector(lip1.get_mid_xyz(), lip2.get_mid_xyz());
+        auto x= system->box(0).shortest_vector(lip1.get_mid_xyz(), lip2.get_mid_xyz());
         float d = x.norm();
         x = x-x.dot(n1)*n1;
         x.normalize();
@@ -405,10 +405,10 @@ void Membrane::write_smoothed(const string& fname){
     System out;
     for(auto& l: lipids){
         auto s = out.append(l.mid_sel(0,0));
-        s.Name(0) = "M";
+        s.name(0) = "M";
         s = out.append(l.head_sel(0,0));
-        s.XYZ(0) = l.smoothed_mid_xyz;
-        s.Name(0) = "S";
+        s.xyz(0) = l.smoothed_mid_xyz;
+        s.name(0) = "S";
     }
     out().write(fname);
 }
@@ -425,24 +425,24 @@ Lipid::Lipid(const Selection &sel, const Lipid_descr &descr){
 void Lipid::set_markers()
 {
     // Unwrap this lipid with leading index of position[0]
-    whole_sel.unwrap(fullPBC, mid_sel.Index(0)-whole_sel.Index(0));
+    whole_sel.unwrap(fullPBC, mid_sel.index(0)-whole_sel.index(0));
 
     // save coords of first atoms
-    saved_head0 = head_sel.XYZ(0);
-    saved_tail0 = tail_sel.XYZ(0);
-    saved_mid0 = mid_sel.XYZ(0);
+    saved_head0 = head_sel.xyz(0);
+    saved_tail0 = tail_sel.xyz(0);
+    saved_mid0 = mid_sel.xyz(0);
 
     // Set markers to COM
-    head_sel.XYZ(0) = head_sel.center(true);
-    tail_sel.XYZ(0) = tail_sel.center(true);
-    mid_sel.XYZ(0) = mid_sel.center(true);
+    head_sel.xyz(0) = head_sel.center(true);
+    tail_sel.xyz(0) = tail_sel.center(true);
+    mid_sel.xyz(0) = mid_sel.center(true);
 }
 
 void Lipid::unset_markers()
 {
-    head_sel.XYZ(0) = saved_head0;
-    tail_sel.XYZ(0) = saved_tail0;
-    mid_sel.XYZ(0) = saved_mid0;
+    head_sel.xyz(0) = saved_head0;
+    tail_sel.xyz(0) = saved_tail0;
+    mid_sel.xyz(0) = saved_mid0;
 }
 
 

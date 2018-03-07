@@ -57,7 +57,7 @@ protected:
         int n1=0, n2=0, Nflip=0, non_flip=0;
         for(int i=0; i<roh.size(); ++i){
             // Get info about current position
-            Bilayer_point_info data = bi.point_info(roh.XYZ(i));
+            Bilayer_point_info data = bi.point_info(roh.xyz(i));
 
             // Analyze which lipids surround this chol
             std::shared_ptr<Selection> ptr;
@@ -70,8 +70,8 @@ protected:
             }
 
             for(int j=0; j<ptr->size(); ++j){
-                if(ptr->Resname(j)==lip_name1) ++num1;
-                if(ptr->Resname(j)==lip_name2) ++num2;
+                if(ptr->resname(j)==lip_name1) ++num1;
+                if(ptr->resname(j)==lip_name2) ++num2;
             }
 
             if(num1>num2){                

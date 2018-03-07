@@ -90,9 +90,9 @@ void System::clear(){
 }
 
 void check_num_atoms_in_last_frame(const System& sys){
-    if(sys.Frame_data(sys.num_frames()-1).coord.size()!=sys.num_atoms())
+    if(sys.frame(sys.num_frames()-1).coord.size()!=sys.num_atoms())
         throw Pteros_error("File contains {} atoms while the system has {}",
-                       sys.Frame_data(sys.num_frames()-1).coord.size(), sys.num_atoms() );
+                       sys.frame(sys.num_frames()-1).coord.size(), sys.num_atoms() );
 }
 
 void System::filter_atoms()
@@ -135,7 +135,7 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
             // We have single frame. Read it directly here
             Frame fr;
             frame_append(fr);
-            f->read(this, &Frame_data(num_frames()-1), c);
+            f->read(this, &frame(num_frames()-1), c);
 
             filter_atoms();
             filter_coord(num_frames()-1);
@@ -199,7 +199,7 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
                 Frame fr;
                 frame_append(fr);
                 // Try to read into it
-                bool ok = f->read(nullptr, &Frame_data(num_frames()-1), Mol_file_content().traj(true));
+                bool ok = f->read(nullptr, &frame(num_frames()-1), Mol_file_content().traj(true));
                 if(!ok){
                     frame_delete(num_frames()-1); // Remove last frame - it's invalid
                     break; // end of trajectory
@@ -232,7 +232,7 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
             Frame fr;
             frame_append(fr);
             // Read it            
-            f->read(nullptr, &Frame_data(num_frames()-1), Mol_file_content().coord(true));
+            f->read(nullptr, &frame(num_frames()-1), Mol_file_content().coord(true));
             filter_coord(num_frames()-1);
             check_num_atoms_in_last_frame(*this);
             ++num_stored;
@@ -268,7 +268,7 @@ bool System::load(const std::unique_ptr<Mol_file>& handler, Mol_file_content wha
         if(what.coord()){
             Frame fr;
             frame_append(fr);
-            handler->read(this, &Frame_data(num_frames()-1), c);
+            handler->read(this, &frame(num_frames()-1), c);
 
             filter_atoms();
             filter_coord(num_frames()-1);
@@ -291,7 +291,7 @@ bool System::load(const std::unique_ptr<Mol_file>& handler, Mol_file_content wha
         Frame fr;
         frame_append(fr);
         // Try to read into it
-        bool ok = handler->read(nullptr, &Frame_data(num_frames()-1), Mol_file_content().traj(true));
+        bool ok = handler->read(nullptr, &frame(num_frames()-1), Mol_file_content().traj(true));
         if(!ok){
             frame_delete(num_frames()-1); // Remove last frame - it's invalid
             return false;
@@ -459,10 +459,10 @@ void System::sort_by_resindex()
     // Sort indexes
     sort(ind.begin(),ind.end(),
        [this](int i, int j){
-        if(Atom_data(i).resindex == Atom_data(j).resindex){
+        if(atom(i).resindex == atom(j).resindex){
             return (i<j);
         } else {
-            return (Atom_data(i).resindex < Atom_data(j).resindex);
+            return (atom(i).resindex < atom(j).resindex);
         }
        }
     );
@@ -579,25 +579,25 @@ void System::atom_move(int i, int j)
     if(i==j) return; // Nothing to do
 
     // Move atom
-    auto at = Atom_data(i);
+    auto at = atom(i);
 
     if(i<j){
-        for(int a=i+1; a<=j; ++a) Atom_data(a-1) = Atom_data(a);
-        Atom_data(j) = at;
+        for(int a=i+1; a<=j; ++a) atom(a-1) = atom(a);
+        atom(j) = at;
 
         for(int fr=0; fr<num_frames(); ++fr){
-            auto coord = XYZ(i,fr);
-            for(int a=i+1; a<=j; ++a) XYZ(a-1,fr) = XYZ(a,fr);
-            XYZ(j,fr) = coord;
+            auto coord = xyz(i,fr);
+            for(int a=i+1; a<=j; ++a) xyz(a-1,fr) = xyz(a,fr);
+            xyz(j,fr) = coord;
         }
     } else {
-        for(int a=i-1; a>=j; --a) Atom_data(a+1) = Atom_data(a);
-        Atom_data(j) = at;
+        for(int a=i-1; a>=j; --a) atom(a+1) = atom(a);
+        atom(j) = at;
 
         for(int fr=0; fr<num_frames(); ++fr){
-            auto coord = XYZ(i,fr);
-            for(int a=i-1; a>=j; --a) XYZ(a+1,fr) = XYZ(a,fr);
-            XYZ(j,fr) = coord;
+            auto coord = xyz(i,fr);
+            for(int a=i-1; a>=j; --a) xyz(a+1,fr) = xyz(a,fr);
+            xyz(j,fr) = coord;
         }
     }
 }
@@ -624,29 +624,29 @@ void System::atom_swap(int i, int j)
 Selection System::atom_add_1h(int target, int at1, int at2, int at3, float dist, bool pbc)
 {
     Selection newat = atoms_dup({target});
-    newat.Name(0) = "H";
-    newat.Mass(0) = 1.0;
-    newat.Element_number(0) = 1;
+    newat.name(0) = "H";
+    newat.mass(0) = 1.0;
+    newat.element_number(0) = 1;
 
     for(int fr=0; fr<num_frames(); ++fr){
-        auto coor0 = XYZ(target,fr);
+        auto coor0 = xyz(target,fr);
         Vector3f coor1,coor2,coor3;
 
         if(pbc){
-            coor1 = Box(fr).closest_image(XYZ(at1,fr),coor0);
-            coor2 = Box(fr).closest_image(XYZ(at2,fr),coor0);
-            coor3 = Box(fr).closest_image(XYZ(at3,fr),coor0);
+            coor1 = box(fr).closest_image(xyz(at1,fr),coor0);
+            coor2 = box(fr).closest_image(xyz(at2,fr),coor0);
+            coor3 = box(fr).closest_image(xyz(at3,fr),coor0);
         } else {
-            coor1 = XYZ(at1,fr);
-            coor2 = XYZ(at2,fr);
-            coor3 = XYZ(at3,fr);
+            coor1 = xyz(at1,fr);
+            coor2 = xyz(at2,fr);
+            coor3 = xyz(at3,fr);
         }
 
         // Coordinate of new atom
         Vector3f point = coor0-(coor1+coor2+coor3)/3.0;
         point = coor0-((point-coor1).cross(point-coor2)).normalized()*dist;
 
-        newat.XYZ(0,fr) = point;
+        newat.xyz(0,fr) = point;
     }
 
     return newat;
@@ -655,67 +655,67 @@ Selection System::atom_add_1h(int target, int at1, int at2, int at3, float dist,
 Selection System::atom_add_2h(int target, int at1, int at2, float dist, bool pbc)
 {
     Selection newat1 = atoms_dup({target});
-    newat1.Name(0) = "H";
-    newat1.Mass(0) = 1.0;
-    newat1.Element_number(0) = 1;
-    Selection newat2 = atoms_dup({newat1.Index(0)});
+    newat1.name(0) = "H";
+    newat1.mass(0) = 1.0;
+    newat1.element_number(0) = 1;
+    Selection newat2 = atoms_dup({newat1.index(0)});
 
     for(int fr=0; fr<num_frames(); ++fr){
-        auto coor0 = XYZ(target,fr);
+        auto coor0 = xyz(target,fr);
         Vector3f coor1,coor2;
 
         if(pbc){
-            coor1 = Box(fr).closest_image(XYZ(at1,fr),coor0);
-            coor2 = Box(fr).closest_image(XYZ(at2,fr),coor0);
+            coor1 = box(fr).closest_image(xyz(at1,fr),coor0);
+            coor2 = box(fr).closest_image(xyz(at2,fr),coor0);
         } else {
-            coor1 = XYZ(at1,fr);
-            coor2 = XYZ(at2,fr);
+            coor1 = xyz(at1,fr);
+            coor2 = xyz(at2,fr);
         }
 
         // Coordinates of new atoms
         Vector3f up = (coor0-(coor1+coor2)/2.0).normalized()*dist;
         //Vector3f side = ((coor0-coor1).cross(coor0-coor2)).normalized();
 
-        newat1.XYZ(0,fr) = coor0+up;
+        newat1.xyz(0,fr) = coor0+up;
         newat1.rotate(coor0,coor2-coor1,deg_to_rad(0.5*109.47));
 
-        newat2.XYZ(0,fr) = coor0+up;
+        newat2.xyz(0,fr) = coor0+up;
         newat2.rotate(coor0,coor2-coor1,deg_to_rad(-0.5*109.47));
     }
 
-    return Selection(*this,newat1.Index(0),newat2.Index(0));
+    return Selection(*this,newat1.index(0),newat2.index(0));
 }
 
 Selection System::atom_add_3h(int target, int at1, float dist, bool pbc)
 {
     Selection newat1 = atoms_dup({target});
-    newat1.Name(0) = "H";
-    newat1.Mass(0) = 1.0;
-    newat1.Element_number(0) = 1;
-    Selection newat2 = atoms_dup({newat1.Index(0)});
-    Selection newat3 = atoms_dup({newat2.Index(0)});
+    newat1.name(0) = "H";
+    newat1.mass(0) = 1.0;
+    newat1.element_number(0) = 1;
+    Selection newat2 = atoms_dup({newat1.index(0),});
+    Selection newat3 = atoms_dup({newat2.index(0),});
 
     for(int fr=0; fr<num_frames(); ++fr){
-        auto coor0 = XYZ(target,fr);
+        auto coor0 = xyz(target,fr);
         Vector3f coor1;
 
         if(pbc){
-            coor1 = Box(fr).closest_image(XYZ(at1,fr),coor0);
+            coor1 = box(fr).closest_image(xyz(at1,fr),coor0);
         } else {
-            coor1 = XYZ(at1,fr);
+            coor1 = xyz(at1,fr);
         }
 
         // Coordinates of new atoms
         Vector3f up = (coor0-coor1).normalized()/sqrt(24);
         Vector3f side = ((coor0-coor1).cross(Vector3f(1,0,0))).normalized()/sqrt(3);
 
-        newat1.XYZ(0,fr) = newat2.XYZ(0,fr) = newat3.XYZ(0,fr) = coor0+(up+side).normalized()*dist;
+        newat1.xyz(0,fr) = newat2.xyz(0,fr) = newat3.xyz(0,fr) = coor0+(up+side).normalized()*dist;
 
         auto m = rotation_transform(coor0, coor0-coor1, 2.0*M_PI/3.0);
         newat2.apply_transform(m);
         newat3.apply_transform(m*m);
     }
-    return Selection(*this,newat1.Index(0),newat3.Index(0));
+    return Selection(*this,newat1.index(0),newat3.index(0));
 }
 
 Selection System::append(const System &sys){
@@ -736,8 +736,8 @@ Selection System::append(const System &sys){
     // Merge coordinates
     for(int fr=0; fr<num_frames(); ++fr){
         if(transfer_time_box){
-            traj[fr].time = sys.Time(fr);
-            traj[fr].box = sys.Box(fr);
+            traj[fr].time = sys.time(fr);
+            traj[fr].box = sys.box(fr);
         }
         copy(sys.traj[fr].coord.begin(),sys.traj[fr].coord.end(),back_inserter(traj[fr].coord));
     }
@@ -765,16 +765,16 @@ Selection System::append(const Selection &sel){
 
     // Merge atoms
     atoms.reserve(atoms.size()+sel.size());
-    for(int i=0;i<sel.size();++i) atoms.push_back(sel.Atom_data(i));
+    for(int i=0;i<sel.size();++i) atoms.push_back(sel.atom(i));
     // Merge coordinates    
     for(int fr=0; fr<num_frames(); ++fr){
         traj[fr].coord.reserve(atoms.size());
         if(transfer_time_box){
-            traj[fr].time = sel.get_system()->Time(fr);
-            traj[fr].box = sel.get_system()->Box(fr);
+            traj[fr].time = sel.get_system()->time(fr);
+            traj[fr].box = sel.get_system()->box(fr);
         }
         for(int i=0;i<sel.size();++i){
-            traj[fr].coord.push_back(sel.XYZ(i,fr));
+            traj[fr].coord.push_back(sel.xyz(i,fr));
         }
     }
     // Reassign resindex
@@ -892,7 +892,7 @@ void System::distribute(const Selection sel, Vector3i_const_ref ncopies, Matrix3
     if(sel.get_system()!=this) throw Pteros_error("distribute needs selection from the same system!");
     Selection tmp;
     Vector3f v;
-    int n = sel.Resindex(sel.size()-1)+1;
+    int n = sel.resindex(sel.size()-1)+1;
     for(int x=0; x<ncopies(0); ++x)
         for(int y=0; y<ncopies(1); ++y)
             for(int z=0; z<ncopies(2); ++z){
@@ -901,7 +901,7 @@ void System::distribute(const Selection sel, Vector3i_const_ref ncopies, Matrix3
                     v = shift.col(0)*x + shift.col(1)*y + shift.col(2)*z;
                     tmp.translate(v);
                     // Increment all resindexes of added selection
-                    for(int i=0;i<tmp.size();++i) tmp.Resindex(i) += n;                    
+                    for(int i=0;i<tmp.size();++i) tmp.resindex(i) += n;
                 }
             }
 }
@@ -1002,11 +1002,11 @@ float System::angle(int i, int j, int k, int fr, Array3i_const_ref pbc) const
 {
     Vector3f v1,v2;
     if( (pbc!=0).any() ){
-        v1 = Box(fr).shortest_vector(XYZ(i,fr),XYZ(j,fr),pbc);
-        v2 = Box(fr).shortest_vector(XYZ(k,fr),XYZ(j,fr),pbc);
+        v1 = box(fr).shortest_vector(xyz(i,fr),xyz(j,fr),pbc);
+        v2 = box(fr).shortest_vector(xyz(k,fr),xyz(j,fr),pbc);
     } else {
-        v1 = XYZ(i,fr)-XYZ(j,fr);
-        v2 = XYZ(k,fr)-XYZ(j,fr);
+        v1 = xyz(i,fr)-xyz(j,fr);
+        v2 = xyz(k,fr)-xyz(j,fr);
     }
     return acos(v1.dot(v2)/(v1.norm()*v2.norm()));
 }
@@ -1015,17 +1015,17 @@ float System::dihedral(int i, int j, int k, int l, int fr, Array3i_const_ref pbc
 {
     Vector3f b1,b2,b3;
     if( (pbc!=0).any() ){
-        Vector3f _i = XYZ(i,fr);
-        Vector3f _j = Box(fr).closest_image(XYZ(j,fr),_i,pbc);
-        Vector3f _k = Box(fr).closest_image(XYZ(k,fr),_i,pbc);
-        Vector3f _l = Box(fr).closest_image(XYZ(l,fr),_i,pbc);
+        Vector3f _i = xyz(i,fr);
+        Vector3f _j = box(fr).closest_image(xyz(j,fr),_i,pbc);
+        Vector3f _k = box(fr).closest_image(xyz(k,fr),_i,pbc);
+        Vector3f _l = box(fr).closest_image(xyz(l,fr),_i,pbc);
         b1 = _j - _i;
         b2 = _k - _j;
         b3 = _l - _k;
     } else {
-        b1 = XYZ(j,fr)-XYZ(i,fr);
-        b2 = XYZ(k,fr)-XYZ(j,fr);
-        b3 = XYZ(l,fr)-XYZ(k,fr);
+        b1 = xyz(j,fr)-xyz(i,fr);
+        b2 = xyz(k,fr)-xyz(j,fr);
+        b3 = xyz(l,fr)-xyz(k,fr);
     }    
 
     // Dihedral
@@ -1035,7 +1035,7 @@ float System::dihedral(int i, int j, int k, int l, int fr, Array3i_const_ref pbc
 
 void System::wrap(int fr, Array3i_const_ref pbc){
     for(int i=0;i<num_atoms();++i){
-        traj[fr].box.wrap_point(XYZ(i,fr),pbc);
+        traj[fr].box.wrap_point(xyz(i,fr),pbc);
     }
 }
 

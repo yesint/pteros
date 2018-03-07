@@ -142,11 +142,11 @@ public:
         mask.fill(0);
         n = sel.size();
         for(int i=0;i<sel.size();++i){
-            mask(sel.Index(i)) = 1;
+            mask(sel.index(i)) = 1;
         }
-        b = sel.Index(0);
-        e = sel.Index(sel.size()-1);
-        coord = &sel.get_system()->Frame_data(sel.get_frame()).coord;
+        b = sel.index(0);
+        e = sel.index(sel.size()-1);
+        coord = &sel.get_system()->frame(sel.get_frame()).coord;
     }
 
     ~SelTest_mask(){}
@@ -237,7 +237,7 @@ TASK_SERIAL(Test_serial)
 std::function<Vector3f&(int)>
 make_accessor(const Selection& sel){
     shared_ptr<vector<Vector3f>> data = make_shared<vector<Vector3f>>(sel.size());
-    for(int i=0;i<sel.size();++i) (*data)[i] = sel.XYZ(i);
+    for(int i=0;i<sel.size();++i) (*data)[i] = sel.xyz(i);
     return [data](int i) -> Vector3f& {
         return (*data)[i];
     };
@@ -247,8 +247,8 @@ make_accessor(const Selection& sel){
 int main(int argc, char** argv)
 {    
 
-   System sys("/home/semen/work/current/Projects/Curved_membranes/plasma_symm/DOPC-noH.pdb");
-   sys.load("/home/semen/work/current/Projects/Curved_membranes/plasma_symm/DOPC-noH.pdb");
+   System sys("/home/semen/work/current/Projects/Curved_membranes/plasma_symm/bend/DOPC-noH.pdb");
+   sys.load("/home/semen/work/current/Projects/Curved_membranes/plasma_symm/bend/DOPC-noH.pdb");
    //sys.atom_add_1h(19,18,20,21);
    //sys.atom_add_2h(5,1,9);
    //sys.atom_add_3h(2,0);
@@ -338,7 +338,7 @@ int main(int argc, char** argv)
         start = std::clock();
 
         vector<Vector3f> data(sel.size());
-        for(int i=0;i<sel.size();++i) data[i] = sel.XYZ(i);
+        for(int i=0;i<sel.size();++i) data[i] = sel.xyz(i);
 
 
         for(int i=1;i<sel.size();++i){
@@ -357,7 +357,7 @@ int main(int argc, char** argv)
         start = std::clock();
 
         MatrixXf data(3,sel.size());
-        for(int i=0;i<sel.size();++i) data.col(i) = sel.XYZ(i);
+        for(int i=0;i<sel.size();++i) data.col(i) = sel.xyz(i);
 
         for(int i=1;i<sel.size();++i){
             for(int j=1;j<1000;++j){
@@ -376,7 +376,7 @@ int main(int argc, char** argv)
 
         for(int i=1;i<sel.size();++i){
             for(int j=1;j<1000;++j){
-                sel.XYZ(i)=sel.XYZ(i-1)+sel.XYZ(j);
+                sel.xyz(i)=sel.xyz(i-1)+sel.xyz(j);
             }
         }
 
@@ -393,7 +393,7 @@ int main(int argc, char** argv)
 
         for(int i=1;i<sel.size();++i){
             for(int j=1;j<1000;++j){
-                sel[i].XYZ()=sel[i-1].XYZ()+sel[j].XYZ();
+                sel[i].xyz()=sel[i-1].xyz()+sel[j].xyz();
             }
         }
 

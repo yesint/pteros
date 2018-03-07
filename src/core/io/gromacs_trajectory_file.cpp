@@ -117,19 +117,19 @@ void Gromacs_trajectory_file::do_write(const Selection &sel, const Mol_file_cont
 
     // Copy data to internal storage    
     for(int i=0;i<natoms;++i){
-        x[i][0] = sel.X(i);
-        x[i][1] = sel.Y(i);
-        x[i][2] = sel.Z(i);
+        x[i][0] = sel.x(i);
+        x[i][1] = sel.y(i);
+        x[i][2] = sel.z(i);
     }
 
     // Set box
     for(int i=0;i<3;++i)
         for(int j=0;j<3;++j)
-            box[i][j] = sel.Box().get_matrix()(j,i);
+            box[i][j] = sel.box().get_matrix()(j,i);
 
 
     // Write
-    ret = write_record(xd,natoms,fr,sel.get_system()->Time(sel.get_frame()),box,x);    
+    ret = write_record(xd,natoms,fr,sel.get_system()->time(sel.get_frame()),box,x);
 
     if(ret!=0) throw Pteros_error("Unable to write frame!");
     ++fr;

@@ -64,7 +64,7 @@ struct MAtom
 	int			mCharge;
 
 	void		SetChainID(char inID)					{ mChainID = inID;}
-	std::string	GetName() const							{ return mName; }
+	std::string	Getname() const							{ return mName; }
 	void		Translate(const MPoint& inTranslation)	{ mLoc += inTranslation; }
 	void		Rotate(const MQuaternion& inRotation)	{ mLoc.Rotate(inRotation); }
 	void		WritePDB(std::ostream& os) const;
@@ -255,8 +255,8 @@ class MResidue
 
 	bool				TestBond(const MResidue* other) const;
 
-	void				ExtendBox(const MAtom& atom, double inRadius);
-	bool				AtomIntersectsBox(const MAtom& atom, double inRadius) const;
+	void				Extendbox(const MAtom& atom, double inRadius);
+	bool				AtomIntersectsbox(const MAtom& atom, double inRadius) const;
 
 	char				mChainID;
 	MResidue*			mPrev;

@@ -38,13 +38,15 @@ class System;
 /// Objects of this class should not be created by the user in normal situation.
 class Atom_proxy {    
 public:
-    Atom_proxy(): atom_ptr(nullptr), coord_ptr(nullptr) {}
+    Atom_proxy(): atom_ptr(nullptr), coord_ptr(nullptr), ind(-1) {}
     Atom_proxy(System* s, int i, int fr);
 
     void set(System* s, int i, int fr);
 
     /// @name Inline accessors. Const and non-const versions.
     /// @{
+    inline const int& index() const { return ind; }
+
     inline int& resid(){ return atom_ptr->resid; }
     inline const int& resid() const { return atom_ptr->resid; }
 
@@ -115,7 +117,7 @@ public:
     }    
 
 private:        
-
+    int ind;
     Atom* atom_ptr;
     Eigen::Vector3f* coord_ptr;
 };

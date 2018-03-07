@@ -215,20 +215,20 @@ void VMD_molfile_plugin_wrapper::do_write(const Selection &sel, const Mol_file_c
 
         vector<molfile_atom_t> atoms(sel.size());        
         for(int i=0; i<sel.size(); ++i){
-            strcpy( atoms[i].name, sel.Name(i).c_str() );
-            strcpy( atoms[i].resname, sel.Resname(i).c_str() );
-            atoms[i].resid = sel.Resid(i);
+            strcpy( atoms[i].name, sel.name(i).c_str() );
+            strcpy( atoms[i].resname, sel.resname(i).c_str() );
+            atoms[i].resid = sel.resid(i);
             stringstream ss;
-            ss << sel.Chain(i);
+            ss << sel.chain(i);
             strcpy( atoms[i].chain, ss.str().c_str() );
-            atoms[i].occupancy = sel.Occupancy(i);
-            atoms[i].bfactor = sel.Beta(i);
-            atoms[i].mass = sel.Mass(i);
-            atoms[i].charge = sel.Charge(i);            
-            atoms[i].atomicnumber = sel.Element_number(i);
+            atoms[i].occupancy = sel.occupancy(i);
+            atoms[i].bfactor = sel.beta(i);
+            atoms[i].mass = sel.mass(i);
+            atoms[i].charge = sel.charge(i);
+            atoms[i].atomicnumber = sel.element_number(i);
 
             // For MOL2 we also need to set atom type as a string
-            strcpy( atoms[i].type, sel.Element_name(i).c_str() );
+            strcpy( atoms[i].type, sel.element_name(i).c_str() );
         }
         int flags = MOLFILE_OCCUPANCY | MOLFILE_BFACTOR | MOLFILE_ATOMICNUMBER
                     | MOLFILE_CHARGE | MOLFILE_MASS;
@@ -245,17 +245,17 @@ void VMD_molfile_plugin_wrapper::do_write(const Selection &sel, const Mol_file_c
         vector<float> buffer(n*3);
         int k = 0;
         for(int i=0; i<n; ++i){
-            buffer[k] = sel.X(i)*10.0;
-            buffer[k+1] = sel.Y(i)*10.0;
-            buffer[k+2] = sel.Z(i)*10.0;            
+            buffer[k] = sel.x(i)*10.0;
+            buffer[k+1] = sel.y(i)*10.0;
+            buffer[k+2] = sel.z(i)*10.0;
             k+=3;
         }
         ts.coords = &buffer.front();
         ts.velocities = NULL; // No velocities currently supported
         // Only convert periodic box if it is present
-        if(sel.Box().is_periodic()){
+        if(sel.box().is_periodic()){
             Eigen::Vector3f v,a;
-            sel.Box().to_vectors_angles(v,a);
+            sel.box().to_vectors_angles(v,a);
             ts.A = v(0)*10.0;
             ts.B = v(1)*10.0;
             ts.C = v(2)*10.0;
@@ -271,7 +271,7 @@ void VMD_molfile_plugin_wrapper::do_write(const Selection &sel, const Mol_file_c
             ts.gamma = 0;
         }
 
-        ts.physical_time = sel.get_system()->Time(sel.get_frame());
+        ts.physical_time = sel.get_system()->time(sel.get_frame());
 
         plugin->write_timestep(w_handle, &ts);
     }

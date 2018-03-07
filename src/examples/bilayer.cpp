@@ -75,12 +75,12 @@ Bilayer_point_info Bilayer::point_info(Eigen::Vector3f &point){
 
     for(i=0;i<surf[0].size();++i){
         aux1[i] = i;
-        dist1[i] = bilayer_ptr->Box().distance(point,surf[0].XYZ(i));
+        dist1[i] = bilayer_ptr->box().distance(point,surf[0].xyz(i));
     }
 
     for(i=0;i<surf[1].size();++i){
         aux2[i] = i;
-        dist2[i] = bilayer_ptr->Box().distance(point,surf[1].XYZ(i));
+        dist2[i] = bilayer_ptr->box().distance(point,surf[1].xyz(i));
     }
 
     // Sort distances
@@ -96,8 +96,8 @@ Bilayer_point_info Bilayer::point_info(Eigen::Vector3f &point){
     ret.spot2_ptr = std::shared_ptr<Selection>( new Selection(*bilayer_ptr->get_system()) );
 
     for(i=0;i<spot_size;++i){
-        ret.spot1_ptr->append(surf[0].Index(aux1[i]));
-        ret.spot2_ptr->append(surf[1].Index(aux2[i]));
+        ret.spot1_ptr->append(surf[0].index(aux1[i]));
+        ret.spot2_ptr->append(surf[1].index(aux2[i]));
         //spot1.set_chain('P');
         //spot2.set_chain('Q');
     }
@@ -105,15 +105,15 @@ Bilayer_point_info Bilayer::point_info(Eigen::Vector3f &point){
     ret.proj1 = ret.spot1_ptr->center(true,fullPBC);
     ret.proj2 = ret.spot2_ptr->center(true,fullPBC);
     // We use get_closest_image to bring projections close to the point according to pbc
-    ret.proj1 = bilayer_ptr->Box().closest_image(ret.proj1,point);
-    ret.proj2 = bilayer_ptr->Box().closest_image(ret.proj2,point);
+    ret.proj1 = bilayer_ptr->box().closest_image(ret.proj1,point);
+    ret.proj2 = bilayer_ptr->box().closest_image(ret.proj2,point);
 
     ret.center = (ret.proj1+ret.proj2)/2.0;
     ret.normal = (ret.proj2-ret.proj1).normalized();
-    ret.thickness = bilayer_ptr->Box().distance(ret.proj2,ret.proj1);
-    ret.center_dist = bilayer_ptr->Box().distance(ret.center,point);
-    ret.surf_dist1 = bilayer_ptr->Box().distance(ret.proj1,point);
-    ret.surf_dist2 = bilayer_ptr->Box().distance(ret.proj2,point);
+    ret.thickness = bilayer_ptr->box().distance(ret.proj2,ret.proj1);
+    ret.center_dist = bilayer_ptr->box().distance(ret.center,point);
+    ret.surf_dist1 = bilayer_ptr->box().distance(ret.proj1,point);
+    ret.surf_dist2 = bilayer_ptr->box().distance(ret.proj2,point);
     ret.monolayer = ret.surf_dist1<ret.surf_dist2 ? 1 : 2;
 
     return ret;

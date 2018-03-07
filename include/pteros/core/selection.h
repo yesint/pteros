@@ -146,18 +146,18 @@ class Selection {
      \code
      Selection sel(sys,"name CA");
      sel[1] = sel[0]; // ERROR! Can't assign to proxy object returned by []!
-     sel[0].Name() = "A"; // OK to write fields of proxy object
+     sel[0].name() = "A"; // OK to write fields of proxy object
      \endcode
 
      Main goal of [] operator is usage in range-based for loops:
      \code
      Selection sel(sys,"name CA");
      for(auto a: sel){
-        cout << a.Name() << " " << a.X() << endl;
+        cout << a.name() << " " << a.X() << endl;
      }
      \endcode
 
-     Otherwise it is slower than conventional syntax like sel.Name(i)
+     Otherwise it is slower than conventional syntax like sel.name(i)
      */
     Atom_proxy operator[](int ind);
 
@@ -323,14 +323,14 @@ class Selection {
     /// @{
 
     /// Get const iterator for begin of index
-    std::vector<int>::const_iterator index_begin() const { return index.begin(); }
+    std::vector<int>::const_iterator index_begin() const { return _index.begin(); }
 
     /// Get const iterator for the end of index
-    std::vector<int>::const_iterator index_end() const { return index.end(); }
+    std::vector<int>::const_iterator index_end() const { return _index.end(); }
 
     /// Get back_insert_iterator for index
     std::back_insert_iterator<std::vector<int> > index_back_inserter() {
-        return std::back_inserter(index);
+        return std::back_inserter(_index);
     }
 
     /// Forward random-access iterator for Selection class.
@@ -363,7 +363,7 @@ class Selection {
     std::string get_text() const;
 
     /// Get vector of all indexes in selection
-    std::vector<int> get_index() const { return index; }    
+    std::vector<int> get_index() const { return _index; }
 
     /// Get vector of all chains in selection
     std::vector<char> get_chain(bool unique=false) const;
@@ -697,7 +697,7 @@ class Selection {
     /// @{
 
     /// Get the size of selection
-    int size() const {return index.size();}
+    int size() const {return _index.size();}
 
     /// Returns true if selection was created from text string and false if it was
     /// constructed 'by hand' by appending indexes or other selections
@@ -766,7 +766,7 @@ class Selection {
         // Map
         map<Ret,vector<int> > m;
         for(int i=0; i<size(); ++i){
-            m[callback(*this,i)].push_back(Index(i));
+            m[callback(*this,i)].push_back(index(i));
         }
         // Create selections
         typename map<Ret,vector<int> >::iterator it;
@@ -796,245 +796,106 @@ class Selection {
     /// @{
 
     /// Extracts X for current frame
-    inline float& X(int ind){
-        return system->traj[frame].coord[index[ind]](0);
-    }
-
-    inline const float& X(int ind) const {
-        return system->traj[frame].coord[index[ind]](0);
-    }
-
+    inline float& x(int ind)       { return system->traj[frame].coord[_index[ind]](0);  }
+    inline float  x(int ind) const { return system->traj[frame].coord[_index[ind]](0); }
     /// Extracts X for given frame frame fr
-    inline float& X(int ind, int fr){
-        return system->traj[fr].coord[index[ind]](0);
-    }
-
-    inline const float& X(int ind, int fr) const {
-        return system->traj[fr].coord[index[ind]](0);
-    }
+    inline float& x(int ind, int fr)       { return system->traj[fr].coord[_index[ind]](0); }
+    inline float  x(int ind, int fr) const { return system->traj[fr].coord[_index[ind]](0); }
 
     /// Extracts Y for current frame
-    inline float& Y(int ind){
-        return system->traj[frame].coord[index[ind]](1);
-    }
-
-    inline const float& Y(int ind) const {
-        return system->traj[frame].coord[index[ind]](1);
-    }
-
+    inline float& y(int ind)       { return system->traj[frame].coord[_index[ind]](1); }
+    inline float  y(int ind) const { return system->traj[frame].coord[_index[ind]](1); }
     /// Extracts Y for given frame frame fr
-    inline float& Y(int ind, int fr){
-    	return system->traj[fr].coord[index[ind]](1);
-    }
-
-    inline const float& Y(int ind, int fr) const {
-        return system->traj[fr].coord[index[ind]](1);
-    }
+    inline float& y(int ind, int fr)       { return system->traj[fr].coord[_index[ind]](1); }
+    inline float  y(int ind, int fr) const { return system->traj[fr].coord[_index[ind]](1); }
 
     /// Extracts Z for current frame
-    inline float& Z(int ind){
-    	return system->traj[frame].coord[index[ind]](2);
-    }
-
-    inline const float& Z(int ind) const {
-        return system->traj[frame].coord[index[ind]](2);
-    }
-
+    inline float& z(int ind)       { return system->traj[frame].coord[_index[ind]](2); }
+    inline float  z(int ind) const { return system->traj[frame].coord[_index[ind]](2); }
     /// Extracts Z for given frame frame fr
-    inline float& Z(int ind, int fr){
-    	return system->traj[fr].coord[index[ind]](2);
-    }
-
-    inline const float& Z(int ind, int fr) const {
-        return system->traj[fr].coord[index[ind]](2);
-    }
+    inline float& z(int ind, int fr)       { return system->traj[fr].coord[_index[ind]](2); }
+    inline float  z(int ind, int fr) const { return system->traj[fr].coord[_index[ind]](2); }
 
     /// Extracts X,Y and Z for current frame
-    inline Eigen::Vector3f& XYZ(int ind){
-    	return system->traj[frame].coord[index[ind]];
-    }
-
-    inline const Eigen::Vector3f& XYZ(int ind) const {
-        return system->traj[frame].coord[index[ind]];
-    }        
+    inline       Eigen::Vector3f& xyz(int ind)       { return system->traj[frame].coord[_index[ind]]; }
+    inline const Eigen::Vector3f& xyz(int ind) const { return system->traj[frame].coord[_index[ind]]; }
+    /// Extracts X,Y and Z for given frame fr
+    inline       Eigen::Vector3f& xyz(int ind, int fr)       { return system->traj[fr].coord[_index[ind]]; }
+    inline const Eigen::Vector3f& xyz(int ind, int fr) const { return system->traj[fr].coord[_index[ind]]; }
 
     /// Returns pointer to the coordinates of given atom for current frame.
     /// Used internally in Grid_searcher.
-    inline Eigen::Vector3f* XYZ_ptr(int ind) const {
-        return &(system->traj[frame].coord[index[ind]]);
+    inline Eigen::Vector3f* xyz_ptr(int ind)         const { return &(system->traj[frame].coord[_index[ind]]); }
+    inline Eigen::Vector3f* xyz_ptr(int ind, int fr) const { return &(system->traj[fr].coord[_index[ind]]); }
+
+
+
+#define DEFINE_ACCESSOR_READONLY(T,prop) \
+    inline const T& prop(int ind) const { \
+        return system->atoms[_index[ind]].prop; \
     }
 
-    inline Eigen::Vector3f* XYZ_ptr(int ind, int fr) const {
-        return &(system->traj[fr].coord[index[ind]]);
-    }
-
-    /// Extracts X,Y and Z for given frame fr
-    inline Eigen::Vector3f& XYZ(int ind, int fr){
-    	return system->traj[fr].coord[index[ind]];
-    }
-
-    inline const Eigen::Vector3f& XYZ(int ind, int fr) const {
-        return system->traj[fr].coord[index[ind]];
+#define DEFINE_ACCESSOR(T,prop) \
+    inline T& prop(int ind){ \
+        return system->atoms[_index[ind]].prop; \
+    } \
+    inline const T& prop(int ind) const { \
+        return system->atoms[_index[ind]].prop; \
     }
 
     /// Extracts type
-    inline int& Type(int ind){
-    	return system->atoms[index[ind]].type;
-    }
-
-    inline const int& Type(int ind) const {
-        return system->atoms[index[ind]].type;
-    }
-
+    DEFINE_ACCESSOR(int,type)
     /// Extracts typename
-    inline std::string& Type_name(int ind){
-        return system->atoms[index[ind]].type_name;
-    }
-
-    inline const std::string& Type_name(int ind) const {
-        return system->atoms[index[ind]].type_name;
-    }
-
+    DEFINE_ACCESSOR(std::string,type_name)
     /// Extracts residue name
-    inline std::string& Resname(int ind){
-    	return system->atoms[index[ind]].resname;
-    }
-
-    inline const std::string& Resname(int ind) const {
-        return system->atoms[index[ind]].resname;
-    }
-
+    DEFINE_ACCESSOR(std::string,resname)
     /// Extracts chain
-    inline char& Chain(int ind){
-    	return system->atoms[index[ind]].chain;
-    }
-
-    inline const char& Chain(int ind) const {
-        return system->atoms[index[ind]].chain;
-    }
-
+    DEFINE_ACCESSOR(char,chain)
     /// Extracts atom name
-    inline std::string& Name(int ind){
-    	return system->atoms[index[ind]].name;
-    }
-
-    inline const std::string& Name(int ind) const {
-        return system->atoms[index[ind]].name;
-    }
-
+    DEFINE_ACCESSOR(std::string,name)
     /// Extracts atom mass
-    inline float& Mass(int ind){
-    	return system->atoms[index[ind]].mass;
-    }
-
-    inline const float& Mass(int ind) const {
-        return system->atoms[index[ind]].mass;
-    }
-
+    DEFINE_ACCESSOR(float,mass)
     /// Extracts atom charge
-    inline float& Charge(int ind){
-    	return system->atoms[index[ind]].charge;
-    }
-
-    inline const float& Charge(int ind) const {
-        return system->atoms[index[ind]].charge;
-    }
-
+    DEFINE_ACCESSOR(float,charge)
     /// Extracts B-factor
-    inline float& Beta(int ind){
-    	return system->atoms[index[ind]].beta;
-    }
-
-    inline const float& Beta(int ind) const {
-        return system->atoms[index[ind]].beta;
-    }
-
+    DEFINE_ACCESSOR(float,beta)
     /// Extracts occupancy field
-    inline float& Occupancy(int ind){
-    	return system->atoms[index[ind]].occupancy;
-    }
-
-    inline const float& Occupancy(int ind) const {
-        return system->atoms[index[ind]].occupancy;
-    }
-
+    DEFINE_ACCESSOR(float,occupancy)
     /// Extracts residue number
-    inline int& Resid(int ind){
-    	return system->atoms[index[ind]].resid;
-    }
-
-    inline const int& Resid(int ind) const {
-        return system->atoms[index[ind]].resid;
-    }
+    DEFINE_ACCESSOR(int,resid)
+    /// Extracts tag
+    DEFINE_ACCESSOR(std::string,tag)
 
     /// Extracts atom index in the system, which is pointed by selection
-    inline int& Index(int ind){
-    	return index[ind];
-    }
-
-    inline const int& Index(int ind) const {
-        return index[ind];
-    }
-
-    /// Extracts tag
-    inline std::string& Tag(int ind){
-    	return system->atoms[index[ind]].tag;
-    }
-
-    inline const std::string& Tag(int ind) const {
-        return system->atoms[index[ind]].tag;
-    }
+    inline int index(int ind) const { return _index[ind]; }
 
     /// Extracts whole atom
-    inline Atom& Atom_data(int ind){
-        return system->atoms[index[ind]];
-    }
-
-    inline const Atom& Atom_data(int ind) const {
-        return system->atoms[index[ind]];
-    }
+    inline Atom& atom(int ind){ return system->atoms[_index[ind]]; }
+    inline const Atom& atom(int ind) const { return system->atoms[_index[ind]]; }
 
     /// Extracts resindex
-    inline int& Resindex(int ind){
-        return system->atoms[index[ind]].resindex;
-    }
-
-    inline const int& Resindex(int ind) const {
-        return system->atoms[index[ind]].resindex;
-    }
-
+    DEFINE_ACCESSOR(int,resindex)
     /// Extracts atomic number
-    inline int& Element_number(int ind){
-        return system->atoms[index[ind]].element_number;
-    }
-
-    inline const int& Element_number(int ind) const {
-        return system->atoms[index[ind]].element_number;
-    }
+    DEFINE_ACCESSOR(int,element_number)
 
     /// Computes VDW radius. Read only.
     /// If atomic number is set uses whole periodic table from VMD
     /// If no atomic number uses rough guess from Gromacs vdwradii.dat
-    float VDW(int ind) const;
+    float vdw(int ind) const;
 
     /// Extracts element name based on element_number. Read only.
-    std::string Element_name(int ind) const;
+    std::string element_name(int ind) const;
 
     /** Returns periodic box of the frame pointed by selection
         The same as:
         \code
-        sel.get_system()->Box(sel.get_frame());
+        sel.get_system()->box(sel.get_frame());
         \endcode
         This is a convenience method. The same box is returned by all selection
         which point to the same frame.
     */
-    inline Periodic_box& Box() {
-        return system->traj[frame].box;
-    }
-
-    inline const Periodic_box& Box() const {
-        return system->traj[frame].box;
-    }
+    inline Periodic_box& box() { return system->traj[frame].box; }
+    inline const Periodic_box& box() const { return system->traj[frame].box; }
 
     /** Returns time stamp of the frame pointed by selection
         The same as:
@@ -1044,13 +905,8 @@ class Selection {
         This is a convenience method. The same time is returnedby all selection
         which point to the same frame.
     */
-    inline float& Time() {
-        return system->traj[frame].time;
-    }
-
-    inline const float& Time() const {
-        return system->traj[frame].time;
-    }
+    inline float& time() { return system->traj[frame].time; }
+    inline const float& time() const { return system->traj[frame].time; }
 
     /// @}
 
@@ -1058,7 +914,7 @@ protected:
     // Row text of selection
     std::string sel_text;    
     // Indexes of atoms in selection
-    std::vector<int> index;
+    std::vector<int> _index;
     // Pointer to target system
     System* system;
 
@@ -1087,8 +943,8 @@ public:
     iterator& operator++() { ++ind; return *this; }
     iterator& operator+(int i) {ind+=i; return *this;}
     iterator& operator-(int i) {ind-=i; return *this;}
-    reference operator*() { proxy.set(sel_ptr->get_system(),sel_ptr->Index(ind),sel_ptr->get_frame()); return proxy; }
-    pointer   operator->() { proxy.set(sel_ptr->get_system(),sel_ptr->Index(ind),sel_ptr->get_frame()); return &proxy; }
+    reference operator*() { proxy.set(sel_ptr->get_system(),sel_ptr->index(ind),sel_ptr->get_frame()); return proxy; }
+    pointer   operator->() { proxy.set(sel_ptr->get_system(),sel_ptr->index(ind),sel_ptr->get_frame()); return &proxy; }
     bool operator==(const iterator& rhs) { return ind == rhs.ind && sel_ptr==rhs.sel_ptr; }
     bool operator!=(const iterator& rhs) { return !(*this==rhs); }
 

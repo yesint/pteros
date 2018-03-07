@@ -45,7 +45,7 @@ void Jump_remover::add_atoms(const Selection &sel)
     int ind;
     int n = sel.get_system()->num_atoms();
     for(int i=0;i<sel.size();++i){
-        ind = sel.Index(i);
+        ind = sel.index(i);
         if(ind<0 || ind>=n) throw Pteros_error("Index {} for jump removal out of range (0:{})!",ind,n-1);
         no_jump_ind.push_back(ind);
     }
@@ -75,7 +75,7 @@ void Jump_remover::set_leading_index(int ind)
 void Jump_remover::remove_jumps(System& system){
     // Exit immediately if no atoms or no valid dimensions
     // If not periodic also do nothing
-    if(no_jump_ind.empty() || dims.sum()==0 || !system.Box(0).is_periodic()) return;
+    if(no_jump_ind.empty() || dims.sum()==0 || !system.box(0).is_periodic()) return;
 
     if(!initialized){
         // Do initial unwrapping
@@ -93,8 +93,8 @@ void Jump_remover::remove_jumps(System& system){
                 float min_extent = 1e20;
                 for(int i=0;i<3;++i)
                     if(dims(i))
-                        if(sel.Box().extent(i)<min_extent)
-                            min_extent = sel.Box().extent(i);
+                        if(sel.box().extent(i)<min_extent)
+                            min_extent = sel.box().extent(i);
 
                 while(sel.unwrap_bonds(unwrap_d,dims,leading_index)>1){
                     LOG()->info("Cutoff {} is too small, trying {}...", unwrap_d, 2.0*unwrap_d);
@@ -116,7 +116,7 @@ void Jump_remover::remove_jumps(System& system){
         // Save reference coordinates
         no_jump_ref.resize(3,sel.size());
         for(int i=0;i<sel.size();++i){
-            no_jump_ref.col(i) = sel.XYZ(i,0);
+            no_jump_ref.col(i) = sel.xyz(i,0);
         }                
 
         LOG()->info("Will remove jumps for {} atoms", sel.size());
@@ -129,11 +129,11 @@ void Jump_remover::remove_jumps(System& system){
         for(int i=0;i<no_jump_ind.size();++i){
             ind = no_jump_ind[i];
             // Get image closest to running reference
-            system.XYZ(ind,0) = system.Box(0).closest_image(system.XYZ(ind,0),
+            system.xyz(ind,0) = system.box(0).closest_image(system.xyz(ind,0),
                                                                 no_jump_ref.col(i),
                                                                 dims);
             // Update running reference
-            no_jump_ref.col(i) = system.XYZ(ind,0);
+            no_jump_ref.col(i) = system.xyz(ind,0);
         }
 
     }

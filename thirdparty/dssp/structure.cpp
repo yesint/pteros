@@ -378,13 +378,13 @@ MResidue::MResidue(uint32 inNumber,
 		if (atom.mResSeq != mSeqNumber)
 			throw mas_exception(boost::format("inconsistent residue sequence numbers (%1% != %2%)") % atom.mResSeq % mSeqNumber);
 		
-        if (atom.GetName().substr(0,2) == "N ")
+        if (atom.Getname().substr(0,2) == "N ")
 			mN = atom;
-        else if (atom.GetName().substr(0,2) == "CA")
+        else if (atom.Getname().substr(0,2) == "CA")
 			mCA = atom;
-        else if (atom.GetName().substr(0,2) == "C ")
+        else if (atom.Getname().substr(0,2) == "C ")
 			mC = atom;
-        else if (atom.GetName().substr(0,2) == "O ")
+        else if (atom.Getname().substr(0,2) == "O ")
 			mO = atom;
 		else
 			mSideChain.push_back(atom);
@@ -409,12 +409,12 @@ MResidue::MResidue(uint32 inNumber,
 	mBox[0].mX = mBox[0].mY = mBox[0].mZ =  numeric_limits<double>::max();
 	mBox[1].mX = mBox[1].mY = mBox[1].mZ = -numeric_limits<double>::max();
 	
-	ExtendBox(mN, kRadiusN + 2 * kRadiusWater);
-	ExtendBox(mCA, kRadiusCA + 2 * kRadiusWater);
-	ExtendBox(mC, kRadiusC + 2 * kRadiusWater);
-	ExtendBox(mO, kRadiusO + 2 * kRadiusWater);
+    Extendbox(mN, kRadiusN + 2 * kRadiusWater);
+    Extendbox(mCA, kRadiusCA + 2 * kRadiusWater);
+    Extendbox(mC, kRadiusC + 2 * kRadiusWater);
+    Extendbox(mO, kRadiusO + 2 * kRadiusWater);
 	foreach (const MAtom& atom, mSideChain)
-		ExtendBox(atom, kRadiusSideAtom + 2 * kRadiusWater);
+        Extendbox(atom, kRadiusSideAtom + 2 * kRadiusWater);
 	
 	mRadius = mBox[1].mX - mBox[0].mX;
 	if (mRadius < mBox[1].mY - mBox[0].mY)
@@ -711,7 +711,7 @@ MBridgeType MResidue::TestBridge(MResidue* test) const
 	return result;
 }
 
-void MResidue::ExtendBox(const MAtom& atom, double inRadius)
+void MResidue::Extendbox(const MAtom& atom, double inRadius)
 {
 	if (mBox[0].mX > atom.mLoc.mX - inRadius)
 		mBox[0].mX = atom.mLoc.mX - inRadius;
@@ -728,7 +728,7 @@ void MResidue::ExtendBox(const MAtom& atom, double inRadius)
 }
 
 inline
-bool MResidue::AtomIntersectsBox(const MAtom& atom, double inRadius) const
+bool MResidue::AtomIntersectsbox(const MAtom& atom, double inRadius) const
 {
 	return
 		atom.mLoc.mX + inRadius >= mBox[0].mX and atom.mLoc.mX - inRadius <= mBox[1].mX and
@@ -806,7 +806,7 @@ double MResidue::CalculateSurface(const MAtom& inAtom, double inRadius, const ve
 
 	foreach (MResidue* r, inResidues)
 	{
-		if (r->AtomIntersectsBox(inAtom, inRadius))
+        if (r->AtomIntersectsbox(inAtom, inRadius))
 		{
 			accumulate(inAtom, r->mN, inRadius, kRadiusN);
 			accumulate(inAtom, r->mCA, inRadius, kRadiusCA);
@@ -1257,35 +1257,35 @@ MProtein::MProtein(pteros::Selection& sel)
         MAtom atom = {};
 
         //	7 - 11	Integer serial Atom serial number.
-        atom.mSerial = sel.Index(i);
+        atom.mSerial = sel.index(i);
         //	13 - 16	Atom name Atom name.
 
         pad.copy(atom.mName, pad.size());
-        sel.Name(i).copy(atom.mName, sel.Name(i).size());
+        sel.name(i).copy(atom.mName, sel.name(i).size());
         //	17		Character altLoc Alternate location indicator.
         atom.mAltLoc = ' ';
         //	18 - 20	Residue name resName Residue name.
         pad.copy(atom.mResName, pad.size());
-        sel.Resname(i).copy(atom.mResName, sel.Resname(i).size());
+        sel.resname(i).copy(atom.mResName, sel.resname(i).size());
         //	22		Character chainID Chain identifier.
-        atom.mChainID = sel.Chain(i);
+        atom.mChainID = sel.chain(i);
         //	23 - 26	Integer resSeq Residue sequence number.
-        atom.mResSeq = sel.Resid(i);
+        atom.mResSeq = sel.resid(i);
         //	27		AChar iCode Code for insertion of residues.
         atom.mICode = ' ';
 
         //	31 - 38	Real(8.3) x Orthogonal coordinates for X in Angstroms.
-        atom.mLoc.mX = sel.X(i) * 10.0;
+        atom.mLoc.mX = sel.x(i) * 10.0;
         //	39 - 46	Real(8.3) y Orthogonal coordinates for Y in Angstroms.
-        atom.mLoc.mY = sel.Y(i) * 10.0;
+        atom.mLoc.mY = sel.y(i) * 10.0;
         //	47 - 54	Real(8.3) z Orthogonal coordinates for Z in Angstroms.
-        atom.mLoc.mZ = sel.Z(i) * 10.0;;
+        atom.mLoc.mZ = sel.z(i) * 10.0;;
         //	55 - 60	Real(6.2) occupancy Occupancy.
-        atom.mOccupancy = sel.Occupancy(i);
+        atom.mOccupancy = sel.occupancy(i);
         //	61 - 66	Real(6.2) tempFactor Temperature factor.
-        atom.mTempFactor = sel.Beta(i);
+        atom.mTempFactor = sel.beta(i);
         //	77 - 78	LString(2) element Element symbol, right-justified.
-        sel.Name(i).copy(atom.mElement, 2);
+        sel.name(i).copy(atom.mElement, 2);
         //	79 - 80	LString(2) charge Charge on the atom.
         atom.mCharge = 0;
 
@@ -1302,7 +1302,7 @@ MProtein::MProtein(pteros::Selection& sel)
 
         try
         {
-            atom.mType = MapElement(sel.Name(i)); //!! Method hanged
+            atom.mType = MapElement(sel.name(i)); //!! Method hanged
         }
         catch (exception& e)
         {
@@ -1523,13 +1523,13 @@ void MProtein::AddResidue(const vector<MAtom>& inAtoms)
 	bool hasN = false, hasCA = false, hasC = false, hasO = false;
 	foreach (const MAtom& atom, inAtoms)
 	{
-        if (atom.GetName().substr(0,2) == "N ")
+        if (atom.Getname().substr(0,2) == "N ")
 			hasN = true;
-        if (atom.GetName().substr(0,2) == "CA")
+        if (atom.Getname().substr(0,2) == "CA")
 			hasCA = true;
-        if (atom.GetName().substr(0,2) == "C ")
+        if (atom.Getname().substr(0,2) == "C ")
 			hasC = true;
-        if (atom.GetName().substr(0,2) == "O ")
+        if (atom.Getname().substr(0,2) == "O ")
 			hasO = true;
 	}
 	

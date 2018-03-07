@@ -736,19 +736,19 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
         // Result is returned directly into the index array of selection dum2
         // thus no additional copying
         if(starting_subset && starting_subset->size()){
-            eval_node(node->child_node(1), dum2.index, starting_subset);
+            eval_node(node->child_node(1), dum2._index, starting_subset);
         } else {
-            eval_node(node->child_node(1), dum2.index, nullptr);
+            eval_node(node->child_node(1), dum2._index, nullptr);
         }
 
         // Prepare selection dum1
         if(!subspace){
             // We are not limited by subspace
-            dum1.index.resize(sys->num_atoms());
-            for(int i=0;i<sys->num_atoms();++i) dum1.index[i] = i;
+            dum1._index.resize(sys->num_atoms());
+            for(int i=0;i<sys->num_atoms();++i) dum1._index[i] = i;
         } else {
             // We are limited by subspace
-            dum1.index = *subspace;
+            dum1._index = *subspace;
         }
 
         // Set frame for both selections
@@ -975,7 +975,7 @@ std::function<float(int)> Selection_parser::get_numeric(AstNode_ptr& node){
         // Return distance
         if(pbc){
             return [this,p](int at){
-                return sys->Box(frame).distance(p, sys->traj[frame].coord[at]);
+                return sys->box(frame).distance(p, sys->traj[frame].coord[at]);
             };
         } else {
             return [this,&p](int at){
@@ -1019,7 +1019,7 @@ std::function<float(int)> Selection_parser::get_numeric(AstNode_ptr& node){
 
             // Return distance between atom and v
             if(pbc){
-                return sys->Box(frame).distance(atom, v);
+                return sys->box(frame).distance(atom, v);
             } else {
                 return (atom-v).norm();
             }

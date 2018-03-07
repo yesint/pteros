@@ -63,6 +63,7 @@ void make_bindings_Selection(py::module& m){
         .def_property("xyz", [](Atom_proxy* obj){return obj->xyz();}, [](Atom_proxy* obj,Vector3f_const_ref val){obj->xyz()=val;})
         .def_property_readonly("element_name", [](Atom_proxy* obj){return obj->element_name();})
         .def_property_readonly("vdw", [](Atom_proxy* obj){return obj->vdw();})        
+        .def_property_readonly("index", [](Atom_proxy* obj){return obj->index();})
     ;
 
     py::class_<Selection>(m, "Selection")
@@ -115,7 +116,7 @@ void make_bindings_Selection(py::module& m){
         .def("set_frame",&Selection::set_frame)
         .def("get_system",&Selection::get_system, py::return_value_policy::reference_internal)
         .def("get_text",&Selection::get_text)
-        .def("get_index",&Selection::get_index)
+        .def("get_index",&Selection::get_index)        
 
         .def("get_chain",&Selection::get_chain,"unique"_a=false)
         .def("set_chain",py::overload_cast<char>(&Selection::set_chain))
@@ -321,10 +322,10 @@ void make_bindings_Selection(py::module& m){
         // since no means to bind templated return value!
 
         // Accessors
-        .def("VDW",&Selection::VDW)
-        .def("Element_name",&Selection::Element_name)
-        .def_property("box", [](Selection* obj){return obj->Box();}, [](Selection* obj,const Periodic_box& val){obj->Box()=val;})
-        .def_property("time", [](Selection* obj){return obj->Time();}, [](Selection* obj, float val){obj->Time()=val;})
+        .def("vdw",&Selection::vdw)
+        .def("element_name",&Selection::element_name)
+        .def_property("box", [](Selection* obj){return obj->box();}, [](Selection* obj,const Periodic_box& val){obj->box()=val;})
+        .def_property("time", [](Selection* obj){return obj->time();}, [](Selection* obj, float val){obj->time()=val;})
 
         // No other accessors are exposed in favor to [] operator
     ;

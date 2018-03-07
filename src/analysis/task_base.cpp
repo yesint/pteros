@@ -21,7 +21,7 @@ Task_base::Task_base(const Task_base &other)
 }
 
 void pteros::Task_base::put_frame(const pteros::Frame &frame){
-    system.Frame_data(0) = frame;
+    system.frame(0) = frame;
 }
 
 void pteros::Task_base::put_system(const pteros::System &sys){

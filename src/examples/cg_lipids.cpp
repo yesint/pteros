@@ -48,7 +48,7 @@ int main(int argc, char** argv){
                 sel.set_frame(fr);
                 float localZ = sel.center()(2);
                 // See if current ROH is above or below localZ
-                if(ROH.Z(lip,fr)<localZ){
+                if(ROH.z(lip,fr)<localZ){
                     ++occ1.back();
                 } else {
                     ++occ2.back();
