@@ -294,7 +294,7 @@ void Membrane::compute_properties(float d, Vector3f_const_ref external_normal)
 
             // Normal is the 3rd axis (shortest)
             // Need to check direction of the normal
-            float ang = angle_between_vectors(normal, lip.get_head_xyz()-lip.get_tail_xyz());
+            float ang = angle_between_vectors(normal, lip.head_sel.xyz(0)-lip.tail_sel.xyz(0));
             if(ang < M_PI_2){
                 lip.normal = normal;
                 lip.tilt = ang;
@@ -312,7 +312,7 @@ void Membrane::compute_properties(float d, Vector3f_const_ref external_normal)
 
             // Create array of local points in local basis
             MatrixXf coord(3,lip.local_sel.size()+1);
-            Vector3f c0 = lip.get_mid_xyz(); // Coord of central point - the first
+            Vector3f c0 = lip.mid_sel.xyz(0); // Coord of central point - the marker
             coord.col(0) = Vector3f::Zero();
             for(int j=0; j<lip.local_sel.size(); ++j)
                 coord.col(j+1) = tr_inv * system->box(0).shortest_vector(c0,lip.local_sel.xyz(j));
@@ -344,18 +344,6 @@ void Membrane::compute_properties(float d, Vector3f_const_ref external_normal)
                 }
             }
 
-            // Compute order parameter if the tails are provided
-            for(int t=0; t<lip.tail_carbon_indexes.size(); ++t){
-                // Go over atoms in tail t                
-                for(int at=1; at<lip.tail_carbon_indexes[t].size()-1; ++at){
-                    // Vector from at+1 to at-1
-                    auto coord1 = system->xyz(lip.tail_carbon_indexes[t][at+1]);
-                    auto coord2 = system->xyz(lip.tail_carbon_indexes[t][at-1]);
-                    float ang = angle_between_vectors(coord1-coord2,lip.normal);
-                    lip.order[t][at-1] = 1.5*pow(cos(ang),2)-0.5;
-                }
-            }
-
         } // Over lipids in leaflet
 
     } // over leaflets
@@ -375,12 +363,12 @@ void Membrane::compute_properties(float d, Vector3f_const_ref external_normal)
 
         if(n1.dot(n2)<0) continue;
 
-        auto x= system->box(0).shortest_vector(lip1.get_mid_xyz(), lip2.get_mid_xyz());
+        auto x= system->box(0).shortest_vector(lip1.mid_sel.xyz(0), lip2.mid_sel.xyz(0));
         float d = x.norm();
         x = x-x.dot(n1)*n1;
         x.normalize();
-        Vector3f v1 = (lip1.get_head_xyz()-lip1.get_tail_xyz()).normalized();
-        Vector3f v2 = (lip2.get_head_xyz()-lip2.get_tail_xyz()).normalized();
+        Vector3f v1 = (lip1.head_sel.xyz(0)-lip1.tail_sel.xyz(0)).normalized();
+        Vector3f v2 = (lip2.head_sel.xyz(0)-lip2.tail_sel.xyz(0)).normalized();
 
         splay[i] = {
                     neighbor_pairs[i](0),
@@ -389,11 +377,24 @@ void Membrane::compute_properties(float d, Vector3f_const_ref external_normal)
                    };
     }
 
-    //cout << Map<VectorXf>(splay.data(),splay.size()).transpose() << endl;
-
-
     // unset markers
     for(auto& l: lipids) l.unset_markers();
+
+    // Now compute order. This should be done only after unsetting markers!
+    // Otherwice tail atoms could become moved as markers.
+    for(auto& lip: lipids){
+        // Compute Sz order parameter if the tails are provided
+        for(int t=0; t<lip.tail_carbon_indexes.size(); ++t){
+            // Go over atoms in tail t
+            for(int at=1; at<lip.tail_carbon_indexes[t].size()-1; ++at){
+                // Vector from at+1 to at-1
+                auto coord1 = system->xyz(lip.tail_carbon_indexes[t][at+1]);
+                auto coord2 = system->xyz(lip.tail_carbon_indexes[t][at-1]);
+                float ang = angle_between_vectors(coord1-coord2,lip.normal);
+                lip.order[t][at-1] = 1.5*pow(cos(ang),2)-0.5;
+            }
+        }
+    }
 }
 
 
@@ -415,8 +416,8 @@ void Membrane::write_vmd_arrows(const string &fname)
 {
     ofstream f(fname);
     for(auto& lip: lipids){        
-        f << tcl_arrow(lip.get_mid_xyz(),lip.get_mid_xyz()+lip.normal,0.2,"green");
-        f << tcl_arrow(lip.get_tail_xyz(),lip.get_head_xyz(),0.2,"red");
+        f << tcl_arrow(lip.mid_sel.center(),lip.mid_sel.center()+lip.normal,0.2,"green");
+        f << tcl_arrow(lip.tail_sel.center(),lip.head_sel.center(),0.2,"red");
     }
     f.close();
 
@@ -449,13 +450,11 @@ Lipid::Lipid(const Selection &sel, const Lipid_descr &descr){
         // Allocate array for order
         order[t].resize(tail_carbon_indexes[t].size()-2);
     }
-
-
 }
 
 void Lipid::set_markers()
 {
-    // Unwrap this lipid with leading index of position[0]
+    // Unwrap this lipid with leading index of position[0]    
     whole_sel.unwrap(fullPBC, mid_sel.index(0)-whole_sel.index(0));
 
     // save coords of first atoms

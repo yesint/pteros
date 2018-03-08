@@ -45,18 +45,12 @@ struct Lipid_descr {
 class Lipid {
     friend class Membrane;
 public:
-    Lipid(const Selection& sel, const Lipid_descr& descr);   
-
-    Eigen::Vector3f get_mid_xyz() const {return mid_sel.xyz(0);}
-    Eigen::Vector3f get_head_xyz() const {return head_sel.xyz(0);}
-    Eigen::Vector3f get_tail_xyz() const {return tail_sel.xyz(0);}
+    Lipid(const Selection& sel, const Lipid_descr& descr);
 
     Selection whole_sel;
     Selection head_sel;
     Selection tail_sel;
-    Selection mid_sel;
-    // Indexes of carbons in tails for order parameter
-    std::vector<std::vector<int>> tail_carbon_indexes;
+    Selection mid_sel;    
 
     std::string name;
     Eigen::Vector3f normal;
@@ -68,17 +62,21 @@ public:
     float gaussian_curvature;
     float mean_curvature;
     int coord_number;
-    std::vector<std::vector<float>> order;
+    std::vector<std::vector<float>> order; //Sz order parameter identical to "gmx order -szonly"
 
 private:    
     // Set current COM coordinates of seletions to their first atoms used as markers
     void set_markers();
+
     // Restore atomic coords of markers
     void unset_markers();
 
     Eigen::Vector3f saved_head0, saved_tail0, saved_mid0;
 
     Selection local_sel;
+
+    // Indexes of carbons in tails for order parameter
+    std::vector<std::vector<int>> tail_carbon_indexes;
 };
 
 

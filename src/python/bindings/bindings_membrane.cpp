@@ -58,10 +58,6 @@ void make_bindings_Membrane(py::module& m){
     py::class_<Lipid>(m,"Lipid")
             .def(py::init<const Selection&,const Lipid_descr&>())
 
-            .def("get_mid_xyz",&Lipid::get_mid_xyz)
-            .def("get_head_xyz",&Lipid::get_head_xyz)
-            .def("get_tail_xyz",&Lipid::get_tail_xyz)
-
             .def_readwrite("mid_sel",&Lipid::mid_sel)
             .def_readwrite("head_sel",&Lipid::head_sel)
             .def_readwrite("tail_sel",&Lipid::tail_sel)
