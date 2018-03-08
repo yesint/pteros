@@ -831,17 +831,10 @@ class Selection {
 
 
 #define DEFINE_ACCESSOR_READONLY(T,prop) \
-    inline const T& prop(int ind) const { \
-        return system->atoms[_index[ind]].prop; \
-    }
-
+    inline const T& prop(int ind) const { return system->atoms[_index[ind]].prop; }
 #define DEFINE_ACCESSOR(T,prop) \
-    inline T& prop(int ind){ \
-        return system->atoms[_index[ind]].prop; \
-    } \
-    inline const T& prop(int ind) const { \
-        return system->atoms[_index[ind]].prop; \
-    }
+    inline T& prop(int ind){ return system->atoms[_index[ind]].prop; } \
+    inline const T& prop(int ind) const { return system->atoms[_index[ind]].prop; }
 
     /// Extracts type
     DEFINE_ACCESSOR(int,type)
