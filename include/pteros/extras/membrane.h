@@ -39,6 +39,7 @@ struct Lipid_descr {
     std::string head_sel_str;
     std::string tail_sel_str;
     std::string mid_sel_str;
+    std::vector<std::string> tail_carbon_sels;
 };
 
 class Lipid {
@@ -54,6 +55,8 @@ public:
     Selection head_sel;
     Selection tail_sel;
     Selection mid_sel;
+    // Indexes of carbons in tails for order parameter
+    std::vector<std::vector<int>> tail_carbon_indexes;
 
     std::string name;
     Eigen::Vector3f normal;
@@ -65,6 +68,7 @@ public:
     float gaussian_curvature;
     float mean_curvature;
     int coord_number;
+    std::vector<std::vector<float>> order;
 
 private:    
     // Set current COM coordinates of seletions to their first atoms used as markers

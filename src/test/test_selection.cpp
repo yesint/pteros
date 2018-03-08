@@ -247,64 +247,20 @@ make_accessor(const Selection& sel){
 int main(int argc, char** argv)
 {    
 
-   System sys("/home/semen/work/current/Projects/Curved_membranes/plasma_symm/bend/DOPC-noH.pdb");
-   sys.load("/home/semen/work/current/Projects/Curved_membranes/plasma_symm/bend/DOPC-noH.pdb");
-   //sys.atom_add_1h(19,18,20,21);
-   //sys.atom_add_2h(5,1,9);
-   //sys.atom_add_3h(2,0);
-   //sys().write("/home/semen/work/current/Projects/Curved_membranes/plasma_symm/DOPC-noH-1.pdb");
+    string t1("name C21 C22 C23 C24 C25 C26 C27 C28 C29 C210 C211 C212 C213 C214 C215 C216");
+    string t2("name C21 C22 C23 C24 C25 C26 C27 C28 C29 C210 C211 C212 C213 C214 C215 C216");
 
-   auto sel = sys();
-
-   sel[{0,0}].x() = sel[{0,1}].x()+100;
-
-   cout << sel[0].xyz().transpose() << endl;
-   cout << sel[{0,1}].xyz().transpose() << endl;
-   for(auto it=sel.begin(); it!=sel.begin()+10; it++){
-       cout << it->x() << " " << it->name() << endl;
-   }
-
-    //System sys("/home/semen/work/current/Projects/Squalene/Dox_cylinder_grow/topol.tpr");
-    //sys("not water").write("1.pdb");
-
-    /*
     vector<Lipid_descr> species = {
-        {"YOPE","resname YOPE", "name P N", "name C314 C315 C316 C216 C217 C218", "name C22 C21 C23 C31 C32 C33"},
-        {"DYPE","resname DYPE", "name P N", "name C314 C315 C316 C214 C215 C216", "name C22 C21 C23 C31 C32 C33"},
-        {"DOPE","resname DOPE", "name P N", "name C316 C317 C318 C216 C217 C218", "name C22 C21 C23 C31 C32 C33"},
-        {"DOPC","resname DOPC", "name P N", "name C316 C317 C318 C216 C217 C218", "name C22 C21 C23 C31 C32 C33"},
-        {"POPE","resname POPE", "name P N", "name C316 C317 C318 C216 C217 C218", "name C22 C21 C23 C31 C32 C33"},
-        {"DYPC","resname DYPC", "name P N", "name C314 C315 C316 C214 C215 C216", "name C22 C21 C23 C31 C32 C33"},
-        {"YOPC","resname YOPC", "name P N", "name C314 C315 C316 C216 C217 C218", "name C22 C21 C23 C31 C32 C33"},
-        {"POPC","resname POPC", "name P N", "name C316 C317 C318 C216 C217 C218", "name C22 C21 C23 C31 C32 C33"},
+        {"YOPE","resname YOPE", "name P N", "name C314 C315 C316 C216 C217 C218", "name C22 C21 C23 C31 C32 C33", {t1,t2}},
+        {"DYPE","resname DYPE", "name P N", "name C314 C315 C316 C214 C215 C216", "name C22 C21 C23 C31 C32 C33", {t1,t2}},
+        {"DOPE","resname DOPE", "name P N", "name C316 C317 C318 C216 C217 C218", "name C22 C21 C23 C31 C32 C33", {t1,t2}},
+        {"DOPC","resname DOPC", "name P N", "name C316 C317 C318 C216 C217 C218", "name C22 C21 C23 C31 C32 C33", {t1,t2}},
+        {"POPE","resname POPE", "name P N", "name C316 C317 C318 C216 C217 C218", "name C22 C21 C23 C31 C32 C33", {t1,t2}},
+        {"DYPC","resname DYPC", "name P N", "name C314 C315 C316 C214 C215 C216", "name C22 C21 C23 C31 C32 C33", {t1,t2}},
+        {"YOPC","resname YOPC", "name P N", "name C314 C315 C316 C216 C217 C218", "name C22 C21 C23 C31 C32 C33", {t1,t2}},
+        {"POPC","resname POPC", "name P N", "name C316 C317 C318 C216 C217 C218", "name C22 C21 C23 C31 C32 C33", {t1,t2}},
     };
 
-    LOG()->set_level(spdlog::level::trace);
-
-    System sys("/home/semen/work/current/Projects/Masato/symmetric/topol.tpr");
-    auto res = sys.load_gromacs_ndx("/home/semen/work/current/Projects/Masato/symmetric/index.ndx");
-    cout << res.size() << endl;
-    for(auto el: res) cout << el.first << " " << el.second.size() << endl;
-
-    Selection sel1(sys,"resid 1-10");
-    Selection sel2(sys,"resid 11-21");
-    Selection all(sys,"all");
-
-    for(auto& a: sel1) cout << a.vdw() << endl;
-*/
-/*
-    cout << non_bond_energy(sel1,sel2) << endl;
-
-    vector<float> area;
-    float A = sel1.sasa(0.14,&area);
-    float AP = sel1.powersasa(0.14,&area);
-
-    cout << A << " " << AP << endl;
-    //cout << A << endl;
-    cout << sel1.Element_number(0) << " " << sel1.Element_name(0) << endl;
-*/
-
-    /*
     System sys("/home/semen/work/current/Projects/Masato/symmetric/after_em.gro");
 
     Membrane membr(&sys,species);
@@ -315,9 +271,8 @@ int main(int argc, char** argv)
     // lip properties
 
     for(int i=0;i<membr.lipids.size();++i){
-        cout << i << " " << membr.lipids[i].normal(2) << " " << membr.lipids[i].area << endl;
+        cout << Map<VectorXf>(membr.lipids[i].order[0].data(),16).transpose() << endl;
     }
-    */
 
     return 1;
 

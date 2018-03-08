@@ -58,6 +58,7 @@ Membrane::Membrane(System *sys, const std::vector<Lipid_descr> &species): system
     for(auto& sp: lipid_species){
         vector<Selection> res;
         system->select(sp.whole_sel_str).split_by_residue(res);
+        log->info("Lipid {}: {}", sp.name,res.size());
         for(auto& lip: res){
             auto mol = Lipid(lip,sp);
             mol.set_markers();
@@ -76,9 +77,10 @@ Membrane::Membrane(System *sys, const std::vector<Lipid_descr> &species): system
     for(int i=0;i<leafs.size();++i){
         leaflets_sel[i].set_system(*system);
         for(int a=0; a<leafs[i].size(); ++a){
-            lipids[index_map[a]].leaflet = i;
-            leaflets[i].push_back(index_map[a]);
-            leaflets_sel[i].append(a);
+            int ind = leafs[i].index(a);
+            lipids[index_map[ind]].leaflet = i;
+            leaflets[i].push_back(index_map[ind]);
+            leaflets_sel[i].append(ind);
         }
     }
 
@@ -86,7 +88,7 @@ Membrane::Membrane(System *sys, const std::vector<Lipid_descr> &species): system
     for(auto& l: lipids) l.unset_markers();
 
     // Print statictics
-    log->info("Number of lipids: {}",lipids.size());
+    log->info("Total number of lipids: {}",lipids.size());
     log->info("Number of leaflets: {}",leafs.size());
 }
 
@@ -240,12 +242,13 @@ void get_curvature(const Matrix<float,6,1>& coeffs, float& gaussian_curvature, f
 
 void Membrane::compute_properties(float d, Vector3f_const_ref external_normal)
 {
+    // Clear everything
+    neighbor_pairs.clear();
+
     bool use_external_normal = false;
     if(external_normal != Vector3f::Zero()) use_external_normal = true;
 
     Eigen::Matrix3f tr, tr_inv;
-
-    neighbor_pairs.clear();
 
     // Set markers for all lipids
     for(auto& l: lipids) l.set_markers();
@@ -254,7 +257,7 @@ void Membrane::compute_properties(float d, Vector3f_const_ref external_normal)
     for(int l=0;l<leaflets.size();++l){
         // Get connectivity in this leaflet
         vector<Vector2i> bon;
-        search_contacts(d,leaflets_sel[l],bon,false,true);
+        search_contacts(d,leaflets_sel[l],bon,false,true);        
 
         // Convert the list of bonds to convenient form
         // atom ==> 1 2 3...
@@ -274,6 +277,12 @@ void Membrane::compute_properties(float d, Vector3f_const_ref external_normal)
 
             // Create selection for locality of this lipid including itself
             Selection local_self(lip.local_sel);
+
+            if(local_self.size()==0){
+                log->warn("Empty locality of lipid {} in leaflet {}! Skipped.",i,l);
+                continue;
+            }
+
             local_self.append(leaflets_sel[l].index(i)); // Add central atom
 
             // Get inertial axes
@@ -293,7 +302,7 @@ void Membrane::compute_properties(float d, Vector3f_const_ref external_normal)
                 lip.normal = -normal;
                 lip.tilt = M_PI-ang;
             }
-            lip.normal.normalize();
+            lip.normal.normalize();            
 
             // Smooth and find local curvatures
 
@@ -332,6 +341,18 @@ void Membrane::compute_properties(float d, Vector3f_const_ref external_normal)
                 for(int j=0; j<neib.size(); ++j){
                     int n = index_map[lip.local_sel.index(neib[j]-1)];
                     if(cur_ind<n) neighbor_pairs.push_back(Vector2i(cur_ind,n));
+                }
+            }
+
+            // Compute order parameter if the tails are provided
+            for(int t=0; t<lip.tail_carbon_indexes.size(); ++t){
+                // Go over atoms in tail t                
+                for(int at=1; at<lip.tail_carbon_indexes[t].size()-1; ++at){
+                    // Vector from at+1 to at-1
+                    auto coord1 = system->xyz(lip.tail_carbon_indexes[t][at+1]);
+                    auto coord2 = system->xyz(lip.tail_carbon_indexes[t][at-1]);
+                    float ang = angle_between_vectors(coord1-coord2,lip.normal);
+                    lip.order[t][at-1] = 1.5*pow(cos(ang),2)-0.5;
                 }
             }
 
@@ -420,6 +441,16 @@ Lipid::Lipid(const Selection &sel, const Lipid_descr &descr){
     head_sel = whole_sel(descr.head_sel_str);
     tail_sel = whole_sel(descr.tail_sel_str);
     mid_sel = whole_sel(descr.mid_sel_str);
+    // Fill tail indexes if any
+    tail_carbon_indexes.resize(descr.tail_carbon_sels.size());
+    order.resize(descr.tail_carbon_sels.size());
+    for(int t=0; t<descr.tail_carbon_sels.size(); ++t){
+        tail_carbon_indexes[t] = whole_sel(descr.tail_carbon_sels[t]).get_index();
+        // Allocate array for order
+        order[t].resize(tail_carbon_indexes[t].size()-2);
+    }
+
+
 }
 
 void Lipid::set_markers()

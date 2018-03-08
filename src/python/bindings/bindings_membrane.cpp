@@ -35,12 +35,18 @@ using namespace pybind11::literals;
 void make_bindings_Membrane(py::module& m){
 
     py::class_<Lipid_descr>(m,"Lipid_descr")
-        .def(py::init<const std::string&,const std::string&,const std::string&,const std::string&,const std::string&>())
+        .def(py::init<const std::string&,
+             const std::string&,
+             const std::string&,
+             const std::string&,
+             const std::string&,
+             const std::vector<std::string>&>())
         .def_readonly("name",&Lipid_descr::name)
         .def_readonly("whole_sel_str",&Lipid_descr::whole_sel_str)
         .def_readonly("head_sel_str",&Lipid_descr::head_sel_str)
         .def_readonly("tail_sel_str",&Lipid_descr::tail_sel_str)
         .def_readonly("head_mid_str",&Lipid_descr::mid_sel_str)
+        .def_readonly("head_mid_str",&Lipid_descr::tail_carbon_sels)
     ;
 
     py::class_<Splay_pair>(m,"Splay_pair")
@@ -71,6 +77,7 @@ void make_bindings_Membrane(py::module& m){
             .def_readonly("gaussian_curvature",&Lipid::gaussian_curvature)
             .def_readonly("mean_curvature",&Lipid::mean_curvature)
             .def_readonly("coord_number",&Lipid::coord_number)
+            .def_readonly("order",&Lipid::order)
     ;
 
     py::class_<Membrane>(m,"Membrane")
