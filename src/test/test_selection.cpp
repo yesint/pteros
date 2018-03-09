@@ -264,14 +264,15 @@ int main(int argc, char** argv)
     System sys("/home/semen/work/current/Projects/Masato/symmetric/after_em.gro");
 
     Membrane membr(&sys,species);
-    membr.compute_properties(2.0, Vector3f(0,0,1));
+    membr.compute_properties(2.0, true, Vector3f(0,0,0), Vector3i(0,0,1));
     membr.write_vmd_arrows("normals.tcl");
     membr.write_smoothed("smoothed.pdb");    
 
     // lip properties
 
     for(int i=0;i<membr.lipids.size();++i){
-        cout << Map<VectorXf>(membr.lipids[i].order[0].data(),16).transpose() << endl;
+        //cout << Map<VectorXf>(membr.lipids[i].order[0].data(),16).transpose() << endl;
+        cout << membr.lipids[i].area << endl;
     }
 
     return 1;

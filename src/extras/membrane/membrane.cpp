@@ -240,20 +240,17 @@ void get_curvature(const Matrix<float,6,1>& coeffs, float& gaussian_curvature, f
     mean_curvature = 0.5*(E_*N_-2.0*F_*M_+G_*L_)/(E_*G_-F_*F_);
 }
 
-void Membrane::compute_properties(float d, Vector3f_const_ref external_normal)
+void Membrane::compute_properties(float d, bool use_external_normal, Vector3f_const_ref external_pivot, Vector3i_const_ref external_dist_dim)
 {
     // Clear everything
     neighbor_pairs.clear();
-
-    bool use_external_normal = false;
-    if(external_normal != Vector3f::Zero()) use_external_normal = true;
 
     Eigen::Matrix3f tr, tr_inv;
 
     // Set markers for all lipids
     for(auto& l: lipids) l.set_markers();
 
-    // Compute per leaflet
+    // Compute per leaflet properties
     for(int l=0;l<leaflets.size();++l){
         // Get connectivity in this leaflet
         vector<Vector2i> bon;
@@ -275,24 +272,51 @@ void Membrane::compute_properties(float d, Vector3f_const_ref external_normal)
             // Save local selection for this lipid
             lip.local_sel = leaflets_sel[l](conn[i]);
 
-            // Create selection for locality of this lipid including itself
-            Selection local_self(lip.local_sel);
-
-            if(local_self.size()==0){
+            if(lip.local_sel.size()==0){
                 log->warn("Empty locality of lipid {} in leaflet {}! Skipped.",i,l);
                 continue;
             }
 
-            local_self.append(leaflets_sel[l].index(i)); // Add central atom
-
-            // Get inertial axes
+            // For interia
             Vector3f moments;
             Matrix3f axes;
-            local_self.inertia(moments,axes,fullPBC); // Have to use periodic variant
 
-            Vector3f normal = (use_external_normal) ? external_normal : axes.col(2);
+            //-----------------------------------
+            // Compute normal
+            //-----------------------------------
 
-            // Normal is the 3rd axis (shortest)
+            Vector3f normal;
+
+            if(use_external_normal){
+                // Compute external normal as a vector from pivot to COM of mid_sel (set as marker currently)
+                // over specified dimensions
+                axes.col(2) = (lip.mid_sel.xyz(0)-external_pivot).array()*external_dist_dim.cast<float>().array();
+
+                // Find two vectors perpendicular to normal
+                if( axes.col(2).dot(Vector3f(1,0,0)) != 1.0 ){
+                    axes.col(0) = axes.col(2).cross(Vector3f(1,0,0));
+                } else {
+                    axes.col(0) = axes.col(2).cross(Vector3f(0,1,0));
+                }
+                axes.col(1) = axes.col(2).cross(axes.col(0));
+            } else {
+                // Compute normals from inertia axes
+                // Create selection for locality of this lipid including itself
+                Selection local_self(lip.local_sel);
+
+                local_self.append(leaflets_sel[l].index(i)); // Add central atom
+
+                // Get inertial axes
+                local_self.inertia(moments,axes,fullPBC); // Have to use periodic variant
+                // axes.col(2) will be a normal
+            }
+
+            normal = axes.col(2);
+
+            // transformation matrix to local basis
+            for(int j=0;j<3;++j) tr.col(j) = axes.col(j).normalized();
+            tr_inv = tr.inverse();
+
             // Need to check direction of the normal
             float ang = angle_between_vectors(normal, lip.head_sel.xyz(0)-lip.tail_sel.xyz(0));
             if(ang < M_PI_2){
@@ -302,13 +326,11 @@ void Membrane::compute_properties(float d, Vector3f_const_ref external_normal)
                 lip.normal = -normal;
                 lip.tilt = M_PI-ang;
             }
-            lip.normal.normalize();            
+            lip.normal.normalized();
 
+            //-----------------------------------
             // Smooth and find local curvatures
-
-            // transformation matrix to local basis of inertia axes
-            for(int j=0;j<3;++j) tr.col(j) = axes.col(j).normalized();
-            tr_inv = tr.inverse();
+            //-----------------------------------
 
             // Create array of local points in local basis
             MatrixXf coord(3,lip.local_sel.size()+1);
@@ -327,7 +349,10 @@ void Membrane::compute_properties(float d, Vector3f_const_ref external_normal)
             // Get smoothed surface point in lab coords
             lip.smoothed_mid_xyz = tr*sm + lip.mid_sel.xyz(0);
 
-            // Do areas
+            //-----------------------------------
+            // Area and neighbours
+            //-----------------------------------
+
             vector<int> neib;
             lip.area = compute_area(coord,10.0,neib);
             // Save coordination number of the lipid
@@ -347,6 +372,10 @@ void Membrane::compute_properties(float d, Vector3f_const_ref external_normal)
         } // Over lipids in leaflet
 
     } // over leaflets
+
+    //-----------------------------------
+    // Splay and triangilation
+    //-----------------------------------
 
     // Go over neighbor pairs and compute mean splay
     // Also form neigbhor array as i ==> 1,2,3...
@@ -380,7 +409,11 @@ void Membrane::compute_properties(float d, Vector3f_const_ref external_normal)
     // unset markers
     for(auto& l: lipids) l.unset_markers();
 
-    // Now compute order. This should be done only after unsetting markers!
+    //-----------------------------------
+    // Order parameter
+    //-----------------------------------
+
+    // Ordershould be done only after unsetting markers!
     // Otherwice tail atoms could become moved as markers.
     for(auto& lip: lipids){
         // Compute Sz order parameter if the tails are provided

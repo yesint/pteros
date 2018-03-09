@@ -78,7 +78,12 @@ void make_bindings_Membrane(py::module& m){
 
     py::class_<Membrane>(m,"Membrane")
         .def(py::init<System*,const std::vector<Lipid_descr>&>())
-        .def("compute_properties",&Membrane::compute_properties,"d"_a,"external_normal"_a=Eigen::Vector3f::Zero())
+        .def("compute_properties",&Membrane::compute_properties,
+             "d"_a,
+             "use_external_normal"_a=false,
+             "external_pivot"_a=Eigen::Vector3f::Zero(),
+             "external_dist_dim"_a=Eigen::Vector3i::Ones()
+            )
         .def("write_vmd_arrows",&Membrane::write_vmd_arrows)        
         .def("write_smoothed",&Membrane::write_smoothed)
         .def("num_lipids",&Membrane::num_lipids)

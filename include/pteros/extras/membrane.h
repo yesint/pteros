@@ -90,7 +90,9 @@ class Membrane {
 public:
     Membrane(System *sys, const std::vector<Lipid_descr>& species);
     void compute_properties(float d,
-                            Vector3f_const_ref external_normal = Eigen::Vector3f::Zero());
+                            bool use_external_normal = false,
+                            Vector3f_const_ref external_pivot = Eigen::Vector3f::Zero(),
+                            Vector3i_const_ref external_dist_dim = Eigen::Vector3i::Ones());
     void write_vmd_arrows(const std::string& fname);
     void write_smoothed(const std::string &fname);
 
