@@ -28,6 +28,7 @@
 #pragma once
 #include "pteros/core/selection.h"
 #include "pteros/core/logging.h"
+#include "pteros/core/utilities.h"
 #include <Eigen/Core>
 
 namespace pteros {
@@ -65,13 +66,11 @@ public:
     std::vector<std::vector<float>> order; //Sz order parameter identical to "gmx order -szonly"
 
 private:    
-    // Set current COM coordinates of seletions to their first atoms used as markers
+    // Set markers to current COM coordinates of seletions
     void set_markers();
 
-    // Restore atomic coords of markers
-    void unset_markers();
-
-    Eigen::Vector3f saved_head0, saved_tail0, saved_mid0;
+    // Coordinates of markers
+    Eigen::Vector3f head_marker, tail_marker, mid_marker;
 
     Selection local_sel;
 
@@ -102,10 +101,10 @@ public:
     int num_leaflets(){ return leaflets.size(); }
     const std::vector<int>& get_leaflet(int i){ return leaflets[i]; }
 
-    std::vector<Lipid> lipids;
+    // Properties
+    std::vector<Lipid> lipids; // All per-lipid properties are inside
     std::vector<Splay_pair> splay;
     std::vector<std::vector<int>> neighbors;
-    std::vector<std::vector<int>> leaflets;
 
 private:
     System* system;
@@ -115,6 +114,8 @@ private:
     std::unordered_map<int,int> index_map;
     // Dynamic properties
     std::vector<Eigen::Vector2i> neighbor_pairs;
+    // Lipid indexes in leaflets
+    std::vector<std::vector<int>> leaflets;
 };
 
 }

@@ -84,12 +84,9 @@ Membrane::Membrane(System *sys, const std::vector<Lipid_descr> &species): system
         }
     }
 
-    // Unset markers for all lipids
-    for(auto& l: lipids) l.unset_markers();
-
     // Print statictics
     log->info("Total number of lipids: {}",lipids.size());
-    log->info("Number of leaflets: {}",leafs.size());
+    log->info("Number of leaflets: {}",leafs.size());    
 }
 
 void fit_quad_surface(const MatrixXf& coord,
@@ -248,6 +245,7 @@ void Membrane::compute_properties(float d, bool use_external_normal, Vector3f_co
     Eigen::Matrix3f tr, tr_inv;
 
     // Set markers for all lipids
+    // This unwraps each lipid
     for(auto& l: lipids) l.set_markers();
 
     // Compute per leaflet properties
@@ -277,8 +275,7 @@ void Membrane::compute_properties(float d, bool use_external_normal, Vector3f_co
                 continue;
             }
 
-            // For interia
-            Vector3f moments;
+            // Local coordinate axes
             Matrix3f axes;
 
             //-----------------------------------
@@ -290,7 +287,7 @@ void Membrane::compute_properties(float d, bool use_external_normal, Vector3f_co
             if(use_external_normal){
                 // Compute external normal as a vector from pivot to COM of mid_sel (set as marker currently)
                 // over specified dimensions
-                axes.col(2) = (lip.mid_sel.xyz(0)-external_pivot).array()*external_dist_dim.cast<float>().array();
+                axes.col(2) = (lip.mid_marker-external_pivot).array()*external_dist_dim.cast<float>().array();
 
                 // Find two vectors perpendicular to normal
                 if( axes.col(2).dot(Vector3f(1,0,0)) != 1.0 ){
@@ -307,6 +304,7 @@ void Membrane::compute_properties(float d, bool use_external_normal, Vector3f_co
                 local_self.append(leaflets_sel[l].index(i)); // Add central atom
 
                 // Get inertial axes
+                Vector3f moments;
                 local_self.inertia(moments,axes,fullPBC); // Have to use periodic variant
                 // axes.col(2) will be a normal
             }
@@ -318,7 +316,7 @@ void Membrane::compute_properties(float d, bool use_external_normal, Vector3f_co
             tr_inv = tr.inverse();
 
             // Need to check direction of the normal
-            float ang = angle_between_vectors(normal, lip.head_sel.xyz(0)-lip.tail_sel.xyz(0));
+            float ang = angle_between_vectors(normal, lip.head_marker-lip.tail_marker);
             if(ang < M_PI_2){
                 lip.normal = normal;
                 lip.tilt = ang;
@@ -334,7 +332,7 @@ void Membrane::compute_properties(float d, bool use_external_normal, Vector3f_co
 
             // Create array of local points in local basis
             MatrixXf coord(3,lip.local_sel.size()+1);
-            Vector3f c0 = lip.mid_sel.xyz(0); // Coord of central point - the marker
+            Vector3f c0 = lip.mid_marker; // Coord of central point - the marker
             coord.col(0) = Vector3f::Zero();
             for(int j=0; j<lip.local_sel.size(); ++j)
                 coord.col(j+1) = tr_inv * system->box(0).shortest_vector(c0,lip.local_sel.xyz(j));
@@ -347,7 +345,7 @@ void Membrane::compute_properties(float d, bool use_external_normal, Vector3f_co
             get_curvature(res, lip.gaussian_curvature, lip.mean_curvature);
 
             // Get smoothed surface point in lab coords
-            lip.smoothed_mid_xyz = tr*sm + lip.mid_sel.xyz(0);
+            lip.smoothed_mid_xyz = tr*sm + lip.mid_marker;
 
             //-----------------------------------
             // Area and neighbours
@@ -392,12 +390,12 @@ void Membrane::compute_properties(float d, bool use_external_normal, Vector3f_co
 
         if(n1.dot(n2)<0) continue;
 
-        auto x= system->box(0).shortest_vector(lip1.mid_sel.xyz(0), lip2.mid_sel.xyz(0));
+        auto x= system->box(0).shortest_vector(lip1.mid_marker, lip2.mid_marker);
         float d = x.norm();
         x = x-x.dot(n1)*n1;
         x.normalize();
-        Vector3f v1 = (lip1.head_sel.xyz(0)-lip1.tail_sel.xyz(0)).normalized();
-        Vector3f v2 = (lip2.head_sel.xyz(0)-lip2.tail_sel.xyz(0)).normalized();
+        Vector3f v1 = (lip1.head_marker-lip1.tail_marker).normalized();
+        Vector3f v2 = (lip2.head_marker-lip2.tail_marker).normalized();
 
         splay[i] = {
                     neighbor_pairs[i](0),
@@ -406,15 +404,10 @@ void Membrane::compute_properties(float d, bool use_external_normal, Vector3f_co
                    };
     }
 
-    // unset markers
-    for(auto& l: lipids) l.unset_markers();
-
     //-----------------------------------
     // Order parameter
     //-----------------------------------
 
-    // Ordershould be done only after unsetting markers!
-    // Otherwice tail atoms could become moved as markers.
     for(auto& lip: lipids){
         // Compute Sz order parameter if the tails are provided
         for(int t=0; t<lip.tail_carbon_indexes.size(); ++t){
@@ -428,6 +421,7 @@ void Membrane::compute_properties(float d, bool use_external_normal, Vector3f_co
             }
         }
     }
+
 }
 
 
@@ -448,9 +442,9 @@ string tcl_arrow(Vector3f_const_ref p1, Vector3f_const_ref p2, float r, string c
 void Membrane::write_vmd_arrows(const string &fname)
 {
     ofstream f(fname);
-    for(auto& lip: lipids){        
-        f << tcl_arrow(lip.mid_sel.center(),lip.mid_sel.center()+lip.normal,0.2,"green");
-        f << tcl_arrow(lip.tail_sel.center(),lip.head_sel.center(),0.2,"red");
+    for(auto& lip: lipids){
+        f << tcl_arrow(lip.mid_sel.center(true),lip.mid_sel.center(true)+lip.normal,0.2,"green");
+        f << tcl_arrow(lip.tail_sel.center(true),lip.head_sel.center(true),0.2,"red");
     }
     f.close();
 
@@ -468,6 +462,8 @@ void Membrane::write_smoothed(const string& fname){
     out().write(fname);
 }
 
+
+//------------------------------------------------------------------------
 
 Lipid::Lipid(const Selection &sel, const Lipid_descr &descr){
     name = descr.name;
@@ -490,22 +486,10 @@ void Lipid::set_markers()
     // Unwrap this lipid with leading index of position[0]    
     whole_sel.unwrap(fullPBC, mid_sel.index(0)-whole_sel.index(0));
 
-    // save coords of first atoms
-    saved_head0 = head_sel.xyz(0);
-    saved_tail0 = tail_sel.xyz(0);
-    saved_mid0 = mid_sel.xyz(0);
-
     // Set markers to COM
-    head_sel.xyz(0) = head_sel.center(true);
-    tail_sel.xyz(0) = tail_sel.center(true);
-    mid_sel.xyz(0) = mid_sel.center(true);
-}
-
-void Lipid::unset_markers()
-{
-    head_sel.xyz(0) = saved_head0;
-    tail_sel.xyz(0) = saved_tail0;
-    mid_sel.xyz(0) = saved_mid0;
+    head_marker = head_sel.center(true);
+    tail_marker = tail_sel.center(true);
+    mid_marker = mid_sel.center(true);
 }
 
 

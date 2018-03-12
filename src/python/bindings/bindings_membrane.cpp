@@ -92,8 +92,7 @@ void make_bindings_Membrane(py::module& m){
         .def("get_leaflet",&Membrane::get_leaflet)
         .def_readonly("lipids",&Membrane::lipids)
         .def_readonly("splay",&Membrane::splay)
-        .def_readonly("neighbors",&Membrane::neighbors)
-        .def_readonly("leaflets",&Membrane::leaflets)
+        .def_readonly("neighbors",&Membrane::neighbors)        
     ;
 }
 
