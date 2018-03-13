@@ -201,7 +201,7 @@ class Selection {
     /// Remove given absolute index from current selection
     void remove(int ind);
 
-    /// Inverts selection in place by selection those atoms which were not selected
+    /// Inverts selection in place by selecting those atoms which were not selected
     void invert();
 
     /// Sets new system for selection.
@@ -571,6 +571,12 @@ class Selection {
 
     /// Translate selection by given vector
     void translate(Vector3f_const_ref v);
+
+    /// Translate center of masses of selection to given point
+    void translate_to(Vector3f_const_ref p,
+                      bool mass_weighted = false,
+                      Array3i_const_ref pbc = noPBC,
+                      int leading_index = 0);
 
     /// Rotate selection around given axis relative to given pivot
     /// @param axis Rotate around this vector
