@@ -359,33 +359,6 @@ public:
     /// @}
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    /// @name Secondary structure functions
-    /// @{
-
-    /// Determines secondary structure with DSSP algorithm and writes detailed report to file
-    void dssp(std::string fname, int fr) const;
-
-    /// Determines secondary structure with DSSP algorithm and writes detailed report to stream
-    void dssp(std::ostream& os, int fr) const;
-
-    /**
-     * @brief Determines secondary structure with DSSP algorithm and return it as a code string
-     * @return Code string
-     * The code is the same as in DSSP:
-        alphahelix:	'H'
-        betabridge:	'B'
-        strand:		'E'
-        helix_3:	'G'
-        helix_5:	'I'
-        turn:		'T'
-        bend:		'S'
-        loop:		' '
-     */
-    std::string dssp(int fr) const;
-    /// @}
-
-
-    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     /// @name Manipulating sets of atoms by indexes.
     /// These methods <b>do not</b> update resindexes automatically.
     /// @{

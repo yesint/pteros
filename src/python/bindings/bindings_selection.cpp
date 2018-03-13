@@ -321,6 +321,10 @@ void make_bindings_Selection(py::module& m){
         // split based on callback have to be implemented on python side
         // since no means to bind templated return value!
 
+        // dssp
+        .def("dssp", py::overload_cast<string>(&Selection::dssp, py::const_))
+        .def("dssp", py::overload_cast<>(&Selection::dssp, py::const_))
+
         // Accessors
         .def("vdw",&Selection::vdw)
         .def("element_name",&Selection::element_name)

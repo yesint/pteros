@@ -105,11 +105,7 @@ void make_bindings_System(py::module& m){
         .def("setXYZ", [](System* s,Vector3f_const_ref v,int i,int fr){ s->xyz(i,fr)=v; }, "xyz"_a, "i"_a, "fr"_a=0)
 
         .def("getAtom_data", py::overload_cast<int>(&System::atom, py::const_))
-        .def("setAtom_data", [](System* s, int i, const Atom& a){ s->atom(i)=a; })
-
-        // dssp
-        .def("dssp", py::overload_cast<string,int>(&System::dssp, py::const_))
-        .def("dssp", py::overload_cast<int>(&System::dssp, py::const_))
+        .def("setAtom_data", [](System* s, int i, const Atom& a){ s->atom(i)=a; })        
 
         // operations with atoms
         .def("atoms_dup", &System::atoms_dup)

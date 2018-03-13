@@ -35,8 +35,6 @@
 #include "pteros/core/mol_file.h"
 #include "pteros/core/utilities.h"
 #include "selection_parser.h"
-// DSSP
-#include "pteros_dssp_wrapper.h"
 #include "pteros/core/logging.h"
 
 using namespace std;
@@ -1050,23 +1048,5 @@ inline float LJ_en_kernel(float C6, float C12, float r_inv){
 
 inline float Coulomb_en_kernel(float q1, float q2, float r_inv){
     return ONE_4PI_EPS0*q1*q2*r_inv;
-}
-
-void System::dssp(string fname, int fr) const {
-    ofstream f(fname.c_str());
-    Selection sel(const_cast<System&>(*this),std::string("all"),fr);
-    dssp_wrapper(sel,f);
-    f.close();
-}
-
-void System::dssp(ostream& os, int fr) const {
-    Selection sel(const_cast<System&>(*this),std::string("all"),fr);
-    dssp_wrapper(sel,os);
-}
-
-
-string System::dssp(int fr) const{
-    Selection sel(const_cast<System&>(*this),std::string("all"),fr);
-    return dssp_string(sel);
 }
 

@@ -783,6 +783,32 @@ class Selection {
     void each_residue(std::vector<Selection>& sel) const;
     /// @}
 
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    /// @name Secondary structure methods
+    /// These methods take protein residues referenced by selection and compute DSSP on them.
+    /// @{
+
+    /// Determines secondary structure with DSSP algorithm and writes detailed report to file
+    void dssp(std::string fname) const;
+
+    /// Determines secondary structure with DSSP algorithm and writes detailed report to stream
+    void dssp(std::ostream& os) const;
+
+    /**
+     * @brief Determines secondary structure with DSSP algorithm and return it as a code string
+     * @return Code string
+     * The code is the same as in DSSP:
+        alphahelix:	'H'
+        betabridge:	'B'
+        strand:		'E'
+        helix_3:	'G'
+        helix_5:	'I'
+        turn:		'T'
+        bend:		'S'
+        loop:		' '
+     */
+    std::string dssp() const;
+    /// @}
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     /** @name Inline accessors

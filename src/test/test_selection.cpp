@@ -247,6 +247,7 @@ make_accessor(const Selection& sel){
 int main(int argc, char** argv)
 {    
 
+    /*
     string t1("name C21 C22 C23 C24 C25 C26 C27 C28 C29 C210 C211 C212 C213 C214 C215 C216");
     string t2("name C21 C22 C23 C24 C25 C26 C27 C28 C29 C210 C211 C212 C213 C214 C215 C216");
 
@@ -276,6 +277,7 @@ int main(int argc, char** argv)
     }
 
     return 1;
+    */
 
     //System s("/home/semen/work/current/Projects/plasma_vesicle/after_em.gro");
 /*
@@ -363,92 +365,9 @@ int main(int argc, char** argv)
     try{
 
 
+        System s("/home/semen/work/current/Projects/albumin/SqGem/colored_res.pdb");
+        cout << s().dssp() << endl;
 
-        Options opt;
-        parse_command_line(argc,argv,opt);
-        Trajectory_reader reader(opt);
-
-        reader.add_task( new Test_serial(opt) );
-        reader.add_task( new Test_serial(opt) );
-
-        //reader.add_task( new Test_serial(opt) );
-        //reader.add_task( new Test_serial(opt) );
-
-          //reader.add_task( new Test_serial() );
-        //reader.add_task( new Test_serial() );
-
-        reader.run();
-
-
-        //cout << (boost::get<Parse_tree_ptr>(p->children.front())) << endl;
-
-        //std::shared_ptr<Parser> p(new Parser);
-        //p->parse();
-
-//        System s("/home/semen/work/Projects/asymmetric_bilayer/for-diamonds/hexagonal/2x2.gro");
-  //      Selection sel(s,"(y+4)<(x+2) or (1-z)>x");
-/*
-        System s("/home/semen/work/Projects/pteros/paper2/supplement/benchmark/large.gro");
-
-
-        int Ntry = 1000;
-
-
-        Vector3f r1(Vector3f::Zero()), r2(Vector3f::Zero());
-
-        ofstream f("size-dep.dat");
-
-        for(int N=2;N<s.num_atoms();N+=50000){
-            // Make sparse vector
-            vector<int> ind;
-            ind.reserve(N);
-            for(int i=0;i<N;++i){
-                ind.push_back(i*(s.num_atoms()/(N-1)));
-            }
-
-            // Normal selection
-            r1.fill(0);
-            Selection sel(s,ind);
-
-            auto t_start = std::chrono::high_resolution_clock::now();
-            for(int n=0;n<Ntry;++n)
-                r1 += sel.center();
-            auto t_end = std::chrono::high_resolution_clock::now();
-            auto T1 = 1e6*std::chrono::duration<double>(t_end-t_start).count()/float(Ntry);
-
-            // Mask access
-            r2.fill(0);
-            SelTest_mask sel1(sel);
-
-            t_start = std::chrono::high_resolution_clock::now();
-            for(int n=0;n<Ntry;++n)
-                r2 += sel1.center();
-            t_end = std::chrono::high_resolution_clock::now();
-            auto T2 = 1e6*std::chrono::duration<double>(t_end-t_start).count()/float(Ntry);
-
-            cout << N << " " << T1 << " " << T2 << " | " << r1.transpose() << " :: " << r2.transpose() << endl;
-            f << N << " " << T1 << " " << T2 << endl;
-        }
-
-        f.close();
-*/
-
-/*
-        Selection w;
-        Selection sel(s,"all");
-        int N = 10;
-        vector<Vector2i> bon;
-        float d = 0.6;
-
-        auto t_start = std::chrono::high_resolution_clock::now();
-        for(int i=0;i<N;++i)
-            w.modify(s,"within 0.6 nopbc of name PO4");
-            //Grid_searcher(d,sel,bon);
-        auto t_end = std::chrono::high_resolution_clock::now();
-
-        cout << " elapsed: "
-             << 1e6*std::chrono::duration<double>(t_end-t_start).count()/float(N) << endl;
-*/
 
     } catch(const Pteros_error& e){
         LOG()->error(e.what());

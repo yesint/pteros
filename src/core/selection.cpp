@@ -24,7 +24,6 @@
  *
 */
 
-
 #include <iostream>
 #include <fstream>
 #include <algorithm>
@@ -46,16 +45,20 @@
 
 #include "sasa.h" // From MDTraj
 
-
 #include <Eigen/Geometry>
 #include <Eigen/Dense>
 
 #include "selection_macro.h"
 #include "pteros/core/logging.h"
 
+// DSSP
+#include "pteros_dssp_wrapper.h"
+
+
 using namespace std;
 using namespace pteros;
 using namespace Eigen;
+
 
 void Selection::allocate_parser(){
     // Parse selection here
@@ -1338,6 +1341,35 @@ void Selection::each_residue(std::vector<Selection>& sel) const {
         used.insert(ind);
     }
 }
+
+
+void Selection::dssp(string fname) const {
+    // Take all protein residues from current selection and select them whole
+    auto sel = const_cast<Selection*>(this)->select("by residue protein");
+    if(!sel.size()) Pteros_error("Need some protein residues for DSSP!");
+
+    ofstream f(fname.c_str());
+    dssp_wrapper(sel,f);
+    f.close();
+}
+
+void Selection::dssp(ostream& os) const {
+    // Take all protein residues from current selection and select them whole
+    auto sel = const_cast<Selection*>(this)->select("by residue protein");
+    if(!sel.size()) Pteros_error("Need some protein residues for DSSP!");
+
+    dssp_wrapper(sel,os);
+}
+
+
+string Selection::dssp() const{
+    // Take all protein residues from current selection and select them whole
+    auto sel = const_cast<Selection*>(this)->select("by residue protein");
+    if(!sel.size()) Pteros_error("Need some protein residues for DSSP!");
+
+    return dssp_string(sel);
+}
+
 
 float Selection::vdw(int ind) const {
     return get_vdw_radius(element_number(ind),name(ind));
