@@ -135,7 +135,7 @@ void make_bindings_Trajectory_reader(py::module& m){
         .def("add_atoms",&Jump_remover::add_atoms)
         .def("set_pbc",&Jump_remover::set_pbc)
         .def("set_unwrap_dist",&Jump_remover::set_unwrap_dist)
-        .def("set_leading_index",&Jump_remover::set_leading_index)
+        .def("set_pbc_atom",&Jump_remover::set_pbc_atom)
     ;
 
 }

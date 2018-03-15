@@ -801,11 +801,19 @@ bool Selection::is_large(){
 }
 
 
+void Selection::process_pbc_atom(int& a){
+    if(a>=size()) throw Pteros_error("Wrong pbc atom {} for selection with {} atoms!",a,size());
+    if(a<0) a = size()/2;
+}
+
+
 // Center of geometry
-Vector3f Selection::center(bool mass_weighted, Array3i_const_ref pbc, int leading_index) const {
+Vector3f Selection::center(bool mass_weighted, Array3i_const_ref pbc, int pbc_atom) const {
     Vector3f res;
     int i;
     int n = _index.size();
+
+    process_pbc_atom(pbc_atom);
 
     if(n==0) throw Pteros_error("Can't get the center of empty selection!");
 
@@ -848,7 +856,7 @@ Vector3f Selection::center(bool mass_weighted, Array3i_const_ref pbc, int leadin
         // Periodic center
         // We will find closest periodic images of all points
         // using leading point as a reference
-        Vector3f ref_point = xyz(leading_index);
+        Vector3f ref_point = xyz(pbc_atom);
         Periodic_box& b = system->box(frame);
         if(mass_weighted){
             float M = 0.0;
@@ -1585,17 +1593,19 @@ void Selection::split_by_contiguous_residue(std::vector<Selection> &parts)
     }
 }
 
-void Selection::inertia(Vector3f_ref moments, Matrix3f_ref axes, Array3i_const_ref pbc, bool leading_index) const{
+void Selection::inertia(Vector3f_ref moments, Matrix3f_ref axes, Array3i_const_ref pbc, bool pbc_atom) const{
     int n = size();
     int i;
     // Compute the central tensor of inertia. Place it into axes
 
+    process_pbc_atom(pbc_atom);
+
     float axes00=0.0, axes11=0.0, axes22=0.0, axes01=0.0, axes02=0.0, axes12=0.0;
 
-    Vector3f c = center(true,pbc,leading_index);
+    Vector3f c = center(true,pbc,pbc_atom);
 
     if( (pbc!=0).any() ){
-        Vector3f anchor = xyz(leading_index);
+        Vector3f anchor = xyz(pbc_atom);
         Periodic_box& b = system->box(frame);
         #pragma omp parallel
         {
@@ -1648,11 +1658,11 @@ void Selection::inertia(Vector3f_ref moments, Matrix3f_ref axes, Array3i_const_r
     moments = solver.eigenvalues();
 }
 
-float Selection::gyration(Array3i_const_ref pbc, bool leading_index) const {
+float Selection::gyration(Array3i_const_ref pbc, bool pbc_atom) const {
     int n = size();
     int i;
     float d, a = 0.0, b = 0.0;
-    Vector3f c = center(true,pbc,leading_index);
+    Vector3f c = center(true,pbc,pbc_atom);
 
     #pragma omp parallel for private(d) reduction(+:a,b)
     for(i=0;i<n;++i){
@@ -1688,19 +1698,19 @@ void Selection::wrap(Array3i_const_ref pbc){
     }
 }
 
-void Selection::unwrap(Array3i_const_ref pbc, int leading_index){
+void Selection::unwrap(Array3i_const_ref pbc, int pbc_atom){
     Vector3f c;
-    if( (pbc==0).all() && leading_index>=0){
-        c = xyz(leading_index);
+    if( (pbc==0).all() && pbc_atom>=0){
+        c = xyz(pbc_atom);
     } else {
-        c = center(true,pbc,leading_index);
+        c = center(true,pbc,pbc_atom);
     }
     for(int i=0;i<size();++i){
         xyz(i) = box().closest_image(xyz(i),c,pbc);
     }
 }
 
-int Selection::unwrap_bonds(float d, Array3i_const_ref pbc, int leading_index){
+int Selection::unwrap_bonds(float d, Array3i_const_ref pbc, int pbc_atom){
     int Nparts = 1;
 
     // a connectivity structure in the form con[i]->1,2,5...
@@ -1733,8 +1743,8 @@ int Selection::unwrap_bonds(float d, Array3i_const_ref pbc, int leading_index){
     // Leading atom coordinates
     Vector3f leading;
 
-    todo.insert(leading_index);
-    used[leading_index] = 1;
+    todo.insert(pbc_atom);
+    used[pbc_atom] = 1;
     int Nused = 1;
     Periodic_box& b = system->box(frame);
 
@@ -1783,9 +1793,9 @@ int Selection::unwrap_bonds(float d, Array3i_const_ref pbc, int leading_index){
     return Nparts;
 }
 
-Eigen::Affine3f Selection::principal_transform(Array3i_const_ref pbc, bool leading_index) const {
+Eigen::Affine3f Selection::principal_transform(Array3i_const_ref pbc, bool pbc_atom) const {
     Affine3f rot;
-    Vector3f cm = center(true,pbc,leading_index);
+    Vector3f cm = center(true,pbc,pbc_atom);
     // We need to const-cast in order to call non-const translate() from const method
     // It's Ok because we'll translate back later
     const_cast<Selection*>(this)->translate(-cm);
@@ -1794,7 +1804,7 @@ Eigen::Affine3f Selection::principal_transform(Array3i_const_ref pbc, bool leadi
     // Compute principal axes
     Vector3f moments;
     Matrix3f axes;
-    inertia(moments,axes,pbc,leading_index);
+    inertia(moments,axes,pbc,pbc_atom);
     // Normalize axes
     for(int i=0;i<3;++i) axes.col(i).normalize();
     // Now orient
@@ -1818,8 +1828,8 @@ Eigen::Affine3f Selection::principal_transform(Array3i_const_ref pbc, bool leadi
     return Translation3f(cm) * rot * Translation3f(-cm) ;
 }
 
-void Selection::principal_orient(Array3i_const_ref pbc, bool leading_index){
-    Affine3f tr = principal_transform(pbc,leading_index);
+void Selection::principal_orient(Array3i_const_ref pbc, bool pbc_atom){
+    Affine3f tr = principal_transform(pbc,pbc_atom);
     apply_transform(tr);
 }
 

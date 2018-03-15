@@ -36,7 +36,7 @@ using namespace pteros;
 Jump_remover::Jump_remover():
     dims(fullPBC),
     unwrap_d(-1.0),
-    leading_index(0),
+    pbc_atom(0),
     initialized(false)
 { }
 
@@ -67,9 +67,9 @@ void Jump_remover::set_unwrap_dist(float d)
     unwrap_d = d;
 }
 
-void Jump_remover::set_leading_index(int ind)
+void Jump_remover::set_pbc_atom(int ind)
 {
-    leading_index = ind;
+    pbc_atom = ind;
 }
 
 void Jump_remover::remove_jumps(System& system){
@@ -96,7 +96,7 @@ void Jump_remover::remove_jumps(System& system){
                         if(sel.box().extent(i)<min_extent)
                             min_extent = sel.box().extent(i);
 
-                while(sel.unwrap_bonds(unwrap_d,dims,leading_index)>1){
+                while(sel.unwrap_bonds(unwrap_d,dims,pbc_atom)>1){
                     LOG()->info("Cutoff {} is too small, trying {}...", unwrap_d, 2.0*unwrap_d);
                     unwrap_d *= 2.0;                    
                     if(unwrap_d > 0.5*min_extent){
@@ -108,7 +108,7 @@ void Jump_remover::remove_jumps(System& system){
                 }
             } else {
                 // Unwrap with given distance
-                sel.unwrap_bonds(unwrap_d,dims,leading_index);
+                sel.unwrap_bonds(unwrap_d,dims,pbc_atom);
             }
             LOG()->info("Unwrapping done.");
         }

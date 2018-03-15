@@ -40,7 +40,7 @@ public:
     void set_pbc(Array3i_const_ref pbc);
     /// -1 means do not unwrap, 0 means auto find distance
     void set_unwrap_dist(float d);
-    void set_leading_index(int ind);
+    void set_pbc_atom(int ind);
 
     // Remove jumps
     void remove_jumps(System& system);
@@ -55,7 +55,7 @@ private:
     // Starting distance for unwrapping. -1 means no unwrapping (default)
     float unwrap_d;
     // Leading index for unwrapping
-    int leading_index;
+    int pbc_atom;
 
     bool initialized;
 };

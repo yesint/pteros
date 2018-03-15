@@ -504,7 +504,7 @@ class Selection {
     */
     Eigen::Vector3f center(bool mass_weighted = false,
                            Array3i_const_ref pbc = noPBC,
-                           int leading_index = 0) const;
+                           int pbc_atom = -1) const;
 
     /// Get minimal and maximal coordinates in selection
     void minmax(Vector3f_ref min, Vector3f_ref max) const;
@@ -536,7 +536,7 @@ class Selection {
     */
     void inertia(Vector3f_ref moments, Matrix3f_ref axes,
                  Array3i_const_ref pbc = noPBC,
-                 bool leading_index = 0) const;
+                 bool pbc_atom = -1) const;
 
     /** Computes radius of gyration for selection
      \warning
@@ -545,7 +545,7 @@ class Selection {
      This is not checked automatically!
      In this case use one of unwrapping options first.
     */
-    float gyration(Array3i_const_ref pbc = noPBC, bool leading_index = 0) const;
+    float gyration(Array3i_const_ref pbc = noPBC, bool pbc_atom = 0) const;
 
     /// Get distance between two atoms (periodic in given dimensions if needed).
     /// \note
@@ -576,7 +576,7 @@ class Selection {
     void translate_to(Vector3f_const_ref p,
                       bool mass_weighted = false,
                       Array3i_const_ref pbc = noPBC,
-                      int leading_index = 0);
+                      int pbc_atom = 0);
 
     /// Rotate selection around given axis relative to given pivot
     /// @param axis Rotate around this vector
@@ -588,28 +588,28 @@ class Selection {
     void wrap(Array3i_const_ref pbc = fullPBC);
 
     /** Unwraps selection to make it whole if possible (without jumps over periodic box boundary).
-      The periodic center of mass is used as an anchor point if leading_index<0.
+      The periodic center of mass is used as an anchor point if pbc_atom<0.
       \warning
       If the size of selection is larger than 1/2 of the box size in
       any dimension unwrap() will not work as expected and will not make selection "compact"!
     */
-    void unwrap(Array3i_const_ref pbc = fullPBC, int leading_index = 0);
+    void unwrap(Array3i_const_ref pbc = fullPBC, int pbc_atom = 0);
 
     /** Unwraps selection to make it whole (without jumps over periodic box boundary).
      * based on preserving all bonds.
      * This method works reliably in any case, but is much slower than unwrap()
      * @param d Maximal bond length. If 0 bonds from topology are used (if present).
-     * @param leading_index Local index of the reference atom, which doesn't move.
+     * @param pbc_atom Local index of the reference atom, which doesn't move.
      * @return Number of disconnected pieces after unwrapping. 1 means solid selection.
      */
-    int unwrap_bonds(float d, Array3i_const_ref pbc = fullPBC, int leading_index = 0);
+    int unwrap_bonds(float d, Array3i_const_ref pbc = fullPBC, int pbc_atom = 0);
 
     /** Get transform for orienting selection by principal axes.
      * \warning
      * If the size of selection is larger than 1/2 of the box size in
      * any dimension you will get funny results if @param is_periodic is set to true.
      */    
-    Eigen::Affine3f principal_transform(Array3i_const_ref pbc = noPBC, bool leading_index = 0) const;
+    Eigen::Affine3f principal_transform(Array3i_const_ref pbc = noPBC, bool pbc_atom = 0) const;
 
     /** Orient molecule by its principal axes.
      * The same as
@@ -618,7 +618,7 @@ class Selection {
      * sel.apply_transform(tr);
      * \endcode
      */
-    void principal_orient(Array3i_const_ref pbc = noPBC, bool leading_index = 0);
+    void principal_orient(Array3i_const_ref pbc = noPBC, bool pbc_atom = 0);
     /// @}
 
 
@@ -951,6 +951,7 @@ protected:
     void allocate_parser();
     void sort_and_remove_duplicates();
     void get_local_bonds_from_topology(std::vector<std::vector<int>>& con);
+    void process_pbc_atom(int& a);
 };
 
 //-----------------------------------------------------------------------
