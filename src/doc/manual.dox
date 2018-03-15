@@ -1424,7 +1424,7 @@ if sys.force_field_ready():
 
 \section dssp Secondary structure of proteins
 
-Pteros uses <a href="http://www.cmbi.ru.nl/dssp.html">DSSP</a> method for determining secondary structure of proteins. Selection::dssp() write detailed DSSP report to the file or to the stream if file name of stream object are provided as an argument. If called without arguments the DSSP string is returned with letter-code for secondary structure. The code is the same as in original DSSP program:
+Pteros uses <a href="http://www.cmbi.ru.nl/dssp.html">DSSP</a> method for determining secondary structure of proteins. Selection::dssp() writes detailed DSSP report to the file or to the stream if file name of stream object are provided as an argument. If called without arguments the DSSP string is returned with letter-code for secondary structure. The encoding is the same as in original DSSP program:
 
 Structure | code
 --------- | ----
@@ -1437,12 +1437,18 @@ turn |		T
 bend |		S
 loop |		' ' (space)
 
-\note System::dssp() always works with the whole system, not with selection. This is caused by the fact that the algorithm have to see all atoms of the protein backbone in all protein residues while user can easily provide selection where only some of them are present.
+\warning Selection::dssp() always works with whole protein residues and ignores everything else. Internally it makes new sub-selection "by residue protein" and the secondary structure is computed on it and not on original selection. Keep this in mind if your original selection contains non-protein residues since the resulting string won't match exactly the residues in you selection in this case!
+
+
+
+
+
 
 \section measure_sasa Solvent accessible surface area
 
-Solvent accessible surface area (SASA) is computed in Pteros using using POWERSASA code developed in the <a href="http://www.kit.edu/english/">Karlsruhe Institute of Technology</a> and inclided into <a href="http://www.int.kit.edu/1636.php">SIMONA</a> package. This is fast algorithm of computing area of the molecules based on rather complex theory of power diagrams (<a href="http://onlinelibrary.wiley.com/doi/10.1002/jcc.21844/abstract">paper</a>).
-The method Selection::sasa() returns the solvent accessible area of atoms in selection. Optional argument could be used to set the probe radius and to get additional data like total volume, area per atom and volume per atom.
+Solvent accessible surface area (SASA) is computed in Pteros using two different algorithms:
+- Selection::powersasa(). Implements modern and robust POWERSASA algorithm developed in the <a href="http://www.kit.edu/english/">Karlsruhe Institute of Technology</a> and inclided into <a href="http://www.int.kit.edu/1636.php">SIMONA</a> package. This is fast algorithm of computing area of the molecules based on rather complex theory of power diagrams (<a href="http://onlinelibrary.wiley.com/doi/10.1002/jcc.21844/abstract">paper</a>). The method Selection::powersasa() returns the solvent accessible area of atoms in selection. Optional argument could be used to set the probe radius and to get additional data like total volume, area per atom and volume per atom.
+- Selection::sasa(). Implements older and slower Shrake and Rupley algorithm. The code is borrowed from <a href="mdtraj.org">MDTraj</a>. It is free from licence restrictions of POWERSASA (see note below) but slower and less functional, particularly it can't compute volumes.
 
 \note
 POWERSASA code is not open source. I contacted the authors of POWERSASA several times to ask for official permision to use their code in Pteros but all requestes were ignored. I concluded that nobody is concerned about the licensing of POWERSASA now. However, compilation of this code is disabled by default. See \ref sasa for details how to enable it.
