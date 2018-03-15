@@ -1,7 +1,7 @@
 var searchData=
 [
-  ['ready',['ready',['../classpteros_1_1Force__field.html#a5beb5858ac44f41a87158f436cac6ef7',1,'pteros::Force_field']]],
-  ['resid',['resid',['../classpteros_1_1Atom.html#af0dbfecfda5133da1cb7deedbe5fcb77',1,'pteros::Atom']]],
-  ['resindex',['resindex',['../classpteros_1_1Atom.html#aedf6b3ea2c72356db628ffeec7c4c278',1,'pteros::Atom']]],
-  ['resname',['resname',['../classpteros_1_1Atom.html#ac8a307f0257c922e9af7dc2de223cd64',1,'pteros::Atom']]]
+  ['tag',['tag',['../classpteros_1_1Atom.html#a8b46cd1a32f797c60e7d4fc78453ab77',1,'pteros::Atom']]],
+  ['time',['time',['../structpteros_1_1Frame.html#ad6c13b851a594d8dda18c29404e37294',1,'pteros::Frame']]],
+  ['type',['type',['../classpteros_1_1Atom.html#a6737d0b88bda2afb13687c030bad92cd',1,'pteros::Atom']]],
+  ['type_5fname',['type_name',['../classpteros_1_1Atom.html#afab1dbe2cf219a5927dd5406c95a4672',1,'pteros::Atom']]]
 ];

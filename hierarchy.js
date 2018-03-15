@@ -4,7 +4,6 @@ var hierarchy =
     [ "pteros::Atom_proxy", "classpteros_1_1Atom__proxy.html", null ],
     [ "pteros::Data_container", "structpteros_1_1Data__container.html", null ],
     [ "pteros::Distance_search_within", "classpteros_1_1Distance__search__within.html", null ],
-    [ "pteros::Energy_components", "structpteros_1_1Energy__components.html", null ],
     [ "std::exception", null, [
       [ "std::runtime_error", null, [
         [ "pteros::Pteros_error", "classpteros_1_1Pteros__error.html", null ]
@@ -15,6 +14,7 @@ var hierarchy =
     [ "pteros::Frame_info", "structpteros_1_1Frame__info.html", null ],
     [ "pteros::GNM", "classpteros_1_1GNM.html", null ],
     [ "pteros::Grid", "classpteros_1_1Grid.html", null ],
+    [ "pteros::Histogram", "classpteros_1_1Histogram.html", null ],
     [ "pteros::Selection::iterator", "classpteros_1_1Selection_1_1iterator.html", null ],
     [ "pteros::Mol_file", "classpteros_1_1Mol__file.html", [
       [ "pteros::GRO_file", "classpteros_1_1GRO__file.html", null ],

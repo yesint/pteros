@@ -1,8 +1,8 @@
 var searchData=
 [
-  ['welcome_20to_20pteros_21',['Welcome to Pteros!',['../index.html',1,'']]],
-  ['wrap',['wrap',['../classpteros_1_1Selection.html#ad752dace06238a1740e6ed2392459bd8',1,'pteros::Selection::wrap(Vector3i_const_ref dims=Eigen::Vector3i::Ones())'],['../classpteros_1_1Selection.html#ac440b56391a8f633155560e7b4218378',1,'pteros::Selection::wrap(Vector3i_const_ref dims=Eigen::Vector3i::Ones())'],['../classpteros_1_1System.html#afe351af6d6a1015e218ce200f8156517',1,'pteros::System::wrap()']]],
-  ['wrap_5fpoint',['wrap_point',['../classpteros_1_1Periodic__box.html#a0c268f7096f9ca24f22c7caac6e3e88d',1,'pteros::Periodic_box']]],
-  ['write',['write',['../classpteros_1_1Selection.html#a7322db7c4ba00848b5183bd5220238b0',1,'pteros::Selection::write()'],['../classpteros_1_1Mol__file.html#ad8ba903db1a055517ae984ec203b0f20',1,'pteros::Mol_file::write()'],['../classpteros_1_1Selection.html#a63db42e17e83e28327baf3d4fa30e833',1,'pteros::Selection::write()']]],
-  ['write_5fpdb_5fbox',['write_pdb_box',['../classpteros_1_1Periodic__box.html#aee56a6565938c7e1fc494d5a234168c5',1,'pteros::Periodic_box']]]
+  ['x',['x',['../classpteros_1_1Selection.html#a5dda11576d03ccd8f5428ed18303ff4c',1,'pteros::Selection::x(int ind)'],['../classpteros_1_1Selection.html#a239cfedf94fdb30e6e3f797404f0364a',1,'pteros::Selection::x(int ind, int fr)']]],
+  ['xtc_5ffile',['XTC_file',['../classpteros_1_1XTC__file.html',1,'pteros']]],
+  ['xyz',['xyz',['../classpteros_1_1Selection.html#a331c35d20439a56bd5986d14c53e12dd',1,'pteros::Selection::xyz(int ind)'],['../classpteros_1_1Selection.html#a8fc2c760f3a4c0fceda904feea8f04bc',1,'pteros::Selection::xyz(int ind, int fr)'],['../classpteros_1_1System.html#a37fc7efb8f372e6b5f9923ac5a80d57b',1,'pteros::System::xyz(int ind, int fr=0)'],['../classpteros_1_1System.html#ab25d51914a6e0835d2d766c63a167b51',1,'pteros::System::xyz(int ind, int fr=0) const ']]],
+  ['xyz_5ffile',['XYZ_file',['../classpteros_1_1XYZ__file.html',1,'pteros']]],
+  ['xyz_5fptr',['xyz_ptr',['../classpteros_1_1Selection.html#a5dbad0f786223b841b43b5cdca374852',1,'pteros::Selection']]]
 ];

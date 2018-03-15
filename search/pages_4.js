@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['installation',['Installation',['../install.html',1,'']]]
+  ['pteros_20tools',['Pteros tools',['../tools.html',1,'manual']]]
 ];

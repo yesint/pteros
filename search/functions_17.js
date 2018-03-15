@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['z',['Z',['../classpteros_1_1Selection.html#aaeb1e630e53e13312e1c655bd8659749',1,'pteros::Selection::Z(int ind)'],['../classpteros_1_1Selection.html#a610a6d17acea7fbfd6297ce11f471ed7',1,'pteros::Selection::Z(int ind, int fr)'],['../classpteros_1_1Selection.html#aaeb1e630e53e13312e1c655bd8659749',1,'pteros::Selection::Z(int ind)'],['../classpteros_1_1Selection.html#a610a6d17acea7fbfd6297ce11f471ed7',1,'pteros::Selection::Z(int ind, int fr)']]]
+  ['z',['z',['../classpteros_1_1Selection.html#aa1eb246b48c8b822d715ffd42e2b7014',1,'pteros::Selection::z(int ind)'],['../classpteros_1_1Selection.html#a6f42b08d36ebb1c2cefdb3e3cf858b01',1,'pteros::Selection::z(int ind, int fr)']]]
 ];

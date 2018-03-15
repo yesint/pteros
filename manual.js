@@ -1,10 +1,5 @@
 var manual =
 [
-    [ "Basic principles", "basic.html", [
-      [ "Library structure", "basic.html#structure", [
-        [ "Include files", "basic.html#include", null ]
-      ] ]
-    ] ],
     [ "Core functionality", "core.html", [
       [ "Basic classes", "core.html#basic_classes", [
         [ "Atom", "core.html#atoms", null ],

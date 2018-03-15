@@ -141,34 +141,15 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>clear</b> ()</td></tr
 <tr class="memitem:a3d6d0b0e9e632cd5d785bc1bcf5f98ae"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3d6d0b0e9e632cd5d785bc1bcf5f98ae"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>setup_kernels</b> ()</td></tr>
 <tr class="separator:a3d6d0b0e9e632cd5d785bc1bcf5f98ae"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aadc822a849d2ab68435477e6ba1b7676"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aadc822a849d2ab68435477e6ba1b7676"></a>
-float&#160;</td><td class="memItemRight" valign="bottom"><b>LJ_en_kernel</b> (float C6, float C12, float r)</td></tr>
-<tr class="separator:aadc822a849d2ab68435477e6ba1b7676"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4154226052fc58fc3c615b8477d8a1bf"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a4154226052fc58fc3c615b8477d8a1bf"></a>
-float&#160;</td><td class="memItemRight" valign="bottom"><b>LJ_en_kernel_cutoff</b> (float C6, float C12, float r)</td></tr>
-<tr class="separator:a4154226052fc58fc3c615b8477d8a1bf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae498f69245f239c22dd108a7e2f12b2a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae498f69245f239c22dd108a7e2f12b2a"></a>
-float&#160;</td><td class="memItemRight" valign="bottom"><b>LJ_en_kernel_shifted</b> (float C6, float C12, float r)</td></tr>
-<tr class="separator:ae498f69245f239c22dd108a7e2f12b2a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a397ef40eb2b5cf61790efe6045e5ba7e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a397ef40eb2b5cf61790efe6045e5ba7e"></a>
-float&#160;</td><td class="memItemRight" valign="bottom"><b>Coulomb_en_kernel</b> (float q1, float q2, float r)</td></tr>
-<tr class="separator:a397ef40eb2b5cf61790efe6045e5ba7e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abe3c6fe6734a6c3089d28256ff5634be"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="abe3c6fe6734a6c3089d28256ff5634be"></a>
-float&#160;</td><td class="memItemRight" valign="bottom"><b>Coulomb_en_kernel_rf</b> (float q1, float q2, float r)</td></tr>
-<tr class="separator:abe3c6fe6734a6c3089d28256ff5634be"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a53f783e0a2ac06d85ca88cb9233bb1b7"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a53f783e0a2ac06d85ca88cb9233bb1b7"></a>
-float&#160;</td><td class="memItemRight" valign="bottom"><b>Coulomb_en_kernel_shifted</b> (float q1, float q2, float r)</td></tr>
-<tr class="separator:a53f783e0a2ac06d85ca88cb9233bb1b7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab559bfddff9d0f35770bde835e5bd89e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab559bfddff9d0f35770bde835e5bd89e"></a>
-float&#160;</td><td class="memItemRight" valign="bottom"><b>Coulomb_en_kernel_cutoff</b> (float q1, float q2, float r)</td></tr>
-<tr class="separator:ab559bfddff9d0f35770bde835e5bd89e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1edd8f8a987c664eff1872dc97b65221"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1edd8f8a987c664eff1872dc97b65221"></a>
+Eigen::Vector2f&#160;</td><td class="memItemRight" valign="bottom"><b>pair_energy</b> (int at1, int at2, float r, float q1, float q2, int type1, int type2)</td></tr>
+<tr class="separator:a1edd8f8a987c664eff1872dc97b65221"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
-<tr class="memitem:ab5cfc47b9e704e7c66c2e21ccc0c685f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab5cfc47b9e704e7c66c2e21ccc0c685f"></a>
-std::vector&lt; Eigen::Vector2i &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1Force__field.html#ab5cfc47b9e704e7c66c2e21ccc0c685f">charge_groups</a></td></tr>
-<tr class="memdesc:ab5cfc47b9e704e7c66c2e21ccc0c685f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Charge groups. Currently not used and could be deleted later. <br /></td></tr>
-<tr class="separator:ab5cfc47b9e704e7c66c2e21ccc0c685f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1b2208fa2d89ec575be00431785a9adb"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1b2208fa2d89ec575be00431785a9adb"></a>
+int&#160;</td><td class="memItemRight" valign="bottom"><b>natoms</b></td></tr>
+<tr class="separator:a1b2208fa2d89ec575be00431785a9adb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a171418c492c3842cfba35668ce00faae"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::unordered_set&lt; int &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1Force__field.html#a171418c492c3842cfba35668ce00faae">exclusions</a></td></tr>
 <tr class="memdesc:a171418c492c3842cfba35668ce00faae"><td class="mdescLeft">&#160;</td><td class="mdescRight">Exclusions.  <a href="#a171418c492c3842cfba35668ce00faae">More...</a><br /></td></tr>
 <tr class="separator:a171418c492c3842cfba35668ce00faae"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -223,18 +204,21 @@ std::string&#160;</td><td class="memItemRight" valign="bottom"><b>vdw_modifier</
 std::vector&lt; Eigen::Vector2i &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1Force__field.html#afb89677692aa93e4c7c3b25aa6cdb948">bonds</a></td></tr>
 <tr class="memdesc:afb89677692aa93e4c7c3b25aa6cdb948"><td class="mdescLeft">&#160;</td><td class="mdescRight">Topology-related infromation. <br /></td></tr>
 <tr class="separator:afb89677692aa93e4c7c3b25aa6cdb948"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abaa3801fe972d32351625c549caae3ee"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="abaa3801fe972d32351625c549caae3ee"></a>
+std::vector&lt; Eigen::Vector2i &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>molecules</b></td></tr>
+<tr class="separator:abaa3801fe972d32351625c549caae3ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5beb5858ac44f41a87158f436cac6ef7"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a5beb5858ac44f41a87158f436cac6ef7"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1Force__field.html#a5beb5858ac44f41a87158f436cac6ef7">ready</a></td></tr>
 <tr class="memdesc:a5beb5858ac44f41a87158f436cac6ef7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Is the force field properly set up? <br /></td></tr>
 <tr class="separator:a5beb5858ac44f41a87158f436cac6ef7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a73fd1763d919e63ee5bde6c57c9a40f3"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a73fd1763d919e63ee5bde6c57c9a40f3"></a>
-std::function&lt; float(float, float, float)&gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1Force__field.html#a73fd1763d919e63ee5bde6c57c9a40f3">coulomb_kernel_ptr</a></td></tr>
-<tr class="memdesc:a73fd1763d919e63ee5bde6c57c9a40f3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pointer to chosen coulomb kernel. <br /></td></tr>
-<tr class="separator:a73fd1763d919e63ee5bde6c57c9a40f3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afd31bae63ee56fd65b49667e365aff22"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="afd31bae63ee56fd65b49667e365aff22"></a>
-std::function&lt; float(float, float, float)&gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1Force__field.html#afd31bae63ee56fd65b49667e365aff22">LJ_kernel_ptr</a></td></tr>
-<tr class="memdesc:afd31bae63ee56fd65b49667e365aff22"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pointer to chosen VDW kernel. <br /></td></tr>
-<tr class="separator:afd31bae63ee56fd65b49667e365aff22"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a245d1798b13ae6e15c7bb24fb66ca6ed"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a245d1798b13ae6e15c7bb24fb66ca6ed"></a>
+float(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1Force__field.html#a245d1798b13ae6e15c7bb24fb66ca6ed">coulomb_kernel_ptr</a> )(float, float, float, const <a class="el" href="classpteros_1_1Force__field.html">Force_field</a> &amp;)</td></tr>
+<tr class="memdesc:a245d1798b13ae6e15c7bb24fb66ca6ed"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pointer to chosen coulomb kernel. <br /></td></tr>
+<tr class="separator:a245d1798b13ae6e15c7bb24fb66ca6ed"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a576c46a2431b8d5d8cd37f791962f00f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a576c46a2431b8d5d8cd37f791962f00f"></a>
+float(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1Force__field.html#a576c46a2431b8d5d8cd37f791962f00f">LJ_kernel_ptr</a> )(float, float, float, const <a class="el" href="classpteros_1_1Force__field.html">Force_field</a> &amp;)</td></tr>
+<tr class="memdesc:a576c46a2431b8d5d8cd37f791962f00f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pointer to chosen VDW kernel. <br /></td></tr>
+<tr class="separator:a576c46a2431b8d5d8cd37f791962f00f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a395ab4cfa69ba2be3200a265a5196a16"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a395ab4cfa69ba2be3200a265a5196a16"></a>
 float&#160;</td><td class="memItemRight" valign="bottom"><b>coulomb_prefactor</b></td></tr>
 <tr class="separator:a395ab4cfa69ba2be3200a265a5196a16"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -300,7 +284,7 @@ Eigen::Vector3f&#160;</td><td class="memItemRight" valign="bottom"><b>shift_12</
 </div><div class="memdoc">
 
 <p>The list of LJ14 pairs. </p>
-<p>Each (a,b) pair is encoded as (a*LJ14_interactions.size()+b) There is a mapping: (a*LJ14_interactions.size()+b) &ndash;&gt; LJ14_interaction </p>
+<p>The mapping is (a*Natoms+b)-&gt;index in LJ14_interactions a&lt;=b! This is important </p>
 
 </div>
 </div>
@@ -314,7 +298,7 @@ Eigen::Vector3f&#160;</td><td class="memItemRight" valign="bottom"><b>shift_12</
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><b>pteros</b></li><li class="navelem"><a class="el" href="classpteros_1_1Force__field.html">Force_field</a></li>
-    <li class="footer">Generated on Fri Nov 24 2017 17:41:56 for Pteros by
+    <li class="footer">Generated on Thu Mar 15 2018 12:18:40 for Pteros by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.11 </li>
   </ul>

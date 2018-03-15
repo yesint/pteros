@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['y',['Y',['../classpteros_1_1Selection.html#a8d2907887a417e3d56a4c26816b9bfe4',1,'pteros::Selection::Y(int ind)'],['../classpteros_1_1Selection.html#a5d0c5e9fc314e1bb090676d6e6e5530f',1,'pteros::Selection::Y(int ind, int fr)'],['../classpteros_1_1Selection.html#a8d2907887a417e3d56a4c26816b9bfe4',1,'pteros::Selection::Y(int ind)'],['../classpteros_1_1Selection.html#a5d0c5e9fc314e1bb090676d6e6e5530f',1,'pteros::Selection::Y(int ind, int fr)']]]
+  ['z',['z',['../classpteros_1_1Selection.html#aa1eb246b48c8b822d715ffd42e2b7014',1,'pteros::Selection::z(int ind)'],['../classpteros_1_1Selection.html#a6f42b08d36ebb1c2cefdb3e3cf858b01',1,'pteros::Selection::z(int ind, int fr)']]]
 ];

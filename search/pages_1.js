@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['basic_20principles',['Basic principles',['../basic.html',1,'manual']]]
+  ['core_20functionality',['Core functionality',['../core.html',1,'manual']]],
+  ['c_2b_2b_20tutorial',['C++ Tutorial',['../cpptutorial.html',1,'']]]
 ];

@@ -134,10 +134,14 @@ Public Member Functions</h2></td></tr>
 &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#ae95d7374f80fdfaee096e95c1abc438c">System</a> (const <a class="el" href="classpteros_1_1System.html">System</a> &amp;other)</td></tr>
 <tr class="memdesc:ae95d7374f80fdfaee096e95c1abc438c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copy constructor. <br /></td></tr>
 <tr class="separator:ae95d7374f80fdfaee096e95c1abc438c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa02e5b92d3568ee69c6424e716366ae2"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa02e5b92d3568ee69c6424e716366ae2"></a>
-<a class="el" href="classpteros_1_1System.html">System</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#aa02e5b92d3568ee69c6424e716366ae2">operator=</a> (<a class="el" href="classpteros_1_1System.html">System</a> other)</td></tr>
-<tr class="memdesc:aa02e5b92d3568ee69c6424e716366ae2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Assignment operator. <br /></td></tr>
-<tr class="separator:aa02e5b92d3568ee69c6424e716366ae2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac6422081d08c3ac145a6d7c6d9f5bae7"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac6422081d08c3ac145a6d7c6d9f5bae7"></a>
+<a class="el" href="classpteros_1_1System.html">System</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#ac6422081d08c3ac145a6d7c6d9f5bae7">operator=</a> (const <a class="el" href="classpteros_1_1System.html">System</a> &amp;other)</td></tr>
+<tr class="memdesc:ac6422081d08c3ac145a6d7c6d9f5bae7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Assignment operator. <br /></td></tr>
+<tr class="separator:ac6422081d08c3ac145a6d7c6d9f5bae7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5ff659470119bfab88f478dd5903eaa9"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a5ff659470119bfab88f478dd5903eaa9"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#a5ff659470119bfab88f478dd5903eaa9">System</a> (const <a class="el" href="classpteros_1_1Selection.html">Selection</a> &amp;sel)</td></tr>
+<tr class="memdesc:a5ff659470119bfab88f478dd5903eaa9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructing new <a class="el" href="classpteros_1_1System.html" title="The system of atoms. ">System</a> from <a class="el" href="classpteros_1_1Selection.html" title="Selection class. ">Selection</a> of other system. <br /></td></tr>
+<tr class="separator:a5ff659470119bfab88f478dd5903eaa9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3be70bb338e3f062f821173fd15680d0"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3be70bb338e3f062f821173fd15680d0"></a>
 virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#a3be70bb338e3f062f821173fd15680d0">~System</a> ()</td></tr>
 <tr class="memdesc:a3be70bb338e3f062f821173fd15680d0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Destructor. <br /></td></tr>
@@ -240,6 +244,10 @@ int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class
 <tr class="memitem:a0cddbbb48beb8bca94f4f2e08eb6f750"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#a0cddbbb48beb8bca94f4f2e08eb6f750">load</a> (const std::unique_ptr&lt; <a class="el" href="classpteros_1_1Mol__file.html">Mol_file</a> &gt; &amp;handler, Mol_file_content what, std::function&lt; bool(<a class="el" href="classpteros_1_1System.html">System</a> *, int)&gt; on_frame=0)</td></tr>
 <tr class="memdesc:a0cddbbb48beb8bca94f4f2e08eb6f750"><td class="mdescLeft">&#160;</td><td class="mdescRight">Load data into <a class="el" href="classpteros_1_1System.html" title="The system of atoms. ">System</a> from the pre-opened file handler.  <a href="#a0cddbbb48beb8bca94f4f2e08eb6f750">More...</a><br /></td></tr>
 <tr class="separator:a0cddbbb48beb8bca94f4f2e08eb6f750"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac0e3fe4ebfc58f083ec3d07f7457c92d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac0e3fe4ebfc58f083ec3d07f7457c92d"></a>
+std::vector&lt; std::pair&lt; std::string, <a class="el" href="classpteros_1_1Selection.html">Selection</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#ac0e3fe4ebfc58f083ec3d07f7457c92d">load_gromacs_ndx</a> (std::string fname)</td></tr>
+<tr class="memdesc:ac0e3fe4ebfc58f083ec3d07f7457c92d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Load Gromacs .ndx file and crease selections acording to it from existing system Returns a vector of pairs {name,<a class="el" href="classpteros_1_1Selection.html" title="Selection class. ">Selection</a>}. <br /></td></tr>
+<tr class="separator:ac0e3fe4ebfc58f083ec3d07f7457c92d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><div class="groupHeader">Input filtering</div></td></tr>
 <tr class="memitem:a85c84a9212616a8922271ff2b69f5048"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#a85c84a9212616a8922271ff2b69f5048">set_filter</a> (std::string str)</td></tr>
 <tr class="memdesc:a85c84a9212616a8922271ff2b69f5048"><td class="mdescLeft">&#160;</td><td class="mdescRight">Filters narrow set of atoms and coordinates which are loaded from data files.  <a href="#a85c84a9212616a8922271ff2b69f5048">More...</a><br /></td></tr>
@@ -274,58 +282,46 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 <tr class="memdesc:ac0003151cea0e8c0ad5f3c7474e7826f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Swaps two specified frames. <br /></td></tr>
 <tr class="separator:ac0003151cea0e8c0ad5f3c7474e7826f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><div class="groupHeader">Inline accessors</div></td></tr>
-<tr class="memitem:aa279c18a69451c50bf72f05a99a0cb8d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa279c18a69451c50bf72f05a99a0cb8d"></a>
-<a class="el" href="classpteros_1_1Periodic__box.html">Periodic_box</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#aa279c18a69451c50bf72f05a99a0cb8d">Box</a> (int fr)</td></tr>
-<tr class="memdesc:aa279c18a69451c50bf72f05a99a0cb8d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read/write access for periodic box for given frame. <br /></td></tr>
-<tr class="separator:aa279c18a69451c50bf72f05a99a0cb8d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a752722b408ce55e6b9d43164bc950c66"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a752722b408ce55e6b9d43164bc950c66"></a>
-const <a class="el" href="classpteros_1_1Periodic__box.html">Periodic_box</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#a752722b408ce55e6b9d43164bc950c66">Box</a> (int fr) const </td></tr>
-<tr class="memdesc:a752722b408ce55e6b9d43164bc950c66"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read only access for periodic box for given frame. <br /></td></tr>
-<tr class="separator:a752722b408ce55e6b9d43164bc950c66"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2d44e502f67fab1a21b7a54ad6b14bb9"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a2d44e502f67fab1a21b7a54ad6b14bb9"></a>
-float &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#a2d44e502f67fab1a21b7a54ad6b14bb9">Time</a> (int fr)</td></tr>
-<tr class="memdesc:a2d44e502f67fab1a21b7a54ad6b14bb9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read/Write access to the time stamp of given frame. <br /></td></tr>
-<tr class="separator:a2d44e502f67fab1a21b7a54ad6b14bb9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abf00b5693b49760e18fba6aaf6b6e99d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="abf00b5693b49760e18fba6aaf6b6e99d"></a>
-const float &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#abf00b5693b49760e18fba6aaf6b6e99d">Time</a> (int fr) const </td></tr>
-<tr class="memdesc:abf00b5693b49760e18fba6aaf6b6e99d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read only access to the time stamp of given frame. <br /></td></tr>
-<tr class="separator:abf00b5693b49760e18fba6aaf6b6e99d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afbd892d4f7e8d5e81b4dd865bb4766b0"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="afbd892d4f7e8d5e81b4dd865bb4766b0"></a>
-Eigen::Vector3f &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#afbd892d4f7e8d5e81b4dd865bb4766b0">XYZ</a> (int ind, int fr)</td></tr>
-<tr class="memdesc:afbd892d4f7e8d5e81b4dd865bb4766b0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read/Write access for given coordinate of given frame. <br /></td></tr>
-<tr class="separator:afbd892d4f7e8d5e81b4dd865bb4766b0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2f0a267634cde9bf7be40f5d9db26d90"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a2f0a267634cde9bf7be40f5d9db26d90"></a>
-const Eigen::Vector3f &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#a2f0a267634cde9bf7be40f5d9db26d90">XYZ</a> (int ind, int fr) const </td></tr>
-<tr class="memdesc:a2f0a267634cde9bf7be40f5d9db26d90"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read only access for given coordinate of given frame. <br /></td></tr>
-<tr class="separator:a2f0a267634cde9bf7be40f5d9db26d90"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adb96b4b3eef8494ac3273b8ef370d27a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="adb96b4b3eef8494ac3273b8ef370d27a"></a>
-<a class="el" href="classpteros_1_1Atom.html">Atom</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#adb96b4b3eef8494ac3273b8ef370d27a">Atom_data</a> (int ind)</td></tr>
-<tr class="memdesc:adb96b4b3eef8494ac3273b8ef370d27a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read/Write access for given atom. <br /></td></tr>
-<tr class="separator:adb96b4b3eef8494ac3273b8ef370d27a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a97993ef6185ff44469b3852018cd840c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a97993ef6185ff44469b3852018cd840c"></a>
-const <a class="el" href="classpteros_1_1Atom.html">Atom</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#a97993ef6185ff44469b3852018cd840c">Atom_data</a> (int ind) const </td></tr>
-<tr class="memdesc:a97993ef6185ff44469b3852018cd840c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read only access for given atom. <br /></td></tr>
-<tr class="separator:a97993ef6185ff44469b3852018cd840c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae7c1c9d5ec3d7e20c010d3f1e9eb8d22"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae7c1c9d5ec3d7e20c010d3f1e9eb8d22"></a>
-<a class="el" href="structpteros_1_1Frame.html">Frame</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#ae7c1c9d5ec3d7e20c010d3f1e9eb8d22">Frame_data</a> (int fr)</td></tr>
-<tr class="memdesc:ae7c1c9d5ec3d7e20c010d3f1e9eb8d22"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get read/write reference for given frame. <br /></td></tr>
-<tr class="separator:ae7c1c9d5ec3d7e20c010d3f1e9eb8d22"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae52ae2f36278111c845c961ac575955c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae52ae2f36278111c845c961ac575955c"></a>
-const <a class="el" href="structpteros_1_1Frame.html">Frame</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#ae52ae2f36278111c845c961ac575955c">Frame_data</a> (int fr) const </td></tr>
-<tr class="memdesc:ae52ae2f36278111c845c961ac575955c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get read only reference for given frame. <br /></td></tr>
-<tr class="separator:ae52ae2f36278111c845c961ac575955c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr><td colspan="2"><div class="groupHeader">Secondary structure functions</div></td></tr>
-<tr class="memitem:a59897a129ca0d4c0bbffd0aa8b5fd8e9"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a59897a129ca0d4c0bbffd0aa8b5fd8e9"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#a59897a129ca0d4c0bbffd0aa8b5fd8e9">dssp</a> (std::string fname, int fr) const </td></tr>
-<tr class="memdesc:a59897a129ca0d4c0bbffd0aa8b5fd8e9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Determines secondary structure with DSSP algorithm and writes detailed report to file. <br /></td></tr>
-<tr class="separator:a59897a129ca0d4c0bbffd0aa8b5fd8e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9637e13615a6703524a811b2e8bb72aa"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9637e13615a6703524a811b2e8bb72aa"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#a9637e13615a6703524a811b2e8bb72aa">dssp</a> (std::ostream &amp;os, int fr) const </td></tr>
-<tr class="memdesc:a9637e13615a6703524a811b2e8bb72aa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Determines secondary structure with DSSP algorithm and writes detailed report to stream. <br /></td></tr>
-<tr class="separator:a9637e13615a6703524a811b2e8bb72aa"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5be3fd6a5487da4ae32f88cc64e02521"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#a5be3fd6a5487da4ae32f88cc64e02521">dssp</a> (int fr) const </td></tr>
-<tr class="memdesc:a5be3fd6a5487da4ae32f88cc64e02521"><td class="mdescLeft">&#160;</td><td class="mdescRight">Determines secondary structure with DSSP algorithm and return it as a code string.  <a href="#a5be3fd6a5487da4ae32f88cc64e02521">More...</a><br /></td></tr>
-<tr class="separator:a5be3fd6a5487da4ae32f88cc64e02521"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac55f99f3cc1006b179e993d7d90a598f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac55f99f3cc1006b179e993d7d90a598f"></a>
+<a class="el" href="classpteros_1_1Periodic__box.html">Periodic_box</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#ac55f99f3cc1006b179e993d7d90a598f">box</a> (int fr=0)</td></tr>
+<tr class="memdesc:ac55f99f3cc1006b179e993d7d90a598f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read/write access for periodic box for given frame. <br /></td></tr>
+<tr class="separator:ac55f99f3cc1006b179e993d7d90a598f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a52a3610aab0f65932cfa7d860b1df4c5"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a52a3610aab0f65932cfa7d860b1df4c5"></a>
+const <a class="el" href="classpteros_1_1Periodic__box.html">Periodic_box</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#a52a3610aab0f65932cfa7d860b1df4c5">box</a> (int fr=0) const </td></tr>
+<tr class="memdesc:a52a3610aab0f65932cfa7d860b1df4c5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read only access for periodic box for given frame. <br /></td></tr>
+<tr class="separator:a52a3610aab0f65932cfa7d860b1df4c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9b5d0f13fb5b54dc81958a137827f66f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9b5d0f13fb5b54dc81958a137827f66f"></a>
+float &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#a9b5d0f13fb5b54dc81958a137827f66f">time</a> (int fr=0)</td></tr>
+<tr class="memdesc:a9b5d0f13fb5b54dc81958a137827f66f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read/Write access to the time stamp of given frame. <br /></td></tr>
+<tr class="separator:a9b5d0f13fb5b54dc81958a137827f66f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae779faee401556554642e7338218aaad"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae779faee401556554642e7338218aaad"></a>
+const float &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#ae779faee401556554642e7338218aaad">time</a> (int fr=0) const </td></tr>
+<tr class="memdesc:ae779faee401556554642e7338218aaad"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read only access to the time stamp of given frame. <br /></td></tr>
+<tr class="separator:ae779faee401556554642e7338218aaad"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a37fc7efb8f372e6b5f9923ac5a80d57b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a37fc7efb8f372e6b5f9923ac5a80d57b"></a>
+Eigen::Vector3f &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#a37fc7efb8f372e6b5f9923ac5a80d57b">xyz</a> (int ind, int fr=0)</td></tr>
+<tr class="memdesc:a37fc7efb8f372e6b5f9923ac5a80d57b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read/Write access for given coordinate of given frame. <br /></td></tr>
+<tr class="separator:a37fc7efb8f372e6b5f9923ac5a80d57b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab25d51914a6e0835d2d766c63a167b51"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab25d51914a6e0835d2d766c63a167b51"></a>
+const Eigen::Vector3f &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#ab25d51914a6e0835d2d766c63a167b51">xyz</a> (int ind, int fr=0) const </td></tr>
+<tr class="memdesc:ab25d51914a6e0835d2d766c63a167b51"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read only access for given coordinate of given frame. <br /></td></tr>
+<tr class="separator:ab25d51914a6e0835d2d766c63a167b51"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0208f8c4c53273c7908136e196f0358a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a0208f8c4c53273c7908136e196f0358a"></a>
+<a class="el" href="classpteros_1_1Atom.html">Atom</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#a0208f8c4c53273c7908136e196f0358a">atom</a> (int ind)</td></tr>
+<tr class="memdesc:a0208f8c4c53273c7908136e196f0358a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read/Write access for given atom. <br /></td></tr>
+<tr class="separator:a0208f8c4c53273c7908136e196f0358a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad99a0a52dfbd1b65d109903e5cd7f824"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad99a0a52dfbd1b65d109903e5cd7f824"></a>
+const <a class="el" href="classpteros_1_1Atom.html">Atom</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#ad99a0a52dfbd1b65d109903e5cd7f824">atom</a> (int ind) const </td></tr>
+<tr class="memdesc:ad99a0a52dfbd1b65d109903e5cd7f824"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read only access for given atom. <br /></td></tr>
+<tr class="separator:ad99a0a52dfbd1b65d109903e5cd7f824"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1cc9e4a356a4b80dae7f0e62625d8da2"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1cc9e4a356a4b80dae7f0e62625d8da2"></a>
+<a class="el" href="structpteros_1_1Frame.html">Frame</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#a1cc9e4a356a4b80dae7f0e62625d8da2">frame</a> (int fr)</td></tr>
+<tr class="memdesc:a1cc9e4a356a4b80dae7f0e62625d8da2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get read/write reference for given frame. <br /></td></tr>
+<tr class="separator:a1cc9e4a356a4b80dae7f0e62625d8da2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeb30c7069663f8753106390937573240"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aeb30c7069663f8753106390937573240"></a>
+const <a class="el" href="structpteros_1_1Frame.html">Frame</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#aeb30c7069663f8753106390937573240">frame</a> (int fr) const </td></tr>
+<tr class="memdesc:aeb30c7069663f8753106390937573240"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get read only reference for given frame. <br /></td></tr>
+<tr class="separator:aeb30c7069663f8753106390937573240"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><div class="groupHeader">Manipulating sets of atoms by indexes.</div></td></tr>
 <tr><td colspan="2"><div class="groupText"><p>These methods <b>do not</b> update resindexes automatically. </p>
 </div></td></tr>
@@ -348,46 +344,52 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 <tr class="memitem:aff37d46030c2fd6036fe6c3d1aabb0c1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classpteros_1_1Selection.html">Selection</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#aff37d46030c2fd6036fe6c3d1aabb0c1">atom_clone</a> (int source)</td></tr>
 <tr class="memdesc:aff37d46030c2fd6036fe6c3d1aabb0c1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Duplicate single target atom and puts it immediately after the source.  <a href="#aff37d46030c2fd6036fe6c3d1aabb0c1">More...</a><br /></td></tr>
 <tr class="separator:aff37d46030c2fd6036fe6c3d1aabb0c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a31a8ac588343abadb25f67cd5c1ea774"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a31a8ac588343abadb25f67cd5c1ea774"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#a31a8ac588343abadb25f67cd5c1ea774">atom_swap</a> (int i, int j)</td></tr>
+<tr class="memdesc:a31a8ac588343abadb25f67cd5c1ea774"><td class="mdescLeft">&#160;</td><td class="mdescRight">Swap two atoms. <br /></td></tr>
+<tr class="separator:a31a8ac588343abadb25f67cd5c1ea774"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aebe31c420051351d79fb4404ff4edc02"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aebe31c420051351d79fb4404ff4edc02"></a>
+<a class="el" href="classpteros_1_1Selection.html">Selection</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#aebe31c420051351d79fb4404ff4edc02">atom_add_1h</a> (int target, int at1, int at2, int at3, float dist=0.109, bool pbc=true)</td></tr>
+<tr class="memdesc:aebe31c420051351d79fb4404ff4edc02"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add single hydrogen to target atom according to positions of 3 adjacent atoms assuming tetrahedral symmetry. <br /></td></tr>
+<tr class="separator:aebe31c420051351d79fb4404ff4edc02"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a22d285598596bc37b5d286d797b1d236"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a22d285598596bc37b5d286d797b1d236"></a>
+<a class="el" href="classpteros_1_1Selection.html">Selection</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#a22d285598596bc37b5d286d797b1d236">atom_add_2h</a> (int target, int at1, int at2, float dist=0.109, bool pbc=true)</td></tr>
+<tr class="memdesc:a22d285598596bc37b5d286d797b1d236"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add two hydrogens to target atom according to positions of 2 adjacent atoms assuming tetrahedral symmetry. <br /></td></tr>
+<tr class="separator:a22d285598596bc37b5d286d797b1d236"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a720894ecb2eee240df3eacf07ef2ee89"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a720894ecb2eee240df3eacf07ef2ee89"></a>
+<a class="el" href="classpteros_1_1Selection.html">Selection</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#a720894ecb2eee240df3eacf07ef2ee89">atom_add_3h</a> (int target, int at1, float dist=0.109, bool pbc=true)</td></tr>
+<tr class="memdesc:a720894ecb2eee240df3eacf07ef2ee89"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add 3 hydrogens to target atom according to positions of single adjacent atom assuming tetrahedral symmetry. <br /></td></tr>
+<tr class="separator:a720894ecb2eee240df3eacf07ef2ee89"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><div class="groupHeader">Periodicity-related functions</div></td></tr>
-<tr class="memitem:afe351af6d6a1015e218ce200f8156517"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="afe351af6d6a1015e218ce200f8156517"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#afe351af6d6a1015e218ce200f8156517">wrap</a> (int fr, Vector3i_const_ref dims_to_wrap=Eigen::Vector3i::Ones())</td></tr>
-<tr class="memdesc:afe351af6d6a1015e218ce200f8156517"><td class="mdescLeft">&#160;</td><td class="mdescRight">Wrap all system to the periodic box for given frame. <br /></td></tr>
-<tr class="separator:afe351af6d6a1015e218ce200f8156517"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abcb6fd36c0a1958e7c8b6357ca14d33a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="abcb6fd36c0a1958e7c8b6357ca14d33a"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#abcb6fd36c0a1958e7c8b6357ca14d33a">wrap</a> (int fr, Array3i_const_ref pbc=fullPBC)</td></tr>
+<tr class="memdesc:abcb6fd36c0a1958e7c8b6357ca14d33a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Wrap all system to the periodic box for given frame. <br /></td></tr>
+<tr class="separator:abcb6fd36c0a1958e7c8b6357ca14d33a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><div class="groupHeader">Measuring functions</div></td></tr>
-<tr class="memitem:a76c9516af8f9c790b41566de3c92c443"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a76c9516af8f9c790b41566de3c92c443"></a>
-float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#a76c9516af8f9c790b41566de3c92c443">distance</a> (int i, int j, int fr, bool is_periodic=true, Vector3i_const_ref dims=Eigen::Vector3i::Ones()) const </td></tr>
-<tr class="memdesc:a76c9516af8f9c790b41566de3c92c443"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get distance between two atoms for given frame (periodic in given dimensions if needed). <br /></td></tr>
-<tr class="separator:a76c9516af8f9c790b41566de3c92c443"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab0462b48d482eb9f146529fdab5cb765"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab0462b48d482eb9f146529fdab5cb765"></a>
-float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#ab0462b48d482eb9f146529fdab5cb765">angle</a> (int i, int j, int k, int fr, bool is_periodic=true, Vector3i_const_ref dims=Eigen::Vector3i::Ones()) const </td></tr>
-<tr class="memdesc:ab0462b48d482eb9f146529fdab5cb765"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get angle in degrees between three atoms for given frame (periodic in given dimensions if needed). <br /></td></tr>
-<tr class="separator:ab0462b48d482eb9f146529fdab5cb765"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3bf31f91014cb5a3fc732d3481fbea25"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3bf31f91014cb5a3fc732d3481fbea25"></a>
-float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#a3bf31f91014cb5a3fc732d3481fbea25">dihedral</a> (int i, int j, int k, int l, int fr, bool is_periodic=true, Vector3i_const_ref dims=Eigen::Vector3i::Ones()) const </td></tr>
-<tr class="memdesc:a3bf31f91014cb5a3fc732d3481fbea25"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get dihedral angle in degrees between three atoms for given frame (periodic in given dimensions if needed). <br /></td></tr>
-<tr class="separator:a3bf31f91014cb5a3fc732d3481fbea25"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr><td colspan="2"><div class="groupHeader">Energy functions</div></td></tr>
-<tr class="memitem:a84329f6d34df2bd856485ccea593a634"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a84329f6d34df2bd856485ccea593a634"></a>
-<a class="el" href="structpteros_1_1Energy__components.html">Energy_components</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#a84329f6d34df2bd856485ccea593a634">non_bond_energy</a> (int at1, int at2, int frame, bool is_periodic=true) const </td></tr>
-<tr class="memdesc:a84329f6d34df2bd856485ccea593a634"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute non-bond energy between two atoms. <br /></td></tr>
-<tr class="separator:a84329f6d34df2bd856485ccea593a634"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af3b720bda392cb5ad28b1f095c6a793e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af3b720bda392cb5ad28b1f095c6a793e"></a>
-<a class="el" href="structpteros_1_1Energy__components.html">Energy_components</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#af3b720bda392cb5ad28b1f095c6a793e">non_bond_energy</a> (const std::vector&lt; Eigen::Vector2i &gt; &amp;nlist, int fr, bool is_periodic=true) const </td></tr>
-<tr class="memdesc:af3b720bda392cb5ad28b1f095c6a793e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Non-bond energy for given list of atom pairs. <br /></td></tr>
-<tr class="separator:af3b720bda392cb5ad28b1f095c6a793e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0c04fccb826b7e0e1945bb8d59fc0c33"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a0c04fccb826b7e0e1945bb8d59fc0c33"></a>
+float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#a0c04fccb826b7e0e1945bb8d59fc0c33">distance</a> (int i, int j, int fr, Array3i_const_ref pbc=fullPBC) const </td></tr>
+<tr class="memdesc:a0c04fccb826b7e0e1945bb8d59fc0c33"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get distance between two atoms for given frame (periodic in given dimensions if needed). <br /></td></tr>
+<tr class="separator:a0c04fccb826b7e0e1945bb8d59fc0c33"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a938fa4ae94d796d1f164d7a5189acd4e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a938fa4ae94d796d1f164d7a5189acd4e"></a>
+float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#a938fa4ae94d796d1f164d7a5189acd4e">angle</a> (int i, int j, int k, int fr, Array3i_const_ref pbc=fullPBC) const </td></tr>
+<tr class="memdesc:a938fa4ae94d796d1f164d7a5189acd4e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get angle in degrees between three atoms for given frame (periodic in given dimensions if needed). <br /></td></tr>
+<tr class="separator:a938fa4ae94d796d1f164d7a5189acd4e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a95226369c77519dded50a6130d1e7097"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a95226369c77519dded50a6130d1e7097"></a>
+float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#a95226369c77519dded50a6130d1e7097">dihedral</a> (int i, int j, int k, int l, int fr, Array3i_const_ref pbc=fullPBC) const </td></tr>
+<tr class="memdesc:a95226369c77519dded50a6130d1e7097"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get dihedral angle in degrees between three atoms for given frame (periodic in given dimensions if needed). <br /></td></tr>
+<tr class="separator:a95226369c77519dded50a6130d1e7097"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><div class="groupHeader">Utility functions</div></td></tr>
 <tr class="memitem:a66bdd137db3fc914bbfe9518b6c71017"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a66bdd137db3fc914bbfe9518b6c71017"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#a66bdd137db3fc914bbfe9518b6c71017">clear</a> ()</td></tr>
 <tr class="memdesc:a66bdd137db3fc914bbfe9518b6c71017"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clears the system and prepares for loading completely new structure. <br /></td></tr>
 <tr class="separator:a66bdd137db3fc914bbfe9518b6c71017"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a943c3e9fbfc4273f52797aeb8e238eb5"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a943c3e9fbfc4273f52797aeb8e238eb5"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#a943c3e9fbfc4273f52797aeb8e238eb5">force_field_ready</a> ()</td></tr>
-<tr class="memdesc:a943c3e9fbfc4273f52797aeb8e238eb5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns true if the force field is set up properly and is able to compute energies. <br /></td></tr>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>force_field_ready</b> ()</td></tr>
 <tr class="separator:a943c3e9fbfc4273f52797aeb8e238eb5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aeafebdbb4ee79b6d504a36e897b0b8b3"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aeafebdbb4ee79b6d504a36e897b0b8b3"></a>
-<a class="el" href="classpteros_1_1Force__field.html">Force_field</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#aeafebdbb4ee79b6d504a36e897b0b8b3">get_force_field</a> ()</td></tr>
-<tr class="memdesc:aeafebdbb4ee79b6d504a36e897b0b8b3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns pointer to internal <a class="el" href="classpteros_1_1Force__field.html" title="Force field parameters of the system. ">Force_field</a> object for direct manipulation or NULL if force field is not ready. <br /></td></tr>
-<tr class="separator:aeafebdbb4ee79b6d504a36e897b0b8b3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aba072ecbc9a36c69fe61d7f1caf8ac70"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aba072ecbc9a36c69fe61d7f1caf8ac70"></a>
+<a class="el" href="classpteros_1_1Force__field.html">Force_field</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#aba072ecbc9a36c69fe61d7f1caf8ac70">get_force_field</a> ()</td></tr>
+<tr class="memdesc:aba072ecbc9a36c69fe61d7f1caf8ac70"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns pointer to internal <a class="el" href="classpteros_1_1Force__field.html" title="Force field parameters of the system. ">Force_field</a> object for direct manipulation or NULL if force field is not ready. <br /></td></tr>
+<tr class="separator:aba072ecbc9a36c69fe61d7f1caf8ac70"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a98b3d9836800119446a0b4211b528a01"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a98b3d9836800119446a0b4211b528a01"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#a98b3d9836800119446a0b4211b528a01">assign_resindex</a> (int start=0)</td></tr>
 <tr class="memdesc:a98b3d9836800119446a0b4211b528a01"><td class="mdescLeft">&#160;</td><td class="mdescRight">Assign unique resindexes This is usually done automatically upon loading a structure from file. <br /></td></tr>
@@ -674,25 +676,6 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 
 </div>
 </div>
-<a class="anchor" id="a5be3fd6a5487da4ae32f88cc64e02521"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">string System::dssp </td>
-          <td>(</td>
-          <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>fr</em></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Determines secondary structure with DSSP algorithm and return it as a code string. </p>
-<dl class="section return"><dt>Returns</dt><dd>Code string The code is the same as in DSSP: alphahelix: 'H' betabridge: 'B' strand: 'E' helix_3: 'G' helix_5: 'I' turn: 'T' bend: 'S' loop: ' ' </dd></dl>
-
-</div>
-</div>
 <a class="anchor" id="aff37d46030c2fd6036fe6c3d1aabb0c1"></a>
 <div class="memitem">
 <div class="memproto">
@@ -741,7 +724,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><b>pteros</b></li><li class="navelem"><a class="el" href="classpteros_1_1System.html">System</a></li>
-    <li class="footer">Generated on Fri Nov 24 2017 17:41:56 for Pteros by
+    <li class="footer">Generated on Thu Mar 15 2018 12:18:40 for Pteros by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.11 </li>
   </ul>

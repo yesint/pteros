@@ -34,23 +34,23 @@ var NAVTREE =
       [ "Linking with Pteros", "install.html#linking", null ]
     ] ],
     [ "User manual", "manual.html", "manual" ],
-    [ "Tutorial", "tutorial.html", [
-      [ "Getting started", "tutorial.html#getting_started", null ],
-      [ "Selections", "tutorial.html#selections", [
-        [ "Textual selections", "tutorial.html#text_sel", null ],
-        [ "Non-textual selections", "tutorial.html#non_text_sel", null ],
-        [ "Modifying selections", "tutorial.html#mod_sel", null ],
-        [ "Copying and assigning selections", "tutorial.html#copy_assign", null ]
+    [ "C++ Tutorial", "cpptutorial.html", [
+      [ "Getting started", "cpptutorial.html#getting_started", null ],
+      [ "Selections", "cpptutorial.html#selections", [
+        [ "Textual selections", "cpptutorial.html#text_sel", null ],
+        [ "Non-textual selections", "cpptutorial.html#non_text_sel", null ],
+        [ "Modifying selections", "cpptutorial.html#mod_sel", null ],
+        [ "Copying and assigning selections", "cpptutorial.html#copy_assign", null ]
       ] ],
-      [ "Manipulating selections", "tutorial.html#manip", [
-        [ "Geometry transformations", "tutorial.html#transforms", null ],
-        [ "RMS fitting and alignment", "tutorial.html#rmsd", null ]
+      [ "Manipulating selections", "cpptutorial.html#manip", [
+        [ "Geometry transformations", "cpptutorial.html#transforms", null ],
+        [ "RMS fitting and alignment", "cpptutorial.html#rmsd", null ]
       ] ],
-      [ "Python bindings", "tutorial.html#bindings", null ],
-      [ "High-level facilities", "tutorial.html#hi_level", null ],
-      [ "Very-high-level facilities", "tutorial.html#analysis_plugins", [
-        [ "Writing pure Python analysis plugin", "tutorial.html#pure_python", null ],
-        [ "Writing compiled analysis plugin", "tutorial.html#compiled", null ]
+      [ "Python bindings", "cpptutorial.html#bindings", null ],
+      [ "High-level facilities", "cpptutorial.html#hi_level", null ],
+      [ "Very-high-level facilities", "cpptutorial.html#analysis_plugins", [
+        [ "Writing pure Python analysis plugin", "cpptutorial.html#pure_python", null ],
+        [ "Writing compiled analysis plugin", "cpptutorial.html#compiled", null ]
       ] ]
     ] ],
     [ "Classes", "annotated.html", [
@@ -72,10 +72,9 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 ".html",
-"classpteros_1_1Periodic__box.html#a8a0d1bee5d70b3c4b61bc947a8e55322",
-"classpteros_1_1Selection.html#aa290dc08b6425722db037cac5d0adade",
+"classpteros_1_1Selection.html#a2366a9945cfaff246705211e1b0e68ae",
 "classpteros_1_1Trajectory__reader.html#aa156f6827fbb55404c6dc2d86c8b7e38",
-"tools.html"
+"task__driver_8h_source.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

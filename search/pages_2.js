@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['core_20functionality',['Core functionality',['../core.html',1,'manual']]]
+  ['design_20thoughts',['Design thoughts',['../design.html',1,'']]]
 ];

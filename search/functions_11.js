@@ -1,12 +1,11 @@
 var searchData=
 [
-  ['tag',['Tag',['../classpteros_1_1Selection.html#a432ca8dddfbff0be0a9445c063436642',1,'pteros::Selection::Tag(int ind)'],['../classpteros_1_1Selection.html#a432ca8dddfbff0be0a9445c063436642',1,'pteros::Selection::Tag(int ind)']]],
-  ['text_5fbased',['text_based',['../classpteros_1_1Selection.html#a4fd0cf325d2db37e208639c71b34f133',1,'pteros::Selection::text_based() const '],['../classpteros_1_1Selection.html#a4fd0cf325d2db37e208639c71b34f133',1,'pteros::Selection::text_based() const ']]],
-  ['time',['Time',['../classpteros_1_1Selection.html#a34d7f61f07dccf04984d597c0964f356',1,'pteros::Selection::Time()'],['../classpteros_1_1Selection.html#a34d7f61f07dccf04984d597c0964f356',1,'pteros::Selection::Time()'],['../classpteros_1_1System.html#a2d44e502f67fab1a21b7a54ad6b14bb9',1,'pteros::System::Time(int fr)'],['../classpteros_1_1System.html#abf00b5693b49760e18fba6aaf6b6e99d',1,'pteros::System::Time(int fr) const ']]],
-  ['to_5fstr',['to_str',['../structpteros_1_1Energy__components.html#ab46d3e7d7926c9a47c60c5a504799fc4',1,'pteros::Energy_components']]],
+  ['text_5fbased',['text_based',['../classpteros_1_1Selection.html#a4fd0cf325d2db37e208639c71b34f133',1,'pteros::Selection']]],
+  ['time',['time',['../classpteros_1_1Selection.html#a09ec3c1038cf7a60241786445013b0ba',1,'pteros::Selection::time()'],['../classpteros_1_1System.html#a9b5d0f13fb5b54dc81958a137827f66f',1,'pteros::System::time(int fr=0)'],['../classpteros_1_1System.html#ae779faee401556554642e7338218aaad',1,'pteros::System::time(int fr=0) const ']]],
+  ['to_5fgromacs_5fndx',['to_gromacs_ndx',['../classpteros_1_1Selection.html#aa33cd8cb7ed5f23f19d8a0abc8e1645d',1,'pteros::Selection']]],
+  ['to_5fpdb_5fbox',['to_pdb_box',['../classpteros_1_1Periodic__box.html#a7048405e24a8d325e814c7f5e5c1e8d3',1,'pteros::Periodic_box']]],
   ['to_5fvectors_5fangles',['to_vectors_angles',['../classpteros_1_1Periodic__box.html#a7e179f69880c1c598e3bfff62891f304',1,'pteros::Periodic_box']]],
   ['trajectory_5freader',['Trajectory_reader',['../classpteros_1_1Trajectory__reader.html#a4c72c90010f762460f7b3fd43abf885d',1,'pteros::Trajectory_reader::Trajectory_reader()'],['../classpteros_1_1Trajectory__reader.html#afdbd60d242ecb678b81ffdbb572e0e68',1,'pteros::Trajectory_reader::Trajectory_reader(const Options &amp;opt)']]],
-  ['translate',['translate',['../classpteros_1_1Selection.html#a13c49888503f09aaa0de55205fd99adb',1,'pteros::Selection::translate(Vector3f_const_ref v)'],['../classpteros_1_1Selection.html#a8eb53a42bbe72b65a164eba802af06de',1,'pteros::Selection::translate(Vector3f_const_ref v)']]],
-  ['type',['Type',['../classpteros_1_1Selection.html#a488f55ed5ee813030cead65ab0a8ccfd',1,'pteros::Selection::Type(int ind)'],['../classpteros_1_1Selection.html#a488f55ed5ee813030cead65ab0a8ccfd',1,'pteros::Selection::Type(int ind)']]],
-  ['type_5fname',['Type_name',['../classpteros_1_1Selection.html#a5546bb599c0700daa5def1bf4910e822',1,'pteros::Selection::Type_name(int ind)'],['../classpteros_1_1Selection.html#a5546bb599c0700daa5def1bf4910e822',1,'pteros::Selection::Type_name(int ind)']]]
+  ['translate',['translate',['../classpteros_1_1Selection.html#a13c49888503f09aaa0de55205fd99adb',1,'pteros::Selection']]],
+  ['translate_5fto',['translate_to',['../classpteros_1_1Selection.html#ae61bb4f9359d59d9fcc0b535993ee118',1,'pteros::Selection']]]
 ];
