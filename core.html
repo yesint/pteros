@@ -900,7 +900,7 @@ Methods of Selection class</h3>
 </table>
 <h1><a class="anchor" id="dssp"></a>
 Secondary structure of proteins</h1>
-<p>Pteros uses <a href="http://www.cmbi.ru.nl/dssp.html">DSSP</a> method for determining secondary structure of proteins. <a class="el" href="classpteros_1_1Selection.html#a2366a9945cfaff246705211e1b0e68ae" title="Determines secondary structure with DSSP algorithm and writes detailed report to file. ">Selection::dssp()</a> write detailed DSSP report to the file or to the stream if file name of stream object are provided as an argument. If called without arguments the DSSP string is returned with letter-code for secondary structure. The code is the same as in original DSSP program:</p>
+<p>Pteros uses <a href="http://www.cmbi.ru.nl/dssp.html">DSSP</a> method for determining secondary structure of proteins. <a class="el" href="classpteros_1_1Selection.html#a2366a9945cfaff246705211e1b0e68ae" title="Determines secondary structure with DSSP algorithm and writes detailed report to file. ">Selection::dssp()</a> writes detailed DSSP report to the file or to the stream if file name of stream object are provided as an argument. If called without arguments the DSSP string is returned with letter-code for secondary structure. The encoding is the same as in original DSSP program:</p>
 <table class="doxtable">
 <tr>
 <th>Structure </th><th>code  </th></tr>
@@ -921,10 +921,13 @@ Secondary structure of proteins</h1>
 <tr>
 <td>loop </td><td>' ' (space) </td></tr>
 </table>
-<dl class="section note"><dt>Note</dt><dd>System::dssp() always works with the whole system, not with selection. This is caused by the fact that the algorithm have to see all atoms of the protein backbone in all protein residues while user can easily provide selection where only some of them are present.</dd></dl>
+<dl class="section warning"><dt>Warning</dt><dd><a class="el" href="classpteros_1_1Selection.html#a2366a9945cfaff246705211e1b0e68ae" title="Determines secondary structure with DSSP algorithm and writes detailed report to file. ">Selection::dssp()</a> always works with whole protein residues and ignores everything else. Internally it makes new sub-selection "by residue protein" and the secondary structure is computed on it and not on original selection. Keep this in mind if your original selection contains non-protein residues since the resulting string won't match exactly the residues in you selection in this case!</dd></dl>
 <h1><a class="anchor" id="measure_sasa"></a>
 Solvent accessible surface area</h1>
-<p>Solvent accessible surface area (SASA) is computed in Pteros using using POWERSASA code developed in the <a href="http://www.kit.edu/english/">Karlsruhe Institute of Technology</a> and inclided into <a href="http://www.int.kit.edu/1636.php">SIMONA</a> package. This is fast algorithm of computing area of the molecules based on rather complex theory of power diagrams (<a href="http://onlinelibrary.wiley.com/doi/10.1002/jcc.21844/abstract">paper</a>). The method <a class="el" href="classpteros_1_1Selection.html#af281cbbad77a5221a57e36474d1bbfe6" title="Get SASA using Shrake and Rupley algorithm (slower than powersasa and can&#39;t compute volumes) ...">Selection::sasa()</a> returns the solvent accessible area of atoms in selection. Optional argument could be used to set the probe radius and to get additional data like total volume, area per atom and volume per atom.</p>
+<p>Solvent accessible surface area (SASA) is computed in Pteros using two different algorithms:</p><ul>
+<li><a class="el" href="classpteros_1_1Selection.html#a033fae840f94bad72b6e787820916ae8" title="Get the SASA using powersasa algorithm. Returns area and computes volume and per-atom values if asked...">Selection::powersasa()</a>. Implements modern and robust POWERSASA algorithm developed in the <a href="http://www.kit.edu/english/">Karlsruhe Institute of Technology</a> and inclided into <a href="http://www.int.kit.edu/1636.php">SIMONA</a> package. This is fast algorithm of computing area of the molecules based on rather complex theory of power diagrams (<a href="http://onlinelibrary.wiley.com/doi/10.1002/jcc.21844/abstract">paper</a>). The method <a class="el" href="classpteros_1_1Selection.html#a033fae840f94bad72b6e787820916ae8" title="Get the SASA using powersasa algorithm. Returns area and computes volume and per-atom values if asked...">Selection::powersasa()</a> returns the solvent accessible area of atoms in selection. Optional argument could be used to set the probe radius and to get additional data like total volume, area per atom and volume per atom.</li>
+<li><a class="el" href="classpteros_1_1Selection.html#af281cbbad77a5221a57e36474d1bbfe6" title="Get SASA using Shrake and Rupley algorithm (slower than powersasa and can&#39;t compute volumes) ...">Selection::sasa()</a>. Implements older and slower Shrake and Rupley algorithm. The code is borrowed from <a href="mdtraj.org">MDTraj</a>. It is free from licence restrictions of POWERSASA (see note below) but slower and less functional, particularly it can't compute volumes.</li>
+</ul>
 <dl class="section note"><dt>Note</dt><dd>POWERSASA code is not open source. I contacted the authors of POWERSASA several times to ask for official permision to use their code in Pteros but all requestes were ignored. I concluded that nobody is concerned about the licensing of POWERSASA now. However, compilation of this code is disabled by default. See <a class="el" href="install.html#sasa">Enabling SASA code</a> for details how to enable it. </dd></dl>
 </div></div><!-- contents -->
 </div><!-- doc-content -->
@@ -932,7 +935,7 @@ Solvent accessible surface area</h1>
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="manual.html">User manual</a></li>
-    <li class="footer">Generated on Thu Mar 15 2018 12:18:40 for Pteros by
+    <li class="footer">Generated on Thu Mar 15 2018 12:36:12 for Pteros by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.11 </li>
   </ul>
