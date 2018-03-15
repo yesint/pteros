@@ -4,23 +4,9 @@ namespace pteros {
 
 \warning THIS MANUAL IS NOT COMPLETE! WORK IN PROGRESS.
 
-- \subpage basic
 - \subpage core
 - \subpage analysis
 - \subpage tools
-
-\page basic Basic principles
-
-Pteros is developed according to the following principles
-- API should be simple and intuitive to use
-- Low-level detailes should never be exposed to the user
-- Performance should never be compromised
-- C++ and Python APIs should be the same except for the language-specific features
-
-Pteros is C++ library with Python bindings. This means that the Python part is only a wrapper over C++ backend. All new features are implemented in C++ and than exposed to Python.
-
-\section structure Library structure
-\subsection include Include files
 
 \page core Core functionality
 
@@ -45,6 +31,7 @@ beta        |   float       |   PDB B-factor  | Defaults to 0. |
 occupancy   |   float       | PDB occupancy facor | Defaults to 0. |
 type        |   integer     | Numerical index of atom type |    Defaults to -1, only makes sense in MD topologies.|
 type_name   |   string      | Name of atom type | Defaults to empty string. |
+element_number| interger    | Atomic number of the atom | Defaults to -1. If not defined in the structure or topology file it is not guessed. Element name is not stored and is computed from element number on the fly if needed.|
 
 \note Coordinates of atoms are stored separately in \ref frame "frames".
 
@@ -60,6 +47,7 @@ The frame is representation of the instanteneous state of the system. It contain
 
 \subsection selection Selection
 Selection is a subset of atoms from particular system. Selection <i>do not contain any data</i> but just points to existing atoms in the system. Selection should be considered as a "handle" to certain group of atoms which allows to query their properties and to manipulate their attributes and coordinates in various ways.
+
 
 
 
@@ -270,6 +258,13 @@ sys.load('trajectory.xtc')
 
 \warning Filters could not be used for topologies! load() throws an error if
 attempting to load topology with filter.
+
+
+
+
+
+
+
 
 \section making_selections Selecting atoms
 
@@ -483,7 +478,7 @@ void sel_func(const System& sys,int fr,std::vector<int>& ind){
     // Just for example we are selecting all atoms with x>5
     ind.clear();
     for(int i=0;i<sys.num_atoms();++i)
-        if(sys.XYZ(i,fr)(0)>5.0) ind.push_back(i);
+        if(sys.x(i,fr)>5.0) ind.push_back(i);
 }
 
 ...
@@ -501,7 +496,7 @@ def sel_func(sys,fr,ind):
     # Just for example we are selecting all atoms with x>5
     ind = []
     for i in xrange(sys.num_atoms()):
-        if sys.getXYZ(i,fr)[0]>5.0:
+        if sys[i,fr].x>5.0:
             ind.append(i)
 
 ...
@@ -775,6 +770,11 @@ Invert selection | Selection::invert()
 
 \note append() and remove() methods also work with individual atom indexes.
 
+
+
+
+
+
 \section access Accessing properties of selected atoms
 
 If selection contains \e N atoms then they could be accessed by relative indexes from 0 to N-1 inclusive. Relative indexes are \e NOT the same as atomic indexes. Atom with global index 150 may have relative index 0 in one selection and 23 in the other. Relative indexes are very convenient in accessing properties of selected atoms. For this Selection class contains the set of <i>accessor methods</i>.
@@ -782,30 +782,30 @@ If selection contains \e N atoms then they could be accessed by relative indexes
 \warning Accessing atom properties could be rather confusing due to the differences in C++ and Python. These differences are dictated by very different architectures of C++ and Python languages.
 
 \subsection cpp_access Accessor methods in C++
-Accessor methos in C++ have the same names as the properties of atoms with the first letter capitalized. For example ``sel.Index(i)`` returns global index of atom with relative index i, ``sel.Name(i)`` returns name of this atom, ``sel.Resname(i)`` returns its residue name, etc.
+Accessor methos in C++ have the same names as the properties of atoms: ``sel.index(i)`` returns global index of atom with relative index i, ``sel.name(i)`` returns name of this atom, ``sel.resname(i)`` returns its residue name, etc.
 
-Accessors ``X(i)``, ``Y(i)`` and ``Z(i)`` give access to individual atomic coordinates of the current frame (the frame pointed by selection). The method ``XYZ(i)`` returns the vector of all three coordinates. These accessors also accept frame index as optional second parameter: ``Z(i,fr)``, ``XYZ(i,fr)``, etc.
+Accessors ``x(i)``, ``y(i)`` and ``z(i)`` give access to individual atomic coordinates of the current frame (the frame pointed by selection). The method ``xyz(i)`` returns the vector of all three coordinates. These accessors also accept frame index as optional second parameter: ``z(i,fr)``, ``xyz(i,fr)``, etc.
 
-There are also accessors for periodic box associated with current frame pointed by selection (``Box()``) and the time stamp of the pointed frame (``Time()``). These methods are \e not available for arbitrary frames.
+There are also accessors for periodic box associated with current frame pointed by selection (``box()``) and the time stamp of the pointed frame (``time()``). These methods are \e not available for arbitrary frames.
 
-There is also special accessor ``VDW(i)`` which returns the van der Waals radius of <i>i</i>-th atom.
+There are also special accessor: ``vdw(i)`` which returns the van der Waals radius of <i>i</i>-th atom and ``element_name(i)`` which returns element name based on either element number (if available) or the first name of atom name.
 
 In C++ all of them are accessors inlined l-value functions. This means that they do not add any overhead in accessing atom properties and could be assinged to:
 
 \code
 Selection sel(system,"name CA");
 // Read access
-cout << sel.Name(0) << endl;
+cout << sel.name(0) << endl;
 // Write access
-sel.Name(0) = "CB";
+sel.name(0) = "CB";
 
 // Accessing coordinates of the current frame
-cout << sel.X(0) << endl;
-sel.XYZ(0) = sel.XYZ(0) + sel.XYZ(0);
+cout << sel.x(0) << endl;
+sel.xyz(0) = sel.xyz(0) + sel.xyz(0);
 
 // Accessing coordinates of other frames
 cout << sel.X(0,frame) << endl;
-sel.XYZ(0,frame) = sel.XYZ(1,frame1) + sel.XYZ(2,frame2);
+sel.xyz(0,frame) = sel.xyz(1,frame1) + sel.xyz(2,frame2);
 \endcode
 
 \subsection py_access Accessor methods in Python
@@ -823,18 +823,20 @@ In C++ the only difference is that these accessors do not take relative atomic i
 
 Selection sel(system,"name CA");
 // Read access
-cout << sel[0].Name() << endl;
+cout << sel[0].name() << endl;
 // Write access
-sel[0].Name() = "CB";
+sel[0].name() = "CB";
 
 // Accessing coordinates of the current frame
-cout << sel[0].X() << endl;
-sel[0].XYZ() = sel[1].XYZ() + sel[2].XYZ();
+cout << sel[0].x() << endl;
+sel[0].xyz() = sel[1].xyz() + sel[2].xyz();
 
 // Accessing coordinates of other frame
-cout << sel[0].X(frame) << endl;
-sel[0].XYZ(frame) = sel[1].XYZ(frame1) + sel[2].XYZ(frame2);
+cout << sel[{0,frame}].x() << endl;
+sel[{0,frame}].xyz() = sel[{1,frame1}].xyz() + sel[{2,frame2}].xyz();
 \endcode
+
+\note The indexing operator can optionally take an std::pair of {index,frame} in order to access to arbitrariry frame.
 
 In Python Atom_proxy objects benefit from the Python properties, which makes the usage of indexing much easier than the direct usage of accessors:
 
@@ -847,19 +849,16 @@ print sel[0].name
 # Write access
 sel[0].name = "CB"
 # Note that 'name' is a property, not a method!
-# It is NOT capitalized and no () is needed!
 
-# This also works for coordinates of the CURRENT frame:
+# This also works for coordinates of the current frame:
 print sel[0].x, sel[0].xyz
 sel[0].xyz = sel[1].xyz + sel[2].xyz
 
-# BUT if you want to access coordinates of OTHER frame
-# you HAVE to use ordinary accessors:
-print sel.getXYZ(0, other_frame)
-sel.setXYZ(0, frame, sel.getXYZ(1,frame1) + sel.getXYZ(2,frame2));
+# and for the coordinates of the other frame
+sel[0,frame].xyz = sel[1,frame1].xyz + sel[2,frame2].xyz
 \endcode
 
-\warning Creation of proxy objects makes access by indexing \e slower than direct usage of accessor methods of Selection. The difference is neglegible in most situations but do not use it in performance-critical parts of the code.
+\warning Creation of proxy objects makes access by indexing a bit \e slower than direct usage of accessor methods of Selection. The difference is neglegible in most situations but do not use it in performance-critical parts of the code.
 
 \subsection sel_iter Iterating over selected atoms
 
@@ -871,7 +870,7 @@ Selection sel(system, "name CA CB");
 
 // Usage of accessor methods for each atom property
 for(int i=0; i< sel.size(); ++i){
-    cout << sel.Name(i) << " " << sel.Resname(i) << endl;
+    cout << sel.name(i) << " " << sel.resname(i) << endl;
 }
 
 // Usage of indexing operator (slower than property accessors and not recommended in C++!)
@@ -880,11 +879,6 @@ for(int i=0; i< sel.size(); ++i){
 }
 \col2
 sel = Selection(system, 'name CA CB')
-
-# Usage of accessor methods for each atom property
-# (clumsy syntax in Python, not reccomended despite being a bit faster)
-for i in xrange(sel.size()):
-    print sel.getName(i), sel.getResname(i)
 
 # Usage of indexing operator (still not the best way in Python, see below)
 for i in xrange(sel.size()):
@@ -948,6 +942,11 @@ resids = sel.get_unique_resid()
 # Returns 1,2,3,4,5,...
 \endcol
 
+
+
+
+
+
 \section sys_build Building molecular systems
 
 Pteros has reach set of methods for building molecular systems. They are not oriented on particular type of molecules like proteins or nucleic acids but allow manipulating atoms and selections in general.
@@ -1009,7 +1008,7 @@ auto m = s.Box(0).get_matrix();
 // Modify individual box element
 m(0,1) *= 2;
 // Set it back
-s.Box(0).modify(m);
+s.box(0).modify(m);
 \col2
 s = System('some_file.pdb')
 # Get a box as matrix. Column 0 is vector a, column 1 is b, column 2 is c.
@@ -1447,6 +1446,7 @@ The method Selection::sasa() returns the solvent accessible area of atoms in sel
 
 \note
 POWERSASA code is not open source. I contacted the authors of POWERSASA several times to ask for official permision to use their code in Pteros but all requestes were ignored. I concluded that nobody is concerned about the licensing of POWERSASA now. However, compilation of this code is disabled by default. See \ref sasa for details how to enable it.
+
 
 
 
