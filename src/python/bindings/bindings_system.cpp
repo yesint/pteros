@@ -91,6 +91,12 @@ void make_bindings_System(py::module& m){
         .def("frame_delete", &System::frame_delete, "b"_a=0, "e"_a=-1)
         .def("frame_swap", &System::frame_swap)
 
+        // Indexing operator returns frame
+        .def("__getitem__", [](System& s, size_t i) {
+                if(i >= s.num_frames()) throw py::index_error();
+                return s.frame(i); // Returns atom proxy object
+            }, py::keep_alive<0,1>())
+
         // Accessors
         .def("getBox", py::overload_cast<int>(&System::box, py::const_), "fr"_a=0)
         .def("setBox", [](System* s,const Periodic_box& b, int fr){ s->box(fr)=b; }, "box"_a, "fr"_a=0)
@@ -98,14 +104,14 @@ void make_bindings_System(py::module& m){
         .def("getTime", py::overload_cast<int>(&System::time, py::const_), "fr"_a=0)
         .def("setTime", [](System* s,int t,int fr){ s->time(fr)=t; }, "t"_a, "fr"_a=0)
 
-        .def("getFrame_data", py::overload_cast<int>(&System::frame, py::const_))
-        .def("setFrame_data", [](System* s, int i, const Frame& fr){ s->frame(i)=fr; })
+        .def("getFrame", py::overload_cast<int>(&System::frame, py::const_))
+        .def("setFrame", [](System* s, int i, const Frame& fr){ s->frame(i)=fr; })
 
         .def("getXYZ", py::overload_cast<int,int>(&System::xyz, py::const_), "i"_a, "fr"_a=0)
         .def("setXYZ", [](System* s,Vector3f_const_ref v,int i,int fr){ s->xyz(i,fr)=v; }, "xyz"_a, "i"_a, "fr"_a=0)
 
-        .def("getAtom_data", py::overload_cast<int>(&System::atom, py::const_))
-        .def("setAtom_data", [](System* s, int i, const Atom& a){ s->atom(i)=a; })        
+        .def("getAtom", py::overload_cast<int>(&System::atom, py::const_))
+        .def("setAtom", [](System* s, int i, const Atom& a){ s->atom(i)=a; })
 
         // operations with atoms
         .def("atoms_dup", &System::atoms_dup)

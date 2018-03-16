@@ -82,7 +82,7 @@ class System {
     friend class Selection_parser;
     // Mol_file needs an access too
     friend class Mol_file;
-    friend class Atom_proxy;
+
 public:    
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     /// @name Constructors and operators
