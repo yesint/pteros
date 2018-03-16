@@ -801,7 +801,7 @@ bool Selection::is_large(){
 }
 
 
-void Selection::process_pbc_atom(int& a){
+void Selection::process_pbc_atom(int& a) const {
     if(a>=size()) throw Pteros_error("Wrong pbc atom {} for selection with {} atoms!",a,size());
     if(a<0) a = size()/2;
 }
@@ -897,6 +897,12 @@ void Selection::translate(Vector3f_const_ref v){
     int i,n = _index.size();
     #pragma omp parallel for
     for(i=0; i<n; ++i) xyz(i) += v;
+}
+
+void Selection::translate_to(Vector3f_const_ref p, bool mass_weighted, Array3i_const_ref pbc, int pbc_atom){
+    process_pbc_atom(pbc_atom);
+    auto c = center(mass_weighted,pbc,pbc_atom);
+    translate(p-c);
 }
 
 // Rotation around given vector relative to pivot
@@ -1320,6 +1326,16 @@ string Selection::to_gromacs_ndx(string name)
     return s.str();
 }
 
+int Selection::find_index(int global_index)
+{
+    auto res = find(_index.begin(),_index.end(),global_index);
+    if(res!=_index.end())
+        return res-_index.begin();
+    else
+        return -1;
+}
+
+
 
 void Selection::each_residue(std::vector<Selection>& sel) const {            
     sel.clear();
@@ -1593,7 +1609,7 @@ void Selection::split_by_contiguous_residue(std::vector<Selection> &parts)
     }
 }
 
-void Selection::inertia(Vector3f_ref moments, Matrix3f_ref axes, Array3i_const_ref pbc, bool pbc_atom) const{
+void Selection::inertia(Vector3f_ref moments, Matrix3f_ref axes, Array3i_const_ref pbc, int pbc_atom) const{
     int n = size();
     int i;
     // Compute the central tensor of inertia. Place it into axes
@@ -1658,7 +1674,9 @@ void Selection::inertia(Vector3f_ref moments, Matrix3f_ref axes, Array3i_const_r
     moments = solver.eigenvalues();
 }
 
-float Selection::gyration(Array3i_const_ref pbc, bool pbc_atom) const {
+float Selection::gyration(Array3i_const_ref pbc, int pbc_atom) const {
+    process_pbc_atom(pbc_atom);
+
     int n = size();
     int i;
     float d, a = 0.0, b = 0.0;
@@ -1699,6 +1717,7 @@ void Selection::wrap(Array3i_const_ref pbc){
 }
 
 void Selection::unwrap(Array3i_const_ref pbc, int pbc_atom){
+    process_pbc_atom(pbc_atom);
     Vector3f c;
     if( (pbc==0).all() && pbc_atom>=0){
         c = xyz(pbc_atom);
@@ -1711,6 +1730,7 @@ void Selection::unwrap(Array3i_const_ref pbc, int pbc_atom){
 }
 
 int Selection::unwrap_bonds(float d, Array3i_const_ref pbc, int pbc_atom){
+    process_pbc_atom(pbc_atom);
     int Nparts = 1;
 
     // a connectivity structure in the form con[i]->1,2,5...
@@ -1793,7 +1813,8 @@ int Selection::unwrap_bonds(float d, Array3i_const_ref pbc, int pbc_atom){
     return Nparts;
 }
 
-Eigen::Affine3f Selection::principal_transform(Array3i_const_ref pbc, bool pbc_atom) const {
+Eigen::Affine3f Selection::principal_transform(Array3i_const_ref pbc, int pbc_atom) const {
+    process_pbc_atom(pbc_atom);
     Affine3f rot;
     Vector3f cm = center(true,pbc,pbc_atom);
     // We need to const-cast in order to call non-const translate() from const method
@@ -1828,7 +1849,7 @@ Eigen::Affine3f Selection::principal_transform(Array3i_const_ref pbc, bool pbc_a
     return Translation3f(cm) * rot * Translation3f(-cm) ;
 }
 
-void Selection::principal_orient(Array3i_const_ref pbc, bool pbc_atom){
+void Selection::principal_orient(Array3i_const_ref pbc, int pbc_atom){
     Affine3f tr = principal_transform(pbc,pbc_atom);
     apply_transform(tr);
 }

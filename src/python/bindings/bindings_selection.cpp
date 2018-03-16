@@ -160,7 +160,7 @@ void make_bindings_Selection(py::module& m){
         .def("set_tag",py::overload_cast<const std::vector<string>&>(&Selection::set_tag))
 
         // Properties
-        .def("center",&Selection::center,"mass_weighted"_a=false,"pbc"_a=noPBC,"pbc_atom"_a=0)
+        .def("center",&Selection::center,"mass_weighted"_a=false,"pbc"_a=noPBC,"pbc_atom"_a=-1)
         .def("minmax",[](Selection* sel){Vector3f min,max; sel->minmax(min,max); return py::make_tuple(min,max);})
         .def("is_large",&Selection::is_large)
 
@@ -206,9 +206,9 @@ void make_bindings_Selection(py::module& m){
                 Matrix3f ax;
                 sel->inertia(m,ax,pbc,pbc_atom);
                 return py::make_tuple(m,ax.transpose());
-            },"pbc"_a=noPBC,"pbc_atom"_a=0)
+            },"pbc"_a=noPBC,"pbc_atom"_a=-1)
 
-        .def("gyration",&Selection::gyration, "pbc"_a=noPBC,"pbc_atom"_a=0)
+        .def("gyration",&Selection::gyration, "pbc"_a=noPBC,"pbc_atom"_a=-1)
 
         .def("distance", &Selection::distance, "i"_a, "j"_a, "pbc"_a=fullPBC)
         .def("angle", &Selection::angle, "i"_a, "j"_a, "k"_a, "pbc"_a=fullPBC)
@@ -219,14 +219,14 @@ void make_bindings_Selection(py::module& m){
         .def("rotate",&Selection::rotate)
 
         .def("wrap", &Selection::wrap, "pbc"_a=fullPBC)
-        .def("unwrap", &Selection::unwrap, "pbc"_a=fullPBC, "lead_ind"_a=-1)
-        .def("unwrap_bonds", &Selection::unwrap_bonds, "d"_a, "pbc"_a=fullPBC, "lead_ind"_a=0)
+        .def("unwrap", &Selection::unwrap, "pbc"_a=fullPBC, "pbc_atom"_a=-1)
+        .def("unwrap_bonds", &Selection::unwrap_bonds, "d"_a, "pbc"_a=fullPBC, "pbc_atom"_a=-1)
         .def("principal_transform", [](Selection* sel, Array3i_const_ref pbc, bool pbc_atom){
                 Matrix4f m = sel->principal_transform(pbc,pbc_atom).matrix().transpose();
                 return m;
-            }, "pbc"_a=noPBC,"pbc_atom"_a=0)
+            }, "pbc"_a=noPBC,"pbc_atom"_a=-1)
 
-        .def("principal_orient",&Selection::principal_orient,"pbc"_a=noPBC,"pbc_atom"_a=0)
+        .def("principal_orient",&Selection::principal_orient,"pbc"_a=noPBC,"pbc_atom"_a=-1)
 
         // Fitting and rmsd
         .def("rmsd",py::overload_cast<int>(&Selection::rmsd,py::const_))
@@ -257,6 +257,7 @@ void make_bindings_Selection(py::module& m){
         .def("coord_dependent",&Selection::coord_dependent)
         .def("flatten",&Selection::flatten)
         .def("to_gromacs_ndx",&Selection::to_gromacs_ndx)
+        .def("find_index",&Selection::find_index)
 
         // Indexing and iterating
         .def("__iter__", [](Selection* s) {
