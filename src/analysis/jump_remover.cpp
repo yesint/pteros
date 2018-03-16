@@ -130,8 +130,8 @@ void Jump_remover::remove_jumps(System& system){
             ind = no_jump_ind[i];
             // Get image closest to running reference
             system.xyz(ind,0) = system.box(0).closest_image(system.xyz(ind,0),
-                                                                no_jump_ref.col(i),
-                                                                dims);
+                                                            no_jump_ref.col(i),
+                                                            dims);
             // Update running reference
             no_jump_ref.col(i) = system.xyz(ind,0);
         }

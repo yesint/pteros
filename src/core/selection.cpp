@@ -1359,7 +1359,6 @@ void Selection::each_residue(std::vector<Selection>& sel) const {
         // Go forward
         while( e+1<system->atoms.size() && system->atoms[e+1].resindex == ind){ ++e; };
         sel.push_back(Selection(*system));
-
         sel.back().modify(b,e);
         // Mark as used
         used.insert(ind);
