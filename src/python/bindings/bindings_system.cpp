@@ -91,12 +91,6 @@ void make_bindings_System(py::module& m){
         .def("frame_delete", &System::frame_delete, "b"_a=0, "e"_a=-1)
         .def("frame_swap", &System::frame_swap)
 
-        // Indexing operator returns frame
-        .def("__getitem__", [](System& s, size_t i) {
-                if(i >= s.num_frames()) throw py::index_error();
-                return s.frame(i); // Returns atom proxy object
-            }, py::keep_alive<0,1>())
-
         // Accessors
         .def("getBox", py::overload_cast<int>(&System::box, py::const_), "fr"_a=0)
         .def("setBox", [](System* s,const Periodic_box& b, int fr){ s->box(fr)=b; }, "box"_a, "fr"_a=0)
