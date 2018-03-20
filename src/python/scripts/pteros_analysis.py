@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from pteros import *
-import sys, pkgutil, copy, os, imp, signal, glob
+import sys, os, signal, glob
 from inspect import getmembers, isclass
 
 import pteros_analysis_plugins
@@ -40,7 +40,6 @@ if __name__ == '__main__':
     opt,task_opts = parse_command_line(sys.argv,"task")
 
     # check if help is asked
-    help_topic = ""
     if opt.has("help"):
         help_topic = opt("help","").as_string()
         if help_topic == "":
@@ -66,28 +65,29 @@ if __name__ == '__main__':
     python_tasks = []
 
     # If explicitly asked for help show it
-    if help_topic == "traj":
-        # Show trajectory processing options
-        print( reader.help() )
-        sys.exit(0)
-    elif help_topic == "plugins":
-        print('Available plugins:')
-        for pl in pteros_analysis_plugins.__all__:
-            print(' ',pl)
-        sys.exit(0)
-    elif help_topic in pteros_analysis_plugins.__all__:
-        module = __import__(pteros_analysis_plugins.__name__ + "." + help_topic, fromlist="dummy")
-        class_ = getattr(module, help_topic) # Get class by name
-        obj = class_(opt) # create instance with fake options
-        # Show plugin help
-        print('-------------------------')
-        print('PLUGIN "{}":'.format(help_topic))
-        print('-------------------------')
-        print(obj.help(),'\n')
-        sys.exit(0)
-    else:
-        print('No such plugin "{}"'.format(help_topic))
-        sys.exit(0)
+    if opt.has("help"):
+        if help_topic == "traj":
+            # Show trajectory processing options
+            print( reader.help() )
+            sys.exit(0)
+        elif help_topic == "plugins":
+            print('Available plugins:')
+            for pl in pteros_analysis_plugins.__all__:
+                print(' ',pl)
+            sys.exit(0)
+        elif help_topic in pteros_analysis_plugins.__all__:
+            module = __import__(pteros_analysis_plugins.__name__ + "." + help_topic, fromlist="dummy")
+            class_ = getattr(module, help_topic) # Get class by name
+            obj = class_(opt) # create instance with fake options
+            # Show plugin help
+            print('-------------------------')
+            print('PLUGIN "{}":'.format(help_topic))
+            print('-------------------------')
+            print(obj.help(),'\n')
+            sys.exit(0)
+        else:
+            print('No such plugin "{}"'.format(help_topic))
+            sys.exit(0)
 
 
     # Load all supplied tasks
