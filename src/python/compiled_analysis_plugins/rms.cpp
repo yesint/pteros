@@ -8,7 +8,7 @@
  * (C) 2009-2018, Semen Yesylevskyy
  *
  * All works, which use Pteros, should cite the following papers:
- *  
+ *
  *  1.  Semen O. Yesylevskyy, "Pteros 2.0: Evolution of the fast parallel
  *      molecular analysis library for C++ and python",
  *      Journal of Computational Chemistry, 2015, 36(19), 1480–1488.
@@ -26,28 +26,30 @@
 
 
 #include "pteros/python/compiled_plugin.h"
-#include "pteros/core/pteros_error.h"
 #include <fstream>
+#include "spdlog/fmt/fmt.h"
 
 using namespace std;
 using namespace pteros;
 
-class rms: public pteros::Compiled_plugin_base {
-public:
-    rms(pteros::Trajectory_processor* pr, const pteros::Options& opt): Compiled_plugin_base(pr,opt) {}
+TASK_SERIAL(rms)
+public:    
 
-    string help(){
+    string help() override {
         return  "Purpose:\n"
-                "\tComputes RMSD of each frame for given selection.\n"
-                "\tThe first loaded frame is used as a reference.\n"
+                "\tComputes RMSD of each frame for given selection.\n"                
                 "\tSelection should be coordinate-independent.\n"
                 "Output:\n"
-                "\tFile <label>.dat containing the following columns:\n"
+                "\tFile rms_id<id>.dat containing the following columns:\n"
                 "\ttime RMSD\n"
                 "\tAlso reports mean RMSD in the file header.\n"
                 "Options:\n"
-                "\t-selection <string>\n"
-                "\t\tSelection text\n"
+                "\t-fit_sel <string>\n"
+                "\t\tFitting selection text\n"
+
+                "\t-rms_sel <string string...>\n"
+                "\t\tRMSD selections texts\n"
+
                 "\t-nojump <distance>. Default: 0\n"
                 "\t\tRemove jumps of atoms over periodic box boundary.\n"
                 "\t\tAtoms, which should not jump, are unwrapped with\n"
@@ -63,14 +65,22 @@ protected:
     void pre_process(){        
         data.clear();        
 
-        // rms_sel is required
-        rms_sel.modify(system, options("rms_sel").as_string() );
+        // rms_selections
+        vector<string> strs = options("rms_sel").as_strings();
+        if(strs.size()==0) throw Pteros_error("At least one rms selection required!");
+        // Create selections
+        for(auto& s: strs) rms_sel.push_back( Selection(system,s) );
 
         // fit_sel is optional
         string fit_str = options("fit_sel","").as_string();
-        if(fit_str!="") fit_sel.modify(system, fit_str);
+        if(fit_str!=""){
+            fit_sel.modify(system, fit_str);
+        } else {
+            log->info("Using first rms selection for fitting");
+            fit_sel = rms_sel[0];
+        }
 
-        if((fit_sel.size()>0 && fit_sel.size()<3) || (fit_sel.size()==0 && rms_sel.size()<3)){
+        if(fit_sel.size()<3){
             throw Pteros_error("Can't fit selection with less than 3 atoms!");
         }
 
@@ -78,49 +88,53 @@ protected:
         if(d>=0){
             // Add our selections to nojump list
             jump_remover.add_atoms(fit_sel);
-            jump_remover.add_atoms(rms_sel);
+            for(auto& sel: rms_sel) jump_remover.add_atoms(sel);
             jump_remover.set_unwrap_dist(d);
         }
 
-        // Create frame 1 for fitting
-        system.frame_dup(0);
+        data.resize(rms_sel.size());
     }     
 
-    void process_frame(const pteros::Frame_info &info){                
-
-        // Compute RMSD with fixed reference in frame 1
-        if(fit_sel.size()>2){
-            Eigen::Affine3f trans = fit_sel.fit_transform(0,1);
-            rms_sel.apply_transform(trans);
-        } else {
-            rms_sel.fit(0,1);
+    void process_frame(const pteros::Frame_info &info){
+        if(info.valid_frame==0){
+            // Create frame 1 for fitting
+            system.frame_dup(0);
         }
 
-        float v = rms_sel.rmsd(0,1);
-        data.push_back(v);        
+        // Compute RMSD with fixed reference in frame 1        
+        auto trans = fit_sel.fit_transform(0,1);
+        for(int i=0; i<rms_sel.size(); ++i){
+            rms_sel[i].apply_transform(trans);
+            float v = rms_sel[i].rmsd(0,1);
+            data[i].push_back(v);
+        }
     }
 
     void post_process(const pteros::Frame_info &info){        
         // Output
-        string fname = label+".dat";
+        string fname = fmt::format("rms_id{}.dat",get_id());
         // Get time step in frames and time
         float dt = (info.last_time-info.first_time)/(float)(info.valid_frame);
 
         ofstream f(fname.c_str());
-        f << "# RMSD of selection [" << rms_sel.get_text() << "]" << endl;
-        if(fit_sel.size()>2){
-            f << "# after fitting of selection [" << fit_sel.get_text() << "]" << endl;
+        f << "# RMSD of selections:"<<endl;
+        for(int i=0; i<rms_sel.size(); ++i){
+            f << "# " << i << ": '" << rms_sel[i].get_text().substr(0,80) << "'" << endl;
         }
+        f << "# after fitting of selection '" << fit_sel.get_text() << "'" << endl;
         f << "# time(ns) RMSD(nm)" << endl;
-        for(int i=0; i<data.size(); ++i){
-            f << i*dt << " " << data[i] << endl;
+        for(int i=0; i<data[0].size(); ++i){
+            f << i*dt << " ";
+            for(int j=0; j<data.size(); ++j) f << data[j][i] << " ";
+            f << endl;
         }
         f.close();
     }
 
 private:
-    vector<float> data;
-    Selection fit_sel, rms_sel;
+    vector<vector<float>> data;
+    Selection fit_sel;
+    vector<Selection> rms_sel;
 };
 
 

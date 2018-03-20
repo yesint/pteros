@@ -1,7 +1,7 @@
 
 SET(PLUGINS    
     box
-    #rms
+    rms
     #interaction_energy
     #covar_matr
     #distance_matr
