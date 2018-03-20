@@ -24,6 +24,27 @@ pteros_analysis.py -f <files> <processing options>... -task name1 <task1 options
 """)
 #--------------------------------------
 
+def get_class_name(module):
+    # See what is inside
+    class_list = [o for o in getmembers(module) if (isclass(o[1]) and not ('_pteros' in str(o[1]))) ]
+
+    # Check parents of found classes
+    nparent = 0
+    for c in class_list:
+        for base in c[1].__bases__:
+            if 'Task_base' in str(base):
+               nparent+=1
+               class_name = c[0]
+
+    if nparent!=1:
+        log.error('Plugin file "{}" must contain exactly one class derived from Task_base!'.format(f))
+        print(class_list)
+        exit()
+
+    return class_name
+
+#--------------------------------------
+
 if __name__ == '__main__':            
     # Show help if no options at all
     if len(sys.argv)==1:
@@ -40,6 +61,7 @@ if __name__ == '__main__':
     opt,task_opts = parse_command_line(sys.argv,"task")
 
     # check if help is asked
+    help_topic = None
     if opt.has("help"):
         help_topic = opt("help","").as_string()
         if help_topic == "":
@@ -65,7 +87,7 @@ if __name__ == '__main__':
     python_tasks = []
 
     # If explicitly asked for help show it
-    if opt.has("help"):
+    if help_topic!=None:
         if help_topic == "traj":
             # Show trajectory processing options
             print( reader.help() )
@@ -103,8 +125,10 @@ if __name__ == '__main__':
     task_num = 0
     log.debug("Creating task instances:")
     for f in files_to_load:
+        python_file=False
         # If file ends explicitly by .py then it is custom plugin
         if f.split('.')[-1] == "py":
+            python_file=True
             # Get full path
             full = os.path.abspath(f)
             # extract module name
@@ -113,26 +137,21 @@ if __name__ == '__main__':
             sys.path.append(os.path.dirname(full))
             log.debug("\tLoading custom plugin '%s'" % f)
             module = __import__(mod_name, fromlist="dummy")
-            # See what is inside
-            class_list = [o for o in getmembers(module) if (isclass(o[1]) and not ('pteros' in str(o[1]))) ]
-            # Check parents of found classes
-            nparent = 0
-            for c in class_list:
-                for base in c[1].__bases__:
-                    if 'Task_base' in str(base):
-                       nparent+=1
-                       class_name = c[0]
 
-            if nparent!=1:
-                log.error('Plugin file "{}" must contain exactly one class derived from Task_base!'.format(f))
-                print(class_list)
-                exit()
+            # See what is inside
+            class_name = get_class_name(module)
 
         else:
             # Seems to be plugin from standard location
-            log.debug("\tLoading standard plugin '%s'" % f)
+            log.debug("\tLoading standard plugin '%s'" % f)            
             module = __import__(pteros_analysis_plugins.__name__ + "." + f, fromlist="dummy")            
-            class_name = f
+            # Check if this is compiled plugin
+            if module.__file__.split('.')[-1] == 'py':
+                class_name = get_class_name(module)
+                python_file=True
+            else:
+                class_name = f
+
 
         # Create needed number of task instances
         for task in task_opts:
@@ -141,16 +160,14 @@ if __name__ == '__main__':
                 class_ = getattr(module, class_name) # Get class by name
                 obj = class_(task) # create instance
                 # Workaround to set the correct class name in logger
-                if f.split('.')[-1] == "py":
+                if python_file==True:
                     obj._class_name = obj.__class__.__name__
                 task_num += 1
                 reader.add_task( obj )
                 log.debug('\t\tCreated instance of task {}'.format(class_name))
-                if f.split('.')[-1] == "py":
+                if python_file==True:
                     # For pure python plugins
-                    python_tasks.append(obj) # Save it
-
-                print(obj.help())
+                    python_tasks.append(obj) # Save it                
 
 
     #--------------------------------------

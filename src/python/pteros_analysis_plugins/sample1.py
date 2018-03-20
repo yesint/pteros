@@ -1,16 +1,16 @@
 from pteros import *
 
-class Task:		
+class Sample1(Task_base):
 	def pre_process(self):
-		sel_text = self.options.get_value_string("selection")
-		self.sel = Selection(self.system, sel_text )
-		self.use_mass = self.options.get_value_bool("mass_weighted",False)
-		print "Working on selection '%s'" % self.sel.get_text()
-		print "There are %i atoms in selection" % self.sel.size()
+                sel_text = self.options("selection").as_string()
+                self.sel = self.system(sel_text)
+                self.use_mass = self.options("mass_weighted","false").as_bool()
+                self.log.info("Working on selection '{}'".format(self.sel.get_text()))
+                self.log.info("There are {} atoms in selection".format(self.sel.size()))
 		
 	def post_process(self,info):
-		print "Finished!"
+                self.log.info("Finished!")
 		
 	def process_frame(self,info):
-		print "Frame ", info.absolute_frame, " time ", info.absolute_time
-		print "Selection center: ", self.sel.center(self.use_mass)
+                self.log.info("Frame {} time {}".format(info.absolute_frame,info.absolute_time))
+                self.log.info("Selection center: {}".format(self.sel.center(self.use_mass)))
