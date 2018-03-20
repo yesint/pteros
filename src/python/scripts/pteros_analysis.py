@@ -162,13 +162,10 @@ if __name__ == '__main__':
                 # Workaround to set the correct class name in logger
                 if python_file==True:
                     obj._class_name = obj.__class__.__name__
+                    python_tasks.append(obj) # Save it
                 task_num += 1
                 reader.add_task( obj )
-                log.debug('\t\tCreated instance of task {}'.format(class_name))
-                if python_file==True:
-                    # For pure python plugins
-                    python_tasks.append(obj) # Save it                
-
+                log.debug('\t\tCreated instance of task {}'.format(class_name))                
 
     #--------------------------------------
 

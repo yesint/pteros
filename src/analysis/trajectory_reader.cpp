@@ -116,7 +116,7 @@ Trajectory_reader::Trajectory_reader(const Options &opt): options(opt)
 
 void Trajectory_reader::run(){    
     // Separate logger (not registered since only used here)
-    auto log = create_logger("trj_processor");
+    auto log = create_logger("trj_reader");
 
     // Preparation stage
     log->debug("Starting trajectory processing");
@@ -172,9 +172,6 @@ void Trajectory_reader::run(){
 
     if(traj_files.empty()) throw Pteros_error("At least one trajectory file is required!");
 
-    // Print statistics of what we will read
-
-
     // Ensure we have tasks
     if(tasks.size()<1) throw Pteros_error("At least one task is required!");
     // Will read into the system of the first task
@@ -193,16 +190,16 @@ void Trajectory_reader::run(){
         // we have both topology and structure
         system.load(structure_file);
         system.load(top_file); // No coordinates from top!
-    } else {
+    } else {        
         // No topology and no structure!
         // try using first TNG traj file as structure
-        for(auto& s: traj_files){
+        for(auto& s: traj_files){            
             auto trj = Mol_file::recognize(s);
             auto c = trj->get_content_type();
-            if(c.atoms() && c.traj()){
+            if(c.atoms() && c.traj()){                
                 structure_file = s;
                 // We only need to load only atoms from TNG here
-                log->debug("Using TNG trajectory file 's' to read structure...", s);
+                log->debug("Using TNG trajectory file '{}' to read structure...", s);
                 trj->open('r');
                 Frame fr;
                 trj->read(&system, &fr, Mol_file_content().atoms(true));
@@ -210,9 +207,9 @@ void Trajectory_reader::run(){
                 break;
             }
         }
+
         // If still no structure give up
-        if(structure_file=="")
-            Pteros_error("Structure AND/OR topology file is required!");
+        if(structure_file=="") throw Pteros_error("Structure AND/OR topology file is required!");
     }
 
     // Analysing which kind of tasks we have
