@@ -71,6 +71,8 @@ protected:
         // Create selections
         for(auto& s: strs) rms_sel.push_back( Selection(system,s) );
 
+        if(check_selection_overlap(rms_sel)) throw Pteros_error("Selections should not overlap!");
+
         // fit_sel is optional
         string fit_str = options("fit_sel","").as_string();
         if(fit_str!=""){

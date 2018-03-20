@@ -732,7 +732,7 @@ class Selection {
 
     /// Finds local index in selection of provided global index
     /// Returns -1 if not found
-    int find_index(int global_index);
+    int find_index(int global_index);       
     /// @}
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -982,6 +982,9 @@ private:
     Selection* sel_ptr;
     Atom_proxy proxy;
 };
+
+/// Checks if several selections overlap
+bool check_selection_overlap(const std::vector<Selection> &sel_vec);
 
 } // namespace pteros
 #endif /* SELECTION_H */

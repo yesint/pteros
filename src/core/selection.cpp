@@ -580,6 +580,22 @@ Selection operator-(const Selection &sel1, const Selection &sel2)
     return res;
 }
 
+bool check_selection_overlap(const std::vector<Selection> &sel_vec)
+{
+    vector<int> inters;
+    for (int i=0; i<sel_vec.size()-1; ++i){
+        for (int j=i+1; j<sel_vec.size(); ++j){
+            if(sel_vec[i].size()>0 && sel_vec[j].size()>0){
+                set_intersection(sel_vec[i].index_begin(), sel_vec[i].index_end(),
+                                 sel_vec[j].index_begin(), sel_vec[j].index_end(),
+                                 back_inserter(inters));
+            }
+            if (!inters.empty()) return true;
+        }
+    }
+    return false;
+}
+
 } // namespace pteros
 
 // Copy constructor
