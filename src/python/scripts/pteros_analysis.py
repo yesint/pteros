@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from pteros import *
-import sys, pkgutil, copy, os, imp, signal
+import sys, pkgutil, copy, os, imp, signal, glob
 from inspect import getmembers, isclass
 
 import pteros_analysis_plugins
@@ -18,13 +18,14 @@ pteros_analysis.py -f <files> <processing options>... -task name1 <task1 options
     List available analysis plugins
 -help <plugin name>
     Detailed help for particular analysis plugin
--help all
-    Detailed help for all analysis plugins and trajectory processing options
+
+-log_level [off,trace,debug,info,warn,err,critical], default: "info"
+    Set logging level
 """)
 #--------------------------------------
 
 if __name__ == '__main__':            
-    # Check if we have at least one command-line argument:
+    # Show help if no options at all
     if len(sys.argv)==1:
         # Show usage message
         general_help()
@@ -38,6 +39,14 @@ if __name__ == '__main__':
     # Parse command line
     opt,task_opts = parse_command_line(sys.argv,"task")
 
+    # check if help is asked
+    help_topic = ""
+    if opt.has("help"):
+        help_topic = opt("help","").as_string()
+        if help_topic == "":
+            general_help()
+            sys.exit(0)
+
     # Set global logging level
     log_level = opt('log_level','info').as_string()
     set_log_level(log_level)
@@ -50,10 +59,6 @@ if __name__ == '__main__':
     # Create logger
     log = Logger('analysis')
 
-    if len(task_opts)==0:        
-        general_help()
-        sys.exit(0)
-
     # Create trajectory reader
     reader = Trajectory_reader(opt)
 
@@ -61,11 +66,29 @@ if __name__ == '__main__':
     python_tasks = []
 
     # If explicitly asked for help show it
-    if opt.has("help"):
-        topic = opt("help","all").as_string()
-        if topic == "traj":
-            # Show trajectory processing options
-            print( reader.help() )
+    if help_topic == "traj":
+        # Show trajectory processing options
+        print( reader.help() )
+        sys.exit(0)
+    elif help_topic == "plugins":
+        print('Available plugins:')
+        for pl in pteros_analysis_plugins.__all__:
+            print(' ',pl)
+        sys.exit(0)
+    elif help_topic in pteros_analysis_plugins.__all__:
+        module = __import__(pteros_analysis_plugins.__name__ + "." + help_topic, fromlist="dummy")
+        class_ = getattr(module, help_topic) # Get class by name
+        obj = class_(opt) # create instance with fake options
+        # Show plugin help
+        print('-------------------------')
+        print('PLUGIN "{}":'.format(help_topic))
+        print('-------------------------')
+        print(obj.help(),'\n')
+        sys.exit(0)
+    else:
+        print('No such plugin "{}"'.format(help_topic))
+        sys.exit(0)
+
 
     # Load all supplied tasks
     files_to_load = set()
@@ -126,6 +149,8 @@ if __name__ == '__main__':
                 if f.split('.')[-1] == "py":
                     # For pure python plugins
                     python_tasks.append(obj) # Save it
+
+                print(obj.help())
 
 
     #--------------------------------------
