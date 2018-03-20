@@ -322,7 +322,7 @@ std::vector<std::pair<string,Selection>> System::load_gromacs_ndx(string fname)
         if(line.find_first_of('[')!=std::string::npos){
             if(grname!="") res.back().second.modify(vec);
             ss >> dum >> grname;
-            res.push_back({grname,Selection(*this)});
+            res.emplace_back(grname,Selection(*this));
             vec.clear();
         } else {
             // not a name. Try getting numbers

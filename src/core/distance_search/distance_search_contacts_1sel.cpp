@@ -163,7 +163,7 @@ void Distance_search_contacts_1sel::search_in_cell(int x, int y, int z,
                 if(d<=cutoff2){
                     ind1 = v[i1].index; //index
                     ind2 = v[i2].index; //index
-                    bon.push_back(Vector2i(ind1,ind2));
+                    bon.emplace_back(ind1,ind2);
                     if(dist_vec) dist_vec->push_back(sqrt(d));
                 }
             }
@@ -178,7 +178,7 @@ void Distance_search_contacts_1sel::search_in_cell(int x, int y, int z,
                 if(d<=cutoff2){
                     ind1 = v[i1].index; //index
                     ind2 = v[i2].index; //index
-                    bon.push_back(Vector2i(ind1,ind2));
+                    bon.emplace_back(ind1,ind2);
                     if(dist_vec) dist_vec->push_back(sqrt(d));
                 }
             }

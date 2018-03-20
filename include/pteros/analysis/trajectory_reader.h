@@ -70,7 +70,7 @@ public:
 
         /// Adds new task
         void add_task(Task_base* task){
-            tasks.push_back( Task_ptr(task) );
+            tasks.emplace_back(task);
         }
 
         void add_task(const Task_ptr& task){

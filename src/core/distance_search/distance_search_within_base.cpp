@@ -95,15 +95,14 @@ void Distance_search_within_base::do_search(int sel_size)
         // Launch threads
         vector<thread> threads;
         for(int i=0;i<nt;++i){
-            threads.push_back( thread(
+            threads.emplace_back(
                                    std::bind(
                                        &Distance_search_within_base::do_part,
                                        this,
                                        max_dim,
                                        b[i],
                                        e[i]
-                                   )
-                                )
+                                   )                                
                              );
         }
 

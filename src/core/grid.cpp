@@ -81,9 +81,9 @@ void Grid::populate(const Selection &sel, Vector3f_const_ref min, Vector3f_const
         if(n3<0 || n3>=NZ) continue;
 
         if(abs_index){
-            cell(n1,n2,n3).push_back(Grid_element(sel.index(i),coor));
+            cell(n1,n2,n3).emplace_back(sel.index(i),coor);
         } else {
-            cell(n1,n2,n3).push_back(Grid_element(i,coor));
+            cell(n1,n2,n3).emplace_back(i,coor);
         }
     }
 }
@@ -143,9 +143,9 @@ void Grid::populate_periodic(const Selection &sel, const Periodic_box &box, bool
 
         // Assign to grid
         if(abs_index){
-            cell(n1,n2,n3).push_back(Grid_element(sel.index(i),ptr));
+            cell(n1,n2,n3).emplace_back(sel.index(i),ptr);
         } else {
-            cell(n1,n2,n3).push_back(Grid_element(i,ptr));
+            cell(n1,n2,n3).emplace_back(i,ptr);
         }
     }
 }

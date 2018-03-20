@@ -95,7 +95,7 @@ void Distance_search_contacts::do_search(){
         // Launch threads
         vector<thread> threads;
         for(int i=0;i<nt;++i){
-            threads.push_back( thread(
+            threads.emplace_back(
                                    std::bind(
                                        &Distance_search_contacts::do_part,
                                        this,
@@ -104,8 +104,7 @@ void Distance_search_contacts::do_search(){
                                        e[i],
                                        ref(_bon[i]),
                                        ref(_dist_vec_ptr[i])
-                                   )
-                                )
+                                   )                                
                              );
         }
 
@@ -158,7 +157,7 @@ void Distance_search_contacts::search_in_pair_of_cells(int x1, int y1, int z1, /
                 if(d<=cutoff2){
                     ind1 = v1[i1].index; //index
                     ind2 = v2[i2].index; //index
-                    bon.push_back(Vector2i(ind1,ind2));
+                    bon.emplace_back(ind1,ind2);
                     if(dist_vec) dist_vec->push_back(sqrt(d));
                 }
             }
@@ -173,7 +172,7 @@ void Distance_search_contacts::search_in_pair_of_cells(int x1, int y1, int z1, /
                 if(d<=cutoff2){
                     ind1 = v1[i1].index; //index
                     ind2 = v2[i2].index; //index
-                    bon.push_back(Vector2i(ind1,ind2));
+                    bon.emplace_back(ind1,ind2);
                     if(dist_vec) dist_vec->push_back(sqrt(d));
                 }
             }

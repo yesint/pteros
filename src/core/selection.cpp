@@ -1374,8 +1374,7 @@ void Selection::each_residue(std::vector<Selection>& sel) const {
         while( b-1>=0 && system->atoms[b-1].resindex == ind){ --b; };
         // Go forward
         while( e+1<system->atoms.size() && system->atoms[e+1].resindex == ind){ ++e; };
-        sel.push_back(Selection(*system));
-        sel.back().modify(b,e);
+        sel.emplace_back(*system,b,e);
         // Mark as used
         used.insert(ind);
     }
@@ -1548,8 +1547,7 @@ void Selection::split_by_residue(std::vector<Selection> &res)
     // Create selections
     map<int,vector<int> >::iterator it;
     for(it=m.begin();it!=m.end();it++){
-        res.push_back(Selection(*system));
-        res.back().modify( it->second.begin(), it->second.end() );
+        res.emplace_back(*system, it->second.begin(), it->second.end());
     }
 }
 
@@ -1572,8 +1570,7 @@ void Selection::split_by_molecule(std::vector<Selection> &res)
     // Create selections
     map<int,vector<int> >::iterator it;
     for(it=m.begin();it!=m.end();it++){
-        res.push_back(Selection(*system));
-        res.back().modify( it->second.begin(), it->second.end() );
+        res.emplace_back(*system, it->second.begin(), it->second.end());
     }
 }
 
@@ -1589,8 +1586,7 @@ void Selection::split_by_chain(std::vector<Selection> &chains)
     // Create selections
     map<char,vector<int> >::iterator it;
     for(it=m.begin();it!=m.end();it++){
-        chains.push_back(Selection(*system));
-        chains.back().modify( it->second.begin(), it->second.end() );
+        chains.emplace_back(*system, it->second.begin(), it->second.end());
     }
 }
 
@@ -1602,8 +1598,7 @@ void Selection::split_by_contiguous_index(std::vector<Selection> &parts)
     while(i<size()){
         while(i+1<size() && _index[i+1]==_index[i]+1) ++i;
         // Part finished
-        parts.push_back(Selection(*system));
-        parts.back().modify(_index[b],_index[i]);
+        parts.emplace_back(*system, _index[b],_index[i]);
         b = i+1;
         i = b;
     }
@@ -1617,8 +1612,7 @@ void Selection::split_by_contiguous_residue(std::vector<Selection> &parts)
     while(i<size()){
         while(i+1<size() && (resindex(i+1)==resindex(i)+1 || resindex(i+1)==resindex(i)) ) ++i;
         // Part finished
-        parts.push_back(Selection(*system));
-        parts.back().modify(_index[b],_index[i]);
+        parts.emplace_back(*system,_index[b],_index[i]);
         b = i+1;
         i = b;
     }

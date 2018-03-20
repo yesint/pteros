@@ -363,7 +363,7 @@ void Membrane::compute_properties(float d, bool use_external_normal, Vector3f_co
                 int cur_ind = index_map[leaflets_sel[l].index(i)];
                 for(int j=0; j<neib.size(); ++j){
                     int n = index_map[lip.local_sel.index(neib[j]-1)];
-                    if(cur_ind<n) neighbor_pairs.push_back(Vector2i(cur_ind,n));
+                    if(cur_ind<n) neighbor_pairs.emplace_back(cur_ind,n);
                 }
             }
 

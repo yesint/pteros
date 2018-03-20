@@ -69,7 +69,7 @@ protected:
         vector<string> strs = options("rms_sel").as_strings();
         if(strs.size()==0) throw Pteros_error("At least one rms selection required!");
         // Create selections
-        for(auto& s: strs) rms_sel.push_back( Selection(system,s) );
+        for(auto& s: strs) rms_sel.emplace_back(system,s);
 
         if(check_selection_overlap(rms_sel)) throw Pteros_error("Selections should not overlap!");
 

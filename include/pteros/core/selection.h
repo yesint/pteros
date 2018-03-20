@@ -780,8 +780,7 @@ class Selection {
         // Create selections
         typename map<Ret,vector<int> >::iterator it;
         for(it=m.begin();it!=m.end();it++){
-            parts.push_back(Selection(*system));
-            parts.back().modify( it->second.begin(), it->second.end() );
+            parts.emplace_back(*system, it->second.begin(), it->second.end());
         }
     }
 

@@ -150,7 +150,7 @@ bool TPR_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
                 break;
             case F_LJ14:
                 is_lj14_type[i]=true;
-                ff.LJ14_interactions.push_back({top.idef.iparams[i].lj14.c6A,top.idef.iparams[i].lj14.c12A});
+                ff.LJ14_interactions.emplace_back(top.idef.iparams[i].lj14.c6A,top.idef.iparams[i].lj14.c12A);
                 lj14_type_map[i] = ff.LJ14_interactions.size()-1;
                 break;
             default:
@@ -171,7 +171,7 @@ bool TPR_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
                         type = top.idef.il[it].iatoms[i++];
                         a1 = top.idef.il[it].iatoms[i++];
                         a2 = top.idef.il[it].iatoms[i++];
-                        ff.bonds.push_back({a1,a2});
+                        ff.bonds.emplace_back(a1,a2);
                     }
                 }
 
@@ -183,8 +183,8 @@ bool TPR_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
                         a3 = top.idef.il[it].iatoms[i++];
                         // One settles entry is *two* O-H bonds!
 
-                        ff.bonds.push_back({a1,a2});
-                        ff.bonds.push_back({a1,a3});
+                        ff.bonds.emplace_back(a1,a2);
+                        ff.bonds.emplace_back(a1,a3);
                     }
                 }
 
@@ -222,7 +222,7 @@ bool TPR_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
 
         // Molecules
         for(int i=0; i<top.mols.nr; ++i){
-            ff.molecules.push_back({top.mols.index[i],top.mols.index[i+1]-1});
+            ff.molecules.emplace_back(top.mols.index[i],top.mols.index[i+1]-1);
         }
 
         // Exclusions

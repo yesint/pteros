@@ -289,7 +289,7 @@ void Trajectory_reader::run(){
         // Now spawn workers
         for(int i=1; i<=num_threads; ++i){ // task 0 will run in master thread, so start from 1
             // Clone provided task to make new independent instance
-            tasks.push_back( Task_ptr(tasks[0]->clone()) );
+            tasks.emplace_back(tasks[0]->clone());
             //cout << "clonned " << i << endl;
             tasks[i]->set_id(i);            
             tasks[i]->driver->set_data_channel(reader_channel);
