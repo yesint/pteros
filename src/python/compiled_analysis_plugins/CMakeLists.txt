@@ -3,6 +3,7 @@ SET(PLUGINS
     box
     rms
     energy
+    energy_par
     #covar_matr
     #distance_matr
     #secondary

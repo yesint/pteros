@@ -87,6 +87,7 @@ protected:
               << "# '" << sel1.get_text() << "'" << endl
               << "# '" << sel2.get_text() << "'" << endl;
         }
+        out << "# cutoff: " << cutoff << endl;
 
         out << "# time total q lj" << endl;
     }

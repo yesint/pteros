@@ -29,40 +29,10 @@ public:
 
 protected:
 
-    void pre_process_handler() override
-    {
-        try {
-            pre_process();
-            jump_remover.remove_jumps(system); // Init jump remover
-
-        } catch (const std::exception& e) {
-            log->error("pre_process failed: {}", e.what());
-            std::terminate();
-        }
-    }
-
-    void process_frame_handler(const Frame_info& info) override
-    {
-        try {
-            jump_remover.remove_jumps(system);
-            process_frame(info);
-
-        } catch (const std::exception& e) {
-            log->error("process_frame failed on frame {}: {} ", info.valid_frame, e.what());
-            std::terminate();
-        }
-    }
-
-    virtual void post_process_handler(const Frame_info& info) override
-    {
-        try {
-            post_process(info);
-
-        } catch (const std::exception& e) {
-            log->error("post_process failed: {} ", e.what());
-            std::terminate();
-        }
-    }
+    void before_spawn_handler() override;
+    void pre_process_handler() override;
+    void process_frame_handler(const Frame_info& info) override;
+    virtual void post_process_handler(const Frame_info& info) override;
 };
 
 }

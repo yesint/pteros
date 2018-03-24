@@ -40,6 +40,9 @@ public:
     // Default implementation of collector for parallel tasks
     virtual void collect_data(const std::vector<std::shared_ptr<Task_base>>& tasks){}
 
+    // Default implementation of global preprocess for parallel tasks
+    virtual void before_spawn(){}
+
 protected:
     virtual void set_id(int _id){ task_id = _id; }
 
@@ -47,6 +50,10 @@ protected:
 
     // Handlers, which call actual functions
     // Could be overriden in subclasses
+    virtual void before_spawn_handler(){
+        before_spawn();
+    }
+
     virtual void pre_process_handler(){
         pre_process();
     }

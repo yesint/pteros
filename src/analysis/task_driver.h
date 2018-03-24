@@ -14,14 +14,10 @@ class Task_driver {
 public:
     Task_driver(Task_base* _task);
     virtual ~Task_driver();
-    void set_data_channel(const Data_channel_ptr& ch);
-    void init_with_first_frame(const System& sys);
-    void process_first_frame();
+    void set_data_channel_and_system(const Data_channel_ptr& ch, const System &sys);
     void process_until_end();
     void process_until_end_in_thread ();
-    void join_thread();    
-    void process_all(const System &sys);
-    void process_all_in_thread(const System &sys);
+    void join_thread();        
     Frame_info get_last_info(){return last_info;}
 private:
     Data_channel_ptr channel;
@@ -30,6 +26,7 @@ private:
     std::thread t;
     Frame_info last_info;
     bool stop_now; // Emergency stop flag for thread
+    bool pre_process_done;
 };
 
 

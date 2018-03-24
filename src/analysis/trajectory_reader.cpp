@@ -271,30 +271,22 @@ void Trajectory_reader::run(){
         // which leads to f*cking misterious crashes!
         tasks.reserve(num_threads+1);
 
-        // !!! Ensures that first valid frame is consumed by task[0] !!!
-        // !!! Ensures that pre_process() is only called by task[0] on first valid frame !!!
-        //
-        // Jump remover (and probably some other things) have to initialize
-        // itself on the first consumed frame
-        // but each instance starts from unpredictable frame.
-        // Thus we force task[0] to consume the first frame and call pre_process()
-        // than we clone it with initialized state for other threads        
         tasks[0]->set_id(0);
-        tasks[0]->driver->set_data_channel(reader_channel);
-        tasks[0]->driver->init_with_first_frame(system);
+        tasks[0]->driver->set_data_channel_and_system(reader_channel,system);
 
-        // Now spawn workers
+        // Call user-defined init before spawning tasks. System is already set.
+        // For parallel tasks jump remover is initialized inside this call
+        // and then is cloned around
+        tasks[0]->before_spawn_handler();
+
+        // Now spawn other workers
         for(int i=1; i<=num_threads; ++i){ // task 0 will run in master thread, so start from 1
             // Clone provided task to make new independent instance
             tasks.emplace_back(tasks[0]->clone());
-            //cout << "clonned " << i << endl;
-            tasks[i]->set_id(i);            
-            tasks[i]->driver->set_data_channel(reader_channel);
-            tasks[i]->driver->process_until_end_in_thread();            
+            tasks[i]->set_id(i);
+            tasks[i]->driver->set_data_channel_and_system(reader_channel,system);
+            tasks[i]->driver->process_until_end_in_thread();
         }
-
-        // Process frame 0 which we got before spawning threads
-        tasks[0]->driver->process_first_frame();
 
         // Run one worker in current thread        
         tasks[0]->driver->process_until_end();
@@ -321,10 +313,6 @@ void Trajectory_reader::run(){
 
         log->debug("Collecting results from {} task instances...", resultive_tasks.size()+1);
         tasks[0]->collect_data(resultive_tasks);
-
-        // Call post-process on master instance
-        tasks[0]->post_process(last_info);
-
 
     } else {
         /* Only serial tasks are present
@@ -355,8 +343,8 @@ void Trajectory_reader::run(){
 
                 // Configure worker
                 tasks[i]->set_id(i);
-                tasks[i]->driver->set_data_channel(worker_channels[i]);
-                tasks[i]->driver->process_all_in_thread(system);
+                tasks[i]->driver->set_data_channel_and_system(worker_channels[i],system);
+                tasks[i]->driver->process_until_end_in_thread();
             }
 
             // Recieve all frames for reader channel and dispatch them to workers
@@ -378,8 +366,8 @@ void Trajectory_reader::run(){
             // There is only one consumer, no need for multiple threads
             log->debug("\tRunning single serial task in master thread");
             tasks[0]->set_id(0);
-            tasks[0]->driver->set_data_channel(reader_channel);
-            tasks[0]->driver->process_all(system);
+            tasks[0]->driver->set_data_channel_and_system(reader_channel,system);
+            tasks[0]->driver->process_until_end();
         }
     } // Dispatching frames
 
