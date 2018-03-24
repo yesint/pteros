@@ -58,7 +58,7 @@ public:
 protected:
 
     void pre_process() override {
-        if(!system.force_field_ready()) throw Pteros_error("Need valid force fieled to compute energy!");
+        if(!system.force_field_ready()) throw Pteros_error("Need valid force field to compute energy!");
 
         cutoff = options("cutoff","0").as_float();
         is_periodic = options("periodic","true").as_bool();
@@ -72,7 +72,8 @@ protected:
         } else {            
             sel1.modify(system,sels[0]);
             sel2.modify(system,sels[1]);
-            is_self_energy = false;            
+            is_self_energy = false;
+            if(check_selection_overlap({sel1,sel2})) throw Pteros_error("Selections could not overlap!");
         }
 
         // Output        

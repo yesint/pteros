@@ -206,6 +206,10 @@ Vector2f Force_field::pair_energy(int at1, int at2, float r, float q1, float q2,
     }
 }
 
+float Force_field::get_cutoff(){
+    return std::min(rcoulomb,rvdw);
+}
+
 Force_field::Force_field():  ready(false) {}
 
 Force_field::Force_field(const Force_field &other){

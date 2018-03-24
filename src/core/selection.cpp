@@ -996,7 +996,7 @@ Vector2f non_bond_energy(const Selection& sel1,
 
     float d;
     if(cutoff==0){
-        d = std::min(sel1.get_system()->get_force_field().rcoulomb, sel1.get_system()->get_force_field().rvdw);
+        d = sel1.get_system()->get_force_field().get_cutoff();
     } else {
         d = cutoff;
     }
@@ -1145,7 +1145,7 @@ Vector2f Selection::non_bond_energy(float cutoff, bool pbc) const
 {
     float d;
     if(cutoff==0){
-        d = std::min(system->get_force_field().rcoulomb, system->get_force_field().rvdw);
+        d = system->get_force_field().get_cutoff();
     } else {
         d = cutoff;
     }

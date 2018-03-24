@@ -77,6 +77,7 @@ protected:
         // Set periodicity
         periodic = options("periodic","false").as_bool();
 
+        /*
         // Removing jumps for both selections if requested
         float unwrap_d = options("unwrap","-1").as_float();
         if(unwrap_d>=0){
@@ -85,11 +86,12 @@ protected:
             jump_remover.add_atoms(sel2);
             jump_remover.set_unwrap_dist(unwrap_d);
         }
+        */
 
         // Contacts cutoff
         cutoff = options("cutoff","0").as_float();
         // If zero cutoff given search for maximal sum of VDW distances
-        if(cutoff==0){
+        if(cutoff==-1){
             log->info("Computing largest sum VDW distances...");
             float maxd = 0.0, vdw1, vdw2;
             int i,j;
@@ -104,8 +106,12 @@ protected:
             // Get padding if given. Default is 0.1
             float pad = options("padding","0.1").as_float();
             cutoff = maxd + pad;
+        } else if(cutoff==0) {
+            cutoff = system.get_force_field().get_cutoff();
+        } else {
+            float d = system.get_force_field().get_cutoff();
+            if(cutoff!=d) log->warn("Requested cutoff {} is different from cutoff in ff {}!",cutoff,d);
         }
-        log->info("Search distances is {}",cutoff);
 
         // Keep transient contacts lasting only 1 frame?
         keep_transient = options("transient","false").as_bool();
