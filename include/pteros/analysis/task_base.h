@@ -38,7 +38,7 @@ public:
     virtual void post_process(const Frame_info& info) = 0;
 
     // Default implementation of collector for parallel tasks
-    virtual void collect_data(const std::vector<std::shared_ptr<Task_base>>& tasks){}
+    virtual void collect_data(const std::vector<std::shared_ptr<Task_base>>& tasks, int n_frames){}
 
     // Default implementation of global preprocess for parallel tasks
     virtual void before_spawn(){}

@@ -100,7 +100,7 @@ protected:
     }
 
 
-    void collect_data(const std::vector<std::shared_ptr<Task_base>>& tasks) override {
+    void collect_data(const std::vector<std::shared_ptr<Task_base>>& tasks, int n_frames) override {
         for(const auto& it: tasks){
             auto h = dynamic_cast<energy_par*>(it.get());
             data.insert(h->data.begin(),h->data.end());

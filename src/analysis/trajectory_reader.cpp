@@ -296,23 +296,16 @@ void Trajectory_reader::run(){
             for(int i=1; i<=num_threads; ++i) tasks[i]->driver->join_thread();
 
 
-        // See which instance processed the last frame
-        Frame_info last_info;
-        int last_fr = -1;
-        for(auto& t: tasks){
-            if(t->driver->get_last_info().valid_frame > last_fr){
-                last_fr = t->driver->get_last_info().valid_frame;
-                last_info = t->driver->get_last_info();
-            }
-        }
-
         // Now collect results from all instances that consumed some frames
         vector<Task_ptr> resultive_tasks;
-        for(int i=1; i<tasks.size();++i)
+        int n_total = 0;
+        for(int i=1; i<tasks.size();++i){
             if(tasks[i]->n_consumed) resultive_tasks.push_back(tasks[i]);
+            n_total += tasks[i]->n_consumed;
+        }
 
         log->debug("Collecting results from {} task instances...", resultive_tasks.size()+1);
-        tasks[0]->collect_data(resultive_tasks);
+        tasks[0]->collect_data(resultive_tasks,n_total);
 
     } else {
         /* Only serial tasks are present

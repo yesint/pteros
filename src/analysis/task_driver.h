@@ -17,14 +17,12 @@ public:
     void set_data_channel_and_system(const Data_channel_ptr& ch, const System &sys);
     void process_until_end();
     void process_until_end_in_thread ();
-    void join_thread();        
-    Frame_info get_last_info(){return last_info;}
+    void join_thread();
 private:
     Data_channel_ptr channel;
     Task_base* task;
     std::shared_ptr<Data_container> data;
-    std::thread t;
-    Frame_info last_info;
+    std::thread t;    
     bool stop_now; // Emergency stop flag for thread
     bool pre_process_done;
 };

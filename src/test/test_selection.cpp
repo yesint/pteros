@@ -194,7 +194,7 @@ TASK_PARALLEL(Test_task)
         log->info("Test_task post_process of instance {}", info.last_frame);
     }
 
-    void collect_data(const vector<Task_ptr>& tasks) override {
+    void collect_data(const vector<Task_ptr>& tasks, int n_frames) override {
         for(auto& t: tasks){
             auto h = dynamic_cast<Test_task*>(t.get());
             Eigen::Map<VectorXi> m(h->res.data(),h->res.size());
