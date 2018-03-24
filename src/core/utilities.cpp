@@ -30,7 +30,7 @@
 #include <fstream>
 // Periodic table from VMD molfile plugins
 #include "periodic_table.h"
-
+#include <iostream>
 
 using namespace std;
 using namespace pteros;
@@ -139,8 +139,8 @@ string pteros::get_element_name(int elnum){
     return (elnum<nr_pte_entries && elnum>=0) ? string(pte_label[elnum]) : "X";
 }
 
-float pteros::get_vdw_radius(int elnum, const string &name) {
-    if(elnum==0){
+float pteros::get_vdw_radius(int elnum, const string &name) {    
+    if(elnum<=0){
         switch(name[0]){
         case 'H': return  0.12;
         case 'C': return  0.17;
@@ -151,8 +151,8 @@ float pteros::get_vdw_radius(int elnum, const string &name) {
         case 'F': return  0.147;
         default:  return  0.15;
         }
-    } else {
+    } else {        
         // Use periodic table from VMD plugins
         return (elnum<nr_pte_entries) ? 0.1*pte_vdw_radius[elnum] : 0.15;
-    }
+    }    
 }

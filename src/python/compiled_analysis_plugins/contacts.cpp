@@ -30,6 +30,8 @@
 #include "pteros/core/distance_search.h"
 #include <fstream>
 #include <map>
+#include <set>
+#include "pteros/core/logging.h"
 
 using namespace std;
 using namespace pteros;
@@ -38,7 +40,7 @@ using namespace Eigen;
 struct Contact {
     vector<Vector2i> life_fr; // Intervals of frames[first:last]
     vector<Vector2f> life_time; // Intervals of life time [first:last]
-    float energy;
+    Vector2f energy;
     int num_energy;
     float mean_life_time;
     int num_formed;
@@ -51,31 +53,32 @@ struct comparator {
     }
 };
 
-class contacts: public pteros::Compiled_plugin_base {
-public:
-    contacts(pteros::Trajectory_processor* pr, const pteros::Options& opt): Compiled_plugin_base(pr,opt) {}
 
-    string help(){
-        return  "Purpose:\n"                
+TASK_SERIAL(contacts)
+public:
+
+
+    string help() override {
+        return  "Purpose:\n"
+                "\tAnalyzes contacts between two selections.\n"
                 ;
     }
 
 protected:
 
-    void pre_process(){
+    void pre_process() override {
         sel1.modify(system, options("sel1").as_string());
         sel2.modify(system, options("sel2").as_string());
+        all.modify(system, "all");
 
-        // Check if selection overlap
-        {
-            vector<int> v;
-            set_intersection(sel1.index_begin(),sel1.index_end(),
-                             sel2.index_begin(),sel2.index_end(),v.begin());
-            if(v.size()) throw Pteros_error("Selections could not overlap!");
-        }
+        // Check if selection overlap        
+        if(check_selection_overlap({sel1,sel2})) throw Pteros_error("Selections could not overlap!");
+
+        // Set periodicity
+        periodic = options("periodic","false").as_bool();
 
         // Removing jumps for both selections if requested
-        float unwrap_d = options("nojump","0").as_float();
+        float unwrap_d = options("unwrap","-1").as_float();
         if(unwrap_d>=0){
             // Add our selections to nojump list
             jump_remover.add_atoms(sel1);
@@ -87,60 +90,80 @@ protected:
         cutoff = options("cutoff","0").as_float();
         // If zero cutoff given search for maximal sum of VDW distances
         if(cutoff==0){
-            cout << "Computing largest sum VDW distances..." << endl;
+            log->info("Computing largest sum VDW distances...");
             float maxd = 0.0, vdw1, vdw2;
             int i,j;
-            for(i=0; i<sel1.size(); ++i){
-                vdw1 = sel1.VDW(i);
+            for(i=0; i<sel1.size(); ++i){                
+                vdw1 = sel1.vdw(i);
                 for(j=0;j<sel2.size();++j){
-                    vdw2 = sel2.VDW(i);
+                    vdw2 = sel2.vdw(j);
                     if(vdw1+vdw2 > maxd) maxd = vdw1+vdw2;
                 }
             }
-            cout << "\tLargest sum of VDW distances is " << maxd << endl;
+            log->info("\tLargest sum of VDW distances is {}",maxd);
             // Get padding if given. Default is 0.1
             float pad = options("padding","0.1").as_float();
             cutoff = maxd + pad;
         }
-        cout << "Search distances is " << cutoff << endl;
-
-        // Set periodicity
-        periodic = options("periodic","false").as_bool();
+        log->info("Search distances is {}",cutoff);
 
         // Keep transient contacts lasting only 1 frame?
         keep_transient = options("transient","false").as_bool();
 
-        en_f.open(options("en_file","energy_"+label+".dat").as_string());
+        en_f.open(options("en_file",fmt::format("energy_{}.dat",get_id())).as_string());
     }     
 
-    void process_frame(const pteros::Frame_info &info){                
+    void process_frame(const pteros::Frame_info &info) override {
         // Search for contacts
         vector<Vector2i> bon;
         vector<float> dist_vec;
-        search_contacts(cutoff,sel1,sel2,bon,false,periodic,&dist_vec); // Local indexes returned
-        // Analyze contacts
-        float total_en = 0.0;
-        for(auto c: bon){
+        vector<Vector2f> pair_en;
+        search_contacts(cutoff,sel1,sel2,bon,true,periodic,&dist_vec); // global indexes returned!
+
+        Vector2f total_en(0,0);
+        pair_en.resize(bon.size());
+
+        // Get energies if possible
+        if(system.force_field_ready()){
+            total_en = get_energy_for_list(bon,dist_vec,system, &pair_en);
+        }
+
+        // Analyze contacts        
+        for(int i=0;i<bon.size();++i){
+            // Get contact
+            auto& c = bon[i];
+
             // Sort pair
             sort(c.data(), c.data()+c.size());
 
-            // ENERGY
+            for(int n=0; n<2; ++n){
+                // ATOM MAP
+                int a = c[n];
+                if(atom_map.count(a)){
+                    // already present
+                    atom_map[a] += 1;
+                } else {
+                    // new atom
+                    atom_map[a] = 1;
+                }
 
-            float en = 0.0;
-
-            if(system.force_field_ready()){
-                en = system.non_bond_energy(c(0),c(1),0,periodic).total;
+                // RES MAP
+                int r = all.resindex(c[n]);
+                if(res_map.count(r)){
+                    // already present
+                    res_map[r] += 1;
+                } else {
+                    // new residue
+                    res_map[r] = 1;
+                }
             }
 
-            total_en += en;
-
             // ATOM CONTACTS
-
             // See if this contact was already found before
             if(atom_contacts.count(c)){
                 // Already present
                 auto& cur = atom_contacts[c];
-                cur.energy += en;
+                cur.energy += pair_en[i];
                 ++cur.num_energy;
                 if( cur.life_fr.back()[1] == info.valid_frame-1 ){
                     // Interval continues
@@ -148,15 +171,15 @@ protected:
                     cur.life_time.back()[1] = info.absolute_time;
                 } else {
                     // New interval starts
-                    cur.life_fr.push_back(Vector2i(info.valid_frame,info.valid_frame));
-                    cur.life_time.push_back(Vector2f(info.absolute_time,info.absolute_time));
+                    cur.life_fr.emplace_back(info.valid_frame,info.valid_frame);
+                    cur.life_time.emplace_back(info.absolute_time,info.absolute_time);
                 }
             } else {
                 // New contact
                 Contact cur;
-                cur.life_time.push_back(Vector2f(info.absolute_time,info.absolute_time));
-                cur.life_fr.push_back(Vector2i(info.valid_frame,info.valid_frame));
-                cur.energy = en;
+                cur.life_time.emplace_back(info.absolute_time,info.absolute_time);
+                cur.life_fr.emplace_back(info.valid_frame,info.valid_frame);
+                cur.energy = pair_en[i];;
                 cur.num_energy = 1;
                 atom_contacts[c] = cur;
             }
@@ -164,13 +187,13 @@ protected:
             // RESIDUE CONTACTS
 
             // Get pair of residues
-            Vector2i r(sel1.Resindex(c(0)), sel2.Resindex(c(1)));
+            Vector2i r(all.resindex(c(0)), all.resindex(c(1)));
 
             //See if this contact was already found before
             if(res_contacts.count(r)){
                 // Already present
                 auto& cur = res_contacts[r];
-                cur.energy += en;
+                cur.energy += pair_en[i];
                 ++cur.num_energy;
                 if( cur.life_fr.back()[1] == info.valid_frame-1 ){
                     // Interval continues
@@ -178,26 +201,26 @@ protected:
                     cur.life_time.back()[1] = info.absolute_time;
                 } else if(info.valid_frame - cur.life_fr.back()[1] > 1) {
                     // New interval starts
-                    cur.life_fr.push_back(Vector2i(info.valid_frame,info.valid_frame));
-                    cur.life_time.push_back(Vector2f(info.absolute_time,info.absolute_time));
+                    cur.life_fr.emplace_back(info.valid_frame,info.valid_frame);
+                    cur.life_time.emplace_back(info.absolute_time,info.absolute_time);
                 }
             } else {
                 // New contact
                 Contact cur;
-                cur.life_time.push_back(Vector2f(info.absolute_time,info.absolute_time));
-                cur.life_fr.push_back(Vector2i(info.valid_frame,info.valid_frame));
-                cur.energy = en;
+                cur.life_time.emplace_back(info.absolute_time,info.absolute_time);
+                cur.life_fr.emplace_back(info.valid_frame,info.valid_frame);
+                cur.energy = pair_en[i];
                 cur.num_energy = 1;
                 res_contacts[r] = cur;
             }
 
 
-        }
+        }        
 
-        en_f << info.absolute_time << " " << total_en << endl;
+        en_f << info.absolute_time << " " << total_en.sum() << " " << total_en.transpose() << endl;
     }
 
-    void post_process(const pteros::Frame_info &info){
+    void post_process(const pteros::Frame_info &info) override {
         en_f.close();
 
         // Analyze atom contacts
@@ -248,24 +271,23 @@ protected:
             }
         }
 
-
         // Output atom contacts
-        ofstream f(options("oa","contacts_"+label+".dat").as_string());
+        ofstream f(options("oa",fmt::format("atom_contacts_stats_{}.dat",get_id())).as_string());
         f << "# ATOMS" << endl;
         f << "#i\tj\tn_formed\tlife_t\ten" << endl;
         for(const auto& it: atom_contacts){
             int i = it.first(0);
             int j = it.first(1);
-            f << sel1.Index(i)+1 << ":" << sel1.Name(i) << ":" << sel1.Resname(i) << "\t"
-              << sel2.Index(j)+1 << ":" << sel2.Name(j) << ":" << sel2.Resname(j) << "\t"
+            f << sel1.index(i)+1 << ":" << all.name(i) << ":" << all.resname(i) << "\t"
+              << sel2.index(j)+1 << ":" << all.name(j) << ":" << all.resname(j) << "\t"
               << it.second.num_formed << "\t"
               << it.second.mean_life_time << "\t"
-              << it.second.energy << endl;
+              << it.second.energy.sum() << endl;
         }
         f.close();
 
         // Output residue contacts
-        f.open(options("or","rescontacts_"+label+".dat").as_string());
+        f.open(options("or",fmt::format("res_contacts_stats_{}.dat",get_id())).as_string());
         f << "# RESIDUES" << endl;
         f << "#i\tj\tn_formed\tlife_t\ten" << endl;
         for(const auto& it: res_contacts){
@@ -274,14 +296,31 @@ protected:
             f << i << "\t" << j << "\t"
               << it.second.num_formed << "\t"
               << it.second.mean_life_time << "\t"
-              << it.second.energy << endl;
+              << it.second.energy.sum() << endl;
         }
         f.close();
 
+        // Output per atom life time map as pdb file
+        float maxv = 0.0;
+        for(const auto& it: atom_map) if(maxv<it.second) maxv=it.second;
+
+        for(const auto& it: atom_map){
+            all.beta(it.first) = 100.0*it.second/float(info.valid_frame)/maxv;
+        }
+        all.write(fmt::format("atom_map_{}.pdb",get_id()));
+
+        // Output per residue life time map as pdb file
+        maxv = 0.0;
+        for(const auto& it: res_map) if(maxv<it.second) maxv=it.second;
+
+        for(const auto& it: res_map){
+            all("resindex "+to_string(it.first)).set_beta( 100.0*it.second/float(info.valid_frame)/maxv );
+        }
+        all.write(fmt::format("res_map_{}.pdb",get_id()));
     }
 
 private:    
-    Selection sel1, sel2;
+    Selection sel1, sel2, all;
     float cutoff;
     bool periodic;
     map<Vector2i,Contact,comparator> atom_contacts;
@@ -289,6 +328,11 @@ private:
     bool keep_transient;
 
     ofstream en_f;
+
+    // Per atom life time heat map
+    map<int,float> atom_map;
+    // Per residue life time heat map
+    map<int,float> res_map;
 };
 
 

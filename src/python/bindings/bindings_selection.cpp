@@ -244,7 +244,7 @@ void make_bindings_Selection(py::module& m){
             })
 
         // Energy
-        .def("non_bond_energy", &Selection::non_bond_energy, "cutoff"_a=0.0, "pbc"_a=fullPBC)
+        .def("non_bond_energy", &Selection::non_bond_energy, "cutoff"_a=0.0, "pbc"_a=true)
 
         // IO
         .def("write", py::overload_cast<string,int,int>(&Selection::write), "fname"_a, "b"_a=0, "e"_a=-1)
@@ -343,7 +343,7 @@ void make_bindings_Selection(py::module& m){
         Matrix4f m = fit_transform(sel1,sel2).matrix().transpose();
         return m;
     });
-    m.def("non_bond_energy", [](const Selection& sel1, const Selection& sel2,float cutoff,int fr,Array3i_const_ref pbc){
+    m.def("non_bond_energy", [](const Selection& sel1, const Selection& sel2,float cutoff,int fr,bool pbc){
         return non_bond_energy(sel1,sel2,cutoff,fr,pbc);
     },"sel1"_a, "sel2"_a, "cutoff"_a=0.0, "fr"_a=-1, "pbc"_a=fullPBC);
     m.def("copy_coord",[](const Selection& sel1, int fr1, Selection& sel2, int fr2){ return copy_coord(sel1,fr1,sel2,fr2); });

@@ -2,13 +2,14 @@
 SET(PLUGINS    
     box
     rms
-    #interaction_energy
+    energy
     #covar_matr
     #distance_matr
     #secondary
     #rdf
     #example_plugin
     center
+    contacts
 )
 
 IF(STANDALONE_PLUGINS)

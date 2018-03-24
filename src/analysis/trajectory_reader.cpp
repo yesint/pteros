@@ -353,7 +353,7 @@ void Trajectory_reader::run(){
                 channel->set_buffer_size(buf_size);
                 worker_channels.push_back(channel);
 
-                // Spawn worker
+                // Configure worker
                 tasks[i]->set_id(i);
                 tasks[i]->driver->set_data_channel(worker_channels[i]);
                 tasks[i]->driver->process_all_in_thread(system);

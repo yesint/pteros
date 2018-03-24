@@ -33,9 +33,9 @@
 using namespace std;
 using namespace pteros;
 
-class interaction_energy: public pteros::Compiled_plugin_base {
+
+TASK_SERIAL(energy)
 public:
-    interaction_energy(pteros::Trajectory_processor* pr, const pteros::Options& opt): Compiled_plugin_base(pr,opt) {}
 
     string help(){
         return  "Purpose:\n"
@@ -56,16 +56,17 @@ public:
     }
 protected:
 
-    void pre_process(){        
-        cutoff = options("cutoff","0.25").as_float();
-        is_periodic = options("periodic","false").as_bool();
-        eps = options("eps","1.0").as_float();
+    void pre_process() override {
+        if(!system.force_field_ready()) throw Pteros_error("Need valid force fieled to compute energy!");
+
+        cutoff = options("cutoff","0").as_float();
+        is_periodic = options("periodic","false").as_bool();        
 
         // Get selections
-        std::vector<string> sels = options("selections").as_strings();
+        std::vector<string> sels = options("sel").as_strings();
         if(sels.size()<1 || sels.size()>2) throw Pteros_error("Either 1 or 2 selections should be passed");
         if(sels.size()==1){            
-            sel1.modify(system,sels.front());
+            sel1.modify(system,sels[0]);
             is_self_energy = true;            
         } else {            
             sel1.modify(system,sels[0]);
@@ -73,23 +74,22 @@ protected:
             is_self_energy = false;            
         }
 
-        // Output
-        string fname = label+".dat";
-        out.open(fname.c_str());
+        // Output        
+        out.open(fmt::format("energy_{}.dat",get_id()));
 
         if(is_self_energy){
             out << "# Interaction self-energy of selection" << endl
-              << "# [" << sel1.get_text() << "]" << endl;
+              << "# '" << sel1.get_text() << "'" << endl;
         } else {
             out << "# Interaction energy of selections" << endl
-              << "# [" << sel1.get_text() << "]" << endl
-              << "# [" << sel2.get_text() << "]" << endl;
+              << "# '" << sel1.get_text() << "'" << endl
+              << "# '" << sel2.get_text() << "'" << endl;
         }
 
-        out << "# time total lj_sr lj_14 q_sr q_14:" << endl;
+        out << "# time total q lj" << endl;
     }
 
-    void process_frame(const Frame_info &info){
+    void process_frame(const Frame_info &info) override {
         Energy_components e;
 
         if(is_self_energy){
@@ -104,7 +104,7 @@ protected:
         out << info.absolute_time << " " << e.to_str() << endl;
     }
 
-    void post_process(const Frame_info& info){        
+    void post_process(const Frame_info& info) override {
         out.close();
     }
 
@@ -117,5 +117,5 @@ private:
     ofstream out;
 };
 
-CREATE_COMPILED_PLUGIN(interaction_energy)
+CREATE_COMPILED_PLUGIN(energy)
 

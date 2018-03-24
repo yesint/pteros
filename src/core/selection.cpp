@@ -975,37 +975,11 @@ void copy_coord(const Selection &from, int from_fr, Selection &to, int to_fr)
     }
 }
 
-
-Vector2f get_energy_for_list(const vector<Vector2i>& pairs, const vector<float>& dist, const System& sys){
-    Force_field& ff = const_cast<System&>(sys).get_force_field();
-    Vector2f e_total(0,0);
-    #pragma omp parallel
-    {
-        int at1,at2;
-        Vector2f e(0,0);
-        #pragma omp for nowait
-        for(int i=0;i<pairs.size();++i){
-            at1 = pairs[i](0);
-            at2 = pairs[i](1);
-            e += ff.pair_energy(at1, at2, dist[i],
-                                sys.atom(at1).charge, sys.atom(at2).charge,
-                                sys.atom(at1).type,   sys.atom(at2).type);
-        }
-
-        #pragma omp critical
-        {
-            e_total += e;
-        }
-    }
-    return e_total;
-}
-
-
 Vector2f non_bond_energy(const Selection& sel1,
                          const Selection& sel2,
                          float cutoff,
                          int fr,
-                         Array3i_const_ref pbc)
+                         bool pbc)
 {
     // Check if both selections are from the same system
     if(sel1.get_system()!=sel2.get_system())
@@ -1030,7 +1004,7 @@ Vector2f non_bond_energy(const Selection& sel1,
     // Perform grid search
     vector<Vector2i> pairs;
     vector<float> dist;
-    search_contacts(d,sel1,sel2,pairs,true, (pbc!=0).any() ,&dist);
+    search_contacts(d,sel1,sel2,pairs,true, pbc,&dist);
 
     // Restore frames if needed
     if(fr1!=fr) const_cast<Selection&>(sel1).set_frame(fr1);
@@ -1167,7 +1141,7 @@ void fit(Selection& sel1, const Selection& sel2){
 } //namespace pteros
 
 
-Vector2f Selection::non_bond_energy(float cutoff, Array3i_const_ref pbc) const
+Vector2f Selection::non_bond_energy(float cutoff, bool pbc) const
 {
     float d;
     if(cutoff==0){
@@ -1179,7 +1153,7 @@ Vector2f Selection::non_bond_energy(float cutoff, Array3i_const_ref pbc) const
     // Perform grid search
     vector<Vector2i> pairs;
     vector<float> dist;    
-    search_contacts(d,*this,pairs,true, (pbc!=0).any() ,&dist);
+    search_contacts(d,*this,pairs,true, pbc,&dist);
 
     // Now get energy using pair list and distances
     return get_energy_for_list(pairs,dist,*system);

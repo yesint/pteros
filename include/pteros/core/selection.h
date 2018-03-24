@@ -669,7 +669,7 @@ class Selection {
 
     /// Self-energy of selection computed within given interaction cut-off.
     /// If cutoff is 0 the cutoff from topology is used.
-    Eigen::Vector2f non_bond_energy(float cutoff=0, Array3i_const_ref pbc = fullPBC) const;
+    Eigen::Vector2f non_bond_energy(float cutoff=0, bool pbc = true) const;
 
     /// Non-bond energy between two selections computed within given interaction cut-off.
     /// If cutoff is 0 the cutoff from topology is used.
@@ -678,7 +678,7 @@ class Selection {
                                            const Selection& sel2,
                                            float cutoff = 0,
                                            int fr = -1,
-                                           Array3i_const_ref pbc = fullPBC);
+                                           bool pbc = true);
     /// @}
 
 

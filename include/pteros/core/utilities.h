@@ -80,10 +80,6 @@ namespace pteros {
         bool normalized;
     };
 
-
-
-
-
 }
 
 #endif

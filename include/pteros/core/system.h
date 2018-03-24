@@ -464,6 +464,15 @@ protected:
     void filter_coord(int fr);
 };
 
+/// Low level energy evaluation function
+/// Returns total energy
+/// Individual pair energies could be returned to pair_en if provided.
+Eigen::Vector2f get_energy_for_list(const std::vector<Eigen::Vector2i>& pairs,
+                                    const std::vector<float>& dist,
+                                    const System& sys,
+                                    std::vector<Eigen::Vector2f>* pair_en=nullptr);
+
+
 }
 #endif /* SYSTEM_H */
 

@@ -365,8 +365,8 @@ int main(int argc, char** argv)
     try{
 
 
-        System s("/home/semen/work/current/Projects/albumin/SqGem/colored_res.pdb");
-        cout << s().dssp() << endl;
+        System s("/home/semen/work/current/Projects/Ache/cc_prot/topol.tpr");
+        for(auto& a: s()) cout << a.vdw() << endl;
 
 
     } catch(const Pteros_error& e){
