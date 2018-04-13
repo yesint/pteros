@@ -365,8 +365,23 @@ int main(int argc, char** argv)
     try{
 
 
-        System s("/home/semen/work/current/Projects/Ache/cc_prot/topol.tpr");
-        for(auto& a: s()) cout << a.vdw() << endl;
+        System s("/home/semen/work/current/Projects/Ache/mhc-opt.mol2");
+        s().write("/home/semen/work/current/Projects/Ache/mhc-opt.conv.mol2");
+
+        //ifstream ifs("/home/semen/work/current/Projects/Ache/mhc-opt.mol2");
+        //ofstream ofs("/home/semen/work/current/Projects/Ache/mhc-opt.conv.gro");
+
+
+        /*
+        OpenBabel::OBConversion conv;
+        OpenBabel::OBMol mol;
+        conv.ReadFile(&mol,"/home/semen/work/current/Projects/Ache/mhc-opt.mol2");
+
+        cout << mol.NumAtoms() << " atoms\n";
+        cout << mol.NumBonds() << " bonds\n";
+        */
+
+
 
 
     } catch(const Pteros_error& e){

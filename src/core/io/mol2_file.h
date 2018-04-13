@@ -24,11 +24,13 @@
  *
 */
 
-
-#ifndef MOL2_FILE_H
-#define MOL2_FILE_H
+#pragma once
 
 #include <string>
+
+#ifndef USE_OPENBABEL
+// If babel is not available use VMD as fallback
+
 #include "vmd_molfile_plugin_wrapper.h"
 
 namespace pteros {
@@ -42,9 +44,32 @@ public:
         return Mol_file_content().atoms(true).coord(true);
 
     }
+protected:
+    // Override write to report that we can't write if babel is not used
+    virtual void do_write(const Selection &sel, const Mol_file_content& what) override;
+};
 
+#else
+
+#include "babel_wrapper.h"
+
+namespace pteros {
+
+/// Use VMD plugin for MOL2
+class MOL2_file: public Babel_wrapper {
+public:
+    MOL2_file(std::string& fname);
+
+    virtual Mol_file_content get_content_type() const {
+        return Mol_file_content().atoms(true).coord(true);
+
+    }
+
+protected:
+    // We need bonds for mol2 files
+    virtual bool need_bonds() final {return true;}
 };
 
 }
-#endif /* MOL_FILE_H */
 
+#endif

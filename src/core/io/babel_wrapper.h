@@ -25,23 +25,37 @@
 */
 
 
-#include "mol2_file.h"
+#pragma once
 
-using namespace pteros;
-using namespace std;
+#include <string>
+#include "pteros/core/system.h"
+#include "pteros/core/selection.h"
+#include "pteros/core/mol_file.h"
 
-#ifndef USE_OPENBABEL
+#include <openbabel/obconversion.h>
+#include <openbabel/mol.h>
 
-MOL2_file::MOL2_file(string &fname): VMD_molfile_plugin_wrapper(fname){
-    plugin = molfile_plugins["mol2"];
+namespace pteros {
+
+/// Generic API for reading and writing any molecule file formats
+class Babel_wrapper: public Mol_file {
+public:
+    // High-level API        
+    Babel_wrapper(std::string& fname);
+    virtual void open(char open_mode);
+    virtual ~Babel_wrapper();
+
+protected:       
+    OpenBabel::OBConversion conv;
+    OpenBabel::OBMol mol;
+
+    // Tells if the format need bonds to be present
+    virtual bool need_bonds() = 0;
+
+    virtual bool do_read(System *sys, Frame *frame, const Mol_file_content& what);
+    virtual void do_write(const Selection &sel, const Mol_file_content& what);
+};
+
 }
 
-MOL2_file::do_write(const Selection &sel, const Mol_file_content &what){
-    throw Pteros_error("In order to write MOL2 files you need to compile with OpenBabel support!");
-}
 
-#else
-
-MOL2_file::MOL2_file(string &fname): Babel_wrapper(fname){ }
-
-#endif

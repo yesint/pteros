@@ -2,11 +2,46 @@
 # pteros IO library
 #---------------------
 
+# Look for Gromacs
+if(WITH_GROMACS)
+    message("Looking for Gromacs...")
+    find_package(gromacs QUIET)
+    if(NOT ${gromacs_FOUND})
+        # Try /usr/local
+        message("   Trying /usr/local...")
+        set(gromacs_DIR "/usr/local/gromacs/share/cmake/gromacs")
+        find_package(gromacs QUIET)
+    endif()
+
+    if(${gromacs_FOUND})
+        message("-- Found Gromacs at ${GROMACS_INCLUDE_DIRS}")
+        add_definitions(-DUSE_GROMACS)
+        include_directories(${GROMACS_INCLUDE_DIRS})
+        link_libraries(${GROMACS_LIBRARIES})
+    else()
+        message("-- Gromacs not found! Gromacs-related features are disabled!")
+    endif()
+endif()
+
+# Look for OpenBabel
+if(WITH_OPENBABEL)
+    message("Looking for OpenBabel...")
+    set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules)
+    find_package(OpenBabel2 QUIET)
+    if(${OPENBABEL2_FOUND})
+        add_definitions(-DUSE_OPENBABEL)
+        include_directories(${OPENBABEL2_INCLUDE_DIR})
+        link_libraries(${OPENBABEL2_LIBRARIES})
+    endif()
+endif()
+
 add_library(pteros_io STATIC
     ${PROJECT_SOURCE_DIR}/include/pteros/core/mol_file.h
     mol_file.cpp
     vmd_molfile_plugin_wrapper.h
     vmd_molfile_plugin_wrapper.cpp
+    babel_wrapper.h
+    babel_wrapper.cpp
     pdb_file.h
     pdb_file.cpp
     dcd_file.h
