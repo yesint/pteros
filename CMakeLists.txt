@@ -4,7 +4,7 @@ project(pteros)
 
 OPTION(WITH_PYTHON "Build python bindings and compile analysis plugins as Python modules" ON)
 OPTION(WITH_OPENMP "Use OpenMP parallelization if supported" ON)
-OPTION(WITH_OPENBABEL "Use OpenBabel if supported" ON)
+OPTION(WITH_OPENBABEL "Use OpenBabel if supported" OFF)
 OPTION(WITH_GROMACS "Use Gromacs if supported. Required to read tpr files." ON)
 OPTION(WITH_POWERSASA "Use POWERSASA code. This implies severe license restrictions! \n Read the comment in thirdparty/sasa/LICENSE carefully before enabling this option!" OFF)
 OPTION(STANDALONE_PLUGINS "Compile analysis plugins as stand-alone executables" OFF)

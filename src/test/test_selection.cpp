@@ -366,6 +366,8 @@ int main(int argc, char** argv)
 
 
         System s("/home/semen/work/current/Projects/Ache/mhc-opt.mol2");
+        cout << s()[0].charge() << endl;
+        cout << s()[1].charge() << endl;
         s().write("/home/semen/work/current/Projects/Ache/mhc-opt.conv.mol2");
 
         //ifstream ifs("/home/semen/work/current/Projects/Ache/mhc-opt.mol2");
