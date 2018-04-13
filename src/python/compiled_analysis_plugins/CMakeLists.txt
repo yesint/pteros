@@ -6,7 +6,7 @@ SET(PLUGINS
     energy_par
     #covar_matr
     #distance_matr
-    #secondary
+    secondary
     #rdf
     #example_plugin
     center

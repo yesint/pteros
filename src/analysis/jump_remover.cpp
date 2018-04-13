@@ -35,7 +35,7 @@ using namespace pteros;
 
 Jump_remover::Jump_remover():
     dims(fullPBC),
-    unwrap_d(-1.0),
+    unwrap_d(0),
     pbc_atom(0),
     initialized(false)
 { }
@@ -82,7 +82,7 @@ void Jump_remover::remove_jumps(System& system){
         // Make temp selection from no_jump_ind
         Selection sel(system,no_jump_ind);
 
-        // Do unwrapping if more than 1 atom and distance >0
+        // Do unwrapping if more than 1 atom and distance >=0
         if(no_jump_ind.size()>1 && unwrap_d>=0){
             LOG()->info("Initial unwrapping of atoms for jump remover...");
             if(unwrap_d==0){
