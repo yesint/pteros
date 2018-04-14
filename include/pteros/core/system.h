@@ -119,7 +119,8 @@ public:
     /// Append atoms from selection to this system.
     /// Selection may belong to any system, not necessary current.
     /// Returns selection corresponding to appended atoms.
-    Selection append(const Selection& sel);
+    /// @param current_frame if true only the coordinates of current frame in sel are added to all frames of the system.
+    Selection append(const Selection& sel, bool current_frame=false);
 
     /// Append single atom to this system
     /// Returns selection corresponding to appended atom

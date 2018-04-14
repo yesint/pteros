@@ -47,7 +47,7 @@ void make_bindings_System(py::module& m){
 
         // Append
         .def("append", py::overload_cast<const System&>(&System::append))
-        .def("append", py::overload_cast<const Selection&>(&System::append))
+        .def("append", py::overload_cast<const Selection&,bool>(&System::append),"sel"_a,"current_frame"_a=false)
         .def("append", py::overload_cast<const Atom&, Vector3f_const_ref>(&System::append))
         .def("append", py::overload_cast<const Atom_proxy&>(&System::append))
 

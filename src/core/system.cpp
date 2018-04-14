@@ -721,7 +721,7 @@ Selection System::atom_add_3h(int target, int at1, float dist, bool pbc)
 Selection System::append(const System &sys){
     //Sanity check
     if(num_frames()>0 && num_frames()!=sys.num_frames())
-        throw Pteros_error("Can't merge systems with different number of frames ({} and {}})!",num_frames(),sys.num_frames());
+        throw Pteros_error("Can't merge systems with different number of frames ({} and {})!",num_frames(),sys.num_frames());
     // If no frames create needed ammount
     bool transfer_time_box = false;
     if(num_frames()==0){
@@ -748,17 +748,21 @@ Selection System::append(const System &sys){
     return Selection(*this,first_added,num_atoms()-1);
 }
 
-Selection System::append(const Selection &sel){    
+Selection System::append(const Selection &sel, bool current_frame){
     //Sanity check    
-    if(num_frames()>0 && num_frames()!=sel.get_system()->num_frames())
-        throw Pteros_error("Can't merge systems with different number of frames! ({} and {}})",
+    if(!current_frame && num_frames()>0 && num_frames()!=sel.get_system()->num_frames())
+        throw Pteros_error("Can't merge system with selection: different number of frames! ({} and {})",
                            num_frames(),sel.get_system()->num_frames());
 
     // If no frames create needed ammount
-    bool transfer_time_box = false;
+    bool transfer_time_box = false;    
     if(num_frames()==0){
         transfer_time_box = true;
-        traj.resize(sel.get_system()->num_frames());        
+        if(!current_frame){
+            traj.resize(sel.get_system()->num_frames());
+        } else {
+            traj.resize(1);
+        }
     }
 
     int first_added = num_atoms();    
@@ -766,15 +770,20 @@ Selection System::append(const Selection &sel){
     // Merge atoms
     atoms.reserve(atoms.size()+sel.size());
     for(int i=0;i<sel.size();++i) atoms.push_back(sel.atom(i));
+
     // Merge coordinates    
-    for(int fr=0; fr<num_frames(); ++fr){
+    for(int fr=0; fr<num_frames(); ++fr){ // in system
         traj[fr].coord.reserve(atoms.size());
         if(transfer_time_box){
             traj[fr].time = sel.get_system()->time(fr);
             traj[fr].box = sel.get_system()->box(fr);
         }
         for(int i=0;i<sel.size();++i){
-            traj[fr].coord.push_back(sel.xyz(i,fr));
+            if(!current_frame){
+                traj[fr].coord.push_back(sel.xyz(i,fr)); // Transfer matching frame coords
+            } else {
+                traj[fr].coord.push_back(sel.xyz(i)); // Transfer coords of current frame in sel
+            }
         }
     }
     // Reassign resindex
