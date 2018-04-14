@@ -79,20 +79,24 @@ void make_bindings_Distance_search(py::module& m){
         std::vector<Vector2i>* pairs_ptr = new std::vector<Vector2i>;
         search_contacts(d,sel1,sel2,*pairs_ptr,absolute_index,periodic,dist_vec_ptr);
 
-        // Interpret pairs array as 1D array of ints first
-        // Pass size*2 explicitly to ensure correct size
-        py::array m = vector_to_array<int>(reinterpret_cast<std::vector<int>*>(pairs_ptr),2*pairs_ptr->size());
-        // Reshape into 2D array (no reallocation)
-        m.resize(vector<size_t>{pairs_ptr->size(),2});
+        if(pairs_ptr->size()){
+            // Interpret pairs array as 1D array of ints first
+            // Pass size*2 explicitly to ensure correct size
+            py::array m = vector_to_array<int>(reinterpret_cast<std::vector<int>*>(pairs_ptr),2*pairs_ptr->size());
+            // Reshape into 2D array (no reallocation)
+            m.resize(vector<size_t>{pairs_ptr->size(),2});
 
-        if(do_dist_vec){
-            // Make py::array for distances
-            py::array v = vector_to_array<float>(dist_vec_ptr);
-            return py::make_tuple(m,v);
+            if(do_dist_vec){
+                // Make py::array for distances
+                py::array v = vector_to_array<float>(dist_vec_ptr);
+                return py::make_tuple(m,v);
+            } else {
+                return py::make_tuple(m,py::none());
+            }
         } else {
-            return py::make_tuple(m,py::none());
+            // Empty
+            return py::make_tuple(py::list(),py::none());
         }
-
 
     }, "d"_a, "sel1"_a, "sel2"_a, "abs_ind"_a=false, "periodic"_a=false,"do_distances"_a=false);
 
