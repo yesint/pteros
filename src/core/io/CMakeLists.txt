@@ -23,16 +23,9 @@ if(WITH_GROMACS)
     endif()
 endif()
 
-# Look for OpenBabel
-if(WITH_OPENBABEL)
-    message("Looking for OpenBabel...")
-    set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules)
-    find_package(OpenBabel2 QUIET)
-    if(${OPENBABEL2_FOUND})
-        add_definitions(-DUSE_OPENBABEL)
-        include_directories(${OPENBABEL2_INCLUDE_DIR})
-        link_libraries(${OPENBABEL2_LIBRARIES})
-    endif()
+if(${OPENBABEL2_FOUND})
+    include_directories(${OPENBABEL2_INCLUDE_DIR})
+    link_libraries(${OPENBABEL2_LIBRARIES})
 endif()
 
 add_library(pteros_io STATIC

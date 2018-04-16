@@ -44,6 +44,7 @@
 #include "spdlog/fmt/ostr.h"
 
 #include "pteros/extras/membrane.h"
+#include "pteros/extras/topmatch.h"
 
 using namespace std;
 using namespace pteros;
@@ -365,10 +366,11 @@ int main(int argc, char** argv)
     try{
 
 
-        System s("/home/semen/work/current/Projects/Ache/mhc-opt.mol2");
-        cout << s()[0].charge() << endl;
-        cout << s()[1].charge() << endl;
-        s().write("/home/semen/work/current/Projects/Ache/mhc-opt.conv.mol2");
+        System src("/home/semen/work/current/Projects/Ache/mhc-opt.conv.pdb");
+        System target("/home/semen/work/current/Projects/Ache/mhc-opt.conv.pdb");
+
+        Topmatch t;
+        t.compute_mapping(src(),target());
 
         //ifstream ifs("/home/semen/work/current/Projects/Ache/mhc-opt.mol2");
         //ofstream ofs("/home/semen/work/current/Projects/Ache/mhc-opt.conv.gro");

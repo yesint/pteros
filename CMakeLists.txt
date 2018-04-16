@@ -4,7 +4,7 @@ project(pteros)
 
 OPTION(WITH_PYTHON "Build python bindings and compile analysis plugins as Python modules" ON)
 OPTION(WITH_OPENMP "Use OpenMP parallelization if supported" ON)
-OPTION(WITH_OPENBABEL "Use OpenBabel if supported" OFF)
+OPTION(WITH_OPENBABEL "Use OpenBabel if supported" ON)
 OPTION(WITH_GROMACS "Use Gromacs if supported. Required to read tpr files." ON)
 OPTION(WITH_POWERSASA "Use POWERSASA code. This implies severe license restrictions! \n Read the comment in thirdparty/sasa/LICENSE carefully before enabling this option!" OFF)
 OPTION(STANDALONE_PLUGINS "Compile analysis plugins as stand-alone executables" OFF)
@@ -70,6 +70,17 @@ endif()
 # Add Boost includes and libs globally - they are needed everywhere
 include_directories(${Boost_INCLUDE_DIRS})
 link_libraries(${Boost_LIBRARIES})
+
+# Look for OpenBabel
+if(WITH_OPENBABEL)
+    message("Looking for OpenBabel...")
+    set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules)
+    find_package(OpenBabel2 QUIET)
+    if(${OPENBABEL2_FOUND})
+        add_definitions(-DUSE_OPENBABEL)
+        # includes and links are added in subdirectories where needed
+    endif()
+endif()
 
 # Add Eigen
 message("Looking for Eigen...")

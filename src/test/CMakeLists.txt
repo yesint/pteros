@@ -7,7 +7,7 @@ test_selection.cpp
     #${PROJECT_SOURCE_DIR}/src/core/peg_parser.cpp
     #${PROJECT_SOURCE_DIR}/include/pteros/core/peg_parser.h
 )
-target_link_libraries(pteros_test pteros_analysis pteros)
+target_link_libraries(pteros_test pteros_analysis pteros pteros_topmatch)
 
 
 #add_subdirectory(${PROJECT_SOURCE_DIR}/src/python/pybind11_src)
