@@ -40,8 +40,8 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wl,--no-as-needed")
 endif()
 
-# Find OpenMP if needed
-if(WITH_OPENMP)
+# Find OpenMP if needed and only in release mode
+if(WITH_OPENMP AND CMAKE_BUILD_TYPE STREQUAL "Release")
     message("Looking for OpenMP...")
     find_package(OpenMP)
     if(OPENMP_FOUND)

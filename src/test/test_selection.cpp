@@ -366,25 +366,23 @@ int main(int argc, char** argv)
     try{
 
 
-        System src("/home/semen/work/current/Projects/Ache/mhc-opt.conv.pdb");
-        System target("/home/semen/work/current/Projects/Ache/mhc-opt.conv.pdb");
+        System src("/home/semen/work/current/Projects/Ache/1.pdb");
+        System target("/home/semen/work/current/Projects/Ache/2.pdb");
 
-        Topmatch t;
-        t.compute_mapping(src(),target());
-
-        //ifstream ifs("/home/semen/work/current/Projects/Ache/mhc-opt.mol2");
-        //ofstream ofs("/home/semen/work/current/Projects/Ache/mhc-opt.conv.gro");
-
+        Selection src_sel(src,"all");
+        Selection target_sel(target,"all");
 
         /*
-        OpenBabel::OBConversion conv;
-        OpenBabel::OBMol mol;
-        conv.ReadFile(&mol,"/home/semen/work/current/Projects/Ache/mhc-opt.mol2");
-
-        cout << mol.NumAtoms() << " atoms\n";
-        cout << mol.NumBonds() << " bonds\n";
+        vector<Vector2i> bonds;
+        do {
+            bonds.clear();
+            search_contacts(0.18,src_sel,bonds,false,false);
+            cout << bonds.size()<< endl;
+        } while(bonds.size()==16);
         */
 
+        Topmatch t;
+        t.compute_mapping(src_sel,target_sel);
 
 
 
