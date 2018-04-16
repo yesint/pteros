@@ -52,10 +52,11 @@ protected:
 
 
         onlynum = options("onlynum","false").as_bool();
+        do_map = options("map","false").as_bool();
 
         // Output        
         f.open(options("out",fmt::format("dssp_{}.dat",get_id())).as_string());
-        f << "#frame N :DSSP_code_string. NO space after ':'!" << endl;
+        f << "#frame N :DSSP_code_string. NO space after ':'!" << endl;               
     }
 
     void process_frame(const Frame_info &info) override {
@@ -68,16 +69,50 @@ protected:
         } else {
             f << " :" << s << endl;
         }
+
+        if(do_map){
+            // Convert all helices to 1, all beta sheets to 2, all the rest to 0
+            vector<int> cur;
+            for(char c: s){
+                switch(c){
+                case 'G':
+                case 'H':
+                case 'I':
+                    cur.push_back(1);
+                    break;
+                case 'E':
+                case 'B':
+                    cur.push_back(2);
+                    break;
+                default:
+                    cur.push_back(0);
+                }
+            }
+            dssp_map.push_back(cur);
+        }
     }
 
     void post_process(const Frame_info &info) override {
         f.close();
+
+        // Write map if asked
+        if(do_map){
+            f.open(options("out_map",fmt::format("dssp_map_{}.dat",get_id())).as_string());
+            for(int fr=0;fr<dssp_map.size();++fr){
+                for(int i=0;i<dssp_map[fr].size();++i) f << dssp_map[fr][i] << " ";
+                f << endl;
+            }
+            f.close();
+        }
     }    
 
 private:
     bool onlynum;
+    bool do_map;
     ofstream f;
     Selection sel;
+
+    vector<vector<int>> dssp_map;
 };
 
 CREATE_COMPILED_PLUGIN(secondary)
