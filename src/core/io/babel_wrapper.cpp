@@ -126,7 +126,7 @@ void Babel_wrapper::do_write(const Selection &sel, const Mol_file_content &what)
         // map of residues
         map<int,OpenBabel::OBResidue*> reslist;
 
-        mol.BeginModify();
+        mol.BeginModify();        
 
         for(int i=0;i<sel.size();++i){
             auto& at = sel.atom(i);
@@ -139,19 +139,21 @@ void Babel_wrapper::do_write(const Selection &sel, const Mol_file_content &what)
 
             if(what.coord()) oba->SetVector(sel.x(i),sel.y(i),sel.z(i));
 
+
             // Create new residue if needed
             if(reslist.count(at.resid)==0){                
                 OpenBabel::OBResidue* obr = mol.NewResidue();
-                obr->SetName(at.resname);
+                //obr->SetName(at.resname);
+                //obr->SetName("AAA");
                 obr->SetNum(at.resid);
-                obr->SetChain(at.chain);
+                obr->SetChain(at.chain);                
                 reslist[at.resid] = obr;
             }
 
             reslist[at.resid]->AddAtom(oba);
             reslist[at.resid]->SetAtomID(oba,at.name);
 
-            //
+
         }
 
         if(need_bonds()){            
@@ -164,17 +166,17 @@ void Babel_wrapper::do_write(const Selection &sel, const Mol_file_content &what)
         mol.EndModify();
     }
 
-/*
-    // Need to force partial charges here since they are re-assigned when bonds are searched
-    mol.BeginModify();
+    // Need to avoid recomputing partial charges on output
+    mol.SetPartialChargesPerceived();
+
+    /*
     int i=0;
     FOR_ATOMS_OF_MOL(b, mol)
     {                
-        b->SetPartialCharge(sel.charge(i));
+        cout << b->GetPartialCharge() << " ";
         ++i;
     }
-    mol.EndModify();
-*/
+    */
 
     conv.WriteFile(&mol,fname);
 }
