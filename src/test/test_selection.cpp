@@ -366,24 +366,19 @@ int main(int argc, char** argv)
     try{
 
 
-        System src("/home/semen/work/current/Projects/Ache/1.pdb");
-        System target("/home/semen/work/current/Projects/Ache/2.pdb");
+        System src("/home/semen/work/current/Projects/Ache/b.pdb");
+        System target("/home/semen/work/current/Projects/Ache/4.pdb");
 
         Selection src_sel(src,"all");
         Selection target_sel(target,"all");
 
-        /*
-        vector<Vector2i> bonds;
-        do {
-            bonds.clear();
-            search_contacts(0.18,src_sel,bonds,false,false);
-            cout << bonds.size()<< endl;
-        } while(bonds.size()==16);
-        */
 
-        Topmatch t;
-        t.compute_mapping(src_sel,target_sel);
+        Topmatch t(src_sel);
+        //t.match(target_sel);
+        //for(auto a: t.get_mapping()) cout << a << endl;
 
+        int n = t.match_self();
+        cout << "Symm: "<< n << endl;
 
 
     } catch(const Pteros_error& e){
