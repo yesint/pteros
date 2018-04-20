@@ -8,7 +8,7 @@
  * (C) 2009-2018, Semen Yesylevskyy
  *
  * All works, which use Pteros, should cite the following papers:
- *  
+ *
  *  1.  Semen O. Yesylevskyy, "Pteros 2.0: Evolution of the fast parallel
  *      molecular analysis library for C++ and python",
  *      Journal of Computational Chemistry, 2015, 36(19), 1480–1488.
@@ -208,7 +208,7 @@ public:
 };
 
 
-void accum(const Frame_info& info, const std::vector<Task_ptr>& tasks){    
+void accum(const Frame_info& info, const std::vector<Task_ptr>& tasks){
     for(auto& t: tasks){
         auto h = dynamic_cast<Test_task*>(t.get());
         Eigen::Map<VectorXi> m(h->res.data(),h->res.size());
@@ -246,7 +246,7 @@ make_accessor(const Selection& sel){
 //-----------------------------
 
 int main(int argc, char** argv)
-{    
+{
 
     /*
     string t1("name C21 C22 C23 C24 C25 C26 C27 C28 C29 C210 C211 C212 C213 C214 C215 C216");
@@ -268,7 +268,7 @@ int main(int argc, char** argv)
     Membrane membr(&sys,species);
     membr.compute_properties(2.0, true, Vector3f(0,0,0), Vector3i(0,0,1));
     membr.write_vmd_arrows("normals.tcl");
-    membr.write_smoothed("smoothed.pdb");    
+    membr.write_smoothed("smoothed.pdb");
 
     // lip properties
 
@@ -367,7 +367,7 @@ int main(int argc, char** argv)
 
 
         System src("/home/semen/work/current/Projects/Ache/b.pdb");
-        System target("/home/semen/work/current/Projects/Ache/4.pdb");
+        System target("/home/semen/work/current/Projects/Ache/2.pdb");
 
         Selection src_sel(src,"all");
         Selection target_sel(target,"all");
@@ -378,7 +378,7 @@ int main(int argc, char** argv)
         //for(auto a: t.get_mapping()) cout << a << endl;
 
         int n = t.match_self();
-        cout << "Symm: "<< n << endl;
+        //cout << "Symm: "<< n << endl;
 
 
     } catch(const Pteros_error& e){

@@ -5,22 +5,22 @@
 #include "pteros/core/utilities.h"
 #include <Eigen/Core>
 #include <set>
+#include <list>
 
 namespace pteros {
 
 struct Mol_node {
+    Mol_node(){}
     Mol_node(int _par, int _ind, int _el): parent(_par), ind(_ind), element(_el) {}
-    std::shared_ptr<Mol_node> add(int i, int e);
+    Mol_node* add(int i, int e);
     void print(int tab=0);
     void get_ind_vector(std::vector<int>& v);
 
     int ind;
     int element;
     int parent;
-    std::vector<std::shared_ptr<Mol_node>> children;
+    std::list<Mol_node> children;
 };
-
-typedef std::shared_ptr<Mol_node> Mol_node_ptr;
 
 //-------------------------------------------
 
@@ -32,18 +32,18 @@ public:
     // Match another molecule against this one
     bool match(const Selection& sel);
     // Match molecule against itself to determine symmetry
-    //int match_self();
+    int match_self();
 
     std::vector<int> get_mapping();
 
 private:
-    void build_tree(Mol_node_ptr& node);
-    bool build_match(Mol_node_ptr& node, Mol_node_ptr& ref);
+    void build_tree(Mol_node& node);
+    bool build_match(Mol_node& node, const Mol_node& ref);
 
     std::vector<std::vector<int>> con, m_con;
     Selection* p_sel;
     std::set<int> used;
-    Mol_node_ptr root, m_root;
+    Mol_node root, m_root;
 };
 
 }
