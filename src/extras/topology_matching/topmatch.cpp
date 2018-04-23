@@ -8,27 +8,35 @@ using namespace std;
 using namespace pteros;
 using namespace Eigen;
 
-Mol_node* Mol_node::add(int i, int e){
-    children.emplace_back(ind,i,e);
-    return &children.back();
-}
+
 
 void Mol_node::print(int tab){
+
     cout << ind+1 << " ";
     //cout << element << " ";
-    if(!children.empty()){
-        cout << "(";
-        for(auto c: children){
-            c.print(tab+2);
+    int i=0;
+    for(auto& var: children){
+        cout << "var" << i << "[" << endl;
+        if(!var.empty()){
+            cout << "(";
+            for(auto c: var){
+                c.print(tab+2);
+            }
+            cout << ")";
         }
-        cout << ")";
+        if(tab==0) cout << endl;
+        cout << "]" << endl;
     }
-    if(tab==0) cout << endl;
+
+
+
 }
 
 void Mol_node::get_ind_vector(vector<int> &v){
+    /*
     v.push_back(ind);
-    for(auto c: children) c.get_ind_vector(v);
+    for(auto c: children[0]) c.get_ind_vector(v);
+    */
 }
 
 Topmatch::Topmatch(const Selection &sel) {
@@ -54,10 +62,13 @@ void Topmatch::set_source(const Selection &sel)
 
     // Create root
     root = Mol_node(-1,0,sel.element_number(0));
-    build_tree(root);
+    auto used = make_shared<std::set<int>>();
+    build_tree(root,used);
+    root.print();
 }
 
 bool Topmatch::match(const Selection &sel){
+    /*
     p_sel = const_cast<Selection*>(&sel);
 
     vector<Vector2i> bonds;
@@ -83,45 +94,12 @@ bool Topmatch::match(const Selection &sel){
 
     // If we are here no match is found
     return false;
+    */
 }
 
 
 int Topmatch::match_self(){
 
-    vector<int> ind;
-    root.print();
-    cout << "------------" << endl;
-
-    m_con = con; // Topology is the same
-
-    vector<Mol_node> matches;
-
-    for(int i=1; i<p_sel->size(); ++i){
-        cout << i << ":" << endl;
-
-        used.clear();
-        m_root = Mol_node(-1,i,p_sel->element_number(i));
-
-        if(build_match(m_root,root)){
-            m_root.print();
-            for(auto& a: m_root.children) cout << a.ind+1 <<" "; cout << endl;
-
-            //m_con[m_root.ind].clear();
-            //for(auto& a: m_root.children) m_con[m_root.ind].push_back(a.ind);
-            //m_con[m_root.ind].push_back(m_root.ind);
-            for(auto& a: m_con[m_root.ind]) cout << a+1 <<" "; cout << endl;
-            m_con[m_root.ind] = {0,6,2};
-
-            used.clear();
-            m_root = Mol_node(-1,i,p_sel->element_number(i));
-            if(build_match(m_root,root)){
-                m_root.print();
-            }
-        }
-
-    }
-
-    return matches.size();
 }
 
 
@@ -144,18 +122,41 @@ vector<int> Topmatch::get_mapping(){
     return(res);
 }
 
-void Topmatch::build_tree(Mol_node &node){
-    used.insert(node.ind);
+void Topmatch::build_tree(Mol_node &node, std::shared_ptr<std::set<int>> &used){
+    used->insert(node.ind);
 
+    // Find valid children
+    vector<int> valid;
     for(int b: con[node.ind]){
         if(node.parent==b) continue;
-        if(used.count(b)) continue;
-        auto el = node.add(b,p_sel->element_number(b));
-        build_tree(*el);
+        if(used->count(b)) continue;
+        valid.push_back(b);
+    }
+
+    if(valid.size()==1){
+        auto var = node.add_variant();
+        auto el = node.add_child(valid[0],p_sel->element_number(valid[0]),var);
+        build_tree(*el,used); // same used is passed, no copy is made
+    } else {
+
+        // Generate all permutations of valid
+        do {
+            // Create new copy of used and pass it
+            auto used_copy = make_shared<set<int>>();
+            *used_copy = *used;
+
+            auto var = node.add_variant();
+            for(int b: valid){
+                auto el = node.add_child(b,p_sel->element_number(b),var);
+                build_tree(*el,used_copy);
+            }
+        } while( next_permutation(valid.begin(),valid.end()) );
+
     }
 }
 
 bool Topmatch::build_match(Mol_node &node, const Mol_node &ref){
+    /*
     if(node.element != ref.element) return false;
     if(m_con[node.ind].size() != con[ref.ind].size()) return false;
 
@@ -165,7 +166,7 @@ bool Topmatch::build_match(Mol_node &node, const Mol_node &ref){
         if(node.parent==b) continue;
         if(used.count(b)) continue;
 
-        auto el = node.add(b,p_sel->element_number(b));
+        auto el = node.add_child(b,p_sel->element_number(b));
 
         bool ok;
         for(auto& r: ref.children){
@@ -180,5 +181,6 @@ bool Topmatch::build_match(Mol_node &node, const Mol_node &ref){
     }
 
     return true; // All children matched
+    */
 }
 

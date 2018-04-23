@@ -377,7 +377,7 @@ int main(int argc, char** argv)
         //t.match(target_sel);
         //for(auto a: t.get_mapping()) cout << a << endl;
 
-        int n = t.match_self();
+        //int n = t.match_self();
         //cout << "Symm: "<< n << endl;
 
 
