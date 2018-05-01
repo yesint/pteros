@@ -12,20 +12,23 @@ using namespace Eigen;
 
 void Mol_node::print(int tab){
 
-    cout << ind+1 << " ";
+    string s = ""; //for(int i=0;i<tab;++i) s+=".";
+
+    cout << s << ind+1 << " ";
     //cout << element << " ";
     int i=0;
     for(auto& var: children){
-        cout << "var" << i << "[" << endl;
+        if(children.size()>1) cout << s << "var " << i << "[" << endl << s;
         if(!var.empty()){
             cout << "(";
             for(auto c: var){
                 c.print(tab+2);
             }
-            cout << ")";
+            cout << s << ")";
         }
         if(tab==0) cout << endl;
-        cout << "]" << endl;
+        if(children.size()>1) cout << endl << s << "] var " << i << endl;
+        ++i;
     }
 
 
@@ -57,15 +60,31 @@ void Topmatch::set_source(const Selection &sel)
 
     // Sort each entry by number of bonds
     for(auto& el: con){
-        sort(el.begin(),el.end(), [this](int a,int b){return con[a].size()<con[b].size();});
+        //sort(el.begin(),el.end(), [this](int a,int b){return con[a].size()<con[b].size();});
+        sort(el.begin(),el.end());
     }
 
     // Create root
     root = Mol_node(-1,0,sel.element_number(0));
     auto used = make_shared<std::set<int>>();
     build_tree(root,used);
+
     root.print();
+
+    // Create separate trees from one multi-variant tree
+    vector<Mol_node> trees;
 }
+
+bool reduce_branches(Mol_node& node){
+    if(node.children.size()<=1) return true;
+
+    auto ref = node.children.front();
+    for(auto it=++node.children.begin(); it!=node.children.end(); it++){
+
+    }
+}
+
+
 
 bool Topmatch::match(const Selection &sel){
     /*
@@ -133,22 +152,31 @@ void Topmatch::build_tree(Mol_node &node, std::shared_ptr<std::set<int>> &used){
         valid.push_back(b);
     }
 
+    cout << node.ind+1 << ": "; for(auto a: valid) cout << a+1 << " "; cout<<" ; ";
+    for(auto a: *used) cout << a+1 << " "; cout<<endl;
+
     if(valid.size()==1){
         auto var = node.add_variant();
         auto el = node.add_child(valid[0],p_sel->element_number(valid[0]),var);
         build_tree(*el,used); // same used is passed, no copy is made
-    } else {
+    } else if(valid.size()>1){
 
         // Generate all permutations of valid
-        do {
+        do {            
             // Create new copy of used and pass it
+            cout << node.ind+1 << " permutation " ; for(auto a: valid) cout << a+1 << " "; cout<<endl;
+
             auto used_copy = make_shared<set<int>>();
             *used_copy = *used;
 
             auto var = node.add_variant();
             for(int b: valid){
+                cout << node.ind+1 << " branch " << b+1 << endl;
+
                 auto el = node.add_child(b,p_sel->element_number(b),var);
                 build_tree(*el,used_copy);
+
+                //*used = *used_copy;
             }
         } while( next_permutation(valid.begin(),valid.end()) );
 
