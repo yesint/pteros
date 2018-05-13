@@ -26,6 +26,7 @@
 
 
 #include "mol2_file.h"
+#include "pteros/core/pteros_error.h"
 
 using namespace pteros;
 using namespace std;
@@ -36,7 +37,7 @@ MOL2_file::MOL2_file(string &fname): VMD_molfile_plugin_wrapper(fname){
     plugin = molfile_plugins["mol2"];
 }
 
-MOL2_file::do_write(const Selection &sel, const Mol_file_content &what){
+void MOL2_file::do_write(const Selection &sel, const Mol_file_content &what){
     throw Pteros_error("In order to write MOL2 files you need to compile with OpenBabel support!");
 }
 

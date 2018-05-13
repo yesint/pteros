@@ -49,6 +49,8 @@ protected:
     virtual void do_write(const Selection &sel, const Mol_file_content& what) override;
 };
 
+}
+
 #else
 
 #include "babel_wrapper.h"

@@ -26,6 +26,7 @@ endif()
 if(${OPENBABEL2_FOUND})
     include_directories(${OPENBABEL2_INCLUDE_DIR})
     link_libraries(${OPENBABEL2_LIBRARIES})
+    set(BabelFiles babel_wrapper.h babel_wrapper.cpp)
 endif()
 
 add_library(pteros_io STATIC
@@ -33,8 +34,9 @@ add_library(pteros_io STATIC
     mol_file.cpp
     vmd_molfile_plugin_wrapper.h
     vmd_molfile_plugin_wrapper.cpp
-    babel_wrapper.h
-    babel_wrapper.cpp
+
+    ${BabelFiles}
+
     pdb_file.h
     pdb_file.cpp
     dcd_file.h

@@ -111,7 +111,9 @@ void Mol_file::sanity_check_write(const Selection &sel, const Mol_file_content &
         throw Pteros_error("Can't write topology from this file type!");
 }
 
-float pteros::get_mass_from_atom_name(string& name){
+namespace pteros {
+
+float get_mass_from_atom_name(string& name){
     // Find first character, which is not digit to account for cases like 21C2
     int i = name.find_first_not_of("1234567890");
 
@@ -122,6 +124,8 @@ float pteros::get_mass_from_atom_name(string& name){
     else if(name[i]=='H') return 1.0;
     else if(name[i]=='P') return 31.0;
     else return 1.0; //default
+}
+
 }
 
 unique_ptr<Mol_file> Mol_file::recognize(string fname){
@@ -145,4 +149,3 @@ std::unique_ptr<Mol_file> Mol_file::open(string fname, char open_mode)
     handle->open(open_mode);
     return handle;
 }
-
