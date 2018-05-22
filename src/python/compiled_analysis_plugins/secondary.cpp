@@ -33,7 +33,7 @@ using namespace pteros;
 TASK_SERIAL(secondary)
 public:    
 
-    string help(){
+    string help() override {
         return  "Purpose:\n"
                 "\tComputes DSSP secondary structure for the system\n"
                 "Output:\n"

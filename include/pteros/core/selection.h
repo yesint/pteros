@@ -671,14 +671,7 @@ class Selection {
     /// If cutoff is 0 the cutoff from topology is used.
     Eigen::Vector2f non_bond_energy(float cutoff=0, bool pbc = true) const;
 
-    /// Non-bond energy between two selections computed within given interaction cut-off.
-    /// If cutoff is 0 the cutoff from topology is used.
-    /// fr = -1 computes for current frame of selection 1.
-    friend Eigen::Vector2f non_bond_energy(const Selection& sel1,
-                                           const Selection& sel2,
-                                           float cutoff = 0,
-                                           int fr = -1,
-                                           bool pbc = true);
+
     /// @}
 
 
@@ -984,6 +977,16 @@ private:
 
 /// Checks if several selections overlap
 bool check_selection_overlap(const std::vector<Selection> &sel_vec);
+
+
+/// Non-bond energy between two selections computed within given interaction cut-off.
+/// If cutoff is 0 the cutoff from topology is used.
+/// fr = -1 computes for current frame of selection 1.
+Eigen::Vector2f non_bond_energy(const Selection& sel1,
+                                       const Selection& sel2,
+                                       float cutoff = 0,
+                                       int fr = -1,
+                                       bool pbc = true);
 
 } // namespace pteros
 #endif /* SELECTION_H */

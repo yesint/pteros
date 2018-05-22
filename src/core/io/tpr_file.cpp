@@ -32,6 +32,7 @@
 #ifdef USE_GROMACS
 #include "gromacs/fileio/tpxio.h"
 #include "gromacs/mdtypes/inputrec.h"
+#include "gromacs/mdtypes/state.h"
 #include "gromacs/topology/topology.h"
 #include "gromacs/topology/mtop_util.h"
 #include "gromacs/topology/idef.h"
@@ -72,7 +73,7 @@ bool TPR_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
     t_state state;
 
     read_tpx_state(fname.c_str(), &ir, &state, &mtop);
-    top = gmx_mtop_t_to_t_topology(&mtop);
+    top = gmx_mtop_t_to_t_topology(&mtop,true);
 
     natoms = top.atoms.nr;
 

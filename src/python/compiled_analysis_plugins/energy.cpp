@@ -38,7 +38,7 @@ using namespace Eigen;
 TASK_SERIAL(energy)
 public:
 
-    string help(){
+    string help() override {
         return  "Purpose:\n"
                 "\tComputes non-bond interaction energy for each frame.\n"
                 "\tIf one selection is provided computes self-energy.\n"

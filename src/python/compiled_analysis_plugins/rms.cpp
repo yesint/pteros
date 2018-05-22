@@ -62,7 +62,7 @@ public:
 
 protected:
 
-    void pre_process(){        
+    void pre_process() override {
         data.clear();        
 
         // rms_selections
@@ -97,7 +97,7 @@ protected:
         data.resize(rms_sel.size());
     }     
 
-    void process_frame(const pteros::Frame_info &info){
+    void process_frame(const pteros::Frame_info &info) override {
         if(info.valid_frame==0){
             // Create frame 1 for fitting
             system.frame_dup(0);
@@ -112,7 +112,7 @@ protected:
         }
     }
 
-    void post_process(const pteros::Frame_info &info){        
+    void post_process(const pteros::Frame_info &info) override {
         // Output
         string fname = fmt::format("rms_id{}.dat",get_id());
         // Get time step in frames and time
