@@ -13,8 +13,7 @@ IF(WITH_PYTHON)
         bindings_frame.cpp
         bindings_distance_search.cpp
         bindings_options.cpp
-        bindings_trajectory_reader.cpp
-        bindings_membrane.cpp
+        bindings_trajectory_reader.cpp        
         ${PROJECT_SOURCE_DIR}/include/pteros/python/compiled_plugin.h
     )
 

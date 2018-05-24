@@ -84,7 +84,7 @@ void make_bindings_Membrane(py::module& m){
              "external_pivot"_a=Eigen::Vector3f::Zero(),
              "external_dist_dim"_a=Eigen::Vector3i::Ones()
             )
-        .def("write_vmd_arrows",&Membrane::write_vmd_arrows)        
+        .def("write_vmd_arrows",&Membrane::write_vmd_arrows)
         .def("write_smoothed",&Membrane::write_smoothed)
         .def("num_lipids",&Membrane::num_lipids)
         .def("get_lipid",&Membrane::get_lipid,py::return_value_policy::reference_internal)
