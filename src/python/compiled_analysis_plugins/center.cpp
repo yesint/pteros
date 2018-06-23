@@ -43,9 +43,9 @@ public:
                 "\tFile <label>.dat containing the following columns:\n"
                 "\ttime center_x center_y center_z\n"
                 "Options:\n"
-                "\t--selection <string>\n"
+                "\t-selection <string>\n"
                 "\t\tSelection text\n"
-                "\t--mass_weighted <true|false>, default: false\n"
+                "\t-mass_weighted <true|false>, default: false\n"
                 "\t\tCompute center of mass (true) or geometric center (false)";
     }
 

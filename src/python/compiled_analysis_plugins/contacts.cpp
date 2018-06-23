@@ -61,6 +61,27 @@ public:
     string help() override {
         return  "Purpose:\n"
                 "\tAnalyzes contacts between two selections.\n"
+
+                "Output:\n"
+
+                "Options:\n"
+                "\t-sel1, -sel2\n"
+                "\t\ttwo selections to compute contacts between.\n"
+                "\t\tSelection should not overlap. An error is thrown is they are.\n"
+
+                "\t-periodic <true|false>, default: false\n"
+                "\t\tAccount for periodicity when computing contacts.\n"
+
+                "\t-cutoff, default: 0\n"
+                "\t\tDistance cutoff in nm.\n"
+                "\t\tIf cutoff==-1 uses largest sum of VDW radii as a cutoff.\n"
+                "\t\tIf cutoff==0  uses the min of VdW and Coulommb cutoffs in the force field (if available).\n"
+
+                "\t-padding, default: 0.1\n"
+                "\t\tPadding added to cutoff in the case of VdW radii (cutoff=-1).\n"
+
+                "\t-transient <true|false>, default: false\n"
+                "\t\tIf true the contacts with last for single frame only are recorded.\n"
                 ;
     }
 
@@ -124,6 +145,10 @@ protected:
         vector<Vector2i> bon;
         vector<float> dist_vec;
         vector<Vector2f> pair_en;
+
+        sel1.apply();
+        sel2.apply();
+
         search_contacts(cutoff,sel1,sel2,bon,true,periodic,&dist_vec); // global indexes returned!
 
         Vector2f total_en(0,0);
