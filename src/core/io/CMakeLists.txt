@@ -14,14 +14,21 @@ if(WITH_GROMACS)
     endif()
 
     if(${gromacs_FOUND})
-        message("-- Found Gromacs at ${GROMACS_INCLUDE_DIRS}")
+        message("-- Found Gromacs ${gromacs_VERSION} at ${GROMACS_INCLUDE_DIRS}")
         add_definitions(-DUSE_GROMACS)
         include_directories(${GROMACS_INCLUDE_DIRS})
         link_libraries(${GROMACS_LIBRARIES})
+        # If we have version < 2018 set flag for old API
+        if(${gromacs_VERSION_MAJOR} LESS 2018)
+            add_definitions(-DGROMACS_OLD)
+            message("-- Gromacs version ${gromacs_VERSION_MAJOR} thus using old gmx_mtop_t_to_t_topology API!")
+        endif()
     else()
         message("-- Gromacs not found! Gromacs-related features are disabled!")
     endif()
 endif()
+
+
 
 if(${OPENBABEL2_FOUND})
     include_directories(${OPENBABEL2_INCLUDE_DIR})
