@@ -177,7 +177,7 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
 
             // Skip frames if needed
             if(b>0){
-                LOG()->info("Skipping {} frames...\n", b);
+                LOG()->info("Skipping {} frames...", b);
                 Frame skip_fr;
                 for(int i=0;i<b;++i){
                     f->read(nullptr, &skip_fr, Mol_file_content().traj(true));
@@ -185,7 +185,7 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
                 }
             }            
 
-            LOG()->info("Reading...\n");
+            LOG()->info("Reading...");
 
             int actually_read = 0;
 
@@ -247,7 +247,7 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
         }
     }
 
-    LOG()->info("Accepted {} frames. Now {} frames in the System.\n", num_stored, num_frames());
+    LOG()->info("Accepted {} frames. Now {} frames in the System.", num_stored, num_frames());
 }
 
 bool System::load(const std::unique_ptr<Mol_file>& handler, Mol_file_content what, std::function<bool (System *, int)> on_frame)
@@ -420,7 +420,7 @@ void System::frame_delete(int b, int e){
 
     // Check if there are some frames left. If not print the warning
     // that all selections are invalid!
-    if(traj.size()==0) LOG()->warn("All frames are deleted. All selections are now INVALID!\n");
+    if(traj.size()==0) LOG()->warn("All frames are deleted. All selections are now INVALID!");
 }
 
 void System::frame_swap(int fr1, int fr2)
