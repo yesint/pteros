@@ -579,9 +579,9 @@ class Selection {
                       int pbc_atom = -1);
 
     /// Rotate selection around given axis relative to given pivot
+    /// @param pivot Rotation around this pivot
     /// @param axis Rotate around this vector
     /// @param angle Rotation angle in radians
-    /// @param pivot Rotation around this pivot
     void rotate(Vector3f_const_ref pivot, Vector3f_const_ref axis, float angle);
 
     /// Wraps whole selection to the periodic box
@@ -723,9 +723,13 @@ class Selection {
     /// \warning Size of selections should be the same.
     friend void copy_coord(const Selection& from, int from_fr, Selection& to, int to_fr);        
 
+    /// Copy coordinates from one selection to the other using their current frames.
+    /// \warning Size of selections should be the same.
+    friend void copy_coord(const Selection& from, Selection& to);
+
     /// Finds local index in selection of provided global index
     /// Returns -1 if not found
-    int find_index(int global_index);       
+    int find_index(int global_index);
     /// @}
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

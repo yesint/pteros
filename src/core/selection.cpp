@@ -975,6 +975,10 @@ void copy_coord(const Selection &from, int from_fr, Selection &to, int to_fr)
     }
 }
 
+void copy_coord(const Selection &from, Selection &to){
+    copy_coord(from,from.get_frame(),to,to.get_frame());
+}
+
 Vector2f non_bond_energy(const Selection& sel1,
                          const Selection& sel2,
                          float cutoff,

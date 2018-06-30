@@ -215,7 +215,8 @@ void make_bindings_Selection(py::module& m){
         .def("dihedral", &Selection::dihedral, "i"_a, "j"_a, "k"_a, "l"_a, "pbc"_a=fullPBC)
 
         // Geometry transforms
-        .def("translate", &Selection::translate)        
+        .def("translate", &Selection::translate)
+        .def("translate_to", &Selection::translate_to)
         .def("rotate",&Selection::rotate)
 
         .def("wrap", &Selection::wrap, "pbc"_a=fullPBC)
@@ -233,7 +234,7 @@ void make_bindings_Selection(py::module& m){
         .def("rmsd",py::overload_cast<int,int>(&Selection::rmsd,py::const_))
         .def("fit_trajectory",&Selection::fit_trajectory, "ref_frame"_a=0, "b"_a=0, "e"_a=-1)
 
-        .def("fir_transform", [](Selection* sel, int fr1, int fr2){
+        .def("fit_transform", [](Selection* sel, int fr1, int fr2){
                 Matrix4f m = sel->fit_transform(fr1,fr2).matrix().transpose();
                 return m;
             })
@@ -327,8 +328,6 @@ void make_bindings_Selection(py::module& m){
         .def("dssp", py::overload_cast<>(&Selection::dssp, py::const_))
 
         // Accessors
-        .def("vdw",&Selection::vdw)
-        .def("element_name",&Selection::element_name)
         .def_property("box", [](Selection* obj){return obj->box();}, [](Selection* obj,const Periodic_box& val){obj->box()=val;})
         .def_property("time", [](Selection* obj){return obj->time();}, [](Selection* obj, float val){obj->time()=val;})
 
@@ -338,15 +337,18 @@ void make_bindings_Selection(py::module& m){
     // Free functions
     m.def("rmsd",[](const Selection& sel1, const Selection& sel2){ return rmsd(sel1,sel2); });
     m.def("rmsd",[](const Selection& sel1, int fr1, const Selection& sel2, int fr2){ return rmsd(sel1,fr1,sel2,fr2); });
+
     m.def("fit",[](Selection& sel1, const Selection& sel2){ fit(sel1,sel2); });
     m.def("fit_transform",[](Selection& sel1, const Selection& sel2){
         Matrix4f m = fit_transform(sel1,sel2).matrix().transpose();
         return m;
     });
+
     m.def("non_bond_energy", [](const Selection& sel1, const Selection& sel2,float cutoff,int fr,bool pbc){
         return non_bond_energy(sel1,sel2,cutoff,fr,pbc);
     },"sel1"_a, "sel2"_a, "cutoff"_a=0.0, "fr"_a=-1, "pbc"_a=fullPBC);
-    m.def("copy_coord",[](const Selection& sel1, int fr1, Selection& sel2, int fr2){ return copy_coord(sel1,fr1,sel2,fr2); });
 
+    m.def("copy_coord",[](const Selection& sel1, int fr1, Selection& sel2, int fr2){ return copy_coord(sel1,fr1,sel2,fr2); });
+    m.def("copy_coord",[](const Selection& sel1, Selection& sel2){ return copy_coord(sel1,sel2); });
 }
 
