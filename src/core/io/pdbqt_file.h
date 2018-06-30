@@ -26,22 +26,23 @@
 
 #pragma once
 
-#include "vmd_molfile_plugin_wrapper.h"
+#include <string>
+#include "babel_wrapper.h"
 
 namespace pteros {
 
-/// Use VMD plugin for PDB
-class PDB_file: public VMD_molfile_plugin_wrapper {
-public:    
+class PDBQT_file: public Babel_wrapper {
+public:
+    PDBQT_file(std::string& fname);
 
-    PDB_file(std::string& fname);
-
-    virtual Mol_file_content get_content_type() const {        
-        return Mol_file_content().atoms(true).coord(true).traj(true);
+    virtual Mol_file_content get_content_type() const {
+        return Mol_file_content().atoms(true).coord(true);
     }
 
+protected:
+    // We need bonds
+    virtual bool need_bonds() final {return true;}
 };
 
 }
-
 

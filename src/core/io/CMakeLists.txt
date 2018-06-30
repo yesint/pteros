@@ -33,7 +33,11 @@ endif()
 if(${OPENBABEL2_FOUND})
     include_directories(${OPENBABEL2_INCLUDE_DIR})
     link_libraries(${OPENBABEL2_LIBRARIES})
-    set(BabelFiles babel_wrapper.h babel_wrapper.cpp)
+    set(BabelFiles
+        babel_wrapper.h
+        babel_wrapper.cpp
+        pdbqt_file.h
+        pdbqt_file.cpp)
 endif()
 
 add_library(pteros_io STATIC
@@ -63,7 +67,7 @@ add_library(pteros_io STATIC
     xyz_file.h
     xyz_file.cpp
     tpr_file.h
-    tpr_file.cpp
+    tpr_file.cpp    
 )
 
 target_link_libraries(pteros_io molfile_plugins xdrfile tng_io)

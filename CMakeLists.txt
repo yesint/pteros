@@ -78,7 +78,9 @@ if(WITH_OPENBABEL)
     find_package(OpenBabel2 QUIET)
     if(${OPENBABEL2_FOUND})
         add_definitions(-DUSE_OPENBABEL)
-        # includes and links are added in subdirectories where needed
+        # includes and links are added in subdirectories where needed        
+    else()
+        message("-- OpenBabel is not found!")
     endif()
 endif()
 

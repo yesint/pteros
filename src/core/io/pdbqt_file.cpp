@@ -24,24 +24,12 @@
  *
 */
 
-#pragma once
 
-#include "vmd_molfile_plugin_wrapper.h"
+#include "pdbqt_file.h"
+#include "pteros/core/pteros_error.h"
 
-namespace pteros {
+using namespace pteros;
+using namespace std;
 
-/// Use VMD plugin for PDB
-class PDB_file: public VMD_molfile_plugin_wrapper {
-public:    
-
-    PDB_file(std::string& fname);
-
-    virtual Mol_file_content get_content_type() const {        
-        return Mol_file_content().atoms(true).coord(true).traj(true);
-    }
-
-};
-
-}
-
+PDBQT_file::PDBQT_file(string &fname): Babel_wrapper(fname){ }
 
