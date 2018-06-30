@@ -68,8 +68,8 @@ Currently the following file formats are supported:
     \note TNG files also contain structure information.
     + DCD
 - Topology
-    + PTTOP
-    \note Read only. Produced from Gromacs TPR files by the ``tpr2pteros.py`` script.
+    + TPR
+    \note Read only. Produced by Gromacs.
 
 \subsection types_of_info What is loaded from data files?
 Molecular data formats contain different information about the system. In Pteros all information stored in the data files is classified into \em atoms, \em coordinates, \em trajectory and \em topology. Type of particular piece of information is determined by Mol_file_content class.
@@ -101,7 +101,7 @@ s.load("other-file.pdb");
 s.load("trajectory.xtc",3,20);
 
 // (4) Adding topology
-s.load("topology.pttop");
+s.load("topol.tpr");
 \col2
 # Initial loading in constructor
 s = System('somefile.pdb')
@@ -113,7 +113,7 @@ s.load('other-file.pdb')
 s.load('trajectory.xtc',3,20)
 
 # (4) Adding topology
-s.load('topology.pttop')
+s.load('topol.tpr')
 \endcol
 
 -# In this example we first construct the System from the PDB file "somefile.pdb". File type is \em always determined by extension. Since on step (1) the system is empty all possible information is read from this file, which means that atoms and coordinates would be read.
@@ -130,7 +130,7 @@ Since different file types contain different information the logic of adding inf
 File type   |   What is loaded? |   Comment
 ----------  |   --------------- |   -------
 PDB, GRO, MOL2    |   Atoms and the single frame |   MOL2 does not contain periodic box! |
-PTTOP   |   Atoms, the single frame, full topology    | PTTOP file in Pteros are not "pure topology" - they also contain the set of starting coordinates.  |
+TPR   |   Atoms, the single frame, full topology    | Read only. The file itself should be produced by Gromacs  |
 TNG     |   Atoms and multiple frames   |   |
 XTC, TRR, DCD   |   Fails and raises exception | In Pteros reading trajectory into an empty system is not allowed (in contrast to VMD for example). |
 
@@ -138,7 +138,7 @@ XTC, TRR, DCD   |   Fails and raises exception | In Pteros reading trajectory in
 File type   |   What is loaded? |   Comment
 ----------  |   --------------- |   -------
 PDB, GRO, MOL2    |   Single frame |  New frame added. The only check is matching number of atoms.  |
-PTTOP   |   Topology    | Adds atom types and charges, updates masses, adds other topology information. No coordinates are read, no frames added.  |
+TPR   |   Topology    | Adds atom types and charges, updates masses, adds other topology information. No coordinates are read, no frames added.  |
 TNG, XTC, TRR, DCD   |   Multiple frames | Adds number of new frames. The only check is matching number of atoms. |
 
 \subsection advanced_load Advanced loading with file handlers
@@ -1301,7 +1301,7 @@ Grid cells are of type ``vector<Grid_element>`` and contain information about in
 
 \section energy Evaluating non-bond energies
 
-Pteros is able to compute the <i>short-range</i> non-bond energies if topology file is read for the system. Currently Pteros supports special .pttop format of topology files, which have to be generated from Gromacs .tpr run input files using "tpr2pteros.py" script.
+Pteros is able to compute the <i>short-range</i> non-bond energies if topology file is read for the system. Currently Pteros reads Gromacs tpr run input files to extract topology and some energy evaluation options from them.
 
 \warning Long-range electrostatics with PME or other lattice sum methods are not supported in Pteros.
 
@@ -1309,87 +1309,16 @@ Treatment of non-bonded interactions in Gromacs is, unfortunately, complex and r
 
 \note Pteros is known to produce correct results for MARTINI coarse grained force field and simple cut-off interactions.
 
-\subsection get_top Generating Pteros .pttop files
-
-Call "tpr2pteros.py" script to convernt Gromacs .tpr binary file to Pteros .pttop topology. The script is doing simple caching - if .tpr file did not change since last call of the script it will do nothing. Currently Pteros uses the same options for short-range energies as set in parent Gromacs .tpr file.
-\note This requires working Gromacs installation.
+\warning Reading topologies in tpr format requires linking with Gromacs. Evaluation of energies is not possible otherwise.
 
 \subsection en_components Energy components
 
-All energy evaluation methods return an object of type Energy_components which contain separate fields for different energy components:
-
-Field | Energy component
------ | ----------------
-total | Total energy
-lj_sr | Short-ranhe Lennard-Jones energy
-lj_14 | Lennard-Jones energy of 1-4 pairs
-q_sr | Short-ranhe Coulomb energy
-q_14 | Coulomb energy of 1-4 pairs
-
-Energy_components objects could be added to each other with "+" and "+=" operators.
+All energy evaluation methods return an object of type Eigen::Vector2f where the first number if Coulomb energy and the second is Van der Waals energy.
 
 \subsection get_en Computing non-bond energies
 
 Before evaluating non-bond energies the user should always check if the System has correctly set force field parameters by calling System::force_field_ready(). If it returns `true` than it is safe to call energy functions.
 \warning The Pteros will crash if calling energy functions on system without force field (i.e. without any topology loaded). No check is made in energy functions themselves for efficiency reasons.
-
-\subsubsection en_system Methods of System class
-
-The method System::non_bond_energy() has two forms which evaluate the energy between two atoms or in the list of given atom pairs:
-\col1
-System s("some-structure.pdb");
-s.load("topology.pttop"); // Required!
-
-// Check if system is ready for energy evaluation
-if(s.force_field_ready()){
-   // (1) ENERGY BETWEEN TWO ATOMS
-
-   // Energy between atoms 1 and 2 for frame 0
-   auto en12 = s.non_bond_energy(1,2,0);
-   // The same but accounting for periodicity
-   auto en12pbc = s.non_bond_energy(1,2,0,true);
-   // Print total energies
-   cout << en12.total << " " << en12pbc.total << endl;
-
-   // (2) ENERGY FOR THE LIST OF ATOM PAIRS
-
-   // The list of atom pairs
-   vector<Vector2i> lst = ...;
-   // Non-periodic variant for frame 0
-   auto en = s.non_bond_energy(lst,0);
-   // The same but accounting for periodicity
-   auto en_pbc = s.non_bond_energy(lst,0,true);
-   // Print total energies
-   cout << en.total << " " << en_pbc.total << endl;
-}
-\col2
-s = System('some-structure.pdb')
-s.load('topology.pttop') # Required!
-
-# Check if system is ready for energy evaluation
-if s.force_field_ready():
-   # (1) ENERGY BETWEEN TWO ATOMS
-
-   # Energy between atoms 1 and 2 for frame 0
-   en12 = s.non_bond_energy(1,2,0)
-   # The same but accounting for periodicity
-   en12pbc = s.non_bond_energy(1,2,0,True)
-   # Print total energies
-   print en12.total, en12pbc.total
-
-   # (2) ENERGY FOR THE LIST OF ATOM PAIRS
-
-   # The list of atom pairs
-   lst = [[1,2],[3,4],[5,6]]
-   # Non-periodic variant for frame 0
-   en = s.non_bond_energy(lst,0)
-   # The same but accounting for periodicity
-   en_pbc = s.non_bond_energy(lst,0,True)
-   # Print total energies
-   print en.total, en_pbc.total
-\endcol
-
-\subsubsection en_sel Methods of Selection class
 
 Selection class provides two higher-level methods of energy evaluation. The first one computes self-energy of selection within given distance cut-off. The second computes the energy between two selection of the same size within given cut-off for given frame.
 
@@ -1496,7 +1425,7 @@ int main(int argc, char** argv){
     // Represents built-in and custom command line options
     Options reader_options;
     // Options for indivudual tasks
-    vector<Option> task_opts;
+    vector<Options> task_opts;
     // Parse options from the command line
     // Used flag -task to separate options of individual tasks
     parse_command_line(argc,argv, reader_options, "task", task_opts);
@@ -1523,9 +1452,9 @@ All analysis tasks in Pteros are subdivided into serial and parallel.
 
 The objects of serial tasks exist as single instances, which run in their own thread of execution. The task is "serial" in the sence that \em inside the task code all operations are sequential and executed one by one in defined order. Trajectory_reader may run as many serial tasks as you want at the same time.
 
-The parallel tasks behave differently. The Trajectory_reader may run only one parallel task and nothing else. The parallel task spawns as many instances of itself as there are cores in your processor. Each trajectory frame is dispatched to one of the instances only with no particular order. At the end all instances merge their results to the master instance, which is doing post-processing. Parallel tasks work much like parallel for loops in OpenMP over trajectory frames.
+The parallel tasks behave differently. The Trajectory_reader may run only one parallel task and nothing else. The parallel task spawns as many instances of itself as there are cores in your processor. Each trajectory frame is dispatched to one of the instances only with no particular order. At the end all instances merge their results to the master instance, which is combining the results. Parallel tasks work much like parallel for loops over trajectory frames.
 
-Regardless of the task type you have to override three methods: pre_process(), process_frame() and post_process(). For parallel tasks additional method collect_data() have to be overriden.
+Regardless of the task type you have to override three methods: pre_process(), process_frame() and post_process(). For parallel tasks additional methods before_spawn() and collect_data() have to be overriden.
 
 Tasks are created by the macro TASK_SERIAL or TASK_PARALLEL:
 
@@ -1542,20 +1471,27 @@ TASK_PARALLEL(My_parallel_task)
     void pre_process() override { ... }
     void process_frame(const Frame_info& info) override { ... }
     void post_process(const Frame_info& info) override { ...  }
+    void before_spawn() override { ... }
     void collect_data(const std::vector<std::shared_ptr<Task_base>>& tasks) override { ... }
 };
 \endcode
 
-The moments when these methods are called is different for serial and parallel tasks:
+The moments when these methods are called are different for serial and parallel tasks:
 
 Method | Serial task | Parallel task
 -------|-------------- |---------
-pre_process | Called on first consumed trajectory frame for each task | Called on first consumed trajectory frame by single master task instance only. After that multiple task instances are spawned by cloning this master instance.
-process_frame | Called on each valid trajectory frame. Frames are processed in order. | Called by each task instance in parallel on different frames. Frames are dispatched to instances with no particular order on the "first come first served" basis.
-collect_data | N/A | Called by master instance only when trajectory is complete. All other instances are passed in tasks vector. The purpose is to merge local data of all instances together in the master instance for post-processing.
-post_process | Called after last consumed trajectory frame for each task. | Called by master instance only immediately after collect_data().
+pre_process | Called by each task on the first valid trajectory frame | Called on the frame which is consumed first by particular task instance. It is not predictable which frame is this. This is a place to set up selections for this particular task instance.
+process_frame | Called on each valid trajectory frame. For the first frame is called just after pre_process(). Frames are processed in order. | Called by task instances in parallel on different frames. Frames are dispatched to instances with no particular order on the "first come first served" basis.
+post_process | Called after last valid trajectory frame for each task. | Called by each task instance after consuming last available frame for this instance. It is not predictable which frame is this.
+collect_data | N/A | Called by master instance only when the trajectory is complete. All other instances are passed in tasks vector. The purpose is to merge local data of all instances together in the master instance for final processing.
+before_spawn | N/A | Called by master task instance before spawning other instances and before consuming any frames. This is a place to process task options, set up jump remover, etc. \warning Do not set up any selections here! See below for details.
 
 \note The reason of having separate collect_data() method is to keep the interface of serial and parallel task consistent otherwise.
+
+\subsubsection par_select Selections in parallel tasks
+Parallel tasks require additional attention when setting up selections. When "normal" serial task is executed it possesses an independent System in the member variable called 'system'. Any selections which are the members of your task class are created based on this system in the pre_process() method. All this is straightforward and easy to understand.
+When parallel task is executed the things become more complex. When multiple instances of your task class are spawned each of them will have its own 'system' variable. This means that any selection, which was made <i> before </i> spawning will be copyed to all task instances but they will still bind to the 'system' of the master instance! As a results you'll have a lot of fun trying to debug misterious errors and crashes.
+\note To avoid this just remember the following rule: Never create any selections in before_spawn() method for parallel tasks! Create them in pre_process() only. before_spawn() is the place for initializing the stuff which is guaranteed to be the same for all task instances, like processing options.
 
 
 \subsection options Processing command-line options
@@ -1653,7 +1589,7 @@ last_frame | Last processed valid frame (an absolute value). During the processi
 
 \subsection magic_vars "Magic variables" in analysis tasks
 
-Each analysis task is derived from Task_base class under the hood and contains the following "magic variable":
+Each analysis task is derived from Task_base class under the hood and contains the following "magic variables":
 
 Variable | Meaning
 -------- | -------
