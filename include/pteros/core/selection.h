@@ -859,10 +859,6 @@ class Selection {
     inline Eigen::Vector3f* xyz_ptr(int ind)         const { return &(system->traj[frame].coord[_index[ind]]); }
     inline Eigen::Vector3f* xyz_ptr(int ind, int fr) const { return &(system->traj[fr].coord[_index[ind]]); }
 
-
-
-#define DEFINE_ACCESSOR_READONLY(T,prop) \
-    inline const T& prop(int ind) const { return system->atoms[_index[ind]].prop; }
 #define DEFINE_ACCESSOR(T,prop) \
     inline T& prop(int ind){ return system->atoms[_index[ind]].prop; } \
     inline const T& prop(int ind) const { return system->atoms[_index[ind]].prop; }
