@@ -3,7 +3,9 @@
 #------------------------
 
 add_subdirectory(io)
+add_subdirectory(selection_parser)
 add_subdirectory(distance_search)
+
 
 if(WITH_POWERSASA)
     # Set definition for conditional compilation
@@ -32,23 +34,25 @@ add_library(pteros SHARED
     # General
     ${PROJECT_SOURCE_DIR}/include/pteros/core/logging.h
     logging.cpp
+
     ${PROJECT_SOURCE_DIR}/include/pteros/core/utilities.h
     utilities.cpp
+
     ${PROJECT_SOURCE_DIR}/include/pteros/pteros.h
     ${PROJECT_SOURCE_DIR}/include/pteros/core/typedefs.h
     ${PROJECT_SOURCE_DIR}/include/pteros/core/pteros_error.h
     ${PROJECT_SOURCE_DIR}/include/pteros/core/atom.h
+
     ${PROJECT_SOURCE_DIR}/include/pteros/core/force_field.h
     force_field.cpp
+
     ${PROJECT_SOURCE_DIR}/include/pteros/core/atom_proxy.h
     atom_proxy.cpp
+
     ${PROJECT_SOURCE_DIR}/include/pteros/core/system.h
     system.cpp
+
     ${PROJECT_SOURCE_DIR}/include/pteros/core/selection.h
-    selection_macro.h    
-    selection_parser.h
-    selection_grammar.h
-    selection_parser.cpp
     selection.cpp
 
     ${PROJECT_SOURCE_DIR}/include/pteros/core/grid.h
@@ -61,14 +65,17 @@ add_library(pteros SHARED
     ${SASA_FILES}
 
     #DSSP wrapper
-    ${PROJECT_SOURCE_DIR}/src/core/pteros_dssp_wrapper.cpp
-    ${PROJECT_SOURCE_DIR}/src/core/pteros_dssp_wrapper.h
+    pteros_dssp_wrapper.cpp
+    pteros_dssp_wrapper.h
 )
 
 # Add path to molfile plugins directory to use VMD periodic table routines
 target_include_directories(pteros PRIVATE ${PROJECT_SOURCE_DIR}/thirdparty/molfile_plugins)
 
-target_link_libraries(pteros pteros_io pteros_distance_search dssp sasa)
+# For selection parser includes
+target_include_directories(pteros PRIVATE selection_parser)
+
+target_link_libraries(pteros pteros_io pteros_selection_parser pteros_distance_search dssp sasa)
 
 #--------------
 # Installation
