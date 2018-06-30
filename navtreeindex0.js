@@ -2,12 +2,12 @@ var NAVTREEINDEX0 =
 {
 ".html":[5,0,0],
 "analysis.html":[3,1],
-"analysis.html#Selections":[3,1,1,0,0],
 "analysis.html#anal_concepts":[3,1,0],
 "analysis.html#frame_info":[3,1,1,2],
 "analysis.html#jump":[3,1,1,4],
 "analysis.html#magic_vars":[3,1,1,3],
 "analysis.html#options":[3,1,1,1],
+"analysis.html#par_select":[3,1,1,0,0],
 "analysis.html#plugins":[3,1,2],
 "analysis.html#processors_consumers":[3,1,1],
 "analysis.html#suffix":[3,1,1,1,0],
