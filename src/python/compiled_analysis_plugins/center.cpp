@@ -36,17 +36,19 @@ TASK_SERIAL(center)
 public:
 
     string help() override {
-        return  "Purpose:\n"
-                "\tComputes center of mass or geometric center of selection for each frame.\n"
-                "\tIf selection is coordinate-dependent updates it every frame.\n"
-                "Output:\n"
-                "\tFile <label>.dat containing the following columns:\n"
-                "\ttime center_x center_y center_z\n"
-                "Options:\n"
-                "\t-selection <string>\n"
-                "\t\tSelection text\n"
-                "\t-mass_weighted <true|false>, default: false\n"
-                "\t\tCompute center of mass (true) or geometric center (false)";
+        return
+R"(Purpose:
+    Computes center of mass or geometric center of selection for each frame.
+    If selection is coordinate-dependent updates it every frame.
+Output:
+    File <label>.dat containing the following columns:
+    time center_x center_y center_z
+Options:
+    -selection <string>
+        Selection text
+    -mass_weighted <true|false>, default: false
+        Compute center of mass (true) or geometric center (false)
+)";
     }
 
 protected:

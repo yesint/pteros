@@ -40,21 +40,23 @@ TASK_PARALLEL(energy_par)
 public:
 
     string help() override {
-        return  "Purpose:\n"
-                "\tComputes non-bond interaction energy for each frame.\n"
-                "\tIf one selection is provided computes self-energy.\n"
-                "\tIf two selections are provided computes their interaction energy.\n"
-                "\tCoordinate-dependent selections are updated for each frame.\n"
-                "Output:\n"
-                "\tFile energy_<id>.dat containing the following columns:\n"
-                "\ttime total q lj\n"
-                "Options:\n"
-                "\t-cutoff <float>, default: value from force field\n"
-                "\t\tCutoff for energy computation\n"
-                "\t-sel <string> [<string>]\n"
-                "\t\tSelection texts for one or two selections\n"                
-                "\t-periodic <bool>, default: true\n"
-                "\t\tUse periodicity?\n";
+        return
+R"(Purpose:
+    Computes non-bond interaction energy for each frame.
+    If one selection is provided computes self-energy.
+    If two selections are provided computes their interaction energy.
+    Coordinate-dependent selections are updated for each frame.
+Output:
+    File ebergy_<id>.dat containing the following columns:
+    time total q lj
+Options:
+    -cutoff <float>, default: value from force field
+        Cutoff for energy computation
+    -sel <string> [<string>]
+        Selection texts for one or two selections
+    -periodic <bool>, default: true
+        Use periodicity?
+)";
     }
 protected:
 

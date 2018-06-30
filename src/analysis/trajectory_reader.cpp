@@ -40,66 +40,60 @@ using namespace std;
 
 
 string Trajectory_reader::help(){
-    return  "Trajectory processing options:\n"
-            "General usage:\n"
-            "\t-f filename1 filename2 ... <processing options>\n"
-            "Files:\n"
-            "\t* Exactly one structure file (PDB or GRO)\n"
-            "\t  If not specified, topology PTTOP file must be given instead.\n"
-            "\t* Topology PTTOP file (converted from Gromacs .tpr by tpr2pteros.py)\n"
-            "\t  If structure file is also present only topology is read from this file.\n"
-            "\t  If structure file is not present the coordinates are also read.\n"
-            "\t* One or more trajectory files (TRR, XTC, TNG or DCD).\n"
-            "\t  TNG files also contain the structure, so if no structure file\n"
-            "\t  is given the structure is read from the first TNG file.\n"
-            "\n"
-            "\tFiles may appear in any order, but trajectory files will be processed\n"
-            "\tin the order of their appearance.\n\n"
+    return
+R"(Trajectory processing options:
+General usage:
+    -f filename1 filename2 ... <processing options>
+Files:
+    * Exactly one structure file (PDB or GRO)
+      If not specified, topology PTTOP file must be given instead.
+    * Topology PTTOP file (converted from Gromacs .tpr by tpr2pteros.py)
+      If structure file is also present only topology is read from this file.
+      If structure file is not present the coordinates are also read.
+    * One or more trajectory files (TRR, XTC, TNG or DCD).
+      TNG files also contain the structure, so if no structure file
+      is given the structure is read from the first TNG file.
 
-            "Processing options:\n"
+    Files may appear in any order, but trajectory files will be processed
+    in the order of their appearance.
 
-            "\t-path <string>\n"
-            "\t\toptional path which will be prepended to all data files, default: empty string\n"
+Processing options:
 
-            "\t-b <value[suffix]>\n"
-            "\t\tbeginning of processing (starting frame or time), default: 0\n"
+    -path <string>
+        optional path which will be prepended to all data files, default: empty string
+    -b <value[suffix]>
+        beginning of processing (starting frame or time), default: 0
+    -e <value[suffix]>
+        end of processing (end frame or time), default: -1 (up to the end)
+    -skip <n>
+        Process only each n'th frame, default: -1 (process each frame)
+    -t0 <t[suffix]>
+        Custom starting time, default: -1 (use value from first frame)
+        Useful if trajectory does not contain time stamps
+        or if the starting time is incorrect.
+        If set and dt is not given sets dt to 1.0!
+    -dt <t[suffix]>
+        Cutom time step, default: -1 (use value from trajectory)
+        Useful if trajectory does not contain time stamps.
+        If set and start is not given sets start to 0.0!
+    -log <n>
+        Prints logging information on each n-th frame, default: -1 (no logging)
+    -buffer <n>
+        Number of frames, which are kept in memory, default: 10
+        Only touch this if individual frames are very large.
 
-            "\t-e <value[suffix]>\n"
-            "\t\tend of processing (end frame or time), default: -1 (up to the end)\n"
-
-            "\t-skip <n>\n"
-            "\t\tProcess only each n'th frame, default: -1 (process each frame)\n"
-
-            "\t-t0 <t[suffix]>\n"
-            "\t\tCustom starting time, default: -1 (use value from first frame)\n"
-            "\t\tUseful if trajectory does not contain time stamps\n"
-            "\t\tor if the starting time is incorrect.\n"
-            "\t\tIf set and dt is not given sets dt to 1.0!\n"
-
-            "\t-dt <t[suffix]>\n"
-            "\t\tCutom time step, default: -1 (use value from trajectory)\n"
-            "\t\tUseful if trajectory does not contain time stamps.\n"
-            "\t\tIf set and start is not given sets start to 0.0!\n"
-
-            "\t-log <n>\n"
-            "\t\tPrints logging information on each n-th frame, default: -1 (no logging)\n"
-
-            "\t-buffer <n>\n"
-            "\t\tNumber of frames, which are kept in memory, default: 10\n"
-            "\t\tOnly touch this if individual frames are very large.\n"
-
-            "Suffixes:\n"
-            "\tAll parameters marked as <value[suffix]> accept the following optional suffixes:\n"
-            "\t\t(no suffix) - value is in frames\n"
-            "\t\tfr - value is in frames\n"
-            "\t\tt - value is time in picoseconds (value used as is)\n"
-            "\t\tps - value is time in picoseconds (value used as is)\n"
-            "\t\tns - value is time in nanoseconds (value multiplied by 10^3)\n"
-            "\t\tus - value is time in microseconds (value multiplied by 10^6)\n"
-            "\t\tms - value is time in milliseconds (value multiplied by 10^9)\n"
-            "\tParameters marked as <t[suffix]> does not accept fr suffix.\n"
-            "\tIn this case no suffix means ps.\n"
-            ;
+Suffixes:
+    All parameters marked as <value[suffix]> accept the following optional suffixes:
+        (no suffix) - value is in frames
+        fr - value is in frames
+        t - value is time in picoseconds (value used as is)
+        ps - value is time in picoseconds (value used as is)
+        ns - value is time in nanoseconds (value multiplied by 10^3)
+        us - value is time in microseconds (value multiplied by 10^6)
+        ms - value is time in milliseconds (value multiplied by 10^9)
+    Parameters marked as <t[suffix]> does not accept fr suffix.
+    In this case no suffix means ps.
+)";
 }
 
 

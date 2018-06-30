@@ -35,13 +35,15 @@ using namespace pteros;
 TASK_SERIAL(box)
 public:
     string help() override {
-        return  "Purpose:\n"
-                "\tComputes box vectors and box volume for each frame\n"
-                "Output:\n"
-                "\tFile <label>.dat containing the following columns:\n"
-                "\ttime box_a box_b box_c box_volume\n"
-                "Options:\n"
-                "\tNone";
+        return
+R"(Purpose:
+    Computes box vectors and box volume for each frame
+Output:
+    File <label>.dat containing the following columns:
+    time box_a box_b box_c box_volume
+Options:
+    None
+)";
     }
 
 protected:

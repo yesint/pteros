@@ -34,14 +34,16 @@ TASK_SERIAL(secondary)
 public:    
 
     string help() override {
-        return  "Purpose:\n"
-                "\tComputes DSSP secondary structure for the system\n"
-                "Output:\n"
-                "\tFile <label>.dat containing the following columns:\n"
-                "\ttime,DSSP\n"
-                "\tThere is no space after ','! Spaces are DSSP codes themselves.\n"
-                "Options:\n"
-                "\tNone";
+        return
+R"(Purpose:
+    Computes DSSP secondary structure for the system
+Output:
+    File <label>.dat containing the following columns:
+    time,DSSP
+    There is no space after ','! Spaces are DSSP codes themselves.
+Options:
+    None
+)";
     }
 
 protected:

@@ -36,28 +36,27 @@ TASK_SERIAL(rms)
 public:    
 
     string help() override {
-        return  "Purpose:\n"
-                "\tComputes RMSD of each frame for given selection.\n"                
-                "\tSelection should be coordinate-independent.\n"
-                "Output:\n"
-                "\tFile rms_id<id>.dat containing the following columns:\n"
-                "\ttime RMSD\n"
-                "\tAlso reports mean RMSD in the file header.\n"
-                "Options:\n"
-                "\t-fit_sel <string>\n"
-                "\t\tFitting selection text\n"
-
-                "\t-rms_sel <string string...>\n"
-                "\t\tRMSD selections texts\n"
-
-                "\t-nojump <distance>. Default: 0\n"
-                "\t\tRemove jumps of atoms over periodic box boundary.\n"
-                "\t\tAtoms, which should not jump, are unwrapped with\n"
-                "\t\tgiven distance on the first frame.\n"
-                "\t\tZero means find unwrap distance automatically.\n"
-                "\t\tDistance -1 means no jump removal\n"
-                "\t\tthis is only meaningful is very special cases!\n"
-                ;
+        return
+R"(Purpose:
+    Computes RMSD of each frame for given selection.
+    Selection should be coordinate-independent.
+Output:
+    File rms_id<id>.dat containing the following columns:
+    time RMSD
+    Also reports mean RMSD in the file header.
+Options:
+    -fit_sel <string>
+        Fitting selection text
+    -rms_sel <string string...>
+        RMSD selections texts
+    -nojump <distance>. Default: 0
+        Remove jumps of atoms over periodic box boundary.
+        Atoms, which should not jump, are unwrapped with
+        given distance on the first frame.
+        Zero means find unwrap distance automatically.
+        Distance -1 means no jump removal
+        this is only meaningful is very special cases!
+)";
     }
 
 protected:
