@@ -76,7 +76,9 @@ var manual =
     [ "Analysis of trajectories", "analysis.html", [
       [ "Asynchronous parallel trajectory processing in Pteros", "analysis.html#anal_concepts", null ],
       [ "Trajectory reader and analysis tasks", "analysis.html#processors_consumers", [
-        [ "Serial and parallel tasks", "analysis.html#task_types", null ],
+        [ "Serial and parallel tasks", "analysis.html#task_types", [
+          [ "in parallel tasks", "analysis.html#Selections", null ]
+        ] ],
         [ "Processing command-line options", "analysis.html#options", [
           [ "Value suffixes", "analysis.html#suffix", null ]
         ] ],

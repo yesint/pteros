@@ -5,7 +5,7 @@ var searchData=
   ['index_5fback_5finserter',['index_back_inserter',['../classpteros_1_1Selection.html#ad331713fa491aeb361e20b174cd2de5b',1,'pteros::Selection']]],
   ['index_5fbegin',['index_begin',['../classpteros_1_1Selection.html#aa290dc08b6425722db037cac5d0adade',1,'pteros::Selection']]],
   ['index_5fend',['index_end',['../classpteros_1_1Selection.html#a501e1ab0fe6acf64cd312ac37652d3e4',1,'pteros::Selection']]],
-  ['inertia',['inertia',['../classpteros_1_1Selection.html#ace7a4de54f06c2e3da18e406954a0c3f',1,'pteros::Selection']]],
+  ['inertia',['inertia',['../classpteros_1_1Selection.html#a468503256e07b66cafc4b0e4a5a3757f',1,'pteros::Selection']]],
   ['installation',['Installation',['../install.html',1,'']]],
   ['invert',['invert',['../classpteros_1_1Selection.html#abd772b69215ac54679d6716088d57668',1,'pteros::Selection']]],
   ['is_5flarge',['is_large',['../classpteros_1_1Selection.html#ac8e8dcd46b4bcbc5ef47593b75476599',1,'pteros::Selection']]],

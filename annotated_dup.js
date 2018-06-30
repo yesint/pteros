@@ -3,6 +3,7 @@ var annotated_dup =
     [ "pteros", null, [
       [ "Atom", "classpteros_1_1Atom.html", "classpteros_1_1Atom" ],
       [ "Atom_proxy", "classpteros_1_1Atom__proxy.html", "classpteros_1_1Atom__proxy" ],
+      [ "Babel_wrapper", "classpteros_1_1Babel__wrapper.html", "classpteros_1_1Babel__wrapper" ],
       [ "Data_container", "structpteros_1_1Data__container.html", "structpteros_1_1Data__container" ],
       [ "DCD_file", "classpteros_1_1DCD__file.html", "classpteros_1_1DCD__file" ],
       [ "Distance_search_within", "classpteros_1_1Distance__search__within.html", "classpteros_1_1Distance__search__within" ],

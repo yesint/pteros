@@ -7,7 +7,7 @@ var searchData=
   ['closest_5fimage',['closest_image',['../classpteros_1_1Periodic__box.html#a18d4f7d895411d44bf5189d86767b7d3',1,'pteros::Periodic_box']]],
   ['coord',['coord',['../structpteros_1_1Frame.html#accedb8b5b82c7f44a947f43af20ea2d4',1,'pteros::Frame']]],
   ['coord_5fdependent',['coord_dependent',['../classpteros_1_1Selection.html#a26449afdcaa19d5a4d4bc021dee0e59a',1,'pteros::Selection']]],
-  ['copy_5fcoord',['copy_coord',['../classpteros_1_1Selection.html#a4f17fa26a372887d382bd343c5fd2425',1,'pteros::Selection']]],
+  ['copy_5fcoord',['copy_coord',['../classpteros_1_1Selection.html#a4f17fa26a372887d382bd343c5fd2425',1,'pteros::Selection::copy_coord()'],['../classpteros_1_1Selection.html#ad1587f4bfd1c2731e70f730d0255ce2d',1,'pteros::Selection::copy_coord()']]],
   ['core_20functionality',['Core functionality',['../core.html',1,'manual']]],
   ['coulomb_5fkernel_5fptr',['coulomb_kernel_ptr',['../classpteros_1_1Force__field.html#a245d1798b13ae6e15c7bb24fb66ca6ed',1,'pteros::Force_field']]],
   ['c_2b_2b_20tutorial',['C++ Tutorial',['../cpptutorial.html',1,'']]],

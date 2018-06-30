@@ -11,6 +11,7 @@ var dir_5207465f4f433728d44e7e5fa3050c29 =
     [ "periodic_box.h", "periodic__box_8h_source.html", null ],
     [ "pteros_error.h", "pteros__error_8h_source.html", null ],
     [ "selection.h", "selection_8h_source.html", null ],
+    [ "selection_gpu.h", "selection__gpu_8h_source.html", null ],
     [ "system.h", "system_8h_source.html", null ],
     [ "typedefs.h", "typedefs_8h_source.html", null ],
     [ "utilities.h", "utilities_8h_source.html", null ]

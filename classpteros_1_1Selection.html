@@ -397,12 +397,12 @@ Eigen::MatrixXf&#160;</td><td class="memItemRight" valign="bottom"><a class="el"
 <tr class="memitem:a75d9a29ff2f7426a459c5eec94cd08f2"><td class="memItemLeft" align="right" valign="top">Eigen::MatrixXf&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1Selection.html#a75d9a29ff2f7426a459c5eec94cd08f2">atom_traj</a> (int ind, int b=0, int e=-1, bool make_row_major_matrix=false) const </td></tr>
 <tr class="memdesc:a75d9a29ff2f7426a459c5eec94cd08f2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extracts X,Y,Z for given atom index for specified range of frames (gets trajectory of given atom).  <a href="#a75d9a29ff2f7426a459c5eec94cd08f2">More...</a><br /></td></tr>
 <tr class="separator:a75d9a29ff2f7426a459c5eec94cd08f2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ace7a4de54f06c2e3da18e406954a0c3f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1Selection.html#ace7a4de54f06c2e3da18e406954a0c3f">inertia</a> (Vector3f_ref moments, Matrix3f_ref axes, Array3i_const_ref pbc=noPBC, bool pbc_atom=-1) const </td></tr>
-<tr class="memdesc:ace7a4de54f06c2e3da18e406954a0c3f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Computes the central momens of inertia and principal axes of inertia.  <a href="#ace7a4de54f06c2e3da18e406954a0c3f">More...</a><br /></td></tr>
-<tr class="separator:ace7a4de54f06c2e3da18e406954a0c3f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1e5aa1ee03aec1b1cb8f6839875afd09"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1Selection.html#a1e5aa1ee03aec1b1cb8f6839875afd09">gyration</a> (Array3i_const_ref pbc=noPBC, bool pbc_atom=0) const </td></tr>
-<tr class="memdesc:a1e5aa1ee03aec1b1cb8f6839875afd09"><td class="mdescLeft">&#160;</td><td class="mdescRight">Computes radius of gyration for selection.  <a href="#a1e5aa1ee03aec1b1cb8f6839875afd09">More...</a><br /></td></tr>
-<tr class="separator:a1e5aa1ee03aec1b1cb8f6839875afd09"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a468503256e07b66cafc4b0e4a5a3757f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1Selection.html#a468503256e07b66cafc4b0e4a5a3757f">inertia</a> (Vector3f_ref moments, Matrix3f_ref axes, Array3i_const_ref pbc=noPBC, int pbc_atom=-1) const </td></tr>
+<tr class="memdesc:a468503256e07b66cafc4b0e4a5a3757f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Computes the central momens of inertia and principal axes of inertia.  <a href="#a468503256e07b66cafc4b0e4a5a3757f">More...</a><br /></td></tr>
+<tr class="separator:a468503256e07b66cafc4b0e4a5a3757f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaa8fba1fecc353f8d60a7c3d5e8a91f5"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1Selection.html#aaa8fba1fecc353f8d60a7c3d5e8a91f5">gyration</a> (Array3i_const_ref pbc=noPBC, int pbc_atom=-1) const </td></tr>
+<tr class="memdesc:aaa8fba1fecc353f8d60a7c3d5e8a91f5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Computes radius of gyration for selection.  <a href="#aaa8fba1fecc353f8d60a7c3d5e8a91f5">More...</a><br /></td></tr>
+<tr class="separator:aaa8fba1fecc353f8d60a7c3d5e8a91f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acecea06f02bdeb6ddbe01d613a98b5f7"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1Selection.html#acecea06f02bdeb6ddbe01d613a98b5f7">distance</a> (int i, int j, Array3i_const_ref pbc=fullPBC) const </td></tr>
 <tr class="memdesc:acecea06f02bdeb6ddbe01d613a98b5f7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get distance between two atoms (periodic in given dimensions if needed).  <a href="#acecea06f02bdeb6ddbe01d613a98b5f7">More...</a><br /></td></tr>
 <tr class="separator:acecea06f02bdeb6ddbe01d613a98b5f7"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -417,10 +417,10 @@ Eigen::MatrixXf&#160;</td><td class="memItemRight" valign="bottom"><a class="el"
 void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1Selection.html#a13c49888503f09aaa0de55205fd99adb">translate</a> (Vector3f_const_ref v)</td></tr>
 <tr class="memdesc:a13c49888503f09aaa0de55205fd99adb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Translate selection by given vector. <br /></td></tr>
 <tr class="separator:a13c49888503f09aaa0de55205fd99adb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae61bb4f9359d59d9fcc0b535993ee118"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae61bb4f9359d59d9fcc0b535993ee118"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1Selection.html#ae61bb4f9359d59d9fcc0b535993ee118">translate_to</a> (Vector3f_const_ref p, bool mass_weighted=false, Array3i_const_ref pbc=noPBC, int pbc_atom=0)</td></tr>
-<tr class="memdesc:ae61bb4f9359d59d9fcc0b535993ee118"><td class="mdescLeft">&#160;</td><td class="mdescRight">Translate center of masses of selection to given point. <br /></td></tr>
-<tr class="separator:ae61bb4f9359d59d9fcc0b535993ee118"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6a5f6fcc61bfeed975eeef5a60f4fa45"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a6a5f6fcc61bfeed975eeef5a60f4fa45"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1Selection.html#a6a5f6fcc61bfeed975eeef5a60f4fa45">translate_to</a> (Vector3f_const_ref p, bool mass_weighted=false, Array3i_const_ref pbc=noPBC, int pbc_atom=-1)</td></tr>
+<tr class="memdesc:a6a5f6fcc61bfeed975eeef5a60f4fa45"><td class="mdescLeft">&#160;</td><td class="mdescRight">Translate center of masses of selection to given point. <br /></td></tr>
+<tr class="separator:a6a5f6fcc61bfeed975eeef5a60f4fa45"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac6e1a1a8f6173866c08ec6b17a2ebc9b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1Selection.html#ac6e1a1a8f6173866c08ec6b17a2ebc9b">rotate</a> (Vector3f_const_ref pivot, Vector3f_const_ref axis, float <a class="el" href="classpteros_1_1Selection.html#a6c674396dc53baaa310cca0152c30cb5">angle</a>)</td></tr>
 <tr class="memdesc:ac6e1a1a8f6173866c08ec6b17a2ebc9b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Rotate selection around given axis relative to given pivot.  <a href="#ac6e1a1a8f6173866c08ec6b17a2ebc9b">More...</a><br /></td></tr>
 <tr class="separator:ac6e1a1a8f6173866c08ec6b17a2ebc9b"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -428,18 +428,22 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1Selection.html#a4636366a0fd89aa30eaca338abfba38c">wrap</a> (Array3i_const_ref pbc=fullPBC)</td></tr>
 <tr class="memdesc:a4636366a0fd89aa30eaca338abfba38c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Wraps whole selection to the periodic box. <br /></td></tr>
 <tr class="separator:a4636366a0fd89aa30eaca338abfba38c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a611c70d00ac9da05f88f43c4d99b417b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1Selection.html#a611c70d00ac9da05f88f43c4d99b417b">unwrap</a> (Array3i_const_ref pbc=fullPBC, int pbc_atom=0)</td></tr>
-<tr class="memdesc:a611c70d00ac9da05f88f43c4d99b417b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Unwraps selection to make it whole if possible (without jumps over periodic box boundary).  <a href="#a611c70d00ac9da05f88f43c4d99b417b">More...</a><br /></td></tr>
-<tr class="separator:a611c70d00ac9da05f88f43c4d99b417b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a18d5cd7b53b8547baaa41255ab9fafe9"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1Selection.html#a18d5cd7b53b8547baaa41255ab9fafe9">unwrap_bonds</a> (float d, Array3i_const_ref pbc=fullPBC, int pbc_atom=0)</td></tr>
-<tr class="memdesc:a18d5cd7b53b8547baaa41255ab9fafe9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Unwraps selection to make it whole (without jumps over periodic box boundary).  <a href="#a18d5cd7b53b8547baaa41255ab9fafe9">More...</a><br /></td></tr>
-<tr class="separator:a18d5cd7b53b8547baaa41255ab9fafe9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5bcb87822a1570857ab9c53ab5a99c30"><td class="memItemLeft" align="right" valign="top">Eigen::Affine3f&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1Selection.html#a5bcb87822a1570857ab9c53ab5a99c30">principal_transform</a> (Array3i_const_ref pbc=noPBC, bool pbc_atom=0) const </td></tr>
-<tr class="memdesc:a5bcb87822a1570857ab9c53ab5a99c30"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get transform for orienting selection by principal axes.  <a href="#a5bcb87822a1570857ab9c53ab5a99c30">More...</a><br /></td></tr>
-<tr class="separator:a5bcb87822a1570857ab9c53ab5a99c30"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9971930f17cd436d472db28594a0b618"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1Selection.html#a9971930f17cd436d472db28594a0b618">principal_orient</a> (Array3i_const_ref pbc=noPBC, bool pbc_atom=0)</td></tr>
-<tr class="memdesc:a9971930f17cd436d472db28594a0b618"><td class="mdescLeft">&#160;</td><td class="mdescRight">Orient molecule by its principal axes.  <a href="#a9971930f17cd436d472db28594a0b618">More...</a><br /></td></tr>
-<tr class="separator:a9971930f17cd436d472db28594a0b618"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0c60213a1f1d81bb6f00d0d3401f39b5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1Selection.html#a0c60213a1f1d81bb6f00d0d3401f39b5">unwrap</a> (Array3i_const_ref pbc=fullPBC, int pbc_atom=-1)</td></tr>
+<tr class="memdesc:a0c60213a1f1d81bb6f00d0d3401f39b5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Unwraps selection to make it whole if possible (without jumps over periodic box boundary).  <a href="#a0c60213a1f1d81bb6f00d0d3401f39b5">More...</a><br /></td></tr>
+<tr class="separator:a0c60213a1f1d81bb6f00d0d3401f39b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a739a08e43b30435bfc8c5eb4fb2735c8"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1Selection.html#a739a08e43b30435bfc8c5eb4fb2735c8">unwrap_bonds</a> (float d, Array3i_const_ref pbc=fullPBC, int pbc_atom=-1)</td></tr>
+<tr class="memdesc:a739a08e43b30435bfc8c5eb4fb2735c8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Unwraps selection to make it whole (without jumps over periodic box boundary).  <a href="#a739a08e43b30435bfc8c5eb4fb2735c8">More...</a><br /></td></tr>
+<tr class="separator:a739a08e43b30435bfc8c5eb4fb2735c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3280edb593347a5825b3122b9949fae7"><td class="memItemLeft" align="right" valign="top">Eigen::Affine3f&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1Selection.html#a3280edb593347a5825b3122b9949fae7">principal_transform</a> (Array3i_const_ref pbc=noPBC, int pbc_atom=-1) const </td></tr>
+<tr class="memdesc:a3280edb593347a5825b3122b9949fae7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get transform for orienting selection by principal axes.  <a href="#a3280edb593347a5825b3122b9949fae7">More...</a><br /></td></tr>
+<tr class="separator:a3280edb593347a5825b3122b9949fae7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a64a43e03c5264dd077092fb4a37d8deb"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1Selection.html#a64a43e03c5264dd077092fb4a37d8deb">principal_orient</a> (Array3i_const_ref pbc=noPBC, int pbc_atom=-1)</td></tr>
+<tr class="memdesc:a64a43e03c5264dd077092fb4a37d8deb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Orient molecule by its principal axes.  <a href="#a64a43e03c5264dd077092fb4a37d8deb">More...</a><br /></td></tr>
+<tr class="separator:a64a43e03c5264dd077092fb4a37d8deb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr><td colspan="2"><div class="groupHeader">Energy functions</div></td></tr>
+<tr class="memitem:a9bf8138071fcf1063002a2c441e19bef"><td class="memItemLeft" align="right" valign="top">Eigen::Vector2f&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1Selection.html#a9bf8138071fcf1063002a2c441e19bef">non_bond_energy</a> (float cutoff=0, bool pbc=true) const </td></tr>
+<tr class="memdesc:a9bf8138071fcf1063002a2c441e19bef"><td class="mdescLeft">&#160;</td><td class="mdescRight">Self-energy of selection computed within given interaction cut-off.  <a href="#a9bf8138071fcf1063002a2c441e19bef">More...</a><br /></td></tr>
+<tr class="separator:a9bf8138071fcf1063002a2c441e19bef"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><div class="groupHeader">File IO</div></td></tr>
 <tr class="memitem:a7322db7c4ba00848b5183bd5220238b0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1Selection.html#a7322db7c4ba00848b5183bd5220238b0">write</a> (std::string fname, int b=-1, int e=-1)</td></tr>
 <tr class="memdesc:a7322db7c4ba00848b5183bd5220238b0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write structure or trajectory for selection.  <a href="#a7322db7c4ba00848b5183bd5220238b0">More...</a><br /></td></tr>
@@ -698,19 +702,13 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 <tr class="separator:a10769ca8fd392425665b421b0c90db35"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="member-group"></a>
-Energy functions</h2></td></tr>
-<tr class="memitem:a5f067b723afe97fde0cae85c9596d9f0"><td class="memItemLeft" align="right" valign="top">Eigen::Vector2f&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1Selection.html#a5f067b723afe97fde0cae85c9596d9f0">non_bond_energy</a> (const <a class="el" href="classpteros_1_1Selection.html">Selection</a> &amp;sel1, const <a class="el" href="classpteros_1_1Selection.html">Selection</a> &amp;sel2, float cutoff=0, int fr=-1, Array3i_const_ref pbc=fullPBC)</td></tr>
-<tr class="memdesc:a5f067b723afe97fde0cae85c9596d9f0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Non-bond energy between two selections computed within given interaction cut-off.  <a href="#a5f067b723afe97fde0cae85c9596d9f0">More...</a><br /></td></tr>
-<tr class="separator:a5f067b723afe97fde0cae85c9596d9f0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a16a9f3b20eacda671ba11366fdc72676"><td class="memItemLeft" align="right" valign="top">Eigen::Vector2f&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1Selection.html#a16a9f3b20eacda671ba11366fdc72676">non_bond_energy</a> (float cutoff=0, Array3i_const_ref pbc=fullPBC) const </td></tr>
-<tr class="memdesc:a16a9f3b20eacda671ba11366fdc72676"><td class="mdescLeft">&#160;</td><td class="mdescRight">Self-energy of selection computed within given interaction cut-off.  <a href="#a16a9f3b20eacda671ba11366fdc72676">More...</a><br /></td></tr>
-<tr class="separator:a16a9f3b20eacda671ba11366fdc72676"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="member-group"></a>
 Utility functions</h2></td></tr>
 <tr class="memitem:a4f17fa26a372887d382bd343c5fd2425"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1Selection.html#a4f17fa26a372887d382bd343c5fd2425">copy_coord</a> (const <a class="el" href="classpteros_1_1Selection.html">Selection</a> &amp;from, int from_fr, <a class="el" href="classpteros_1_1Selection.html">Selection</a> &amp;to, int to_fr)</td></tr>
 <tr class="memdesc:a4f17fa26a372887d382bd343c5fd2425"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copy coordinates from one selection to the other using given frames.  <a href="#a4f17fa26a372887d382bd343c5fd2425">More...</a><br /></td></tr>
 <tr class="separator:a4f17fa26a372887d382bd343c5fd2425"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad1587f4bfd1c2731e70f730d0255ce2d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1Selection.html#ad1587f4bfd1c2731e70f730d0255ce2d">copy_coord</a> (const <a class="el" href="classpteros_1_1Selection.html">Selection</a> &amp;from, <a class="el" href="classpteros_1_1Selection.html">Selection</a> &amp;to)</td></tr>
+<tr class="memdesc:ad1587f4bfd1c2731e70f730d0255ce2d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copy coordinates from one selection to the other using their current frames.  <a href="#ad1587f4bfd1c2731e70f730d0255ce2d">More...</a><br /></td></tr>
+<tr class="separator:ad1587f4bfd1c2731e70f730d0255ce2d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2a86549614aa8834bbec793c585a7960"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a2a86549614aa8834bbec793c585a7960"></a>
 int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1Selection.html#a2a86549614aa8834bbec793c585a7960">size</a> () const </td></tr>
 <tr class="memdesc:a2a86549614aa8834bbec793c585a7960"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the size of selection. <br /></td></tr>
@@ -729,6 +727,10 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 <tr class="memitem:aa33cd8cb7ed5f23f19d8a0abc8e1645d"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1Selection.html#aa33cd8cb7ed5f23f19d8a0abc8e1645d">to_gromacs_ndx</a> (std::string name)</td></tr>
 <tr class="memdesc:aa33cd8cb7ed5f23f19d8a0abc8e1645d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns a string formatted as Gromacs ndx file containing the current selection with given name.  <a href="#aa33cd8cb7ed5f23f19d8a0abc8e1645d">More...</a><br /></td></tr>
 <tr class="separator:aa33cd8cb7ed5f23f19d8a0abc8e1645d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a16aa3323d4a0ac93d084c7dc075eb3a4"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a16aa3323d4a0ac93d084c7dc075eb3a4"></a>
+int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1Selection.html#a16aa3323d4a0ac93d084c7dc075eb3a4">find_index</a> (int global_index)</td></tr>
+<tr class="memdesc:a16aa3323d4a0ac93d084c7dc075eb3a4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Finds local index in selection of provided global index Returns -1 if not found. <br /></td></tr>
+<tr class="separator:a16aa3323d4a0ac93d084c7dc075eb3a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p><a class="el" href="classpteros_1_1Selection.html" title="Selection class. ">Selection</a> class. </p>
@@ -1526,7 +1528,7 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 
 </div>
 </div>
-<a class="anchor" id="ace7a4de54f06c2e3da18e406954a0c3f"></a>
+<a class="anchor" id="a468503256e07b66cafc4b0e4a5a3757f"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -1551,7 +1553,7 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">bool&#160;</td>
+          <td class="paramtype">int&#160;</td>
           <td class="paramname"><em>pbc_atom</em> = <code>-1</code>&#160;</td>
         </tr>
         <tr>
@@ -1567,7 +1569,7 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 
 </div>
 </div>
-<a class="anchor" id="a1e5aa1ee03aec1b1cb8f6839875afd09"></a>
+<a class="anchor" id="aaa8fba1fecc353f8d60a7c3d5e8a91f5"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -1580,8 +1582,8 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">bool&#160;</td>
-          <td class="paramname"><em>pbc_atom</em> = <code>0</code>&#160;</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>pbc_atom</em> = <code>-1</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1752,16 +1754,16 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 <p>Rotate selection around given axis relative to given pivot. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
+    <tr><td class="paramname">pivot</td><td>Rotation around this pivot </td></tr>
     <tr><td class="paramname">axis</td><td>Rotate around this vector </td></tr>
     <tr><td class="paramname">angle</td><td>Rotation angle in radians </td></tr>
-    <tr><td class="paramname">pivot</td><td>Rotation around this pivot </td></tr>
   </table>
   </dd>
 </dl>
 
 </div>
 </div>
-<a class="anchor" id="a611c70d00ac9da05f88f43c4d99b417b"></a>
+<a class="anchor" id="a0c60213a1f1d81bb6f00d0d3401f39b5"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -1775,7 +1777,7 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>pbc_atom</em> = <code>0</code>&#160;</td>
+          <td class="paramname"><em>pbc_atom</em> = <code>-1</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1786,11 +1788,11 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 </div><div class="memdoc">
 
 <p>Unwraps selection to make it whole if possible (without jumps over periodic box boundary). </p>
-<p>The periodic center of mass is used as an anchor point if pbc_atom&lt;0. </p><dl class="section warning"><dt>Warning</dt><dd>If the size of selection is larger than 1/2 of the box size in any dimension <a class="el" href="classpteros_1_1Selection.html#a611c70d00ac9da05f88f43c4d99b417b" title="Unwraps selection to make it whole if possible (without jumps over periodic box boundary). ">unwrap()</a> will not work as expected and will not make selection "compact"! </dd></dl>
+<p>The periodic center of mass is used as an anchor point if pbc_atom&lt;0. </p><dl class="section warning"><dt>Warning</dt><dd>If the size of selection is larger than 1/2 of the box size in any dimension <a class="el" href="classpteros_1_1Selection.html#a0c60213a1f1d81bb6f00d0d3401f39b5" title="Unwraps selection to make it whole if possible (without jumps over periodic box boundary). ">unwrap()</a> will not work as expected and will not make selection "compact"! </dd></dl>
 
 </div>
 </div>
-<a class="anchor" id="a18d5cd7b53b8547baaa41255ab9fafe9"></a>
+<a class="anchor" id="a739a08e43b30435bfc8c5eb4fb2735c8"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -1810,7 +1812,7 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>pbc_atom</em> = <code>0</code>&#160;</td>
+          <td class="paramname"><em>pbc_atom</em> = <code>-1</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1821,7 +1823,7 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 </div><div class="memdoc">
 
 <p>Unwraps selection to make it whole (without jumps over periodic box boundary). </p>
-<p>based on preserving all bonds. This method works reliably in any case, but is much slower than <a class="el" href="classpteros_1_1Selection.html#a611c70d00ac9da05f88f43c4d99b417b" title="Unwraps selection to make it whole if possible (without jumps over periodic box boundary). ">unwrap()</a> </p><dl class="params"><dt>Parameters</dt><dd>
+<p>based on preserving all bonds. This method works reliably in any case, but is much slower than <a class="el" href="classpteros_1_1Selection.html#a0c60213a1f1d81bb6f00d0d3401f39b5" title="Unwraps selection to make it whole if possible (without jumps over periodic box boundary). ">unwrap()</a> </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">d</td><td>Maximal bond length. If 0 bonds from topology are used (if present). </td></tr>
     <tr><td class="paramname">pbc_atom</td><td>Local index of the reference atom, which doesn't move. </td></tr>
@@ -1832,7 +1834,7 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 
 </div>
 </div>
-<a class="anchor" id="a5bcb87822a1570857ab9c53ab5a99c30"></a>
+<a class="anchor" id="a3280edb593347a5825b3122b9949fae7"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -1845,8 +1847,8 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">bool&#160;</td>
-          <td class="paramname"><em>pbc_atom</em> = <code>0</code>&#160;</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>pbc_atom</em> = <code>-1</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1867,7 +1869,7 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 
 </div>
 </div>
-<a class="anchor" id="a9971930f17cd436d472db28594a0b618"></a>
+<a class="anchor" id="a64a43e03c5264dd077092fb4a37d8deb"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -1880,8 +1882,8 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">bool&#160;</td>
-          <td class="paramname"><em>pbc_atom</em> = <code>0</code>&#160;</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>pbc_atom</em> = <code>-1</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1895,7 +1897,7 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 <p>The same as </p><div class="fragment"><div class="line">Eigen::Affine3f tr = sel.principal_transform();</div><div class="line">sel.apply_transform(tr);</div></div><!-- fragment --> 
 </div>
 </div>
-<a class="anchor" id="a16a9f3b20eacda671ba11366fdc72676"></a>
+<a class="anchor" id="a9bf8138071fcf1063002a2c441e19bef"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -1908,8 +1910,8 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">Array3i_const_ref&#160;</td>
-          <td class="paramname"><em>pbc</em> = <code>fullPBC</code>&#160;</td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>pbc</em> = <code>true</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -2444,61 +2446,6 @@ template&lt;class F &gt; </div>
 
 </div>
 </div>
-<a class="anchor" id="a5f067b723afe97fde0cae85c9596d9f0"></a>
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">Eigen::Vector2f non_bond_energy </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="classpteros_1_1Selection.html">Selection</a> &amp;&#160;</td>
-          <td class="paramname"><em>sel1</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="classpteros_1_1Selection.html">Selection</a> &amp;&#160;</td>
-          <td class="paramname"><em>sel2</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">float&#160;</td>
-          <td class="paramname"><em>cutoff</em> = <code>0</code>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>fr</em> = <code>-1</code>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">Array3i_const_ref&#160;</td>
-          <td class="paramname"><em>pbc</em> = <code>fullPBC</code>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">friend</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Non-bond energy between two selections computed within given interaction cut-off. </p>
-<p>If cutoff is 0 the cutoff from topology is used. fr = -1 computes for current frame of selection 1. </p>
-
-</div>
-</div>
 <a class="anchor" id="a4f17fa26a372887d382bd343c5fd2425"></a>
 <div class="memitem">
 <div class="memproto">
@@ -2548,6 +2495,43 @@ template&lt;class F &gt; </div>
 
 </div>
 </div>
+<a class="anchor" id="ad1587f4bfd1c2731e70f730d0255ce2d"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void copy_coord </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classpteros_1_1Selection.html">Selection</a> &amp;&#160;</td>
+          <td class="paramname"><em>from</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classpteros_1_1Selection.html">Selection</a> &amp;&#160;</td>
+          <td class="paramname"><em>to</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">friend</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Copy coordinates from one selection to the other using their current frames. </p>
+<dl class="section warning"><dt>Warning</dt><dd>Size of selections should be the same. </dd></dl>
+
+</div>
+</div>
 <hr/>The documentation for this class was generated from the following files:<ul>
 <li>include/pteros/core/<a class="el" href="selection_8h_source.html">selection.h</a></li>
 <li>src/core/selection.cpp</li>
@@ -2558,7 +2542,7 @@ template&lt;class F &gt; </div>
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><b>pteros</b></li><li class="navelem"><a class="el" href="classpteros_1_1Selection.html">Selection</a></li>
-    <li class="footer">Generated on Thu Mar 15 2018 12:36:12 for Pteros by
+    <li class="footer">Generated on Sat Jun 30 2018 20:28:42 for Pteros by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.11 </li>
   </ul>

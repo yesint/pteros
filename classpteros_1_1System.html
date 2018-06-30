@@ -153,9 +153,9 @@ virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="c
 <a class="el" href="classpteros_1_1Selection.html">Selection</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#ae67ed3349510f8a9003f68484a95e7df">append</a> (const <a class="el" href="classpteros_1_1System.html">System</a> &amp;sys)</td></tr>
 <tr class="memdesc:ae67ed3349510f8a9003f68484a95e7df"><td class="mdescLeft">&#160;</td><td class="mdescRight">Append other system to this one Returns selection corresponding to appended atoms. <br /></td></tr>
 <tr class="separator:ae67ed3349510f8a9003f68484a95e7df"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0f750107600bdfb90a45bcf8569a52d6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classpteros_1_1Selection.html">Selection</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#a0f750107600bdfb90a45bcf8569a52d6">append</a> (const <a class="el" href="classpteros_1_1Selection.html">Selection</a> &amp;sel)</td></tr>
-<tr class="memdesc:a0f750107600bdfb90a45bcf8569a52d6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Append atoms from selection to this system.  <a href="#a0f750107600bdfb90a45bcf8569a52d6">More...</a><br /></td></tr>
-<tr class="separator:a0f750107600bdfb90a45bcf8569a52d6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af335ab783fe9e325a9d03ae392a6fe41"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classpteros_1_1Selection.html">Selection</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#af335ab783fe9e325a9d03ae392a6fe41">append</a> (const <a class="el" href="classpteros_1_1Selection.html">Selection</a> &amp;sel, bool current_frame=false)</td></tr>
+<tr class="memdesc:af335ab783fe9e325a9d03ae392a6fe41"><td class="mdescLeft">&#160;</td><td class="mdescRight">Append atoms from selection to this system.  <a href="#af335ab783fe9e325a9d03ae392a6fe41">More...</a><br /></td></tr>
+<tr class="separator:af335ab783fe9e325a9d03ae392a6fe41"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5be1142cbcf174b83261bb754ccf5c8a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a5be1142cbcf174b83261bb754ccf5c8a"></a>
 <a class="el" href="classpteros_1_1Selection.html">Selection</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#a5be1142cbcf174b83261bb754ccf5c8a">append</a> (const <a class="el" href="classpteros_1_1Atom.html">Atom</a> &amp;at, Vector3f_const_ref coord)</td></tr>
 <tr class="memdesc:a5be1142cbcf174b83261bb754ccf5c8a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Append single atom to this system Returns selection corresponding to appended atom. <br /></td></tr>
@@ -402,7 +402,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 <div class="textblock"><p>The system of atoms. </p>
 <p>The <a class="el" href="classpteros_1_1System.html" title="The system of atoms. ">System</a> is a container for atoms and their coordinates, which are typically loaded from file. All properties of atoms, except the coordinates, are stored in atoms vector. Coordinates are stored as a resizable vector of trajectory frames. The system knows about selections associated with it and sends them signals if selections should adapt to the changes of coordinates of atom properties. Copying and assignment of systems is allowed, but associated selections are not copied. </p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
-<a class="anchor" id="a0f750107600bdfb90a45bcf8569a52d6"></a>
+<a class="anchor" id="af335ab783fe9e325a9d03ae392a6fe41"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -410,14 +410,29 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
           <td class="memname"><a class="el" href="classpteros_1_1Selection.html">Selection</a> System::append </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="classpteros_1_1Selection.html">Selection</a> &amp;&#160;</td>
-          <td class="paramname"><em>sel</em></td><td>)</td>
+          <td class="paramname"><em>sel</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>current_frame</em> = <code>false</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 <p>Append atoms from selection to this system. </p>
-<p><a class="el" href="classpteros_1_1Selection.html" title="Selection class. ">Selection</a> may belong to any system, not necessary current. Returns selection corresponding to appended atoms. </p>
+<p><a class="el" href="classpteros_1_1Selection.html" title="Selection class. ">Selection</a> may belong to any system, not necessary current. Returns selection corresponding to appended atoms. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">current_frame</td><td>if true only the coordinates of current frame in sel are added to all frames of the system. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -724,7 +739,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><b>pteros</b></li><li class="navelem"><a class="el" href="classpteros_1_1System.html">System</a></li>
-    <li class="footer">Generated on Thu Mar 15 2018 12:36:12 for Pteros by
+    <li class="footer">Generated on Sat Jun 30 2018 20:28:42 for Pteros by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.11 </li>
   </ul>

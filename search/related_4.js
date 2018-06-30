@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['parse_5fcommand_5fline',['parse_command_line',['../classpteros_1_1Options.html#a1e0852ef5d12aeeea7d96152b20cb74f',1,'pteros::Options::parse_command_line()'],['../classpteros_1_1Options.html#af164d020c1ab08f5c7ef40f820389221',1,'pteros::Options::parse_command_line()']]]
+  ['rmsd',['rmsd',['../classpteros_1_1Selection.html#a34a4bc23ae98b5c8319e171dab46b7c5',1,'pteros::Selection::rmsd()'],['../classpteros_1_1Selection.html#a6700d548ea12ce1e8e5bfe9b5d373cb4',1,'pteros::Selection::rmsd()']]]
 ];

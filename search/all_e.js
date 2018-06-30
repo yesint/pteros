@@ -7,8 +7,8 @@ var searchData=
   ['populate',['populate',['../classpteros_1_1Grid.html#ae6122bdeeec9c390eb90404c27c10408',1,'pteros::Grid']]],
   ['populate_5fperiodic',['populate_periodic',['../classpteros_1_1Grid.html#afb1e913cee652cf5f78a6dc3ffa0f0d8',1,'pteros::Grid']]],
   ['powersasa',['powersasa',['../classpteros_1_1Selection.html#a033fae840f94bad72b6e787820916ae8',1,'pteros::Selection']]],
-  ['principal_5forient',['principal_orient',['../classpteros_1_1Selection.html#a9971930f17cd436d472db28594a0b618',1,'pteros::Selection']]],
-  ['principal_5ftransform',['principal_transform',['../classpteros_1_1Selection.html#a5bcb87822a1570857ab9c53ab5a99c30',1,'pteros::Selection']]],
+  ['principal_5forient',['principal_orient',['../classpteros_1_1Selection.html#a64a43e03c5264dd077092fb4a37d8deb',1,'pteros::Selection']]],
+  ['principal_5ftransform',['principal_transform',['../classpteros_1_1Selection.html#a3280edb593347a5825b3122b9949fae7',1,'pteros::Selection']]],
   ['pteros_5ferror',['Pteros_error',['../classpteros_1_1Pteros__error.html',1,'pteros']]],
   ['pteros_20tools',['Pteros tools',['../tools.html',1,'manual']]]
 ];

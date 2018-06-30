@@ -7,7 +7,7 @@ var classpteros_1_1System =
     [ "~System", "classpteros_1_1System.html#a3be70bb338e3f062f821173fd15680d0", null ],
     [ "operator=", "classpteros_1_1System.html#ac6422081d08c3ac145a6d7c6d9f5bae7", null ],
     [ "append", "classpteros_1_1System.html#ae67ed3349510f8a9003f68484a95e7df", null ],
-    [ "append", "classpteros_1_1System.html#a0f750107600bdfb90a45bcf8569a52d6", null ],
+    [ "append", "classpteros_1_1System.html#af335ab783fe9e325a9d03ae392a6fe41", null ],
     [ "append", "classpteros_1_1System.html#a5be1142cbcf174b83261bb754ccf5c8a", null ],
     [ "append", "classpteros_1_1System.html#ace338bd75b0f1c1d82284a0b402e1020", null ],
     [ "rearrange", "classpteros_1_1System.html#aaa0a10f0562b2b6f6441ca29120a6b5e", null ],
@@ -73,6 +73,5 @@ var classpteros_1_1System =
     [ "sort_by_resindex", "classpteros_1_1System.html#a521c0ce9af1da689a66c21d2bf23321d", null ],
     [ "Selection", "classpteros_1_1System.html#a2cdc8668db7c69ccbcc3bab6a5d51d17", null ],
     [ "Selection_parser", "classpteros_1_1System.html#ab904a3cec6f74337366bc50ccd117a88", null ],
-    [ "Mol_file", "classpteros_1_1System.html#aa93ecfb8bab26f5db555a163de90482c", null ],
-    [ "Atom_proxy", "classpteros_1_1System.html#a09300d333a61d34a430ff2685ecd5b89", null ]
+    [ "Mol_file", "classpteros_1_1System.html#aa93ecfb8bab26f5db555a163de90482c", null ]
 ];

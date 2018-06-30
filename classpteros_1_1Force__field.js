@@ -6,6 +6,7 @@ var classpteros_1_1Force__field =
     [ "clear", "classpteros_1_1Force__field.html#a601816c56d2ca8da8febda212d8ff813", null ],
     [ "setup_kernels", "classpteros_1_1Force__field.html#a3d6d0b0e9e632cd5d785bc1bcf5f98ae", null ],
     [ "pair_energy", "classpteros_1_1Force__field.html#a1edd8f8a987c664eff1872dc97b65221", null ],
+    [ "get_cutoff", "classpteros_1_1Force__field.html#ad82ba9dd7462d1bf9cdc76bd8729e758", null ],
     [ "natoms", "classpteros_1_1Force__field.html#a1b2208fa2d89ec575be00431785a9adb", null ],
     [ "exclusions", "classpteros_1_1Force__field.html#a171418c492c3842cfba35668ce00faae", null ],
     [ "LJ_C6", "classpteros_1_1Force__field.html#acc30bccf8960aa1e9ca00089f7933738", null ],

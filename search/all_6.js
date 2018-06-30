@@ -4,6 +4,7 @@ var searchData=
   ['get_5fchain',['get_chain',['../classpteros_1_1Selection.html#a02587a8d50356f47954fa6c77a030f2d',1,'pteros::Selection']]],
   ['get_5fcharge',['get_charge',['../classpteros_1_1Selection.html#aaf63181bdf4ee6512e3ab832c9da5f2b',1,'pteros::Selection']]],
   ['get_5fcontent_5ftype',['get_content_type',['../classpteros_1_1DCD__file.html#a33bfb222601ae54892fe982891e0dba6',1,'pteros::DCD_file::get_content_type()'],['../classpteros_1_1GRO__file.html#acfe3e488509e7d93e863ac2fcb0988d0',1,'pteros::GRO_file::get_content_type()'],['../classpteros_1_1Gromacs__trajectory__file.html#a2a9e55d4cce6c1dca922ad23c3db6902',1,'pteros::Gromacs_trajectory_file::get_content_type()'],['../classpteros_1_1MOL2__file.html#a6634d78e8b38f7a2610000b6e8615c9f',1,'pteros::MOL2_file::get_content_type()'],['../classpteros_1_1PDB__file.html#a29560db92db9ac7ab9cc5184830eabc8',1,'pteros::PDB_file::get_content_type()'],['../classpteros_1_1TNG__file.html#a51fbc1e8363db9e69a5124f66c9c50d5',1,'pteros::TNG_file::get_content_type()'],['../classpteros_1_1XYZ__file.html#a632841e97f4ba42794955d2b3c382b95',1,'pteros::XYZ_file::get_content_type()'],['../classpteros_1_1Mol__file.html#ab8701cf5b8a82a5c4894895570b6246f',1,'pteros::Mol_file::get_content_type()']]],
+  ['get_5fcutoff',['get_cutoff',['../classpteros_1_1Force__field.html#ad82ba9dd7462d1bf9cdc76bd8729e758',1,'pteros::Force_field']]],
   ['get_5fforce_5ffield',['get_force_field',['../classpteros_1_1System.html#aba072ecbc9a36c69fe61d7f1caf8ac70',1,'pteros::System']]],
   ['get_5fframe',['get_frame',['../classpteros_1_1Selection.html#a5224c2b5d0e87ef45da61349b16be915',1,'pteros::Selection']]],
   ['get_5findex',['get_index',['../classpteros_1_1Selection.html#a34a793f65a9cc06c3ebf9c09b3d65574',1,'pteros::Selection']]],
@@ -24,5 +25,5 @@ var searchData=
   ['grid',['Grid',['../classpteros_1_1Grid.html',1,'pteros']]],
   ['gro_5ffile',['GRO_file',['../classpteros_1_1GRO__file.html',1,'pteros']]],
   ['gromacs_5ftrajectory_5ffile',['Gromacs_trajectory_file',['../classpteros_1_1Gromacs__trajectory__file.html',1,'pteros']]],
-  ['gyration',['gyration',['../classpteros_1_1Selection.html#a1e5aa1ee03aec1b1cb8f6839875afd09',1,'pteros::Selection']]]
+  ['gyration',['gyration',['../classpteros_1_1Selection.html#aaa8fba1fecc353f8d60a7c3d5e8a91f5',1,'pteros::Selection']]]
 ];

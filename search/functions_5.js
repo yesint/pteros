@@ -1,5 +1,6 @@
 var searchData=
 [
+  ['find_5findex',['find_index',['../classpteros_1_1Selection.html#a16aa3323d4a0ac93d084c7dc075eb3a4',1,'pteros::Selection']]],
   ['fit',['fit',['../classpteros_1_1Selection.html#a328fa060cd09b396b75021e8e3c371ac',1,'pteros::Selection']]],
   ['fit_5ftrajectory',['fit_trajectory',['../classpteros_1_1Selection.html#a4dff92f3f78125207ba3c7dd60f91e55',1,'pteros::Selection']]],
   ['fit_5ftransform',['fit_transform',['../classpteros_1_1Selection.html#acda8224ab2025cda00e680620a9e81b7',1,'pteros::Selection']]],

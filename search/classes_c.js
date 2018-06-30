@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['xtc_5ffile',['XTC_file',['../classpteros_1_1XTC__file.html',1,'pteros']]],
-  ['xyz_5ffile',['XYZ_file',['../classpteros_1_1XYZ__file.html',1,'pteros']]]
+  ['vmd_5fmolfile_5fplugin_5fwrapper',['VMD_molfile_plugin_wrapper',['../classpteros_1_1VMD__molfile__plugin__wrapper.html',1,'pteros']]]
 ];
