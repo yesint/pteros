@@ -63,12 +63,7 @@ var manual =
         [ "Custom spatial grids", "core.html#custom_grid", null ]
       ] ],
       [ "Evaluating non-bond energies", "core.html#energy", [
-        [ "Generating Pteros .pttop files", "core.html#get_top", null ],
-        [ "Energy components", "core.html#en_components", null ],
-        [ "Computing non-bond energies", "core.html#get_en", [
-          [ "Methods of System class", "core.html#en_system", null ],
-          [ "Methods of Selection class", "core.html#en_sel", null ]
-        ] ]
+        [ "Computing non-bond energies", "core.html#get_en", null ]
       ] ],
       [ "Secondary structure of proteins", "core.html#dssp", null ],
       [ "Solvent accessible surface area", "core.html#measure_sasa", null ]
