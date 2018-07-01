@@ -1058,6 +1058,8 @@ Vector2f get_energy_for_list(const vector<Vector2i>& pairs, const vector<float>&
     Force_field& ff = const_cast<System&>(sys).get_force_field();
     Vector2f e_total(0,0);
 
+    if(pair_en) pair_en->resize(pairs.size());
+
     #pragma omp parallel
     {
         int at1,at2;

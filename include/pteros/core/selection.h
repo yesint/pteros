@@ -821,8 +821,8 @@ class Selection {
     *   particular atom in selection. The ind passed to these functions is
     *   is the selection index, not the global system %index. I.e. passing 10 will
     *   extract the property of %atom with global %index index[10]
-    *   <br>All these function except Index could be used as lvalue, which means that
-    *   it is possible to assign value to them. For example X(10) = 3.14
+    *   <br>All these function except index could be used as lvalue, which means that
+    *   it is possible to assign value to them. For example x(10) = 3.14
     */
     /// @{
 

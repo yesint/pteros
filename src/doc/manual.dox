@@ -1311,8 +1311,6 @@ Treatment of non-bonded interactions in Gromacs is, unfortunately, complex and r
 
 \warning Reading topologies in tpr format requires linking with Gromacs. Evaluation of energies is not possible otherwise.
 
-\subsection en_components Energy components
-
 All energy evaluation methods return an object of type Eigen::Vector2f where the first number if Coulomb energy and the second is Van der Waals energy.
 
 \subsection get_en Computing non-bond energies
@@ -1322,7 +1320,7 @@ Before evaluating non-bond energies the user should always check if the System h
 
 Selection class provides two higher-level methods of energy evaluation. The first one computes self-energy of selection within given distance cut-off. The second computes the energy between two selection of the same size within given cut-off for given frame.
 
-\note If cutoff is zero or negative both methods computes interaction between all atoms (very slow for large selections).
+\note If cutoff is zero the minimum of Coulomb and VdW cutoffs from tpr file is used. This is recommended way of computing energies since it is most consistent with results from Gromacs.
 
 \col1
 Selection sel1(sys,"name CA");
@@ -1333,9 +1331,9 @@ if(sys.force_field_ready()){
     // Energy of all atom pairs within 0.3 nm accounting for periodicity
     auto self_en = sel1.non_bond_energy(0.3, true);
 
-    // Interaction between two selections within 0.3 nm for frame 3
+    // Interaction between two selections within default cutoff for frame 3
     // and accounting for periodicity
-    auto en12 = non_bond_energy(sel1, sel2, 0.3, 3, true);
+    auto en12 = non_bond_energy(sel1, sel2, 0, 3, true);
 }
 \col2
 sel1 = sys("name CA")
@@ -1346,9 +1344,9 @@ if sys.force_field_ready():
     # Energy of all atom pairs within 0.3 nm accounting for periodicity
     self_en = sel1.non_bond_energy(0.3, True)
 
-    # Interaction between two selections within 0.3 nm for frame 3
+    # Interaction between two selections within default cutoff for frame 3
     # and accounting for periodicity
-    en12 = non_bond_energy(sel1, sel2, 0.3, 3, True)
+    en12 = non_bond_energy(sel1, sel2, 0, 3, True)
 \endcol
 
 \section dssp Secondary structure of proteins

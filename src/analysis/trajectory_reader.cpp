@@ -193,7 +193,7 @@ void Trajectory_reader::run(){
             if(c.atoms() && c.traj()){                
                 structure_file = s;
                 // We only need to load only atoms from TNG here
-                log->debug("Using TNG trajectory file '{}' to read structure...", s);
+                log->debug("Using trajectory file '{}' to read structure...", s);
                 trj->open('r');
                 Frame fr;
                 trj->read(&system, &fr, Mol_file_content().atoms(true));
@@ -215,6 +215,15 @@ void Trajectory_reader::run(){
             is_parallel = true;
             break;
         }
+    }
+
+    // Print summary of files we are going to process
+    if(log->level() <= spdlog::level::debug){
+        log->debug("Summary of files to be processed:");
+        log->debug("\tStructure file:\t'{}'",structure_file);
+        log->debug("\tTopology file:\t'{}'",top_file);
+        log->debug("\tTrajectory files:");
+        for(auto& f: traj_files) log->debug("\t\t{}",f);
     }
 
     //-----------------------------------------
