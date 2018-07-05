@@ -3,6 +3,7 @@
 #include "pteros/core/distance_search.h"
 #include <set>
 #include <queue>
+#include <numeric>
 
 using namespace std;
 using namespace pteros;

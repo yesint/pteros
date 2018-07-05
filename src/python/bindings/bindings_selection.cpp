@@ -233,6 +233,7 @@ void make_bindings_Selection(py::module& m){
         .def("rmsd",py::overload_cast<int>(&Selection::rmsd,py::const_))
         .def("rmsd",py::overload_cast<int,int>(&Selection::rmsd,py::const_))
         .def("fit_trajectory",&Selection::fit_trajectory, "ref_frame"_a=0, "b"_a=0, "e"_a=-1)
+        .def("fit",&Selection::fit)
 
         .def("fit_transform", [](Selection* sel, int fr1, int fr2){
                 Matrix4f m = sel->fit_transform(fr1,fr2).matrix().transpose();
