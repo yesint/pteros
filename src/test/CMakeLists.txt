@@ -10,6 +10,13 @@ test_selection.cpp
 target_link_libraries(pteros_test pteros_analysis pteros pteros_topmatch)
 
 
+#add_executable(pteros_peglib_test
+#grammar2.cpp
+#peglib.h
+#)
+#target_link_libraries(pteros_peglib_test pteros)
+
+
 #add_subdirectory(${PROJECT_SOURCE_DIR}/src/python/pybind11_src)
 #INCLUDE_DIRECTORIES(pybind11_src/include)
 #pybind11_add_module(module1 test_1.cpp)

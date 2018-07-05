@@ -364,8 +364,12 @@ int main(int argc, char** argv)
     return 1;
 */
     try{
+        System s("/home/semen/work/current/Projects/Albumin/SqAde/dock-traj/1_1.pdbqt");
+        //s().write("/home/semen/work/current/Projects/Albumin/SqAde/dock-traj/a.pdbqt",0,0);
 
+        Selection sel(s,"2  >   1+5");
 
+        /*
         System src("/home/semen/work/current/Projects/Ache/b.pdb");
         System target("/home/semen/work/current/Projects/Ache/2.pdb");
 
@@ -379,6 +383,7 @@ int main(int argc, char** argv)
 
         //int n = t.match_self();
         //cout << "Symm: "<< n << endl;
+                */
 
 
     } catch(const Pteros_error& e){

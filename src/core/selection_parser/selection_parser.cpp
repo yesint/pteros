@@ -25,9 +25,10 @@
 */
 
 #include "selection_parser.h"
-#include "selection_grammar.h"
+
 #include "pteros/core/system.h"
 #include "pteros/core/selection.h"
+#include "pteros/core/logging.h"
 #include "pteros/core/pteros_error.h"
 #include "pteros/core/distance_search.h"
 #include <Eigen/Core>
@@ -36,126 +37,93 @@
 #include <unordered_set>
 #include <regex>
 
-//-----------------------------------------------------
-//  Functions for creating actual selection from AST
-//-----------------------------------------------------
 using namespace std;
 using namespace pteros;
 using namespace boost;
 
-#ifdef _DEBUG_PARSER
-char* tok_names[] = {
-    "TOK_VOID",
-    "TOK_MINUS",
-    "TOK_UNARY_MINUS",
-    "TOK_PLUS",
-    "TOK_MULT",
-    "TOK_DIV",
-    "TOK_POWER",
-    "TOK_EQ", // == or =
-    "TOK_NEQ", // <> or !=
-    "TOK_LT", //<
-    "TOK_GT", //>
-    "TOK_LEQ", //<=
-    "TOK_GEQ", //>=
-    // Operations for atom field codes
-    "TOK_X",
-    "TOK_Y",
-    "TOK_Z",
-    "TOK_OCC",
-    "TOK_BETA",
-    // Logic
-    "TOK_OR",
-    "TOK_AND",
-    // Prefixes
-    "TOK_NOT",
-    "TOK_WITHIN",
-    "TOK_SELF",
-    //"TOK_PERIODIC",
-    //"TOK_OF",
-    "TOK_BY",
-    "TOK_RESIDUE",
-    // text keywords
-    "TOK_NAME",
-    "TOK_RESNAME",
-    "TOK_TAG",
-    "TOK_TYPE",
-    "TOK_CHAIN",
-    // int keywords
-    "TOK_RESID",
-    "TOK_INDEX",
-    "TOK_RESINDEX",
-    // all
-    "TOK_ALL",
-    // Range
-    "TOK_TO", // '-' or 'to'
-    // Data "TOKens
-    "TOK_INT",
-    "TOK_UINT",
-    "TOK_FLOAT",
-    "TOK_STR",
-    // Parens
-    //"TOK_LPAREN",
-    //"TOK_RPAREN",
-    // Distances
-    //"TOK_DIST",
-    "TOK_POINT",
-    "TOK_VECTOR",
-    "TOK_PLANE",
 
-    "TOK_PRECOMPUTED",
-    "TOK_REGEX"
+//===============================================
+
+// We derive from normal peg::parser
+class Pteros_PEG_parser: public peg::parser {
+public:
+    Pteros_PEG_parser(const char* s): peg::parser(s) {
+        enable_ast();
+        enable_packrat_parsing();
+        log = [&](size_t ln, size_t col, const string& msg) {
+            error_message = fmt::format("{}:{}",col,msg);
+        };
+    }
+
+    virtual ~Pteros_PEG_parser(){}
+
+    string error_message;
 };
 
 
-void AstNode::dump(int indent){
-    for(int i=0;i<indent;++i) cout << '\t';
-    cout << tok_names[code] << "{" << endl;
-    if(code == TOK_PRECOMPUTED){
-        //for(int j=0;j<precomputed.size();++j) cout << precomputed[j]<<" ";
-        for(int i=0;i<indent;++i) cout << '\t';
-        cout << "\tsz: " << precomputed.size() << endl;
-    }
+// Instance of the parser itself
+Pteros_PEG_parser _parser(R"(
+        LOGICAL_EXPR       <-  LOGICAL_OPERAND (LOGICAL_OPERATOR LOGICAL_OPERAND)*
+        LOGICAL_OPERATOR   <-  'or' / 'and'
+        LOGICAL_OPERAND    <-  (NOT / BYRES)? ( '(' LOGICAL_EXPR ')' / ALL / NUM_COMPARISON / KEYWORD_EXPR / WITHIN )
+        ALL                <-  'all'
+        NOT                <-  'not'
+        BYRES              <-  'by' 'residue' / 'same' 'residue' 'as'
 
-    for(int i=0;i<children.size();++i){        
-        AstNode_ptr p;
-        try {
-            p = boost::get<AstNode_ptr>(children[i]);
-            p->dump(indent+1);
-        } catch(boost::bad_get) {
-            for(int j=0;j<indent;++j) cout << '\t';
-            cout << "  " << children[i] << endl;
-        }
-    }
-    for(int i=0;i<indent;++i) cout << '\t';
-    cout << "}" << endl;
-}
+        NUM_COMPARISON     <-  NUM_EXPR COMPARISON_OPERATOR NUM_EXPR (COMPARISON_OPERATOR NUM_EXPR)?
+        COMPARISON_OPERATOR <- < '<' / '>' / '=' / '==' / '<=' / '>=' / '<>' / '!=' >
+        NUM_EXPR           <- NUM_TERM (PLUS_MINUS NUM_TERM)*
+        NUM_TERM           <- NUM_POWER (DIV_MUL NUM_POWER)*
+        NUM_POWER          <- NUM_FACTOR (POW NUM_FACTOR)?
+        NUM_FACTOR         <- UNARY_MINUS? ( '(' NUM_EXPR ')' / X / Y / Z / BETA / OCC / RESINDEX / INDEX / RESID / DIST) / FLOAT
+        PLUS_MINUS         <- < '+' / '-' >
+        DIV_MUL            <- < '*' / '/' >
+        POW                <- < '^' / '**' >
+        UNARY_MINUS        <- < '-' >
 
-string AstNode::decode(){
-    return tok_names[code];
-}
+        X                  <- < 'X' / 'x' >
+        Y                  <- < 'Y' / 'y' >
+        Z                  <- < 'Z' / 'z' >
+        BETA               <- < 'beta' >
+        OCC                <- < 'occupancy' / 'occ' >
+        RESINDEX           <- < 'resindex' >
+        INDEX              <- < 'index' >
+        RESID              <- < 'resid' >
 
-#endif
+        DIST               <- ('dist' / 'distance') (POINT / VECTOR / PLANE)
+        POINT              <- 'point' PBC? FLOAT FLOAT FLOAT
+        VECTOR             <- 'vector' PBC? FLOAT FLOAT FLOAT FLOAT FLOAT FLOAT
+        PLANE              <- 'plane' PBC? FLOAT FLOAT FLOAT FLOAT FLOAT FLOAT
 
-int AstNode::child_as_int(int i){    
-    return boost::get<int>(boost::get<AstNode_ptr>(children[i])->children[0]);
-}
+        FLOAT              <- < INTEGER ('.' [0-9]+ )? ( ('e' / 'E' ) INTEGER )? >
+        INTEGER            <- < ('-' / '+')? [0-9]+ >
 
-string AstNode::child_as_str(int i){    
-    return boost::get<string>(boost::get<AstNode_ptr>(children[i])->children[0]);
-}
+        KEYWORD_EXPR       <- STR_KEYWORD_EXPR / INT_KEYWORD_EXPR
+        STR_KEYWORD_EXPR   <- STR_KEYWORD (STR / REGEX)+
+        STR_KEYWORD        <- < 'name' / 'resname' / 'tag' / 'chain' / 'type' >
+        STR                <- !('or'/'and') < [a-zA-Z0-9]+ >
 
-float AstNode::child_as_float(int i){        
-    return boost::get<float>(boost::get<AstNode_ptr>(children[i])->children[0]);
-}
+        INT_KEYWORD_EXPR   <- INT_KEYWORD (RANGE / INTEGER)+
+        INT_KEYWORD        <- < 'index' / 'resindex' / 'resid' >
+        RANGE              <- INTEGER ('-'/'to'/':') INTEGER
 
-AstNode_ptr& AstNode::child_node(int i){
-    return boost::get<AstNode_ptr>(children[i]);
-}
+        WITHIN             <- 'within' FLOAT ((PBC SELF)? / (SELF PBC)? / PBC? / SELF?) 'of' LOGICAL_OPERAND
+        PBC                <- < 'pbc' / 'nopbc' / 'periodic' / 'nonperiodic' >
+        SELF               <- < 'self' / 'noself' >
 
-bool AstNode::is_coordinate_dependent(){
-    if(code == TOK_X || code == TOK_Y || code == TOK_Z || code == TOK_WITHIN
-            || code == TOK_POINT || code == TOK_PLANE || code == TOK_VECTOR
+        %whitespace      <-  [ \t\r\n]*
+
+        REGEX              <- '"' <(!'"' .)*> '"' / "'" <(!"'" .)*> "'"
+    )");
+
+
+
+//===============================================
+
+
+bool is_node_coordinate_dependent(const std::shared_ptr<peg::Ast>& node){
+    if(node->name == "X" || node->name == "Y" || node->name == "Z" || node->name == "WITHIN"
+            || node->name == "POINT" || node->name == "PLANE" || node->name == "VECTOR"
       ){
         return true;
     } else {
@@ -166,74 +134,66 @@ bool AstNode::is_coordinate_dependent(){
 
 Selection_parser::Selection_parser(std::vector<int> *subset):
     has_coord(false),
-    starting_subset(subset) { }
+    starting_subset(subset)
+{
+
+}
 
 Selection_parser::~Selection_parser(){}
 
 
-bool is_node_pure(AstNode_ptr& node){
-    if(node->is_coordinate_dependent()) return false;
+bool is_node_pure(const std::shared_ptr<peg::Ast>& node){
+    if(is_node_coordinate_dependent(node)) return false;
 
-    for(int i=0;i<node->children.size();++i){
-        try {
-            if( is_node_pure(boost::get<AstNode_ptr>(node->children[i])) == false){
-                return false;
-            }
-        } catch(boost::bad_get){};
+    for(int i=0;i<node->nodes.size();++i){
+        if(is_node_pure(node->nodes[i]) == false) return false;
     }
 
     return true;
 }
 
-void Selection_parser::create_ast(string& sel_str){
-#ifdef _DEBUG_PARSER
-	cout << "Going to create AST from: " << sel_str <<endl;
-#endif
-    Grammar g(sel_str);
-    tree = g.run();
+void Selection_parser::create_ast(string& sel_str){            
+    if (_parser.parse(sel_str.c_str(), tree)) {
+        tree = peg::AstOptimizer(true).optimize(tree);
+
+        cout << peg::ast_to_s(tree);
+
+    } else {
+        throw Pteros_error(_parser.error_message);
+    }
 
     if(!is_node_pure(tree)) has_coord = true;
     is_optimized = false; // Not yet optimized
-
-#ifdef _DEBUG_PARSER
-    cout << "Is coordinate dependent? " << has_coord << endl;
-    tree->dump();
-#endif
 }
 
 
 
-void Selection_parser::do_optimization(AstNode_ptr& node){
+void Selection_parser::do_optimization(std::shared_ptr<peg::Ast> &node){        
 
     // Skip optimization for trivial terminal nodes
-    if(    node->code == TOK_UINT
-        || node->code == TOK_INT
-        || node->code == TOK_FLOAT
-        || node->code == TOK_STR
-        || node->code == TOK_REGEX
-        || node->code == TOK_X
-        || node->code == TOK_Y
-        || node->code == TOK_Z
-        || node->code == TOK_BETA
-        || node->code == TOK_OCC
-        || node->code == TOK_TO
-        || node->code == TOK_INDEX
-        || node->code == TOK_RESINDEX
-        || node->code == TOK_RESID
+    if(    node->name == "INTEGER"
+        || node->name == "FLOAT"
+        || node->name == "STR"
+        || node->name == "REGEX"
+        || node->name == "X"
+        || node->name == "Y"
+        || node->name == "Z"
+        || node->name == "BETA"
+        || node->name == "OCC"
+        || node->name == "RANGE"
+        || node->name == "INDEX"
+        || node->name == "RESINDEX"
+        || node->name == "RESID"
        ) return;
-
+/*
     // Now check if this node does not contain coord-dependent children
     if(is_node_pure(node)){
-#ifdef _DEBUG_PARSER
-        cout << "Node " << node->decode() << " is pure" << endl;
-#endif
-
         // Node is pure! Check if this is a math expression, which evaluates to constant
-        if(    node->code == TOK_PLUS
-            || node->code == TOK_MINUS
-            || node->code == TOK_MULT
-            || node->code == TOK_DIV
-            || node->code == TOK_POWER
+        if(    node->name == TOK_PLUS
+            || node->name == TOK_MINUS
+            || node->name == TOK_MULT
+            || node->name == TOK_DIV
+            || node->name == TOK_POWER
           )
         {
             // Eval to constant and replace node with float
@@ -249,10 +209,6 @@ void Selection_parser::do_optimization(AstNode_ptr& node){
             eval_node(node,node->precomputed,nullptr);
             node->children.clear();
             node->code = TOK_PRECOMPUTED;
-
-#ifdef _DEBUG_PARSER
-            cout << "Node set to precomputed " << endl;
-#endif
         }
     }
 
@@ -264,28 +220,19 @@ void Selection_parser::do_optimization(AstNode_ptr& node){
                && is_node_pure(node->child_node(1))
                ){
 
-#ifdef _DEBUG_PARSER
-                cout << "Node " << node->decode() << " swapped" << endl;
-#endif
-
                 node->child_node(0).swap(node->child_node(1));
              }
         } catch (boost::bad_get) {}
     }
+    */
 
     // Go deeper
-    for(int i=0;i<node->children.size();++i)
-        try {
-            do_optimization(node->child_node(i));
-        } catch(boost::bad_get){};
+    for(int i=0;i<node->nodes.size();++i) do_optimization(node->nodes[i]);
+
 }
 
 
 void Selection_parser::apply(System* system, size_t fr, vector<int>& result){
-#ifdef _DEBUG_PARSER
-	cout << "Applying to the system with first atom " << system->atoms[0].name << endl;
-#endif
-
     sys = system;
     frame = fr;
     Natoms = sys->num_atoms();
@@ -293,35 +240,16 @@ void Selection_parser::apply(System* system, size_t fr, vector<int>& result){
     // For coordinate-dependent selections perform optimization
     // to precompute all pure not-coordinate-depenednt nodes
     if(has_coord && !is_optimized){
-
-#ifdef _DEBUG_PARSER
-        cout << "Tree before optimizaton:" << endl;
-        tree->dump(0);
-#endif
         do_optimization(tree);
         is_optimized = true;
-
-#ifdef _DEBUG_PARSER
-        cout << "Tree after optimizaton:" << endl;
-        tree->dump(0);
-#endif
     }    
 
     // Eval root node
     eval_node(tree,result,nullptr);
-
-    // Sort result to always get ordered selection index
-    //sort(result.begin(),result.end());
-
-#ifdef _DEBUG_PARSER
-    int n = 0;
-    for(int i=0;i<result.size();++i)
-        cout << result[i] << " ";
-    cout << endl;    
-#endif    
 }
 
-void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<int>* subspace){
+void Selection_parser::eval_node(const std::shared_ptr<peg::Ast> &node, vector<int>& result, vector<int>* subspace){
+
     int i,at,j,k,n;
 
     // Clear any garbage passed in result
@@ -335,8 +263,50 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
         restr = starting_subset;
     } else {
         restr = nullptr;
-    }
+    }        
 
+    if(node->name == "NUM_COMPARISON")
+    {
+        auto op  = node->nodes[1]->token;
+        bool pure1,pure2;
+        auto op1 = get_numeric(node->nodes[0],pure1);
+        auto op2 = get_numeric(node->nodes[2],pure2);
+
+        // Function to evaluate
+        std::function<bool(float,float)> comparison;
+
+        if(op == "=" || op== "=="){
+            comparison = [](float a, float b){ return a==b; };
+        } else if (op == "!=" || op=="<>"){
+            comparison = [](float a, float b){ return a!=b; };
+        } else if (op == "<"){
+            comparison = [](float a, float b){ return a<b; };
+        } else if (op == ">"){
+            comparison = [](float a, float b){ return a>b; };
+        } else if (op == "<="){
+            comparison = [](float a, float b){ return a<=b; };
+        } else if (op == ">="){
+            comparison = [](float a, float b){ return a>=b; };
+        }
+
+        // If both operands are pure evaluate function in place
+        // for atom 0 (it does not matter which one to use)
+        if(pure1 && pure2){
+            LOG()->warn("Meaningless expression in selection");
+            if(!comparison(op1(0),op2(0))) throw Pteros_error("False arithmetic comparison");
+        } else {
+            if(!restr){
+                for(at=0;at<Natoms;++at) // over all atoms
+                    if( comparison(op1(at),op2(at)) ) result.push_back(at);
+            } else {
+                for(int i=0;i<restr->size();++i){ // over restr
+                    at = (*restr)[i];
+                    if( comparison(op1(at),op2(at)) ) result.push_back(at);
+                }
+            }
+        }
+    }
+/*
     //---------------------------------------------------------------------------
     if(node->code == TOK_PRECOMPUTED)
     {
@@ -358,9 +328,7 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
         // Logical NOT
         vector<int> res1;
         eval_node(node->child_node(0), res1, restr);
-        // Sort
-        //std::sort(res1.begin(),res1.end());
-        // res1 is sorted, so we can speed up negation a bit by filling only the "gaps"
+
         n = res1.size();        
 
         // Special check for empty res1
@@ -388,10 +356,6 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
         eval_node(node->child_node(0), res1, restr);
         eval_node(node->child_node(1), res2, restr);
 
-        // Sort
-        //std::sort(res1.begin(),res1.end());
-        //std::sort(res2.begin(),res2.end());
-
         std::set_union(res1.begin(),res1.end(),res2.begin(),res2.end(),back_inserter(result));            
     }
 
@@ -404,10 +368,6 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
         eval_node(node->child_node(0), res1, restr);
         // First operand sets a restr for the second!
         eval_node(node->child_node(1), res2, &res1);
-
-        // Sort
-        //std::sort(res1.begin(),res1.end());
-        //std::sort(res2.begin(),res2.end());
 
         std::set_intersection(res1.begin(),res1.end(),res2.begin(),res2.end(),back_inserter(result));
     }
@@ -911,49 +871,80 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
         throw Pteros_error("Invalid node in the AST!");
     }
 
-
+*/
 }
 
 // Returns callable, which returns value for numeric node for atom at
-std::function<float(int)> Selection_parser::get_numeric(AstNode_ptr& node){
-    if(node->code == TOK_INT || node->code == TOK_UINT){
-        float val = boost::get<int>(node->children[0]);
-        return [val](int at){ return val; };
-    } else if(node->code == TOK_FLOAT){
-        float val = boost::get<float>(node->children[0]);
-        return [val](int at){ return val; };
-    } else if(node->code == TOK_X){
-        return [this](int at){ return sys->traj[frame].coord[at](0); };
-    } else if(node->code == TOK_Y){
-        return [this](int at){ return sys->traj[frame].coord[at](1); };
-    } else if(node->code == TOK_Z){
-        return [this](int at){ return sys->traj[frame].coord[at](2); };
-    } else if(node->code == TOK_BETA){
-        return [this](int at){ return sys->atoms[at].beta; };
-    } else if(node->code == TOK_OCC){
-        return [this](int at){ return sys->atoms[at].occupancy; };
-    } else if(node->code == TOK_INDEX){
-        return [](int at){ return at; };
-    } else if(node->code == TOK_RESINDEX){
-        return [this](int at){ return sys->atoms[at].resindex; };
-    } else if(node->code == TOK_RESID){
-        return [this](int at){ return sys->atoms[at].resid; };
-    } else if(node->code == TOK_UNARY_MINUS){
-        auto func = get_numeric(node->child_node(0));
-        return [func](int at){ return -func(at); };
-    } else if(node->code == TOK_PLUS){        
-        auto func1 = get_numeric(node->child_node(0));
-        auto func2 = get_numeric(node->child_node(1));
-        return [func1,func2](int at){ return func1(at)+func2(at); };
-    } else if(node->code == TOK_MINUS){
+std::function<float(int)> Selection_parser::get_numeric(const std::shared_ptr<peg::Ast> &node, bool& is_pure){
+
+    std::function<float(int)> res;
+    is_pure = true;
+
+    // terminals
+    if(node->name == "INTEGER"){
+        float val = stol(node->token);
+        res = [val](int at){ return val; };
+    } else if(node->name == "FLOAT"){
+        float val = stof(node->token);
+        res = [val](int at){ return val; };
+    } else if(node->name == "X"){
+        res =[this](int at){ return sys->traj[frame].coord[at](0); };
+        is_pure = false;
+    } else if(node->name == "Y"){
+        res = [this](int at){ return sys->traj[frame].coord[at](1); };
+        is_pure = false;
+    } else if(node->name == "Z"){
+        res = [this](int at){ return sys->traj[frame].coord[at](2); };
+        is_pure = false;
+    } else if(node->name == "BETA"){
+        res = [this](int at){ return sys->atoms[at].beta; };
+    } else if(node->name == "OCC"){
+        res = [this](int at){ return sys->atoms[at].occupancy; };
+    } else if(node->name == "INDEX"){
+        res = [](int at){ return at; };
+    } else if(node->name == "RESINDEX"){
+        res = [this](int at){ return sys->atoms[at].resindex; };
+    } else if(node->name == "RESID"){
+        res = [this](int at){ return sys->atoms[at].resid; };
+
+    // Compounds
+    } else if(node->name == "UNARY_MINUS"){
+        auto func = get_numeric(node->nodes[0],is_pure);
+        res = [func](int at){ return -func(at); };
+    } else if(node->name == "NUM_EXPR" || node->name == "NUM_TERM"){
+        bool p1,p2;
+        auto func1 = get_numeric(node->nodes[0],p1);
+        auto op = node->nodes[1]->token;
+        auto func2 = get_numeric(node->nodes[2],p2);
+        is_pure = p1 && p2;
+
+        if     (op=="+")
+            res = [func1,func2](int at){ return func1(at)+func2(at); };
+        else if(op=="-")
+            res = [func1,func2](int at){ return func1(at)-func2(at); };
+        else if(op=="*")
+            res = [func1,func2](int at){ return func1(at)*func2(at); };
+        else if(op=="/") {
+            res = [func1,func2](int at){
+                float v = func2(at);
+                if(v==0.0) throw Pteros_error("Division by zero in selection!");
+                return func1(at)/v;
+            };
+        }
+    }
+
+    return res;
+
+    /*
+    else if(node->name == TOK_MINUS){
         auto func1 = get_numeric(node->child_node(0));
         auto func2 = get_numeric(node->child_node(1));
         return [func1,func2](int at){ return func1(at)-func2(at); };
-    } else if(node->code == TOK_MULT){
+    } else if(node->name == TOK_MULT){
         auto func1 = get_numeric(node->child_node(0));
         auto func2 = get_numeric(node->child_node(1));
         return [func1,func2](int at){ return func1(at)*func2(at); };
-    } else if(node->code == TOK_DIV){
+    } else if(node->name == TOK_DIV){
         auto func1 = get_numeric(node->child_node(0));
         auto func2 = get_numeric(node->child_node(1));
         return [func1,func2](int at){
@@ -961,11 +952,11 @@ std::function<float(int)> Selection_parser::get_numeric(AstNode_ptr& node){
             if(v==0.0) throw Pteros_error("Division by zero in selection!");
             return func1(at)/v;
         };
-    } else if(node->code == TOK_POWER) {
+    } else if(node->name == TOK_POWER) {
         auto func1 = get_numeric(node->child_node(0));
         auto func2 = get_numeric(node->child_node(1));
         return [func1,func2](int at){ return std::pow(func1(at),func2(at)); };
-    } else if(node->code == TOK_POINT){
+    } else if(node->name == TOK_POINT){
         // Extract point
         Eigen::Vector3f p;
 
@@ -986,7 +977,7 @@ std::function<float(int)> Selection_parser::get_numeric(AstNode_ptr& node){
             };
         }
 
-    } else if(node->code == TOK_VECTOR || node->code == TOK_PLANE ){
+    } else if(node->name == TOK_VECTOR || node->name == TOK_PLANE ){
         // Extract point
         Eigen::Vector3f p;
         p(0) = boost::get<float>(node->children[0]);
@@ -1001,7 +992,7 @@ std::function<float(int)> Selection_parser::get_numeric(AstNode_ptr& node){
         // pbc
         bool pbc = (boost::get<int>(node->children[6])) ? true : false;
 
-        bool do_plane = (node->code == TOK_PLANE) ? true : false;
+        bool do_plane = (node->name == TOK_PLANE) ? true : false;
 
         return [this,p,dir,pbc,do_plane](int at){
             Eigen::Vector3f atom = sys->traj[frame].coord[at];
@@ -1028,7 +1019,9 @@ std::function<float(int)> Selection_parser::get_numeric(AstNode_ptr& node){
             }
         };
     } else {
-        throw Pteros_error("Wrong numeric node!");
+        throw Pteros_error("Wrong numeric node!");        
     }
+    */
 }
+
 
