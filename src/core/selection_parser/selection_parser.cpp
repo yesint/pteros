@@ -906,7 +906,7 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
     }
 
     //---------------------------------------------------------------------------
-    else if(node->code == TOK_GEQ)
+    else
     {
         throw Pteros_error("Invalid node in the AST!");
     }
