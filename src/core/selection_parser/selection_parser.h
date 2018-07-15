@@ -33,6 +33,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <regex>
 
 #include "pteros/core/system.h"
 #include <boost/variant.hpp>
@@ -183,7 +184,7 @@ private:
 
     bool is_optimized;        
 
-    std::vector<int>* starting_subset;
+    std::vector<int>* starting_subset;    
 };
 
 }

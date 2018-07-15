@@ -321,6 +321,8 @@ void Selection_parser::apply(System* system, size_t fr, vector<int>& result){
 #endif    
 }
 
+
+
 void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<int>* subspace){
     int i,at,j,k,n;
 
@@ -388,10 +390,6 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
         eval_node(node->child_node(0), res1, restr);
         eval_node(node->child_node(1), res2, restr);
 
-        // Sort
-        //std::sort(res1.begin(),res1.end());
-        //std::sort(res2.begin(),res2.end());
-
         std::set_union(res1.begin(),res1.end(),res2.begin(),res2.end(),back_inserter(result));            
     }
 
@@ -405,60 +403,36 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
         // First operand sets a restr for the second!
         eval_node(node->child_node(1), res2, &res1);
 
-        // Sort
-        //std::sort(res1.begin(),res1.end());
-        //std::sort(res2.begin(),res2.end());
-
         std::set_intersection(res1.begin(),res1.end(),res2.begin(),res2.end(),back_inserter(result));
     }
 
     //---------------------------------------------------------------------------
-    else if(node->code == TOK_NAME)
+    else if(node->code == TOK_NAME || node->code == TOK_TYPE || node->code == TOK_RESNAME ||
+            node->code == TOK_CHAIN || node->code == TOK_TAG)
     {
-        int Nchildren = node->children.size(); // Get number of children
-        string str;
-        // Cycle over children
-        for(i=0;i<Nchildren;++i){
-            str = node->child_as_str(i);
-            if(node->child_node(i)->code == TOK_STR){
-                // For normal strings
-                if(!restr){
-                    for(at=0;at<Natoms;++at){
-                        if(sys->atoms[at].name == str) result.push_back(at);
-                    }
-                } else {
-                    for(j=0;j<restr->size();++j){
-                        at = (*restr)[j];
-                        if(sys->atoms[at].name == str) result.push_back(at);
-                    }
-                }
-            } else if(node->child_node(i)->code == TOK_REGEX){
-                // For regex
-                std::cmatch what;
-                std::regex reg(str);
-                if(!restr){
-                    for(at=0;at<Natoms;++at){
-                        if(std::regex_match(sys->atoms[at].name.c_str(),what,reg)){
-                             result.push_back(at);
-                        }
-                    }
-                } else {
-                    for(j=0;j<restr->size();++j){
-                        at = (*restr)[j];
-                        if(std::regex_match(sys->atoms[at].name.c_str(),what,reg)){
-                             result.push_back(at);
-                        }
-                    }
-                }
-            }
-        }        
-        sort(result.begin(),result.end());
-    }
+        std::function<bool(int,const string&)> comp_func_str;
+        std::function<bool(int,const std::regex&)> comp_func_regex;
 
-    //---------------------------------------------------------------------------
-    else if(node->code == TOK_TYPE)
-    {
-        if(!sys->force_field.ready) throw Pteros_error("Can't select type names from system with no valid force field!");
+        if(node->code == TOK_NAME){
+            comp_func_str = [this](int at, const string& str){ return sys->atoms[at].name == str; };
+            comp_func_regex = [this](int at, const std::regex& reg){ return std::regex_match(sys->atoms[at].name.c_str(),reg); };
+        } else if(node->code == TOK_TYPE){
+            comp_func_str = [this](int at, const string& str){ return sys->atoms[at].type_name == str; };
+            comp_func_regex = [this](int at, const std::regex& reg){ return std::regex_match(sys->atoms[at].type_name.c_str(),reg); };
+        } else if(node->code == TOK_RESNAME){
+            comp_func_str = [this](int at, const string& str){ return sys->atoms[at].resname == str; };
+            comp_func_regex = [this](int at, const std::regex& reg){ return std::regex_match(sys->atoms[at].resname.c_str(),reg); };
+        } else if(node->code == TOK_TAG){
+            comp_func_str = [this](int at, const string& str){ return sys->atoms[at].tag== str; };
+            comp_func_regex = [this](int at, const std::regex& reg){ return std::regex_match(sys->atoms[at].tag.c_str(),reg); };
+        } else if(node->code == TOK_CHAIN){
+            comp_func_str = [this](int at, const string& str){ return sys->atoms[at].chain == str[0]; };
+            comp_func_regex = [this](int at, const std::regex& reg){
+                string s(" ");
+                s[0] = sys->atoms[at].chain;
+                return std::regex_match(s.c_str(),reg);
+            };
+        }
 
         int Nchildren = node->children.size(); // Get number of children
         string str;
@@ -468,146 +442,46 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
             if(node->child_node(i)->code == TOK_STR){
                 // For normal strings
                 if(!restr){
-                    for(at=0;at<Natoms;++at){
-                        if(sys->atoms[at].type_name == str) result.push_back(at);
+                    for(at=0;at<Natoms;++at){                        
+                        if(comp_func_str(at,str)) result.push_back(at);
                     }
                 } else {
                     for(j=0;j<restr->size();++j){
                         at = (*restr)[j];
-                        if(sys->atoms[at].type_name == str) result.push_back(at);
+                        if(comp_func_str(at,str)) result.push_back(at);
                     }
                 }
             } else if(node->child_node(i)->code == TOK_REGEX){
-                // For regex
-                std::cmatch what;
+                // For regex                
                 std::regex reg(str);
                 if(!restr){
-                    for(at=0;at<Natoms;++at){
-                        if(std::regex_match(sys->atoms[at].type_name.c_str(),what,reg)){
-                             result.push_back(at);
-                        }
+                    for(at=0;at<Natoms;++at){                        
+                        if(comp_func_regex(at,reg)) result.push_back(at);
                     }
                 } else {
                     for(j=0;j<restr->size();++j){
                         at = (*restr)[j];
-                        if(std::regex_match(sys->atoms[at].type_name.c_str(),what,reg)){
-                             result.push_back(at);
-                        }
+                        if(comp_func_regex(at,reg)) result.push_back(at);
                     }
                 }
             }
         }
-        sort(result.begin(),result.end());
+
+        sort(result.begin(),result.end());        
+        vector<int>::iterator it = unique(result.begin(), result.end());
+        result.resize( it - result.begin() );
     }
 
     //---------------------------------------------------------------------------
-    else if(node->code == TOK_RESNAME)
+    else if(node->code == TOK_RESID || node->code == TOK_RESINDEX)
     {
-        int Nchildren = node->children.size(); // Get number of children
-        string str;
-        // Cycle over children
-        for(i=0;i<Nchildren;++i){
-            str = node->child_as_str(i);
-            if(node->child_node(i)->code == TOK_STR){
-                // For normal strings
-                if(!restr){
-                    for(at=0;at<Natoms;++at)
-                        if(sys->atoms[at].resname == str) result.push_back(at);
-                } else {
-                    for(j=0;j<restr->size();++j){
-                        at = (*restr)[j];
-                        if(sys->atoms[at].resname == str) result.push_back(at);
-                    }
-                }
-            } else if(node->child_node(i)->code == TOK_REGEX){
-                // For regex
-                std::cmatch what;
-                std::regex reg(str);
-                if(!restr){
-                    for(at=0;at<Natoms;++at){
-                        if(std::regex_match(sys->atoms[at].resname.c_str(),what,reg)){
-                             result.push_back(at);
-                        }
-                    }
-                } else {
-                    for(j=0;j<restr->size();++j){
-                        at = (*restr)[j];
-                        if(std::regex_match(sys->atoms[at].resname.c_str(),what,reg)){
-                             result.push_back(at);
-                        }
-                    }
-                }
-            }
+        std::function<bool(int,int)> comp_func;
+        if(node->code == TOK_RESID){
+            comp_func = [this](int at, int k){ return sys->atoms[at].resid == k; };
+        } else if(node->code == TOK_RESINDEX){
+            comp_func = [this](int at, int k){ return sys->atoms[at].resindex == k; };
         }
-        sort(result.begin(),result.end());
-    }
 
-    //---------------------------------------------------------------------------
-    else if(node->code == TOK_TAG)
-    {
-        int Nchildren = node->children.size(); // Get number of children
-        string str;
-        // Cycle over children
-        for(i=0;i<Nchildren;++i){
-            str = node->child_as_str(i);
-            if(node->child_node(i)->code == TOK_STR){
-                // For normal strings
-                if(!restr){
-                    for(at=0;at<Natoms;++at)
-                        if(sys->atoms[at].tag == str) result.push_back(at);
-                } else {
-                    for(j=0;j<restr->size();++j){
-                        at = (*restr)[j];
-                        if(sys->atoms[at].tag == str) result.push_back(at);
-                    }
-                }
-            } else if(node->child_node(i)->code == TOK_REGEX){
-                // For regex
-                std::cmatch what;
-                std::regex reg(str);
-                if(!restr){
-                    for(at=0;at<Natoms;++at){
-                        if(std::regex_match(sys->atoms[at].tag.c_str(),what,reg)){
-                             result.push_back(at);
-                        }
-                    }
-                } else {
-                    for(j=0;j<restr->size();++j){
-                        at = (*restr)[j];
-                        if(std::regex_match(sys->atoms[at].tag.c_str(),what,reg)){
-                             result.push_back(at);
-                        }
-                    }
-                }
-            }
-        }
-        sort(result.begin(),result.end());
-    }
-
-    //---------------------------------------------------------------------------
-    else if(node->code == TOK_CHAIN)
-    {
-        int Nchildren = node->children.size(); // Get number of children
-        char ch;
-        // Cycle over children
-        for(i=0;i<Nchildren;++i){
-            ch = node->child_as_str(i)[0];
-            if(!restr){
-                for(at=0;at<Natoms;++at)
-                    if(sys->atoms[at].chain == ch) result.push_back(at);
-            } else {
-                for(j=0;j<restr->size();++j){
-                    at = (*restr)[j];
-                    if(sys->atoms[at].chain == ch) result.push_back(at);
-                }
-            }
-        }
-        sort(result.begin(),result.end());
-    }
-
-    //---------------------------------------------------------------------------
-    else if(node->code == TOK_RESID)
-    {
         int Nchildren = node->children.size(); // Get number of children
         // Cycle over children
         for(i=0;i<Nchildren;++i){
@@ -616,77 +490,38 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
                 if(!restr){
                     for(at=0;at<Natoms;++at)
                         // Even if k is out of range, nothing will crash here
-                        if(sys->atoms[at].resid == k) result.push_back(at);
+                        if(comp_func(at,k)) result.push_back(at);
                 } else {
                     for(j=0;j<restr->size();++j){
                         at = (*restr)[j];
                         // Even if k is out of range, nothing will crash here
-                        if(sys->atoms[at].resid == k) result.push_back(at);
+                        if(comp_func(at,k)) result.push_back(at);
                     }
                 }
             } else {
                 // this is a range, not an integer
-                AstNode_ptr range = node->child_node(i);                
+                const AstNode_ptr& range = node->child_node(i);
                 int i1 = range->child_as_int(0);
                 int i2 = range->child_as_int(1);
                 for(k=i1;k<=i2;++k){
                     if(!restr){
                         for(at=0;at<Natoms;++at)
                             // Even if k is out of range, nothing will crash here
-                            if(sys->atoms[at].resid == k) result.push_back(at);
+                            if(comp_func(at,k)) result.push_back(at);
                     } else {
                         for(j=0;j<restr->size();++j){
                             at = (*restr)[j];
                             // Even if k is out of range, nothing will crash here
-                            if(sys->atoms[at].resid == k) result.push_back(at);
+                            if(comp_func(at,k)) result.push_back(at);
                         }
                     }
                 }
             }
         }
-        sort(result.begin(),result.end());
-    }
 
-    //---------------------------------------------------------------------------
-    else if(node->code == TOK_RESINDEX)
-    {
-        int Nchildren = node->children.size(); // Get number of children
-        // Cycle over children
-        for(i=0;i<Nchildren;++i){                        
-            if(node->child_node(i)->code == TOK_UINT) {
-                k = node->child_as_int(i);
-                if(!restr){
-                    for(at=0;at<Natoms;++at)
-                        // Even if k is out of range, nothing will crash here
-                        if(sys->atoms[at].resindex == k) result.push_back(at);
-                } else {
-                    for(j=0;j<restr->size();++j){
-                        at = (*restr)[j];
-                        // Even if k is out of range, nothing will crash here
-                        if(sys->atoms[at].resindex == k) result.push_back(at);
-                    }
-                }
-            } else {
-                // this is a range, not an integer
-                AstNode_ptr range = node->child_node(i);
-                int i1 = range->child_as_int(0);
-                int i2 = range->child_as_int(1);
-                for(k=i1;k<=i2;++k){
-                    if(!restr){
-                        for(at=0;at<Natoms;++at)
-                            // Even if k is out of range, nothing will crash here
-                            if(sys->atoms[at].resindex == k) result.push_back(at);
-                    } else {
-                        for(j=0;j<restr->size();++j){
-                            at = (*restr)[j];
-                            // Even if k is out of range, nothing will crash here
-                            if(sys->atoms[at].resindex == k) result.push_back(at);
-                        }
-                    }
-                }
-            }
-        }
         sort(result.begin(),result.end());
+        vector<int>::iterator it = unique(result.begin(), result.end());
+        result.resize( it - result.begin() );
     }
 
     //---------------------------------------------------------------------------
@@ -711,7 +546,10 @@ void Selection_parser::eval_node(AstNode_ptr& node, vector<int>& result, vector<
                         result.push_back(k);
             }
         }
+
         sort(result.begin(),result.end());
+        vector<int>::iterator it = unique(result.begin(), result.end());
+        result.resize( it - result.begin() );
     }
 
     //---------------------------------------------------------------------------
