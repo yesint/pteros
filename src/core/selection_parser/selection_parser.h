@@ -47,6 +47,14 @@ namespace pteros {
     This class should never be used directly.
 */
 
+struct MyAst_annotation {
+    bool is_coord_dependent;
+    std::shared_ptr<std::vector<int>> subset;
+};
+
+typedef peg::AstBase<MyAst_annotation> MyAst;
+typedef std::function<void(std::vector<int>&)> result_func_t;
+
 class Selection_parser{    
 public:
     /** True if there are coordinate keywords in selection.
@@ -67,21 +75,21 @@ public:
     void apply(System* system, std::size_t fr, std::vector<int>& result);
 
 private:
-    /// AST structure
-    std::shared_ptr<peg::Ast> tree;
+    /// AST structure 
+    std::shared_ptr<MyAst> tree;
 
     // AST evaluation stuff
     System* sys;
     int Natoms;
-    int frame;
+    int frame;    
 
-    void eval_node(const std::shared_ptr<peg::Ast>& node, std::vector<int>& result, std::vector<int>* subspace);
-    std::function<float(int)> get_numeric(const std::shared_ptr<peg::Ast>& node, bool &is_pure);
-    void do_optimization(std::shared_ptr<peg::Ast>& node);
-
-    bool is_optimized;        
+    result_func_t eval_node(const std::shared_ptr<MyAst> &node);
+    std::function<float(int)> get_numeric(const std::shared_ptr<MyAst>& node);
 
     std::vector<int>* starting_subset;
+    std::vector<int>* current_subset;
+
+    result_func_t evaluation_function;
 };
 
 }
