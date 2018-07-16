@@ -305,13 +305,10 @@ void Selection_parser::apply(System* system, size_t fr, vector<int>& result){
         cout << "Tree after optimizaton:" << endl;
         tree->dump(0);
 #endif
-    }    
+    }
 
     // Eval root node
     eval_node(tree,result,nullptr);
-
-    // Sort result to always get ordered selection index
-    //sort(result.begin(),result.end());
 
 #ifdef _DEBUG_PARSER
     int n = 0;

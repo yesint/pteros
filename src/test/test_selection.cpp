@@ -365,7 +365,47 @@ int main(int argc, char** argv)
 */
     try{
 
+        System s("/home/semen/work/current/Projects/Albumin/SqAde/md-random-from-eq/after_eq.gro");
+        //s().write("/home/semen/work/current/Projects/Albumin/SqAde/dock-traj/a.pdbqt",0,0);
 
+        std::clock_t start;
+        double duration;
+
+        start = std::clock();
+
+        Selection sel;
+        for(int i=1;i<570;++i){
+            sel.modify(s,fmt::format("name CA CB"));
+        }
+
+        //cout << sel << endl;
+
+        duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
+        cout << "Execution time: " << duration << endl;
+
+        //----------------------
+
+        start = std::clock();
+
+        for(int i=1;i<570;++i){
+            Selection sel(s,fmt::format("resid 1 2 5",i));
+        }
+
+        duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
+        cout << "Execution time: " << duration << endl;
+
+        //----------------------
+
+        start = std::clock();
+
+        for(int i=1;i<570;++i){
+            Selection sel(s,fmt::format("x>0.1"));
+        }
+
+        duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
+        cout << "Execution time: " << duration << endl;
+
+        /*
         System src("/home/semen/work/current/Projects/Ache/b.pdb");
         System target("/home/semen/work/current/Projects/Ache/2.pdb");
 
@@ -374,6 +414,7 @@ int main(int argc, char** argv)
 
 
         Topmatch t(src_sel);
+        */
         //t.match(target_sel);
         //for(auto a: t.get_mapping()) cout << a << endl;
 
