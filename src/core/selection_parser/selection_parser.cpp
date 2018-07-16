@@ -71,7 +71,7 @@ Pteros_PEG_parser _parser(R"(
         BYRES              <-  'by' 'residue' / 'same' 'residue' 'as'
 
         NUM_COMPARISON     <-  NUM_EXPR COMPARISON_OPERATOR NUM_EXPR (COMPARISON_OPERATOR NUM_EXPR)?
-        COMPARISON_OPERATOR <- < '<' / '>' / '=' / '==' / '<=' / '>=' / '<>' / '!=' >
+        COMPARISON_OPERATOR <- <  '==' / '<=' / '>=' / '<>' / '!=' / '<' / '>' / '=' >
         NUM_EXPR           <- NUM_TERM (PLUS_MINUS NUM_TERM)*
         NUM_TERM           <- NUM_POWER (DIV_MUL NUM_POWER)*
         NUM_POWER          <- NUM_FACTOR (POW NUM_FACTOR)?
@@ -186,7 +186,7 @@ void Selection_parser::create_ast(string& sel_str, System* system){
     if (_parser.parse(sel_str.c_str(), tree)) {
         tree = peg::AstOptimizer(true,{"POINT","X","Y","Z"}).optimize(tree);
 
-        //cout << peg::ast_to_s(tree);
+        cout << peg::ast_to_s(tree);
 
         set_coord_dependence(tree);
     } else {
@@ -225,42 +225,61 @@ void Selection_parser::eval_node(const std::shared_ptr<MyAst> &node, std::vector
 
     else if(node->name == "NUM_COMPARISON")
     {
-        auto op  = node->nodes[1]->token;
-        auto op1 = get_numeric(node->nodes[0]);
-        auto op2 = get_numeric(node->nodes[2]);
+        vector<string> c; // comparison operators
+        vector<std::function<float(int)>> op; // comparison operands
+        vector<std::function<bool(float,float)>> comparison; // Function(s) to evaluate
 
-        // Function to evaluate
-        std::function<bool(float,float)> comparison;
-        if(op == "=" || op== "=="){
-            comparison = [](float a, float b){ return a==b; };
-        } else if (op == "!=" || op=="<>"){
-            comparison = [](float a, float b){ return a!=b; };
-        } else if (op == "<"){
-            comparison = [](float a, float b){ return a<b; };
-        } else if (op == ">"){
-            comparison = [](float a, float b){ return a>b; };
-        } else if (op == "<="){
-            comparison = [](float a, float b){ return a<=b; };
-        } else if (op == ">="){
-            comparison = [](float a, float b){ return a>=b; };
-        }        
+        if(node->nodes.size() == 3){ // simple
+            c.resize(1);
+            op.resize(2);
+            comparison.resize(1);
 
-        if(!node->nodes[0]->is_coord_dependent && !node->nodes[2]->is_coord_dependent){
-            // If both operands are pure return empty vector
-            LOG()->warn("Meaningless expression in selection");
-            if(!comparison(op1(0),op2(0))) throw Pteros_error("False arithmetic comparison");
+            c[0]  = node->nodes[1]->token;
+            op[0] = get_numeric(node->nodes[0]);
+            op[1] = get_numeric(node->nodes[2]);
+        } else { // chained
+            c.resize(2);
+            op.resize(3);
+            comparison.resize(2);
 
-            // Return empty
-            result.clear();
+            c[0]  = node->nodes[1]->token;
+            c[1]  = node->nodes[3]->token;
+            op[0] = get_numeric(node->nodes[0]);
+            op[1] = get_numeric(node->nodes[2]);
+            op[2] = get_numeric(node->nodes[4]);
+        }
 
-        } else {
-            result.clear();
-            if(!current_subset) {
+        for(int i=0;i<c.size();++i){
+            if(c[i] == "=" || c[i]== "=="){
+                comparison[i] = [](float a, float b){ return a==b; };
+            } else if (c[i] == "!=" || c[i]=="<>"){
+                comparison[i] = [](float a, float b){ return a!=b; };
+            } else if (c[i] == "<"){
+                comparison[i] = [](float a, float b){ return a<b; };
+            } else if (c[i] == ">"){
+                comparison[i] = [](float a, float b){ return a>b; };
+            } else if (c[i] == "<="){
+                comparison[i] = [](float a, float b){ return a<=b; };
+            } else if (c[i] == ">="){
+                comparison[i] = [](float a, float b){ return a>=b; };
+            }
+        }
+
+        if(!current_subset) {
+            if(node->nodes.size() == 3){ // simple
                 for(int at=0;at<Natoms;++at)
-                    if( comparison(op1(at),op2(at)) ) result.push_back(at);
-            } else {
+                    if( comparison[0](op[0](at),op[1](at)) ) result.push_back(at);
+            } else { // chained
+                for(int at=0;at<Natoms;++at)
+                    if( comparison[0](op[0](at),op[1](at)) && comparison[1](op[1](at),op[2](at)) ) result.push_back(at);
+            }
+        } else {
+            if(node->nodes.size() == 3){ // simple
                 for(int at: *current_subset)
-                    if( comparison(op1(at),op2(at)) ) result.push_back(at);
+                    if( comparison[0](op[0](at),op[1](at)) ) result.push_back(at);
+            } else { // chained
+                for(int at: *current_subset)
+                    if( comparison[0](op[0](at),op[1](at)) && comparison[1](op[1](at),op[2](at)) ) result.push_back(at);
             }
         }
     }

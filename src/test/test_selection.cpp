@@ -179,7 +179,7 @@ int main(int argc, char** argv)
         std::clock_t start;
         double duration;
 
-        Selection sel(s,fmt::format("dist point com of protein > x of com of resid 1-10"));
+        Selection sel(s,fmt::format("1 < x <=2 "));
         cout << sel << endl;
         return 1;
 
