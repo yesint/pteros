@@ -158,7 +158,7 @@ void set_coord_dependence(const std::shared_ptr<MyAst>& node){
         }
     }
 
-    cout << node->name << " :: " << node->is_coord_dependent << endl;
+    //cout << node->name << " :: " << node->is_coord_dependent << endl;
 }
 
 void Selection_parser::precompute(std::shared_ptr<MyAst>& node){
