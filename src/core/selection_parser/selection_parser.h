@@ -24,121 +24,25 @@
  *
 */
 
-
-//#define _DEBUG_PARSER
-
-#ifndef SELECTION_PARSER_H
-#define SELECTION_PARSER_H
+#pragma once
 
 #include <string>
 #include <vector>
 #include <memory>
-#include <regex>
 
 #include "pteros/core/system.h"
-#include <boost/variant.hpp>
+#include "peglib.h"
 
 namespace pteros {
 
-// Codes of tokens
-enum Codes {
-    TOK_VOID,
-    TOK_MINUS,
-    TOK_UNARY_MINUS,
-    TOK_PLUS,
-    TOK_MULT,
-    TOK_DIV,
-    TOK_POWER,
-    TOK_EQ, // == or =
-    TOK_NEQ, // <> or !=
-    TOK_LT, //<
-    TOK_GT, //>
-    TOK_LEQ, //<=
-    TOK_GEQ, //>=
-    // Operations for atom field codes
-    TOK_X,
-    TOK_Y,
-    TOK_Z,
-    TOK_OCC,
-    TOK_BETA,
-    // Logic
-    TOK_OR,
-    TOK_AND,
-    // Prefixes
-    TOK_NOT,
-    TOK_WITHIN,    
-    TOK_SELF,
-    //TOK_NOSELF,
-    TOK_BY,
-    TOK_RESIDUE,
-    // text keywords
-    TOK_NAME,
-    TOK_RESNAME,
-    TOK_TAG,
-    TOK_TYPE,
-    TOK_CHAIN,
-    // int keywords
-    TOK_RESID,
-    TOK_INDEX,
-    TOK_RESINDEX,
-    // all
-    TOK_ALL,
-    // Range
-    TOK_TO, // '-' or 'to'
-    // Data tokens
-    TOK_INT,
-    TOK_UINT,
-    TOK_FLOAT,
-    TOK_STR,
-    // Parens
-    //TOK_LPAREN,
-    //TOK_RPAREN,
-    // Distances
-    //TOK_DIST,
-    TOK_POINT,
-    TOK_VECTOR,
-    TOK_PLANE,
-
-    TOK_PRECOMPUTED,
-    TOK_REGEX
+// Custom annoation for peglib ast structure
+struct MyAst_annotation {
+    bool is_coord_dependent;
+    std::vector<int> precomputed;
 };
 
-struct AstNode; // Forward declaration
-// An element of the tree is either a recursive sub-tree or a leaf
-using ast_element =
-    boost::variant<
-        float,
-        int,
-        std::string,
-        std::shared_ptr<AstNode>
-    >;
-
-// The tree itself
-struct AstNode {
-#ifdef _DEBUG_PARSER
-    AstNode(){ code = TOK_VOID; }
-#endif
-
-    Codes code; //Code of operation
-    std::vector<ast_element> children;
-    std::vector<int> precomputed; // Precomputed indexes for coordinate-independent nodes
-
-    bool is_coordinate_dependent();
-    // Returns child elements
-    int child_as_int(int i);
-    float child_as_float(int i);
-    std::string child_as_str(int i);
-    std::shared_ptr<AstNode>& child_node(int i);
-
-
-#ifdef _DEBUG_PARSER
-    void dump(int indent=0);
-    std::string decode();
-    std::string name;
-#endif
-};
-
-using AstNode_ptr = std::shared_ptr<AstNode>;
+typedef peg::AstBase<MyAst_annotation> MyAst;
+typedef std::function<void(std::vector<int>&)> result_func_t;
 
 /**
 *   Selection parser class.
@@ -148,7 +52,6 @@ using AstNode_ptr = std::shared_ptr<AstNode>;
 *   which holds the parser.
     This class should never be used directly.
 */
-
 class Selection_parser{    
 public:
     /** True if there are coordinate keywords in selection.
@@ -163,30 +66,30 @@ public:
     /// Destructor
     virtual ~Selection_parser();
     /// Generates AST from selection string
-    void create_ast(std::string& sel_str);
-
-    /// Apply ast to the system. Fills the vector passed from
+    void create_ast(std::string& sel_str, System *system);
+    /// Apply ast to the given frame. Fills the vector passed from
     /// enclosing System with selection indexes.
-    void apply(System* system, std::size_t fr, std::vector<int>& result);
+    void apply_ast(std::size_t fr, std::vector<int>& result);
 
 private:
-    /// AST structure
-    std::shared_ptr<AstNode> tree;
+    /// AST structure 
+    std::shared_ptr<MyAst> tree;
 
     // AST evaluation stuff
     System* sys;
     int Natoms;
-    int frame;
+    int frame;    
 
-    void eval_node(AstNode_ptr& node, std::vector<int>& result, std::vector<int>* subspace);    
-    std::function<float(int)> get_numeric(AstNode_ptr& node);
-    void do_optimization(AstNode_ptr& node);
+    void eval_node(const std::shared_ptr<MyAst> &node, std::vector<int>& result);
+    std::function<float(int)> get_numeric(const std::shared_ptr<MyAst>& node);
+    Eigen::Vector3f get_vector(const std::shared_ptr<MyAst> &node);
 
-    bool is_optimized;        
+    std::vector<int>* starting_subset;
+    std::vector<int>* current_subset;
 
-    std::vector<int>* starting_subset;    
+    void precompute(std::shared_ptr<MyAst> &node);
 };
 
 }
-#endif /* SELECTION_PARSER_H */
+
 

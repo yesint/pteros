@@ -46,203 +46,12 @@
 #include "pteros/extras/membrane.h"
 #include "pteros/extras/topmatch.h"
 
+#include <ctime>
+
 using namespace std;
 using namespace pteros;
 using namespace Eigen;
 
-//-------------------------------------------------------
-
-
-struct Sel_expr {
-    string name;
-    vector<Sel_expr*> children;
-    virtual string dump(int level=0){
-        string shift;
-        for(int i=0;i<level;++i) shift+="  ";
-
-        string s = shift + name + " {\n";
-        for(auto& c: children){
-            s += c->dump(level+1);
-        }
-        s += shift+"}\n";
-        return s;
-    }
-    virtual ~Sel_expr(){
-        cout << "del: " << name << endl;
-        for(int i=0;i<children.size();++i) delete children[i];
-    }
-};
-
-struct Sel_container {
-    Sel_expr* expr;
-    Sel_container(Sel_expr* ex): expr(ex){}
-    Sel_expr* operator()() const {return expr;}
-};
-
-
-struct Sel_expr_name: public Sel_expr {
-    Sel_expr_name(string val): value(val) {
-        name = "name";
-    }
-
-    virtual string dump(int level=0){
-        string shift;
-        for(int i=0;i<level;++i) shift+="  ";
-        return shift+name+":"+value+"\n";
-    }
-
-    string value;
-};
-
-Sel_container name(string val){
-    return Sel_container(new Sel_expr_name(val));
-}
-
-struct Sel_expr_and: public Sel_expr {
-    Sel_expr_and(Sel_expr* op1, Sel_expr* op2){
-        name = "and";
-        children.push_back(op1);
-        children.push_back(op2);
-    }
-};
-
-struct Sel_expr_or: public Sel_expr {
-    Sel_expr_or(Sel_expr* op1, Sel_expr* op2){
-        name = "or";
-        children.push_back(op1);
-        children.push_back(op2);
-    }
-};
-
-struct Sel_expr_not: public Sel_expr {
-    Sel_expr_not(Sel_expr* op1){
-        name = "not";
-        children.push_back(op1);
-    }
-};
-
-Sel_container operator&(const Sel_container& op1, const Sel_container& op2){
-    return Sel_container(new Sel_expr_and(op1(),op2()));
-}
-
-Sel_container operator|(const Sel_container& op1, const Sel_container& op2){
-    return Sel_container(new Sel_expr_or(op1(),op2()));
-}
-
-Sel_container operator!(const Sel_container& op1){
-    return Sel_container(new Sel_expr_not(op1()));
-}
-
-
-//-------------------------------------------------------
-
-class SelTest_mask {
-public:
-    SelTest_mask(const Selection& sel){
-        mask.resize(sel.get_system()->num_atoms());
-        mask.fill(0);
-        n = sel.size();
-        for(int i=0;i<sel.size();++i){
-            mask(sel.index(i)) = 1;
-        }
-        b = sel.index(0);
-        e = sel.index(sel.size()-1);
-        coord = &sel.get_system()->frame(sel.get_frame()).coord;
-    }
-
-    ~SelTest_mask(){}
-
-    Vector3f center(){
-        Vector3f res(Vector3f::Zero());
-        for(int i=b; i<=e; ++i)
-            if(mask(i)==1)
-                res += (*coord)[i];
-        return res/float(n);
-    }
-
-private:
-    VectorXi mask;
-    int b,e,n;
-    vector<Vector3f>* coord;
-};
-
-
-//-------------------------------------------------------
-
-
-TASK_PARALLEL(Test_task)
-    void pre_process() override {
-        jump_remover.add_atoms(system("index 1-10"));
-        log->info("Test_task pre_process #{}", get_id());
-        LOG()->info("Generic message");
-    }
-
-    void process_frame(const Frame_info& info) override {
-
-
-        log->info("Test_task process_frame {} #{}", info.valid_frame,get_id());
-        //fflush(stdout);
-
-        //std::this_thread::sleep_for(std::chrono::seconds(1));
-        //for(int i=0; i<10; ++i)
-        //    system().rotate(1,0.1);
-
-        res.push_back(info.valid_frame);
-        //throw Pteros_error("UPS");
-    }
-
-    void post_process(const Frame_info& info) override {
-        log->info("Test_task post_process of instance {}", info.last_frame);
-    }
-
-    void collect_data(const vector<Task_ptr>& tasks, int n_frames) override {
-        for(auto& t: tasks){
-            auto h = dynamic_cast<Test_task*>(t.get());
-            Eigen::Map<VectorXi> m(h->res.data(),h->res.size());
-            LOG()->info("{} :: {}", h->get_id(), m.transpose());
-        }
-    }
-
-public:
-    vector<int> res;
-};
-
-
-void accum(const Frame_info& info, const std::vector<Task_ptr>& tasks){
-    for(auto& t: tasks){
-        auto h = dynamic_cast<Test_task*>(t.get());
-        Eigen::Map<VectorXi> m(h->res.data(),h->res.size());
-        LOG()->info("{} :: {}", h->get_id(), m.transpose());
-    }
-}
-
-
-TASK_SERIAL(Test_serial)
-    void pre_process() override {
-        cout << "Test_serial pre_process" << endl;
-    }
-
-    void process_frame(const Frame_info& info) override {
-
-        cout << "Test_serial process_frame " << std::this_thread::get_id() << " "<< info.valid_frame << endl;
-        //std::this_thread::sleep_for(std::chrono::seconds(1));
-    }
-
-    void post_process(const Frame_info& info) override {
-        cout << "Test_serial post_process" << info.last_frame << endl;
-    }
-};
-
-//-----------------------------
-
-std::function<Vector3f&(int)>
-make_accessor(const Selection& sel){
-    shared_ptr<vector<Vector3f>> data = make_shared<vector<Vector3f>>(sel.size());
-    for(int i=0;i<sel.size();++i) (*data)[i] = sel.xyz(i);
-    return [data](int i) -> Vector3f& {
-        return (*data)[i];
-    };
-}
 //-----------------------------
 
 int main(int argc, char** argv)
@@ -364,31 +173,22 @@ int main(int argc, char** argv)
     return 1;
 */
     try{
-
         System s("/home/semen/work/current/Projects/Albumin/SqAde/md-random-from-eq/after_eq.gro");
         //s().write("/home/semen/work/current/Projects/Albumin/SqAde/dock-traj/a.pdbqt",0,0);
 
         std::clock_t start;
         double duration;
 
-        start = std::clock();
+        Selection sel(s,fmt::format("dist point com of protein > x of com of resid 1-10"));
+        cout << sel << endl;
+        return 1;
 
-        Selection sel;
-        for(int i=1;i<570;++i){
-            sel.modify(s,fmt::format("name CA CB"));
-        }
 
-        //cout << sel << endl;
-
-        duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
-        cout << "Execution time: " << duration << endl;
-
-        //----------------------
 
         start = std::clock();
 
         for(int i=1;i<570;++i){
-            Selection sel(s,fmt::format("resid 1 2 5",i));
+            Selection sel(s,fmt::format("name CA CB"));
         }
 
         duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
@@ -399,7 +199,18 @@ int main(int argc, char** argv)
         start = std::clock();
 
         for(int i=1;i<570;++i){
-            Selection sel(s,fmt::format("x>0.1"));
+            Selection sel(s,fmt::format("resid 1 2 5 7-10 12"));
+        }
+
+        duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
+        cout << "Execution time: " << duration << endl;
+
+        //----------------------
+
+        start = std::clock();
+
+        for(int i=1;i<570;++i){
+            Selection sel(s,fmt::format("dist point 0 0 0 > 0"));
         }
 
         duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
@@ -414,12 +225,12 @@ int main(int argc, char** argv)
 
 
         Topmatch t(src_sel);
-        */
         //t.match(target_sel);
         //for(auto a: t.get_mapping()) cout << a << endl;
 
         //int n = t.match_self();
         //cout << "Symm: "<< n << endl;
+                */
 
 
     } catch(const Pteros_error& e){

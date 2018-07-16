@@ -2,6 +2,7 @@
 #include "pteros/core/pteros_error.h"
 #include "pteros/core/distance_search.h"
 #include <set>
+#include <numeric>
 #include <queue>
 #include <numeric>
 

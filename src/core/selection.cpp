@@ -65,8 +65,8 @@ void Selection::allocate_parser(){
     // Parser is heavy object, so if selection is not persistent
     // we will delete it after parsing is complete
     parser.reset(new Selection_parser);
-    parser->create_ast(sel_text);        
-    parser->apply(system, frame, _index);
+    parser->create_ast(sel_text,system);
+    parser->apply_ast(frame, _index);
     if(!parser->has_coord){
         parser.reset();
     }
@@ -92,8 +92,8 @@ Selection::Selection(){
 };
 
 void expand_macro(string& str){    
-    for(int i=0;i<macro.size()/2;++i){
-        boost::replace_all(str,macro[2*i].c_str(),macro[2*i+1].c_str());
+    for(int i=0;i<selection_macro.size()/2;++i){
+        boost::replace_all(str,selection_macro[2*i].c_str(),selection_macro[2*i+1].c_str());
     }
 }
 
@@ -315,8 +315,8 @@ Selection Selection::select(string str)
 
     // Manually allocate parser with subset from parent index
     sub.parser.reset(new Selection_parser(&_index));
-    sub.parser->create_ast(sub.sel_text);
-    sub.parser->apply(sub.system, sub.frame, sub._index);
+    sub.parser->create_ast(sub.sel_text,sub.system);
+    sub.parser->apply_ast(sub.frame, sub._index);
     if(!sub.parser->has_coord){
         sub.parser.reset();
     }
@@ -634,7 +634,7 @@ void Selection::update(){
 void Selection::apply(){
     if(parser){
         // If parser is persistent, do quick eval using ast tree
-        parser->apply(system, frame, _index);
+        parser->apply_ast(frame, _index);
     }
 }
 

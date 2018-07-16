@@ -102,9 +102,9 @@ void System::filter_atoms()
     if(filter_text!="" && filter.empty()){
         // Parse text-based filter
         Selection_parser parser;
-        parser.create_ast(filter_text);
+        parser.create_ast(filter_text,this);
         if(parser.has_coord) throw Pteros_error("Coordinate-dependent selections are not allowed in filters!");
-        parser.apply(this, 0, filter);
+        parser.apply_ast(0, filter);
     }
 
     vector<Atom> tmp = atoms;
