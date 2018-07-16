@@ -24,9 +24,6 @@
  *
 */
 
-
-//#define _DEBUG_PARSER
-
 #pragma once
 
 #include <string>
@@ -38,6 +35,15 @@
 
 namespace pteros {
 
+// Custom annoation for peglib ast structure
+struct MyAst_annotation {
+    bool is_coord_dependent;
+    std::vector<int> precomputed;
+};
+
+typedef peg::AstBase<MyAst_annotation> MyAst;
+typedef std::function<void(std::vector<int>&)> result_func_t;
+
 /**
 *   Selection parser class.
 *   It parses selection text by means of custom recursive-descendent parser
@@ -46,15 +52,6 @@ namespace pteros {
 *   which holds the parser.
     This class should never be used directly.
 */
-
-struct MyAst_annotation {
-    bool is_coord_dependent;
-    std::shared_ptr<std::vector<int>> subset;
-};
-
-typedef peg::AstBase<MyAst_annotation> MyAst;
-typedef std::function<void(std::vector<int>&)> result_func_t;
-
 class Selection_parser{    
 public:
     /** True if there are coordinate keywords in selection.
@@ -69,10 +66,10 @@ public:
     /// Destructor
     virtual ~Selection_parser();
     /// Generates AST from selection string
-    void create_ast(std::string& sel_str);
-    /// Apply ast to the system. Fills the vector passed from
+    void create_ast(std::string& sel_str, System *system);
+    /// Apply ast to the given frame. Fills the vector passed from
     /// enclosing System with selection indexes.
-    void apply(System* system, std::size_t fr, std::vector<int>& result);
+    void apply_ast(std::size_t fr, std::vector<int>& result);
 
 private:
     /// AST structure 
@@ -83,13 +80,14 @@ private:
     int Natoms;
     int frame;    
 
-    result_func_t eval_node(const std::shared_ptr<MyAst> &node);
+    void eval_node(const std::shared_ptr<MyAst> &node, std::vector<int>& result);
     std::function<float(int)> get_numeric(const std::shared_ptr<MyAst>& node);
+    Eigen::Vector3f get_vector(const std::shared_ptr<MyAst> &node);
 
     std::vector<int>* starting_subset;
     std::vector<int>* current_subset;
 
-    result_func_t evaluation_function;
+    void precompute(std::shared_ptr<MyAst> &node);
 };
 
 }

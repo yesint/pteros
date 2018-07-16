@@ -178,10 +178,39 @@ int main(int argc, char** argv)
 
         std::clock_t start;
         double duration;
+
+        Selection sel(s,fmt::format("dist point com of protein > x of com of resid 1-10"));
+        cout << sel << endl;
+        return 1;
+
+
+
         start = std::clock();
 
-        for(int i=1;i<500;++i){
-            Selection sel(s,fmt::format("resid {} and name CA CB",i));
+        for(int i=1;i<570;++i){
+            Selection sel(s,fmt::format("name CA CB"));
+        }
+
+        duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
+        cout << "Execution time: " << duration << endl;
+
+        //----------------------
+
+        start = std::clock();
+
+        for(int i=1;i<570;++i){
+            Selection sel(s,fmt::format("resid 1 2 5 7-10 12"));
+        }
+
+        duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
+        cout << "Execution time: " << duration << endl;
+
+        //----------------------
+
+        start = std::clock();
+
+        for(int i=1;i<570;++i){
+            Selection sel(s,fmt::format("dist point 0 0 0 > 0"));
         }
 
         duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;

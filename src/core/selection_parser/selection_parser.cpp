@@ -25,18 +25,17 @@
 */
 
 #include "selection_parser.h"
-
 #include "pteros/core/system.h"
 #include "pteros/core/selection.h"
 #include "pteros/core/logging.h"
 #include "pteros/core/pteros_error.h"
 #include "pteros/core/distance_search.h"
 #include <Eigen/Core>
-#include <algorithm>
 #include <boost/algorithm/string.hpp>
 #include <boost/range/counting_range.hpp>
 #include <unordered_set>
 #include <regex>
+#include <list>
 
 using namespace std;
 using namespace pteros;
@@ -82,20 +81,22 @@ Pteros_PEG_parser _parser(R"(
         POW                <- < '^' / '**' >
         UNARY_MINUS        <- < '-' >
 
-
-        X                  <- < 'X' / 'x' >
-        Y                  <- < 'Y' / 'y' >
-        Z                  <- < 'Z' / 'z' >
+        X                  <-  ('X' / 'x') ('of' COM)?
+        Y                  <-  ('Y' / 'y') ('of' COM)?
+        Z                  <-  ('Z' / 'z') ('of' COM)?
         BETA               <- < 'beta' >
         OCC                <- < 'occupancy' / 'occ' >
         RESINDEX           <- < 'resindex' >
         INDEX              <- < 'index' >
         RESID              <- < 'resid' >
 
+        COM                <- COM_TYPE PBC? 'of' LOGICAL_OPERAND
+        COM_TYPE           <- < 'com' / 'cog' >
+
         DIST               <- ('dist' / 'distance') (POINT / VECTOR / PLANE)
-        POINT              <- 'point' PBC? FLOAT FLOAT FLOAT
-        VECTOR             <- 'vector' PBC? FLOAT FLOAT FLOAT FLOAT FLOAT FLOAT
-        PLANE              <- 'plane' PBC? FLOAT FLOAT FLOAT FLOAT FLOAT FLOAT
+        POINT              <- 'point' PBC? (FLOAT FLOAT FLOAT / COM)
+        VECTOR             <- 'vector' PBC? (FLOAT FLOAT FLOAT / COM) FLOAT FLOAT FLOAT
+        PLANE              <- 'plane' PBC? (FLOAT FLOAT FLOAT / COM) FLOAT FLOAT FLOAT
 
         FLOAT              <- < INTEGER ('.' [0-9]+ )? ( ('e' / 'E' ) INTEGER )? >
         INTEGER            <- < ('-' / '+')? [0-9]+ >
@@ -126,7 +127,7 @@ Pteros_PEG_parser _parser(R"(
 
 bool is_node_coordinate_dependent(const std::shared_ptr<MyAst>& node){
     if(node->name == "X" || node->name == "Y" || node->name == "Z" || node->name == "WITHIN"
-            || node->name == "POINT" || node->name == "PLANE" || node->name == "VECTOR"
+            || node->name == "POINT" || node->name == "PLANE" || node->name == "VECTOR" || node->name == "COM"
       ){
         return true;
     } else {
@@ -148,15 +149,42 @@ Selection_parser::~Selection_parser(){}
 
 void set_coord_dependence(const std::shared_ptr<MyAst>& node){
     node->is_coord_dependent = is_node_coordinate_dependent(node);
+    if(node->nodes.size()){
+        // tree
+        node->is_coord_dependent = is_node_coordinate_dependent(node);
+        for(int i=0;i<node->nodes.size();++i){
+            set_coord_dependence(node->nodes[i]);
+            if(node->nodes[i]->is_coord_dependent) node->is_coord_dependent = true;
+        }
+    }
 
-    for(int i=0;i<node->nodes.size();++i){
-        set_coord_dependence(node->nodes[i]);
+    cout << node->name << " :: " << node->is_coord_dependent << endl;
+}
+
+void Selection_parser::precompute(std::shared_ptr<MyAst>& node){
+    if(    node->name!="PRE"
+        && node->name!="NUM_COMPARISON"
+        && node->name!="STR_KEYWORD_EXPR"
+        && node->name!="INT_KEYWORD_EXPR"
+        && node->name!="LOGICAL_EXPR"
+        && node->name!="LOGICAL_OPERAND"
+        && node->name!="ALL"
+        && node->name!="WITHIN"
+        && node->name!="BYRES") return;
+
+    if(!node->is_coord_dependent){
+        node->nodes.clear();
+        auto ast = std::make_shared<MyAst>(*node,"PRE");
+        eval_node(ast, ast->precomputed);
+        node = ast;
+    } else {
+        for(int i=0;i<node->nodes.size();++i) precompute(node->nodes[i]);
     }
 }
 
-void Selection_parser::create_ast(string& sel_str){            
+void Selection_parser::create_ast(string& sel_str, System* system){
     if (_parser.parse(sel_str.c_str(), tree)) {
-        tree = peg::AstOptimizer(true).optimize(tree);
+        tree = peg::AstOptimizer(true,{"POINT","X","Y","Z"}).optimize(tree);
 
         //cout << peg::ast_to_s(tree);
 
@@ -165,41 +193,39 @@ void Selection_parser::create_ast(string& sel_str){
         throw Pteros_error(_parser.error_message);
     }
 
-    if(tree->is_coord_dependent) has_coord = true;
-}
+    if(tree->is_coord_dependent) has_coord = true; // Global coord dependence
 
-void Selection_parser::apply(System* system, size_t fr, vector<int>& result){    
-    frame = fr;    
+    sys = system;
+    Natoms = sys->num_atoms();
 
     if(starting_subset)
         current_subset = starting_subset;
     else
         current_subset = nullptr;
 
-    // If this is first usage ever or usage for new system
-    // make new evaluation function
-    if(!sys || sys!=system){
-        // Set new system
-        sys = system;
-        Natoms = sys->num_atoms();
-        // generate new evaluation function
-        evaluation_function = eval_node(tree);
-    }
-
-    // Apply evaluation function
-    evaluation_function(result);
+    // proceed with optimizing pure nodes to precomputed if needed
+    if(has_coord) precompute(tree);
 }
 
-result_func_t Selection_parser::eval_node(const std::shared_ptr<MyAst> &node){
+void Selection_parser::apply_ast(size_t fr, vector<int>& result){
+    frame = fr;
+    eval_node(tree,result);
+}
 
-    result_func_t returned_function;
+
+void Selection_parser::eval_node(const std::shared_ptr<MyAst> &node, std::vector<int>& result){
+
+    result.clear();
 
     // Here starts evaluation
 
-    if(node->name == "NUM_COMPARISON")
+    if(node->name == "PRE"){ // Precomputed nodes are created during optimization stage
+        result = node->precomputed;
+    }
+
+    else if(node->name == "NUM_COMPARISON")
     {
         auto op  = node->nodes[1]->token;
-        bool pure1,pure2;
         auto op1 = get_numeric(node->nodes[0]);
         auto op2 = get_numeric(node->nodes[2]);
 
@@ -225,220 +251,242 @@ result_func_t Selection_parser::eval_node(const std::shared_ptr<MyAst> &node){
             if(!comparison(op1(0),op2(0))) throw Pteros_error("False arithmetic comparison");
 
             // Return empty
-            returned_function = [](vector<int>& result){
-                result.clear();
-            };
-
-        } else {            
-
-            returned_function = [this,op1,op2,comparison](vector<int>& result){
-                result.clear();                
-                if(!current_subset) {
-                    for(int at=0;at<Natoms;++at)
-                        if( comparison(op1(at),op2(at)) ) result.push_back(at);
-                } else {
-                    for(int at: *current_subset)
-                        if( comparison(op1(at),op2(at)) ) result.push_back(at);
-                }                
-            };
-        }
-    }
-
-    else if(node->name == "STR_KEYWORD_EXPR" || node->name == "INT_KEYWORD_EXPR")
-    {
-        auto keyword = node->nodes[0]->token;
-
-        // Vector of functions used to evaluate atom
-        vector<std::function<bool(int)>> evaluators(node->nodes.size()-1);
-
-        // Set evaluators based on the type of value
-        for(int i=1;i<node->nodes.size();++i){
-            string val = node->nodes[i]->token;
-            std::function<bool(int)> func;
-
-            if(node->nodes[i]->name == "STR"){
-                // We need direct comparison
-                if(keyword=="name")    func = [val,this](int at){ return sys->atoms[at].name == val; };
-                else if(keyword=="resname") func = [val,this](int at){ return sys->atoms[at].resname == val; };
-                else if(keyword=="tag")     func = [val,this](int at){ return sys->atoms[at].tag == val; };
-                else if(keyword=="chain")   func = [val,this](int at){ return sys->atoms[at].chain == val[0]; };
-                else if(keyword=="type")    func = [val,this](int at){ return sys->atoms[at].type_name == val; };
-            } else if(node->nodes[i]->name == "REGEX") {
-                std::regex reg(val);
-
-                if(keyword=="name")    func = [reg,this](int at){ return std::regex_match(sys->atoms[at].name.c_str(),reg); };
-                else if(keyword=="resname") func = [reg,this](int at){ return std::regex_match(sys->atoms[at].resname.c_str(),reg); };
-                else if(keyword=="tag")     func = [reg,this](int at){ return std::regex_match(sys->atoms[at].tag.c_str(),reg); };
-                else if(keyword=="chain")   func = [reg,this](int at){
-                    string s(" ");
-                    s[0] = sys->atoms[at].chain;
-                    return std::regex_match(s.c_str(),reg);
-                };
-                else if(keyword=="type")    func = [reg,this](int at){ return std::regex_match(sys->atoms[at].type_name.c_str(),reg); };
-            } else if(node->nodes[i]->name == "INTEGER") {
-                int intval = stol(val);
-
-                if(keyword=="index")    func = [intval](int at){ return at == intval; };
-                else if(keyword=="resindex")  func = [intval,this](int at){ return sys->atoms[at].resindex == intval; };
-                else if(keyword=="resid")     func = [intval,this](int at){ return sys->atoms[at].resid == intval; };
-            } else if(node->nodes[i]->name == "RANGE") {
-                int b = stol(node->nodes[i]->nodes[0]->token);
-                int e = stol(node->nodes[i]->nodes[1]->token);
-
-                if(keyword=="index")
-                    func = [b,e](int at){
-                        for(int k=b;k<=e;++k)
-                            if(at == k) return true;
-                        return false;
-                    };
-                else if(keyword=="resindex")
-                    func = [b,e,this](int at){
-                        for(int k=b;k<=e;++k)
-                            if(sys->atoms[at].resindex == k) return true;
-                        return false;
-                    };
-                else if(keyword=="resid")
-                    func = [b,e,this](int at){
-                        for(int k=b;k<=e;++k)
-                            if(sys->atoms[at].resid == k) return true;
-                        return false;
-                    };
-            }
-
-            evaluators[i-1] = func;
-        }
-
-        returned_function = [evaluators,this](vector<int>& result){
             result.clear();
 
-            if(current_subset){
-                for(int at: *current_subset){ // over atoms
-                    for(const auto& ev: evaluators) // over values of keyword
-                        if( ev(at) ){
-                            result.push_back(at);
-                            break;
-                        }
-                }
+        } else {
+            result.clear();
+            if(!current_subset) {
+                for(int at=0;at<Natoms;++at)
+                    if( comparison(op1(at),op2(at)) ) result.push_back(at);
             } else {
-                for(int at=0;at<Natoms;++at){ // over atoms
-                    for(const auto& ev: evaluators) // over values of keyword
-                        if( ev(at) ){
-                            result.push_back(at);
-                            break;
-                        }
-                }
-            }            
-        };
+                for(int at: *current_subset)
+                    if( comparison(op1(at),op2(at)) ) result.push_back(at);
+            }
+        }
     }
+
+    else if(node->name == "STR_KEYWORD_EXPR")
+    {
+        std::function<bool(int,const string&)> comp_func_str;
+        std::function<bool(int,const std::regex&)> comp_func_regex;
+
+        const string& keyword = node->nodes[0]->token;
+
+        if(keyword == "name"){
+            comp_func_str = [this](int at, const string& str){ return sys->atoms[at].name == str; };
+            comp_func_regex = [this](int at, const std::regex& reg){ return std::regex_match(sys->atoms[at].name.c_str(),reg); };
+        } else if(keyword == "type"){
+            comp_func_str = [this](int at, const string& str){ return sys->atoms[at].type_name == str; };
+            comp_func_regex = [this](int at, const std::regex& reg){ return std::regex_match(sys->atoms[at].type_name.c_str(),reg); };
+        } else if(keyword == "resname"){
+            comp_func_str = [this](int at, const string& str){ return sys->atoms[at].resname == str; };
+            comp_func_regex = [this](int at, const std::regex& reg){ return std::regex_match(sys->atoms[at].resname.c_str(),reg); };
+        } else if(keyword == "tag"){
+            comp_func_str = [this](int at, const string& str){ return sys->atoms[at].tag== str; };
+            comp_func_regex = [this](int at, const std::regex& reg){ return std::regex_match(sys->atoms[at].tag.c_str(),reg); };
+        } else if(keyword == "chain"){
+            comp_func_str = [this](int at, const string& str){ return sys->atoms[at].chain == str[0]; };
+            comp_func_regex = [this](int at, const std::regex& reg){
+                string s(" ");
+                s[0] = sys->atoms[at].chain;
+                return std::regex_match(s.c_str(),reg);
+            };
+        }
+
+        list<string> str_values;
+        list<std::regex> regex_values;
+        for(int i=1;i<node->nodes.size();++i){
+            if(node->nodes[i]->name=="STR")
+                str_values.emplace_back(node->nodes[i]->token);
+            else
+                regex_values.emplace_back(node->nodes[i]->token);
+        }
+
+        // Loop body
+        auto body = [&](int at){
+            // Cycle over regex values
+            bool reg_found = false;
+            for(const auto& reg: regex_values){
+                if(comp_func_regex(at,reg)){
+                    result.push_back(at);
+                    reg_found = true;
+                    break;
+                }
+            }
+
+            // If at least one regex matched no need to proceed with strings
+            if(reg_found) return;
+
+            // Cycle over string values
+            for(const auto& str: str_values){
+                if(comp_func_str(at,str)){
+                    result.push_back(at);
+                    break;
+                }
+            }
+        };
+
+        if(!current_subset){
+            for(int at=0;at<Natoms;++at) body(at);
+        } else {
+            for(int at: *current_subset) body(at);
+        }
+
+        // Sort unique
+        sort(result.begin(),result.end());
+        vector<int>::iterator it = unique(result.begin(), result.end());
+        result.resize( it - result.begin() );
+    }
+
+    //---------------------------------------------------------------------------
+    else if(node->name == "INT_KEYWORD_EXPR")
+    {
+        const string& keyword = node->nodes[0]->token;
+        int Nchildren = node->nodes.size(); // Get number of children
+
+        if(keyword == "index") {
+            // Cycle over children
+            for(int i=0;i<Nchildren;++i){
+                if(node->nodes[i]->name == "integer") {
+                    int k = stoi(node->nodes[i]->token);
+                    // We have to check the range here
+                    if(k>=0 && k<Natoms)
+                        result.push_back(k);
+                } else {
+                    // this is a range, not an integer
+                    int i1 = stoi(node->nodes[i]->nodes[0]->token);
+                    int i2 = stoi(node->nodes[i]->nodes[1]->token);
+                    for(int k=i1;k<=i2;++k)
+                        // We have to check the range here
+                        if(k>=0 && k<Natoms)
+                            result.push_back(k);
+                }
+            }
+
+        } else { // resid or resindex
+
+            // Make lists
+            vector<int> int_list;
+            vector<int> range_list;
+            for(int i=1;i<Nchildren;++i){
+                if(node->nodes[i]->name == "INTEGER") {
+                    int_list.push_back(stoi(node->nodes[i]->token));
+                } else {
+                    range_list.push_back(stoi(node->nodes[i]->nodes[0]->token));
+                    range_list.push_back(stoi(node->nodes[i]->nodes[1]->token));
+                }
+            }
+
+            // Comparison function
+            std::function<bool(int,int)> comp_func;
+            if(keyword == "resid"){
+                comp_func = [this](int at, int k){ return sys->atoms[at].resid == k; };
+            } else if(keyword == "resindex"){
+                comp_func = [this](int at, int k){ return sys->atoms[at].resindex == k; };
+            }
+
+            // Loop body
+            auto body = [&](int at){
+                // Individual numbers
+                for(int k: int_list)
+                    if(comp_func(at,k)) result.push_back(at);
+                // Ranges
+                for(int i=0;i<range_list.size();i+=2){ // Itarage by pair
+                    for(int k=range_list[i];k<=range_list[i+1];++k){ // Inside range
+                        if(comp_func(at,k)) result.push_back(at);
+                    }
+                }
+            };
+
+            // Do loop
+            if(!current_subset){
+                for(int at=0;at<Natoms;++at) body(at);
+            } else {
+                for(int at: *current_subset) body(at);
+            }
+        } // index if
+
+        sort(result.begin(),result.end());
+        vector<int>::iterator it = unique(result.begin(), result.end());
+        result.resize( it - result.begin() );
+    }
+
+    //---------------------------------------------------------------------------
 
     else if(node->name == "LOGICAL_EXPR")
     {
-
         if(node->nodes[1]->token == "or") {
-            auto func1 = eval_node(node->nodes[0]);
-            auto func2 = eval_node(node->nodes[2]);
-
-            return [func1,func2,this](vector<int>& result){
-                result.clear();
-                vector<int> res1,res2;
-                func1(res1);
-                func2(res2);
-                std::set_union(res1.begin(),res1.end(),res2.begin(),res2.end(),back_inserter(result));                
-            };
+            vector<int> res1,res2;
+            eval_node(node->nodes[0],res1);
+            eval_node(node->nodes[2],res2);
+            std::set_union(res1.begin(),res1.end(),res2.begin(),res2.end(),back_inserter(result));
 
         } else if(node->nodes[1]->token == "and") {
             // Optimize to put pure node first
             bool pure1 = !node->nodes[0]->is_coord_dependent;
             bool pure2 = !node->nodes[2]->is_coord_dependent;
 
-            result_func_t func1, func2;
-            if(pure2 && !pure1){
-                func1 = eval_node(node->nodes[2]);
-                func2 = eval_node(node->nodes[0]);
+            if(pure2 && !pure1) std::swap(node->nodes[0],node->nodes[2]);
+
+            vector<int> res1,res2;
+            eval_node(node->nodes[0],res1);
+            current_subset = &res1; // Set subset for second
+            eval_node(node->nodes[2],res2); // Is using filled current subset
+
+            std::set_intersection(res1.begin(),res1.end(),res2.begin(),res2.end(),back_inserter(result));
+
+            // Reset subset
+            if(starting_subset){
+                current_subset = starting_subset;
             } else {
-                func1 = eval_node(node->nodes[0]);
-                func2 = eval_node(node->nodes[2]);
+                current_subset = nullptr;
             }
-
-            returned_function = [func1,func2,this](vector<int>& result){
-                result.clear();
-
-                vector<int> sub;
-                func1(sub);
-
-                vector<int> res2;
-                current_subset = &sub; // Set subset
-                func2(res2); // Is using filled current subset
-
-                std::set_intersection(sub.begin(),sub.end(),res2.begin(),res2.end(),back_inserter(result));
-
-                // Reset subset
-                if(starting_subset){
-                    current_subset = starting_subset;
-                } else {
-                    current_subset = nullptr;
-                }                
-            };
         }
     }
 
     else if(node->name == "LOGICAL_OPERAND")
     {
+        vector<int> res;
+        eval_node(node->nodes[1],res);
+
         if(node->nodes[0]->name == "NOT"){
-            auto func = eval_node(node->nodes[1]);
-            returned_function =  [this,func](vector<int>& result){
-                result.clear();
-                vector<int> res;
-                func(res);
-                if(!current_subset){
-                    auto r = boost::counting_range(0,Natoms);
-                    std::set_difference(r.begin(),r.end(), res.begin(),res.end(), back_inserter(result));
-                } else {
-                    // For subset
-                    std::set_difference(current_subset->begin(),current_subset->end(), res.begin(),res.end(), back_inserter(result));
-                }                
-            };
+            if(!current_subset){
+                auto r = boost::counting_range(0,Natoms);
+                std::set_difference(r.begin(),r.end(), res.begin(),res.end(), back_inserter(result));
+            } else {
+                // For subset
+                std::set_difference(current_subset->begin(),current_subset->end(), res.begin(),res.end(), back_inserter(result));
+            }
+
         } else if(node->nodes[0]->name == "BYRES"){
-            auto func = eval_node(node->nodes[1]);
+            // First make a set of resids we need to search
+            std::unordered_set<int> resind;
+            for(auto at: res) resind.insert(sys->atoms[at].resindex);
 
-            returned_function =  [this,func](vector<int>& result){
-                result.clear();
-                vector<int> res;
-                func(res);
-
-                // First make a set of resids we need to search
-                std::unordered_set<int> resind;
-                for(auto at: res) resind.insert(sys->atoms[at].resindex);
-
-                // Now cycle over all atoms in the starting subset if present (not current subset!!!)
-                if(starting_subset){
-                    for(int at: *starting_subset) // over starting subset
-                        if(resind.count(sys->atoms[at].resindex)) result.push_back(at);
-                } else {
-                    for(int at=0;at<Natoms;++at) // over all atoms
-                        if(resind.count(sys->atoms[at].resindex)) result.push_back(at);
-                }
-            };
+            // Now cycle over all atoms in the starting subset if present (not current subset!!!)
+            if(starting_subset){
+                for(int at: *starting_subset) // over starting subset
+                    if(resind.count(sys->atoms[at].resindex)) result.push_back(at);
+            } else {
+                for(int at=0;at<Natoms;++at) // over all atoms
+                    if(resind.count(sys->atoms[at].resindex)) result.push_back(at);
+            }
         }
     }
 
     else if(node->name == "ALL")
     {
-        vector<int> res(Natoms);
-        for(int at=0;at<Natoms;++at) res[at] = at;
-
-        returned_function =  [res](vector<int>& result){
-            result = res;
-        };
+        result.resize(Natoms);
+        for(int at=0;at<Natoms;++at) result[at] = at;
     }
 
     else if(node->name == "WITHIN")
-    {
+    {        
         float cutoff = stof(node->nodes[0]->token);
-
         bool periodic = false;
-        bool include_self = true;
-        result_func_t func;
+        bool include_self = true;        
+
+        int eval_ind;
 
         if(node->nodes.size() == 4){ // Both pbc and self
             if(node->nodes[1]->name == "PBC" && (node->nodes[1]->token == "pbc" || node->nodes[1]->token == "periodic"))
@@ -453,7 +501,7 @@ result_func_t Selection_parser::eval_node(const std::shared_ptr<MyAst> &node){
             if(node->nodes[2]->name == "SELF" && node->nodes[2]->token == "noself")
                 include_self = false;
 
-            func = eval_node(node->nodes[3]);
+            eval_ind = 3;
 
         } else if(node->nodes.size() == 3){ // Either pbc or self
             if(node->nodes[1]->name == "PBC" && (node->nodes[1]->token == "pbc" || node->nodes[1]->token == "periodic"))
@@ -462,625 +510,55 @@ result_func_t Selection_parser::eval_node(const std::shared_ptr<MyAst> &node){
             if(node->nodes[1]->name == "SELF" && node->nodes[1]->token == "noself")
                 include_self = false;
 
-            func = eval_node(node->nodes[2]);
+            eval_ind = 2;
 
         } else { // Neither pbc nor self
-            func = eval_node(node->nodes[1]);
+            eval_ind = 1;
         }
 
-        returned_function =  [this,func,cutoff,include_self,periodic](vector<int>& result){
-
-            Selection dum1(*sys), dum2(*sys);
-            // Result is returned directly into the index array of selection dum2
-            // thus no additional copying
-            func(dum2._index);
-
-            // Prepare selection dum1
-            if(!current_subset){
-                // We are NOT limited by subspace
-                dum1._index.resize(Natoms);
-                for(int i=0;i<Natoms;++i) dum1._index[i] = i;
-            } else {
-                // We are limited by subspace
-                dum1._index = *current_subset;
-            }
-
-            // Set frame for both selections
-            dum1.set_frame(frame);
-            dum2.set_frame(frame);
-
-            search_within(cutoff,dum1,dum2,result,include_self,periodic);
-        };
-
-    }
-
-    else
-    {
-        returned_function = [](vector<int>& result){
-            result.clear();
-        };
-    }
-
-    if(!node->is_coord_dependent){
-        vector<int> res;
-        returned_function(res); // Apply function of itself
-
-        //fmt::print("Precomputing node {}\n",node->name);
-
-        // Return precomputed instead
-        returned_function = [res](vector<int>& result){
-            result = res;
-        };
-    }
-
-    return returned_function;
-
-/*
-    //---------------------------------------------------------------------------
-    if(node->code == TOK_PRECOMPUTED)
-    {
-        if(!subspace){
-            result = node->precomputed;
-        } else {
-            // If this node is under subspace we only need to return those
-            // atoms, which are in that subspace. Otherwise we can extend
-            // the subspace but we don't want this. Thus return intersection:
-            std::set_intersection(subspace->begin(),subspace->end(),
-                                  node->precomputed.begin(),node->precomputed.end(),
-                                  back_inserter(result));
-        }        
-    }
-
-    //---------------------------------------------------------------------------
-    else if(node->code == TOK_NOT)
-    {
-        // Logical NOT
-        vector<int> res1;
-        eval_node(node->child_node(0), res1, restr);
-
-        n = res1.size();        
-
-        // Special check for empty res1
-        if(n==0){
-            for(j=0;j<Natoms;++j) result.push_back(j); // All
-        } else if(!restr) {
-            // Without subset
-            result.reserve(Natoms-n);
-            for(j=0;j<res1[0];++j) result.push_back(j); //Before first
-            for(i=1;i<n;++i)
-                for(j=res1[i-1]+1;j<res1[i];++j) result.push_back(j); // between any two
-            for(j=res1[n-1]+1;j<Natoms;++j) result.push_back(j); // after last
-        } else {
-            // With restriction
-            std::set_difference(restr->begin(),restr->end(), res1.begin(),res1.end(), back_inserter(result));
-        }
-    }
-
-    //---------------------------------------------------------------------------
-    else if(node->code == TOK_OR)
-    {
-        // Logical OR
-        vector<int> res1, res2; // Aux vectors
-
-        eval_node(node->child_node(0), res1, restr);
-        eval_node(node->child_node(1), res2, restr);
-
-        std::set_union(res1.begin(),res1.end(),res2.begin(),res2.end(),back_inserter(result));            
-    }
-
-    //---------------------------------------------------------------------------
-    else if(node->code == TOK_AND)
-    {
-        // Logical AND
-        vector<int> res1, res2; // Aux vectors
-
-        eval_node(node->child_node(0), res1, restr);
-        // First operand sets a restr for the second!
-        eval_node(node->child_node(1), res2, &res1);
-
-        std::set_intersection(res1.begin(),res1.end(),res2.begin(),res2.end(),back_inserter(result));
-    }
-
-    //---------------------------------------------------------------------------
-    else if(node->code == TOK_NAME)
-    {
-        int Nchildren = node->children.size(); // Get number of children
-        string str;
-        // Cycle over children
-        for(i=0;i<Nchildren;++i){
-            str = node->child_as_str(i);
-            if(node->child_node(i)->code == TOK_STR){
-                // For normal strings
-                if(!restr){
-                    for(at=0;at<Natoms;++at){
-                        if(sys->atoms[at].name == str) result.push_back(at);
-                    }
-                } else {
-                    for(j=0;j<restr->size();++j){
-                        at = (*restr)[j];
-                        if(sys->atoms[at].name == str) result.push_back(at);
-                    }
-                }
-            } else if(node->child_node(i)->code == TOK_REGEX){
-                // For regex
-                std::cmatch what;
-                std::regex reg(str);
-                if(!restr){
-                    for(at=0;at<Natoms;++at){
-                        if(std::regex_match(sys->atoms[at].name.c_str(),what,reg)){
-                             result.push_back(at);
-                        }
-                    }
-                } else {
-                    for(j=0;j<restr->size();++j){
-                        at = (*restr)[j];
-                        if(std::regex_match(sys->atoms[at].name.c_str(),what,reg)){
-                             result.push_back(at);
-                        }
-                    }
-                }
-            }
-        }        
-        sort(result.begin(),result.end());
-    }
-
-    //---------------------------------------------------------------------------
-    else if(node->code == TOK_TYPE)
-    {
-        if(!sys->force_field.ready) throw Pteros_error("Can't select type names from system with no valid force field!");
-
-        int Nchildren = node->children.size(); // Get number of children
-        string str;
-        // Cycle over children
-        for(i=0;i<Nchildren;++i){
-            str = node->child_as_str(i);
-            if(node->child_node(i)->code == TOK_STR){
-                // For normal strings
-                if(!restr){
-                    for(at=0;at<Natoms;++at){
-                        if(sys->atoms[at].type_name == str) result.push_back(at);
-                    }
-                } else {
-                    for(j=0;j<restr->size();++j){
-                        at = (*restr)[j];
-                        if(sys->atoms[at].type_name == str) result.push_back(at);
-                    }
-                }
-            } else if(node->child_node(i)->code == TOK_REGEX){
-                // For regex
-                std::cmatch what;
-                std::regex reg(str);
-                if(!restr){
-                    for(at=0;at<Natoms;++at){
-                        if(std::regex_match(sys->atoms[at].type_name.c_str(),what,reg)){
-                             result.push_back(at);
-                        }
-                    }
-                } else {
-                    for(j=0;j<restr->size();++j){
-                        at = (*restr)[j];
-                        if(std::regex_match(sys->atoms[at].type_name.c_str(),what,reg)){
-                             result.push_back(at);
-                        }
-                    }
-                }
-            }
-        }
-        sort(result.begin(),result.end());
-    }
-
-    //---------------------------------------------------------------------------
-    else if(node->code == TOK_RESNAME)
-    {
-        int Nchildren = node->children.size(); // Get number of children
-        string str;
-        // Cycle over children
-        for(i=0;i<Nchildren;++i){
-            str = node->child_as_str(i);
-            if(node->child_node(i)->code == TOK_STR){
-                // For normal strings
-                if(!restr){
-                    for(at=0;at<Natoms;++at)
-                        if(sys->atoms[at].resname == str) result.push_back(at);
-                } else {
-                    for(j=0;j<restr->size();++j){
-                        at = (*restr)[j];
-                        if(sys->atoms[at].resname == str) result.push_back(at);
-                    }
-                }
-            } else if(node->child_node(i)->code == TOK_REGEX){
-                // For regex
-                std::cmatch what;
-                std::regex reg(str);
-                if(!restr){
-                    for(at=0;at<Natoms;++at){
-                        if(std::regex_match(sys->atoms[at].resname.c_str(),what,reg)){
-                             result.push_back(at);
-                        }
-                    }
-                } else {
-                    for(j=0;j<restr->size();++j){
-                        at = (*restr)[j];
-                        if(std::regex_match(sys->atoms[at].resname.c_str(),what,reg)){
-                             result.push_back(at);
-                        }
-                    }
-                }
-            }
-        }
-        sort(result.begin(),result.end());
-    }
-
-    //---------------------------------------------------------------------------
-    else if(node->code == TOK_TAG)
-    {
-        int Nchildren = node->children.size(); // Get number of children
-        string str;
-        // Cycle over children
-        for(i=0;i<Nchildren;++i){
-            str = node->child_as_str(i);
-            if(node->child_node(i)->code == TOK_STR){
-                // For normal strings
-                if(!restr){
-                    for(at=0;at<Natoms;++at)
-                        if(sys->atoms[at].tag == str) result.push_back(at);
-                } else {
-                    for(j=0;j<restr->size();++j){
-                        at = (*restr)[j];
-                        if(sys->atoms[at].tag == str) result.push_back(at);
-                    }
-                }
-            } else if(node->child_node(i)->code == TOK_REGEX){
-                // For regex
-                std::cmatch what;
-                std::regex reg(str);
-                if(!restr){
-                    for(at=0;at<Natoms;++at){
-                        if(std::regex_match(sys->atoms[at].tag.c_str(),what,reg)){
-                             result.push_back(at);
-                        }
-                    }
-                } else {
-                    for(j=0;j<restr->size();++j){
-                        at = (*restr)[j];
-                        if(std::regex_match(sys->atoms[at].tag.c_str(),what,reg)){
-                             result.push_back(at);
-                        }
-                    }
-                }
-            }
-        }
-        sort(result.begin(),result.end());
-    }
-
-    //---------------------------------------------------------------------------
-    else if(node->code == TOK_CHAIN)
-    {
-        int Nchildren = node->children.size(); // Get number of children
-        char ch;
-        // Cycle over children
-        for(i=0;i<Nchildren;++i){
-            ch = node->child_as_str(i)[0];
-            if(!restr){
-                for(at=0;at<Natoms;++at)
-                    if(sys->atoms[at].chain == ch) result.push_back(at);
-            } else {
-                for(j=0;j<restr->size();++j){
-                    at = (*restr)[j];
-                    if(sys->atoms[at].chain == ch) result.push_back(at);
-                }
-            }
-        }
-        sort(result.begin(),result.end());
-    }
-
-    //---------------------------------------------------------------------------
-    else if(node->code == TOK_RESID)
-    {
-        int Nchildren = node->children.size(); // Get number of children
-        // Cycle over children
-        for(i=0;i<Nchildren;++i){
-            if(node->child_node(i)->code == TOK_INT) { // Resid could be int!
-                k = node->child_as_int(i);
-                if(!restr){
-                    for(at=0;at<Natoms;++at)
-                        // Even if k is out of range, nothing will crash here
-                        if(sys->atoms[at].resid == k) result.push_back(at);
-                } else {
-                    for(j=0;j<restr->size();++j){
-                        at = (*restr)[j];
-                        // Even if k is out of range, nothing will crash here
-                        if(sys->atoms[at].resid == k) result.push_back(at);
-                    }
-                }
-            } else {
-                // this is a range, not an integer
-                AstNode_ptr range = node->child_node(i);                
-                int i1 = range->child_as_int(0);
-                int i2 = range->child_as_int(1);
-                for(k=i1;k<=i2;++k){
-                    if(!restr){
-                        for(at=0;at<Natoms;++at)
-                            // Even if k is out of range, nothing will crash here
-                            if(sys->atoms[at].resid == k) result.push_back(at);
-                    } else {
-                        for(j=0;j<restr->size();++j){
-                            at = (*restr)[j];
-                            // Even if k is out of range, nothing will crash here
-                            if(sys->atoms[at].resid == k) result.push_back(at);
-                        }
-                    }
-                }
-            }
-        }
-        sort(result.begin(),result.end());
-    }
-
-    //---------------------------------------------------------------------------
-    else if(node->code == TOK_RESINDEX)
-    {
-        int Nchildren = node->children.size(); // Get number of children
-        // Cycle over children
-        for(i=0;i<Nchildren;++i){                        
-            if(node->child_node(i)->code == TOK_UINT) {
-                k = node->child_as_int(i);
-                if(!restr){
-                    for(at=0;at<Natoms;++at)
-                        // Even if k is out of range, nothing will crash here
-                        if(sys->atoms[at].resindex == k) result.push_back(at);
-                } else {
-                    for(j=0;j<restr->size();++j){
-                        at = (*restr)[j];
-                        // Even if k is out of range, nothing will crash here
-                        if(sys->atoms[at].resindex == k) result.push_back(at);
-                    }
-                }
-            } else {
-                // this is a range, not an integer
-                AstNode_ptr range = node->child_node(i);
-                int i1 = range->child_as_int(0);
-                int i2 = range->child_as_int(1);
-                for(k=i1;k<=i2;++k){
-                    if(!restr){
-                        for(at=0;at<Natoms;++at)
-                            // Even if k is out of range, nothing will crash here
-                            if(sys->atoms[at].resindex == k) result.push_back(at);
-                    } else {
-                        for(j=0;j<restr->size();++j){
-                            at = (*restr)[j];
-                            // Even if k is out of range, nothing will crash here
-                            if(sys->atoms[at].resindex == k) result.push_back(at);
-                        }
-                    }
-                }
-            }
-        }
-        sort(result.begin(),result.end());
-    }
-
-    //---------------------------------------------------------------------------
-    else if(node->code == TOK_INDEX)
-    {
-        int Nchildren = node->children.size(); // Get number of children
-        // Cycle over children
-        for(i=0;i<Nchildren;++i){
-            if(node->child_node(i)->code == TOK_UINT) {
-                k = node->child_as_int(i);
-                // We have to check the range here
-                if(k>=0 && k<Natoms)
-                    result.push_back(k);
-            } else {
-                // this is a range, not an integer
-                AstNode_ptr range = node->child_node(i);
-                int i1 = range->child_as_int(0);
-                int i2 = range->child_as_int(1);
-                for(k=i1;k<=i2;++k)
-                    // We have to check the range here
-                    if(k>=0 && k<Natoms)
-                        result.push_back(k);
-            }
-        }
-        sort(result.begin(),result.end());
-    }
-
-    //---------------------------------------------------------------------------
-    else if(node->code == TOK_WITHIN)
-    {
-        // Get distance
-        double dist = boost::get<float>(node->children[0]);
-        // Get PBC
-        bool periodic = (boost::get<int>(node->children[2])) ? true : false;
-        // Get self
-        bool include_self = (boost::get<int>(node->children[3])) ? true : false;               
-
-#ifdef _DEBUG_PARSER
-        if(subspace)
-            cout << "subspace size: " << subspace->size() << endl;
-        else
-            cout << "full subspace!" << endl;
-#endif
-        // Create selections for searching
         Selection dum1(*sys), dum2(*sys);
-
-        // Evaluate enclosed expression
-        // Enclosed expression is independent of any subspace!
-        // Otherwise the results would be incorrect        
         // Result is returned directly into the index array of selection dum2
         // thus no additional copying
-        if(starting_subset && starting_subset->size()){
-            eval_node(node->child_node(1), dum2._index, starting_subset);
-        } else {
-            eval_node(node->child_node(1), dum2._index, nullptr);
-        }
+        eval_node(node->nodes[eval_ind],dum2._index);
 
         // Prepare selection dum1
-        if(!subspace){
-            // We are not limited by subspace
-            dum1._index.resize(sys->num_atoms());
-            for(int i=0;i<sys->num_atoms();++i) dum1._index[i] = i;
+        if(!current_subset){
+            // We are NOT limited by subspace
+            dum1._index.resize(Natoms);
+            for(int i=0;i<Natoms;++i) dum1._index[i] = i;
         } else {
             // We are limited by subspace
-            dum1._index = *subspace;
+            dum1._index = *current_subset;
         }
 
         // Set frame for both selections
         dum1.set_frame(frame);
         dum2.set_frame(frame);
 
-        search_within(dist,dum1,dum2,result,include_self,periodic);
-        // Returned array is sorted already!
+        search_within(cutoff,dum1,dum2,result,include_self,periodic);
     }
 
-    //---------------------------------------------------------------------------
-    else if(node->code == TOK_BY)
+    else
     {
-        vector<int> res1;
-        // Evaluate enclosed expression
-        if(starting_subset && starting_subset->size()){
-            eval_node(node->child_node(0), res1, starting_subset);
-        } else {
-            eval_node(node->child_node(0), res1, nullptr);
-        }
-        int Nsel = res1.size();
-        // Select by residue. This respects chain!
-        // First make a set of resids we need to search
-        std::unordered_set<int> resind;
-        for(i=0;i<Nsel;++i){ //over found atoms
-            resind.insert(sys->atoms[res1[i]].resindex);
-        }
-
-        // Now cycle over all atoms in the system (not a subset!)
-        for(at=0;at<Natoms;++at){ // over all atoms
-            if(resind.count(sys->atoms[at].resindex)){
-                // This resind is needed
-                result.push_back(at);
-            }
-        }
-        // Now result is sorted by default here and there are no duplicates
+        throw Pteros_error("Unknown node {}!",node->name);
     }
+}
 
-    //---------------------------------------------------------------------------
-    else if(node->code == TOK_ALL)
+//returns a 3-vector
+Eigen::Vector3f Selection_parser::get_vector(const std::shared_ptr<MyAst> &node){
+    if(node->name == "COM")
     {
-        if(!restr){
-            result.resize(Natoms);
-            for(at=0;at<Natoms;++at) result[at] = at;
-        } else {
-            result = *restr; // subspace optimization
-        }
+        bool with_mass = (node->nodes[0]->token == "com") ? true : false;
+
+        auto pbc = noPBC;
+        if(node->nodes[1]->name == "PBC" && (node->nodes[1]->token == "pbc" || node->nodes[1]->token == "periodic")) pbc = fullPBC;
+
+        Selection sel(*sys);
+        eval_node(node->nodes.back(), sel._index);
+        sel.set_frame(frame);
+
+        return sel.center(with_mass,pbc);
     }
-
-    //---------------------------------------------------------------------------
-    // Math logical nodes
-    // All of them benefit from restr optimization
-    // All give sorted results
-
-    else if(node->code == TOK_EQ)
-    {
-        auto op1 = get_numeric(node->child_node(0));
-        auto op2 = get_numeric(node->child_node(1));
-        if(!restr){
-            for(at=0;at<Natoms;++at) // over all atoms
-                if( op1(at) == op2(at) ) result.push_back(at);
-        } else {
-            for(int i=0;i<restr->size();++i){ // over restr
-                at = (*restr)[i];
-                if( op1(at) == op2(at) ) result.push_back(at);
-            }
-        }
-    }
-
-    //---------------------------------------------------------------------------
-    else if(node->code == TOK_NEQ)
-    {
-        auto op1 = get_numeric(node->child_node(0));
-        auto op2 = get_numeric(node->child_node(1));
-        if(!restr){
-            for(at=0;at<Natoms;++at) // over all atoms
-                if( op1(at) != op2(at) ) result.push_back(at);
-        } else {
-            for(int i=0;i<restr->size();++i){ // over restr
-                at = (*restr)[i];
-                if( op1(at) != op2(at) ) result.push_back(at);
-            }
-        }
-    }
-
-    //---------------------------------------------------------------------------
-    else if(node->code == TOK_LT)
-    {
-        auto op1 = get_numeric(node->child_node(0));
-        auto op2 = get_numeric(node->child_node(1));
-        if(!restr){
-            for(at=0;at<Natoms;++at){ // over all atoms
-                if( op1(at) < op2(at) ) result.push_back(at);
-            }
-        } else {            
-            for(int i=0;i<restr->size();++i){ // over restr
-                at = (*restr)[i];
-                if( op1(at) < op2(at) ) result.push_back(at);
-            }
-        }
-    }
-
-    //---------------------------------------------------------------------------
-    else if(node->code == TOK_GT)
-    {
-        auto op1 = get_numeric(node->child_node(0));
-        auto op2 = get_numeric(node->child_node(1));
-        if(!restr){
-            for(at=0;at<Natoms;++at){ // over all atoms
-                if( op1(at) > op2(at) ) result.push_back(at);
-            }
-        } else {
-            for(int i=0;i<restr->size();++i){ // over restr
-                at = (*restr)[i];
-                if( op1(at) > op2(at) ) result.push_back(at);
-            }
-        }
-    }
-
-    //---------------------------------------------------------------------------
-    else if(node->code == TOK_LEQ)
-    {
-        auto op1 = get_numeric(node->child_node(0));
-        auto op2 = get_numeric(node->child_node(1));
-        if(!restr){
-            for(at=0;at<Natoms;++at){ // over all atoms
-                if( op1(at) <= op2(at) ) result.push_back(at);
-            }
-        } else {
-            for(int i=0;i<restr->size();++i){ // over restr
-                at = (*restr)[i];
-                if( op1(at) <= op2(at) ) result.push_back(at);
-            }
-        }
-    }
-
-    //---------------------------------------------------------------------------
-    else if(node->code == TOK_GEQ)
-    {
-        auto op1 = get_numeric(node->child_node(0));
-        auto op2 = get_numeric(node->child_node(1));
-        if(!restr){
-            for(at=0;at<Natoms;++at){ // over all atoms
-                if( op1(at) >= op2(at) ) result.push_back(at);
-            }
-        } else {
-            for(int i=0;i<restr->size();++i){ // over restr
-                at = (*restr)[i];
-                if( op1(at) >= op2(at) ) result.push_back(at);
-            }
-        }
-    }
-
-    //---------------------------------------------------------------------------
-    else if(node->code == TOK_GEQ)
-    {
-        throw Pteros_error("Invalid node in the AST!");
-    }
-
-*/
 }
 
 // Returns callable, which returns value for numeric node for atom at
@@ -1096,11 +574,26 @@ std::function<float(int)> Selection_parser::get_numeric(const std::shared_ptr<My
         float val = stof(node->token);
         res = [val](int at){ return val; };
     } else if(node->name == "X"){
-        res =[this](int at){ return sys->traj[frame].coord[at](0); };
+        if(node->nodes.empty())
+            res =[this](int at){ return sys->traj[frame].coord[at](0); };
+        else {
+            float x = get_vector(node->nodes[0])[0];
+            res =[x](int at){ return x; };
+        }
     } else if(node->name == "Y"){
-        res = [this](int at){ return sys->traj[frame].coord[at](1); };
+        if(node->nodes.empty())
+            res =[this](int at){ return sys->traj[frame].coord[at](1); };
+        else {
+            float y = get_vector(node->nodes[0])[1];
+            res =[y](int at){ return y; };
+        }
     } else if(node->name == "Z"){
-        res = [this](int at){ return sys->traj[frame].coord[at](2); };
+        if(node->nodes.empty())
+            res =[this](int at){ return sys->traj[frame].coord[at](2); };
+        else {
+            float z = get_vector(node->nodes[0])[2];
+            res =[z](int at){ return z; };
+        }
     } else if(node->name == "BETA"){
         res = [this](int at){ return sys->atoms[at].beta; };
     } else if(node->name == "OCC"){
@@ -1154,18 +647,21 @@ std::function<float(int)> Selection_parser::get_numeric(const std::shared_ptr<My
     } else if(node->name == "POINT") {
         Eigen::Vector3f p;
 
-        bool pbc = false;
+        int N = node->nodes.size();
+        int offset = 0;
 
-        if(node->nodes.size()==3){
-            p(0) = get_numeric(node->nodes[0])(0);
-            p(1) = get_numeric(node->nodes[1])(0);
-            p(2) = get_numeric(node->nodes[2])(0);
-        } else {
-            // With pbc
-            if(node->nodes[0]->token == "pbc" || node->nodes[0]->token == "periodic") pbc = true;
-            p(0) = get_numeric(node->nodes[1])(0);
-            p(1) = get_numeric(node->nodes[2])(0);
-            p(2) = get_numeric(node->nodes[3])(0);
+        bool pbc = false;
+        if(node->nodes[0]->token == "pbc" || node->nodes[0]->token == "periodic"){
+            pbc = true;
+            offset = 1;
+        }
+
+        if(N==1 || N==2){ // com and possibly pbc
+            p = get_vector(node->nodes[0+offset]);
+        } else { // 3 floats and possibly pbc
+            p(0) = get_numeric(node->nodes[0+offset])(0);
+            p(1) = get_numeric(node->nodes[1+offset])(0);
+            p(2) = get_numeric(node->nodes[2+offset])(0);
         }
 
         // Return distance
@@ -1174,7 +670,7 @@ std::function<float(int)> Selection_parser::get_numeric(const std::shared_ptr<My
                 return sys->box(frame).distance(p, sys->traj[frame].coord[at]);
             };
         } else {
-            res = [this,&p](int at){
+            res = [this,p](int at){
                 return (p - sys->traj[frame].coord[at]).norm();
             };
         }
@@ -1182,24 +678,27 @@ std::function<float(int)> Selection_parser::get_numeric(const std::shared_ptr<My
     } else if(node->name == "VECTOR" || node->name == "PLANE") {
         Eigen::Vector3f p,dir;
 
-        bool pbc = false;
+        int N = node->nodes.size();
+        int offset = 0;
 
-        if(node->nodes.size()==6){
-            p(0) = get_numeric(node->nodes[0])(0);
-            p(1) = get_numeric(node->nodes[1])(0);
-            p(2) = get_numeric(node->nodes[2])(0);
-            dir(0) = get_numeric(node->nodes[3])(0);
-            dir(1) = get_numeric(node->nodes[4])(0);
-            dir(2) = get_numeric(node->nodes[5])(0);
-        } else {
-            // With pbc
-            if(node->nodes[0]->token == "pbc" || node->nodes[0]->token == "periodic") pbc = true;
-            p(0) = get_numeric(node->nodes[1])(0);
-            p(1) = get_numeric(node->nodes[2])(0);
-            p(2) = get_numeric(node->nodes[3])(0);
-            dir(0) = get_numeric(node->nodes[4])(0);
-            dir(1) = get_numeric(node->nodes[5])(0);
-            dir(2) = get_numeric(node->nodes[6])(0);
+        bool pbc = false;
+        if(node->nodes[0]->token == "pbc" || node->nodes[0]->token == "periodic"){
+            pbc = true;
+            offset = 1;
+        }
+
+        if(N==4 || N==5){ // com + 3 floats
+            p = get_vector(node->nodes[0+offset]);
+            dir(0) = get_numeric(node->nodes[1+offset])(0);
+            dir(1) = get_numeric(node->nodes[2+offset])(0);
+            dir(2) = get_numeric(node->nodes[3+offset])(0);
+        } if(N==6){ // 6 floats
+            p(0) = get_numeric(node->nodes[0+offset])(0);
+            p(1) = get_numeric(node->nodes[1+offset])(0);
+            p(2) = get_numeric(node->nodes[2+offset])(0);
+            dir(0) = get_numeric(node->nodes[3+offset])(0);
+            dir(1) = get_numeric(node->nodes[4+offset])(0);
+            dir(2) = get_numeric(node->nodes[5+offset])(0);
         }
 
         if(node->name == "VECTOR"){
