@@ -36,6 +36,7 @@
 #include <unordered_set>
 #include <regex>
 #include <list>
+#include "periodic_table.h" // From VMD plugins dir
 
 using namespace std;
 using namespace pteros;
@@ -52,7 +53,7 @@ public:
         enable_packrat_parsing();
         log = [&](size_t ln, size_t col, const string& msg) {
             error_message = fmt::format("{}:{}",col,msg);
-        };
+        };        
     }
 
     virtual ~Pteros_PEG_parser(){}
@@ -75,7 +76,7 @@ Pteros_PEG_parser _parser(R"(
         NUM_EXPR           <- NUM_TERM (PLUS_MINUS NUM_TERM)*
         NUM_TERM           <- NUM_POWER (DIV_MUL NUM_POWER)*
         NUM_POWER          <- NUM_FACTOR (POW NUM_FACTOR)?
-        NUM_FACTOR         <- UNARY_MINUS? ( '(' NUM_EXPR ')' / X / Y / Z / BETA / OCC / RESINDEX / INDEX / RESID / DIST) / FLOAT
+        NUM_FACTOR         <- UNARY_MINUS? ( '(' NUM_EXPR ')' / X / Y / Z / BETA / OCC / RESINDEX / INDEX / RESID / DIST / MASS / CHARGE) / FLOAT
         PLUS_MINUS         <- < '+' / '-' >
         DIV_MUL            <- < '*' / '/' >
         POW                <- < '^' / '**' >
@@ -89,6 +90,8 @@ Pteros_PEG_parser _parser(R"(
         RESINDEX           <- < 'resindex' >
         INDEX              <- < 'index' >
         RESID              <- < 'resid' >
+        MASS               <- < 'mass' >
+        CHARGE             <- < 'charge' >
 
         COM                <- COM_TYPE PBC? 'of' LOGICAL_OPERAND
         COM_TYPE           <- < 'com' / 'cog' >
@@ -103,7 +106,7 @@ Pteros_PEG_parser _parser(R"(
 
         KEYWORD_EXPR       <- STR_KEYWORD_EXPR / INT_KEYWORD_EXPR
         STR_KEYWORD_EXPR   <- STR_KEYWORD (STR / REGEX)+
-        STR_KEYWORD        <- < 'name' / 'resname' / 'tag' / 'chain' / 'type' >
+        STR_KEYWORD        <- < 'name' / 'resname' / 'tag' / 'chain' / 'type' / 'element' >
         STR                <- !('or'/'and') < [a-zA-Z0-9]+ >
 
         INT_KEYWORD_EXPR   <- INT_KEYWORD (RANGE / INTEGER)+
@@ -161,6 +164,24 @@ void set_coord_dependence(const std::shared_ptr<MyAst>& node){
     //cout << node->name << " :: " << node->is_coord_dependent << endl;
 }
 
+
+void Selection_parser::optimize(std::shared_ptr<MyAst>& node){
+    // optimize arithmetics
+    if(node->name == "NUM_EXPR" || node->name == "NUM_TERM" || node->name == "NUM_POWER") {
+        // If not-coord dependent just optimize
+        if(!node->is_coord_dependent){
+            // Replace with float node
+            node = std::make_shared<MyAst>("",0,0,"FLOAT", fmt::format("{}", get_numeric(node)(0)));
+        } else if(node->nodes.size() > 3) {
+
+        }
+    }
+
+    // Recurse into children
+    for(int i=0;i<node->nodes.size();++i) optimize(node->nodes[i]);
+}
+
+
 void Selection_parser::precompute(std::shared_ptr<MyAst>& node){
     if(    node->name!="PRE"
         && node->name!="NUM_COMPARISON"
@@ -186,7 +207,7 @@ void Selection_parser::create_ast(string& sel_str, System* system){
     if (_parser.parse(sel_str.c_str(), tree)) {
         tree = peg::AstOptimizer(true,{"POINT","X","Y","Z"}).optimize(tree);
 
-        cout << peg::ast_to_s(tree);
+        //cout << peg::ast_to_s(tree);
 
         set_coord_dependence(tree);
     } else {
@@ -202,6 +223,11 @@ void Selection_parser::create_ast(string& sel_str, System* system){
         current_subset = starting_subset;
     else
         current_subset = nullptr;
+
+    // Optimize tree
+    optimize(tree);
+
+    //cout << peg::ast_to_s(tree);
 
     // proceed with optimizing pure nodes to precomputed if needed
     if(has_coord) precompute(tree);
@@ -310,6 +336,13 @@ void Selection_parser::eval_node(const std::shared_ptr<MyAst> &node, std::vector
                 s[0] = sys->atoms[at].chain;
                 return std::regex_match(s.c_str(),reg);
             };
+        } else if(keyword == "element"){
+            comp_func_str = [this](int at, const string& str){
+                int elnum = get_pte_idx_from_string(str.c_str());
+                if(elnum==0) return false;
+                return sys->atoms[at].element_number == elnum;
+            };
+            comp_func_regex = [this](int at, const std::regex& reg){ return std::regex_match(sys->atoms[at].tag.c_str(),reg); };
         }
 
         list<string> str_values;
@@ -623,7 +656,10 @@ std::function<float(int)> Selection_parser::get_numeric(const std::shared_ptr<My
         res = [this](int at){ return sys->atoms[at].resindex; };
     } else if(node->name == "RESID"){
         res = [this](int at){ return sys->atoms[at].resid; };
-
+    } else if(node->name == "MASS"){
+        res = [this](int at){ return sys->atoms[at].mass; };
+    } else if(node->name == "CHARGE"){
+        res = [this](int at){ return sys->atoms[at].charge; };
     // Compounds
     } else if(node->name == "UNARY_MINUS"){
         auto func = get_numeric(node->nodes[0]);
@@ -631,37 +667,38 @@ std::function<float(int)> Selection_parser::get_numeric(const std::shared_ptr<My
 
     } else if(node->name == "NUM_EXPR" || node->name == "NUM_TERM" || node->name == "NUM_POWER") {
 
-        auto func1 = get_numeric(node->nodes[0]);
-        auto op = node->nodes[1]->token;
-        auto func2 = get_numeric(node->nodes[2]);
+        int N = node->nodes.size();
 
-        // Evaluation function
-        std::function<float(float,float)> func;
+        vector<std::function<float(int)>> operands((N-1)/2+1);
+        vector<std::function<float(float,float)>> operators((N-1)/2);
 
-        if     (op=="+") {
-            func = [](float a,float b){ return a+b; };
-        } else if(op=="-") {
-            func = [](float a,float b){ return a-b; };
-        } else if(op=="*") {
-            func = [](float a,float b){ return a*b; };
-            res = [func1,func2](int at){ return func1(at)*func2(at); };
-        } else if(op=="/") {
-            func = [](float a,float b){
-                if(b==0.0) throw Pteros_error("Division by zero in selection!");
-                return a/b;
-            };
-        } else if(op=="^" || op=="**") {
-            func = [](float a,float b){ return std::pow(a,b); };
+        for(int i=0;i<operands.size();++i){
+            operands[i] = get_numeric(node->nodes[i*2]);
         }
 
-        if(node->nodes[0]->is_coord_dependent || node->nodes[2]->is_coord_dependent){
-            // For non-pure return evaluation function
-            res = [func,func1,func2](int at){ return func(func1(at),func2(at)); };
-        } else {
-            // For pure return result precomputed for atom 0
-            float val = func(func1(0),func2(0));
-            res = [val](int at){ return val; };
+        for(int i=0;i<operators.size();++i){
+            auto op = node->nodes[i*2+1]->token;
+            if     (op=="+") {
+                operators[i] = [](float a,float b){ return a+b; };
+            } else if(op=="-") {
+                operators[i] = [](float a,float b){ return a-b; };
+            } else if(op=="*") {
+                operators[i] = [](float a,float b){ return a*b; };
+            } else if(op=="/") {
+                operators[i] = [](float a,float b){
+                    if(b==0.0) throw Pteros_error("Division by zero in selection!");
+                    return a/b;
+                };
+            } else if(op=="^" || op=="**") {
+                operators[i] = [](float a,float b){ return std::pow(a,b); };
+            }
         }
+
+        res = [operands,operators](int at){
+            float result = operands[0](at);
+            for(int i=0;i<operators.size();++i) result = operators[i](result,operands[i+1](at));
+            return result;
+        };
 
     } else if(node->name == "POINT") {
         Eigen::Vector3f p;
