@@ -76,7 +76,8 @@ Pteros_PEG_parser _parser(R"(
         NUM_EXPR           <- NUM_TERM (PLUS_MINUS NUM_TERM)*
         NUM_TERM           <- NUM_POWER (DIV_MUL NUM_POWER)*
         NUM_POWER          <- NUM_FACTOR (POW NUM_FACTOR)?
-        NUM_FACTOR         <- UNARY_MINUS? ( '(' NUM_EXPR ')' / X / Y / Z / BETA / OCC / RESINDEX / INDEX / RESID / DIST / MASS / CHARGE) / FLOAT
+        NUM_FACTOR         <- UNARY_MINUS? ( '(' NUM_EXPR ')' / X / Y / Z / BETA / OCC / RESINDEX / INDEX
+                                                              / RESID / DIST / MASS / CHARGE ) / FLOAT
         PLUS_MINUS         <- < '+' / '-' >
         DIV_MUL            <- < '*' / '/' >
         POW                <- < '^' / '**' >
@@ -106,7 +107,7 @@ Pteros_PEG_parser _parser(R"(
 
         KEYWORD_EXPR       <- STR_KEYWORD_EXPR / INT_KEYWORD_EXPR
         STR_KEYWORD_EXPR   <- STR_KEYWORD (STR / REGEX)+
-        STR_KEYWORD        <- < 'name' / 'resname' / 'tag' / 'chain' / 'type' / 'element' >
+        STR_KEYWORD        <- < 'name' / 'resname' / 'tag' / 'chain' / 'type' >
         STR                <- !('or'/'and') < [a-zA-Z0-9]+ >
 
         INT_KEYWORD_EXPR   <- INT_KEYWORD (RANGE / INTEGER)+
@@ -263,6 +264,7 @@ void Selection_parser::eval_node(const std::shared_ptr<MyAst> &node, std::vector
             c[0]  = node->nodes[1]->token;
             op[0] = get_numeric(node->nodes[0]);
             op[1] = get_numeric(node->nodes[2]);
+
         } else { // chained
             c.resize(2);
             op.resize(3);
@@ -336,13 +338,6 @@ void Selection_parser::eval_node(const std::shared_ptr<MyAst> &node, std::vector
                 s[0] = sys->atoms[at].chain;
                 return std::regex_match(s.c_str(),reg);
             };
-        } else if(keyword == "element"){
-            comp_func_str = [this](int at, const string& str){
-                int elnum = get_pte_idx_from_string(str.c_str());
-                if(elnum==0) return false;
-                return sys->atoms[at].element_number == elnum;
-            };
-            comp_func_regex = [this](int at, const std::regex& reg){ return std::regex_match(sys->atoms[at].tag.c_str(),reg); };
         }
 
         list<string> str_values;
