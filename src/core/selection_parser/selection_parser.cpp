@@ -66,10 +66,10 @@ public:
 Pteros_PEG_parser _parser(R"(
         LOGICAL_EXPR       <-  LOGICAL_OPERAND (LOGICAL_OPERATOR LOGICAL_OPERAND)*
         LOGICAL_OPERATOR   <-  < 'or' / 'and' >
-        LOGICAL_OPERAND    <-  (NOT / BYRES)? ( '(' LOGICAL_EXPR ')' / ALL / NUM_COMPARISON / KEYWORD_EXPR / WITHIN )
+        LOGICAL_OPERAND    <-  (NOT / BY)? ( '(' LOGICAL_EXPR ')' / ALL / NUM_COMPARISON / KEYWORD_EXPR / WITHIN )
         ALL                <-  < 'all' >
         NOT                <-  < 'not' >
-        BYRES              <-  'by' 'residue' / 'same' 'residue' 'as'
+        BY                 <-  'by' < ('residue' / 'chain' / 'mol') > / 'same' < ('residue' / 'chain' / 'mol') > 'as'
 
         NUM_COMPARISON     <-  NUM_EXPR COMPARISON_OPERATOR NUM_EXPR (COMPARISON_OPERATOR NUM_EXPR)?
         COMPARISON_OPERATOR <- <  '==' / '<=' / '>=' / '<>' / '!=' / '<' / '>' / '=' >
@@ -510,20 +510,66 @@ void Selection_parser::eval_node(const std::shared_ptr<MyAst> &node, std::vector
                 std::set_difference(current_subset->begin(),current_subset->end(), res.begin(),res.end(), back_inserter(result));
             }
 
-        } else if(node->nodes[0]->name == "BYRES"){
-            // First make a set of resids we need to search
-            std::unordered_set<int> resind;
-            for(auto at: res) resind.insert(sys->atoms[at].resindex);
+        } else if(node->nodes[0]->name == "BY"){
+            if(node->nodes[0]->token == "residue"){
+                // First make a set of resids we need to search
+                std::unordered_set<int> resind;
+                for(auto at: res) resind.insert(sys->atoms[at].resindex);
 
-            // Now cycle over all atoms in the starting subset if present (not current subset!!!)
-            if(starting_subset){
-                for(int at: *starting_subset) // over starting subset
-                    if(resind.count(sys->atoms[at].resindex)) result.push_back(at);
-            } else {
-                for(int at=0;at<Natoms;++at) // over all atoms
-                    if(resind.count(sys->atoms[at].resindex)) result.push_back(at);
-            }
-        }
+                // Now cycle over all atoms in the starting subset if present (not current subset!!!)
+                if(starting_subset){
+                    for(int at: *starting_subset) // over starting subset
+                        if(resind.count(sys->atoms[at].resindex)) result.push_back(at);
+                } else {
+                    for(int at=0;at<Natoms;++at) // over all atoms
+                        if(resind.count(sys->atoms[at].resindex)) result.push_back(at);
+                }
+
+            } else if(node->nodes[0]->token == "chain") {
+                // First make a set of chains we need to search
+                std::unordered_set<char> chains;
+                for(auto at: res) chains.insert(sys->atoms[at].chain);
+
+                // Now cycle over all atoms in the starting subset if present (not current subset!!!)
+                if(starting_subset){
+                    for(int at: *starting_subset) // over starting subset
+                        if(chains.count(sys->atoms[at].chain)) result.push_back(at);
+                } else {
+                    for(int at=0;at<Natoms;++at) // over all atoms
+                        if(chains.count(sys->atoms[at].chain)) result.push_back(at);
+                }
+
+            } else if(node->nodes[0]->token == "mol") {
+                if(!sys->force_field.ready) throw Pteros_error("Can't select by molecule: no topology!");
+
+                // set of mols we need to include
+                std::unordered_set<int> mols;
+
+                // go over res and add mol is we need it
+                for(auto at: res){
+                    // Cycle over all molecules in the system
+                    for(int j=0; j<sys->force_field.molecules.size(); ++j){ // Over molecules
+                        if(at>=sys->force_field.molecules[j](0) && at<=sys->force_field.molecules[j](1)){
+                            mols.insert(j);
+                            break;
+                        }
+                    }
+                }
+
+                // Now add all chosen molecules
+                for(int m: mols)
+                    for(int at=sys->force_field.molecules[m](0); at<=sys->force_field.molecules[m](1); ++at)
+                        result.push_back(at);
+
+                // Sort and restrict to starting subset (!) if needed
+                sort(result.begin(),result.end());
+                if(starting_subset)
+                    std::set_intersection(result.begin(),result.end(),
+                                          starting_subset->begin(),starting_subset->end(),
+                                          back_inserter(result));
+
+            } // mol
+        } //BY
     }
 
     else if(node->name == "ALL")
