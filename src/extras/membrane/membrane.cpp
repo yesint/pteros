@@ -268,7 +268,7 @@ void Membrane::compute_properties(float d, bool use_external_normal, Vector3f_co
             Lipid& lip = lipids[leaflets[l][i]];
 
             // Save local selection for this lipid
-            lip.local_sel = leaflets_sel[l](conn[i]);
+            lip.local_sel = leaflets_sel[l].select(conn[i]);
 
             if(lip.local_sel.size()==0){
                 log->warn("Empty locality of lipid {} in leaflet {}! Skipped.",i,l);
@@ -332,8 +332,8 @@ void Membrane::compute_properties(float d, bool use_external_normal, Vector3f_co
 
             // Create array of local points in local basis
             MatrixXf coord(3,lip.local_sel.size()+1);
-            Vector3f c0 = lip.mid_marker; // Coord of central point - the marker
-            coord.col(0) = Vector3f::Zero();
+            Vector3f c0 = lip.mid_marker; // Real coord of central point - the marker
+            coord.col(0) = Vector3f::Zero(); // Local coord of central point is zero
             for(int j=0; j<lip.local_sel.size(); ++j)
                 coord.col(j+1) = tr_inv * system->box(0).shortest_vector(c0,lip.local_sel.xyz(j));
 
