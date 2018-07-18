@@ -8,6 +8,3 @@ add_library(pteros_selection_parser STATIC
     peglib.h
     selection_parser.cpp
 )
-
-# Add path to molfile plugins directory to use VMD periodic table routines
-target_include_directories(pteros_selection_parser PRIVATE ${PROJECT_SOURCE_DIR}/thirdparty/molfile_plugins)

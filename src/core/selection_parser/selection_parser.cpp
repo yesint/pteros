@@ -36,7 +36,6 @@
 #include <unordered_set>
 #include <regex>
 #include <list>
-#include "periodic_table.h" // From VMD plugins dir
 
 using namespace std;
 using namespace pteros;
