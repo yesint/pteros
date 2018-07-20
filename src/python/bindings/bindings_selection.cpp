@@ -216,7 +216,7 @@ void make_bindings_Selection(py::module& m){
 
         // Geometry transforms
         .def("translate", &Selection::translate)
-        .def("translate_to", &Selection::translate_to)
+        .def("translate_to", &Selection::translate_to, "vec"_a, "mass_weighted"_a=false, "pbc"_a=noPBC, "pbc_atom"_a=-1)
         .def("rotate",&Selection::rotate)
 
         .def("wrap", &Selection::wrap, "pbc"_a=fullPBC)
