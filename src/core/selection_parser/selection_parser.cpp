@@ -110,7 +110,7 @@ Pteros_PEG_parser _parser(R"(
         STR                <- !('or'/'and') < [a-zA-Z0-9]+ >
 
         INT_KEYWORD_EXPR   <- INT_KEYWORD (RANGE / INTEGER)+
-        INT_KEYWORD        <- < 'index' / 'resindex' / 'resid' >
+        INT_KEYWORD        <- < 'resindex' / 'index' / 'resid' >
         RANGE              <- INTEGER ('-'/'to'/':') INTEGER
 
         WITHIN             <- 'within' FLOAT (PBC SELF / SELF PBC / PBC / SELF)? 'of' LOGICAL_OPERAND
@@ -172,8 +172,6 @@ void Selection_parser::optimize(std::shared_ptr<MyAst>& node){
         if(!node->is_coord_dependent){
             // Replace with float node
             node = std::make_shared<MyAst>("",0,0,"FLOAT", fmt::format("{}", get_numeric(node)(0)));
-        } else if(node->nodes.size() > 3) {
-
         }
     }
 
@@ -194,11 +192,10 @@ void Selection_parser::precompute(std::shared_ptr<MyAst>& node){
         && node->name!="BYRES") return;
 
     if(!node->is_coord_dependent){
-        node->nodes.clear();
-        auto ast = std::make_shared<MyAst>(*node,"PRE");
-        eval_node(ast, ast->precomputed);
+        auto ast = std::make_shared<MyAst>("",0,0,"PRE","");
+        eval_node(node, ast->precomputed);
         node = ast;
-    } else {
+    } else if(!node->nodes.empty()) {
         for(int i=0;i<node->nodes.size();++i) precompute(node->nodes[i]);
     }
 }
@@ -207,7 +204,8 @@ void Selection_parser::create_ast(string& sel_str, System* system){
     if (_parser.parse(sel_str.c_str(), tree)) {
         tree = peg::AstOptimizer(true,{"POINT","X","Y","Z"}).optimize(tree);
 
-        //cout << peg::ast_to_s(tree);
+        //cout << sel_str << endl;
+        //cout << peg::ast_to_s(tree) << endl;
 
         set_coord_dependence(tree);
     } else {
@@ -227,7 +225,7 @@ void Selection_parser::create_ast(string& sel_str, System* system){
     // Optimize tree
     optimize(tree);
 
-    //cout << peg::ast_to_s(tree);
+    //cout << peg::ast_to_s(tree) << endl;
 
     // proceed with optimizing pure nodes to precomputed if needed
     if(has_coord) precompute(tree);
@@ -392,8 +390,8 @@ void Selection_parser::eval_node(const std::shared_ptr<MyAst> &node, std::vector
 
         if(keyword == "index") {
             // Cycle over children
-            for(int i=0;i<Nchildren;++i){
-                if(node->nodes[i]->name == "integer") {
+            for(int i=1;i<Nchildren;++i){
+                if(node->nodes[i]->name == "INTEGER") {
                     int k = stoi(node->nodes[i]->token);
                     // We have to check the range here
                     if(k>=0 && k<Natoms)
