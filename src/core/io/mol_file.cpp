@@ -35,9 +35,13 @@
 #include "xtc_file.h"
 #include "tng_file.h"
 #include "mol2_file.h"
-#include "pdbqt_file.h"
 #include "xyz_file.h"
 #include "tpr_file.h"
+
+#ifdef USE_OPENBABEL
+#include "pdbqt_file.h"
+#endif
+
 
 using namespace std;
 using namespace pteros;
@@ -141,7 +145,9 @@ unique_ptr<Mol_file> Mol_file::recognize(string fname){
     else if(ext=="mol2")    return unique_ptr<Mol_file>(new MOL2_file(fname));
     else if(ext=="xyz")     return unique_ptr<Mol_file>(new XYZ_file(fname));
     else if(ext=="tpr")     return unique_ptr<Mol_file>(new TPR_file(fname));
+#ifdef USE_OPENBABEL
     else if(ext=="pdbqt")   return unique_ptr<Mol_file>(new PDBQT_file(fname));
+#endif
     else throw Pteros_error("File extension '{}' not recognized!",ext);
 }
 
