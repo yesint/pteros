@@ -30,6 +30,7 @@
 
 #include "spdlog/spdlog.h"
 #include "spdlog/fmt/ostr.h"
+#include "spdlog/sinks/stdout_sinks.h"
 #include <iostream>
 
 namespace pteros {
