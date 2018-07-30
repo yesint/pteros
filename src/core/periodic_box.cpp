@@ -307,7 +307,7 @@ std::string Periodic_box::to_pdb_box() const {
   Eigen::Vector3f vectors, angles;
   to_vectors_angles(vectors,angles);
 
-  sprintf(ch,"REMARK    THIS IS A SIMULATION BOX\n");
+  //sprintf(ch,"REMARK    THIS IS A SIMULATION BOX\n");
 
   //if (ePBC != epbcSCREW) {
   sprintf(ch,"CRYST1%9.3f%9.3f%9.3f%7.2f%7.2f%7.2f %-11s%4d\n",
