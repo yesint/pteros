@@ -27,9 +27,9 @@ void help(){
 int main(int argc, char* argv[]){
     try{
         cout << "===================================" << endl;
-        cout << "==        pteros_solvent         ==" << endl;
+        cout << "==        pteros_solvate         ==" << endl;
         cout << "===================================" << endl;
-        cout << "==  (C) Semen Yesylevskyy, 2016  ==" << endl;
+        cout << "==  (C) Semen Yesylevskyy, 2018  ==" << endl;
         cout << "===================================" << endl;
 
         LOG()->set_pattern("(%l)\t%v");
@@ -80,6 +80,7 @@ int main(int argc, char* argv[]){
         {
             auto all = solvent.select_all();
             auto m = solvent.box(0).get_matrix();
+            LOG()->info("Distributing solvent boxes...");
             solvent.distribute(all,nbox,m);
         }
 
@@ -116,14 +117,11 @@ int main(int argc, char* argv[]){
         int last_solute_ind = solute.num_atoms()-1;
 
         // append good solvent to solute
-        solute.append(solvent("beta > -1000"));
+        solute.append(solvent("beta > -1000"));        
 
         // select overlapping water
         float d = opt("d","0.25").as_float();
-        string s = fmt::format("by residue (index {}-{} and within {} pbc of index 0-{})",
-                               last_solute_ind+1,
-                               solute.num_atoms()-1,
-                               d, last_solute_ind);
+        string s = fmt::format("by residue within {} pbc noself of index 0-{}", d, last_solute_ind);
 
         Selection sel(solute, s);
 

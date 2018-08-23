@@ -24,9 +24,7 @@
  *
 */
 
-
-#ifndef PERIODIC_BOX_H
-#define PERIODIC_BOX_H
+#pragma once
 
 #include <string>
 #include <Eigen/Core>
@@ -170,6 +168,4 @@ private:
 };
 
 }
-
-#endif /* ATOM_H */
 

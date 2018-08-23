@@ -25,8 +25,7 @@
 */
 
 
-#ifndef SYSTEM_H
-#define SYSTEM_H
+#pragma once
 
 #include <string>
 #include <vector>
@@ -475,5 +474,5 @@ Eigen::Vector2f get_energy_for_list(const std::vector<Eigen::Vector2i>& pairs,
 
 
 }
-#endif /* SYSTEM_H */
+
 

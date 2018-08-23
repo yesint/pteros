@@ -889,20 +889,41 @@ void System::remove(Selection &sel)
 void System::distribute(const Selection sel, Vector3i_const_ref ncopies, Matrix3f_const_ref shift)
 {
     if(sel.get_system()!=this) throw Pteros_error("distribute needs selection from the same system!");
-    Selection tmp;
+
     Vector3f v;
-    int n = sel.resindex(sel.size()-1)+1;
-    for(int x=0; x<ncopies(0); ++x)
-        for(int y=0; y<ncopies(1); ++y)
+    int last = num_atoms();
+    int nc = 0;
+
+    // How many atoms we are going to add
+    int Nadd = (ncopies.prod()-1)*sel.size();
+
+    // Allocate memory
+    atoms.reserve(num_atoms()+Nadd);
+    for(int fr=0; fr<num_frames(); ++fr){
+        traj[fr].coord.reserve(atoms.size());
+    }
+
+    for(int x=0; x<ncopies(0); ++x){
+        for(int y=0; y<ncopies(1); ++y){
             for(int z=0; z<ncopies(2); ++z){
                 if(x>0 || y>0 || z>0){
-                    tmp = append(sel);
+                    // current shift
                     v = shift.col(0)*x + shift.col(1)*y + shift.col(2)*z;
-                    tmp.translate(v);
-                    // Increment all resindexes of added selection
-                    for(int i=0;i<tmp.size();++i) tmp.resindex(i) += n;
+
+                    for(int i=0;i<sel.size();++i){
+                        atoms.push_back(sel.atom(i));
+                    }
+                    for(int fr=0; fr<num_frames(); ++fr){
+                        for(int i=0;i<sel.size();++i) traj[fr].coord.push_back(sel.xyz(i,fr)+v);
+                    }
+
+                    ++nc;
                 }
             }
+        }
+    }
+    assign_resindex();
+    //for(int i=0;i<num_atoms();++i) atoms[i].resid = atoms[i].resindex;
 }
 
 

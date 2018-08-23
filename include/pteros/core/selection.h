@@ -25,11 +25,9 @@
 */
 
 
-#ifndef SELECTION_H
-#define SELECTION_H
+#pragma once
 
 #include <iostream>
-
 #include <string>
 #include <memory>
 #include <map>
@@ -46,7 +44,7 @@ namespace pteros {
 // Forward declaration of friend classes
 class System;
 class Selection_parser;
-//class Atom_proxy;
+
 
 /** @brief Selection class.
 *
@@ -989,5 +987,5 @@ Eigen::Vector2f non_bond_energy(const Selection& sel1,
                                        bool pbc = true);
 
 } // namespace pteros
-#endif /* SELECTION_H */
+
 

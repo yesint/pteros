@@ -24,9 +24,7 @@
  *
 */
 
-
-#ifndef PERROR_H
-#define PERROR_H
+#pragma once
 
 #include "spdlog/fmt/fmt.h"
 
@@ -43,5 +41,5 @@ public:
 };
 
 }
-#endif
+
 

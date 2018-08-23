@@ -644,8 +644,15 @@ Eigen::Vector3f Selection_parser::get_vector(const std::shared_ptr<MyAst> &node)
         if(node->nodes[1]->name == "PBC" && (node->nodes[1]->token == "pbc" || node->nodes[1]->token == "periodic")) pbc = fullPBC;
 
         Selection sel(*sys);
+        // We have to ignore current subset here!
+        // Reset subset
+        auto old_subset = current_subset;
+        current_subset = nullptr;
+
         eval_node(node->nodes.back(), sel._index);
         sel.set_frame(frame);
+
+        current_subset = old_subset;
 
         return sel.center(with_mass,pbc);
     }
