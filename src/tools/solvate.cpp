@@ -6,22 +6,24 @@ using namespace std;
 using namespace pteros;
 using namespace Eigen;
 
-void help(){
-    cout << "Usage:\n"
-            "\t-solute <file>  - structure file with solute\n"
-            "\t-solvent <file> - structure file with the periodic box of solvent\n"
-            "\t\tDefaults to spc216.gro from Gromacs dir if Gromacs is installed\n"
-            "\t\totherwise no default.\n"
-            "\t-d <float>, default: 0.25 - minimal distance from solute to solvent in nm\n"
-            "\t\tmeasured between the centers of atoms.\n"
-            "\t-sel <string>, optional - custom selection of atoms to remove.\n"
-            "\t\tExecuted after cutoff=d was applied.\n"
-            "\t\tUseful for removing water from within lipid bilayer or protein cavities.\n"
-            "\t\t**NOTE**: Always use 'pbc' in within selection to get meaningful result!\n"
-            "\t\t**NOTE**: This selection is used 'as is', so be careful not to remove\n"
-            "\t\tyour solute or doing other crazy things!\n"
-            "\t-o <file>, default 'solvated.pdb' - output file."
-         << endl;
+string help(){
+    return
+R"(Usage:
+-solute <file>  - structure file with solute
+-solvent <file> - structure file with the box of solvent
+    Defaults to spc216.gro from Gromacs dir if Gromacs is installed
+    otherwise no default.
+    Only rectangular solvent boxes are supported.
+-d <float>, default: 0.25 - minimal distance from solute to solvent in nm
+    measured between the centers of atoms.
+-sel <string>, optional - custom selection of atoms to remove.
+    Executed after cutoff=d was applied.
+    Useful for removing water from within lipid bilayer or protein cavities.
+    **NOTE**: Always use 'pbc' in within selection to get meaningful result!
+    **NOTE**: This selection is used 'as is', so be careful not to remove
+    your solute or doing other crazy things!
+-o <file>, default 'solvated.pdb' - output file.
+)";
 }
 
 int main(int argc, char* argv[]){
@@ -38,7 +40,7 @@ int main(int argc, char* argv[]){
         parse_command_line(argc,argv,opt);
 
         if(opt.has("help")){
-            help();
+            cout << help();
             return 0;
         }
 
