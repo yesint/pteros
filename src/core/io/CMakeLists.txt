@@ -31,8 +31,6 @@ endif()
 
 
 if(${OPENBABEL2_FOUND})
-    include_directories(${OPENBABEL2_INCLUDE_DIR})
-    link_libraries(${OPENBABEL2_LIBRARIES})
     set(BabelFiles
         babel_wrapper.h
         babel_wrapper.cpp

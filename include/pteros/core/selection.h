@@ -38,6 +38,10 @@
 #include "pteros/core/system.h"
 #include "pteros/core/typedefs.h"
 
+#ifdef USE_OPENBABEL
+#include <openbabel/mol.h>
+#endif
+
 
 namespace pteros {
 
@@ -715,7 +719,7 @@ class Selection {
 
     /// Returns a string formatted as Gromacs ndx file containing the current selection with given name.
     /// \warning Indexes in Gromacs ndx are starting from 1! Thus one is added to all pteros indexes!
-    std::string to_gromacs_ndx(std::string name);
+    std::string to_gromacs_ndx(std::string name) const;
 
     /// Copy coordinates from one selection to the other using given frames.
     /// \warning Size of selections should be the same.
@@ -727,7 +731,18 @@ class Selection {
 
     /// Finds local index in selection of provided global index
     /// Returns -1 if not found
-    int find_index(int global_index);
+    int find_index(int global_index) const;
+
+    /// Get all bonds within this selection returned as local selection indexes in form 1->[2,3,..].
+    /// If d>0 it is used as cutoff
+    /// if d==0 the bonds from topology are used and periodicity is ignored
+    std::vector<std::vector<int>> get_local_bonds(float d, bool periodic=true) const;
+
+#ifdef USE_OPENBABEL
+    // Convert selection to open babel molecule
+    void to_obmol(OpenBabel::OBMol& mol, bool babel_bonds = true) const;
+#endif
+
     /// @}
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -942,9 +957,9 @@ protected:
     // Holds an instance of selection parser
     std::unique_ptr<Selection_parser> parser;
     void allocate_parser();
-    void sort_and_remove_duplicates();
-    void get_local_bonds_from_topology(std::vector<std::vector<int>>& con);
+    void sort_and_remove_duplicates();    
     void process_pbc_atom(int& a) const;
+    void get_local_bonds_from_topology(std::vector<std::vector<int>>& con) const;
 };
 
 //-----------------------------------------------------------------------

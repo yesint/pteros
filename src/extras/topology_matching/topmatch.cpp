@@ -6,12 +6,15 @@
 #include <queue>
 #include <numeric>
 
+#include "openbabel/query.h"
+#include <openbabel/isomorphism.h>
+
 using namespace std;
 using namespace pteros;
 using namespace Eigen;
 
 
-
+/*
 void Mol_node::print(int tab){
 
     string s = ""; //for(int i=0;i<tab;++i) s+=".";
@@ -19,8 +22,8 @@ void Mol_node::print(int tab){
     cout << s << ind+1 << " ";
     //cout << element << " ";
     int i=0;
-    for(auto& var: children){
-        if(children.size()>1) cout << s << "var " << i << "[" << endl << s;
+    for(auto& var: variants){
+        if(variants.size()>1) cout << s << "var " << i << "[" << endl << s;
         if(!var.empty()){
             cout << "(";
             for(auto c: var){
@@ -29,20 +32,12 @@ void Mol_node::print(int tab){
             cout << s << ")";
         }
         if(tab==0) cout << endl;
-        if(children.size()>1) cout << endl << s << "] var " << i << endl;
+        if(variants.size()>1) cout << endl << s << "] var " << i << endl;
         ++i;
     }
-
-
-
 }
+*/
 
-void Mol_node::get_ind_vector(vector<int> &v){
-    /*
-    v.push_back(ind);
-    for(auto c: children[0]) c.get_ind_vector(v);
-    */
-}
 
 Topmatch::Topmatch(const Selection &sel) {
     set_source(sel);
@@ -60,157 +55,122 @@ void Topmatch::set_source(const Selection &sel)
         con[b[1]].push_back(b[0]);
     }
 
-    // Sort each entry by number of bonds
+    // Sort each entry by index
     for(auto& el: con){
         //sort(el.begin(),el.end(), [this](int a,int b){return con[a].size()<con[b].size();});
         sort(el.begin(),el.end());
     }
 
     // Create root
-    root = Mol_node(-1,0,sel.element_number(0));
-    auto used = make_shared<std::set<int>>();
-    build_tree(root,used);
+    trees.emplace_back(0);
 
-    root.print();
 
-    // Create separate trees from one multi-variant tree
-    vector<Mol_node> trees;
-}
+    todo.push_front({0,0});
 
-bool reduce_branches(Mol_node& node){
-    if(node.children.size()<=1) return true;
+    while(!todo.empty()){
+        auto item = todo.front();
+        todo.pop_front();
+        build_tree(item(0),item(1));
+    }
 
-    auto ref = node.children.front();
-    for(auto it=++node.children.begin(); it!=node.children.end(); it++){
 
+    cout << "# trees = " << trees.size() << endl;
+    for(auto& t: trees){
+        //if(t.tree.size()==p_sel->size()){
+        cout << "--------------------" << endl;
+        t.print();
+        //}
     }
 }
 
 
-
-bool Topmatch::match(const Selection &sel){
-    /*
-    p_sel = const_cast<Selection*>(&sel);
-
-    vector<Vector2i> bonds;
-    search_contacts(0.18,sel,bonds,false,false); // local indexes
-
-    m_con.clear();
-    m_con.resize(sel.size());
-    for(auto& b: bonds){
-        m_con[b[0]].push_back(b[1]);
-        m_con[b[1]].push_back(b[0]);
-    }
-
-    // Sort each entry by number of bonds
-    for(auto& el: m_con){
-        sort(el.begin(),el.end(), [this](int a,int b){return m_con[a].size()<m_con[b].size();});
-    }
-
-    for(int i=0; i<sel.size(); ++i){
-        used.clear();
-        m_root = Mol_node(-1,i,sel.element_number(i));
-        if(build_match(m_root,root)) return true;
-    }
-
-    // If we are here no match is found
-    return false;
-    */
-}
-
-
-int Topmatch::match_self(){
-
-}
-
-
-vector<int> Topmatch::get_mapping(){
-    vector<int> ind1, ind2, res;
-
-    root.get_ind_vector(ind1);
-    m_root.get_ind_vector(ind2);
-
-    // Get sort permutation for ind1
-    vector<std::size_t> per(ind1.size());
-    iota(per.begin(),per.end(), 0);
-    sort(per.begin(),per.end(), [&ind1](int i,int j){return ind1[i]<ind1[j];});
-    // Apply permutation to ind2 in place
-    res.resize(ind1.size());
-    for(int i=0;i<ind1.size();++i){
-        res[i] = ind2[per[i]];
-    }
-
-    return(res);
-}
-
-void Topmatch::build_tree(Mol_node &node, std::shared_ptr<std::set<int>> &used){
-    used->insert(node.ind);
+void Topmatch::build_tree(int tree_ind, int cur){    
 
     // Find valid children
     vector<int> valid;
-    for(int b: con[node.ind]){
-        if(node.parent==b) continue;
-        if(used->count(b)) continue;
+    for(int b: con[cur]){
+        if(trees[tree_ind][cur].parent==b) continue;
+        if(trees[tree_ind].has(b)) continue;
         valid.push_back(b);
     }
 
-    cout << node.ind+1 << ": "; for(auto a: valid) cout << a+1 << " "; cout<<" ; ";
-    for(auto a: *used) cout << a+1 << " "; cout<<endl;
+//    cout << tree_ind << "|" << cur+1 << endl;
+/*
+        for(int b: valid){
+            trees[tree_ind].add(cur,b);
+        }
+        for(int b: valid){
+            build_tree(tree_ind,b);
+        }
+ */
+
 
     if(valid.size()==1){
-        auto var = node.add_variant();
-        auto el = node.add_child(valid[0],p_sel->element_number(valid[0]),var);
-        build_tree(*el,used); // same used is passed, no copy is made
+        trees[tree_ind].add(cur,valid[0]);
+        todo.push_front({tree_ind,valid[0]});
     } else if(valid.size()>1){
 
-        // Generate all permutations of valid
-        do {            
-            // Create new copy of used and pass it
-            cout << node.ind+1 << " permutation " ; for(auto a: valid) cout << a+1 << " "; cout<<endl;
+        auto old = trees[tree_ind];
 
-            auto used_copy = make_shared<set<int>>();
-            *used_copy = *used;
-
-            auto var = node.add_variant();
-            for(int b: valid){
-                cout << node.ind+1 << " branch " << b+1 << endl;
-
-                auto el = node.add_child(b,p_sel->element_number(b),var);
-                build_tree(*el,used_copy);
-
-                //*used = *used_copy;
+        int nperm=0;
+        do {
+            int N;
+            if(nperm>0){
+                trees.push_back(old);
+                N = trees.size()-1;
+            } else {
+                N = tree_ind;
             }
+
+            for(int b: valid){
+                trees[N].add(cur,b);
+                todo.push_front({N,b});
+            }
+
+            // All todo items already assigned to tree_ind have to be copied to
+            // all clones
+            if(nperm>0)
+                for(auto item: todo){
+                    if(item(0)==tree_ind) todo.push_front({N,item(1)});
+                }
+
+            ++nperm;
         } while( next_permutation(valid.begin(),valid.end()) );
-
     }
 }
 
-bool Topmatch::build_match(Mol_node &node, const Mol_node &ref){
-    /*
-    if(node.element != ref.element) return false;
-    if(m_con[node.ind].size() != con[ref.ind].size()) return false;
-
-    used.insert(node.ind);
-
-    for(int b: m_con[node.ind]){
-        if(node.parent==b) continue;
-        if(used.count(b)) continue;
-
-        auto el = node.add_child(b,p_sel->element_number(b));
-
-        bool ok;
-        for(auto& r: ref.children){
-            ok = build_match(*el,r);
-            if(ok) break;
+void Tree::print(int cur, string pad)
+{
+    if(cur<0) cur = root_ind;
+    cout << pad << cur+1 << " ";
+    if(tree[cur].children.size()>0){
+        //cout << "{" << endl;
+        cout << endl;
+        for(int i=0;i<tree[cur].children.size();++i){
+            print(tree[cur].children[i],pad+" ");
         }
-        if(!ok){
-            used.erase(node.ind);
-            node.children.clear();
-            return false;
-        }
+        //cout << pad << "}" << endl;
+    } else {
+        cout << endl;
     }
-
-    return true; // All children matched
-    */
 }
 
+void pteros::use_babel(const Selection &sel)
+{
+    using namespace OpenBabel;
+    OBMol mol;
+
+    sel.to_obmol(mol);
+
+    //==================================
+    OBQuery* query;
+    query = CompileMoleculeQuery(&mol);
+
+    std::vector<OBIsomorphismMapper::Mapping> aut;
+
+    FindAutomorphisms(&mol,aut);
+
+    cout << aut.size() << endl;
+
+    delete query;
+}

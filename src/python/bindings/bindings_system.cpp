@@ -125,7 +125,7 @@ void make_bindings_System(py::module& m){
         .def("angle", &System::angle, "i"_a, "j"_a, "k"_a, "fr"_a, "pbc"_a=fullPBC)
         .def("dihedral", &System::dihedral, "i"_a, "j"_a, "k"_a, "l"_a, "fr"_a, "pbc"_a=fullPBC)
 
-         // Until
+         // Util
         .def("clear", &System::clear)
         .def("force_field_ready", &System::force_field_ready)
         .def("assign_resindex", &System::assign_resindex, "start"_a=0)

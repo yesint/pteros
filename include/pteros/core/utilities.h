@@ -25,8 +25,7 @@
 */
 
 
-#ifndef UTILITIES_H
-#define UTILITIES_H
+#pragma once
 
 #include "pteros/core/typedefs.h"
 #include <vector>
@@ -80,7 +79,7 @@ namespace pteros {
         bool normalized;
     };
 
-}
 
-#endif
+} // namespace
+
 

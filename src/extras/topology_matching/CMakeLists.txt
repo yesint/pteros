@@ -1,8 +1,3 @@
-if(${OPENBABEL2_FOUND})
-    include_directories(${OPENBABEL2_INCLUDE_DIR})
-    link_libraries(${OPENBABEL2_LIBRARIES})
-endif()
-
 add_library(pteros_topmatch SHARED
     topmatch.cpp
     ${PROJECT_SOURCE_DIR}/include/pteros/extras/topmatch.h

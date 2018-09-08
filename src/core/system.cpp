@@ -831,7 +831,7 @@ void System::rearrange(const std::vector<string> &sel_strings){
 void System::rearrange(const std::vector<Selection> &sel_vec){
     // Sanity check
     for(auto &s: sel_vec){
-        if(s.size()==0) LOG()->warn("Empty selection in rearrange will be ignored!");
+        if(s.size()==0) LOG()->warn("Empty selection '{}' in rearrange will be ignored!", s.get_text());
         if(s.get_system()!=this) throw Pteros_error("Rearrange needs selections from the same system!");
     }
     // Overlap check

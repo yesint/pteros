@@ -29,7 +29,7 @@ ENDIF()
 SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -march=native")
 
 # Enable STL debugging in debug mode
-SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_GLIBCXX_DEBUG")
+#SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_GLIBCXX_DEBUG")
 
 # Enable C++11 and C99 everywhere
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
@@ -77,8 +77,9 @@ if(WITH_OPENBABEL)
     set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules)
     find_package(OpenBabel2 QUIET)
     if(${OPENBABEL2_FOUND})
-        add_definitions(-DUSE_OPENBABEL)
-        # includes and links are added in subdirectories where needed        
+        add_definitions(-DUSE_OPENBABEL)        
+        include_directories(${OPENBABEL2_INCLUDE_DIR})
+        link_libraries(${OPENBABEL2_LIBRARIES})
     else()
         message("-- OpenBabel is not found!")
     endif()

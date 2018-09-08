@@ -27,6 +27,7 @@
 
 #include "babel_wrapper.h"
 #include "pteros/core/pteros_error.h"
+#include "pteros/core/babel_interface.h"
 #include "openbabel/atom.h"
 #include "openbabel/residue.h"
 #include "openbabel/bondtyper.h"
@@ -114,69 +115,9 @@ bool Babel_wrapper::do_read(System *sys, Frame *frame, const Mol_file_content &w
 
 void Babel_wrapper::do_write(const Selection &sel, const Mol_file_content &what)
 {
-    mol.Clear();
-
-    auto op = new OpenBabel::OBPairData();
-    op->SetAttribute("PartialCharges");
-    op->SetValue("USER_CHARGES");
-    mol.SetData(op);
-
-
-    if(what.atoms()){
-        // map of residues
-        map<int,OpenBabel::OBResidue*> reslist;
-
-        mol.BeginModify();        
-
-        for(int i=0;i<sel.size();++i){
-            auto& at = sel.atom(i);
-
-            // Create new atom in this mol
-            auto oba = mol.NewAtom();
-
-            oba->SetAtomicNum(at.element_number);
-            oba->SetPartialCharge(at.charge);
-
-            if(what.coord()) oba->SetVector(sel.x(i),sel.y(i),sel.z(i));
-
-
-            // Create new residue if needed
-            if(reslist.count(at.resid)==0){                
-                OpenBabel::OBResidue* obr = mol.NewResidue();
-                //obr->SetName(at.resname);
-                //obr->SetName("AAA");
-                obr->SetNum(at.resid);
-                obr->SetChain(at.chain);                
-                reslist[at.resid] = obr;
-            }
-
-            reslist[at.resid]->AddAtom(oba);
-            reslist[at.resid]->SetAtomID(oba,at.name);
-
-
-        }
-
-        if(need_bonds()){            
-            mol.ConnectTheDots();
-            // Guess bond orders and aromaticity
-            mol.PerceiveBondOrders();
-        }
-
-
-        mol.EndModify();
+    if(what.atoms() && what.coord()){
+        sel.to_obmol(mol);
     }
-
-    // Need to avoid recomputing partial charges on output
-    mol.SetPartialChargesPerceived();
-
-    /*
-    int i=0;
-    FOR_ATOMS_OF_MOL(b, mol)
-    {                
-        cout << b->GetPartialCharge() << " ";
-        ++i;
-    }
-    */
 
     conv.WriteFile(&mol,fname);
 }

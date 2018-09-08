@@ -1301,7 +1301,7 @@ void Selection::flatten()
     sel_text = "";
 }
 
-string Selection::to_gromacs_ndx(string name)
+string Selection::to_gromacs_ndx(string name) const
 {
     stringstream s;
     s << "[ " << name << " ]" << endl;
@@ -1320,7 +1320,7 @@ string Selection::to_gromacs_ndx(string name)
     return s.str();
 }
 
-int Selection::find_index(int global_index)
+int Selection::find_index(int global_index) const
 {
     auto res = find(_index.begin(),_index.end(),global_index);
     if(res!=_index.end())
@@ -1330,6 +1330,84 @@ int Selection::find_index(int global_index)
 }
 
 
+std::vector<std::vector<int>> Selection::get_local_bonds(float d, bool periodic) const
+{
+    vector<vector<int>> con;
+
+    if(d==0){
+        // Use bonds from topology
+        get_local_bonds_from_topology(con);
+    } else {
+        // Find all connectivity pairs for given cut-off
+        vector<Vector2i> pairs;
+        search_contacts(d,*this,pairs,false,periodic);
+
+        // Form a connectivity structure in the form con[i]->1,2,5...
+        con.resize(size());
+        for(int i=0; i<pairs.size(); ++i){
+            con[pairs[i](0)].push_back(pairs[i](1));
+            con[pairs[i](1)].push_back(pairs[i](0));
+        }
+    }
+
+    return con;
+}
+
+#ifdef USE_OPENBABEL
+void Selection::to_obmol(OpenBabel::OBMol &mol, bool babel_bonds) const
+{
+    mol.Clear();
+
+    auto op = new OpenBabel::OBPairData();
+    op->SetAttribute("PartialCharges");
+    op->SetValue("USER_CHARGES");
+    mol.SetData(op);
+    // map of residues
+    map<int,OpenBabel::OBResidue*> reslist;
+
+    mol.BeginModify();
+
+    for(int i=0;i<size();++i){
+        auto& at = atom(i);
+
+        // Create new atom in this mol
+        auto oba = mol.NewAtom();
+
+        oba->SetAtomicNum(at.element_number);
+        oba->SetPartialCharge(at.charge);
+        oba->SetVector(x(i),y(i),z(i));
+
+        // Create new residue if needed
+        if(reslist.count(at.resid)==0){
+            OpenBabel::OBResidue* obr = mol.NewResidue();
+            obr->SetNum(at.resid);
+            obr->SetChain(at.chain);
+            reslist[at.resid] = obr;
+        }
+
+        reslist[at.resid]->AddAtom(oba);
+        reslist[at.resid]->SetAtomID(oba,at.name);
+    }
+
+    if(babel_bonds){
+        mol.ConnectTheDots();
+        // Guess bond orders and aromaticity
+        mol.PerceiveBondOrders();
+    } else {
+        // Get bonds from pteros
+        auto con = get_local_bonds(0.18,false); // Non-periodic by default
+        // Set bonds manually
+        for(int i=0; i<con.size(); ++i){
+            for(int j=0; j<con[i].size(); ++j) mol.AddBond(i,con[i][j],1);
+        }
+    }
+
+    mol.EndModify();
+
+    // Need to avoid recomputing partial charges on output
+    mol.SetPartialChargesPerceived();
+}
+#endif
 
 void Selection::each_residue(std::vector<Selection>& sel) const {            
     sel.clear();
@@ -1418,27 +1496,9 @@ MatrixXf Selection::atom_traj(int ind, int b, int e, bool make_row_major_matrix)
 }
 
 void Selection::split_by_connectivity(float d, std::vector<Selection> &res, bool periodic) {
-
-    vector<vector<int>> con(size());
     res.clear();
 
-    if(d==0){
-        // Use bonds from topology
-        if(!system->force_field.ready) throw Pteros_error("Can't split by topology: no topology!");
-        if(system->force_field.bonds.size()==0) throw Pteros_error("Can't split by topology: no bonds in topology!");
-
-        get_local_bonds_from_topology(con);
-    } else {
-        // Find all connectivity pairs for given cut-off
-        vector<Vector2i> pairs;
-        search_contacts(d,*this,pairs,false,periodic);
-
-        // Form a connectivity structure in the form con[i]->1,2,5...
-        for(int i=0; i<pairs.size(); ++i){
-            con[pairs[i](0)].push_back(pairs[i](1));
-            con[pairs[i](1)].push_back(pairs[i](0));
-        }
-    }
+    vector<vector<int>> con = get_local_bonds(d,periodic);
 
     // Mask of used atoms
     VectorXi used(size());
@@ -1721,24 +1781,7 @@ int Selection::unwrap_bonds(float d, Array3i_const_ref pbc, int pbc_atom){
     int Nparts = 1;
 
     // a connectivity structure in the form con[i]->1,2,5...
-    vector<vector<int> > con(size());
-
-    if(d==0){
-        // Use bonds from topology
-        if(!system->force_field.ready) throw Pteros_error("Can't unwrap by topology: no topology!");
-        if(system->force_field.bonds.size()==0) throw Pteros_error("Can't unwrap by topology: no bonds in topology!");
-
-        get_local_bonds_from_topology(con);
-    } else {
-        // Find all connectivity pairs for given cut-off
-        vector<Vector2i> pairs;
-        search_contacts(d,*this,pairs,false,true); // Periodic by definition
-
-        for(int i=0; i<pairs.size(); ++i){
-            con[pairs[i](0)].push_back(pairs[i](1));
-            con[pairs[i](1)].push_back(pairs[i](0));
-        }
-    }
+    vector<vector<int>> con = get_local_bonds(d,true); // periodic by definition
 
     // Mask of used atoms
     VectorXi used(size());
@@ -1978,21 +2021,27 @@ float Selection::sasa(float probe_r, vector<float> *area_per_atom, int n_sphere_
 }
 
 
-void Selection::get_local_bonds_from_topology(vector<vector<int>>& con){
+void Selection::get_local_bonds_from_topology(vector<vector<int>>& con) const {
+    if(!system->force_field.ready) throw Pteros_error("No topology!");
+    if(system->force_field.bonds.size()==0) throw Pteros_error("No bonds in topology!");
+
+    con.clear();
+    con.resize(size());
+
     int bind = index(0);
     int eind = index(size()-1);
     int a1,a2;
     auto bit = std::begin(_index);
     auto cur_b = bit;
     auto eit = std::end(_index);
-    vector<int>::iterator it1,it2;
+
     for(int i=0;i<system->force_field.bonds.size();++i){
         a1 = system->force_field.bonds[i](0);
         a2 = system->force_field.bonds[i](1);
         if(a1>=bind && a1<=eind && a2>=bind && a2<=eind){
-            it1 = std::find(cur_b,eit,a1);
+            auto it1 = std::find(cur_b,eit,a1);
             cur_b = it1;
-            it2 = std::find(cur_b,eit,a2);
+            auto it2 = std::find(cur_b,eit,a2);
             con[it1-bit].push_back(it2-bit);
             con[it2-bit].push_back(it1-bit);
         }

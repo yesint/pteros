@@ -173,50 +173,8 @@ int main(int argc, char** argv)
     return 1;
 */
     try{
-        System s("/home/semen/work/current/Projects/Albumin/SqAde/md-random-from-eq/after_eq.gro");
-        //s().write("/home/semen/work/current/Projects/Albumin/SqAde/dock-traj/a.pdbqt",0,0);
-
-        std::clock_t start;
-        double duration;
-
-        Selection sel(s,fmt::format("element N"));
-        cout << sel.size() << endl;
-        return 1;
 
 
-
-        start = std::clock();
-
-        for(int i=1;i<570;++i){
-            Selection sel(s,fmt::format("name CA CB"));
-        }
-
-        duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
-        cout << "Execution time: " << duration << endl;
-
-        //----------------------
-
-        start = std::clock();
-
-        for(int i=1;i<570;++i){
-            Selection sel(s,fmt::format("resid 1 2 5 7-10 12"));
-        }
-
-        duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
-        cout << "Execution time: " << duration << endl;
-
-        //----------------------
-
-        start = std::clock();
-
-        for(int i=1;i<570;++i){
-            Selection sel(s,fmt::format("dist point 0 0 0 > 0"));
-        }
-
-        duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
-        cout << "Execution time: " << duration << endl;
-
-        /*
         System src("/home/semen/work/current/Projects/Ache/b.pdb");
         System target("/home/semen/work/current/Projects/Ache/2.pdb");
 
@@ -224,13 +182,9 @@ int main(int argc, char** argv)
         Selection target_sel(target,"all");
 
 
-        Topmatch t(src_sel);
-        //t.match(target_sel);
-        //for(auto a: t.get_mapping()) cout << a << endl;
+        use_babel(src_sel);
 
-        //int n = t.match_self();
-        //cout << "Symm: "<< n << endl;
-                */
+        //Topmatch t(src_sel);
 
 
     } catch(const Pteros_error& e){
