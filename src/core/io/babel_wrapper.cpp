@@ -27,7 +27,6 @@
 
 #include "babel_wrapper.h"
 #include "pteros/core/pteros_error.h"
-#include "pteros/core/babel_interface.h"
 #include "openbabel/atom.h"
 #include "openbabel/residue.h"
 #include "openbabel/bondtyper.h"

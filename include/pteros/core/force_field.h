@@ -78,7 +78,7 @@ public:
     float rcoulomb, epsilon_r, epsilon_rf, rcoulomb_switch, rvdw_switch, rvdw;
     std::string coulomb_type, coulomb_modifier, vdw_type, vdw_modifier;
 
-    /// Topology-related infromation
+    /// Bonds
     std::vector<Eigen::Vector2i> bonds;
 
     // Molecules

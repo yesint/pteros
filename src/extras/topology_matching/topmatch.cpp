@@ -8,6 +8,7 @@
 
 #include "openbabel/query.h"
 #include <openbabel/isomorphism.h>
+#include <openbabel/obconversion.h>
 
 using namespace std;
 using namespace pteros;
@@ -158,19 +159,46 @@ void Tree::print(int cur, string pad)
 void pteros::use_babel(const Selection &sel)
 {
     using namespace OpenBabel;
-    OBMol mol;
 
+    OBMol mol;
     sel.to_obmol(mol);
 
-    //==================================
-    OBQuery* query;
-    query = CompileMoleculeQuery(&mol);
+    //OBQuery* query;
+    //query = CompileMoleculeQuery(&mol);
+
+    //OpenBabel::OBConversion conv;
+    //conv.ReadFile(&mol,"/home/semen/work/current/Projects/Ache/1.pdb");
+
 
     std::vector<OBIsomorphismMapper::Mapping> aut;
-
     FindAutomorphisms(&mol,aut);
+
+    map<int,set<int>> sym;
+    for(int i=0;i<sel.size();++i) sym[i]={};
+
+    for(int i=0;i<aut.size();++i){
+        cout << "m:"<<i<<endl;
+        for(int j=0;j<aut[i].size();++j){
+            cout << " " <<  aut[i][j].first+1 << ":" << aut[i][j].second+1 << endl;
+            sym[aut[i][j].first].insert(aut[i][j].second);            
+        }
+    }
+
+    for(auto& it: sym){
+        for(int a: it.second){
+            if(it.first!=a) sym.erase(a);
+        }
+    }
+
+
 
     cout << aut.size() << endl;
 
-    delete query;
+    for(auto it: sym){
+        cout << fmt::format("{} ({}): ",it.first+1,it.second.size());
+        for(auto a: it.second) cout << a+1 << " ";
+        cout << endl;
+    }
+
+    //delete query;
 }

@@ -428,8 +428,7 @@ public:
 
     bool force_field_ready(){return force_field.ready;}
 
-    /// Returns pointer to internal Force_field object for direct manipulation
-    /// or NULL if force field is not ready
+    /// Returns internal Force_field object
     Force_field& get_force_field(){
         return force_field;
     }

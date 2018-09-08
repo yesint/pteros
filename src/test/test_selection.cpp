@@ -184,6 +184,7 @@ int main(int argc, char** argv)
 
         use_babel(src_sel);
 
+        //src_sel.write("/home/semen/work/current/Projects/Ache/1.mol2");
         //Topmatch t(src_sel);
 
 

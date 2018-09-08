@@ -1340,7 +1340,7 @@ std::vector<std::vector<int>> Selection::get_local_bonds(float d, bool periodic)
     } else {
         // Find all connectivity pairs for given cut-off
         vector<Vector2i> pairs;
-        search_contacts(d,*this,pairs,false,periodic);
+        search_contacts(d,*this,pairs,false,periodic); // local indexes
 
         // Form a connectivity structure in the form con[i]->1,2,5...
         con.resize(size());
@@ -1375,7 +1375,7 @@ void Selection::to_obmol(OpenBabel::OBMol &mol, bool babel_bonds) const
 
         oba->SetAtomicNum(at.element_number);
         oba->SetPartialCharge(at.charge);
-        oba->SetVector(x(i),y(i),z(i));
+        oba->SetVector(10.0*x(i),10.0*y(i),10.0*z(i));
 
         // Create new residue if needed
         if(reslist.count(at.resid)==0){
