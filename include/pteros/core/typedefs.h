@@ -25,8 +25,7 @@
 */
 
 
-#ifndef TYPEDEFS_H
-#define TYPEDEFS_H
+#pragma once
 
 #include <Eigen/Dense>
 
@@ -50,6 +49,4 @@ static const Eigen::Array3i fullPBC = Eigen::Array3i::Ones();
 static const Eigen::Array3i noPBC   = Eigen::Array3i::Zero();
 
 }
-
-#endif
 
