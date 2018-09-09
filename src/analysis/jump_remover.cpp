@@ -83,11 +83,11 @@ void Jump_remover::remove_jumps(System& system){
         Selection sel(system,no_jump_ind);
 
         // Do unwrapping if more than 1 atom and distance >=0
-        if(no_jump_ind.size()>1 && unwrap_d>=0){
-            LOG()->info("Initial unwrapping of atoms for jump remover...");
+        if(no_jump_ind.size()>1 && unwrap_d>=0){            
             if(unwrap_d==0){
                 // Auto find distance
                 unwrap_d = 0.2;
+                LOG()->info("Trying unwrapping for jump remover, cutoff {}...",unwrap_d);
 
                 // Find minimal box extent in needed dimensions
                 float min_extent = 1e20;
@@ -98,19 +98,23 @@ void Jump_remover::remove_jumps(System& system){
 
                 while(sel.unwrap_bonds(unwrap_d,dims,pbc_atom)>1){
                     LOG()->info("Cutoff {} is too small, trying {}...", unwrap_d, 2.0*unwrap_d);
-                    unwrap_d *= 2.0;                    
+                    unwrap_d *= 2.0;
+                    if(unwrap_d > 8.0){
+                        LOG()->warn("Cutoff becomes too large! Beware huge memory usage!");
+                    }
                     if(unwrap_d > 0.5*min_extent){
-                        LOG()->warn("Reached cutoff > 0.5 of box extents!\n"
+                        LOG()->warn("Reached cutoff {} > 0.5 of box extents!\n"
                                 "Selection is likely to consist of disconnected parts.\n"
-                                "Continuing as is.");
+                                "Continuing as is.",unwrap_d);
                         break;
                     }
                 }
+                LOG()->info("Unwrapping done at cutoff {}",unwrap_d);
             } else {
                 // Unwrap with given distance
+                LOG()->info("Unwrapping for jump remover, fixed cutoff {}",unwrap_d);
                 sel.unwrap_bonds(unwrap_d,dims,pbc_atom);
-            }
-            LOG()->info("Unwrapping done.");
+            }            
         }
 
         // Save reference coordinates
