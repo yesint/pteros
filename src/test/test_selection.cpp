@@ -182,7 +182,13 @@ int main(int argc, char** argv)
         Selection target_sel(target,"all");
 
 
-        use_babel(src_sel);
+        //use_babel(src_sel);
+        auto sym = src_sel.get_equivalent_atoms();
+        cout << sym.size() << endl;
+        for(auto& a: sym){
+            for(int i: a) cout << i << " ";
+            cout << endl;
+        }
 
         //src_sel.write("/home/semen/work/current/Projects/Ache/1.mol2");
         //Topmatch t(src_sel);

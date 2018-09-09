@@ -333,6 +333,10 @@ void make_bindings_Selection(py::module& m){
         .def_property("time", [](Selection* obj){return obj->time();}, [](Selection* obj, float val){obj->time()=val;})
 
         // No other accessors are exposed in favor to [] operator
+
+#ifdef USE_OPENBABEL
+        .def("get_equivalent_atoms", &Selection::get_equivalent_atoms)
+#endif
     ;
 
     // Free functions

@@ -54,6 +54,11 @@
 // DSSP
 #include "pteros_dssp_wrapper.h"
 
+#ifdef USE_OPENBABEL
+#include <openbabel/mol.h>
+#include <openbabel/isomorphism.h>
+#endif
+
 
 using namespace std;
 using namespace pteros;
@@ -1330,7 +1335,7 @@ int Selection::find_index(int global_index) const
 }
 
 
-std::vector<std::vector<int>> Selection::get_local_bonds(float d, bool periodic) const
+std::vector<std::vector<int>> Selection::get_internal_bonds(float d, bool periodic) const
 {
     vector<vector<int>> con;
 
@@ -1395,7 +1400,7 @@ void Selection::to_obmol(OpenBabel::OBMol &mol, bool babel_bonds) const
         mol.PerceiveBondOrders();
     } else {
         // Get bonds from pteros
-        auto con = get_local_bonds(0.18,false); // Non-periodic by default
+        auto con = get_internal_bonds(0.18,false); // Non-periodic by default
         // Set bonds manually
         for(int i=0; i<con.size(); ++i){
             for(int j=0; j<con[i].size(); ++j) mol.AddBond(i,con[i][j],1);
@@ -1407,6 +1412,42 @@ void Selection::to_obmol(OpenBabel::OBMol &mol, bool babel_bonds) const
     // Need to avoid recomputing partial charges on output
     mol.SetPartialChargesPerceived();
 }
+
+
+std::vector<std::vector<int>> Selection::get_equivalent_atoms()
+{
+    std::vector<std::vector<int>> res;
+
+    OpenBabel::OBMol mol;
+    to_obmol(mol);
+
+    std::vector<OpenBabel::OBIsomorphismMapper::Mapping> aut;
+    OpenBabel::FindAutomorphisms(&mol,aut);
+
+    vector<set<int>> sym(size());
+
+    for(int i=0;i<aut.size();++i){
+        for(int j=0;j<aut[i].size();++j){
+            sym[aut[i][j].first].insert(aut[i][j].second);
+        }
+    }
+
+    for(int i=0;i<sym.size();++i){
+        for(int a: sym[i]){
+            if(i!=a) sym[a].clear();
+        }
+    }
+
+    for(int i=0;i<sym.size();++i){
+        if(!sym[i].empty()){
+            res.emplace_back();
+            copy(sym[i].begin(),sym[i].end(),back_inserter(res.back()));
+        }
+    }
+
+    return res;
+}
+
 #endif
 
 void Selection::each_residue(std::vector<Selection>& sel) const {            
@@ -1498,7 +1539,7 @@ MatrixXf Selection::atom_traj(int ind, int b, int e, bool make_row_major_matrix)
 void Selection::split_by_connectivity(float d, std::vector<Selection> &res, bool periodic) {
     res.clear();
 
-    vector<vector<int>> con = get_local_bonds(d,periodic);
+    vector<vector<int>> con = get_internal_bonds(d,periodic);
 
     // Mask of used atoms
     VectorXi used(size());
@@ -1781,7 +1822,7 @@ int Selection::unwrap_bonds(float d, Array3i_const_ref pbc, int pbc_atom){
     int Nparts = 1;
 
     // a connectivity structure in the form con[i]->1,2,5...
-    vector<vector<int>> con = get_local_bonds(d,true); // periodic by definition
+    vector<vector<int>> con = get_internal_bonds(d,true); // periodic by definition
 
     // Mask of used atoms
     VectorXi used(size());

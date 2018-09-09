@@ -735,12 +735,16 @@ class Selection {
 
     /// Get all bonds within this selection returned as local selection indexes in form 1->[2,3,..].
     /// If d>0 it is used as cutoff
-    /// if d==0 the bonds from topology are used and periodicity is ignored
-    std::vector<std::vector<int>> get_local_bonds(float d, bool periodic=true) const;
+    /// if d==0 the bonds from topology are used and periodicity is ignored    
+    std::vector<std::vector<int>> get_internal_bonds(float d, bool periodic=true) const;
 
 #ifdef USE_OPENBABEL
-    // Convert selection to open babel molecule
+    /// Convert selection to open babel molecule
     void to_obmol(OpenBabel::OBMol& mol, bool babel_bonds = true) const;
+
+    /// Finds molecular symmetry using OpenBabel based on bonding pattern.
+    /// Returns groups of atoms which are topologically equivalent (local indexes are returned)
+    std::vector<std::vector<int>> get_equivalent_atoms();
 #endif
 
     /// @}
