@@ -54,12 +54,6 @@
 // DSSP
 #include "pteros_dssp_wrapper.h"
 
-#ifdef USE_OPENBABEL
-#include <openbabel/mol.h>
-#include <openbabel/isomorphism.h>
-#endif
-
-
 using namespace std;
 using namespace pteros;
 using namespace Eigen;
@@ -1358,97 +1352,7 @@ std::vector<std::vector<int>> Selection::get_internal_bonds(float d, bool period
     return con;
 }
 
-#ifdef USE_OPENBABEL
-void Selection::to_obmol(OpenBabel::OBMol &mol, bool babel_bonds) const
-{
-    mol.Clear();
 
-    auto op = new OpenBabel::OBPairData();
-    op->SetAttribute("PartialCharges");
-    op->SetValue("USER_CHARGES");
-    mol.SetData(op);
-    // map of residues
-    map<int,OpenBabel::OBResidue*> reslist;
-
-    mol.BeginModify();
-
-    for(int i=0;i<size();++i){
-        auto& at = atom(i);
-
-        // Create new atom in this mol
-        auto oba = mol.NewAtom();
-
-        oba->SetAtomicNum(at.element_number);
-        oba->SetPartialCharge(at.charge);
-        oba->SetVector(10.0*x(i),10.0*y(i),10.0*z(i));
-
-        // Create new residue if needed
-        if(reslist.count(at.resid)==0){
-            OpenBabel::OBResidue* obr = mol.NewResidue();
-            obr->SetNum(at.resid);
-            obr->SetChain(at.chain);
-            reslist[at.resid] = obr;
-        }
-
-        reslist[at.resid]->AddAtom(oba);
-        reslist[at.resid]->SetAtomID(oba,at.name);
-    }
-
-    if(babel_bonds){
-        mol.ConnectTheDots();
-        // Guess bond orders and aromaticity
-        mol.PerceiveBondOrders();
-    } else {
-        // Get bonds from pteros
-        auto con = get_internal_bonds(0.18,false); // Non-periodic by default
-        // Set bonds manually
-        for(int i=0; i<con.size(); ++i){
-            for(int j=0; j<con[i].size(); ++j) mol.AddBond(i,con[i][j],1);
-        }
-    }
-
-    mol.EndModify();
-
-    // Need to avoid recomputing partial charges on output
-    mol.SetPartialChargesPerceived();
-}
-
-
-std::vector<std::vector<int>> Selection::get_equivalent_atoms()
-{
-    std::vector<std::vector<int>> res;
-
-    OpenBabel::OBMol mol;
-    to_obmol(mol);
-
-    std::vector<OpenBabel::OBIsomorphismMapper::Mapping> aut;
-    OpenBabel::FindAutomorphisms(&mol,aut);
-
-    vector<set<int>> sym(size());
-
-    for(int i=0;i<aut.size();++i){
-        for(int j=0;j<aut[i].size();++j){
-            sym[aut[i][j].first].insert(aut[i][j].second);
-        }
-    }
-
-    for(int i=0;i<sym.size();++i){
-        for(int a: sym[i]){
-            if(i!=a) sym[a].clear();
-        }
-    }
-
-    for(int i=0;i<sym.size();++i){
-        if(!sym[i].empty()){
-            res.emplace_back();
-            copy(sym[i].begin(),sym[i].end(),back_inserter(res.back()));
-        }
-    }
-
-    return res;
-}
-
-#endif
 
 void Selection::each_residue(std::vector<Selection>& sel) const {            
     sel.clear();

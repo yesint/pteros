@@ -44,7 +44,7 @@
 #include "spdlog/fmt/ostr.h"
 
 #include "pteros/extras/membrane.h"
-#include "pteros/extras/topmatch.h"
+#include "pteros/core/substructure_search.h"
 
 #include <ctime>
 
@@ -176,19 +176,10 @@ int main(int argc, char** argv)
 
 
         System src("/home/semen/work/current/Projects/Ache/b.pdb");
-        System target("/home/semen/work/current/Projects/Ache/2.pdb");
+        System sample("/home/semen/work/current/Projects/Ache/b_sample.pdb");
 
-        Selection src_sel(src,"all");
-        Selection target_sel(target,"all");
-
-
-        //use_babel(src_sel);
-        auto sym = src_sel.get_equivalent_atoms();
-        cout << sym.size() << endl;
-        for(auto& a: sym){
-            for(int i: a) cout << i << " ";
-            cout << endl;
-        }
+        auto res = find_equivalent_atoms(src);
+        cout << res.size() << endl;
 
         //src_sel.write("/home/semen/work/current/Projects/Ache/1.mol2");
         //Topmatch t(src_sel);

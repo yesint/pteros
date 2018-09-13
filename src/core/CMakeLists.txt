@@ -67,6 +67,10 @@ add_library(pteros SHARED
     #DSSP wrapper
     pteros_dssp_wrapper.cpp
     pteros_dssp_wrapper.h
+
+    # substructure search
+    ${PROJECT_SOURCE_DIR}/include/pteros/core/substructure_search.h
+    substructure_search.cpp
 )
 
 # Add path to molfile plugins directory to use VMD periodic table routines

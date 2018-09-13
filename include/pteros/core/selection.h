@@ -38,11 +38,6 @@
 #include "pteros/core/system.h"
 #include "pteros/core/typedefs.h"
 
-#ifdef USE_OPENBABEL
-#include <openbabel/mol.h>
-#endif
-
-
 namespace pteros {
 
 // Forward declaration of friend classes
@@ -737,16 +732,6 @@ class Selection {
     /// If d>0 it is used as cutoff
     /// if d==0 the bonds from topology are used and periodicity is ignored    
     std::vector<std::vector<int>> get_internal_bonds(float d, bool periodic=true) const;
-
-#ifdef USE_OPENBABEL
-    /// Convert selection to open babel molecule
-    void to_obmol(OpenBabel::OBMol& mol, bool babel_bonds = true) const;
-
-    /// Finds molecular symmetry using OpenBabel based on bonding pattern.
-    /// Returns groups of atoms which are topologically equivalent (local indexes are returned)
-    std::vector<std::vector<int>> get_equivalent_atoms();
-#endif
-
     /// @}
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

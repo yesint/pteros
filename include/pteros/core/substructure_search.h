@@ -1,0 +1,48 @@
+/*
+ * This file is a part of
+ *
+ * ============================================
+ * ###   Pteros molecular modeling library  ###
+ * ============================================
+ *
+ * (C) 2009-2018, Semen Yesylevskyy
+ *
+ * All works, which use Pteros, should cite the following papers:
+ *  
+ *  1.  Semen O. Yesylevskyy, "Pteros 2.0: Evolution of the fast parallel
+ *      molecular analysis library for C++ and python",
+ *      Journal of Computational Chemistry, 2015, 36(19), 1480–1488.
+ *      doi: 10.1002/jcc.23943.
+ *
+ *  2.  Semen O. Yesylevskyy, "Pteros: Fast and easy to use open-source C++
+ *      library for molecular analysis",
+ *      Journal of Computational Chemistry, 2012, 33(19), 1632–1636.
+ *      doi: 10.1002/jcc.22989.
+ *
+ * This is free software distributed under Artistic License:
+ * http://www.opensource.org/licenses/artistic-license-2.0.php
+ *
+*/
+
+
+#pragma once
+
+#include <vector>
+#include "pteros/core/selection.h"
+
+namespace pteros {
+
+/// Finds molecular symmetry using OpenBabel based on bonding pattern.
+/// Returns groups of atoms which are topologically equivalent (local indexes are returned)
+std::vector<std::vector<int>> find_equivalent_atoms(const Selection& sel);
+
+/// Find mapping between sel and current selection.
+/// Size of sel have to be <= current selection.
+/// Returned array shows mapping from sel to current selection such as
+/// atom i in sel corresponds to result[i] in current selection.
+/// Indexes are local to both selections.
+std::vector<std::vector<int>> find_substructures(const Selection& source, const Selection& query, bool find_all=false);
+
+} // namespace
+
+

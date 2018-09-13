@@ -27,6 +27,7 @@
 
 #include "babel_wrapper.h"
 #include "pteros/core/pteros_error.h"
+#include "pteros/core/utilities.h"
 #include "openbabel/atom.h"
 #include "openbabel/residue.h"
 #include "openbabel/bondtyper.h"
@@ -115,7 +116,7 @@ bool Babel_wrapper::do_read(System *sys, Frame *frame, const Mol_file_content &w
 void Babel_wrapper::do_write(const Selection &sel, const Mol_file_content &what)
 {
     if(what.atoms() && what.coord()){
-        sel.to_obmol(mol);
+        selection_to_obmol(sel,mol);
     }
 
     conv.WriteFile(&mol,fname);

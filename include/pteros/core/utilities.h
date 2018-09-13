@@ -28,7 +28,13 @@
 #pragma once
 
 #include "pteros/core/typedefs.h"
+#include "pteros/core/selection.h"
 #include <vector>
+
+#ifdef USE_OPENBABEL
+#include <openbabel/mol.h>
+#endif
+
 
 namespace pteros {
 
@@ -79,6 +85,9 @@ namespace pteros {
         bool normalized;
     };
 
+#ifdef USE_OPENBABEL
+    void selection_to_obmol(const Selection& sel, OpenBabel::OBMol &mol, bool babel_bonds = true);
+#endif
 
 } // namespace
 
