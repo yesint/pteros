@@ -25,12 +25,9 @@
 */
 
 
-#include "pteros/core/substructure_search.h"
+#include "pteros/extras/substructure_search.h"
 #include "pteros/core/pteros_error.h"
-#include "pteros/core/utilities.h"
 #include <set>
-
-#ifdef USE_OPENBABEL
 
 #include <openbabel/mol.h>
 #include <openbabel/isomorphism.h>
@@ -115,15 +112,3 @@ vector<vector<int>> find_substructures(const Selection& source, const Selection&
 }
 
 } // namespace
-
-#else
-
-std::vector<std::vector<int>> find_equivalent_atoms(const Selection& sel){
-    throw Pteros_error("Pteros is compiled without OpenBabel support! Substructure search is disabled.");
-}
-
-vector<vector<int>> find_substructures(const Selection& source, const Selection& query, bool find_all){
-    throw Pteros_error("Pteros is compiled without OpenBabel support! Substructure search is disabled.");
-}
-
-#endif

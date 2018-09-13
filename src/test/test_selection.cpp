@@ -44,7 +44,7 @@
 #include "spdlog/fmt/ostr.h"
 
 #include "pteros/extras/membrane.h"
-#include "pteros/core/substructure_search.h"
+#include "pteros/extras/substructure_search.h"
 
 #include <ctime>
 
