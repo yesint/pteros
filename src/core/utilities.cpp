@@ -156,3 +156,8 @@ float pteros::get_vdw_radius(int elnum, const string &name) {
         return (elnum<nr_pte_entries) ? 0.1*pte_vdw_radius[elnum] : 0.15;
     }    
 }
+
+int pteros::get_element_number(const string &name)
+{
+    return get_pte_idx(name.c_str());
+}

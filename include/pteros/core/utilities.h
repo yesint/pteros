@@ -51,6 +51,8 @@ namespace pteros {
 
     std::string get_element_name(int elnum);
 
+    int get_element_number(const std::string& name);
+
     float get_vdw_radius(int elnum, const std::string& name);
 
 

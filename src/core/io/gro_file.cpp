@@ -27,6 +27,7 @@
 
 #include "gro_file.h"
 #include "pteros/core/pteros_error.h"
+#include "pteros/core/utilities.h"
 #include <boost/algorithm/string.hpp>
 
 using namespace std;
@@ -97,6 +98,8 @@ bool GRO_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
             tmp_atom.chain = 'X';
             tmp_atom.beta = 0.0;
             tmp_atom.occupancy = 0.0;
+            // We have to deduce the element number
+            tmp_atom.element_number = get_element_number(tmp_atom.name);
             // Add new atom to the system
             append_atom_in_system(*sys,tmp_atom);
         }
