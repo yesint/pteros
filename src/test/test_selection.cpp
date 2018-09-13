@@ -178,7 +178,7 @@ int main(int argc, char** argv)
         System src("/home/semen/work/current/Projects/Ache/b.pdb");
         System sample("/home/semen/work/current/Projects/Ache/b_sample.pdb");
 
-        auto res = find_equivalent_atoms(src);
+        auto res = find_substructures(src(),sample(),true);
         cout << res.size() << endl;
 
         //src_sel.write("/home/semen/work/current/Projects/Ache/1.mol2");

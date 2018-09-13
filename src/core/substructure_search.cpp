@@ -51,6 +51,9 @@ std::vector<std::vector<int>> find_equivalent_atoms(const Selection& sel)
     OpenBabel::OBMol mol;
     selection_to_obmol(sel,mol);
 
+    OpenBabel::OBConversion conv;
+    conv.WriteFile(&mol,"a.smi");
+
     std::vector<OpenBabel::OBIsomorphismMapper::Mapping> aut;
     OpenBabel::FindAutomorphisms(&mol,aut);
 
@@ -93,14 +96,12 @@ vector<vector<int>> find_substructures(const Selection& source, const Selection&
     if(find_all){
         mapper->MapUnique(&src,maps);
     } else {
-        OpenBabel::OBIsomorphismMapper::Mapping m;
-        mapper->MapFirst(&src,m);
+        maps.resize(1);
+        mapper->MapFirst(&src,maps[0]);
     }
 
     delete mapper;
     delete obquery;
-
-    cout << "** " << maps.size() << endl;
 
     res.resize(maps.size());
     for(int i=0;i<maps.size();++i){
@@ -117,6 +118,12 @@ vector<vector<int>> find_substructures(const Selection& source, const Selection&
 
 #else
 
+std::vector<std::vector<int>> find_equivalent_atoms(const Selection& sel){
+    throw Pteros_error("Pteros is compiled without OpenBabel support! Substructure search is disabled.");
+}
 
+vector<vector<int>> find_substructures(const Selection& source, const Selection& query, bool find_all){
+    throw Pteros_error("Pteros is compiled without OpenBabel support! Substructure search is disabled.");
+}
 
 #endif

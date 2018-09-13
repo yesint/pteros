@@ -38,6 +38,10 @@
 #include "pteros/core/system.h"
 #include "pteros/core/typedefs.h"
 
+#ifdef USE_OPENBABEL
+#include <openbabel/mol.h>
+#endif
+
 namespace pteros {
 
 // Forward declaration of friend classes
@@ -76,7 +80,7 @@ class Selection {
     /** Associates selection with the system @param sys,
     *   Selection content should be set later by calling modify().
     */
-    Selection(const System& sys);
+    explicit Selection(const System& sys);
 
     /** Main constructor.
     *   @param sys System pointed by this selection
@@ -989,6 +993,13 @@ Eigen::Vector2f non_bond_energy(const Selection& sel1,
                                        float cutoff = 0,
                                        int fr = -1,
                                        bool pbc = true);
+
+
+#ifdef USE_OPENBABEL
+/// Convert selection to OpenBabel molecule
+void selection_to_obmol(const Selection& sel, OpenBabel::OBMol &mol, bool babel_bonds = true);
+#endif
+
 
 } // namespace pteros
 

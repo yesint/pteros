@@ -31,11 +31,6 @@
 #include "pteros/core/selection.h"
 #include <vector>
 
-#ifdef USE_OPENBABEL
-#include <openbabel/mol.h>
-#endif
-
-
 namespace pteros {
 
     float angle_between_vectors(Vector3f_const_ref vec1, Vector3f_const_ref vec2);
@@ -84,10 +79,6 @@ namespace pteros {
         Eigen::VectorXd pos;
         bool normalized;
     };
-
-#ifdef USE_OPENBABEL
-    void selection_to_obmol(const Selection& sel, OpenBabel::OBMol &mol, bool babel_bonds = true);
-#endif
 
 } // namespace
 

@@ -36,11 +36,12 @@ namespace pteros {
 /// Returns groups of atoms which are topologically equivalent (local indexes are returned)
 std::vector<std::vector<int>> find_equivalent_atoms(const Selection& sel);
 
-/// Find mapping between sel and current selection.
-/// Size of sel have to be <= current selection.
-/// Returned array shows mapping from sel to current selection such as
-/// atom i in sel corresponds to result[i] in current selection.
+/// Find mapping between source and query selection.
+/// Size of query have to be <= size of source.
+/// Returned array shows mapping from query to source such as
+/// atom i in query corresponds to result[i] in source
 /// Indexes are local to both selections.
+/// @param find_all - if true returns all unique mappings. If false returns only first mapping.
 std::vector<std::vector<int>> find_substructures(const Selection& source, const Selection& query, bool find_all=false);
 
 } // namespace
