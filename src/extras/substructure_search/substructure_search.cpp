@@ -81,6 +81,8 @@ std::vector<std::vector<int>> find_equivalent_atoms(const Selection& sel)
 
 vector<vector<int>> find_substructures(const Selection& source, const Selection& query, bool find_all)
 {
+    if(query.size()>source.size()) throw Pteros_error("Query should be smaller than source");
+
     vector<vector<int>> res;
 
     OpenBabel::OBMol src,sample;
@@ -109,6 +111,39 @@ vector<vector<int>> find_substructures(const Selection& source, const Selection&
     }
 
     return res;
+}
+
+
+System make_equivalent_to_template(const Selection &target, const Selection &templ)
+{
+    if(target.size()>templ.size()) throw Pteros_error("Target can't be larger than template!");
+
+    System result;
+
+    OpenBabel::OBMol ob_target, ob_templ;
+    selection_to_obmol(target,ob_target);
+    selection_to_obmol(templ,ob_templ);    
+
+    if(target.size()<templ.size()) ob_target.AddHydrogens();
+
+    OpenBabel::OBQuery* ob_query = OpenBabel::CompileMoleculeQuery(&ob_target);
+    OpenBabel::OBIsomorphismMapper *mapper = OpenBabel::OBIsomorphismMapper::GetInstance(ob_query);
+    OpenBabel::OBIsomorphismMapper::Mapping mapping;
+    mapper->MapFirst(&ob_templ,mapping);
+
+    if(mapping.size()!=templ.size()) throw Pteros_error("Molecules are not topologically equivalent!");
+
+    result = templ;
+    for(int i=0; i<mapping.size();++i){
+        auto ba = ob_target.GetAtomById(mapping[i].first);
+        Vector3f coord;
+        coord(0) = 0.1*ba->GetX();
+        coord(1) = 0.1*ba->GetY();
+        coord(2) = 0.1*ba->GetZ();
+        result.xyz(mapping[i].second) = coord;
+    }
+
+    return result;
 }
 
 } // namespace

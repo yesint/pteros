@@ -44,6 +44,13 @@ std::vector<std::vector<int>> find_equivalent_atoms(const Selection& sel);
 /// @param find_all - if true returns all unique mappings. If false returns only first mapping.
 std::vector<std::vector<int>> find_substructures(const Selection& source, const Selection& query, bool find_all=false);
 
+/// Make target topologically equivalent to templ and return it as a new system.
+/// The atoms of target are rearranged to become at the same positions as in template.
+/// if add_h is true all missed hydrogens are added to target prior to rearrangement.
+/// Coordinates of target atoms are not modified.
+/// Typical usage is to make docking poses compatible with all-atom topology for MD.
+System make_equivalent_to_template(const Selection& target, const Selection& templ);
+
 } // namespace
 
 

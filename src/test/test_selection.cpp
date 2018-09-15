@@ -175,11 +175,16 @@ int main(int argc, char** argv)
     try{
 
 
-        System src("/home/semen/work/current/Projects/Ache/b.pdb");
-        System sample("/home/semen/work/current/Projects/Ache/b_sample.pdb");
+        System target("/home/semen/work/current/Projects/Ache/top_cc/dock_lig.pdb");
+        System templ("/home/semen/work/current/Projects/Ache/top_cc/after_em.gro");
+        //System target("/home/semen/work/current/Projects/Ache/top_cc/b_sample.pdb");
+        //System templ("/home/semen/work/current/Projects/Ache/top_cc/b.pdb");
 
-        auto res = find_substructures(src(),sample(),true);
-        cout << res.size() << endl;
+        //auto res = find_substructures(templ(),target(),false);
+        //cout << res.size() << endl;
+
+        auto s = make_equivalent_to_template(target(),templ());
+        s().write("/home/semen/work/current/Projects/Ache/top_cc/result.pdb");
 
         //src_sel.write("/home/semen/work/current/Projects/Ache/1.mol2");
         //Topmatch t(src_sel);

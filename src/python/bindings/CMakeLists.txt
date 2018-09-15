@@ -23,6 +23,7 @@ IF(WITH_PYTHON)
     SET(EXTRAS_FILES
         bindings_extras.cpp
         bindings_membrane.cpp
+        bindings_substructure_search.cpp
     )
 
 
@@ -30,7 +31,7 @@ IF(WITH_PYTHON)
     pybind11_add_module(_pteros_extras ${EXTRAS_FILES})
 
     target_link_libraries(_pteros PRIVATE pteros pteros_analysis)
-    target_link_libraries(_pteros_extras PRIVATE pteros_membrane)
+    target_link_libraries(_pteros_extras PRIVATE pteros_membrane pteros_substructure_search)
 
     #Installation
     install(TARGETS _pteros
