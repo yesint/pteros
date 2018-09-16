@@ -130,6 +130,9 @@ System make_equivalent_to_template(const Selection &target, const Selection &tem
     OpenBabel::OBIsomorphismMapper::Mapping mapping;
     mapper->MapFirst(&ob_templ,mapping);
 
+    delete mapper;
+    delete ob_query;
+
     if(mapping.size()!=templ.size()) throw Pteros_error("Molecules are not topologically equivalent!");
 
     result = templ;
