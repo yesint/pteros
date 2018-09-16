@@ -48,8 +48,7 @@ std::vector<std::vector<int>> find_equivalent_atoms(const Selection& sel)
     OpenBabel::OBMol mol;
     selection_to_obmol(sel,mol);
 
-    OpenBabel::OBConversion conv;
-    conv.WriteFile(&mol,"a.smi");
+    OpenBabel::OBConversion conv;    
 
     std::vector<OpenBabel::OBIsomorphismMapper::Mapping> aut;
     OpenBabel::FindAutomorphisms(&mol,aut);
@@ -81,7 +80,7 @@ std::vector<std::vector<int>> find_equivalent_atoms(const Selection& sel)
 
 vector<vector<int>> find_substructures(const Selection& source, const Selection& query, bool find_all)
 {
-    if(query.size()>source.size()) throw Pteros_error("Query should be smaller than source");
+    if(query.size()>source.size()) throw Pteros_error("Query should be smaller than source molecule!");
 
     vector<vector<int>> res;
 
