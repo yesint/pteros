@@ -84,7 +84,7 @@ void Selection::sort_and_remove_duplicates()
         _index.resize( it - _index.begin() );
         if(_index[0]<0) throw Pteros_error("Negative index {} present in Selection!",_index[0]);
     } else {
-        if(size()==0) LOG()->warn("Selection '{}' is empty! Any call of its methods (except size()) will crash your program!", sel_text);
+        LOG()->warn("Selection '{}' is empty! Any call of its methods (except size()) will crash your program!", sel_text);
     }
 }
 
