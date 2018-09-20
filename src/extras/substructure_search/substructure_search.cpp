@@ -32,7 +32,6 @@
 #include <openbabel/mol.h>
 #include <openbabel/isomorphism.h>
 #include "openbabel/query.h"
-#include "openbabel/obconversion.h"
 
 
 using namespace std;
@@ -47,8 +46,6 @@ std::vector<std::vector<int>> find_equivalent_atoms(const Selection& sel)
 
     OpenBabel::OBMol mol;
     selection_to_obmol(sel,mol);
-
-    OpenBabel::OBConversion conv;    
 
     std::vector<OpenBabel::OBIsomorphismMapper::Mapping> aut;
     OpenBabel::FindAutomorphisms(&mol,aut);
