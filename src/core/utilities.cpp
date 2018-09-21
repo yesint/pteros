@@ -161,3 +161,69 @@ int pteros::get_element_number(const string &name)
 {
     return get_pte_idx(name.c_str());
 }
+
+static const map<string,char> code_3to1 = {
+    {"ALA",	'A'},
+    {"ARG",	'R'},
+    {"ASN",	'N'},
+    {"ASP",	'D'},
+    {"ASX",	'B'},
+    {"CYS",	'C'},
+    {"GLU",	'E'},
+    {"GLN",	'Q'},
+    {"GLX",	'Z'},
+    {"GLY", 'G'},
+    {"HIS",	'H'},
+    {"ILE",	'I'},
+    {"LEU",	'L'},
+    {"LYS",	'K'},
+    {"MET",	'M'},
+    {"PHE",	'F'},
+    {"PRO",	'P'},
+    {"SER",	'S'},
+    {"THR",	'T'},
+    {"TRP",	'W'},
+    {"TYR",	'Y'},
+    {"VAL", 'V'}
+};
+
+static const map<char,string> code_1to3 = {
+    {'A', "ALA"},
+    {'R', "ARG"},
+    {'N', "ASN"},
+    {'D', "ASP"},
+    {'B', "ASX"},
+    {'C', "CYS"},
+    {'E', "GLU"},
+    {'Q', "GLN"},
+    {'Z', "GLX"},
+    {'G', "GLY"},
+    {'H', "HIS"},
+    {'I', "ILE"},
+    {'L', "LEU"},
+    {'K', "LYS"},
+    {'M', "MET"},
+    {'F', "PHE"},
+    {'P', "PRO"},
+    {'S', "SER"},
+    {'T', "THR"},
+    {'W', "TRP"},
+    {'Y', "TYR"},
+    {'V', "VAL"}
+};
+
+char resname_1char(const string &code)
+{
+    if(code_3to1.count(code))
+        return code_3to1.at(code);
+    else
+        return 'X';
+}
+
+string resname_3char(char code)
+{
+    if(code_1to3.count(code))
+        return code_1to3.at(code);
+    else
+        return "XXX";
+}

@@ -59,6 +59,11 @@ namespace pteros {
     /// Returns rotation matrix given pivot, axis and angle in radians
     Eigen::Affine3f rotation_transform(Vector3f_const_ref pivot, Vector3f_const_ref axis, float angle);
 
+    /// Get 1-letter protein code from 3-letter
+    char resname_1char(const std::string& code);
+    /// Get 3-letter protein code from 1-letter
+    std::string resname_3char(char code);
+
     /// Simple histogram class
     class Histogram {
     public:
