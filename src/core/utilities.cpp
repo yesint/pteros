@@ -36,7 +36,9 @@ using namespace std;
 using namespace pteros;
 using namespace Eigen;
 
-float pteros::angle_between_vectors(Vector3f_const_ref vec1, Vector3f_const_ref vec2)
+namespace pteros {
+
+float angle_between_vectors(Vector3f_const_ref vec1, Vector3f_const_ref vec2)
 {
     float ang = vec1.dot(vec2)/vec1.norm()/vec2.norm();
     if(ang>1.0) ang = 1.0;
@@ -45,89 +47,23 @@ float pteros::angle_between_vectors(Vector3f_const_ref vec1, Vector3f_const_ref 
 }
 
 
-Vector3f pteros::project_vector(Vector3f_const_ref vec1, Vector3f_const_ref vec2)
+Vector3f project_vector(Vector3f_const_ref vec1, Vector3f_const_ref vec2)
 {
     return (vec1.dot(vec2)/vec2.dot(vec2))*vec2;
 }
 
 
-float pteros::deg_to_rad(float ang)
+float deg_to_rad(float ang)
 {
     return ang*3.141592/180.0;
 }
 
-float pteros::rad_to_deg(float ang)
+float rad_to_deg(float ang)
 {
     return ang*180.0/3.141592;
 }
 
-Histogram::Histogram(float minval, float maxval, int n): minv(minval), maxv(maxval), nbins(n), normalized(false)
-{
-    create(minval,maxval,n);
-}
-
-void Histogram::create(float minval, float maxval, int n)
-{
-    val.resize(nbins);
-    val.fill(0.0);
-    pos.resize(nbins);
-    d = (maxv-minv)/float(nbins);
-    for(int i=0;i<nbins;++i) pos(i) = minv+0.5*d+d*i;
-}
-
-void Histogram::add(float v)
-{
-    if(normalized) throw Pteros_error("Can't add value to normalized histogram!");
-    int b = floor((v-minv)/d);
-    if(b>=0 && b<nbins) val(b) += 1.0;
-}
-
-void Histogram::add(const std::vector<float>& v)
-{
-    for(auto& val: v) add(val);
-}
-
-void Histogram::normalize()
-{
-    val /= val.sum()*(pos(1)-pos(0));
-    normalized = true;
-}
-
-float Histogram::value(int i) const
-{
-    return val[i];
-}
-
-float Histogram::position(int i) const
-{
-    return pos[i];
-}
-
-const VectorXd &Histogram::values() const
-{
-    return val;
-}
-
-const VectorXd &Histogram::positions() const
-{
-    return pos;
-}
-
-int Histogram::num_bins() const
-{
-    return nbins;
-}
-
-void Histogram::save_to_file(const string &fname)
-{
-    ofstream f(fname);
-    for(int i=0;i<nbins;++i) f << pos(i) << " " << val(i) << endl;
-    f.close();
-}
-
-//-----------------------------------------
-
-Affine3f pteros::rotation_transform(Vector3f_const_ref pivot, Vector3f_const_ref axis, float angle)
+Affine3f rotation_transform(Vector3f_const_ref pivot, Vector3f_const_ref axis, float angle)
 {
     Affine3f m;
     m = AngleAxisf(angle,axis.normalized());
@@ -135,11 +71,11 @@ Affine3f pteros::rotation_transform(Vector3f_const_ref pivot, Vector3f_const_ref
     return Translation3f(pivot)*m*Translation3f(-pivot);
 }
 
-string pteros::get_element_name(int elnum){
+string get_element_name(int elnum){
     return (elnum<nr_pte_entries && elnum>=0) ? string(pte_label[elnum]) : "X";
 }
 
-float pteros::get_vdw_radius(int elnum, const string &name) {    
+float get_vdw_radius(int elnum, const string &name) {
     if(elnum<=0){
         switch(name[0]){
         case 'H': return  0.12;
@@ -151,13 +87,13 @@ float pteros::get_vdw_radius(int elnum, const string &name) {
         case 'F': return  0.147;
         default:  return  0.15;
         }
-    } else {        
+    } else {
         // Use periodic table from VMD plugins
         return (elnum<nr_pte_entries) ? 0.1*pte_vdw_radius[elnum] : 0.15;
-    }    
+    }
 }
 
-int pteros::get_element_number(const string &name)
+int get_element_number(const string &name)
 {
     return get_pte_idx(name.c_str());
 }
@@ -227,3 +163,70 @@ string resname_3char(char code)
     else
         return "XXX";
 }
+
+} // namespace
+
+Histogram::Histogram(float minval, float maxval, int n): minv(minval), maxv(maxval), nbins(n), normalized(false)
+{
+    create(minval,maxval,n);
+}
+
+void Histogram::create(float minval, float maxval, int n)
+{
+    val.resize(nbins);
+    val.fill(0.0);
+    pos.resize(nbins);
+    d = (maxv-minv)/float(nbins);
+    for(int i=0;i<nbins;++i) pos(i) = minv+0.5*d+d*i;
+}
+
+void Histogram::add(float v)
+{
+    if(normalized) throw Pteros_error("Can't add value to normalized histogram!");
+    int b = floor((v-minv)/d);
+    if(b>=0 && b<nbins) val(b) += 1.0;
+}
+
+void Histogram::add(const std::vector<float>& v)
+{
+    for(auto& val: v) add(val);
+}
+
+void Histogram::normalize()
+{
+    val /= val.sum()*(pos(1)-pos(0));
+    normalized = true;
+}
+
+float Histogram::value(int i) const
+{
+    return val[i];
+}
+
+float Histogram::position(int i) const
+{
+    return pos[i];
+}
+
+const VectorXd &Histogram::values() const
+{
+    return val;
+}
+
+const VectorXd &Histogram::positions() const
+{
+    return pos;
+}
+
+int Histogram::num_bins() const
+{
+    return nbins;
+}
+
+void Histogram::save_to_file(const string &fname)
+{
+    ofstream f(fname);
+    for(int i=0;i<nbins;++i) f << pos(i) << " " << val(i) << endl;
+    f.close();
+}
+

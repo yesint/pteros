@@ -45,7 +45,18 @@ PYBIND11_MODULE(_pteros, m) {
     m.def("set_log_level",&set_log_level);
 
     m.def("angle_between_vectors",&angle_between_vectors);
-    m.def("project_vector",&project_vector);            
+    m.def("project_vector",&project_vector);
+
+    m.def("get_element_name",&get_element_name);
+    m.def("get_element_number",&get_element_number);
+    m.def("get_vdw_radius",&get_vdw_radius);
+
+    m.def("rotation_transform",[](Vector3f_const_ref pivot, Vector3f_const_ref axis, float angle){
+        return rotation_transform(pivot,axis,angle).matrix().transpose();
+    });
+
+    m.def("resname_1char",&resname_1char);
+    m.def("resname_3char",&resname_3char);
 
     m.attr("noPBC") = py::cast(noPBC);
     m.attr("fullPBC") = py::cast(fullPBC);
