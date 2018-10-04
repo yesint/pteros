@@ -11,6 +11,7 @@ OPTION(STANDALONE_PLUGINS "Compile analysis plugins as stand-alone executables" 
 OPTION(MAKE_PACKAGE "Generate package" OFF)
 OPTION(INSTALL_INTERNAL_SPDLOG "Install internal spdlog headers in the case if there is no system-wide spdlog" ON)
 OPTION(MAKE_EXAMPLES "Compile examples and plugin templates" OFF)
+OPTION(MAKE_TEST "Compile tests" OFF)
 
 
 # Use shared Boost libraries
@@ -160,8 +161,11 @@ add_subdirectory(src/analysis)
 add_subdirectory(src/tools)
 add_subdirectory(src/python)
 add_subdirectory(src/python/compiled_analysis_plugins)
-add_subdirectory(src/test)
 add_subdirectory(src/extras)
+
+IF(MAKE_TEST)
+    add_subdirectory(src/test)
+ENDIF()
 
 IF(MAKE_EXAMPLES)
     add_subdirectory(src/examples)

@@ -183,8 +183,8 @@ int main(int argc, char** argv)
         //auto res = find_substructures(templ(),target(),false);
         //cout << res.size() << endl;
 
-        auto s = make_equivalent_to_template(target(),templ());
-        s().write("/home/semen/work/current/Projects/Ache/top_cc/result.pdb");
+        //auto s = make_equivalent_to_template(target(),templ());
+        //s().write("/home/semen/work/current/Projects/Ache/top_cc/result.pdb");
 
         //src_sel.write("/home/semen/work/current/Projects/Ache/1.mol2");
         //Topmatch t(src_sel);
