@@ -175,6 +175,18 @@ void Selection_parser::optimize(std::shared_ptr<MyAst>& node){
         }
     }
 
+    // Convert chained logic into a tree
+    if(node->name == "LOGICAL_EXPR" && node->nodes.size()>3){
+        // second operand and all after it should become new node
+        vector<std::shared_ptr<MyAst>> ch;
+        copy(node->nodes.begin()+2,node->nodes.end(),back_inserter(ch));
+        auto operand2 = std::make_shared<MyAst>("",0,0,"LOGICAL_EXPR",ch);
+        // keep only 3 nodes
+        node->nodes.resize(3);
+        // Put new second operand
+        node->nodes[2] = operand2;
+    }
+
     // Recurse into children
     for(int i=0;i<node->nodes.size();++i) optimize(node->nodes[i]);
 }
@@ -205,7 +217,7 @@ void Selection_parser::create_ast(string& sel_str, System* system){
         tree = peg::AstOptimizer(true,{"POINT","X","Y","Z"}).optimize(tree);
 
         //cout << sel_str << endl;
-        //cout << peg::ast_to_s(tree) << endl;
+        cout << peg::ast_to_s(tree) << endl;
 
         set_coord_dependence(tree);
     } else {
