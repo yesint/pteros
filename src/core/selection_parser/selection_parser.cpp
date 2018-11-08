@@ -217,7 +217,7 @@ void Selection_parser::create_ast(string& sel_str, System* system){
         tree = peg::AstOptimizer(true,{"POINT","X","Y","Z"}).optimize(tree);
 
         //cout << sel_str << endl;
-        cout << peg::ast_to_s(tree) << endl;
+        //cout << peg::ast_to_s(tree) << endl;
 
         set_coord_dependence(tree);
     } else {
