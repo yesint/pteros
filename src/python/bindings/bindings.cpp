@@ -73,4 +73,11 @@ PYBIND11_MODULE(_pteros, m) {
             .def_property_readonly("num_bins",&Histogram::num_bins)
             .def("save_to_file",&Histogram::save_to_file)
     ;
+
+    py::class_<Histogram2D>(m,"Histogram2D")
+            .def(py::init<float,float,int,float,float,int>())
+            .def("add",&Histogram2D::add)
+            .def("normalize",&Histogram2D::normalize)
+            .def("save_to_file",&Histogram2D::save_to_file)
+    ;
 }

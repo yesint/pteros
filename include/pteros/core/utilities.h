@@ -87,6 +87,24 @@ namespace pteros {
         bool normalized;
     };
 
+    /// Simple 2D histogram class
+    class Histogram2D {
+    public:
+        Histogram2D(){}
+        Histogram2D(float minval1, float maxval1, int n1, float minval2, float maxval2, int n2);
+        void create(float minval1, float maxval1, int n1, float minval2, float maxval2, int n2);
+        void add(float v1, float v2);
+        void normalize();
+
+        void save_to_file(const std::string& fname);
+    private:
+        Eigen::Vector2i nbins;
+        Eigen::Vector2f minv,maxv,d;
+        Eigen::MatrixXd val;
+
+        bool normalized;
+    };
+
 } // namespace
 
 

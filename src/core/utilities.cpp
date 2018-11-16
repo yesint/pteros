@@ -166,13 +166,19 @@ string resname_3char(char code)
 
 } // namespace
 
-Histogram::Histogram(float minval, float maxval, int n): minv(minval), maxv(maxval), nbins(n), normalized(false)
+
+
+Histogram::Histogram(float minval, float maxval, int n): normalized(false)
 {
     create(minval,maxval,n);
 }
 
 void Histogram::create(float minval, float maxval, int n)
 {
+    nbins = n;
+    minv = minval;
+    maxv = maxval;
+
     val.resize(nbins);
     val.fill(0.0);
     pos.resize(nbins);
@@ -230,3 +236,47 @@ void Histogram::save_to_file(const string &fname)
     f.close();
 }
 
+//----------------------------------
+
+Histogram2D::Histogram2D(float minval1, float maxval1, int n1, float minval2, float maxval2, int n2): normalized(false)
+{
+    create(minval1, maxval1, n1, minval2, maxval2, n2);
+}
+
+void Histogram2D::create(float minval1, float maxval1, int n1, float minval2, float maxval2, int n2)
+{
+    minv = Vector2f(minval1,minval2);
+    maxv = Vector2f(maxval1,maxval2);
+    nbins = Vector2i(n1,n2);
+
+    val.resize(nbins(0),nbins(1));
+    val.fill(0.0);
+
+    d(0) = (maxv(0)-minv(0))/float(nbins(0));
+    d(1) = (maxv(1)-minv(1))/float(nbins(1));
+}
+
+void Histogram2D::add(float v1, float v2)
+{
+    if(normalized) throw Pteros_error("Can't add value to normalized histogram!");
+    int b1 = floor((v1-minv(0))/d(0));
+    int b2 = floor((v2-minv(1))/d(1));
+    if(b1>=0 && b1<nbins(0) && b2>=0 && b2<nbins(1)) val(b1,b2) += 1.0;
+}
+
+void Histogram2D::normalize()
+{
+    val /= val.sum()*d(0)*d(1);
+    normalized = true;
+}
+
+void Histogram2D::save_to_file(const string &fname)
+{
+    ofstream f(fname);
+    for(int i=0;i<nbins(0);++i){
+        for(int j=0;j<nbins(1);++j)
+            f << val(i,j) << " ";
+        f << endl;
+    }
+    f.close();
+}
