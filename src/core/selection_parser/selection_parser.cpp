@@ -172,6 +172,7 @@ void Selection_parser::optimize(std::shared_ptr<MyAst>& node){
         if(!node->is_coord_dependent){
             // Replace with float node
             node = std::make_shared<MyAst>("",0,0,"FLOAT", fmt::format("{}", get_numeric(node)(0)));
+            node->is_coord_dependent = false; // Keep correct flag just in case
         }
     }
 
@@ -181,6 +182,8 @@ void Selection_parser::optimize(std::shared_ptr<MyAst>& node){
         vector<std::shared_ptr<MyAst>> ch;
         copy(node->nodes.begin()+2,node->nodes.end(),back_inserter(ch));
         auto operand2 = std::make_shared<MyAst>("",0,0,"LOGICAL_EXPR",ch);
+        // Inherit coord dependence for this new node (important in order not to mislead precomputer)
+        operand2->is_coord_dependent = node->is_coord_dependent;
         // keep only 3 nodes
         node->nodes.resize(3);
         // Put new second operand
@@ -203,7 +206,7 @@ void Selection_parser::precompute(std::shared_ptr<MyAst>& node){
         && node->name!="WITHIN"
         && node->name!="BYRES") return;
 
-    if(!node->is_coord_dependent){
+    if(!node->is_coord_dependent){        
         auto ast = std::make_shared<MyAst>("",0,0,"PRE","");
         eval_node(node, ast->precomputed);
         node = ast;
