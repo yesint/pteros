@@ -34,7 +34,7 @@ namespace pteros {
 
 /// Finds molecular symmetry using OpenBabel based on bonding pattern.
 /// Returns groups of atoms which are topologically equivalent (local indexes are returned)
-std::vector<std::vector<int>> find_equivalent_atoms(const Selection& sel);
+std::vector<std::vector<int>> find_equivalent_atoms(const Selection& sel, int x_memory);
 
 /// Find mapping between source and query selection.
 /// Size of query have to be <= size of source.
