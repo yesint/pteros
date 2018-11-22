@@ -102,9 +102,9 @@ bool Babel_wrapper::do_read(System *sys, Frame *frame, const Mol_file_content &w
         int i=0;
         FOR_ATOMS_OF_MOL(ba, mol)
         {
-            frame->coord[i](0) = ba->GetX();
-            frame->coord[i](1) = ba->GetY();
-            frame->coord[i](2) = ba->GetZ();
+            frame->coord[i](0) = ba->GetX() * 0.1;
+            frame->coord[i](1) = ba->GetY() * 0.1;
+            frame->coord[i](2) = ba->GetZ() * 0.1;
             ++i;
         }
     }
