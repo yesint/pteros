@@ -40,7 +40,7 @@ using namespace Eigen;
 
 namespace pteros {
 
-std::vector<std::vector<int>> find_equivalent_atoms(const Selection& sel)
+std::vector<std::vector<int>> find_equivalent_atoms(const Selection& sel, int x_memory=1)
 {
     std::vector<std::vector<int>> res;
 
@@ -48,7 +48,10 @@ std::vector<std::vector<int>> find_equivalent_atoms(const Selection& sel)
     selection_to_obmol(sel,mol);
 
     std::vector<OpenBabel::OBIsomorphismMapper::Mapping> aut;
-    OpenBabel::FindAutomorphisms(&mol,aut);
+
+    size_t mem_sz = 3000000; // Default from babel headers
+
+    OpenBabel::FindAutomorphisms(&mol,aut,OpenBabel::OBBitVec(),mem_sz*x_memory);
 
     vector<set<int>> sym(sel.size());
 

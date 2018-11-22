@@ -174,20 +174,14 @@ int main(int argc, char** argv)
 */
     try{
 
+        int n;
+        System s("/home/syesylev/work/Projects/octane_water/carb/w_0/confout.gro");
+        n = s("name OW and z>0.4 and z<4.4").size();
+        cout << n << endl;
+        s.load("/home/syesylev/work/Projects/octane_water/carb/w_1/confout.gro");
+        n = s("name OW and z>0.4 and z<4.4").size();
+        cout << n << endl;
 
-        System target("/home/semen/work/current/Projects/Ache/top_cc/dock_lig.pdb");
-        System templ("/home/semen/work/current/Projects/Ache/top_cc/after_em.gro");
-        //System target("/home/semen/work/current/Projects/Ache/top_cc/b_sample.pdb");
-        //System templ("/home/semen/work/current/Projects/Ache/top_cc/b.pdb");
-
-        //auto res = find_substructures(templ(),target(),false);
-        //cout << res.size() << endl;
-
-        //auto s = make_equivalent_to_template(target(),templ());
-        //s().write("/home/semen/work/current/Projects/Ache/top_cc/result.pdb");
-
-        //src_sel.write("/home/semen/work/current/Projects/Ache/1.mol2");
-        //Topmatch t(src_sel);
 
 
     } catch(const Pteros_error& e){

@@ -33,7 +33,7 @@ using namespace pteros;
 using namespace pybind11::literals;
 
 void make_bindings_substructure_search(py::module& m){
-    m.def("find_equivalent_atoms", &find_equivalent_atoms);
+    m.def("find_equivalent_atoms", &find_equivalent_atoms,"sel"_a,"x_memory"_a=1);
     m.def("find_substructures", &find_substructures, "source"_a, "query"_a, "find_all"_a=false);
     m.def("make_equivalent_to_template", &make_equivalent_to_template);
 }
