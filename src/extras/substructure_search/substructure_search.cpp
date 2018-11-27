@@ -121,7 +121,7 @@ System make_equivalent_to_template(const Selection &target, const Selection &tem
 
     OpenBabel::OBMol ob_target, ob_templ;
     selection_to_obmol(target,ob_target);
-    selection_to_obmol(templ,ob_templ);    
+    selection_to_obmol(templ,ob_templ);
 
     if(target.size()<templ.size()) ob_target.AddHydrogens();
 
@@ -141,8 +141,10 @@ System make_equivalent_to_template(const Selection &target, const Selection &tem
         Vector3f coord;
         coord(0) = 0.1*ba->GetX();
         coord(1) = 0.1*ba->GetY();
-        coord(2) = 0.1*ba->GetZ();
+        coord(2) = 0.1*ba->GetZ();        
         result.xyz(mapping[i].second) = coord;
+        // Also transfer charge
+        result.atom(mapping[i].second).charge = ba->GetPartialCharge();
     }
 
     return result;

@@ -2004,9 +2004,10 @@ void pteros::selection_to_obmol(const Selection& sel, OpenBabel::OBMol &mol, boo
     mol.Clear();
 
     // map of residues
-    map<int,OpenBabel::OBResidue*> reslist;
+    map<int,OpenBabel::OBResidue*> reslist;    
 
     mol.BeginModify();
+    mol.SetPartialChargesPerceived(); // Needed to suppress charges computations
 
     for(int i=0;i<sel.size();++i){
         auto& at = sel.atom(i);
@@ -2044,12 +2045,11 @@ void pteros::selection_to_obmol(const Selection& sel, OpenBabel::OBMol &mol, boo
         }
     }
 
-    // Need to avoid recomputing partial charges on output
-    mol.SetPartialChargesPerceived();
-
     FOR_ATOMS_OF_MOL(matom, mol)
         OBAtomAssignTypicalImplicitHydrogens(&*matom);
 
     mol.EndModify();
+
+    mol.SetPartialChargesPerceived(); // Needed again (openbabel is written by retarded perverts!!!)
 }
 #endif
