@@ -122,7 +122,7 @@ protected:
     virtual void do_write(const Selection& sel, const Mol_file_content& what) = 0;
 };
 
-float get_mass_from_atom_name(std::string& name);
+void get_element_from_atom_name(std::string& name, int& anum, float& mass);
 
 }
 #endif /* MOL_FILE_H */

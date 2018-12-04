@@ -31,12 +31,18 @@
 // Periodic table from VMD molfile plugins
 #include "periodic_table.h"
 #include <iostream>
+#include <string>
 
 using namespace std;
 using namespace pteros;
 using namespace Eigen;
 
 namespace pteros {
+
+void guess_element(const string& name, int& anum, float& mass){
+    anum = get_pte_idx(name.c_str());
+    mass = get_pte_mass(anum);
+}
 
 float angle_between_vectors(Vector3f_const_ref vec1, Vector3f_const_ref vec2)
 {

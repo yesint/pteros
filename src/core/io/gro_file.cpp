@@ -92,7 +92,7 @@ bool GRO_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
 
         if(what.atoms()){
             // Assign masses
-            tmp_atom.mass = get_mass_from_atom_name(tmp_atom.name);
+            get_element_from_atom_name(tmp_atom.name, tmp_atom.element_number, tmp_atom.mass);
             tmp_atom.type = -1; //Undefined type so far
             // There is no chain, occupancy and beta in GRO file, so add it manually
             tmp_atom.chain = 'X';

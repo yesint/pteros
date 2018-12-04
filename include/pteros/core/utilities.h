@@ -55,6 +55,8 @@ namespace pteros {
 
     float get_vdw_radius(int elnum, const std::string& name);
 
+    void guess_element(const std::string& name, int& anum, float& mass);
+
 
     /// Returns rotation matrix given pivot, axis and angle in radians
     Eigen::Affine3f rotation_transform(Vector3f_const_ref pivot, Vector3f_const_ref axis, float angle);

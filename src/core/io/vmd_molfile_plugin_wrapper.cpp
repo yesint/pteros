@@ -157,11 +157,12 @@ bool VMD_molfile_plugin_wrapper::do_read(System *sys, Frame *frame, const Mol_fi
             // We can't use functions from VMD here since atom CA will be
             // treated as calcium for example. Our technique is more primitive
             // and only recognizes few most common elements
+            // In this case we also have to guess element itself
             if(atoms[i].mass>0){
                 at.mass = atoms[i].mass;
             } else {
-                // Guess mass from atom name
-                at.mass = get_mass_from_atom_name(at.name);
+                // Guess atomfrom atom name
+                get_element_from_atom_name(at.name, at.element_number, at.mass);
             }
 
             set_atom_in_system(*sys,i,at);
