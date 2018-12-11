@@ -1,12 +1,13 @@
 #include "pteros/core/selection.h"
 #include "pteros/core/logging.h"
-#include "bindings_util.h"
 #include "pteros/core/utilities.h"
 #include "pteros/core/pteros_error.h"
+#include "bindings_util.h"
 
 namespace py = pybind11;
 using namespace std;
 using namespace pteros;
+using namespace py::literals;
 
 // Forward declarations of all individual bindings of classes
 void make_bindings_Atom(py::module&);
@@ -63,9 +64,9 @@ PYBIND11_MODULE(_pteros, m) {
 
     py::class_<Histogram>(m,"Histogram")
             .def(py::init<float,float,int>())
-            .def("add",py::overload_cast<float>(&Histogram::add))
+            .def("add",py::overload_cast<float,float>(&Histogram::add),"value"_a,"weight"_a=1.0)
             .def("add",py::overload_cast<const vector<float>&>(&Histogram::add))
-            .def("normalize",&Histogram::normalize)
+            .def("normalize",&Histogram::normalize,"norm"_a=0)
             .def("value",&Histogram::value)
             .def("position",&Histogram::position)
             .def_property_readonly("values",&Histogram::values)

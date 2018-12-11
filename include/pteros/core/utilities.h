@@ -72,9 +72,9 @@ namespace pteros {
         Histogram(){}
         Histogram(float minval, float maxval, int n);
         void create(float minval, float maxval, int n);
-        void add(float v);
-        void add(const std::vector<float> &v);
-        void normalize();
+        void add(float v, float weight=1.0);
+        void add(const std::vector<float> &v);        
+        void normalize(float norm=0);
         float value(int i) const;
         float position(int i) const;
         const Eigen::VectorXd& values() const;

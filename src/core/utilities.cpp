@@ -192,11 +192,11 @@ void Histogram::create(float minval, float maxval, int n)
     for(int i=0;i<nbins;++i) pos(i) = minv+0.5*d+d*i;
 }
 
-void Histogram::add(float v)
+void Histogram::add(float v,float  weight)
 {
     if(normalized) throw Pteros_error("Can't add value to normalized histogram!");
     int b = floor((v-minv)/d);
-    if(b>=0 && b<nbins) val(b) += 1.0;
+    if(b>=0 && b<nbins) val(b) += weight;
 }
 
 void Histogram::add(const std::vector<float>& v)
@@ -204,9 +204,13 @@ void Histogram::add(const std::vector<float>& v)
     for(auto& val: v) add(val);
 }
 
-void Histogram::normalize()
+void Histogram::normalize(float norm)
 {
-    val /= val.sum()*(pos(1)-pos(0));
+    if(norm){
+        val /= norm;
+    } else {
+        val /= val.sum()*(pos(1)-pos(0));
+    }
     normalized = true;
 }
 

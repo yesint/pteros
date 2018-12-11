@@ -403,11 +403,15 @@ void Selection_parser::eval_node(const std::shared_ptr<MyAst> &node, std::vector
         const string& keyword = node->nodes[0]->token;
         int Nchildren = node->nodes.size(); // Get number of children
 
+        // If starting subset is present than this is a subselection and
+        // we have to interpret indexes as local indexes!
         if(keyword == "index") {
             // Cycle over children
             for(int i=1;i<Nchildren;++i){
                 if(node->nodes[i]->name == "INTEGER") {
                     int k = stoi(node->nodes[i]->token);
+                    // Shift to local index for subselection if needed
+                    if(starting_subset) k+=(*starting_subset)[0];
                     // We have to check the range here
                     if(k>=0 && k<Natoms)
                         result.push_back(k);
@@ -415,7 +419,12 @@ void Selection_parser::eval_node(const std::shared_ptr<MyAst> &node, std::vector
                     // this is a range, not an integer
                     int i1 = stoi(node->nodes[i]->nodes[0]->token);
                     int i2 = stoi(node->nodes[i]->nodes[1]->token);
-                    for(int k=i1;k<=i2;++k)
+                    // Shift to local index for subselection if needed
+                    if(starting_subset){
+                        i1+=(*starting_subset)[0];
+                        i2+=(*starting_subset)[0];
+                    }
+                    for(int k=i1;k<=i2;++k)                        
                         // We have to check the range here
                         if(k>=0 && k<Natoms)
                             result.push_back(k);
