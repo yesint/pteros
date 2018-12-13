@@ -136,7 +136,7 @@ int main(int argc, char* argv[]){
         if(opt.has("sel")){            
             s = opt("sel").as_string();
             Selection sel(solute, s);
-            LOG()->info("Removing atoms from custom selection '{}' ({} atoms})", s, sel.size());
+            LOG()->info("Removing atoms from custom selection '{}' ({} atoms)", s, sel.size());
             sel.set_beta(-1000);
         }
 
