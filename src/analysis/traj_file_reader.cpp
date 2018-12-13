@@ -140,13 +140,13 @@ void Traj_file_reader::reader_thread_body(const vector<string> &traj_files, cons
 
                 ++abs_frame; // Next absolute frame
 
-                if(log_interval>0 && abs_frame%log_interval==0)
-                    log->info("At frame {}",abs_frame);
-
                 // If time stamps are overriden, use overrides
                 if(custom_dt>=0){
                     data->frame.time = custom_start_time + custom_dt*abs_frame;
                 }
+
+                if(log_interval>0 && abs_frame%log_interval==0)
+                    log->info("At frame {}, {} ps",abs_frame,data->frame.time);
 
                 // Check if end of requested interval is reached
                 if( is_end_of_interval(abs_frame,data->frame.time) ){
@@ -168,6 +168,8 @@ void Traj_file_reader::reader_thread_body(const vector<string> &traj_files, cons
                     // This is the very first valid frame, set start time
                     saved_first_frame = abs_frame;
                     saved_first_time = data->frame.time;
+                    // print a message
+                    log->info("First valid frame is {}, {} ps",abs_frame,data->frame.time);
                 }
 
                 // Fill data container, which will be sent to the queue
