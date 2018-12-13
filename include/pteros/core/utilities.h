@@ -95,8 +95,8 @@ namespace pteros {
         Histogram2D(){}
         Histogram2D(float minval1, float maxval1, int n1, float minval2, float maxval2, int n2);
         void create(float minval1, float maxval1, int n1, float minval2, float maxval2, int n2);
-        void add(float v1, float v2);
-        void normalize();
+        void add(float v1, float v2, float weight=1.0);
+        void normalize(float norm=0);
 
         void save_to_file(const std::string& fname);
     private:

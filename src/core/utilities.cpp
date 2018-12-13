@@ -266,17 +266,21 @@ void Histogram2D::create(float minval1, float maxval1, int n1, float minval2, fl
     d(1) = (maxv(1)-minv(1))/float(nbins(1));
 }
 
-void Histogram2D::add(float v1, float v2)
+void Histogram2D::add(float v1, float v2, float weight)
 {
     if(normalized) throw Pteros_error("Can't add value to normalized histogram!");
     int b1 = floor((v1-minv(0))/d(0));
     int b2 = floor((v2-minv(1))/d(1));
-    if(b1>=0 && b1<nbins(0) && b2>=0 && b2<nbins(1)) val(b1,b2) += 1.0;
+    if(b1>=0 && b1<nbins(0) && b2>=0 && b2<nbins(1)) val(b1,b2) += weight;
 }
 
-void Histogram2D::normalize()
+void Histogram2D::normalize(float norm)
 {
-    val /= val.sum()*d(0)*d(1);
+    if(norm){
+        val /= norm;
+    } else {
+        val /= val.sum()*d(0)*d(1);
+    }
     normalized = true;
 }
 
