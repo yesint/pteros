@@ -25,23 +25,37 @@ Core dependencies:
 - <a href="http://eigen.tuxfamily.org/index.php?title=Main_Page">Eigen</a> linear algebra library (>=3.2).
 - <a href="http://git-scm.com/">Git</a> for getting the source code.
 
+Optional dependencies:
+
 For reading Gromacs TPR files and using Gromacs topologies (optional):
 - <a href="http://www.gromacs.org/">Gromacs</a> version 2016.x or higher.
 
+For reading MOL2 and PDBQT files, performing substructure search, determinign molecular symmetry :
+- <a href="https://github.com/openbabel/openbabel">OpenBabel</a> version 2.4 or higher.
+
 For compiling dynamic plugins and python bindings (optional if you only want C++ core):
-- <a href="https://www.python.org/">Python</a> 2.7 or higher (>=3.5 recommended).
+- <a href="https://www.python.org/">Python</a> (3.5 or higher).
 - <a href="https://github.com/pybind/pybind11">Pybind11</a> binding generator library.
 
 For building documentation (don't needed unless you want to contribute to the docs):
 - <a href="www.doxygen.org">Doxygen</a>
 - <a href="http://sphinx-doc.org/">Sphinx</a>
 
-If you are using latest Ubuntu or other debian-based system it should be enough to run the following command in the terminal to install all dependencies:
+If you are using latest Ubuntu or other debian-based system it should be enough to run the following command in the terminal to install most of dependencies:
 \code{.unparsed}
 sudo apt-get install g++ cmake libeigen3-dev libboost-all-dev python3.5-dev python3.5-numpy pybind11-dev git doxygen python-sphinx
 \endcode
 
 \note If you need Gromacs support it is highly recommended to install it from source because version in the repositories is usually outdated significantly.
+
+OpenBabel have to be install from source in Ubuntu 16.x and 18.x (and probably in other versions as well) because repository packages are corrupted and lack some header files. Do not install dev packege from repositories - it won't work! Your milleage in other linuxes may vary depending on the package quality. Compiled version of OpenBabel does not interfere with system version if installed to /usr/local (default).
+\code{.unparsed}
+git clone https://github.com/openbabel/openbabel.git
+mkdir openbabel-build
+cd openbabel-build
+cmake ../openbabel
+sudo make install
+\endcode
 
 In older Ubuntu releases pybind11 is not yet packaged so it should be installed from source:
 \code{.unparsed}
@@ -92,15 +106,9 @@ If you want to compile with alternative compiler (for example Clang), add the fo
 -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
 \endcode
 
-If both Python 3.x and 2.7 are installed in your system the version 3.x will be used by default (even if 2.7 if the system-default, like in Ubuntu).
-To force version 2.7 instead (which I don't recommend) add the following flag:
+If both Python 3.x and 2.7 are installed in your system the version 3.x will be used automatically (even if 2.7 if the system-default, like in Ubuntu).
 
-\code{.unparsed}
--DPYTHON_EXECUTABLE:FILEPATH=<path to python2.7 executable>
-\endcode
-In Ubuntu Python2.7 is usually a default, so just `python` could be sufficient.
-
-\warning Make sure that you use correct python interpreter! If Pteros was compiled with Python 3.5 it won't work with 2.7 and vice versa!
+\note Make sure that you use correct python interpreter! In Ubuntu always use python3 with Pteros.
 
 \subsection deb  Building .deb package
 
@@ -141,8 +149,8 @@ I contacted the authors of POWERSASA several times and asked for official permis
 \subsection gmx Enabling Gromacs support
 
 Pteros could be linked against Gromacs. In this case it can read Gromacs TPR files and make advantage of Gromacs topologies.
-CMake can only find Gromacs if it is installed from repository package into standard location (/lib). However, in most cases Gromacs is compiled from source and installed into other location (typically into /usr/local). In this case you should provide path to the directory containing gromacs-config.cmake file. For example:
-\code{.unparsed} -Dgromacs_DIR="/usr/local/gromacs/share/cmake/gromacs" \endcode
+CMake can find Gromacs if it is either installed from repository package into standard location (/lib) or compiled from source and installed into default location (/usr/local). In other cases you should provide path to the directory containing gromacs-config.cmake file. For example:
+\code{.unparsed} -Dgromacs_DIR="/some-custom-path/gromacs/share/cmake/gromacs" \endcode
 
 \subsection no_python 	Building without Python
 
@@ -170,7 +178,7 @@ In this case each plugin will be compiled twice, so expect longer compilation ti
 
 \subsection no_omp Building Pteros without OpenMP
 
-By default Pteros is compiled with OpenMP paralellization of many internal operations. However, on certain computational clusters running SGE scheduler the usage of OpenMP is prohibited. There are also other situations when you may want to disable OpenMP. Use the following flag to compile without OpenMP:
+By default Pteros is compiled with OpenMP paralellization for many internal operations. However, on certain computational clusters running SGE scheduler the usage of OpenMP is prohibited. There are also other situations when you may want to disable OpenMP. Use the following flag to compile without OpenMP:
 
 \code{.unparsed}
 cmake <usual options> -DWITH_OPENMP="OFF"
@@ -182,12 +190,13 @@ cmake <usual options> -DWITH_OPENMP="OFF"
 Use <a href="https://github.com/yesint/pteros/issues">issues on Github</a> to report bugs.
 
 \subsection known_problems Known problems
+- Linking with `libopenbabel-dev` installed from repositories fails in Ubuntu 16.x and 18.x due to corrupted headers in the package. Compile OpenBabel from source instead.
 - Clang compiler doesn't work with Boost < 1.52
 - OpenMP in clang only works for clang++ >= 3.8 and if libomp is installed: `sudo apt-get install libomp-dev`
 - If there are several Boost versions in the system CMake may find the right one for one library but the wrong one for the other, which causes very strange errors. The solution is to include the following flags to CMake invocation:
 \code{.unparsed} -DBoost_NO_SYSTEM_PATHS=ON -DBOOST_ROOT="Correct path to boost" \endcode
 - All Pteros plugins have to be up to date with the main library, but CMake doesn't always ensure this if you pull new updates from the repository. If plugins suddenly stop working after update delete CMakeCache.txt and CMakeFiles and recompile.
-- The error <i>"trying to overwrite '/usr/include/spdlog/async_logger.h', which is also in package libspdlog-dev 1.6-1"</i> occurs during installation. This happens if you have `spdlog` installed system-wide in Ubuntu from the package `libspdlog-dev`. This package is built in a wrong way and it lacks `spdlogConfig.cmake` file needed for correct library detection. That is why Pteros can't see it and tries to install its own bandled version of spdlog. Use `INSTALL_INTERNAL_SPDLOG=OFF` as a workaround.
+- The error <i>"trying to overwrite '/usr/include/spdlog/async_logger.h', which is also in package libspdlog-dev 1.6-1"</i> occurs during installation. This happens if you have `spdlog` installed system-wide in Ubuntu from the package `libspdlog-dev`. This package is built in a wrong way and it lacks `spdlogConfig.cmake` file needed for correct library detection. That is why Pteros can't see it and tries to install its own bundled version of spdlog. Use `INSTALL_INTERNAL_SPDLOG=OFF` as a workaround.
 
 \section linking 	Linking with Pteros
 
