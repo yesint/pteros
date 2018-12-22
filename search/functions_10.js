@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['sasa',['sasa',['../classpteros_1_1Selection.html#af281cbbad77a5221a57e36474d1bbfe6',1,'pteros::Selection']]],
+  ['sasa',['sasa',['../classpteros_1_1Selection.html#a83fab26d0b95584d51d4e1c4b2395cc9',1,'pteros::Selection']]],
   ['scale_5fvectors',['scale_vectors',['../classpteros_1_1Periodic__box.html#ab89fddfcf1301fc5306f54cc061cbdc2',1,'pteros::Periodic_box']]],
   ['search_5fcontacts',['search_contacts',['../distance__search_8h.html#a9305c340a0e5d142b329e104aa649b93',1,'pteros::search_contacts(float d, const Selection &amp;sel, std::vector&lt; Eigen::Vector2i &gt; &amp;pairs, bool absolute_index=false, bool periodic=false, std::vector&lt; float &gt; *dist_vec=nullptr)'],['../distance__search_8h.html#ac00a14eedb48eb8960c44cd066391165',1,'pteros::search_contacts(float d, const Selection &amp;sel1, const Selection &amp;sel2, std::vector&lt; Eigen::Vector2i &gt; &amp;pairs, bool absolute_index=false, bool periodic=false, std::vector&lt; float &gt; *dist_vec=nullptr)']]],
   ['select',['select',['../classpteros_1_1Selection.html#ae34b009075510a23700132e477c2f5fe',1,'pteros::Selection::select(std::string str)'],['../classpteros_1_1Selection.html#a04cc3a388389fe5b3572f06bc7216d4c',1,'pteros::Selection::select(int ind1, int ind2)'],['../classpteros_1_1Selection.html#a010338ef5c24bb71147e5485f5a87fdf',1,'pteros::Selection::select(const std::vector&lt; int &gt; &amp;ind)']]],
@@ -22,8 +22,8 @@ var searchData=
   ['set_5fsystem',['set_system',['../classpteros_1_1Selection.html#a0671ecf29f52dd438a5870dd44314c87',1,'pteros::Selection']]],
   ['set_5ftag',['set_tag',['../classpteros_1_1Selection.html#a81e25238feb1da15567f6956663118e4',1,'pteros::Selection::set_tag(const std::vector&lt; std::string &gt; &amp;data)'],['../classpteros_1_1Selection.html#a5d6506a3c984490459722ec5c64a3843',1,'pteros::Selection::set_tag(std::string data)']]],
   ['set_5fxyz',['set_xyz',['../classpteros_1_1Selection.html#af625e98a88317d5ef16532330950207e',1,'pteros::Selection']]],
-  ['shortest_5fvector',['shortest_vector',['../classpteros_1_1Periodic__box.html#a8c62d1338e6afdc0059d8d1d66998b36',1,'pteros::Periodic_box']]],
-  ['size',['size',['../classpteros_1_1Selection.html#a2a86549614aa8834bbec793c585a7960',1,'pteros::Selection']]],
+  ['shortest_5fvector',['shortest_vector',['../classpteros_1_1Periodic__box.html#a5fc8139017c8f23997640e72be04efbb',1,'pteros::Periodic_box']]],
+  ['size',['size',['../classpteros_1_1Selection.html#ab05fdad1136802ff0cc08ce41c16ffe9',1,'pteros::Selection']]],
   ['sort_5fby_5fresindex',['sort_by_resindex',['../classpteros_1_1System.html#a521c0ce9af1da689a66c21d2bf23321d',1,'pteros::System']]],
   ['split',['split',['../classpteros_1_1Selection.html#a36d799722b5f7648dfbcc5eed64b9278',1,'pteros::Selection']]],
   ['split_5fby_5fchain',['split_by_chain',['../classpteros_1_1Selection.html#ac79b542658d529776e66a743313d6fdd',1,'pteros::Selection']]],

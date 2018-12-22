@@ -8,7 +8,7 @@ var searchData=
   ['resid',['resid',['../classpteros_1_1Atom.html#af0dbfecfda5133da1cb7deedbe5fcb77',1,'pteros::Atom']]],
   ['resindex',['resindex',['../classpteros_1_1Atom.html#aedf6b3ea2c72356db628ffeec7c4c278',1,'pteros::Atom']]],
   ['resname',['resname',['../classpteros_1_1Atom.html#ac8a307f0257c922e9af7dc2de223cd64',1,'pteros::Atom']]],
-  ['rmsd',['rmsd',['../classpteros_1_1Selection.html#aca0f95c9cd3142a11032b3ae0c638339',1,'pteros::Selection::rmsd(int fr) const '],['../classpteros_1_1Selection.html#adedeaf36b43a1d3f4749802eb20c2aef',1,'pteros::Selection::rmsd(int fr1, int fr2) const '],['../classpteros_1_1Selection.html#a34a4bc23ae98b5c8319e171dab46b7c5',1,'pteros::Selection::rmsd()'],['../classpteros_1_1Selection.html#a6700d548ea12ce1e8e5bfe9b5d373cb4',1,'pteros::Selection::rmsd()']]],
+  ['rmsd',['rmsd',['../classpteros_1_1Selection.html#ab15ec03e6fbae8e38440bd24e6ab09ab',1,'pteros::Selection::rmsd(int fr) const'],['../classpteros_1_1Selection.html#acf1140a7e50da8f279a09423c3e26319',1,'pteros::Selection::rmsd(int fr1, int fr2) const'],['../classpteros_1_1Selection.html#a34a4bc23ae98b5c8319e171dab46b7c5',1,'pteros::Selection::rmsd()'],['../classpteros_1_1Selection.html#a6700d548ea12ce1e8e5bfe9b5d373cb4',1,'pteros::Selection::rmsd()']]],
   ['rotate',['rotate',['../classpteros_1_1Selection.html#ac6e1a1a8f6173866c08ec6b17a2ebc9b',1,'pteros::Selection']]],
   ['run',['run',['../classpteros_1_1Trajectory__reader.html#ab566a30bcdcbfc739d7a2981487023e4',1,'pteros::Trajectory_reader']]]
 ];

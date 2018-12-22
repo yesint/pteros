@@ -15,6 +15,7 @@ var hierarchy =
     [ "pteros::GNM", "classpteros_1_1GNM.html", null ],
     [ "pteros::Grid", "classpteros_1_1Grid.html", null ],
     [ "pteros::Histogram", "classpteros_1_1Histogram.html", null ],
+    [ "pteros::Histogram2D", "classpteros_1_1Histogram2D.html", null ],
     [ "pteros::Selection::iterator", "classpteros_1_1Selection_1_1iterator.html", null ],
     [ "pteros::Mol_file", "classpteros_1_1Mol__file.html", [
       [ "pteros::Babel_wrapper", "classpteros_1_1Babel__wrapper.html", null ],

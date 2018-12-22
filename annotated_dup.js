@@ -15,6 +15,7 @@ var annotated_dup =
       [ "GRO_file", "classpteros_1_1GRO__file.html", "classpteros_1_1GRO__file" ],
       [ "Gromacs_trajectory_file", "classpteros_1_1Gromacs__trajectory__file.html", "classpteros_1_1Gromacs__trajectory__file" ],
       [ "Histogram", "classpteros_1_1Histogram.html", "classpteros_1_1Histogram" ],
+      [ "Histogram2D", "classpteros_1_1Histogram2D.html", "classpteros_1_1Histogram2D" ],
       [ "MOL2_file", "classpteros_1_1MOL2__file.html", "classpteros_1_1MOL2__file" ],
       [ "Mol_file", "classpteros_1_1Mol__file.html", "classpteros_1_1Mol__file" ],
       [ "Options", "classpteros_1_1Options.html", "classpteros_1_1Options" ],

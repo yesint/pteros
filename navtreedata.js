@@ -72,9 +72,9 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 ".html",
-"classpteros_1_1Selection.html#a16aa3323d4a0ac93d084c7dc075eb3a4",
-"classpteros_1_1Task__plugin.html#a6cb99dedc7a1dcafc55c7a9296fae8a3",
-"structpteros_1_1Frame__info.html#a5ff4281e2773700e9394dbab6c9b3fc2"
+"classpteros_1_1Selection.html#a13376c1d68b45c53389040c91981c8fc",
+"classpteros_1_1TNG__file.html#afb1164dd3c402cbe8f0345ecd9114c83",
+"structpteros_1_1Frame.html#acaa5ff373f5ab4da4aa6733f17b04e20"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';
