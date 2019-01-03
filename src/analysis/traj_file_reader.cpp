@@ -35,7 +35,9 @@ void process_suffix_value(const string& s, int* intval, float* floatval){
     }
 }
 
-Traj_file_reader::Traj_file_reader(Options &options){
+Traj_file_reader::Traj_file_reader(Options &options, int natoms){
+    Natoms = natoms;
+
     // Separate reader logger (not registered since only used here)
     log = create_logger("traj_file");
 
@@ -134,6 +136,10 @@ void Traj_file_reader::reader_thread_body(const vector<string> &traj_files, cons
 
                 // Load data to this container
                 bool good = trj->read(nullptr, &data->frame, Mol_file_content().traj(true));
+
+                // Check number of atoms
+                if(data->frame.coord.size() != Natoms)
+                    throw Pteros_error("Expected {} atoms but trajectory has {}.",data->frame.coord.size(),Natoms);
 
                 // Check if EOF reached in trajectory
                 if(!good) break;

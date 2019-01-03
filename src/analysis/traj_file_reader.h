@@ -15,7 +15,7 @@ using Data_channel_ptr = std::shared_ptr<Data_channel> ;
 
 class Traj_file_reader {
 public:
-    Traj_file_reader(Options& options);
+    Traj_file_reader(Options& options, int natoms);
 
     bool is_frame_valid(int fr, float t);
 
@@ -31,6 +31,8 @@ public:
     void reader_thread_body(const std::vector<std::string>& traj_files, const Data_channel_ptr &channel);
 
 private:
+    int Natoms; // Number of atoms requested in trajectory
+
     int log_interval;
     float custom_start_time;
     float custom_dt;

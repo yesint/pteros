@@ -242,7 +242,7 @@ void Trajectory_reader::run(){
     log->debug("\tFile reading thread: 1");
 
     // Create traj file reader
-    Traj_file_reader reader(options);
+    Traj_file_reader reader(options, system.num_atoms());
     // Start reader thread
     reader.run(traj_files, reader_channel);
 
