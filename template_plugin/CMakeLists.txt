@@ -39,10 +39,10 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 ENDIF()
 
 #Sets optmization for Eigen in Release build
-SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -msse2")
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -march=native")
 
 # Enable STL debugging in debug mode
-SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_GLIBCXX_DEBUG")
+#SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_GLIBCXX_DEBUG")
 
 # Enable C++11 and C99 everywhere
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
@@ -69,7 +69,7 @@ message("Looking for Boost...")
 find_package(Boost 1.48.0 REQUIRED system date_time)
 # For boost>1.50 and on windows also add filesystem to compile normally
 if(${Boost_MINOR_VERSION} GREATER 50 AND ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    find_package(Boost 1.48.0 REQUIRED filesystem system)
+    find_package(Boost 1.48.0 REQUIRED filesystem)
 endif()
 # Add Boost includes and libs globally - they are needed everywhere
 include_directories(${Boost_INCLUDE_DIRS})

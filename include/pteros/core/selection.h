@@ -928,7 +928,7 @@ class Selection {
         \code
         sel.get_system()->Time(sel.get_frame());
         \endcode
-        This is a convenience method. The same time is returnedby all selection
+        This is a convenience method. The same time is returned by all selection
         which point to the same frame.
     */
     inline float& time() { return system->traj[frame].time; }

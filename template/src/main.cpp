@@ -1,4 +1,4 @@
-#include "pteros/core/selection.h"
+#include "pteros/pteros.h"
 #include "pteros/core/pteros_error.h"
 #include <iostream>
 
@@ -7,10 +7,10 @@ using namespace pteros;
 
 int main(int argc, char** argv){
 	try {
-	    cout << "Pteros demo template program" << endl;
+        LOG()->info("Pteros demo template program");
 	    System sys("2lao.pdb");
-	    cout << "Number of atoms is " << sys.num_atoms() << endl;
+        LOG()->info("Number of atoms is {}", sys.num_atoms());
 	} catch(Pteros_error e) {
-	    e.print();
+        LOG()->error(e.what());
 	}
 }

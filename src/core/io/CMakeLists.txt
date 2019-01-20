@@ -2,34 +2,6 @@
 # pteros IO library
 #---------------------
 
-# Look for Gromacs
-if(WITH_GROMACS)
-    message("Looking for Gromacs...")
-    find_package(gromacs QUIET)
-    if(NOT ${gromacs_FOUND})
-        # Try /usr/local
-        message("   Trying /usr/local...")
-        set(gromacs_DIR "/usr/local/gromacs/share/cmake/gromacs")
-        find_package(gromacs QUIET)
-    endif()
-
-    if(${gromacs_FOUND})
-        message("-- Found Gromacs ${gromacs_VERSION} at ${GROMACS_INCLUDE_DIRS}")
-        add_definitions(-DUSE_GROMACS)
-        include_directories(${GROMACS_INCLUDE_DIRS})
-        link_libraries(${GROMACS_LIBRARIES})
-        # If we have version < 2018 set flag for old API
-        if(${gromacs_VERSION_MAJOR} LESS 2018)
-            add_definitions(-DGROMACS_OLD)
-            message("-- Gromacs version ${gromacs_VERSION_MAJOR} thus using old gmx_mtop_t_to_t_topology API!")
-        endif()
-    else()
-        message("-- Gromacs not found! Gromacs-related features are disabled!")
-    endif()
-endif()
-
-
-
 if(${OPENBABEL2_FOUND})
     set(BabelFiles
         babel_wrapper.h
