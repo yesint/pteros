@@ -771,12 +771,19 @@ Selection System::append(const Selection &sel, bool current_frame){
     atoms.reserve(atoms.size()+sel.size());
     for(int i=0;i<sel.size();++i) atoms.push_back(sel.atom(i));
 
-    // Merge coordinates    
+    // Merge coordinates
     for(int fr=0; fr<num_frames(); ++fr){ // in system
         traj[fr].coord.reserve(atoms.size());
         if(transfer_time_box){
-            traj[fr].time = sel.get_system()->time(fr);
-            traj[fr].box = sel.get_system()->box(fr);
+            if(!current_frame){
+                // Transfer matching box and time
+                traj[fr].time = sel.get_system()->time(fr);
+                traj[fr].box = sel.get_system()->box(fr);
+            } else {
+                // Transfer box and time of current frame in sel
+                traj[fr].time = sel.time();
+                traj[fr].box = sel.box();
+            }
         }
         for(int i=0;i<sel.size();++i){
             if(!current_frame){
