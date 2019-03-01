@@ -13,6 +13,17 @@ OPTION(INSTALL_INTERNAL_SPDLOG "Install internal spdlog headers in the case if t
 OPTION(MAKE_EXAMPLES "Compile examples and plugin templates" OFF)
 OPTION(MAKE_TEST "Compile tests" OFF)
 
+# Obtain hash of current commit and put to variable
+execute_process(
+    COMMAND  git describe --tags
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+    RESULT_VARIABLE SHORT_HASH_RESULT
+    OUTPUT_VARIABLE SHORT_HASH
+    )
+
+# Write version header
+string(STRIP ${SHORT_HASH} SHORT_HASH)
+file(WRITE ${PROJECT_SOURCE_DIR}/include/pteros/version.h "auto pteros_version = \"${SHORT_HASH}\";")
 
 # Use shared Boost libraries
 set(Boost_USE_STATIC_LIBS OFF)

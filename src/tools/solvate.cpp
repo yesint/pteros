@@ -1,6 +1,7 @@
 #include "pteros/pteros.h"
 #include <Eigen/Core>
 #include "spdlog/fmt/ostr.h"
+#include "pteros/core/utilities.h"
 
 using namespace std;
 using namespace pteros;
@@ -28,11 +29,7 @@ R"(Usage:
 
 int main(int argc, char* argv[]){
     try{
-        cout << "===================================" << endl;
-        cout << "==        pteros_solvate         ==" << endl;
-        cout << "===================================" << endl;
-        cout << "==  (C) Semen Yesylevskyy, 2018  ==" << endl;
-        cout << "===================================" << endl;
+        greeting("pteros_solvate");
 
         LOG()->set_pattern("(%l)\t%v");
 

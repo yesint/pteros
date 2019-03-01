@@ -107,6 +107,8 @@ namespace pteros {
         bool normalized;
     };
 
+    void greeting(std::string tool_name="");
+
 } // namespace
 
 

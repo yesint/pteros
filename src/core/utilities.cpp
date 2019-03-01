@@ -27,6 +27,7 @@
 
 #include "pteros/core/utilities.h"
 #include "pteros/core/pteros_error.h"
+#include "pteros/version.h"
 #include <fstream>
 // Periodic table from VMD molfile plugins
 #include "periodic_table.h"
@@ -168,6 +169,30 @@ string resname_3char(char code)
         return code_1to3.at(code);
     else
         return "XXX";
+}
+
+void greeting(string tool_name)
+{
+    string s1 = "| Pteros molecular modeling library |";
+    string ver_str = fmt::format("Version: {}", pteros_version);
+    string author = "(C) Semen Yesylevskyy, 2019";
+    string cite = "Please cite: 10.1002/jcc.23943";
+    string web = "github.com/yesint/pteros";
+    // Line
+    string line="+";  for(int i=0;i<s1.size()-2;++i) line+="-";  line+="+";
+
+    cout << line << endl;
+    cout << s1 << endl;
+    cout << "| " << ver_str;  for(int i=0;i<s1.size()-3-ver_str.size();++i) cout << " "; cout << "|" << endl;
+    cout << "| " << web;  for(int i=0;i<s1.size()-3-web.size();++i) cout << " "; cout << "|" << endl;
+    cout << "| " << author;  for(int i=0;i<s1.size()-3-author.size();++i) cout << " "; cout << "|" << endl;
+    cout << "| " << cite;  for(int i=0;i<s1.size()-3-cite.size();++i) cout << " "; cout << "|" << endl;
+    cout << line << endl;
+
+    if(tool_name.size()>0){
+        cout << "| " << tool_name;  for(int i=0;i<s1.size()-3-tool_name.size();++i) cout << " "; cout << "|" << endl;
+        cout << line << endl;
+    }
 }
 
 } // namespace

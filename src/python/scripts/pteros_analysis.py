@@ -49,6 +49,7 @@ if __name__ == '__main__':
     # Show help if no options at all
     if len(sys.argv)==1:
         # Show usage message
+        greeting('pteros_analysis')
         general_help()
         sys.exit(0)
 
@@ -65,6 +66,7 @@ if __name__ == '__main__':
     if opt.has("help"):
         help_topic = opt("help","").as_string()
         if help_topic == "":
+            greeting('pteros_analysis')
             general_help()
             sys.exit(0)
 
@@ -73,12 +75,11 @@ if __name__ == '__main__':
     set_log_level(log_level)
 
     if log_level != 'off':
-        print("+--------------------------------+")
-        print("+ This is pteros_analysis script +")
-        print("+--------------------------------+")
+        greeting('pteros_analysis')
 
     # Create logger
     log = Logger('analysis')
+    log.info('Pteros version: {}'.format(pteros_version))
 
     # Create trajectory reader
     reader = Trajectory_reader(opt)
