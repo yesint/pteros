@@ -1,3 +1,20 @@
+# Obtain version from git
+find_package(Git)
+find_file(GITDIR NAMES .git PATHS ${PROJECT_SOURCE_DIR} NO_DEFAULT_PATH)
+if(GIT_FOUND AND GITDIR)
+    SET(_git_head_dependence "${GITDIR}/logs/HEAD")
+else()
+    SET(_git_head_dependence "")
+endif()
+add_custom_command(OUTPUT "${PROJECT_SOURCE_DIR}/src/core/version.cpp"
+    COMMAND ${CMAKE_COMMAND}
+        -Dwork_dir=${PROJECT_SOURCE_DIR}
+        -P "${PROJECT_SOURCE_DIR}/cmake/gitversion.cmake"
+    DEPENDS ${_git_head_dependence}
+    VERBATIM
+)
+
+
 #------------------------
 # SASA code
 #------------------------
@@ -32,6 +49,9 @@ endif()
 
 add_library(pteros SHARED
     # General
+    ${PROJECT_SOURCE_DIR}/include/pteros/core/version.h
+    version.cpp # generated with git revision if git present
+
     ${PROJECT_SOURCE_DIR}/include/pteros/core/logging.h
     logging.cpp
 

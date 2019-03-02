@@ -3,7 +3,7 @@
 #include "pteros/core/utilities.h"
 #include "pteros/core/pteros_error.h"
 #include "bindings_util.h"
-#include "pteros/version.h"
+#include "pteros/core/version.h"
 
 namespace py = pybind11;
 using namespace std;
@@ -34,7 +34,7 @@ PYBIND11_MODULE(_pteros, m) {
     make_bindings_Trajectory_reader(m);
 
     // Global stuff
-    m.attr("pteros_version") = py::cast(pteros_version);
+    m.attr("pteros_version") = py::cast(_git_revision);
     m.def("greeting",&greeting);
 
     py::class_<spdlog::logger,shared_ptr<spdlog::logger>>(m,"Logger")

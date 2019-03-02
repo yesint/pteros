@@ -27,7 +27,7 @@
 
 #include "pteros/core/utilities.h"
 #include "pteros/core/pteros_error.h"
-#include "pteros/version.h"
+#include "pteros/core/version.h"
 #include <fstream>
 // Periodic table from VMD molfile plugins
 #include "periodic_table.h"
@@ -173,8 +173,9 @@ string resname_3char(char code)
 
 void greeting(string tool_name)
 {
-    string s1 = "| Pteros molecular modeling library |";
-    string ver_str = fmt::format("Version: {}", pteros_version);
+    string s1 = "|***    Pteros molecular modeling library    ***|";
+    string ver_str = fmt::format("Version: {}", _git_revision);
+    string timestamp = fmt::format("Build at: {}", _build_time);
     string author = "(C) Semen Yesylevskyy, 2019";
     string cite = "Please cite: 10.1002/jcc.23943";
     string web = "github.com/yesint/pteros";
