@@ -34,7 +34,7 @@ PYBIND11_MODULE(_pteros, m) {
     make_bindings_Trajectory_reader(m);
 
     // Global stuff
-    m.attr("pteros_version") = py::cast(_git_revision);
+    //m.attr("pteros_version") = py::cast(_git_revision);
     m.def("greeting",&greeting);
 
     py::class_<spdlog::logger,shared_ptr<spdlog::logger>>(m,"Logger")

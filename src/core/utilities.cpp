@@ -171,27 +171,34 @@ string resname_3char(char code)
         return "XXX";
 }
 
+void greet_string(const string& s, int sz){
+    cout << "| " << s;  for(int i=0;i<sz-3-s.size();++i) cout << " "; cout << "|" << endl;
+}
+
 void greeting(string tool_name)
 {
     string s1 = "|***    Pteros molecular modeling library    ***|";
-    string ver_str = fmt::format("Version: {}", _git_revision);
-    string timestamp = fmt::format("Build at: {}", _build_time);
+    string ver_str = fmt::format("Version: {} ({})", _version_tag, _git_revision);
+    string timestamp = fmt::format("Built at: {}", _build_time);
     string author = "(C) Semen Yesylevskyy, 2019";
     string cite = "Please cite: 10.1002/jcc.23943";
-    string web = "github.com/yesint/pteros";
+    string web = "Web: github.com/yesint/pteros";
     // Line
     string line="+";  for(int i=0;i<s1.size()-2;++i) line+="-";  line+="+";
 
     cout << line << endl;
     cout << s1 << endl;
-    cout << "| " << ver_str;  for(int i=0;i<s1.size()-3-ver_str.size();++i) cout << " "; cout << "|" << endl;
-    cout << "| " << web;  for(int i=0;i<s1.size()-3-web.size();++i) cout << " "; cout << "|" << endl;
-    cout << "| " << author;  for(int i=0;i<s1.size()-3-author.size();++i) cout << " "; cout << "|" << endl;
-    cout << "| " << cite;  for(int i=0;i<s1.size()-3-cite.size();++i) cout << " "; cout << "|" << endl;
+    cout << line << endl;
+    greet_string(ver_str, s1.size());
+    greet_string(timestamp, s1.size());
+    cout << line << endl;
+    greet_string(author ,s1.size());
+    greet_string(web ,s1.size());
+    greet_string(cite ,s1.size());
     cout << line << endl;
 
     if(tool_name.size()>0){
-        cout << "| " << tool_name;  for(int i=0;i<s1.size()-3-tool_name.size();++i) cout << " "; cout << "|" << endl;
+        greet_string("Tool: "+tool_name, s1.size());
         cout << line << endl;
     }
 }

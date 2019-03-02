@@ -10,7 +10,7 @@ add_custom_command(OUTPUT "${PROJECT_SOURCE_DIR}/src/core/version.cpp"
     COMMAND ${CMAKE_COMMAND}
         -Dwork_dir=${PROJECT_SOURCE_DIR}
         -P "${PROJECT_SOURCE_DIR}/cmake/gitversion.cmake"
-    DEPENDS ${_git_head_dependence}
+    DEPENDS version.cpp.in  ${_git_head_dependence}
     VERBATIM
 )
 

@@ -26,5 +26,6 @@
 
 #include "pteros/core/version.h"
 
-const char _git_revision[] = "@_build_version@";
+const char _git_revision[] = "@_git_commit@";
 const char _build_time[] = "@_time_stamp@";
+const char _version_tag[] = "@_version_tag@";

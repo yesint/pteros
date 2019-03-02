@@ -79,7 +79,6 @@ if __name__ == '__main__':
 
     # Create logger
     log = Logger('analysis')
-    log.info('Pteros version: {}'.format(pteros_version))
 
     # Create trajectory reader
     reader = Trajectory_reader(opt)
