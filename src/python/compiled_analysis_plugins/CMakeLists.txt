@@ -1,4 +1,3 @@
-
 SET(PLUGINS    
     box
     rms
@@ -13,11 +12,8 @@ SET(PLUGINS
     contacts
 )
 
-IF(STANDALONE_PLUGINS)
-
-    message("-----------------------------------------")
-    message("      Building standalone plugins        ")
-    message("-----------------------------------------")
+IF(MAKE_STANDALONE_PLUGINS)
+    message(STATUS "Building standalone plugins")
 
     foreach(plugin ${PLUGINS})
         add_executable(pteros_${plugin}
@@ -25,21 +21,15 @@ IF(STANDALONE_PLUGINS)
             ${PROJECT_SOURCE_DIR}/include/pteros/core/pteros_error.h
         )
 
-        # Set compile definitions for this target
-        set_target_properties(pteros_${plugin} PROPERTIES COMPILE_DEFINITIONS "STANDALONE_PLUGINS")
-
+        target_compile_definitions(pteros_${plugin} PRIVATE "STANDALONE_PLUGINS")
         target_link_libraries(pteros_${plugin} pteros pteros_analysis)
 
         install(TARGETS pteros_${plugin} RUNTIME DESTINATION bin/analysis)
     endforeach()
-
 ENDIF()
 
 IF(WITH_PYTHON)
-
-    message("-----------------------------------------")
-    message("  Building plugins as python extensions  ")
-    message("-----------------------------------------")
+    message(STATUS "Building plugins as python extensions")
 
     foreach(plugin ${PLUGINS})
         pybind11_add_module(${plugin}
@@ -49,8 +39,7 @@ IF(WITH_PYTHON)
 
         target_link_libraries(${plugin} PRIVATE pteros pteros_analysis ${PYTHON_LIBRARIES})
 
-        set_target_properties(${plugin}
-            PROPERTIES
+        set_target_properties(${plugin} PROPERTIES
             LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/python/pteros_analysis_plugins"
         )
         #Installation
@@ -59,5 +48,4 @@ IF(WITH_PYTHON)
             ARCHIVE DESTINATION ${PY_INST_DIR}/pteros_analysis_plugins
         )
     endforeach()
-
 ENDIF()

@@ -2,21 +2,11 @@
 # pteros IO library
 #---------------------
 
-if(${OPENBABEL2_FOUND})
-    set(BabelFiles
-        babel_wrapper.h
-        babel_wrapper.cpp
-        pdbqt_file.h
-        pdbqt_file.cpp)
-endif()
-
 add_library(pteros_io STATIC
     ${PROJECT_SOURCE_DIR}/include/pteros/core/mol_file.h
     mol_file.cpp
     vmd_molfile_plugin_wrapper.h
     vmd_molfile_plugin_wrapper.cpp
-
-    ${BabelFiles}
 
     pdb_file.h
     pdb_file.cpp
@@ -40,4 +30,32 @@ add_library(pteros_io STATIC
     tpr_file.cpp    
 )
 
-target_link_libraries(pteros_io molfile_plugins xdrfile tng_io)
+if(${OPENBABEL2_FOUND})
+    target_sources(pteros_io PRIVATE
+        babel_wrapper.h
+        babel_wrapper.cpp
+        pdbqt_file.h
+        pdbqt_file.cpp)
+    # These definitions are public to propagate to pteros core
+    target_compile_definitions(pteros_io PUBLIC USE_OPENBABEL)
+    target_include_directories(pteros_io PUBLIC ${OPENBABEL2_INCLUDE_DIR})
+    target_link_libraries(pteros_io PUBLIC ${OPENBABEL2_LIBRARIES})
+endif()
+
+target_link_libraries(pteros_io PRIVATE
+    molfile_plugins
+    xdrfile
+    tng_io
+    Eigen3::Eigen)
+
+if(${gromacs_FOUND})
+    # Public to propagate to pteros core
+    target_compile_definitions(pteros_io PUBLIC USE_GROMACS)
+    target_include_directories(pteros_io PUBLIC ${GROMACS_INCLUDE_DIRS})
+    target_link_libraries(pteros_io PUBLIC ${GROMACS_LIBRARIES})
+    # If we have version < 2018 set flag for old API
+    if(${gromacs_VERSION_MAJOR} LESS 2018)
+        target_compile_definitions(pteros_io PUBLIC GROMACS_OLD)
+        message(STATUS "Gromacs version ${gromacs_VERSION_MAJOR} thus using old gmx_mtop_t_to_t_topology API")
+    endif()
+endif()

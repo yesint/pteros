@@ -6,118 +6,90 @@ OPTION(WITH_PYTHON "Build python bindings and compile analysis plugins as Python
 OPTION(WITH_OPENMP "Use OpenMP parallelization if supported" ON)
 OPTION(WITH_OPENBABEL "Use OpenBabel if supported" ON)
 OPTION(WITH_GROMACS "Use Gromacs if supported. Required to read tpr files." ON)
-OPTION(WITH_POWERSASA "Use POWERSASA code. This implies severe license restrictions! \n Read the comment in thirdparty/sasa/LICENSE carefully before enabling this option!" OFF)
-OPTION(STANDALONE_PLUGINS "Compile analysis plugins as stand-alone executables" OFF)
+OPTION(WITH_POWERSASA "Use POWERSASA code. This implies license restrictions described here: thirdparty/sasa/LICENSE" ON)
+OPTION(MAKE_STANDALONE_PLUGINS "Compile analysis plugins as stand-alone executables" OFF)
 OPTION(MAKE_PACKAGE "Generate package" OFF)
 OPTION(INSTALL_INTERNAL_SPDLOG "Install internal spdlog headers in the case if there is no system-wide spdlog" ON)
 OPTION(MAKE_EXAMPLES "Compile examples and plugin templates" OFF)
 OPTION(MAKE_TEST "Compile tests" OFF)
 
-# Use shared Boost libraries
-set(Boost_USE_STATIC_LIBS OFF)
+##############################
+# Global compilation options:
+##############################
 
-# Gloabal compiler and linker flags for Linux
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
-    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
-    # Strip libraries and executables to decrease size in Release builds
-    SET(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} -s")
-    SET(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -s")
-ENDIF()
+# -fPIC
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-#Sets optmization for Eigen in Release build
+# C++14 and C99
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_C_STANDARD 99)
+
+#Sets optmization in Release build
 SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -march=native")
-
-# Enable STL debugging in debug mode
-#SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_GLIBCXX_DEBUG")
-
-# Enable C++11 and C99 everywhere
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
-SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99")
 
 # Set specific options for GCC if used
 if(CMAKE_COMPILER_IS_GNUCXX)
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wl,--no-as-needed")
 endif()
 
-# Find OpenMP if needed and only in release mode
+# Strip libraries and executables to decrease size in Release builds
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    SET(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} -s")
+    SET(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -s")
+ENDIF()
+
+# Main Pteros include dir should be visible everywhere
+include_directories(${PROJECT_SOURCE_DIR}/include)
+
+##############################
+# Unconditional dependencies:
+##############################
+
+# Boost
+set(Boost_USE_STATIC_LIBS OFF)
+find_package(Boost 1.50 REQUIRED COMPONENTS system)
+
+# Eigen
+find_package(Eigen3 3.3 REQUIRED NO_MODULE)
+
+##############################
+# Conditional dependencies:
+##############################
+
+# OpenMP only in release mode
 if(WITH_OPENMP AND CMAKE_BUILD_TYPE STREQUAL "Release")
-    message("Looking for OpenMP...")
-    find_package(OpenMP)
-    if(OPENMP_FOUND)
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-    endif()
+    find_package(OpenMP REQUIRED COMPONENTS CXX)
 endif()
 
-# Find Python only if we need bindings
+# Python
 if(WITH_PYTHON)    
     # Configure pybind11
-    message("Looking for Pybind11...")
     find_package(pybind11 REQUIRED)
     # Set python install dir
     set(PY_INST_DIR python)
 endif()
 
-# Find Boost
-message("Looking for Boost...")
-find_package(Boost 1.48.0 REQUIRED system date_time)
-# For boost>1.50 and on windows also add filesystem to compile normally
-if(${Boost_MINOR_VERSION} GREATER 50 AND ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    find_package(Boost 1.50.0 REQUIRED filesystem)
-endif()
-
-# Add Boost includes and libs globally - they are needed everywhere
-include_directories(${Boost_INCLUDE_DIRS})
-link_libraries(${Boost_LIBRARIES})
-
-# Look for OpenBabel
+# OpenBabel
 if(WITH_OPENBABEL)
-    message("Looking for OpenBabel...")
     set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules)
     find_package(OpenBabel2 REQUIRED)
-    if(${OPENBABEL2_FOUND})
-        add_definitions(-DUSE_OPENBABEL)        
-        include_directories(${OPENBABEL2_INCLUDE_DIR})
-        link_libraries(${OPENBABEL2_LIBRARIES})
-    else()
-        message("-- OpenBabel is not found!")
-    endif()
 endif()
 
-# Add Eigen
-message("Looking for Eigen...")
-find_package(Eigen3 REQUIRED)
-include_directories(${EIGEN3_INCLUDE_DIR})
-
-# Look for Gromacs
+# Gromacs
 if(WITH_GROMACS)
-    message("Looking for Gromacs...")
     find_package(gromacs QUIET)
     if(NOT ${gromacs_FOUND})
         # Try /usr/local
-        message("   Trying /usr/local...")
+        message(STATUS "Looking for Gromacs in /usr/local...")
         set(gromacs_DIR "/usr/local/gromacs/share/cmake/gromacs")
-        find_package(gromacs QUIET)
+        find_package(gromacs REQUIRED)
     endif()
 
     if(${gromacs_FOUND})
-        message("-- Found Gromacs ${gromacs_VERSION} at ${GROMACS_INCLUDE_DIRS}")
-        add_definitions(-DUSE_GROMACS)
-        include_directories(${GROMACS_INCLUDE_DIRS})
-        link_libraries(${GROMACS_LIBRARIES})
-        # If we have version < 2018 set flag for old API
-        if(${gromacs_VERSION_MAJOR} LESS 2018)
-            add_definitions(-DGROMACS_OLD)
-            message("-- Gromacs version ${gromacs_VERSION_MAJOR} thus using old gmx_mtop_t_to_t_topology API!")
-        endif()
-    else()
-        message("-- Gromacs not found! Gromacs-related features are disabled!")
+        message("Found Gromacs ${gromacs_VERSION} at ${GROMACS_INCLUDE_DIRS}")
     endif()
 endif()
 
-# Main Pteros include dir (for build time, not yet installed)
-include_directories(include)
 
 #--------------
 # CPack config

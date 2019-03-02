@@ -1,4 +1,4 @@
-# Obtain version from git
+# Obtain version from git and geberate version.cpp
 find_package(Git)
 find_file(GITDIR NAMES .git PATHS ${PROJECT_SOURCE_DIR} NO_DEFAULT_PATH)
 if(GIT_FOUND AND GITDIR)
@@ -14,34 +14,9 @@ add_custom_command(OUTPUT "${PROJECT_SOURCE_DIR}/src/core/version.cpp"
     VERBATIM
 )
 
-
-#------------------------
-# SASA code
-#------------------------
-
 add_subdirectory(io)
 add_subdirectory(selection_parser)
 add_subdirectory(distance_search)
-
-
-if(WITH_POWERSASA)
-    # Set definition for conditional compilation
-    add_definitions(-DUSE_POWERSASA)
-    # Add includes
-    include_directories(${PROJECT_SOURCE_DIR}/thirdparty/powersasa)
-    # Make list of SASA files
-    SET(SASA_FILES
-        ${PROJECT_SOURCE_DIR}/thirdparty/powersasa/power_diagram.h
-        ${PROJECT_SOURCE_DIR}/thirdparty/powersasa/power_sasa.h
-    )    
-
-    message("------------------------------")
-    message("POWERSASA code is used! \n This implies severe license restrictions! \n Read the comment in src/thirdparty/sasa/LICENSE carefully. \n If you don't agree with this license please use flag -DPOWERSASA=\"OFF\" !")
-    message("------------------------------")
-
-else()
-    SET(SASA_FILES "")    
-endif()
 
 #---------------------
 # Main pteros library
@@ -89,13 +64,38 @@ add_library(pteros SHARED
     pteros_dssp_wrapper.h
 )
 
+#------------------------
+# SASA code
+#------------------------
+
+if(WITH_POWERSASA)
+    # Set definition for conditional compilation
+    target_compile_definitions(pteros PRIVATE USE_POWERSASA)
+    # Add includes
+    target_include_directories(pteros PRIVATE ${PROJECT_SOURCE_DIR}/thirdparty/powersasa)
+    # sources
+    target_sources(pteros PRIVATE
+        ${PROJECT_SOURCE_DIR}/thirdparty/powersasa/power_diagram.h
+        ${PROJECT_SOURCE_DIR}/thirdparty/powersasa/power_sasa.h
+    )
+    message(WARNING "POWERSASA code is used! Licence restrictions are described here: src/thirdparty/sasa/LICENSE")
+endif()
+
 # Add path to molfile plugins directory to use VMD periodic table routines
 target_include_directories(pteros PRIVATE ${PROJECT_SOURCE_DIR}/thirdparty/molfile_plugins)
 
 # For selection parser includes
 target_include_directories(pteros PRIVATE selection_parser)
 
-target_link_libraries(pteros pteros_io pteros_selection_parser pteros_distance_search dssp sasa)
+target_link_libraries(pteros
+    pteros_io
+    pteros_selection_parser
+    pteros_distance_search
+    dssp
+    sasa
+    Boost::boost Boost::system
+    Eigen3::Eigen
+    OpenMP::OpenMP_CXX)
 
 #--------------
 # Installation

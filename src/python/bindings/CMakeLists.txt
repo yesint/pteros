@@ -1,5 +1,4 @@
 IF(WITH_PYTHON)
-
     #############################
     # Main pteros python module
     #############################
@@ -26,19 +25,15 @@ IF(WITH_PYTHON)
         bindings_substructure_search.cpp
     )
 
-
     pybind11_add_module(_pteros ${BIND_FILES})
     pybind11_add_module(_pteros_extras ${EXTRAS_FILES})
 
     target_link_libraries(_pteros PRIVATE pteros pteros_analysis)
+    target_link_libraries(_pteros_extras PRIVATE pteros_membrane)
 
     if(${OPENBABEL2_FOUND})
-        target_link_libraries(_pteros_extras PRIVATE pteros_membrane pteros_substructure_search)
-    else()
-        target_link_libraries(_pteros_extras PRIVATE pteros_membrane)
+        target_link_libraries(_pteros_extras PRIVATE pteros_substructure_search)
     endif()
-
-
 
     #Installation
     install(TARGETS _pteros

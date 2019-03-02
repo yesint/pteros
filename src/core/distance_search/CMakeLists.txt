@@ -31,3 +31,5 @@ add_library(pteros_distance_search STATIC
     distance_search_contacts_2sel.h
     distance_search_contacts_2sel.cpp
 )
+
+target_link_libraries(pteros_distance_search Eigen3::Eigen)

@@ -17,3 +17,4 @@ add_library(dssp STATIC
     utils.cpp
 )
 
+target_link_libraries(dssp Eigen3::Eigen)

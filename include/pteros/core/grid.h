@@ -24,9 +24,7 @@
  *
 */
 
-
-#ifndef GRID_H_INCLUDED
-#define GRID_H_INCLUDED
+#pragma once
 
 #include <Eigen/Core>
 #include <vector>
@@ -94,6 +92,4 @@ namespace pteros {
     };
 
 }
-
-#endif // GRID_H_INCLUDED
 

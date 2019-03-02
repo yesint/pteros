@@ -8,3 +8,5 @@ add_library(pteros_selection_parser STATIC
     peglib.h
     selection_parser.cpp
 )
+
+target_link_libraries(pteros_selection_parser Eigen3::Eigen)
