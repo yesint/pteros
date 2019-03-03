@@ -18,3 +18,4 @@ add_library(dssp STATIC
 )
 
 target_link_libraries(dssp Eigen3::Eigen)
+target_include_directories(dssp PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

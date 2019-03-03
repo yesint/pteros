@@ -2,7 +2,7 @@
 # SASA library from MDTraj
 #------------------------------
 
-add_library(sasa SHARED
+add_library(sasa STATIC
     msvccompat.h
     sasa.cpp
     sasa.h    
@@ -10,9 +10,4 @@ add_library(sasa SHARED
 )
 
 target_compile_options(sasa PRIVATE "-msse4.1")
-
-install(TARGETS sasa
-    RUNTIME DESTINATION bin
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
-)
+target_include_directories(sasa PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

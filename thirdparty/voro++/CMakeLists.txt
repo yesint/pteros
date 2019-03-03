@@ -15,6 +15,8 @@ add_library(voro++ SHARED
     container_prd.cc
 )
 
+target_include_directories(voro++ PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
 install(TARGETS voro++
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib

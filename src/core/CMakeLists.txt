@@ -17,12 +17,13 @@ add_custom_command(OUTPUT "${PROJECT_SOURCE_DIR}/src/core/version.cpp"
 add_subdirectory(io)
 add_subdirectory(selection_parser)
 add_subdirectory(distance_search)
+add_subdirectory(babel_utils)
 
 #---------------------
-# Main pteros library
+# pteros core library
 #---------------------
 
-add_library(pteros SHARED
+add_library(pteros_core STATIC
     # General
     ${PROJECT_SOURCE_DIR}/include/pteros/core/version.h
     version.cpp # generated with git revision if git present
@@ -70,11 +71,11 @@ add_library(pteros SHARED
 
 if(WITH_POWERSASA)
     # Set definition for conditional compilation
-    target_compile_definitions(pteros PRIVATE USE_POWERSASA)
+    target_compile_definitions(pteros_core PRIVATE USE_POWERSASA)
     # Add includes
-    target_include_directories(pteros PRIVATE ${PROJECT_SOURCE_DIR}/thirdparty/powersasa)
+    target_include_directories(pteros_core PRIVATE ${PROJECT_SOURCE_DIR}/thirdparty/powersasa)
     # sources
-    target_sources(pteros PRIVATE
+    target_sources(pteros_core PRIVATE
         ${PROJECT_SOURCE_DIR}/thirdparty/powersasa/power_diagram.h
         ${PROJECT_SOURCE_DIR}/thirdparty/powersasa/power_sasa.h
     )
@@ -82,27 +83,44 @@ if(WITH_POWERSASA)
 endif()
 
 # Add path to molfile plugins directory to use VMD periodic table routines
-target_include_directories(pteros PRIVATE ${PROJECT_SOURCE_DIR}/thirdparty/molfile_plugins)
+target_include_directories(pteros_core PRIVATE ${PROJECT_SOURCE_DIR}/thirdparty/molfile_plugins)
 
 # For selection parser includes
-target_include_directories(pteros PRIVATE selection_parser)
+target_include_directories(pteros_core PRIVATE selection_parser)
 
-target_link_libraries(pteros
-    pteros_io
-    pteros_selection_parser
-    pteros_distance_search
-    dssp
-    sasa
-    Boost::boost Boost::system
-    Eigen3::Eigen
-    OpenMP::OpenMP_CXX)
+target_link_libraries(pteros_core
+    PRIVATE
+        pteros_io
+        pteros_selection_parser
+        pteros_distance_search
+        dssp
+        sasa
+        Boost::boost Boost::system
+    PUBLIC
+        Eigen3::Eigen
+)
+
+if(OpenMP_CXX_FOUND)
+    target_link_libraries(pteros_core PRIVATE OpenMP::OpenMP_CXX)
+endif()
+
+
+#----------------------------
+# Main pteros shared library
+#----------------------------
+add_library(pteros SHARED "")
+target_link_libraries(pteros PUBLIC pteros_core)
 
 #--------------
 # Installation
 #--------------
+set_target_properties(pteros PROPERTIES PUBLIC_HEADER
+    ${PROJECT_SOURCE_DIR}/include/pteros/core/system.h
+)
 
 install(TARGETS pteros    
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
+    PUBLIC_HEADER DESTINATION include/pteros/core2
 )

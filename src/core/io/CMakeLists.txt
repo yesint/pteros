@@ -36,10 +36,14 @@ if(${OPENBABEL2_FOUND})
         babel_wrapper.cpp
         pdbqt_file.h
         pdbqt_file.cpp)
-    # These definitions are public to propagate to pteros core
-    target_compile_definitions(pteros_io PUBLIC USE_OPENBABEL)
-    target_include_directories(pteros_io PUBLIC ${OPENBABEL2_INCLUDE_DIR})
-    target_link_libraries(pteros_io PUBLIC ${OPENBABEL2_LIBRARIES})
+
+    target_compile_definitions(pteros_io PRIVATE USE_OPENBABEL)
+    target_include_directories(pteros_io PRIVATE ${OPENBABEL2_INCLUDE_DIR})
+    target_link_libraries(pteros_io
+        PRIVATE
+            ${OPENBABEL2_LIBRARIES}
+            pteros_babel_utils
+    )
 endif()
 
 target_link_libraries(pteros_io PRIVATE
@@ -50,12 +54,12 @@ target_link_libraries(pteros_io PRIVATE
 
 if(${gromacs_FOUND})
     # Public to propagate to pteros core
-    target_compile_definitions(pteros_io PUBLIC USE_GROMACS)
-    target_include_directories(pteros_io PUBLIC ${GROMACS_INCLUDE_DIRS})
-    target_link_libraries(pteros_io PUBLIC ${GROMACS_LIBRARIES})
+    target_compile_definitions(pteros_io PRIVATE USE_GROMACS)
+    target_include_directories(pteros_io PRIVATE ${GROMACS_INCLUDE_DIRS})
+    target_link_libraries(pteros_io PRIVATE ${GROMACS_LIBRARIES})
     # If we have version < 2018 set flag for old API
     if(${gromacs_VERSION_MAJOR} LESS 2018)
-        target_compile_definitions(pteros_io PUBLIC GROMACS_OLD)
+        target_compile_definitions(pteros_io PRIVATE GROMACS_OLD)
         message(STATUS "Gromacs version ${gromacs_VERSION_MAJOR} thus using old gmx_mtop_t_to_t_topology API")
     endif()
 endif()

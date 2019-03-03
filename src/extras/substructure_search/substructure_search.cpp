@@ -27,6 +27,7 @@
 
 #include "pteros/extras/substructure_search.h"
 #include "pteros/core/pteros_error.h"
+#include "babel_utils.h"
 #include <set>
 
 #include <openbabel/mol.h>

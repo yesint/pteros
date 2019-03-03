@@ -1,7 +1,7 @@
 /* This code is part of the tng binary trajectory format.
  *
  * Written by Magnus Lundborg
- * Copyright (c) 2012-2014, The GROMACS development team.
+ * Copyright (c) 2012-2017, The GROMACS development team.
  * Check out http://www.gromacs.org for more information.
  *
  *
@@ -75,6 +75,14 @@
  * See git log for full revision history.
  *
  * Revisions
+ * 
+ * v. 1.8 - Added GROMACS energy block IDs.
+ *        - Rewritten build system for the main library.
+ *        - Added block ID for atom (or generic particle) mass.
+ *        - Fixed bugs, such as:
+ *           - Do not switch endianness when reading and writing TNG compressed data.
+ *           - Update pointers to residues in the chain when writing multiple chains in one molecule.
+ *           - Update frame set pointers when appending to file.
  *
  * v. 1.7 - Fifth stable release of the API
  *
@@ -438,6 +446,7 @@ typedef enum {TNG_NON_TRAJECTORY_BLOCK, TNG_TRAJECTORY_BLOCK} tng_block_type;
 #define TNG_TRAJ_ANISOTROPIC_B_FACTORS  0x0000000010000007LL
 #define TNG_TRAJ_OCCUPANCY              0x0000000010000008LL
 #define TNG_TRAJ_GENERAL_COMMENTS       0x0000000010000009LL
+#define TNG_TRAJ_MASSES                 0x0000000010000010LL
 /** @} */
 
 
@@ -459,36 +468,73 @@ typedef enum {TNG_NON_TRAJECTORY_BLOCK, TNG_TRAJECTORY_BLOCK} tng_block_type;
 #define TNG_GMX_ENERGY_TEMPERATURE      0x1000000010000011LL
 #define TNG_GMX_ENERGY_PRESSURE         0x1000000010000012LL
 #define TNG_GMX_ENERGY_CONSTR_RMSD      0x1000000010000013LL
-#define TNG_GMX_ENERGY_BOX_X            0x1000000010000014LL
-#define TNG_GMX_ENERGY_BOX_Y            0x1000000010000015LL
-#define TNG_GMX_ENERGY_BOX_Z            0x1000000010000016LL
-#define TNG_GMX_ENERGY_VOLUME           0x1000000010000017LL
-#define TNG_GMX_ENERGY_DENSITY          0x1000000010000018LL
-#define TNG_GMX_ENERGY_PV               0x1000000010000019LL
-#define TNG_GMX_ENERGY_ENTHALPY         0x1000000010000020LL
-#define TNG_GMX_ENERGY_VIR_XX           0x1000000010000021LL
-#define TNG_GMX_ENERGY_VIR_XY           0x1000000010000022LL
-#define TNG_GMX_ENERGY_VIR_XZ           0x1000000010000023LL
-#define TNG_GMX_ENERGY_VIR_YX           0x1000000010000024LL
-#define TNG_GMX_ENERGY_VIR_YY           0x1000000010000025LL
-#define TNG_GMX_ENERGY_VIR_YZ           0x1000000010000026LL
-#define TNG_GMX_ENERGY_VIR_ZX           0x1000000010000027LL
-#define TNG_GMX_ENERGY_VIR_ZY           0x1000000010000028LL
-#define TNG_GMX_ENERGY_VIR_ZZ           0x1000000010000029LL
-#define TNG_GMX_ENERGY_PRES_XX          0x1000000010000030LL
-#define TNG_GMX_ENERGY_PRES_XY          0x1000000010000031LL
-#define TNG_GMX_ENERGY_PRES_XZ          0x1000000010000032LL
-#define TNG_GMX_ENERGY_PRES_YX          0x1000000010000033LL
-#define TNG_GMX_ENERGY_PRES_YY          0x1000000010000034LL
-#define TNG_GMX_ENERGY_PRES_YZ          0x1000000010000035LL
-#define TNG_GMX_ENERGY_PRES_ZX          0x1000000010000036LL
-#define TNG_GMX_ENERGY_PRES_ZY          0x1000000010000037LL
-#define TNG_GMX_ENERGY_PRES_ZZ          0x1000000010000038LL
-#define TNG_GMX_ENERGY_SURFXSURFTEN     0x1000000010000039LL
-#define TNG_GMX_ENERGY_T_SYSTEM         0x1000000010000040LL
-#define TNG_GMX_ENERGY_LAMB_SYSTEM      0x1000000010000041LL
-#define TNG_GMX_SELECTION_GROUP_NAMES   0x1000000010000042LL
-#define TNG_GMX_ATOM_SELECTION_GROUP    0x1000000010000043LL
+#define TNG_GMX_ENERGY_CONSTR2_RMSD     0x1000000010000014LL
+#define TNG_GMX_ENERGY_BOX_X            0x1000000010000015LL
+#define TNG_GMX_ENERGY_BOX_Y            0x1000000010000016LL
+#define TNG_GMX_ENERGY_BOX_Z            0x1000000010000017LL
+#define TNG_GMX_ENERGY_BOXXX            0x1000000010000018LL
+#define TNG_GMX_ENERGY_BOXYY            0x1000000010000019LL
+#define TNG_GMX_ENERGY_BOXZZ            0x1000000010000020LL
+#define TNG_GMX_ENERGY_BOXYX            0x1000000010000021LL
+#define TNG_GMX_ENERGY_BOXZX            0x1000000010000022LL
+#define TNG_GMX_ENERGY_BOXZY            0x1000000010000023LL
+#define TNG_GMX_ENERGY_BOXVELXX         0x1000000010000024LL
+#define TNG_GMX_ENERGY_BOXVELYY         0x1000000010000025LL
+#define TNG_GMX_ENERGY_BOXVELZZ         0x1000000010000026LL
+#define TNG_GMX_ENERGY_BOXVELYX         0x1000000010000027LL
+#define TNG_GMX_ENERGY_BOXVELZX         0x1000000010000028LL
+#define TNG_GMX_ENERGY_BOXVELZY         0x1000000010000029LL
+#define TNG_GMX_ENERGY_VOLUME           0x1000000010000030LL
+#define TNG_GMX_ENERGY_DENSITY          0x1000000010000031LL
+#define TNG_GMX_ENERGY_PV               0x1000000010000032LL
+#define TNG_GMX_ENERGY_ENTHALPY         0x1000000010000033LL
+#define TNG_GMX_ENERGY_VIR_XX           0x1000000010000034LL
+#define TNG_GMX_ENERGY_VIR_XY           0x1000000010000035LL
+#define TNG_GMX_ENERGY_VIR_XZ           0x1000000010000036LL
+#define TNG_GMX_ENERGY_VIR_YX           0x1000000010000037LL
+#define TNG_GMX_ENERGY_VIR_YY           0x1000000010000038LL
+#define TNG_GMX_ENERGY_VIR_YZ           0x1000000010000039LL
+#define TNG_GMX_ENERGY_VIR_ZX           0x1000000010000040LL
+#define TNG_GMX_ENERGY_VIR_ZY           0x1000000010000041LL
+#define TNG_GMX_ENERGY_VIR_ZZ           0x1000000010000042LL
+#define TNG_GMX_ENERGY_SHAKEVIR_XX      0x1000000010000043LL
+#define TNG_GMX_ENERGY_SHAKEVIR_XY      0x1000000010000044LL
+#define TNG_GMX_ENERGY_SHAKEVIR_XZ      0x1000000010000045LL
+#define TNG_GMX_ENERGY_SHAKEVIR_YX      0x1000000010000046LL
+#define TNG_GMX_ENERGY_SHAKEVIR_YY      0x1000000010000047LL
+#define TNG_GMX_ENERGY_SHAKEVIR_YZ      0x1000000010000048LL
+#define TNG_GMX_ENERGY_SHAKEVIR_ZX      0x1000000010000049LL
+#define TNG_GMX_ENERGY_SHAKEVIR_ZY      0x1000000010000050LL
+#define TNG_GMX_ENERGY_SHAKEVIR_ZZ      0x1000000010000051LL
+#define TNG_GMX_ENERGY_FORCEVIR_XX      0x1000000010000052LL
+#define TNG_GMX_ENERGY_FORCEVIR_XY      0x1000000010000053LL
+#define TNG_GMX_ENERGY_FORCEVIR_XZ      0x1000000010000054LL
+#define TNG_GMX_ENERGY_FORCEVIR_YX      0x1000000010000055LL
+#define TNG_GMX_ENERGY_FORCEVIR_YY      0x1000000010000056LL
+#define TNG_GMX_ENERGY_FORCEVIR_YZ      0x1000000010000057LL
+#define TNG_GMX_ENERGY_FORCEVIR_ZX      0x1000000010000058LL
+#define TNG_GMX_ENERGY_FORCEVIR_ZY      0x1000000010000059LL
+#define TNG_GMX_ENERGY_FORCEVIR_ZZ      0x1000000010000060LL
+#define TNG_GMX_ENERGY_PRES_XX          0x1000000010000061LL
+#define TNG_GMX_ENERGY_PRES_XY          0x1000000010000062LL
+#define TNG_GMX_ENERGY_PRES_XZ          0x1000000010000063LL
+#define TNG_GMX_ENERGY_PRES_YX          0x1000000010000064LL
+#define TNG_GMX_ENERGY_PRES_YY          0x1000000010000065LL
+#define TNG_GMX_ENERGY_PRES_YZ          0x1000000010000066LL
+#define TNG_GMX_ENERGY_PRES_ZX          0x1000000010000067LL
+#define TNG_GMX_ENERGY_PRES_ZY          0x1000000010000068LL
+#define TNG_GMX_ENERGY_PRES_ZZ          0x1000000010000069LL
+#define TNG_GMX_ENERGY_SURFXSURFTEN     0x1000000010000070LL
+#define TNG_GMX_ENERGY_MUX              0x1000000010000071LL
+#define TNG_GMX_ENERGY_MUY              0x1000000010000072LL
+#define TNG_GMX_ENERGY_MUZ              0x1000000010000073LL
+#define TNG_GMX_ENERGY_VCOS             0x1000000010000074LL
+#define TNG_GMX_ENERGY_VISC             0x1000000010000075LL
+#define TNG_GMX_ENERGY_BAROSTAT         0x1000000010000076LL
+#define TNG_GMX_ENERGY_T_SYSTEM         0x1000000010000077LL
+#define TNG_GMX_ENERGY_LAMB_SYSTEM      0x1000000010000078LL
+#define TNG_GMX_SELECTION_GROUP_NAMES   0x1000000010000079LL
+#define TNG_GMX_ATOM_SELECTION_GROUP    0x1000000010000080LL
 /** @} */
 
 /** Flag to specify if a data block contains data related to particles or not.*/
@@ -2976,7 +3022,8 @@ tng_function_status DECLSPECDLLEXPORT tng_data_get(const tng_trajectory_t tng_da
  * opened.
  * @param block_id is the id number of the particle data block to read.
  * @param values is a pointer to a 1-dimensional array (memory unallocated), which
- * will be filled with data. The length of the array will be (n_frames * n_values_per_frame).
+ * will be filled with data. The length of the array will be
+ * (n_frames_with_data (see stride_length) * n_values_per_frame).
  * Since **values is allocated in this function it is the callers
  * responsibility to free the memory.
  * @param n_frames is set to the number of particles in the returned data. This is
@@ -3063,7 +3110,8 @@ tng_function_status DECLSPECDLLEXPORT tng_data_interval_get
  * If hash_mode == TNG_USE_HASH the md5 hash in the file will be
  * compared to the md5 hash of the read contents to ensure valid data.
  * @param values is a pointer to a 1-dimensional array (memory unallocated), which
- * will be filled with data. The length of the array will be (n_frames * n_values_per_frame).
+ * will be filled with data. The length of the array will be
+ * (n_frames_with_data (see stride_length) * n_values_per_frame).
  * Since **values is allocated in this function it is the callers
  * responsibility to free the memory.
  * @param stride_length is set to the stride length (writing interval) of
@@ -3152,7 +3200,7 @@ tng_function_status DECLSPECDLLEXPORT tng_particle_data_get
  * @param block_id is the id number of the particle data block to read.
  * @param values is a pointer to a 1-dimensional array (memory unallocated), which
  * will be filled with data. The length of the array will be
- * (n_frames * n_particles * n_values_per_frame).
+ * (n_frames_with_data (see stride_length) * n_particles * n_values_per_frame).
  * Since **values is allocated in this function it is the callers
  * responsibility to free the memory.
  * @param n_frames is set to the number of frames in the returned data. This is
@@ -3256,7 +3304,7 @@ tng_function_status DECLSPECDLLEXPORT tng_particle_data_interval_get
  * compared to the md5 hash of the read contents to ensure valid data.
  * @param values is a pointer to a 1-dimensional array (memory unallocated), which
  * will be filled with data. The length of the array will be
- * (n_frames * n_particles * n_values_per_frame).
+ * (n_frames_with_data (see stride_length) * n_particles * n_values_per_frame).
  * Since **values is allocated in this function it is the callers
  * responsibility to free the memory.
  * @param stride_length is set to the stride length (writing interval) of
@@ -3552,8 +3600,9 @@ tng_function_status DECLSPECDLLEXPORT tng_util_box_shape_read
  * @param tng_data is the trajectory to read from.
  * @param block_id is the ID number of the block containing the data of interest.
  * @param values will be set to point at a 1-dimensional array containing the
- * requested data. The variable may point at already allocated memory or be a
- * NULL pointer. The memory must be freed afterwards.
+ * requested data. The variable may point at already allocated memory (which will
+ * be reallocated with realloc()), or be a
+ * NULL pointer. The calling code must free the memory afterwards.
  * @param data_type will be pointing to a character indicating the size of the
  * data of the returned values, e.g. TNG_INT_DATA, TNG_FLOAT_DATA or TNG_DOUBLE_DATA.
  * @param retrieved_frame_number will be pointing at the frame number of the
@@ -4779,7 +4828,7 @@ tng_function_status DECLSPECDLLEXPORT tng_util_frame_current_compression_get
  * @param data_block_ids_in_next_frame is set to an array (of length
  * n_data_blocks_in_next_frame) that lists the data block IDs with data for
  * next_frame. It must be pointing at NULL or previously allocated memory.
- * Memory for the array is allocated by this function.
+ * Memory for the array is reallocated by this function using realloc().
  * The memory must be freed by the client afterwards or
  * there will be a memory leak.
  * @pre \code tng_data != 0 \endcode The trajectory container (tng_data)

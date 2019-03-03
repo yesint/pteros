@@ -28,3 +28,6 @@ add_library(molfile_plugins STATIC
     ${MOLFILE_PLUGINS_FILE_LIST}
 )
 
+target_link_libraries(molfile_plugins PRIVATE tng_io)
+
+target_include_directories(molfile_plugins PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

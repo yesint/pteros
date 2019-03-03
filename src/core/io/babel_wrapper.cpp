@@ -31,6 +31,7 @@
 #include "openbabel/residue.h"
 #include "openbabel/bondtyper.h"
 #include "openbabel/generic.h"
+#include "babel_utils.h"
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846264338327950288

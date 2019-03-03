@@ -11,3 +11,4 @@ add_library(xdrfile STATIC
     xdrfile_xtc.h
 )
 
+target_include_directories(xdrfile PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

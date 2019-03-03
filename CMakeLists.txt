@@ -127,27 +127,21 @@ endif()
 
 # Build separate tng_io library
 add_subdirectory(thirdparty/tng_io)
-include_directories(thirdparty/tng_io/include)
 
 # DSSP library
 add_subdirectory(thirdparty/dssp)
-include_directories(thirdparty/dssp)
 
 # VMD molfile plugins
 add_subdirectory(thirdparty/molfile_plugins)
-include_directories(thirdparty/molfile_plugins)
 
 # xdrfile library
 add_subdirectory(thirdparty/xdrfile)
-include_directories(thirdparty/xdrfile)
 
 # voro++ library
 add_subdirectory(thirdparty/voro++)
-include_directories(thirdparty/voro++)
 
 # SASA library from MDTraj
 add_subdirectory(thirdparty/sasa)
-include_directories(thirdparty/sasa)
 
 #---------------------------------------------
 # Compiling pteros itself
