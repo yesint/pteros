@@ -65,9 +65,7 @@ add_library(pteros_core STATIC
     pteros_dssp_wrapper.h
 )
 
-#------------------------
-# SASA code
-#------------------------
+#Add SASA code
 
 if(WITH_POWERSASA)
     # Set definition for conditional compilation
@@ -82,12 +80,6 @@ if(WITH_POWERSASA)
     message(WARNING "POWERSASA code is used! Licence restrictions are described here: src/thirdparty/sasa/LICENSE")
 endif()
 
-# Add path to molfile plugins directory to use VMD periodic table routines
-target_include_directories(pteros_core PRIVATE ${PROJECT_SOURCE_DIR}/thirdparty/molfile_plugins)
-
-# For selection parser includes
-target_include_directories(pteros_core PRIVATE selection_parser)
-
 target_link_libraries(pteros_core
     PRIVATE
         pteros_io
@@ -95,9 +87,11 @@ target_link_libraries(pteros_core
         pteros_distance_search
         dssp
         sasa
+        molfile_plugins
         Boost::boost Boost::system
     PUBLIC
         Eigen3::Eigen
+        spdlog
 )
 
 if(OpenMP_CXX_FOUND)

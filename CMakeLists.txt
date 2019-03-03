@@ -114,18 +114,19 @@ ENDIF()
 # Build thirdparty libraries
 #----------------------------
 
-message("Looking for spdlog...")
+# spdlog
 find_package(spdlog CONFIG QUIET)
 if(NOT ${spdlog_FOUND})
-    message("-- spdlog not found! Using internal one.")
-    include_directories(${PROJECT_SOURCE_DIR}/thirdparty)
+    message(STATUS "spdlog not found! Using internal one.")
+    add_subdirectory(${PROJECT_SOURCE_DIR}/thirdparty/spdlog)
     # Install spdlog headers
     if(${INSTALL_INTERNAL_SPDLOG})
-        install(DIRECTORY ${PROJECT_SOURCE_DIR}/thirdparty/spdlog DESTINATION include)
+        install(DIRECTORY ${PROJECT_SOURCE_DIR}/thirdparty/spdlog/include/spdlog
+                DESTINATION include)
     endif()
 endif()
 
-# Build separate tng_io library
+# tng_io library
 add_subdirectory(thirdparty/tng_io)
 
 # DSSP library
