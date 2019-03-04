@@ -58,8 +58,6 @@ install(FILES
         "${CMAKE_CURRENT_BINARY_DIR}/cmake/tng_io-configVersion.cmake"
         DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/tng_io")
 
-message(WARNING ${CMAKE_CURRENT_BINARY_DIR})
-
 install(FILES
         include/tng/tng_io.h include/tng/tng_io_fwd.h
         #${CMAKE_CURRENT_BINARY_DIR}/include/tng/version.h
