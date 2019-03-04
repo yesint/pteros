@@ -9,7 +9,7 @@ if(WITH_OPENBABEL AND ${OPENBABEL2_FOUND})
         PUBLIC
             ${OPENBABEL2_LIBRARIES}
             Eigen3::Eigen
-            pteros_core
+            pteros_interface
     )
 
     target_include_directories(pteros_babel_utils

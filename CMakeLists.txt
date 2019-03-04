@@ -52,6 +52,9 @@ find_package(Boost 1.50 REQUIRED COMPONENTS system)
 # Eigen
 find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 
+# spdlog
+find_package(spdlog CONFIG REQUIRED)
+
 ##############################
 # Conditional dependencies:
 ##############################
@@ -77,14 +80,7 @@ endif()
 
 # Gromacs
 if(WITH_GROMACS)
-    find_package(gromacs QUIET)
-    if(NOT ${gromacs_FOUND})
-        # Try /usr/local
-        message(STATUS "Looking for Gromacs in /usr/local...")
-        set(gromacs_DIR "/usr/local/gromacs/share/cmake/gromacs")
-        find_package(gromacs REQUIRED)
-    endif()
-
+    find_package(gromacs REQUIRED)
     if(${gromacs_FOUND})
         message("Found Gromacs ${gromacs_VERSION} at ${GROMACS_INCLUDE_DIRS}")
     endif()
@@ -113,18 +109,6 @@ ENDIF()
 #----------------------------
 # Build thirdparty libraries
 #----------------------------
-
-# spdlog
-find_package(spdlog CONFIG QUIET)
-if(NOT ${spdlog_FOUND})
-    message(STATUS "spdlog not found! Using internal one.")
-    add_subdirectory(${PROJECT_SOURCE_DIR}/thirdparty/spdlog)
-    # Install spdlog headers
-    if(${INSTALL_INTERNAL_SPDLOG})
-        install(DIRECTORY ${PROJECT_SOURCE_DIR}/thirdparty/spdlog/include/spdlog
-                DESTINATION include)
-    endif()
-endif()
 
 # tng_io library
 add_subdirectory(thirdparty/tng_io)
@@ -167,6 +151,15 @@ ENDIF()
 # Install headers
 install(DIRECTORY include DESTINATION .)
 
+install(EXPORT pterosTargets
+    FILE pterosTargets.cmake
+    NAMESPACE pteros::
+    DESTINATION lib/cmake/pteros
+)
+
+install(FILES
+    ${PROJECT_SOURCE_DIR}/cmake/pterosConfig.cmake DESTINATION
+    lib/cmake/pteros)
 
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")

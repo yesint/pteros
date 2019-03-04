@@ -19,13 +19,19 @@ add_subdirectory(selection_parser)
 add_subdirectory(distance_search)
 add_subdirectory(babel_utils)
 
+#-----------------------------------------------------------------
+# service interface library to provide includes for other targets
+#-----------------------------------------------------------------
+
+add_library(pteros_interface INTERFACE)
+target_include_directories(pteros_interface INTERFACE ${PROJECT_SOURCE_DIR}/include/)
+
 #---------------------
 # pteros core library
 #---------------------
 
-add_library(pteros_core STATIC
-    # General
-    ${PROJECT_SOURCE_DIR}/include/pteros/core/version.h
+add_library(pteros SHARED
+    # General    
     version.cpp # generated with git revision if git present
 
     ${PROJECT_SOURCE_DIR}/include/pteros/core/logging.h
@@ -69,18 +75,18 @@ add_library(pteros_core STATIC
 
 if(WITH_POWERSASA)
     # Set definition for conditional compilation
-    target_compile_definitions(pteros_core PRIVATE USE_POWERSASA)
+    target_compile_definitions(pteros PRIVATE USE_POWERSASA)
     # Add includes
-    target_include_directories(pteros_core PRIVATE ${PROJECT_SOURCE_DIR}/thirdparty/powersasa)
+    target_include_directories(pteros PRIVATE ${PROJECT_SOURCE_DIR}/thirdparty/powersasa)
     # sources
-    target_sources(pteros_core PRIVATE
+    target_sources(pteros PRIVATE
         ${PROJECT_SOURCE_DIR}/thirdparty/powersasa/power_diagram.h
         ${PROJECT_SOURCE_DIR}/thirdparty/powersasa/power_sasa.h
     )
-    message(WARNING "POWERSASA code is used! Licence restrictions are described here: src/thirdparty/sasa/LICENSE")
+    message(STATUS "POWERSASA code is used! Licence restrictions are described here: src/thirdparty/sasa/LICENSE")
 endif()
 
-target_link_libraries(pteros_core
+target_link_libraries(pteros
     PRIVATE
         pteros_io
         pteros_selection_parser
@@ -91,30 +97,31 @@ target_link_libraries(pteros_core
         Boost::boost Boost::system
     PUBLIC
         Eigen3::Eigen
-        spdlog
+        spdlog::spdlog
 )
 
 if(OpenMP_CXX_FOUND)
-    target_link_libraries(pteros_core PRIVATE OpenMP::OpenMP_CXX)
+    target_link_libraries(pteros PRIVATE OpenMP::OpenMP_CXX)
 endif()
 
+# Set target properties for exporting
 
-#----------------------------
-# Main pteros shared library
-#----------------------------
-add_library(pteros SHARED "")
-target_link_libraries(pteros PUBLIC pteros_core)
+target_include_directories(pteros PUBLIC
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+)
+
+set_property(TARGET pteros
+    PROPERTY CXX_STANDARD 14
+    PROPERTY CXX_STANDARD_REQUIRED ON
+)
 
 #--------------
 # Installation
 #--------------
-set_target_properties(pteros PROPERTIES PUBLIC_HEADER
-    ${PROJECT_SOURCE_DIR}/include/pteros/core/system.h
-)
 
-install(TARGETS pteros    
+install(TARGETS pteros EXPORT pterosTargets
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
-    PUBLIC_HEADER DESTINATION include/pteros/core2
 )
