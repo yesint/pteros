@@ -439,13 +439,15 @@ void System::assign_resindex(int start){
 
     int curres = atoms[start].resid;
     int curchain = atoms[start].chain;
+    string curresname = atoms[start].resname;
     int cur = 0;
     if(start>0) cur = atoms[start].resindex;
     for(int i=start; i<atoms.size(); ++i){
-        if( atoms[i].resid!=curres || atoms[i].chain!=curchain ){
+        if( atoms[i].resid!=curres || atoms[i].chain!=curchain || atoms[i].resname!=curresname ){
             ++cur;
             curres = atoms[i].resid;
             curchain = atoms[i].chain;
+            curresname = atoms[i].resname;
         }
         atoms[i].resindex = cur;
     }

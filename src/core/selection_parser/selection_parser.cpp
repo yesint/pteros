@@ -540,6 +540,7 @@ void Selection_parser::eval_node(const std::shared_ptr<MyAst> &node, std::vector
                     for(int at=0;at<Natoms;++at) // over all atoms
                         if(resind.count(sys->atoms[at].resindex)) result.push_back(at);
                 }
+                std::sort(result.begin(),result.end());
 
             } else if(node->nodes[0]->token == "chain") {
                 // First make a set of chains we need to search
@@ -554,6 +555,7 @@ void Selection_parser::eval_node(const std::shared_ptr<MyAst> &node, std::vector
                     for(int at=0;at<Natoms;++at) // over all atoms
                         if(chains.count(sys->atoms[at].chain)) result.push_back(at);
                 }
+                std::sort(result.begin(),result.end());
 
             } else if(node->nodes[0]->token == "mol") {
                 if(!sys->force_field.ready) throw Pteros_error("Can't select by molecule: no topology!");

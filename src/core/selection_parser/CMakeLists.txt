@@ -10,3 +10,4 @@ add_library(pteros_selection_parser STATIC
 )
 
 target_link_libraries(pteros_selection_parser PRIVATE pteros_core Eigen3::Eigen)
+target_include_directories(pteros_selection_parser PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
