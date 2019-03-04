@@ -1,4 +1,4 @@
-# Obtain version from git and geberate version.cpp
+# Obtain version from git and generate version.cpp
 find_package(Git)
 find_file(GITDIR NAMES .git PATHS ${PROJECT_SOURCE_DIR} NO_DEFAULT_PATH)
 if(GIT_FOUND AND GITDIR)
@@ -19,9 +19,9 @@ add_subdirectory(selection_parser)
 add_subdirectory(distance_search)
 add_subdirectory(babel_utils)
 
-#-----------------------------------------------------------------
-# service interface library to provide includes for other targets
-#-----------------------------------------------------------------
+#-------------------------------------------------------------------------------
+# service interface library to provide includes for other targets at build time
+#-------------------------------------------------------------------------------
 
 add_library(pteros_interface INTERFACE)
 target_include_directories(pteros_interface INTERFACE ${PROJECT_SOURCE_DIR}/include/)

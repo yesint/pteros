@@ -3,13 +3,12 @@ cmake_minimum_required(VERSION 3.1)
 project(pteros)
 
 OPTION(WITH_PYTHON "Build python bindings and compile analysis plugins as Python modules" ON)
-OPTION(WITH_OPENMP "Use OpenMP parallelization if supported" ON)
-OPTION(WITH_OPENBABEL "Use OpenBabel if supported" ON)
-OPTION(WITH_GROMACS "Use Gromacs if supported. Required to read tpr files." ON)
+OPTION(WITH_OPENMP "Use OpenMP parallelization" ON)
+OPTION(WITH_OPENBABEL "Use OpenBabel. Required to read pdbqt files and for substructure search." ON)
+OPTION(WITH_GROMACS "Use Gromacs. Required to read tpr files." ON)
 OPTION(WITH_POWERSASA "Use POWERSASA code. This implies license restrictions described here: thirdparty/sasa/LICENSE" ON)
 OPTION(MAKE_STANDALONE_PLUGINS "Compile analysis plugins as stand-alone executables" OFF)
 OPTION(MAKE_PACKAGE "Generate package" OFF)
-OPTION(INSTALL_INTERNAL_SPDLOG "Install internal spdlog headers in the case if there is no system-wide spdlog" ON)
 OPTION(MAKE_EXAMPLES "Compile examples and plugin templates" OFF)
 OPTION(MAKE_TEST "Compile tests" OFF)
 
@@ -148,19 +147,38 @@ IF(MAKE_EXAMPLES)
     add_subdirectory(template_plugin)
 ENDIF()
 
+#---------------------------------------------
+# Installing
+#---------------------------------------------
+
 # Install headers
 install(DIRECTORY include DESTINATION .)
 
+# generate export targets file
 install(EXPORT pterosTargets
     FILE pterosTargets.cmake
     NAMESPACE pteros::
     DESTINATION lib/cmake/pteros
 )
 
-install(FILES
-    ${PROJECT_SOURCE_DIR}/cmake/pterosConfig.cmake DESTINATION
-    lib/cmake/pteros)
+# Generate cmake version file
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file("${PROJECT_SOURCE_DIR}/cmake/pterosConfigVersion.cmake"
+    VERSION 2.8
+    COMPATIBILITY SameMajorVersion
+)
 
+# Install CMake target machinery
+install(FILES
+        ${PROJECT_SOURCE_DIR}/cmake/pterosConfig.cmake
+        ${PROJECT_SOURCE_DIR}/cmake/pterosConfigVersion.cmake
+    DESTINATION
+        lib/cmake/pteros)
+
+
+#---------------------------------------------
+# Show final info about linking
+#---------------------------------------------
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     message("------------------------------")
