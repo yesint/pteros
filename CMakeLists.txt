@@ -85,26 +85,6 @@ if(WITH_GROMACS)
     endif()
 endif()
 
-
-#--------------
-# CPack config
-#--------------
-IF(MAKE_PACKAGE)
-    message("Configuring package...")
-    SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Pteros molecular modeling library")
-    SET(CPACK_PACKAGE_VERSION_MAJOR "2")
-    SET(CPACK_PACKAGE_VERSION_MINOR "7")
-    SET(CPACK_PACKAGE_VERSION_PATCH "0")
-    SET(CPACK_PACKAGE_INSTALL_DIRECTORY "CMake ${CMake_VERSION_MAJOR}.${CMake_VERSION_MINOR}")
-    IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-        SET(CPACK_GENERATOR DEB)
-        SET(CPACK_PACKAGE_CONTACT "Semen Yesylevskyy yesint4@yahoo.com")
-        SET(CPACK_DEBIAN_PACKAGE_DEPENDS "g++ (>=4.8), libboost-all-dev (>=1.50), python-dev (>=2.7), python-numpy, libeigen3-dev")
-        set(PY_INST_DIR ${PYTHON_SITE_PACKAGES})
-    ENDIF()
-    INCLUDE(CPack)
-ENDIF()
-
 #----------------------------
 # Build thirdparty libraries
 #----------------------------
@@ -175,29 +155,42 @@ install(FILES
     DESTINATION
         lib/cmake/pteros)
 
-
 #---------------------------------------------
-# Show final info about linking
+# Generate and install pterosrc file
 #---------------------------------------------
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    SET(_ld ${CMAKE_INSTALL_PREFIX}/lib)
+    SET(_py ${CMAKE_INSTALL_PREFIX}/python)
+    SET(_path ${CMAKE_INSTALL_PREFIX}/bin)
+    configure_file(${PROJECT_SOURCE_DIR}/cmake/pterosrc.in
+                   ${CMAKE_CURRENT_BINARY_DIR}/pterosrc @ONLY)
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/pterosrc DESTINATION lib)
+
     message("------------------------------")
     message("IMPORTANT!")
-    message("In order to be able to link with Pteros and to use Pteros Python modules")
-    message("you have to add the following lines to your .bashrc file:")
-    message("export LD_LIBRARY_PATH=\"\$LD_LIBRARY_PATH:${CMAKE_INSTALL_PREFIX}/lib\"")
-    message("export PYTHONPATH=\"\$PYTHONPATH:${CMAKE_INSTALL_PREFIX}/python\"")
-    message("export PATH=\"\$PATH:${CMAKE_INSTALL_PREFIX}/bin\"")
+    message("In order to be able to link with` Pteros and to use Pteros Python modules")
+    message("you have to source the pterosrc file in your bash shell:")
+    message("source ${CMAKE_INSTALL_PREFIX}/lib/pterosrc")
     message("------------------------------")
 ENDIF()
 
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    message("------------------------------")
-    message("IMPORTANT!")
-    message("In order to be able to link with Pteros and to use Pteros Python modules")
-    message("you have to add the following directories to your PATH:")
-    message("${CMAKE_INSTALL_PREFIX}/lib")
-    message("${CMAKE_INSTALL_PREFIX}/bin")
-    message("${CMAKE_INSTALL_PREFIX}/python")
-    message("------------------------------")
+#--------------
+# CPack config
+#--------------
+IF(MAKE_PACKAGE)
+    message("Configuring package...")
+    INCLUDE(InstallRequiredSystemLibraries)
+    SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Pteros molecular modeling library")
+    SET(CPACK_PACKAGE_VERSION_MAJOR "2")
+    SET(CPACK_PACKAGE_VERSION_MINOR "7")
+    SET(CPACK_PACKAGE_VERSION_PATCH "0")
+    SET(CPACK_PACKAGE_INSTALL_DIRECTORY "CMake ${CMake_VERSION_MAJOR}.${CMake_VERSION_MINOR}")
+    IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+        SET(CPACK_GENERATOR DEB)
+        SET(CPACK_PACKAGE_CONTACT "Semen Yesylevskyy yesint4@yahoo.com")
+        SET(CPACK_DEBIAN_PACKAGE_DEPENDS "g++ (>=5.0), libboost-all-dev (>=1.50), python-dev (>=3.5), python-numpy, libeigen3-dev, libspdlog-dev, pybind11-dev")
+        set(PY_INST_DIR ${PYTHON_SITE_PACKAGES})
+    ENDIF()
+    INCLUDE(CPack)
 ENDIF()
