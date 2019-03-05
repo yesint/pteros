@@ -5,6 +5,8 @@ find_dependency(Eigen3)
 find_dependency(spdlog)
 include(${CMAKE_CURRENT_LIST_DIR}/pterosTargets.cmake)
 
+set(pteros_PLUGINS_DIR @_plugin_dir@)
+
 # Provide information in variables as well for backwards compatibility
 set(pteros_LIBRARIES pteros::pteros)
 get_target_property(pteros_INCLUDE_DIRS pteros::pteros INTERFACE_INCLUDE_DIRECTORIES)

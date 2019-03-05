@@ -71,8 +71,10 @@ if(WITH_PYTHON)
     if(NOT MAKE_PACKAGE)
         # Set python install dir
         set(PY_INST_DIR python)
+        set(PLUGINS_ABS_PATH ${CMAKE_INSTALL_PREFIX}/python/pteros_analysis_plugins)
     else()
         set(PY_INST_DIR ${PYTHON_SITE_PACKAGES})
+        set(PLUGINS_ABS_PATH ${PY_INST_DIR}/pteros_analysis_plugins)
         if(DEFINED CMAKE_INSTALL_PREFIX)
             message(WARNING " You are building the package but set an install prefix.\n"
                             " Install prefix ${CMAKE_INSTALL_PREFIX} will be ignored.\n"
@@ -155,15 +157,20 @@ install(EXPORT pterosTargets
 
 # Generate cmake version file
 include(CMakePackageConfigHelpers)
-write_basic_package_version_file("${PROJECT_SOURCE_DIR}/cmake/pterosConfigVersion.cmake"
+write_basic_package_version_file("${CMAKE_CURRENT_BINARY_DIR}/cmake/pterosConfigVersion.cmake"
     VERSION 2.8
     COMPATIBILITY SameMajorVersion
 )
 
+# Generate cmake config file
+SET(_plugin_dir ${PLUGINS_ABS_PATH})
+configure_file(${PROJECT_SOURCE_DIR}/cmake/pterosConfig.cmake.in
+               ${CMAKE_CURRENT_BINARY_DIR}/cmake/pterosConfig.cmake @ONLY)
+
 # Install CMake target machinery
 install(FILES
-        ${PROJECT_SOURCE_DIR}/cmake/pterosConfig.cmake
-        ${PROJECT_SOURCE_DIR}/cmake/pterosConfigVersion.cmake
+        ${CMAKE_CURRENT_BINARY_DIR}/cmake/pterosConfig.cmake
+        ${CMAKE_CURRENT_BINARY_DIR}/cmake/pterosConfigVersion.cmake
     DESTINATION
         lib/cmake/pteros)
 
