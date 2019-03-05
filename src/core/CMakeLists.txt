@@ -15,8 +15,6 @@ add_custom_command(OUTPUT "${PROJECT_SOURCE_DIR}/src/core/version.cpp"
 )
 
 add_subdirectory(io)
-add_subdirectory(selection_parser)
-add_subdirectory(distance_search)
 add_subdirectory(babel_utils)
 
 #-------------------------------------------------------------------------------
@@ -71,6 +69,10 @@ add_library(pteros SHARED
     pteros_dssp_wrapper.h
 )
 
+# Include sources in subdirectories into pteros target
+add_subdirectory(distance_search)
+add_subdirectory(selection_parser)
+
 #Add SASA code
 
 if(WITH_POWERSASA)
@@ -89,8 +91,6 @@ endif()
 target_link_libraries(pteros
     PRIVATE
         pteros_io
-        pteros_selection_parser
-        pteros_distance_search
         dssp
         sasa
         molfile_plugins

@@ -2,12 +2,11 @@
 # pteros selection parser library
 #--------------------------------
 
-add_library(pteros_selection_parser STATIC
-    selection_macro.h
-    selection_parser.h
-    peglib.h
-    selection_parser.cpp
+target_sources(pteros PRIVATE
+    ${CMAKE_CURRENT_LIST_DIR}/selection_macro.h
+    ${CMAKE_CURRENT_LIST_DIR}/selection_parser.h
+    ${CMAKE_CURRENT_LIST_DIR}/peglib.h
+    ${CMAKE_CURRENT_LIST_DIR}/selection_parser.cpp
 )
 
-target_link_libraries(pteros_selection_parser PRIVATE pteros_interface Eigen3::Eigen)
-target_include_directories(pteros_selection_parser PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(pteros PRIVATE ${CMAKE_CURRENT_LIST_DIR})
