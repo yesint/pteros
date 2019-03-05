@@ -3,7 +3,7 @@
 from pteros import *
 import sys, os, signal, glob
 from inspect import getmembers, isclass
-
+import importlib.util
 import pteros_analysis_plugins
 
 
@@ -88,24 +88,47 @@ if __name__ == '__main__':
 
     # If explicitly asked for help show it
     if help_topic!=None:
+        # Find available plugins in standard location
+        plugin_dir = os.path.dirname(os.path.abspath(pteros_analysis_plugins.__file__))
+        module_names = [f.split('.')[0] for f in os.listdir(plugin_dir) if os.path.isfile(os.path.join(plugin_dir, f))]
+        # Try to load modules
+        plugins_list = []
+        for f in module_names:
+            if f[0]=='_':
+                continue
+            try:
+                module = __import__(pteros_analysis_plugins.__name__ + "." +f, fromlist="dummy")
+                plugins_list.append(f)
+            except:
+                pass
+
         if help_topic == "traj":
             # Show trajectory processing options
             print( reader.help() )
             sys.exit(0)
+
         elif help_topic == "plugins":
             print('Available plugins:')
-            for pl in pteros_analysis_plugins.__all__:
-                print(' ',pl)
+            for pl in plugins_list:
+                print('\t'+pl)
             sys.exit(0)
-        elif help_topic in pteros_analysis_plugins.__all__:
+
+        elif help_topic in plugins_list:
             module = __import__(pteros_analysis_plugins.__name__ + "." + help_topic, fromlist="dummy")
-            class_ = getattr(module, help_topic) # Get class by name
+            # Try to create class by name (for compiled plugins)
+            class_name = get_class_name(module)
+            class_ = getattr(module, class_name) # Get class by name
             obj = class_(opt) # create instance with fake options
+
+            # Try to create class directly (for pure python plugins)
             # Show plugin help
             print('-------------------------')
             print('PLUGIN "{}":'.format(help_topic))
             print('-------------------------')
-            print(obj.help(),'\n')
+            try:
+                print(obj.help(),'\n')
+            except:
+                print("This plugin doesn't provide any help. Try reading the source code :)\n")
             sys.exit(0)
         else:
             print('No such plugin "{}"'.format(help_topic))
