@@ -67,8 +67,20 @@ endif()
 if(WITH_PYTHON)    
     # Configure pybind11
     find_package(pybind11 REQUIRED)
-    # Set python install dir
-    set(PY_INST_DIR python)
+
+    if(NOT MAKE_PACKAGE)
+        # Set python install dir
+        set(PY_INST_DIR python)
+    else()
+        set(PY_INST_DIR ${PYTHON_SITE_PACKAGES})
+        if(DEFINED CMAKE_INSTALL_PREFIX)
+            message(WARNING " You are building the package but set an install prefix.\n"
+                            " Install prefix ${CMAKE_INSTALL_PREFIX} will be ignored.\n"
+                            " Library files would be packaged to /usr\n"
+                            " Python files would be packaged to ${PY_INST_DIR}\n"
+                            " If this is not what you want rerun with -DMAKE_PACKAGE=OFF")
+        endif()
+    endif()
 endif()
 
 # OpenBabel
@@ -189,8 +201,7 @@ IF(MAKE_PACKAGE)
     IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
         SET(CPACK_GENERATOR DEB)
         SET(CPACK_PACKAGE_CONTACT "Semen Yesylevskyy yesint4@yahoo.com")
-        SET(CPACK_DEBIAN_PACKAGE_DEPENDS "g++ (>=5.0), libboost-all-dev (>=1.50), python-dev (>=3.5), python-numpy, libeigen3-dev, libspdlog-dev, pybind11-dev")
-        set(PY_INST_DIR ${PYTHON_SITE_PACKAGES})
+        SET(CPACK_DEBIAN_PACKAGE_DEPENDS "g++ (>=5.0), libboost-all-dev (>=1.50), python-dev (>=3.5), python-numpy, libeigen3-dev, libspdlog-dev, pybind11-dev")        
     ENDIF()
     INCLUDE(CPack)
 ENDIF()
