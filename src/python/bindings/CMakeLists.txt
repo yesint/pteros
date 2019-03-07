@@ -23,6 +23,7 @@ IF(WITH_PYTHON)
         bindings_extras.cpp
         bindings_membrane.cpp
         bindings_substructure_search.cpp
+        bindings_solvate.cpp
     )
 
     pybind11_add_module(_pteros ${BIND_FILES})
@@ -47,4 +48,3 @@ IF(WITH_PYTHON)
     )
 
 ENDIF()
-

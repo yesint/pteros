@@ -222,7 +222,7 @@ public:
 
     /// Convenience functions to select all
     /// @{
-    Selection select_all();
+    Selection select_all() const;
     Selection operator()();
     /// @}
 

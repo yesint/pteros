@@ -5,6 +5,7 @@ namespace py = pybind11;
 // Forward declarations of all individual bindings of classes
 void make_bindings_Membrane(py::module&);
 void make_bindings_substructure_search(py::module&);
+void make_bindings_solvate(py::module&);
 
 
 PYBIND11_MODULE(_pteros_extras, m) {
@@ -12,4 +13,5 @@ PYBIND11_MODULE(_pteros_extras, m) {
 
     make_bindings_Membrane(m);
     make_bindings_substructure_search(m);
+    make_bindings_solvate(m);
 }

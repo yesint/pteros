@@ -982,7 +982,7 @@ Selection System::operator()(const std::function<void (const System &, int, std:
     return Selection(*this,callback,fr);
 }
 
-Selection System::select_all(){
+Selection System::select_all() const{
     return Selection(*this,0,num_atoms()-1);
 }
 

@@ -2,27 +2,28 @@
 # pteros_solvate
 #------------------------
 
-add_executable(pteros_solvate
-    solvate.cpp
+add_executable(pteros_solvate_program
+    solvate_program.cpp
 )
- target_link_libraries(pteros_solvate pteros pteros_analysis ${Boost_LIBRARIES})
+target_link_libraries(pteros_solvate_program PRIVATE pteros pteros_solvate pteros_analysis ${Boost_LIBRARIES})
+target_include_directories(pteros_solvate_program PRIVATE pteros_solvate)
 
 #------------------------
 # pteros_rearrange
 #------------------------
 
-add_executable(pteros_rearrange
+add_executable(pteros_rearrange_program
     rearrange.cpp
 )
-target_link_libraries(pteros_rearrange pteros pteros_analysis ${Boost_LIBRARIES})
+target_link_libraries(pteros_rearrange_program PRIVATE pteros pteros_analysis ${Boost_LIBRARIES})
 
 #--------------
 # Installation
 #--------------
 
 install(TARGETS
-    pteros_solvate
-    pteros_rearrange
+    pteros_solvate_program
+    pteros_rearrange_program
 
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib
