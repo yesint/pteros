@@ -616,6 +616,9 @@ class Selection {
      * \endcode
      */
     void principal_orient(Array3i_const_ref pbc = noPBC, int pbc_atom = -1);
+
+    /// Returns total number of residues in selection. Partial residues are also included.
+    int num_residues() const;
     /// @}
 
 

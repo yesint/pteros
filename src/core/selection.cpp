@@ -1830,6 +1830,22 @@ void Selection::principal_orient(Array3i_const_ref pbc, int pbc_atom){
     apply_transform(tr);
 }
 
+int Selection::num_residues() const
+{
+    if(size()==0) return 0;
+
+    int count = 0;
+    int cur = resindex(0);
+    for(int i=1;i<size();++i){
+        if(resindex(i)!=cur){
+            cur = resindex(i);
+            ++count;
+        }
+    }
+    ++count; // Last one
+    return count;
+}
+
 #ifdef USE_POWERSASA
 
 //=====================================================================================

@@ -213,6 +213,7 @@ void make_bindings_Selection(py::module& m){
         .def("distance", &Selection::distance, "i"_a, "j"_a, "pbc"_a=fullPBC)
         .def("angle", &Selection::angle, "i"_a, "j"_a, "k"_a, "pbc"_a=fullPBC)
         .def("dihedral", &Selection::dihedral, "i"_a, "j"_a, "k"_a, "l"_a, "pbc"_a=fullPBC)
+        .def("num_residues",&Selection::num_residues)
 
         // Geometry transforms
         .def("translate", &Selection::translate)
