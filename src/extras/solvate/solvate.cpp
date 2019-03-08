@@ -75,11 +75,11 @@ std::map<std::string,int> solvate(System& solute, float d, std::string solvent_f
     Vector3f solvent_min,solvent_max, solute_min, solute_max;
     auto solute_all = solute.select_all();
     auto solvent_all = solvent.select_all();
-    solute_all.minmax(solute_min,solute_max);
-    solvent_all.minmax(solvent_min,solvent_max);
 
-    solvent_all.translate(-solvent_min);
-    solute_all.translate(-solute_min);
+    //solute_all.minmax(solute_min,solute_max);
+    //solvent_all.minmax(solvent_min,solvent_max);
+    //solvent_all.translate(-solvent_min);
+    //solute_all.translate(-solute_min);
 
     LOG()->info("Finding solvent atoms outside the solute box...");
 
@@ -99,6 +99,7 @@ std::map<std::string,int> solvate(System& solute, float d, std::string solvent_f
     for(auto& sel: bad_res){
         sel.set_beta(-1000);
     }
+
 
     // Find last index of solute
     int last_solute_ind = solute.num_atoms()-1;
@@ -124,8 +125,10 @@ std::map<std::string,int> solvate(System& solute, float d, std::string solvent_f
     }
 
     // Translate back to initial box center
-    solute_all.modify("beta > -1000");
-    solute_all.translate(solute_min);
+
+    solute.keep("beta > -1000");
+    solute_all = solute();
+    //solute_all.translate(solute_min);
 
     // Report number of remaining solvent residues
     map<string,int> residues;

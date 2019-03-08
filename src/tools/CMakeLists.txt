@@ -5,7 +5,7 @@
 add_executable(pteros_solvate_program
     solvate_program.cpp
 )
-target_link_libraries(pteros_solvate_program PRIVATE pteros pteros_solvate pteros_analysis ${Boost_LIBRARIES})
+target_link_libraries(pteros_solvate_program PRIVATE pteros pteros_analysis pteros_solvate ${Boost_LIBRARIES})
 target_include_directories(pteros_solvate_program PRIVATE pteros_solvate)
 
 #------------------------
