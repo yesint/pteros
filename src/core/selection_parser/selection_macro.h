@@ -43,10 +43,12 @@ static const std::vector<std::string> selection_macro {
     "buried", "(resname ALA LEU VAL ILE PHE CYS MET TRP)",
     "charged", "(resname ARG HIS LYS HSP ASP GLU)",
     "hydrophobic", "(resname ALA LEU VAL ILE PRO PHE MET TRP)",
-    "water", "(resname HOH SOL)",
+    "water", "(resname HOH SOL TIP3)",
     "hydrogen", "(name 'H.*')",
     "heavy", "(not name 'H.*')",
-    "DNA", "(resname A T G C U)"
+    "noh", "(not name 'H.*')",
+    "DNA", "(resname A T G C U)",
+    "now", "(not resname HOH SOL TIP3)",
 };
 
 } // end of namespace pteros
