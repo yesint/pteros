@@ -1,4 +1,4 @@
-if(WITH_OPENBABEL AND ${OPENBABEL2_FOUND})
+if(WITH_OPENBABEL AND OPENBABEL2_FOUND)
 
     add_library(pteros_babel_utils STATIC
         babel_utils.cpp
