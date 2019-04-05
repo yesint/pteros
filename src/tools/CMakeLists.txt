@@ -7,6 +7,7 @@ add_executable(pteros_solvate_program
 )
 target_link_libraries(pteros_solvate_program PRIVATE pteros pteros_analysis pteros_solvate ${Boost_LIBRARIES})
 target_include_directories(pteros_solvate_program PRIVATE pteros_solvate)
+set_target_properties(pteros_solvate_program PROPERTIES OUTPUT_NAME pteros_solvate)
 
 #------------------------
 # pteros_rearrange
@@ -16,6 +17,7 @@ add_executable(pteros_rearrange_program
     rearrange.cpp
 )
 target_link_libraries(pteros_rearrange_program PRIVATE pteros pteros_analysis ${Boost_LIBRARIES})
+set_target_properties(pteros_rearrange_program  PROPERTIES OUTPUT_NAME pteros_rearrange)
 
 #--------------
 # Installation
