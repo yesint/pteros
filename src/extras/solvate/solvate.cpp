@@ -76,10 +76,10 @@ std::map<std::string,int> solvate(System& solute, float d, std::string solvent_f
     auto solute_all = solute.select_all();
     auto solvent_all = solvent.select_all();
 
-    //solute_all.minmax(solute_min,solute_max);
-    //solvent_all.minmax(solvent_min,solvent_max);
-    //solvent_all.translate(-solvent_min);
-    //solute_all.translate(-solute_min);
+    solute_all.minmax(solute_min,solute_max);
+    solvent_all.minmax(solvent_min,solvent_max);
+    solvent_all.translate(-solvent_min);
+    solute_all.translate(-solute_min);
 
     LOG()->info("Finding solvent atoms outside the solute box...");
 
@@ -128,7 +128,7 @@ std::map<std::string,int> solvate(System& solute, float d, std::string solvent_f
 
     solute.keep("beta > -1000");
     solute_all = solute();
-    //solute_all.translate(solute_min);
+    solute_all.translate(solute_min);
 
     // Report number of remaining solvent residues
     map<string,int> residues;
