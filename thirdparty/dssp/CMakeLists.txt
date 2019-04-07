@@ -17,5 +17,5 @@ add_library(dssp STATIC
     utils.cpp
 )
 
-target_link_libraries(dssp Eigen3::Eigen)
+target_link_libraries(dssp Eigen3::Eigen Boost::boost)
 target_include_directories(dssp PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

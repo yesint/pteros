@@ -71,7 +71,7 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 
 # Boost
 set(Boost_USE_STATIC_LIBS OFF)
-find_package(Boost 1.50 REQUIRED COMPONENTS system)
+find_package(Boost 1.50 REQUIRED COMPONENTS system date_time)
 
 # Eigen
 find_package(Eigen3 3.3 REQUIRED NO_MODULE)

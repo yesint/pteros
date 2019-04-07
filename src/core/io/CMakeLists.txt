@@ -50,6 +50,8 @@ target_link_libraries(pteros_io PRIVATE
     molfile_plugins
     xdrfile
     tng_io
+    spdlog::spdlog
+    Boost::boost
     Eigen3::Eigen)
 
 if(${gromacs_FOUND})

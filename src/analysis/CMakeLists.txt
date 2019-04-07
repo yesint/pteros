@@ -22,7 +22,7 @@ add_library(pteros_analysis SHARED
     data_container.h
     )
 
-target_link_libraries(pteros_analysis PRIVATE ${Boost_LIBRARIES} tng_io PUBLIC pteros)
+target_link_libraries(pteros_analysis PRIVATE tng_io PUBLIC pteros)
 
 #--------------
 # Installation

@@ -94,10 +94,10 @@ target_link_libraries(pteros
         dssp
         sasa
         molfile_plugins
-        Boost::boost Boost::system
     PUBLIC
         Eigen3::Eigen
         spdlog::spdlog
+        Boost::boost Boost::system Boost::date_time
 )
 
 if(OpenMP_CXX_FOUND)
