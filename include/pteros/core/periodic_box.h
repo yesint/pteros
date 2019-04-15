@@ -65,15 +65,23 @@ public:
     /// Assignment operator
     Periodic_box& operator=(const Periodic_box& other);
 
+    // Get box element
+    float get_element(int i, int j) const;
+
+    // Set box element
+    void set_element(int i, int j, float val);
+
     /// Get i-th box vector
     Eigen::Vector3f get_vector(int i) const;
+
+    /// Set i-th box vector
+    Eigen::Vector3f set_vector(Vector3f_const_ref vec, int i);
 
     /// Get stored matrix of box vectors
     Eigen::Matrix3f get_matrix() const;
 
     /// Modify the box from 3x3 matrix
     void set_matrix(Matrix3f_const_ref box);
-
 
     /// Scale box vectors by specified factors.
     /// Causes recomputing internal data.
@@ -165,6 +173,8 @@ private:
     Eigen::Matrix3f _box_inv;    
     bool _is_triclinic;
     bool _is_periodic;
+
+    void recompute_internals();
 };
 
 }

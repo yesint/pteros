@@ -92,7 +92,10 @@ void make_bindings_System(py::module& m){
         .def("frame_swap", &System::frame_swap)
 
         // Accessors
-        .def("getBox", py::overload_cast<int>(&System::box, py::const_), "fr"_a=0)
+
+        //.def("getBox", py::overload_cast<int>(&System::box, py::const_), "fr"_a=0)
+        .def("getBox", py::overload_cast<int>(&System::box), "fr"_a=0, py::return_value_policy::reference_internal)
+
         .def("setBox", [](System* s,const Periodic_box& b, int fr){ s->box(fr)=b; }, "box"_a, "fr"_a=0)
 
         .def("getTime", py::overload_cast<int>(&System::time, py::const_), "fr"_a=0)

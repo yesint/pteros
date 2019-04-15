@@ -65,17 +65,31 @@ Periodic_box& Periodic_box::operator=(const Periodic_box& other){
     return *this;
 }
 
+float Periodic_box::get_element(int i, int j) const
+{
+    return _box(i,j);
+}
+
+void Periodic_box::set_element(int i, int j, float val)
+{
+    _box(i,j) = val;
+    recompute_internals();
+}
+
 void Periodic_box::set_matrix(Matrix3f_const_ref matr)
 {
     _box = matr;
-    _is_periodic = (_box.array()!=0).any() ? true : false;
-    if(!_is_periodic) return;
-    _box_inv = _box.inverse();
-    _is_triclinic = (_box(0,1)||_box(0,2)||_box(1,0)||_box(1,2)||_box(2,0)||_box(2,1));
+    recompute_internals();
 }
 
 Vector3f Periodic_box::get_vector(int i) const{
     return _box.col(i);
+}
+
+Vector3f Periodic_box::set_vector(Vector3f_const_ref vec, int i)
+{
+    _box.col(i) = vec;
+    recompute_internals();
 }
 
 Matrix3f Periodic_box::get_matrix() const {
@@ -366,5 +380,13 @@ void Periodic_box::from_vectors_angles(Vector3f_const_ref vectors, Vector3f_cons
 
     // Recompute internals
     set_matrix(box);
+}
+
+void Periodic_box::recompute_internals()
+{
+    _is_periodic = (_box.array()!=0).any() ? true : false;
+    if(!_is_periodic) return;
+    _box_inv = _box.inverse();
+    _is_triclinic = (_box(0,1)||_box(0,2)||_box(1,0)||_box(1,2)||_box(2,0)||_box(2,1));
 }
 
