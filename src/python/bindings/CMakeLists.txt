@@ -22,9 +22,12 @@ IF(WITH_PYTHON)
     SET(EXTRAS_FILES
         bindings_extras.cpp
         bindings_membrane.cpp
-        bindings_substructure_search.cpp
         bindings_solvate.cpp
     )
+
+    if(${OPENBABEL2_FOUND})
+        list(APPEND EXTRAS_FILES bindings_substructure_search.cpp)
+    endif()
 
     pybind11_add_module(_pteros ${BIND_FILES})
     pybind11_add_module(_pteros_extras ${EXTRAS_FILES})

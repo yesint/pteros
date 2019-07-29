@@ -441,13 +441,19 @@ string tcl_arrow(Vector3f_const_ref p1, Vector3f_const_ref p2, float r, string c
 
 void Membrane::write_vmd_arrows(const string &fname)
 {
-    ofstream f(fname);
+    ofstream f(fname+".tcl");
     for(auto& lip: lipids){
         f << tcl_arrow(lip.mid_sel.center(true),lip.mid_sel.center(true)+lip.normal,0.2,"green");
         f << tcl_arrow(lip.tail_sel.center(true),lip.head_sel.center(true),0.2,"red");
     }
     f.close();
 
+    Selection all = system->select_all();
+    all.set_beta(0.0);
+    for(auto& lip: lipids){
+        lip.whole_sel.set_beta(lip.mean_curvature*10.0);
+    }
+    all.write(fname+".pdb");
 }
 
 void Membrane::write_smoothed(const string& fname){
@@ -455,9 +461,11 @@ void Membrane::write_smoothed(const string& fname){
     for(auto& l: lipids){
         auto s = out.append(l.mid_sel(0,0));
         s.name(0) = "M";
+        s.set_beta(10.0*l.mean_curvature);
         s = out.append(l.head_sel(0,0));
         s.xyz(0) = l.smoothed_mid_xyz;
         s.name(0) = "S";
+        s.set_beta(10.0*l.mean_curvature);
     }
     out().write(fname);
 }
