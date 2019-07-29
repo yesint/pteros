@@ -1,4 +1,4 @@
-if(WITH_OPENBABEL AND ${OPENBABEL2_FOUND})
+if(WITH_OPENBABEL AND OPENBABEL2_FOUND)
 
     add_library(pteros_substructure_search SHARED
         substructure_search.cpp
