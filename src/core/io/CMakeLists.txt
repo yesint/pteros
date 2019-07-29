@@ -30,7 +30,7 @@ add_library(pteros_io STATIC
     tpr_file.cpp    
 )
 
-if(${OPENBABEL2_FOUND})
+if(WITH_OPENBABEL AND OPENBABEL2_FOUND)
     target_sources(pteros_io PRIVATE
         babel_wrapper.h
         babel_wrapper.cpp
