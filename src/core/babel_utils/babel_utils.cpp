@@ -1,5 +1,7 @@
 #include "babel_utils.h"
 #include <openbabel/obfunctions.h>
+#include <openbabel/obiter.h>
+
 
 using namespace pteros;
 using namespace std;

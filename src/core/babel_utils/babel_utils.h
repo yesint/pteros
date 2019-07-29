@@ -1,6 +1,7 @@
 #pragma once
 
 #include <openbabel/mol.h>
+#include <openbabel/obiter.h>
 #include "pteros/core/selection.h"
 
 namespace pteros {
