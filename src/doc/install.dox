@@ -48,7 +48,7 @@ sudo apt-get install g++ cmake libeigen3-dev libboost-all-dev python3.5-dev pyth
 
 \note If you need Gromacs support it is highly recommended to install it from source because version in the repositories is usually outdated significantly.
 
-OpenBabel have to be install from source in Ubuntu 16.x and 18.x (and probably in other versions as well) because repository packages are corrupted and lack some header files. Do not install dev packege from repositories - it won't work! Your milleage in other linuxes may vary depending on the package quality. Compiled version of OpenBabel does not interfere with system version if installed to /usr/local (default).
+\warning OpenBabel have to be install from source in Ubuntu 16.x and 18.x (and probably in later versions as well) because repository packages are corrupted and lack some header files. Do not install dev packege from repositories - it won't work! Your milleage in other linuxes may vary depending on the package quality. Compiled version of OpenBabel does not interfere with system version if installed to /usr/local (default).
 \code{.unparsed}
 git clone https://github.com/openbabel/openbabel.git
 mkdir openbabel-build
@@ -135,16 +135,13 @@ If you see any errors then Pteros can't load plugins or something elese went wro
 
 \subsection sasa Enabling SASA code
 
-Pteros can perform the Solvent Accesible Surface Area (SASA) computatations using POWERSASA code developed in the <a href="http://www.kit.edu/english/">Karlsruhe Institute of Technology</a>. POWERSASA is licensed by specific and rather restrictive "Academic/Non-Profit SASA software license agreement".
+Pteros performs the Solvent Accesible Surface Area (SASA) computatations using POWERSASA code developed in the <a href="http://www.kit.edu/english/">Karlsruhe Institute of Technology</a>. POWERSASA is licensed by specific and rather restrictive "Academic/Non-Profit SASA software license agreement".
 See the comment file `thirdparty/sasa/LICENSE` for details.
-This license is NOT Open Source and imply many restrictions!
-Please read it carefully. If you agree with this license use the following flag when invoking cmake:
+This license is NOT Open Source and implies many restrictions. I contacted the authors of POWERSASA several times and asked for official permision to use their code but got no reply. It seems that the project is abandoned and nobody is concerned about the licensing of POWERSASA.
+If you still don't want to use this code due to licensing concerns you can swith it off:
 \code{.unparsed}
--DWITH_POWERSASA="ON"
+-DWITH_POWERSASA="OFF"
 \endcode
-By default this code is NOT compiled. Pteros doesn't support SASA computations without it.
-\note
-I contacted the authors of POWERSASA several times and asked for official permision to use their code but got no reply. It seems that the project is abandoned and nobody is concerned about the licensing of POWERSASA now.
 
 \subsection gmx Enabling Gromacs support
 
@@ -197,9 +194,5 @@ Use <a href="https://github.com/yesint/pteros/issues">issues on Github</a> to re
 \code{.unparsed} -DBoost_NO_SYSTEM_PATHS=ON -DBOOST_ROOT="Correct path to boost" \endcode
 - All Pteros plugins have to be up to date with the main library, but CMake doesn't always ensure this if you pull new updates from the repository. If plugins suddenly stop working after update delete CMakeCache.txt and CMakeFiles and recompile.
 - The error <i>"trying to overwrite '/usr/include/spdlog/async_logger.h', which is also in package libspdlog-dev 1.6-1"</i> occurs during installation. This happens if you have `spdlog` installed system-wide in Ubuntu from the package `libspdlog-dev`. This package is built in a wrong way and it lacks `spdlogConfig.cmake` file needed for correct library detection. That is why Pteros can't see it and tries to install its own bundled version of spdlog. Use `INSTALL_INTERNAL_SPDLOG=OFF` as a workaround.
-
-\section linking 	Linking with Pteros
-
-It is recommended to use CMake. You \e can use autoconf/automake or custom Makefiles, but this will never be officially supported. The "template" subdirectory of the source tree contains the skeleton of CMake project, which could be used to link your own program with pteros libraries.
 
 */
