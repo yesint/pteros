@@ -72,11 +72,14 @@ namespace pteros {
         Histogram(){}
         Histogram(float minval, float maxval, int n);
         void create(float minval, float maxval, int n);
+        int get_bin(float v);
         void add(float v, float weight=1.0);
-        void add(const std::vector<float> &v);        
+        void add(const std::vector<float> &v);
+        void add_cylindrical(float r, float w, float sector, float cyl_h);
         void normalize(float norm=0);
         float value(int i) const;
         float position(int i) const;
+        float delta() const {return d;}
         const Eigen::VectorXd& values() const;
         const Eigen::VectorXd& positions() const;
         int num_bins() const;
