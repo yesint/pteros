@@ -26,7 +26,7 @@ IF(WITH_PYTHON)
     )
 
     if(${OPENBABEL2_FOUND})
-        list(APPEND EXTRAS_FILES bindings_substructure_search.cpp)
+        list(APPEND EXTRAS_FILES bindings_substructure_search.cpp)        
     endif()
 
     pybind11_add_module(_pteros ${BIND_FILES})
@@ -36,6 +36,7 @@ IF(WITH_PYTHON)
     target_link_libraries(_pteros_extras PRIVATE pteros_membrane pteros_solvate)
 
     if(${OPENBABEL2_FOUND})
+        target_compile_definitions(_pteros_extras PRIVATE WITH_OPENBABEL)
         target_link_libraries(_pteros_extras PRIVATE pteros_substructure_search)
     endif()
 
