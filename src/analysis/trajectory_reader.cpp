@@ -46,8 +46,9 @@ General usage:
     -f filename1 filename2 ... <processing options>
 Files:
     * Exactly one structure file (PDB or GRO)
-      If not specified, topology PTTOP file must be given instead.
-    * Topology PTTOP file (converted from Gromacs .tpr by tpr2pteros.py)
+      If not specified, topology TPR file or TNG trajectory file
+      must be given instead.
+    * Gromacs topology file (TPR)
       If structure file is also present only topology is read from this file.
       If structure file is not present the coordinates are also read.
     * One or more trajectory files (TRR, XTC, TNG or DCD).
