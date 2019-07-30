@@ -258,7 +258,7 @@ void Histogram::normalize(float norm)
     if(norm){
         val /= norm;
     } else {
-        val /= val.sum()*(pos(1)-pos(0));
+        val /= val.sum()*d;
     }
     normalized = true;
 }
