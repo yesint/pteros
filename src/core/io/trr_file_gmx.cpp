@@ -37,8 +37,8 @@ using namespace Eigen;
 
 void TRR_file::open(char open_mode)
 {
-    handle = gmx_trr_open(file_name.c_str(),&open_mode);
-    if(!handle) throw Pteros_error("Unable to open TRR file {}", file_name);
+    handle = gmx_trr_open(fname.c_str(),&open_mode);
+    if(!handle) throw Pteros_error("Unable to open TRR file {}", fname);
 
     // Prepare the box just in case
     init_gmx_box(box);

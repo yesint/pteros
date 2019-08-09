@@ -35,7 +35,7 @@ namespace pteros {
 
 class TRR_file: public Mol_file {
 public:
-    TRR_file(std::string& fname): Mol_file(fname), file_name(fname) {}
+    TRR_file(std::string& fname): Mol_file(fname){}
 
     virtual void open(char open_mode);
     virtual ~TRR_file();
@@ -50,8 +50,7 @@ protected:
 
     virtual bool do_read(System *sys, Frame *frame, const Mol_file_content& what);
 
-private:
-    std::string file_name;
+private:    
     t_fileio* handle;
     gmx_trr_header_t header;
     matrix box;
