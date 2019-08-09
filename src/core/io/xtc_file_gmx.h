@@ -35,9 +35,9 @@ namespace pteros {
 
 class XTC_file: public Mol_file {
 public:
-    XTC_file(std::string& fname): Mol_file(fname), file_name(fname) {}
+    XTC_file(std::string& fname): Mol_file(fname) {}
     virtual void open(char open_mode);
-    ~XTC_file();
+    virtual ~XTC_file();
 
     virtual Mol_file_content get_content_type() const {        
         return Mol_file_content().traj(true);
@@ -50,10 +50,10 @@ protected:
     virtual bool do_read(System *sys, Frame *frame, const Mol_file_content& what);
 
 private:
-    std::string file_name;
     t_fileio* handle;
     matrix box;
     int64_t step;
+    bool first;
 };
 
 }

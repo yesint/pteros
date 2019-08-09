@@ -28,6 +28,7 @@
 #include "xtc_file_gmx.h"
 #include "pteros/core/pteros_error.h"
 #include "pteros/core/logging.h"
+#include "gromacs_utils.h"
 
 using namespace std;
 using namespace pteros;
@@ -36,15 +37,14 @@ using namespace Eigen;
 
 void XTC_file::open(char open_mode)
 {
-    handle = open_xtc(file_name.c_str(),&open_mode);
-    if(!handle) throw Pteros_error("Unable to open TRR file {}", file_name);
+    handle = open_xtc(fname.c_str(),&open_mode);
+    if(!handle) throw Pteros_error("Unable to open XTC file {}", fname);
 
     // Prepare the box just in case
-    box[0][0] = 0.0; box[0][1] = 0.0; box[0][2] = 0.0;
-    box[1][0] = 0.0; box[1][1] = 0.0; box[1][2] = 0.0;
-    box[2][0] = 0.0; box[2][1] = 0.0; box[2][2] = 0.0;
+    init_gmx_box(box);
 
     step = 0; // For writing
+    first = true;
 }
 
 XTC_file::~XTC_file()
@@ -54,9 +54,22 @@ XTC_file::~XTC_file()
 
 bool XTC_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
     float prec;
-    bool bok;
+    bool bok, ok;
 
-    auto ok = read_next_xtc(handle,sys->num_atoms(),&step,&frame->time, box, (rvec*)frame->coord.data() ,&prec,&bok);
+    if(first){
+        // First read allocates storage, so we are obliged to copy afterwards
+        rvec* x;
+        ok = read_first_xtc(handle,&natoms,&step,&frame->time, box, &x ,&prec,&bok);
+        LOG()->debug("XTC precision: {}",prec);
+        frame->coord.resize(natoms);
+        for(int i=0;i<natoms;++i)
+            frame->coord[i] = Eigen::Map<Eigen::Vector3f>(x[i]);
+        first = false;
+    } else {
+        // Next reads can use frame storage directly
+        frame->coord.resize(natoms);
+        ok = read_next_xtc(handle,natoms,&step,&frame->time, box, (rvec*)frame->coord.data() ,&prec,&bok);
+    }
 
     if(!bok) throw Pteros_error("XTC frame is corrupted!");
 
@@ -79,18 +92,9 @@ void XTC_file::do_write(const Selection &sel, const Mol_file_content &what)
             box[i][j] = sel.box().get_matrix()(j,i);
 
     const Frame& fr = sel.get_system()->frame(sel.get_frame());
-    rvec* x = (rvec*)calloc(natoms,sizeof(*x));
 
-    // Copy data to internal storage
-    for(int i=0;i<natoms;++i){
-        x[i][0] = sel.x(i);
-        x[i][1] = sel.y(i);
-        x[i][2] = sel.z(i);
-    }
+    rvec* x = (rvec*)sel.get_xyz().data();
 
     write_xtc(handle,sel.size(),step,fr.time,box,x,1000);
     ++step;
-
-    // Free buffer
-    if(x) free(x);
 }

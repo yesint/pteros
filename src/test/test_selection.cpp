@@ -176,10 +176,10 @@ int main(int argc, char** argv)
 
         int n;
         System s("/home/semen/work/stored/Projects/SquaMem/curved_charmm_sym/insert/upper_em.gro");
-        s.load("/home/semen/work/stored/Projects/SquaMem/curved_charmm_sym/insert/traj.trr",0,2);
+        s.load("/home/semen/work/stored/Projects/SquaMem/curved_charmm_sym/insert/traj_comp.xtc");
         cout << s.frame(2).coord[0] << endl;
-        cout << s.frame(2).vel[0] << endl;
-        cout << s.frame(2).force[0] << endl;
+        //cout << s.frame(2).vel[0] << endl;
+        //cout << s.frame(2).force[0] << endl;
 
 
     } catch(const Pteros_error& e){
