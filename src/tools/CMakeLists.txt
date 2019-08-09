@@ -17,7 +17,7 @@ add_executable(pteros_rearrange_program
     rearrange.cpp
 )
 target_link_libraries(pteros_rearrange_program PRIVATE pteros pteros_analysis)
-set_target_properties(pteros_rearrange_program  PROPERTIES OUTPUT_NAME pteros_rearrange)
+set_target_properties(pteros_rearrange_program PROPERTIES OUTPUT_NAME pteros_rearrange)
 
 #--------------
 # Installation

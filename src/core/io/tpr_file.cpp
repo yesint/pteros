@@ -29,14 +29,12 @@
 #include "pteros/core/pteros_error.h"
 #include "pteros/core/logging.h"
 
-#ifdef USE_GROMACS
 #include "gromacs/fileio/tpxio.h"
 #include "gromacs/mdtypes/inputrec.h"
 #include "gromacs/mdtypes/state.h"
 #include "gromacs/topology/topology.h"
 #include "gromacs/topology/mtop_util.h"
 #include "gromacs/topology/idef.h"
-#endif
 
 using namespace std;
 using namespace pteros;
@@ -46,7 +44,6 @@ using namespace Eigen;
 TPR_file::~TPR_file(){
 }
 
-#ifdef USE_GROMACS
 
 string coulomb_names[] = {"Cut-off", "Reaction-Field", "Generalized-Reaction-Field",
                           "PME", "Ewald", "P3M-AD", "Poisson", "Switch", "Shift", "User",
@@ -264,16 +261,3 @@ bool TPR_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
 
     return true;
 }
-
-#else
-
-void TPR_file::open(char open_mode)
-{
-    throw Pteros_error("Pteros is compled without Gromacs support. Can't read TPR files!");
-}
-
-
-bool TPR_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){}
-
-#endif
-

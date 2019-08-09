@@ -31,15 +31,21 @@
 #include "pdb_file.h"
 #include "dcd_file.h"
 #include "gro_file.h"
-#include "trr_file.h"
-#include "xtc_file.h"
 #include "tng_file.h"
 #include "mol2_file.h"
 #include "xyz_file.h"
-#include "tpr_file.h"
 
 #ifdef USE_OPENBABEL
 #include "pdbqt_file.h"
+#endif
+
+#ifdef USE_GROMACS
+#include "trr_file_gmx.h"
+#include "xtc_file_gmx.h"
+#include "tpr_file.h"
+#else
+#include "trr_file.h"
+#include "xtc_file.h"
 #endif
 
 
@@ -146,7 +152,9 @@ unique_ptr<Mol_file> Mol_file::recognize(string fname){
     else if(ext=="tng")     return unique_ptr<Mol_file>(new TNG_file(fname));
     else if(ext=="mol2")    return unique_ptr<Mol_file>(new MOL2_file(fname));
     else if(ext=="xyz")     return unique_ptr<Mol_file>(new XYZ_file(fname));
+#ifdef USE_GROMACS
     else if(ext=="tpr")     return unique_ptr<Mol_file>(new TPR_file(fname));
+#endif
 #ifdef USE_OPENBABEL
     else if(ext=="pdbqt")   return unique_ptr<Mol_file>(new PDBQT_file(fname));
 #endif

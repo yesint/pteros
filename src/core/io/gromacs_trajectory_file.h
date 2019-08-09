@@ -8,7 +8,7 @@
  * (C) 2009-2018, Semen Yesylevskyy
  *
  * All works, which use Pteros, should cite the following papers:
- *  
+ *
  *  1.  Semen O. Yesylevskyy, "Pteros 2.0: Evolution of the fast parallel
  *      molecular analysis library for C++ and python",
  *      Journal of Computational Chemistry, 2015, 36(19), 1480–1488.
@@ -39,13 +39,13 @@ namespace pteros {
 /** Base class for XTC and TRR readers
   */
 class Gromacs_trajectory_file: public Mol_file {
-    public:      
+    public:
 
         Gromacs_trajectory_file(std::string& fname);
 
         virtual void open(char openmode);
 
-        virtual ~Gromacs_trajectory_file();        
+        virtual ~Gromacs_trajectory_file();
 
         virtual Mol_file_content get_content_type() const {
             return Mol_file_content().traj(true);
@@ -59,7 +59,7 @@ class Gromacs_trajectory_file: public Mol_file {
         matrix box;
         rvec* x;
         char mode;
-        int fr;        
+        int fr;
 
         virtual int read_num_atoms(char* fname, int* num) = 0;
         virtual int read_record(XDRFILE *xd, int natoms, int *step,

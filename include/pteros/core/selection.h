@@ -432,7 +432,7 @@ class Selection {
     void set_mass(const std::vector<float>& m);
 
     /// Sets masses of all selected atoms to the same given value.
-    void set_mass(float data);        
+    void set_mass(float data);
 
 
     /// Get beta
@@ -478,6 +478,30 @@ class Selection {
 
     /// Set tags of all selected atoms to the same given value.
     void set_tag(std::string data);
+
+
+    /// Get velocities of all atoms in this selection for the current frame
+    /// By default columnt of the matrix contain atom coordinates.
+    /// Optional flag turns this to row-major format (mainly used by python binding)
+    Eigen::MatrixXf get_vel(bool make_row_major_matrix = false) const;
+
+    /// Get velocities of all atoms in this selection for the current frame in existing matrix
+    void get_vel(MatrixXf_ref res) const;
+
+    /// Set velocities of this selection for current frame
+    void set_vel(MatrixXf_const_ref data);
+
+    /// Get forces of all atoms in this selection for the current frame
+    /// By default columnt of the matrix contain atom coordinates.
+    /// Optional flag turns this to row-major format (mainly used by python binding)
+    Eigen::MatrixXf get_force(bool make_row_major_matrix = false) const;
+
+    /// Get forces of all atoms in this selection for the current frame in existing matrix
+    void get_force(MatrixXf_ref res) const;
+
+    /// Set forces of this selection for current frame
+    void set_force(MatrixXf_const_ref coord);
+
     /// @}
 
 
@@ -863,6 +887,20 @@ class Selection {
     /// Used internally in Grid_searcher.
     inline Eigen::Vector3f* xyz_ptr(int ind)         const { return &(system->traj[frame].coord[_index[ind]]); }
     inline Eigen::Vector3f* xyz_ptr(int ind, int fr) const { return &(system->traj[fr].coord[_index[ind]]); }
+
+    /// Extracts velocity for current frame
+    inline       Eigen::Vector3f& vel(int ind)       { return system->traj[frame].vel[_index[ind]]; }
+    inline const Eigen::Vector3f& vel(int ind) const { return system->traj[frame].vel[_index[ind]]; }
+    /// Extracts velocity for given frame fr
+    inline       Eigen::Vector3f& vel(int ind, int fr)       { return system->traj[fr].vel[_index[ind]]; }
+    inline const Eigen::Vector3f& vel(int ind, int fr) const { return system->traj[fr].vel[_index[ind]]; }
+
+    /// Extracts force for current frame
+    inline       Eigen::Vector3f& force(int ind)       { return system->traj[frame].force[_index[ind]]; }
+    inline const Eigen::Vector3f& force(int ind) const { return system->traj[frame].force[_index[ind]]; }
+    /// Extracts force for given frame fr
+    inline       Eigen::Vector3f& force(int ind, int fr)       { return system->traj[fr].force[_index[ind]]; }
+    inline const Eigen::Vector3f& force(int ind, int fr) const { return system->traj[fr].force[_index[ind]]; }
 
 #define DEFINE_ACCESSOR(T,prop) \
     inline T& prop(int ind){ return system->atoms[_index[ind]].prop; } \

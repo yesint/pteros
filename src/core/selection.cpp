@@ -779,6 +779,86 @@ void Selection::set_xyz(pteros::MatrixXf_const_ref coord){
     }
 }
 
+MatrixXf Selection::get_vel(bool make_row_major_matrix) const {
+    if(!system->traj[frame].has_vel()) throw Pteros_error("System has no velocities");
+
+    int n = _index.size();
+    MatrixXf res;
+    if(make_row_major_matrix){
+        res.resize(n,3);
+        for(int i=0; i<n; ++i) res.row(i) = system->traj[frame].vel[_index[i]];
+    } else {
+        // Column major, default
+        res.resize(3,n);
+        for(int i=0; i<n; ++i) res.col(i) = system->traj[frame].vel[_index[i]];
+    }
+    return res;
+}
+
+void Selection::get_vel(MatrixXf_ref res) const {
+    if(!system->traj[frame].has_vel()) throw Pteros_error("System has no velocities");
+
+    int i,n;
+    n = _index.size();
+    res.resize(3,n);
+    for(i=0; i<n; ++i) res.col(i) = system->traj[frame].vel[_index[i]];
+}
+
+void Selection::set_vel(pteros::MatrixXf_const_ref data){
+    int n = _index.size();
+    // Sanity check
+    if(data.cols()!=n && data.rows()!=n) throw Pteros_error("Invalid data size {} for selection of size {}", data.size(),n);
+
+    system->traj[frame].vel.resize(n);
+
+    if(data.cols()==n){ // Column major, default
+        for(int i=0; i<n; ++i) vel(i) = data.col(i);
+    } else { // row-major, from python bindings
+        for(int i=0; i<n; ++i) vel(i) = data.row(i);
+    }
+}
+
+
+MatrixXf Selection::get_force(bool make_row_major_matrix) const {
+    if(!system->traj[frame].has_force()) throw Pteros_error("System has no forces");
+
+    int n = _index.size();
+    MatrixXf res;
+    if(make_row_major_matrix){
+        res.resize(n,3);
+        for(int i=0; i<n; ++i) res.row(i) = system->traj[frame].force[_index[i]];
+    } else {
+        // Column major, default
+        res.resize(3,n);
+        for(int i=0; i<n; ++i) res.col(i) = system->traj[frame].force[_index[i]];
+    }
+    return res;
+}
+
+void Selection::get_force(MatrixXf_ref res) const {
+    if(!system->traj[frame].has_force()) throw Pteros_error("System has no forces");
+
+    int i,n;
+    n = _index.size();
+    res.resize(3,n);
+    for(i=0; i<n; ++i) res.col(i) = system->traj[frame].force[_index[i]];
+}
+
+void Selection::set_force(pteros::MatrixXf_const_ref data){
+    int n = _index.size();
+    // Sanity check
+    if(data.cols()!=n && data.rows()!=n) throw Pteros_error("Invalid data size {} for selection of size {}", data.size(),n);
+
+    system->traj[frame].force.resize(n);
+
+    if(data.cols()==n){ // Column major, default
+        for(int i=0; i<n; ++i) force(i) = data.col(i);
+    } else { // row-major, from python bindings
+        for(int i=0; i<n; ++i) force(i) = data.row(i);
+    }
+}
+
+
 // Compute average structure
 MatrixXf Selection::average_structure(int b, int e, bool make_row_major_matrix) const {
     MatrixXf res;

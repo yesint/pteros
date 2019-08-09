@@ -107,6 +107,12 @@ void make_bindings_System(py::module& m){
         .def("getXYZ", py::overload_cast<int,int>(&System::xyz, py::const_), "i"_a, "fr"_a=0)
         .def("setXYZ", [](System* s,Vector3f_const_ref v,int i,int fr){ s->xyz(i,fr)=v; }, "xyz"_a, "i"_a, "fr"_a=0)
 
+        .def("getForce", py::overload_cast<int,int>(&System::force, py::const_), "i"_a, "fr"_a=0)
+        .def("setForce", [](System* s,Vector3f_const_ref v,int i,int fr){ s->force(i,fr)=v; }, "force"_a, "i"_a, "fr"_a=0)
+
+        .def("getVel", py::overload_cast<int,int>(&System::vel, py::const_), "i"_a, "fr"_a=0)
+        .def("setVel", [](System* s,Vector3f_const_ref v,int i,int fr){ s->vel(i,fr)=v; }, "vel"_a, "i"_a, "fr"_a=0)
+
         .def("getAtom", py::overload_cast<int>(&System::atom, py::const_))
         .def("setAtom", [](System* s, int i, const Atom& a){ s->atom(i)=a; })
 

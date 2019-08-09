@@ -119,7 +119,7 @@ endif()
 # Gromacs
 if(WITH_GROMACS)
     find_package(gromacs REQUIRED)
-    if(${gromacs_FOUND})
+    if(gromacs_FOUND)
         message("Found Gromacs ${gromacs_VERSION} at ${GROMACS_INCLUDE_DIRS}")
     endif()
 endif()
@@ -137,8 +137,10 @@ add_subdirectory(thirdparty/dssp)
 # VMD molfile plugins
 add_subdirectory(thirdparty/molfile_plugins)
 
-# xdrfile library
-add_subdirectory(thirdparty/xdrfile)
+# xdrfile library (only built if Gromacs is not linked)
+if(NOT WITH_GROMACS)
+    add_subdirectory(thirdparty/xdrfile)
+endif()
 
 # voro++ library
 add_subdirectory(thirdparty/voro++)

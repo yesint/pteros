@@ -115,9 +115,19 @@ void System::filter_atoms()
 void System::filter_coord(int fr)
 {
     if(filter.empty()) return; // Do nothing if no filtering
-    vector<Vector3f> tmp = traj[fr].coord;
-    traj[fr].coord.resize(filter.size());
-    for(int i=0; i<filter.size(); ++i) traj[fr].coord[i] = tmp[filter[i]];
+    Frame tmp = traj[fr];
+
+    traj[fr].coord.resize(filter.size());    
+    for(int i=0; i<filter.size(); ++i) traj[fr].coord[i] = tmp.coord[filter[i]];
+
+    if(traj[fr].has_vel()){
+        traj[fr].vel.resize(filter.size());
+        for(int i=0; i<filter.size(); ++i) traj[fr].vel[i] = tmp.vel[filter[i]];
+    }
+    if(traj[fr].has_force()){
+        traj[fr].force.resize(filter.size());
+        for(int i=0; i<filter.size(); ++i) traj[fr].force[i] = tmp.force[filter[i]];
+    }
 }
 
 // Load structure or trajectory
@@ -185,7 +195,7 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
                 }
             }            
 
-            LOG()->info("Reading...");
+            LOG()->info("Reading '{}'...",fname);
 
             int actually_read = 0;
 
@@ -199,14 +209,15 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
                 Frame fr;
                 frame_append(fr);
                 // Try to read into it
-                bool ok = f->read(nullptr, &frame(num_frames()-1), Mol_file_content().traj(true));
+                bool ok = f->read(nullptr, &frame(num_frames()-1), Mol_file_content().traj(true));                
+
                 if(!ok){
                     frame_delete(num_frames()-1); // Remove last frame - it's invalid
                     break; // end of trajectory
                 }
 
                 filter_coord(num_frames()-1);
-                check_num_atoms_in_last_frame(*this);
+                check_num_atoms_in_last_frame(*this);                
 
                 ++cur;
                 ++actually_read;
@@ -472,10 +483,20 @@ void System::sort_by_resindex()
     vector<Atom> tmp(atoms); //temporary
     for(int i=0;i<ind.size();++i) atoms[i] = tmp[ind[i]];
 
-    std::vector<Eigen::Vector3f> tmp_coord;
+    std::vector<Eigen::Vector3f> tmpv;
     for(int j=0; j<traj.size(); ++j){ // Over all frames
-        tmp_coord = traj[j].coord; //temporary
-        for(int i=0;i<ind.size();++i) traj[j].coord[i] = tmp_coord[ind[i]];
+        tmpv = traj[j].coord; //temporary
+        for(int i=0;i<ind.size();++i) traj[j].coord[i] = tmpv[ind[i]];
+
+        if(traj[j].has_vel()){
+            tmpv = traj[j].vel;
+            for(int i=0;i<ind.size();++i) traj[j].vel[i] = tmpv[ind[i]];
+        }
+
+        if(traj[j].has_force()){
+            tmpv = traj[j].force;
+            for(int i=0;i<ind.size();++i) traj[j].force[i] = tmpv[ind[i]];
+        }
     }
 }
 
@@ -494,6 +515,8 @@ Selection System::atoms_dup(const vector<int>& ind){
     atoms.reserve(atoms.size()+ind.size());
     for(int j=0; j<traj.size(); ++j){
         traj[j].coord.reserve(atoms.size()+ind.size());
+        if(traj[j].has_vel()) traj[j].vel.reserve(atoms.size()+ind.size());
+        if(traj[j].has_force()) traj[j].force.reserve(atoms.size()+ind.size());
     }
 
     // Now add atoms
@@ -503,6 +526,8 @@ Selection System::atoms_dup(const vector<int>& ind){
         // Add new coordinate slot
         for(int j=0; j<traj.size(); ++j){
             traj[j].coord.push_back(traj[j].coord[ind[i]]);
+            if(traj[j].has_vel()) traj[j].vel.push_back(traj[j].vel[ind[i]]);
+            if(traj[j].has_force()) traj[j].force.push_back(traj[j].force[ind[i]]);
         }
     }
 
@@ -526,6 +551,8 @@ Selection System::atoms_add(const vector<Atom>& atm, const vector<Vector3f>& crd
 
     for(int j=0; j<traj.size(); ++j){
         traj[j].coord.reserve(atoms.size()+atm.size());
+        if(traj[j].has_vel()) traj[j].vel.reserve(atoms.size()+atm.size());
+        if(traj[j].has_force()) traj[j].force.reserve(atoms.size()+atm.size());
     }
     // Now add atoms
     for(int i=0; i<atm.size(); ++i){
@@ -534,6 +561,8 @@ Selection System::atoms_add(const vector<Atom>& atm, const vector<Vector3f>& crd
         // Add new coordinate slot
         for(int j=0; j<traj.size(); ++j){
             traj[j].coord.push_back(crd[i]);
+            if(traj[j].has_vel()) traj[j].coord.push_back(Vector3f::Zero());
+            if(traj[j].has_force()) traj[j].coord.push_back(Vector3f::Zero());
         }
     }
 
@@ -562,13 +591,20 @@ void System::atoms_delete(const std::vector<int> &ind){
     }
 
     // Now cycle over trajectory and keep only corresponding coordinates
-    vector<Vector3f> tmp_coord;
+    Frame tmpv;
     for(fr=0; fr<num_frames(); ++fr){
-        // Make a copy of traj coords
-        tmp_coord = traj[fr].coord;
+        // Make a copy
+        tmpv = traj[fr];
+
         traj[fr].coord.clear();
+        traj[fr].vel.clear();
+        traj[fr].force.clear();
         for(i=0;i<tmp.size();++i){
-            if(tmp[i].mass>=0) traj[fr].coord.push_back(tmp_coord[i]);
+            if(tmp[i].mass>=0){
+                traj[fr].coord.push_back(tmpv.coord[i]);
+                if(traj[fr].has_vel()) traj[fr].vel.push_back(tmpv.vel[i]);
+                if(traj[fr].has_force()) traj[fr].force.push_back(tmpv.force[i]);
+            }
         }
     }
 }
@@ -588,18 +624,42 @@ void System::atom_move(int i, int j)
         atom(j) = at;
 
         for(int fr=0; fr<num_frames(); ++fr){
-            auto coord = xyz(i,fr);
+            auto tmp = xyz(i,fr);
             for(int a=i+1; a<=j; ++a) xyz(a-1,fr) = xyz(a,fr);
-            xyz(j,fr) = coord;
+            xyz(j,fr) = tmp;
+
+            if(traj[fr].has_vel()){
+                tmp = vel(i,fr);
+                for(int a=i+1; a<=j; ++a) vel(a-1,fr) = vel(a,fr);
+                vel(j,fr) = tmp;
+            }
+
+            if(traj[fr].has_force()){
+                tmp = force(i,fr);
+                for(int a=i+1; a<=j; ++a) force(a-1,fr) = force(a,fr);
+                force(j,fr) = tmp;
+            }
         }
     } else {
         for(int a=i-1; a>=j; --a) atom(a+1) = atom(a);
         atom(j) = at;
 
         for(int fr=0; fr<num_frames(); ++fr){
-            auto coord = xyz(i,fr);
+            auto tmp = xyz(i,fr);
             for(int a=i-1; a>=j; --a) xyz(a+1,fr) = xyz(a,fr);
-            xyz(j,fr) = coord;
+            xyz(j,fr) = tmp;
+
+            if(traj[fr].has_vel()){
+                tmp = vel(i,fr);
+                for(int a=i-1; a>=j; --a) vel(a+1,fr) = vel(a,fr);
+                vel(j,fr) = tmp;
+            }
+
+            if(traj[fr].has_force()){
+                tmp = force(i,fr);
+                for(int a=i-1; a>=j; --a) force(a+1,fr) = force(a,fr);
+                force(j,fr) = tmp;
+            }
         }
     }
 }
@@ -618,7 +678,7 @@ void System::atom_swap(int i, int j)
 
     std::swap(atoms[i],atoms[j]);
     for(int fr=0; fr<num_frames(); ++fr){
-        std::swap(traj[fr].coord[i],traj[fr].coord[j]);
+        traj[fr].swap(i,j);
     }
 
 }
@@ -1112,5 +1172,15 @@ Vector2f get_energy_for_list(const vector<Vector2i>& pairs, const vector<float>&
     }
     return e_total;
 }
+
+//-------------------------------
+
+void Frame::swap(int i, int j)
+{
+    std::swap(coord[i],coord[j]);
+    if(has_vel()) std::swap(vel[i],vel[j]);
+    if(has_force()) std::swap(force[i],force[j]);
+}
+
 
 }

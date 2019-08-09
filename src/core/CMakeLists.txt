@@ -14,8 +14,9 @@ add_custom_command(OUTPUT "${PROJECT_SOURCE_DIR}/src/core/version.cpp"
     VERBATIM
 )
 
-add_subdirectory(io)
 add_subdirectory(babel_utils)
+add_subdirectory(gromacs_utils)
+add_subdirectory(io)
 
 #-------------------------------------------------------------------------------
 # service interface library to provide includes for other targets at build time
@@ -97,7 +98,7 @@ target_link_libraries(pteros
     PUBLIC
         Eigen3::Eigen
         spdlog::spdlog
-        Boost::boost Boost::system Boost::date_time
+        Boost::boost Boost::system Boost::date_time        
 )
 
 if(OpenMP_CXX_FOUND)

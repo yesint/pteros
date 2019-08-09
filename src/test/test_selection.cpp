@@ -175,13 +175,11 @@ int main(int argc, char** argv)
     try{
 
         int n;
-        System s("/home/syesylev/work/Projects/octane_water/carb/w_0/confout.gro");
-        n = s("name OW and z>0.4 and z<4.4").size();
-        cout << n << endl;
-        s.load("/home/syesylev/work/Projects/octane_water/carb/w_1/confout.gro");
-        n = s("name OW and z>0.4 and z<4.4").size();
-        cout << n << endl;
-
+        System s("/home/semen/work/stored/Projects/SquaMem/curved_charmm_sym/insert/upper_em.gro");
+        s.load("/home/semen/work/stored/Projects/SquaMem/curved_charmm_sym/insert/traj.trr",0,2);
+        cout << s.frame(2).coord[0] << endl;
+        cout << s.frame(2).vel[0] << endl;
+        cout << s.frame(2).force[0] << endl;
 
 
     } catch(const Pteros_error& e){

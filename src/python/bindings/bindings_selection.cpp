@@ -61,6 +61,8 @@ void make_bindings_Selection(py::module& m){
         DEF_PROPERTY(y,float)
         DEF_PROPERTY(z,float)
         .def_property("xyz", [](Atom_proxy* obj){return obj->xyz();}, [](Atom_proxy* obj,Vector3f_const_ref val){obj->xyz()=val;})
+        .def_property("vel", [](Atom_proxy* obj){return obj->vel();}, [](Atom_proxy* obj,Vector3f_const_ref val){obj->vel()=val;})
+        .def_property("force", [](Atom_proxy* obj){return obj->force();}, [](Atom_proxy* obj,Vector3f_const_ref val){obj->force()=val;})
         .def_property_readonly("element_name", [](Atom_proxy* obj){return obj->element_name();})
         .def_property_readonly("vdw", [](Atom_proxy* obj){return obj->vdw();})        
         .def_property_readonly("index", [](Atom_proxy* obj){return obj->index();})
@@ -138,6 +140,12 @@ void make_bindings_Selection(py::module& m){
 
         .def("get_xyz", [](Selection* sel){ return sel->get_xyz(true); }) // pass true for row-major matrix
         .def("set_xyz", &Selection::set_xyz) // detects raw-major matrix internally
+
+        .def("get_vel", [](Selection* sel){ return sel->get_vel(true); }) // pass true for row-major matrix
+        .def("set_vel", &Selection::set_vel) // detects raw-major matrix internally
+
+        .def("get_force", [](Selection* sel){ return sel->get_force(true); }) // pass true for row-major matrix
+        .def("set_force", &Selection::set_force) // detects raw-major matrix internally
 
         .def("get_mass",&Selection::get_mass)
         .def("set_mass",py::overload_cast<float>(&Selection::set_mass))

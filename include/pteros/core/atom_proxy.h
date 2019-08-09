@@ -95,6 +95,12 @@ public:
     inline Eigen::Vector3f& xyz(){ return *coord_ptr; }
     inline const Eigen::Vector3f& xyz() const { return *coord_ptr; }
 
+    inline Eigen::Vector3f& vel(){ return *v_ptr; }
+    inline const Eigen::Vector3f& vel() const { return *v_ptr; }
+
+    inline Eigen::Vector3f& force(){ return *f_ptr; }
+    inline const Eigen::Vector3f& force() const { return *f_ptr; }
+
     inline Atom& atom(){ return *atom_ptr; }
     inline const Atom& atom() const { return *atom_ptr; }
 
@@ -118,8 +124,10 @@ public:
 
 private:        
     int ind;
-    Atom* atom_ptr;
+    Atom *atom_ptr;
     Eigen::Vector3f* coord_ptr;
+    Eigen::Vector3f* v_ptr;
+    Eigen::Vector3f* f_ptr;
 };
 
 }

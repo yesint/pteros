@@ -5,12 +5,17 @@
 using namespace pteros;
 using namespace std;
 
-Atom_proxy::Atom_proxy(System *s, int i, int fr): atom_ptr(&s->atom(i)), coord_ptr(&s->frame(fr).coord[i]), ind(i) {}
+Atom_proxy::Atom_proxy(System *s, int i, int fr): atom_ptr(&s->atom(i)), coord_ptr(&s->frame(fr).coord[i]), ind(i) {
+    v_ptr = (s->frame(fr).has_vel()) ? &s->frame(fr).vel[i] : nullptr;
+    f_ptr = (s->frame(fr).has_force()) ? &s->frame(fr).force[i] : nullptr;
+}
 
 void Atom_proxy::set(System *s, int i, int fr){
     ind = i;
     atom_ptr = &s->atom(i);
     coord_ptr = &s->frame(fr).coord[i];
+    v_ptr = (s->frame(fr).has_vel()) ? &s->frame(fr).vel[i] : nullptr;
+    f_ptr = (s->frame(fr).has_force()) ? &s->frame(fr).force[i] : nullptr;
 }
 
 string Atom_proxy::element_name() const {

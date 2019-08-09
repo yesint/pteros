@@ -25,22 +25,39 @@
 */
 
 
-#include "pteros/core/system.h"
-#include "bindings_util.h"
+#pragma once
 
-namespace py = pybind11;
-using namespace pteros;
-using namespace std;
-using namespace pybind11::literals;
+#include "pteros/core/mol_file.h"
+#include "gromacs/fileio/trrio.h"
 
-void make_bindings_Frame(py::module& m){
+namespace pteros {
 
-    py::class_<Frame>(m, "Frame")
-        .def_readwrite("time", &Frame::time)
-        .def_readwrite("box", &Frame::box)
-        .def_readwrite("coord", &Frame::coord)
-        .def("has_vel",&Frame::has_vel)
-        .def("has_force",&Frame::has_force)
-    ;
+
+class TRR_file: public Mol_file {
+public:
+    TRR_file(std::string& fname): Mol_file(fname), file_name(fname) {}
+
+    virtual void open(char open_mode);
+    virtual ~TRR_file();
+
+    virtual Mol_file_content get_content_type() const {        
+        return Mol_file_content().traj(true);
+    }
+
+protected:        
+
+    virtual void do_write(const Selection &sel, const Mol_file_content& what);
+
+    virtual bool do_read(System *sys, Frame *frame, const Mol_file_content& what);
+
+private:
+    std::string file_name;
+    t_fileio* handle;
+    gmx_trr_header_t header;
+    matrix box;
+    int64_t step;
+};
+
 }
+
 

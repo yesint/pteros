@@ -49,12 +49,22 @@ namespace pteros {
 struct Frame {
     /// Coordinates of atoms
     std::vector<Eigen::Vector3f> coord;
+    /// Velocities of atoms
+    std::vector<Eigen::Vector3f> vel;
+    /// Forces of atoms
+    std::vector<Eigen::Vector3f> force;
     /// Periodic box
     Periodic_box box;
     /// Timestamp
     float time;
 
     Frame(): time(0.0) {}
+
+    bool has_vel() const { return !vel.empty(); }
+    bool has_force() const { return !force.empty(); }
+
+    /// Swap values for atoms i and j taking care of v and f
+    void swap(int i, int j);
 };
 
 //Forward declarations
@@ -343,6 +353,18 @@ public:
 
     /// Read only access for given coordinate of given frame
     inline const Eigen::Vector3f& xyz(int ind, int fr=0) const { return traj[fr].coord[ind]; }
+
+    /// Read/Write access for given velocity of given frame
+    inline Eigen::Vector3f& vel(int ind, int fr=0){ return traj[fr].vel[ind]; }
+
+    /// Read only access for given velocity of given frame
+    inline const Eigen::Vector3f& vel(int ind, int fr=0) const { return traj[fr].vel[ind]; }
+
+    /// Read/Write access for given force of given frame
+    inline Eigen::Vector3f& force(int ind, int fr=0){ return traj[fr].force[ind]; }
+
+    /// Read only access for given force of given frame
+    inline const Eigen::Vector3f& force(int ind, int fr=0) const { return traj[fr].force[ind]; }
 
     /// Read/Write access for given atom
     inline Atom& atom(int ind) { return atoms[ind]; }
