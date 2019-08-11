@@ -50,7 +50,8 @@ void TRR_file::open(char open_mode)
     // Prepare the box just in case
     init_gmx_box(box);
 
-    step = 0; // For writing
+    // -1 for reading means initialization step
+    step = (open_mode=='r') ? -1 : 0;
 }
 
 TRR_file::~TRR_file()
@@ -79,14 +80,14 @@ bool TRR_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
     ok = gmx_trr_read_frame_header(handle,&header,&bok);
     if(!bok) Pteros_error("Incomplete frame header in TRR file", fname);
     if(!ok) return false;
-    if(step==0){
+    if(step<0){
         natoms = header.natoms;
         has_x = (header.x_size>0);
         has_v = (header.v_size>0);
-        has_f = (header.f_size>0);
+        has_f = (header.f_size>0);        
     }
 #else
-    if(step==0){
+    if(step<0){
         // For gmxlib we read header directly only once
         int xsz,vsz,fsz;
         check_trr_content(const_cast<char*>(fname.c_str()),&natoms,&xsz,&vsz,&fsz);
@@ -96,6 +97,8 @@ bool TRR_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
         if(!has_x) throw Pteros_error("Pteros can't read TRR files without coordinates!");
     }
 #endif
+
+    if(step<0) LOG()->debug("TRR file has: x({}), v({}), f({})",has_x,has_v,has_f);
 
     rvec* x = nullptr;
     rvec* v = nullptr;
@@ -118,7 +121,10 @@ bool TRR_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
 
 #ifdef USE_GROMACS
     ok = gmx_trr_read_frame_data(handle,&header,box,x,v,f);
-    if(ok) frame->time = header.t;
+    if(ok){
+        frame->time = header.t;
+        step = header.step;
+    }
 #else
     float lambda;
     ok = read_trr(handle,natoms,&step,&frame->time,&lambda,box,x,v,f);

@@ -50,7 +50,8 @@ void XTC_file::open(char open_mode)
     // Prepare the box just in case
     init_gmx_box(box);
 
-    step = 0; // For writing    
+    // -1 for reading means initialization step
+    step = (open_mode=='r') ? -1 : 0;
 }
 
 XTC_file::~XTC_file()
@@ -68,7 +69,7 @@ bool XTC_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
 
 #ifdef USE_GROMACS
     bool bok, ok;
-    if(step==0){
+    if(step<0){
         // First read allocates storage, so we are obliged to copy afterwards
         rvec* x;
         ok = read_first_xtc(handle,&natoms,&step,&frame->time, box, &x ,&prec,&bok);
@@ -88,7 +89,7 @@ bool XTC_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
     }
 #else
     int ret;
-    if(step==0){
+    if(step<0){
         ret = read_xtc_natoms(const_cast<char*>(fname.c_str()), &natoms);
         if(ret!=exdrOK) throw Pteros_error("Can't read natoms from XTC");
     }
