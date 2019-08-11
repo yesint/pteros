@@ -136,6 +136,8 @@ void make_bindings_System(py::module& m){
 
          // Util
         .def("clear", &System::clear)
+        .def("clear_vel", &System::clear_vel)
+        .def("clear_force", &System::clear_force)
         .def("force_field_ready", &System::force_field_ready)
         .def("assign_resindex", &System::assign_resindex, "start"_a=0)
         .def("sort_by_resindex", &System::sort_by_resindex)

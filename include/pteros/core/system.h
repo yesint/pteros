@@ -463,6 +463,14 @@ public:
     /// into contigous pieces. Could be called after atom additions or duplications.
     void sort_by_resindex();
 
+    /// Delete velocities from all frames.
+    /// Does nothing if no velocities.
+    void clear_vel();
+
+    /// Delete forces from all frames.
+    /// Does nothing if no forces.
+    void clear_force();
+
     /// @}
 
 protected:

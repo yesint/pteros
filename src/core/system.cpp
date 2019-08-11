@@ -500,6 +500,16 @@ void System::sort_by_resindex()
     }
 }
 
+void System::clear_vel()
+{
+    for(int j=0; j<traj.size(); ++j) traj[j].vel.clear();
+}
+
+void System::clear_force()
+{
+    for(int j=0; j<traj.size(); ++j) traj[j].force.clear();
+}
+
 Selection System::atoms_dup(const vector<int>& ind){
     // Sanity check
     if(!ind.size()) throw Pteros_error("No atoms to duplicate!");
