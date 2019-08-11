@@ -195,7 +195,7 @@ void System::load(string fname, int b, int e, int skip, std::function<bool(Syste
                 }
             }            
 
-            LOG()->info("Reading '{}'...",fname);
+            LOG()->debug("Reading trajectory '{}'...",fname);
 
             int actually_read = 0;
 

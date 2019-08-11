@@ -34,20 +34,16 @@
 #include "tng_file.h"
 #include "mol2_file.h"
 #include "xyz_file.h"
+#include "trr_file.h"
+#include "xtc_file.h"
 
 #ifdef USE_OPENBABEL
 #include "pdbqt_file.h"
 #endif
 
 #ifdef USE_GROMACS
-#include "trr_file_gmx.h"
-#include "xtc_file_gmx.h"
 #include "tpr_file.h"
-#else
-#include "trr_file.h"
-#include "xtc_file.h"
 #endif
-
 
 using namespace std;
 using namespace pteros;

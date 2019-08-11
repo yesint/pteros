@@ -25,27 +25,51 @@
 */
 
 
-#ifndef XTC_FILE_H
-#define XTC_FILE_H
+#pragma once
 
-#include "gromacs_trajectory_file.h"
+#include "pteros/core/mol_file.h"
+
+#ifdef USE_GROMACS
+#include "gromacs/fileio/xtcio.h"
+#else
+#include "xdrfile.h"
+#include "xdrfile_xtc.h"
+#endif
+
 
 namespace pteros {
 
-/** TRR reader
-  */
-class XTC_file: public Gromacs_trajectory_file {
-public:
-    XTC_file(std::string fname): Gromacs_trajectory_file(fname) {}
 
-protected:
-    virtual int read_num_atoms(char* fname, int* num);
-    virtual int read_record(XDRFILE *xd, int natoms, int *step,
-                            float *time, matrix box,rvec *x);
-    virtual int write_record(XDRFILE *xd, int natoms, int step,
-                             float time, matrix box, rvec *x);
+class XTC_file: public Mol_file {
+public:
+    XTC_file(std::string& fname): Mol_file(fname) {}
+    virtual void open(char open_mode);
+    virtual ~XTC_file();
+
+    virtual Mol_file_content get_content_type() const {        
+        return Mol_file_content().traj(true);
+    }
+
+protected:        
+
+    virtual void do_write(const Selection &sel, const Mol_file_content& what);
+
+    virtual bool do_read(System *sys, Frame *frame, const Mol_file_content& what);
+
+private:
+#ifdef USE_GROMACS
+    // for gmxlib
+    t_fileio* handle;
+    matrix box;
+    int64_t step;
+#else
+    // for xdrfile
+    XDRFILE* handle;
+    matrix box;
+    int step;
+#endif
 };
 
 }
-#endif // GROMACS_TRAJECTORY_H
+
 

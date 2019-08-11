@@ -476,3 +476,29 @@ int read_trr(XDRFILE *xd,int natoms,int *step,float *t,float *lambda,
 	return do_trn(xd,1,step,t,lambda,box,&natoms,x,v,f);
 }
 
+
+/////////////////////////////////////
+///  Added by Pteros !!!
+/////////////////////////////////////
+
+// Check if forces and velocities are present
+int check_trr_content(char *fn, int* natoms, int* xsz, int* vsz, int* fsz)
+{
+    XDRFILE *xd;
+    t_trnheader sh;
+    int  result;
+
+    xd = xdrfile_open(fn,"r");
+    if (NULL == xd)
+        return exdrFILENOTFOUND;
+    if ((result = do_trnheader(xd,1,&sh)) != exdrOK)
+        return result;
+    xdrfile_close(xd);
+
+    *natoms = sh.natoms;
+    *xsz = sh.x_size;
+    *vsz = sh.v_size;
+    *fsz = sh.f_size;
+
+    return exdrOK;
+}

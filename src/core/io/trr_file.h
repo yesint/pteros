@@ -8,7 +8,7 @@
  * (C) 2009-2018, Semen Yesylevskyy
  *
  * All works, which use Pteros, should cite the following papers:
- *  
+ *
  *  1.  Semen O. Yesylevskyy, "Pteros 2.0: Evolution of the fast parallel
  *      molecular analysis library for C++ and python",
  *      Journal of Computational Chemistry, 2015, 36(19), 1480–1488.
@@ -25,28 +25,51 @@
 */
 
 
-#ifndef TRR_FILE_H
-#define TRR_FILE_H
+#pragma once
 
-#include "gromacs_trajectory_file.h"
+#include "pteros/core/mol_file.h"
+
+#ifdef USE_GROMACS
+#include "gromacs/fileio/trrio.h"
+#else
+#include "xdrfile.h"
+#include "xdrfile_trr.h"
+#endif
+
 
 namespace pteros {
 
-/** TRR reader
-  */
-class TRR_file: public Gromacs_trajectory_file {
+
+class TRR_file: public Mol_file {
 public:
-    TRR_file(std::string fname): Gromacs_trajectory_file(fname) {}
+    TRR_file(std::string& fname): Mol_file(fname) {}
+    virtual void open(char open_mode);
+    virtual ~TRR_file();
+
+    virtual Mol_file_content get_content_type() const {
+        return Mol_file_content().traj(true);
+    }
 
 protected:
 
-    virtual int read_num_atoms(char* fname, int* num);
-    virtual int read_record(XDRFILE *xd, int natoms, int *step,
-                            float *time, matrix box,rvec *x);
-    virtual int write_record(XDRFILE *xd, int natoms, int step,
-                             float time, matrix box, rvec *x);
+    virtual void do_write(const Selection &sel, const Mol_file_content& what);
+
+    virtual bool do_read(System *sys, Frame *frame, const Mol_file_content& what);
+
+private:
+#ifdef USE_GROMACS
+    // for gmxlib
+    t_fileio* handle;
+    matrix box;
+    int64_t step;
+#else
+    // for xdrfile
+    XDRFILE* handle;
+    matrix box;
+    int step;
+#endif
 };
 
 }
-#endif // GROMACS_TRAJECTORY_H
+
 

@@ -761,13 +761,6 @@ MatrixXf Selection::get_xyz(bool make_row_major_matrix) const {
     return res;
 }
 
-void Selection::get_xyz(MatrixXf_ref res) const {
-    int i,n;
-    n = _index.size();
-    res.resize(3,n);
-    for(i=0; i<n; ++i) res.col(i) = system->traj[frame].coord[_index[i]];
-}
-
 void Selection::set_xyz(pteros::MatrixXf_const_ref coord){
     int n = _index.size();
     // Sanity check
@@ -793,15 +786,6 @@ MatrixXf Selection::get_vel(bool make_row_major_matrix) const {
         for(int i=0; i<n; ++i) res.col(i) = system->traj[frame].vel[_index[i]];
     }
     return res;
-}
-
-void Selection::get_vel(MatrixXf_ref res) const {
-    if(!system->traj[frame].has_vel()) throw Pteros_error("System has no velocities");
-
-    int i,n;
-    n = _index.size();
-    res.resize(3,n);
-    for(i=0; i<n; ++i) res.col(i) = system->traj[frame].vel[_index[i]];
 }
 
 void Selection::set_vel(pteros::MatrixXf_const_ref data){
@@ -833,15 +817,6 @@ MatrixXf Selection::get_force(bool make_row_major_matrix) const {
         for(int i=0; i<n; ++i) res.col(i) = system->traj[frame].force[_index[i]];
     }
     return res;
-}
-
-void Selection::get_force(MatrixXf_ref res) const {
-    if(!system->traj[frame].has_force()) throw Pteros_error("System has no forces");
-
-    int i,n;
-    n = _index.size();
-    res.resize(3,n);
-    for(i=0; i<n; ++i) res.col(i) = system->traj[frame].force[_index[i]];
 }
 
 void Selection::set_force(pteros::MatrixXf_const_ref data){
@@ -1329,15 +1304,19 @@ void Selection::write(string fname, int b, int e) {
     if(b==-1) b=get_frame(); // current frame
     if(e==-1) e=system->num_frames()-1; // last frame
 
-    if(b<-1 || b>=get_system()->num_frames()) throw Pteros_error("Invalid first frame for writing!");
-    if(e<-1 || e>=get_system()->num_frames()) throw Pteros_error("Invalid last frame for writing!");
-    if(e<b) throw Pteros_error("Invalid frame range for writing!");
+    int last = get_system()->num_frames();
+
+    if(b<-1 || b>=last) throw Pteros_error("First frame {} for writing is out of range [{}:{}]",b,0,last);
+    if(e<-1 || e>=last) throw Pteros_error("Last frame {} for writing is out of range [{}:{}]",e,0,last);
+    if(e<b) throw Pteros_error("Last frame {} before first one {} for writing!",e,b);
 
     auto f = Mol_file::open(fname,'w');
 
     if(!(f->get_content_type().traj()) && e!=b){
         throw Pteros_error("Can't write the range of frames to structure file!");
     }    
+
+    LOG()->debug("Writing {} frames to file '{}'...",e-b,fname);
 
     for(int fr=b;fr<=e;++fr){        
         set_frame(fr);
@@ -1351,9 +1330,11 @@ void Selection::write(const std::unique_ptr<Mol_file> &handler, Mol_file_content
     if(b==-1) b=get_frame(); // current frame
     if(e==-1) e=system->num_frames()-1; // last frame
 
-    if(b<-1 || b>=get_system()->num_frames()) throw Pteros_error("Invalid first frame for writing!");
-    if(e<-1 || e>=get_system()->num_frames()) throw Pteros_error("Invalid last frame for writing!");
-    if(e<b) throw Pteros_error("Invalid frame range for writing!");
+    int last = get_system()->num_frames();
+
+    if(b<-1 || b>=last) throw Pteros_error("First frame {} for writing is out of range [{}:{}]",b,0,last);
+    if(e<-1 || e>=last) throw Pteros_error("Last frame {} for writing is out of range [{}:{}]",e,0,last);
+    if(e<b) throw Pteros_error("Last frame {} before first one {} for writing!",e,b);
 
     if(!(handler->get_content_type().traj()) && e!=b && what.traj()){
         throw Pteros_error("Can't write the range of frames to this file!");
@@ -1365,6 +1346,8 @@ void Selection::write(const std::unique_ptr<Mol_file> &handler, Mol_file_content
         c.traj(false);
         handler->write(*this,c);
     }
+
+    LOG()->debug("Writing {} frames to file handler...",e-b);
 
     // Now write trajectory if asked
     if(what.traj()){

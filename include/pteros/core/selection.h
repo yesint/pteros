@@ -417,9 +417,6 @@ class Selection {
     /// Optional flag turns this to row-major format (mainly used by python binding)
     Eigen::MatrixXf get_xyz(bool make_row_major_matrix = false) const;
 
-    /// Get coordinates of all atoms in this selection for the current frame in existing matrix
-    void get_xyz(MatrixXf_ref res) const;
-
     /// Set coordinates of this selection for current frame
     void set_xyz(MatrixXf_const_ref coord);
 
@@ -485,9 +482,6 @@ class Selection {
     /// Optional flag turns this to row-major format (mainly used by python binding)
     Eigen::MatrixXf get_vel(bool make_row_major_matrix = false) const;
 
-    /// Get velocities of all atoms in this selection for the current frame in existing matrix
-    void get_vel(MatrixXf_ref res) const;
-
     /// Set velocities of this selection for current frame
     void set_vel(MatrixXf_const_ref data);
 
@@ -495,9 +489,6 @@ class Selection {
     /// By default columnt of the matrix contain atom coordinates.
     /// Optional flag turns this to row-major format (mainly used by python binding)
     Eigen::MatrixXf get_force(bool make_row_major_matrix = false) const;
-
-    /// Get forces of all atoms in this selection for the current frame in existing matrix
-    void get_force(MatrixXf_ref res) const;
 
     /// Set forces of this selection for current frame
     void set_force(MatrixXf_const_ref coord);

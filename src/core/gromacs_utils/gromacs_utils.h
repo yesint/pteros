@@ -2,8 +2,13 @@
 
 #include "pteros/core/typedefs.h"
 #include "pteros/core/periodic_box.h"
-#include "gromacs/math/vectypes.h"
 #include <Eigen/Core>
+
+#ifdef USE_GROMACS
+#include "gromacs/math/vectypes.h"
+#else
+#include "xdrfile.h"
+#endif
 
 namespace pteros {
 

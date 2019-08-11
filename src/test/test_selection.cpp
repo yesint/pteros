@@ -173,13 +173,14 @@ int main(int argc, char** argv)
     return 1;
 */
     try{
-
+        set_log_level("trace");
         int n;
-        System s("/home/semen/work/stored/Projects/SquaMem/curved_charmm_sym/insert/upper_em.gro");
-        s.load("/home/semen/work/stored/Projects/SquaMem/curved_charmm_sym/insert/traj_comp.xtc");
-        cout << s.frame(2).coord[0] << endl;
+        System s("/home/semen/work/stored/Projects/SquaMem/curved_charmm/0.2_pmf/w_0/after_1.gro");
+        s.load("/home/semen/work/stored/Projects/SquaMem/curved_charmm/0.2_pmf/w_0/traj_comp.xtc",0,10);
+        //cout << s.frame(2).coord[0] << endl;
         //cout << s.frame(2).vel[0] << endl;
         //cout << s.frame(2).force[0] << endl;
+        s().write("/home/semen/work/stored/Projects/SquaMem/curved_charmm/0.2_pmf/w_0/new.trr");
 
 
     } catch(const Pteros_error& e){
