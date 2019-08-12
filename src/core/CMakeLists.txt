@@ -98,7 +98,7 @@ target_link_libraries(pteros
     PUBLIC
         Eigen3::Eigen
         spdlog::spdlog
-        Boost::boost Boost::system Boost::date_time        
+        Boost::boost Boost::system Boost::date_time
 )
 
 if(OpenMP_CXX_FOUND)
