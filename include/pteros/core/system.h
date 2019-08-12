@@ -158,6 +158,12 @@ public:
     /// \note Selections should not overlap (exception is thrown if they are).
     void rearrange(const std::vector<Selection>& sel_vec);
 
+    /// Rearranges the atoms in the alphabetical order of residue names.
+    /// Useful for liquid systems and membranes where each residue is a whole molecule.
+    /// \warning If the molecules contain more than one resiude they will be broken!
+    /// \returns vector of (residue name,number) pairs.
+    std::vector<std::pair<std::string,int>> rearrange_by_resname();
+
     /// Keep only atoms given by selection string
     void keep(const std::string& sel_str);
 

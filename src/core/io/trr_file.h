@@ -42,7 +42,7 @@ namespace pteros {
 
 class TRR_file: public Mol_file {
 public:
-    TRR_file(std::string& fname): Mol_file(fname) {}
+    TRR_file(std::string& fname): Mol_file(fname), handle(nullptr) {}
     virtual void open(char open_mode);
     virtual ~TRR_file();
 

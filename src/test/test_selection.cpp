@@ -174,14 +174,12 @@ int main(int argc, char** argv)
 */
     try{
         set_log_level("trace");
-        int n;
-        System s("/home/semen/work/stored/Projects/SquaMem/curved_charmm/0.2_pmf/w_0/after_1.gro");
-        //s.load("/home/semen/work/stored/Projects/SquaMem/curved_charmm/0.2_pmf/w_0/new.trr");
-        s.load("/home/semen/work/stored/Projects/SquaMem/curved_charmm/0.2_pmf/w_0/traj_comp.xtc",0,10);
-        //cout << s.frame(2).coord[0] << endl;
-        //cout << s.frame(2).vel[0] << endl;
-        //cout << s.frame(2).force[0] << endl;
-        s().write("/home/semen/work/stored/Projects/SquaMem/curved_charmm/0.2_pmf/w_0/new.trr");
+
+        Options opt;
+        vector<Options> task_opt;
+        parse_command_line(argc,argv,opt,"task",task_opt);
+        Trajectory_reader tr(opt);
+        tr.run();
 
 
     } catch(const Pteros_error& e){

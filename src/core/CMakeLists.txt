@@ -101,7 +101,7 @@ target_link_libraries(pteros
         Boost::boost Boost::system Boost::date_time
 )
 
-if(OpenMP_CXX_FOUND)
+if(WITH_OPENMP AND OpenMP_CXX_FOUND)
     target_link_libraries(pteros PRIVATE OpenMP::OpenMP_CXX)
 endif()
 

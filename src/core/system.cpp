@@ -36,6 +36,7 @@
 #include "pteros/core/utilities.h"
 #include "selection_parser.h"
 #include "pteros/core/logging.h"
+#include <utility>
 
 using namespace std;
 using namespace pteros;
@@ -933,6 +934,29 @@ void System::rearrange(const std::vector<Selection> &sel_vec){
     if(rest.size()) result.append(rest);
 
     *this = result;
+}
+
+std::vector<std::pair<string, int> > System::rearrange_by_resname()
+{
+    // Find residue names
+    set<string> rset;
+    for(int i=0;i<num_atoms();++i) rset.insert(atoms[i].resname);
+
+    // Sort residue names
+    vector<string> rvec;
+    std::copy(rset.begin(),rset.end(),back_inserter(rvec));
+    std::sort(rvec.begin(),rvec.end());
+
+    // Create selections and rearrange
+    vector<Selection> selvec;
+    for(auto& r: rvec) selvec.emplace_back(*this,"resname "+r);
+
+    vector<pair<string,int>> res;
+    for(int i=0;i<rvec.size();++i) res.emplace_back(rvec[i], selvec[i].num_residues());
+
+    rearrange(selvec);
+
+    return res;
 }
 
 void System::keep(const string &sel_str)

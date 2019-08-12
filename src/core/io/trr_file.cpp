@@ -57,9 +57,9 @@ void TRR_file::open(char open_mode)
 TRR_file::~TRR_file()
 {
 #ifdef USE_GROMACS
-    gmx_trr_close(handle);
+    if(handle) gmx_trr_close(handle);
 #else
-    xdrfile_close(handle);
+    if(handle) xdrfile_close(handle);
 #endif
 }
 

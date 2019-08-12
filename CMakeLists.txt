@@ -83,8 +83,8 @@ find_package(spdlog CONFIG REQUIRED)
 # Conditional dependencies:
 ##############################
 
-# OpenMP only in release mode
-if(WITH_OPENMP AND CMAKE_BUILD_TYPE STREQUAL "Release")
+# OpenMP
+if(WITH_OPENMP)
     find_package(OpenMP REQUIRED COMPONENTS CXX)
 endif()
 

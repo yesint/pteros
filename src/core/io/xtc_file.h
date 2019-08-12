@@ -42,7 +42,7 @@ namespace pteros {
 
 class XTC_file: public Mol_file {
 public:
-    XTC_file(std::string& fname): Mol_file(fname) {}
+    XTC_file(std::string& fname): Mol_file(fname), handle(nullptr) {}
     virtual void open(char open_mode);
     virtual ~XTC_file();
 

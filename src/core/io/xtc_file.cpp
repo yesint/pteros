@@ -57,9 +57,9 @@ void XTC_file::open(char open_mode)
 XTC_file::~XTC_file()
 {
 #ifdef USE_GROMACS
-    close_xtc(handle);
+    if(handle) close_xtc(handle);
 #else
-    xdrfile_close(handle);
+    if(handle) xdrfile_close(handle);
 #endif
 
 }

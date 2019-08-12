@@ -80,8 +80,8 @@ namespace pteros {
         float value(int i) const;
         float position(int i) const;
         float delta() const {return d;}
-        const Eigen::VectorXd& values() const;
-        const Eigen::VectorXd& positions() const;
+        Eigen::VectorXd &values();
+        Eigen::VectorXd& positions();
         int num_bins() const;
         void save_to_file(const std::string& fname);
     private:

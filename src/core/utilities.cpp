@@ -273,12 +273,12 @@ float Histogram::position(int i) const
     return pos[i];
 }
 
-const VectorXd &Histogram::values() const
+VectorXd &Histogram::values()
 {
     return val;
 }
 
-const VectorXd &Histogram::positions() const
+Eigen::VectorXd &Histogram::positions()
 {
     return pos;
 }
