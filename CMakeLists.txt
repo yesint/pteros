@@ -161,14 +161,7 @@ endif()
 # OpenBabel
 if(WITH_OPENBABEL)
     set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules)
-    find_package(OpenBabel2 2.4.9)
-    if(NOT OPENBABEL2_FOUND)
-        # If Eigen is fetched as submodule we need to point babel to source dir, not build dir
-        set(EIGEN3_INCLUDE_DIR ${Eigen3_location_for_babel})
-        # babel defines uninstall target which may conflict with the same in Eigen
-        set_property(GLOBAL PROPERTY ALLOW_DUPLICATE_CUSTOM_TARGETS 1)
-        download(openbabel)
-    endif()
+    find_package(OpenBabel2 2.4.9 REQUIRED)
 endif()
 
 # Gromacs
@@ -186,7 +179,6 @@ endif()
 
 # tng_io
 add_subdirectory(thirdparty/tng_io)
-
 
 # DSSP library
 add_subdirectory(thirdparty/dssp)
