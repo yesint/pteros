@@ -223,6 +223,8 @@ void Histogram::create(float minval, float maxval, int n)
     pos.resize(nbins);
     d = (maxv-minv)/float(nbins);
     for(int i=0;i<nbins;++i) pos(i) = minv+0.5*d+d*i;
+
+    normalized = false;
 }
 
 int Histogram::get_bin(float v)
@@ -288,10 +290,10 @@ int Histogram::num_bins() const
     return nbins;
 }
 
-void Histogram::save_to_file(const string &fname)
+void Histogram::save_to_file(const string &fname, float x_shift)
 {
     ofstream f(fname);
-    for(int i=0;i<nbins;++i) f << pos(i) << " " << val(i) << endl;
+    for(int i=0;i<nbins;++i) f << pos(i)+x_shift << " " << val(i) << endl;
     f.close();
 }
 
@@ -313,6 +315,8 @@ void Histogram2D::create(float minval1, float maxval1, int n1, float minval2, fl
 
     d(0) = (maxv(0)-minv(0))/float(nbins(0));
     d(1) = (maxv(1)-minv(1))/float(nbins(1));
+
+    normalized = false;
 }
 
 void Histogram2D::add(float v1, float v2, float weight)

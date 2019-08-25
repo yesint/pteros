@@ -1,0 +1,21 @@
+[submodule "submodules/eigen"]
+	path = submodules/eigen
+	url = ../../eigenteam/eigen-git-mirror
+[submodule "/home/semen/work/current/Projects/pteros/github/pteros/submodules/spdlog"]
+	path = /home/semen/work/current/Projects/pteros/github/pteros/submodules/spdlog
+	url = ../../gabime/spdlog
+[submodule "/home/semen/work/current/Projects/pteros/github/pteros/submodules/pybind11"]
+	path = /home/semen/work/current/Projects/pteros/github/pteros/submodules/pybind11
+	url = ../../pybind/pybind11
+[submodule "external/eigen"]
+	path = external/eigen
+	url = ../../eigenteam/eigen-git-mirror
+[submodule "external/spdlog"]
+	path = external/spdlog
+	url = ../../gabime/spdlog
+[submodule "external/pybind11"]
+	path = external/pybind11
+	url = ../../pybind/pybind11
+[submodule "external/openbabel"]
+	path = external/openbabel
+	url = ../../openbabel/openbabel

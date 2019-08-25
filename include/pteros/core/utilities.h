@@ -83,7 +83,7 @@ namespace pteros {
         Eigen::VectorXd &values();
         Eigen::VectorXd& positions();
         int num_bins() const;
-        void save_to_file(const std::string& fname);
+        void save_to_file(const std::string& fname, float x_shift=0);
     private:
         int nbins;
         float minv,maxv,d;

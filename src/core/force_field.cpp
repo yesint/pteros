@@ -113,9 +113,7 @@ float Coulomb_en_kernel_shifted(float q1, float q2, float r, const Force_field& 
 
 #define LOWER(s) boost::algorithm::to_lower_copy(string(s))
 
-void Force_field::setup_kernels(){
-    using namespace placeholders;
-
+void Force_field::setup_kernels(){    
     LOG()->debug("Coulomb type: {}",coulomb_type);
     LOG()->debug("Coulomb modifier: {}",coulomb_modifier);
     LOG()->debug("VdW type: {}",vdw_type);

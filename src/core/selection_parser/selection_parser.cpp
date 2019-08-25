@@ -31,7 +31,6 @@
 #include "pteros/core/pteros_error.h"
 #include "pteros/core/distance_search.h"
 #include <Eigen/Core>
-#include <boost/algorithm/string.hpp>
 #include <boost/range/counting_range.hpp>
 #include <unordered_set>
 #include <regex>
