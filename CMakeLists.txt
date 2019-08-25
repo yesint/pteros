@@ -32,10 +32,13 @@ OPTION(WITH_OPENMP "Use OpenMP parallelization" ON)
 OPTION(WITH_OPENBABEL "Use OpenBabel. Required to read pdbqt files and for substructure search." ON)
 OPTION(WITH_GROMACS "Use Gromacs. Required to read tpr files." ON)
 OPTION(WITH_POWERSASA "Use POWERSASA code. This implies license restrictions described here: thirdparty/sasa/LICENSE" ON)
+
 OPTION(MAKE_STANDALONE_PLUGINS "Compile analysis plugins as stand-alone executables" OFF)
 OPTION(MAKE_PACKAGE "Generate package" OFF)
 OPTION(MAKE_EXAMPLES "Compile examples and plugin templates" OFF)
 OPTION(MAKE_TEST "Compile tests" OFF)
+
+OPTION(DOWNLOAD_DEPS "Automatically download and compile dependencies if they are not found in the system" ON)
 
 ##############################
 # Global compilation options:
@@ -65,19 +68,61 @@ ENDIF()
 # Main Pteros include dir should be visible everywhere
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
+# For downloading we need git
+if(DOWNLOAD_DEPS)
+    find_package(Git)
+    if(NOT (GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git"))
+        message(INFO "Git is not found! Disabling automatic downloading of dependencies.")
+        SET(DOWNLOAD_DEPS OFF)
+    endif()
+endif()
+
 ##############################
 # Unconditional dependencies:
 ##############################
+
+# Macro to download dependencies
+MACRO(download module)
+    if(DOWNLOAD_DEPS)
+        message(STATUS "=======================")
+        message(STATUS "Fetching git submodule for ${module}...")
+        message(STATUS " ")
+        execute_process(COMMAND git submodule update --init -- external/${module}
+                        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+        if(NOT EXISTS "${PROJECT_SOURCE_DIR}/external/${module}/CMakeLists.txt")
+            message(FATAL_ERROR "${module} was not downloaded!")
+        endif()
+        add_subdirectory(${PROJECT_SOURCE_DIR}/external/${module})
+        message(STATUS "=======================")
+    else()
+        message(FATAL_ERROR "${module} was not found in the system. Try again with DOWNLOAD_DEPS=ON.")
+    endif()
+endmacro()
+
 
 # Boost
 set(Boost_USE_STATIC_LIBS OFF)
 find_package(Boost 1.50 REQUIRED COMPONENTS system date_time)
 
 # Eigen
-find_package(Eigen3 3.3 REQUIRED NO_MODULE)
+find_package(Eigen3 3.3 NO_MODULE)
+if(NOT Eigen3_FOUND)
+    download(eigen)
+    # Set Eigen location manually for openbabel.
+    # By default it points to build dir which is empty until build stage
+    set(Eigen3_location_for_babel ${PROJECT_SOURCE_DIR}/external/eigen)
+endif()
 
 # spdlog
-find_package(spdlog CONFIG REQUIRED)
+find_package(spdlog CONFIG)
+if(NOT spdlog_FOUND)
+    set(SPDLOG_MASTER_PROJECT ON)
+    set(SPDLOG_INSTALL ON)
+    set(SPDLOG_BUILD_TESTS OFF)
+    set(SPDLOG_BUILD_EXAMPLE OFF)
+    download(spdlog)
+endif()
+
 
 ##############################
 # Conditional dependencies:
@@ -91,7 +136,10 @@ endif()
 # Python
 if(WITH_PYTHON)    
     # Configure pybind11
-    find_package(pybind11 REQUIRED)
+    find_package(pybind11)
+    if(NOT pybind11_FOUND)
+        download(pybind11)
+    endif()
 
     if(NOT MAKE_PACKAGE)
         # Set python install dir
@@ -113,7 +161,14 @@ endif()
 # OpenBabel
 if(WITH_OPENBABEL)
     set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules)
-    find_package(OpenBabel2 REQUIRED)
+    find_package(OpenBabel2 2.4.9)
+    if(NOT OPENBABEL2_FOUND)
+        # If Eigen is fetched as submodule we need to point babel to source dir, not build dir
+        set(EIGEN3_INCLUDE_DIR ${Eigen3_location_for_babel})
+        # babel defines uninstall target which may conflict with the same in Eigen
+        set_property(GLOBAL PROPERTY ALLOW_DUPLICATE_CUSTOM_TARGETS 1)
+        download(openbabel)
+    endif()
 endif()
 
 # Gromacs
@@ -124,12 +179,14 @@ if(WITH_GROMACS)
     endif()
 endif()
 
+
 #----------------------------
-# Build thirdparty libraries
+# Build bundled thirdparty libraries
 #----------------------------
 
-# tng_io library
+# tng_io
 add_subdirectory(thirdparty/tng_io)
+
 
 # DSSP library
 add_subdirectory(thirdparty/dssp)
