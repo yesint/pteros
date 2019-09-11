@@ -68,7 +68,7 @@ bool XTC_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
     float prec;
 
 #ifdef USE_GROMACS
-    bool bok, ok;
+    gmx_bool bok,ok;
     if(step<0){
         // First read allocates storage, so we are obliged to copy afterwards
         rvec* x;
