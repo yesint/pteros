@@ -185,7 +185,6 @@ bool TPR_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
                         a2 = top.idef.il[it].iatoms[i++];
                         a3 = top.idef.il[it].iatoms[i++];
                         // One settles entry is *two* O-H bonds!
-
                         ff.bonds.emplace_back(a1,a2);
                         ff.bonds.emplace_back(a1,a3);
                     }
