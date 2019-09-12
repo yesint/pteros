@@ -187,7 +187,7 @@ Vector2f Force_field::pair_energy(int at1, int at2, float r, float q1, float q2,
         std::swap(q1,q2);
         std::swap(type1,type2);
     }
-    // Check is the pair is excluded
+    // Check if the pair is excluded
     if(exclusions[at1].count(at2)) return {0,0};
     // Check if this pair is 1-4 pair
     auto it = LJ14_pairs.find(at1*natoms+at2);
@@ -212,6 +212,9 @@ Force_field::Force_field():  ready(false) {}
 
 Force_field::Force_field(const Force_field &other){
     exclusions = other.exclusions;
+    molecules = other.molecules;
+    bonds = other.bonds;
+
     LJ_C6 = other.LJ_C6;
     LJ_C12 = other.LJ_C12;
     LJ14_interactions = other.LJ14_interactions;
@@ -235,6 +238,9 @@ Force_field::Force_field(const Force_field &other){
 
 Force_field &Force_field::operator=(Force_field other){    
     exclusions = other.exclusions;
+    molecules = other.molecules;
+    bonds = other.bonds;
+
     LJ_C6 = other.LJ_C6;
     LJ_C12 = other.LJ_C12;
     LJ14_interactions = other.LJ14_interactions;
@@ -265,6 +271,8 @@ void Force_field::clear(){
     LJ14_interactions.clear();
     LJ14_pairs.clear();
     fudgeQQ = 0.0;
+    molecules.clear();
+    bonds.clear();
 
     ready = false;
 }
