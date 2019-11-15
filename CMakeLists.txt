@@ -234,7 +234,7 @@ install(EXPORT pterosTargets
 # Generate cmake version file
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file("${CMAKE_CURRENT_BINARY_DIR}/cmake/pterosConfigVersion.cmake"
-    VERSION 2.8
+    VERSION 2.9
     COMPATIBILITY SameMajorVersion
 )
 
