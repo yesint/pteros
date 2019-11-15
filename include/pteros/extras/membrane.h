@@ -106,7 +106,8 @@ using Lipid_group = std::map<std::string,Average_props_per_type>;
 
 class Membrane {
 public:
-    Membrane(System *sys, const std::vector<Lipid_descr>& species, int ngroups=1);
+    Membrane(System *sys, const std::vector<Lipid_descr>& species,
+             int ngroups=1, bool compute_splay=false);
 
 
     void compute_properties(float d,
@@ -138,8 +139,9 @@ private:
     std::unordered_map<int,int> index_map;
     // Dynamic properties
     std::vector<Eigen::Vector2i> neighbor_pairs;
-    //Selection all_mid_sel;
+    Selection all_mid_sel;
     std::vector<Lipid_group> groups;
+    bool do_splay;
 };
 
 }

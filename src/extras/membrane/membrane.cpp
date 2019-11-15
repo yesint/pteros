@@ -48,9 +48,11 @@ using namespace Eigen;
 
 
 
-Membrane::Membrane(System *sys, const std::vector<Lipid_descr> &species, int ngroups): system(sys), lipid_species(species)
+Membrane::Membrane(System *sys, const std::vector<Lipid_descr> &species,
+                   int ngroups, bool compute_splay): system(sys), lipid_species(species)
 {
     log = create_logger("membrane");    
+    do_splay = compute_splay;
 
     // Creating selections and groups
     Lipid_group gr;
@@ -84,6 +86,17 @@ Membrane::Membrane(System *sys, const std::vector<Lipid_descr> &species, int ngr
     for(int i=0;i<ngroups;++i){
         groups.push_back(gr);
     }
+
+    // form selection for lipid mids
+    all_mid_sel.set_system(*system);
+    // Add only lipids which are not marked with group==-1
+    vector<int> ind;
+    ind.reserve(lipids.size());
+    for(auto& lip: lipids){
+        ind.push_back(lip.mid_sel.index(0));
+    }
+    all_mid_sel.modify(ind);
+
 
     /*
     // Compute connectivity
@@ -256,25 +269,15 @@ void get_curvature(const Matrix<float,6,1>& coeffs, float& gaussian_curvature, f
     mean_curvature = 0.5*(E_*N_-2.0*F_*M_+G_*L_)/(E_*G_-F_*F_);
 }
 
+
 void Membrane::compute_properties(float d, bool use_external_normal, Vector3f_const_ref external_pivot, Vector3i_const_ref external_dist_dim)
 {
     // Clear everything
     neighbor_pairs.clear();
 
-    // form active subset of lipids
-    Selection active_mid_sel(*system);
-    // Add only lipids which are not marked with group==-1
-    vector<int> ind;
-    ind.reserve(lipids.size());
-    for(auto& lip: lipids){
-        //if(lip.group>=0) ind.push_back(lip.mid_sel.index(0));
-        ind.push_back(lip.mid_sel.index(0));
-    }
-    active_mid_sel.modify(ind);
-
     Eigen::Matrix3f tr, tr_inv;
 
-    // Set markers for all active lipids
+    // Set markers for all lipids
     // This unwraps each lipid
     for(auto& l: lipids){
         l.set_markers();
@@ -282,25 +285,25 @@ void Membrane::compute_properties(float d, bool use_external_normal, Vector3f_co
 
     // Get connectivity
     vector<Vector2i> bon;
-    search_contacts(d,active_mid_sel,bon,false,true);
+    search_contacts(d,all_mid_sel,bon,false,true);
 
     // Convert the list of bonds to convenient form
     // atom ==> 1 2 3...
-    vector<vector<int> > conn(active_mid_sel.size());
+    vector<vector<int> > conn(all_mid_sel.size());
     for(int i=0;i<bon.size();++i){
         conn[bon[i](0)].push_back(bon[i](1));
         conn[bon[i](1)].push_back(bon[i](0));
     }
 
     // Process lipids
-    for(int i=0;i<active_mid_sel.size();++i){
+    for(int i=0;i<all_mid_sel.size();++i){
         // Find current lipid
-        Lipid& lip = lipids[index_map[active_mid_sel.index(i)]];
+        Lipid& lip = lipids[i];
 
         if(lip.group<0) continue; // Skip excluded lipids
 
         // Save local selection for this lipid
-        lip.local_sel = active_mid_sel.select(conn[i]);
+        lip.local_sel = all_mid_sel.select(conn[i]);
 
         if(lip.local_sel.size()==0){
             log->warn("Empty locality of lipid {}! Skipped.",i);
@@ -333,7 +336,7 @@ void Membrane::compute_properties(float d, bool use_external_normal, Vector3f_co
             // Create selection for locality of this lipid including itself
             Selection local_self(lip.local_sel);
 
-            local_self.append(active_mid_sel.index(i)); // Add central atom
+            local_self.append(all_mid_sel.index(i)); // Add central atom
 
             // Get inertial axes
             Vector3f moments;
@@ -391,8 +394,8 @@ void Membrane::compute_properties(float d, bool use_external_normal, Vector3f_co
         // Add neighbor pairs. Only use nearest neighbor lipids from area computation
         // use only i<j to avoid adding duplicates
         // If area is -1 skip since this lipid has weird surrounding
-        if(lip.area>0){
-            int cur_ind = index_map[active_mid_sel.index(i)];
+        if(do_splay && lip.area>0){
+            int cur_ind = index_map[all_mid_sel.index(i)];
             for(int j=0; j<neib.size(); ++j){
                 int n = index_map[lip.local_sel.index(neib[j]-1)];
                 if(cur_ind<n) neighbor_pairs.emplace_back(cur_ind,n);
@@ -410,34 +413,35 @@ void Membrane::compute_properties(float d, bool use_external_normal, Vector3f_co
     //-----------------------------------
     // Splay and triangilation
     //-----------------------------------
+    if(do_splay){
+        // Go over neighbor pairs and compute mean splay
+        // Also form neigbhor array as i ==> 1,2,3...
+        splay.resize(neighbor_pairs.size());
+        neighbors.resize(lipids.size());
+        for(int i=0;i<neighbor_pairs.size();++i){
+            neighbors[neighbor_pairs[i](0)].push_back(neighbor_pairs[i](1));
+            neighbors[neighbor_pairs[i](1)].push_back(neighbor_pairs[i](0));
+            // We have to use periodic distance since atoms could be from different images
+            Lipid& lip1 = lipids[neighbor_pairs[i](0)];
+            Lipid& lip2 = lipids[neighbor_pairs[i](1)];
+            Vector3f& n1 = lip1.normal;
+            Vector3f& n2 = lip2.normal;
 
-    // Go over neighbor pairs and compute mean splay
-    // Also form neigbhor array as i ==> 1,2,3...
-    splay.resize(neighbor_pairs.size());
-    neighbors.resize(lipids.size());
-    for(int i=0;i<neighbor_pairs.size();++i){
-        neighbors[neighbor_pairs[i](0)].push_back(neighbor_pairs[i](1));
-        neighbors[neighbor_pairs[i](1)].push_back(neighbor_pairs[i](0));
-        // We have to use periodic distance since atoms could be from different images
-        Lipid& lip1 = lipids[neighbor_pairs[i](0)];
-        Lipid& lip2 = lipids[neighbor_pairs[i](1)];
-        Vector3f& n1 = lip1.normal;
-        Vector3f& n2 = lip2.normal;
+            if(n1.dot(n2)<0) continue;
 
-        if(n1.dot(n2)<0) continue;
+            auto x= system->box(0).shortest_vector(lip1.mid_marker, lip2.mid_marker);
+            float d = x.norm();
+            x = x-x.dot(n1)*n1;
+            x.normalize();
+            Vector3f v1 = (lip1.head_marker-lip1.tail_marker).normalized();
+            Vector3f v2 = (lip2.head_marker-lip2.tail_marker).normalized();
 
-        auto x= system->box(0).shortest_vector(lip1.mid_marker, lip2.mid_marker);
-        float d = x.norm();
-        x = x-x.dot(n1)*n1;
-        x.normalize();
-        Vector3f v1 = (lip1.head_marker-lip1.tail_marker).normalized();
-        Vector3f v2 = (lip2.head_marker-lip2.tail_marker).normalized();
-
-        splay[i] = {
-                    neighbor_pairs[i](0),
-                    neighbor_pairs[i](1),
-                    (v2.dot(x)-v1.dot(x)-n2.dot(x)+n1.dot(x))/d
-                   };
+            splay[i] = {
+                        neighbor_pairs[i](0),
+                        neighbor_pairs[i](1),
+                        (v2.dot(x)-v1.dot(x)-n2.dot(x)+n1.dot(x))/d
+                       };
+        }
     }
 
     //-----------------------------------

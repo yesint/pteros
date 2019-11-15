@@ -80,6 +80,8 @@ void make_bindings_Membrane(py::module& m){
     py::class_<Membrane>(m,"Membrane")
         .def(py::init<System*,const std::vector<Lipid_descr>&>())
         .def(py::init<System*,const std::vector<Lipid_descr>&,int>())
+        .def(py::init<System*,const std::vector<Lipid_descr>&,int,bool>())
+
         .def("compute_properties",&Membrane::compute_properties,
              "d"_a,
              "use_external_normal"_a=false,
