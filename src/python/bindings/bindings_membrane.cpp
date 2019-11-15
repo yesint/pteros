@@ -62,8 +62,9 @@ void make_bindings_Membrane(py::module& m){
             .def_readwrite("head_sel",&Lipid::head_sel)
             .def_readwrite("tail_sel",&Lipid::tail_sel)
             .def_readwrite("whole_sel",&Lipid::whole_sel)
+            .def_readwrite("group",&Lipid::group)
 
-            .def_readonly("name",&Lipid::name)
+            .def_readonly("name",&Lipid::name)            
             .def_readonly("normal",&Lipid::normal)
             .def_readonly("smoothed_mid_xyz",&Lipid::smoothed_mid_xyz)
             .def_readonly("tilt",&Lipid::tilt)            
@@ -78,18 +79,19 @@ void make_bindings_Membrane(py::module& m){
 
     py::class_<Membrane>(m,"Membrane")
         .def(py::init<System*,const std::vector<Lipid_descr>&>())
+        .def(py::init<System*,const std::vector<Lipid_descr>&,int>())
         .def("compute_properties",&Membrane::compute_properties,
              "d"_a,
              "use_external_normal"_a=false,
              "external_pivot"_a=Eigen::Vector3f::Zero(),
              "external_dist_dim"_a=Eigen::Vector3i::Ones()
             )
+        .def("compute_averages",&Membrane::compute_averages)
+        .def("write_averages",&Membrane::write_averages)
         .def("write_vmd_arrows",&Membrane::write_vmd_arrows)
         .def("write_smoothed",&Membrane::write_smoothed)
         .def("num_lipids",&Membrane::num_lipids)
-        .def("get_lipid",&Membrane::get_lipid,py::return_value_policy::reference_internal)
-        .def("num_leaflets",&Membrane::num_leaflets)
-        .def("get_leaflet",&Membrane::get_leaflet)
+        .def("get_lipid",&Membrane::get_lipid,py::return_value_policy::reference_internal)        
         .def_readonly("lipids",&Membrane::lipids)
         .def_readonly("splay",&Membrane::splay)
         .def_readonly("neighbors",&Membrane::neighbors)        

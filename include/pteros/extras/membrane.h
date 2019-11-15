@@ -54,6 +54,8 @@ public:
     Selection mid_sel;    
 
     std::string name;
+    int group;
+
     Eigen::Vector3f normal;
     Eigen::Vector3f smoothed_mid_xyz;
     float tilt;    
@@ -68,9 +70,10 @@ public:
 private:    
     // Set markers to current COM coordinates of seletions
     void set_markers();
+    void unset_markers();
 
     // Coordinates of markers
-    Eigen::Vector3f head_marker, tail_marker, mid_marker;
+    Eigen::Vector3f head_marker, tail_marker, mid_marker, mid_saved;
 
     Selection local_sel;
 
@@ -85,37 +88,58 @@ struct Splay_pair {
     float splay;
 };
 
+
+struct Average_props_per_type {
+    Average_props_per_type();
+
+    int num;
+    Histogram area;
+    Histogram tilt;
+    Histogram gaussian_curvature;
+    Histogram mean_curvature;
+    Histogram coord_number;
+    std::vector<std::vector<float>> order; //Sz order parameter identical to "gmx order -szonly"
+};
+
+using Lipid_group = std::map<std::string,Average_props_per_type>;
+
+
 class Membrane {
 public:
-    Membrane(System *sys, const std::vector<Lipid_descr>& species);
+    Membrane(System *sys, const std::vector<Lipid_descr>& species, int ngroups=1);
+
+
     void compute_properties(float d,
                             bool use_external_normal = false,
                             Vector3f_const_ref external_pivot = Eigen::Vector3f::Zero(),
                             Vector3i_const_ref external_dist_dim = Eigen::Vector3i::Ones());
+
+    void compute_averages();
+    void write_averages();
+
     void write_vmd_arrows(const std::string& fname);
     void write_smoothed(const std::string &fname);
 
     int num_lipids(){ return lipids.size(); }
     const Lipid& get_lipid(int i){ return lipids[i]; }
 
-    int num_leaflets(){ return leaflets.size(); }
-    const std::vector<int>& get_leaflet(int i){ return leaflets[i]; }
-
     // Properties
     std::vector<Lipid> lipids; // All per-lipid properties are inside
     std::vector<Splay_pair> splay;
     std::vector<std::vector<int>> neighbors;
 
+    // Per group averages
+
+
 private:
     System* system;
-    std::vector<Lipid_descr> lipid_species;
-    std::vector<Selection> leaflets_sel;
+    std::vector<Lipid_descr> lipid_species;    
     std::shared_ptr<spdlog::logger> log;
     std::unordered_map<int,int> index_map;
     // Dynamic properties
     std::vector<Eigen::Vector2i> neighbor_pairs;
-    // Lipid indexes in leaflets
-    std::vector<std::vector<int>> leaflets;
+    //Selection all_mid_sel;
+    std::vector<Lipid_group> groups;
 };
 
 }

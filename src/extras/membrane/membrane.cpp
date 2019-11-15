@@ -48,27 +48,45 @@ using namespace Eigen;
 
 
 
-Membrane::Membrane(System *sys, const std::vector<Lipid_descr> &species): system(sys), lipid_species(species)
+Membrane::Membrane(System *sys, const std::vector<Lipid_descr> &species, int ngroups): system(sys), lipid_species(species)
 {
-    log = create_logger("membrane");
+    log = create_logger("membrane");    
 
-    Selection all_mid_sel(*system);
+    // Creating selections and groups
+    Lipid_group gr;
 
-    // Creating selections
     for(auto& sp: lipid_species){
         vector<Selection> res;
         system->select(sp.whole_sel_str).split_by_residue(res);
         log->info("Lipid {}: {}", sp.name,res.size());
+
+        auto ret = gr.insert({sp.name,Average_props_per_type()});
+        auto it = ret.first;
+
         for(auto& lip: res){
             auto mol = Lipid(lip,sp);
-            mol.set_markers();
-            all_mid_sel.append(mol.mid_sel.index(0));
+            //mol.set_markers();
+            //all_mid_sel.append(mol.mid_sel.index(0));
             lipids.push_back(mol);
             index_map[mol.mid_sel.index(0)] = lipids.size()-1;
+
+            // Allocate order array in averages
+            if(it->second.order.size() != mol.order.size()){
+                it->second.order.resize(mol.order.size());
+                for(int t=0;t<it->second.order.size();++t){
+                    it->second.order[t].resize(mol.order[t].size());
+                }
+            }
         }
     }
 
-    // Compute connectivity    
+    // Initialize groups
+    for(int i=0;i<ngroups;++i){
+        groups.push_back(gr);
+    }
+
+    /*
+    // Compute connectivity
     std::vector<Selection> leafs;
     all_mid_sel.split_by_connectivity(2.0,leafs,true);
     leaflets.resize(leafs.size());
@@ -83,10 +101,11 @@ Membrane::Membrane(System *sys, const std::vector<Lipid_descr> &species): system
             leaflets_sel[i].append(ind);
         }
     }
+    */
 
     // Print statictics
     log->info("Total number of lipids: {}",lipids.size());
-    log->info("Number of leaflets: {}",leafs.size());    
+    //log->info("Number of leaflets: {}",leafs.size());
 }
 
 void fit_quad_surface(const MatrixXf& coord,
@@ -242,134 +261,151 @@ void Membrane::compute_properties(float d, bool use_external_normal, Vector3f_co
     // Clear everything
     neighbor_pairs.clear();
 
+    // form active subset of lipids
+    Selection active_mid_sel(*system);
+    // Add only lipids which are not marked with group==-1
+    vector<int> ind;
+    ind.reserve(lipids.size());
+    for(auto& lip: lipids){
+        //if(lip.group>=0) ind.push_back(lip.mid_sel.index(0));
+        ind.push_back(lip.mid_sel.index(0));
+    }
+    active_mid_sel.modify(ind);
+
     Eigen::Matrix3f tr, tr_inv;
 
-    // Set markers for all lipids
+    // Set markers for all active lipids
     // This unwraps each lipid
-    for(auto& l: lipids) l.set_markers();
+    for(auto& l: lipids){
+        l.set_markers();
+    }
 
-    // Compute per leaflet properties
-    for(int l=0;l<leaflets.size();++l){
-        // Get connectivity in this leaflet
-        vector<Vector2i> bon;
-        search_contacts(d,leaflets_sel[l],bon,false,true);        
+    // Get connectivity
+    vector<Vector2i> bon;
+    search_contacts(d,active_mid_sel,bon,false,true);
 
-        // Convert the list of bonds to convenient form
-        // atom ==> 1 2 3...
-        vector<vector<int> > conn(leaflets_sel[l].size());
-        for(int i=0;i<bon.size();++i){
-            conn[bon[i](0)].push_back(bon[i](1));
-            conn[bon[i](1)].push_back(bon[i](0));
-        }               
+    // Convert the list of bonds to convenient form
+    // atom ==> 1 2 3...
+    vector<vector<int> > conn(active_mid_sel.size());
+    for(int i=0;i<bon.size();++i){
+        conn[bon[i](0)].push_back(bon[i](1));
+        conn[bon[i](1)].push_back(bon[i](0));
+    }
 
-        // Process lipids from this leaflet
-        for(int i=0;i<leaflets[l].size();++i){
-            // Find current lipid
-            Lipid& lip = lipids[leaflets[l][i]];
+    // Process lipids
+    for(int i=0;i<active_mid_sel.size();++i){
+        // Find current lipid
+        Lipid& lip = lipids[index_map[active_mid_sel.index(i)]];
 
-            // Save local selection for this lipid
-            lip.local_sel = leaflets_sel[l].select(conn[i]);
+        if(lip.group<0) continue; // Skip excluded lipids
 
-            if(lip.local_sel.size()==0){
-                log->warn("Empty locality of lipid {} in leaflet {}! Skipped.",i,l);
-                continue;
-            }
+        // Save local selection for this lipid
+        lip.local_sel = active_mid_sel.select(conn[i]);
 
-            // Local coordinate axes
-            Matrix3f axes;
+        if(lip.local_sel.size()==0){
+            log->warn("Empty locality of lipid {}! Skipped.",i);
+            continue;
+        }
 
-            //-----------------------------------
-            // Compute normal
-            //-----------------------------------
+        // Local coordinate axes
+        Matrix3f axes;
 
-            Vector3f normal;
+        //-----------------------------------
+        // Compute normal
+        //-----------------------------------
 
-            if(use_external_normal){
-                // Compute external normal as a vector from pivot to COM of mid_sel (set as marker currently)
-                // over specified dimensions
-                axes.col(2) = (lip.mid_marker-external_pivot).array()*external_dist_dim.cast<float>().array();
+        Vector3f normal;
 
-                // Find two vectors perpendicular to normal
-                if( axes.col(2).dot(Vector3f(1,0,0)) != 1.0 ){
-                    axes.col(0) = axes.col(2).cross(Vector3f(1,0,0));
-                } else {
-                    axes.col(0) = axes.col(2).cross(Vector3f(0,1,0));
-                }
-                axes.col(1) = axes.col(2).cross(axes.col(0));
+        if(use_external_normal){
+            // Compute external normal as a vector from pivot to COM of mid_sel (set as marker currently)
+            // over specified dimensions
+            axes.col(2) = (lip.mid_marker-external_pivot).array()*external_dist_dim.cast<float>().array();
+
+            // Find two vectors perpendicular to normal
+            if( axes.col(2).dot(Vector3f(1,0,0)) != 1.0 ){
+                axes.col(0) = axes.col(2).cross(Vector3f(1,0,0));
             } else {
-                // Compute normals from inertia axes
-                // Create selection for locality of this lipid including itself
-                Selection local_self(lip.local_sel);
-
-                local_self.append(leaflets_sel[l].index(i)); // Add central atom
-
-                // Get inertial axes
-                Vector3f moments;
-                local_self.inertia(moments,axes,fullPBC); // Have to use periodic variant
-                // axes.col(2) will be a normal
+                axes.col(0) = axes.col(2).cross(Vector3f(0,1,0));
             }
+            axes.col(1) = axes.col(2).cross(axes.col(0));
+        } else {
+            // Compute normals from inertia axes
+            // Create selection for locality of this lipid including itself
+            Selection local_self(lip.local_sel);
 
-            normal = axes.col(2);
+            local_self.append(active_mid_sel.index(i)); // Add central atom
 
-            // transformation matrix to local basis
-            for(int j=0;j<3;++j) tr.col(j) = axes.col(j).normalized();
-            tr_inv = tr.inverse();
+            // Get inertial axes
+            Vector3f moments;
+            local_self.inertia(moments,axes,fullPBC); // Have to use periodic variant
+            // axes.col(2) will be a normal
+        }
 
-            // Need to check direction of the normal
-            float ang = angle_between_vectors(normal, lip.head_marker-lip.tail_marker);
-            if(ang < M_PI_2){
-                lip.normal = normal;
-                lip.tilt = ang;
-            } else {
-                lip.normal = -normal;
-                lip.tilt = M_PI-ang;
+        normal = axes.col(2);
+
+        // transformation matrix to local basis
+        for(int j=0;j<3;++j) tr.col(j) = axes.col(j).normalized();
+        tr_inv = tr.inverse();
+
+        // Need to check direction of the normal
+        float ang = angle_between_vectors(normal, lip.head_marker-lip.tail_marker);
+        if(ang < M_PI_2){
+            lip.normal = normal;
+            lip.tilt = ang;
+        } else {
+            lip.normal = -normal;
+            lip.tilt = M_PI-ang;
+        }
+        lip.normal.normalized();
+
+        //-----------------------------------
+        // Smooth and find local curvatures
+        //-----------------------------------
+
+        // Create array of local points in local basis
+        MatrixXf coord(3,lip.local_sel.size()+1);
+        Vector3f c0 = lip.mid_marker; // Real coord of central point - the marker
+        coord.col(0) = Vector3f::Zero(); // Local coord of central point is zero
+        for(int j=0; j<lip.local_sel.size(); ++j)
+            coord.col(j+1) = tr_inv * system->box(0).shortest_vector(c0,lip.local_sel.xyz(j));
+
+        // Fit a quad surface
+        Matrix<float,6,1> res;
+        Vector3f sm; // smoothed coords of central point
+        fit_quad_surface(coord,res,sm,lip.quad_fit_rms);
+        // Compute curvatures using quad fit coeefs
+        get_curvature(res, lip.gaussian_curvature, lip.mean_curvature);
+
+        // Get smoothed surface point in lab coords
+        lip.smoothed_mid_xyz = tr*sm + lip.mid_marker;
+
+        //-----------------------------------
+        // Area and neighbours
+        //-----------------------------------
+
+        vector<int> neib;
+        lip.area = compute_area(coord,10.0,neib);
+        // Save coordination number of the lipid
+        lip.coord_number = neib.size();
+
+        // Add neighbor pairs. Only use nearest neighbor lipids from area computation
+        // use only i<j to avoid adding duplicates
+        // If area is -1 skip since this lipid has weird surrounding
+        if(lip.area>0){
+            int cur_ind = index_map[active_mid_sel.index(i)];
+            for(int j=0; j<neib.size(); ++j){
+                int n = index_map[lip.local_sel.index(neib[j]-1)];
+                if(cur_ind<n) neighbor_pairs.emplace_back(cur_ind,n);
             }
-            lip.normal.normalized();
+        }
 
-            //-----------------------------------
-            // Smooth and find local curvatures
-            //-----------------------------------
+        // Revert markers
+        for(auto& l: lipids){
+            if(l.group>=0) l.unset_markers();
+        }
 
-            // Create array of local points in local basis
-            MatrixXf coord(3,lip.local_sel.size()+1);
-            Vector3f c0 = lip.mid_marker; // Real coord of central point - the marker
-            coord.col(0) = Vector3f::Zero(); // Local coord of central point is zero
-            for(int j=0; j<lip.local_sel.size(); ++j)
-                coord.col(j+1) = tr_inv * system->box(0).shortest_vector(c0,lip.local_sel.xyz(j));
+    } // Over lipids
 
-            // Fit a quad surface
-            Matrix<float,6,1> res;
-            Vector3f sm; // smoothed coords of central point
-            fit_quad_surface(coord,res,sm,lip.quad_fit_rms);
-            // Compute curvatures using quad fit coeefs
-            get_curvature(res, lip.gaussian_curvature, lip.mean_curvature);
-
-            // Get smoothed surface point in lab coords
-            lip.smoothed_mid_xyz = tr*sm + lip.mid_marker;
-
-            //-----------------------------------
-            // Area and neighbours
-            //-----------------------------------
-
-            vector<int> neib;
-            lip.area = compute_area(coord,10.0,neib);
-            // Save coordination number of the lipid
-            lip.coord_number = neib.size();
-
-            // Add neighbor pairs. Only use nearest neighbor lipids from area computation
-            // use only i<j to avoid adding duplicates
-            // If area is -1 skip since this lipid has weird surrounding
-            if(lip.area>0){
-                int cur_ind = index_map[leaflets_sel[l].index(i)];
-                for(int j=0; j<neib.size(); ++j){
-                    int n = index_map[lip.local_sel.index(neib[j]-1)];
-                    if(cur_ind<n) neighbor_pairs.emplace_back(cur_ind,n);
-                }
-            }
-
-        } // Over lipids in leaflet
-
-    } // over leaflets
 
     //-----------------------------------
     // Splay and triangilation
@@ -409,6 +445,7 @@ void Membrane::compute_properties(float d, bool use_external_normal, Vector3f_co
     //-----------------------------------
 
     for(auto& lip: lipids){
+        if(lip.group<0) continue; // Skip excluded lipids
         // Compute Sz order parameter if the tails are provided
         for(int t=0; t<lip.tail_carbon_indexes.size(); ++t){
             // Go over atoms in tail t
@@ -422,6 +459,72 @@ void Membrane::compute_properties(float d, bool use_external_normal, Vector3f_co
         }
     }
 
+    //-----------------------------------
+    // Put to averages according to group
+    //-----------------------------------
+    for(auto& lip: lipids){
+        if(lip.group<0) continue; // Skip excluded lipids
+
+        if(lip.group>=groups.size())
+            throw Pteros_error("Invalid lipid group {}. Valid range is [0:{}]",lip.group,groups.size()-1);
+
+        auto& prop = groups[lip.group][lip.name];
+
+        prop.num++;
+        prop.area.add(lip.area);
+        prop.coord_number.add(lip.coord_number);
+        prop.gaussian_curvature.add(lip.gaussian_curvature);
+        prop.mean_curvature.add(lip.mean_curvature);
+        prop.tilt.add(rad_to_deg(lip.tilt));
+
+        for(int t=0; t<lip.tail_carbon_indexes.size(); ++t){
+            for(int at=1; at<lip.tail_carbon_indexes[t].size()-1; ++at){
+                prop.order[t][at-1] += lip.order[t][at-1];
+            }
+        }
+
+    }
+}
+
+
+void Membrane::compute_averages()
+{
+    for(int i=0;i<groups.size();++i){
+        for(auto& it: groups[i]){
+            float N = float(it.second.num);
+            it.second.area.normalize(N);
+            it.second.coord_number.normalize(N);
+            it.second.gaussian_curvature.normalize(N);
+            it.second.mean_curvature.normalize(N);
+            it.second.tilt.normalize(N);
+            for(int t=0; t<it.second.order.size(); ++t){
+                for(int at=1; at<it.second.order[t].size()-1; ++at){
+                    it.second.order[t][at-1] /= N;
+                }
+            }
+        }
+    }
+}
+
+void Membrane::write_averages()
+{
+    for(int i=0;i<groups.size();++i){
+        for(auto& it: groups[i]){
+            it.second.area.save_to_file(fmt::format("area_{}_gr{}.dat",it.first,i));
+            it.second.tilt.save_to_file(fmt::format("tilt_{}_gr{}.dat",it.first,i));
+            it.second.coord_number.save_to_file(fmt::format("coord_num_{}_gr{}.dat",it.first,i));
+            it.second.mean_curvature.save_to_file(fmt::format("mean_curv_{}_gr{}.dat",it.first,i));
+            it.second.gaussian_curvature.save_to_file(fmt::format("gauss_curv_{}_gr{}.dat",it.first,i));
+
+            for(int t=0; t<it.second.order.size(); ++t){
+                ofstream f(fmt::format("order_{}_t{}_gr{}.dat",it.first,t,i));
+                for(int at=1; at<it.second.order[t].size()-1; ++at){
+                    f << at << " " << it.second.order[t][at-1] << endl;
+                }
+                f.close();
+            }
+        }
+    }
 }
 
 
@@ -475,6 +578,7 @@ void Membrane::write_smoothed(const string& fname){
 
 Lipid::Lipid(const Selection &sel, const Lipid_descr &descr){
     name = descr.name;
+    group = 0;
     whole_sel = sel;
     head_sel = whole_sel(descr.head_sel_str);
     tail_sel = whole_sel(descr.tail_sel_str);
@@ -498,8 +602,22 @@ void Lipid::set_markers()
     head_marker = head_sel.center(true);
     tail_marker = tail_sel.center(true);
     mid_marker = mid_sel.center(true);
+
+    mid_saved = mid_sel.xyz(0);
+    mid_sel.xyz(0) = mid_marker;
+}
+
+void Lipid::unset_markers()
+{
+    mid_sel.xyz(0) = mid_saved;
 }
 
 
-
-
+Average_props_per_type::Average_props_per_type()
+{
+    area.create(0,1.8,100);
+    tilt.create(0,90,90);
+    coord_number.create(0,15,15);
+    mean_curvature.create(-0.5,0.5,100);
+    gaussian_curvature.create(-0.5,0.5,100);
+}
