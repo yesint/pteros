@@ -116,7 +116,7 @@ public:
                             Vector3i_const_ref external_dist_dim = Eigen::Vector3i::Ones());
 
     void compute_averages();
-    void write_averages();
+    void write_averages(std::string path="");
 
     void write_vmd_arrows(const std::string& fname);
     void write_smoothed(const std::string &fname);

@@ -510,18 +510,19 @@ void Membrane::compute_averages()
     }
 }
 
-void Membrane::write_averages()
+void Membrane::write_averages(string path)
 {
+    if(path.size()==0) path+=".";
     for(int i=0;i<groups.size();++i){
         for(auto& it: groups[i]){
-            it.second.area.save_to_file(fmt::format("area_{}_gr{}.dat",it.first,i));
-            it.second.tilt.save_to_file(fmt::format("tilt_{}_gr{}.dat",it.first,i));
-            it.second.coord_number.save_to_file(fmt::format("coord_num_{}_gr{}.dat",it.first,i));
-            it.second.mean_curvature.save_to_file(fmt::format("mean_curv_{}_gr{}.dat",it.first,i));
-            it.second.gaussian_curvature.save_to_file(fmt::format("gauss_curv_{}_gr{}.dat",it.first,i));
+            it.second.area.save_to_file(fmt::format("{}/area_{}_gr{}.dat",path,it.first,i));
+            it.second.tilt.save_to_file(fmt::format("{}/tilt_{}_gr{}.dat",path,it.first,i));
+            it.second.coord_number.save_to_file(fmt::format("{}/coord_num_{}_gr{}.dat",path,it.first,i));
+            it.second.mean_curvature.save_to_file(fmt::format("{}/mean_curv_{}_gr{}.dat",path,it.first,i));
+            it.second.gaussian_curvature.save_to_file(fmt::format("{}/gauss_curv_{}_gr{}.dat",path,it.first,i));
 
             for(int t=0; t<it.second.order.size(); ++t){
-                ofstream f(fmt::format("order_{}_t{}_gr{}.dat",it.first,t,i));
+                ofstream f(fmt::format("{}/order_{}_t{}_gr{}.dat",path,it.first,t,i));
                 for(int at=1; at<it.second.order[t].size()-1; ++at){
                     f << at << " " << it.second.order[t][at-1] << endl;
                 }
