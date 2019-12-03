@@ -77,6 +77,8 @@ Membrane::Membrane(System *sys, const std::vector<Lipid_descr> &species,
                 it->second.order.resize(mol.order.size());
                 for(int t=0;t<it->second.order.size();++t){
                     it->second.order[t].resize(mol.order[t].size());
+                    // Fill with zeros
+                    for(auto& el: it->second.order[t]) el=0.0;
                 }
             }
         }
@@ -620,6 +622,7 @@ void Lipid::unset_markers()
 
 Average_props_per_type::Average_props_per_type()
 {
+    num = 0;
     area.create(0,1.8,100);
     tilt.create(0,90,90);
     coord_number.create(0,15,15);
