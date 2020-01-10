@@ -67,18 +67,43 @@ Membrane::Membrane(System *sys, const std::vector<Lipid_descr> &species,
 
         for(auto& lip: res){
             auto mol = Lipid(lip,sp);
+
+            // See if the tails are equal
+            int t_sz = -1;
+            it->second.equal_tails = true;
+            for(auto& t: mol.order){
+                if(t_sz<0){
+                    t_sz = t.size();
+                } else if(t_sz!=t.size()) {
+                    it->second.equal_tails = false;
+                }
+            }
+            //log->info("Lipid {}: {}", sp.name,it->second.equal_tails);
+
             //mol.set_markers();
             //all_mid_sel.append(mol.mid_sel.index(0));
             lipids.push_back(mol);
             index_map[mol.mid_sel.index(0)] = lipids.size()-1;
 
             // Allocate order array in averages
-            if(it->second.order.size() != mol.order.size()){
-                it->second.order.resize(mol.order.size());
-                for(int t=0;t<it->second.order.size();++t){
-                    it->second.order[t].resize(mol.order[t].size());
+            if(it->second.order.size() == 0){
+                if(it->second.equal_tails){
+                    it->second.order.resize(mol.order.size()+1);
+                } else {
+                    it->second.order.resize(mol.order.size());
+                }
+
+                //log->info("{}", it->second.order.size());
+
+                for(int t=0;t<mol.order.size();++t){
+                    it->second.order[t].resize(mol.order[t].size()*2); // Need one value for mean and one for std
                     // Fill with zeros
                     for(auto& el: it->second.order[t]) el=0.0;
+                }
+
+                if(it->second.equal_tails){
+                    it->second.order[mol.order.size()].resize(mol.order[0].size()*2);
+                    for(auto& el: it->second.order[mol.order.size()]) el=0.0;
                 }
             }
         }
@@ -455,6 +480,7 @@ void Membrane::compute_properties(float d, bool use_external_normal, Vector3f_co
         // Compute Sz order parameter if the tails are provided
         for(int t=0; t<lip.tail_carbon_indexes.size(); ++t){
             // Go over atoms in tail t
+            // We have 2*N values like (mean:std), (mean:std),...
             for(int at=1; at<lip.tail_carbon_indexes[t].size()-1; ++at){
                 // Vector from at+1 to at-1
                 auto coord1 = system->xyz(lip.tail_carbon_indexes[t][at+1]);
@@ -485,7 +511,8 @@ void Membrane::compute_properties(float d, bool use_external_normal, Vector3f_co
 
         for(int t=0; t<lip.tail_carbon_indexes.size(); ++t){
             for(int at=1; at<lip.tail_carbon_indexes[t].size()-1; ++at){
-                prop.order[t][at-1] += lip.order[t][at-1];
+                prop.order[t][(at-1)*2] += lip.order[t][at-1]; // 1-st order running sum
+                prop.order[t][(at-1)*2+1] += pow(lip.order[t][at-1],2); // 2-nd order running sum
             }
         }
 
@@ -495,6 +522,7 @@ void Membrane::compute_properties(float d, bool use_external_normal, Vector3f_co
 
 void Membrane::compute_averages()
 {
+
     for(int i=0;i<groups.size();++i){
         for(auto& it: groups[i]){
             float N = float(it.second.num);
@@ -503,12 +531,34 @@ void Membrane::compute_averages()
             it.second.gaussian_curvature.normalize(N);
             it.second.mean_curvature.normalize(N);
             it.second.tilt.normalize(N);
-            for(int t=0; t<it.second.order.size(); ++t){
-                for(int at=1; at<it.second.order[t].size()-1; ++at){
-                    it.second.order[t][at-1] /= N;
+
+            int num_tails = (it.second.equal_tails) ? it.second.order.size()-1 : it.second.order.size();
+
+            for(int t=0; t<num_tails; ++t){
+                for(int j=0; j<it.second.order[t].size()/2; ++j){
+                    float s1 = it.second.order[t][j*2];
+                    float s2 = it.second.order[t][j*2+1];
+                    it.second.order[t][j*2] = s1/N;
+                    it.second.order[t][j*2+1] = sqrt(N*s2-s1*s1)/N;
+
+                    if(it.second.equal_tails){
+                        it.second.order[num_tails][j*2] += s1/float(num_tails);
+                        it.second.order[num_tails][j*2+1] += s2/float(num_tails);
+                    }
+                }
+            }
+
+            if(it.second.equal_tails){
+                for(int j=0; j<it.second.order[num_tails].size()/2; ++j){
+                    float s1 = it.second.order[num_tails][j*2];
+                    float s2 = it.second.order[num_tails][j*2+1];
+                    it.second.order[num_tails][j*2] = s1/N;
+                    it.second.order[num_tails][j*2+1] = sqrt(N*s2-s1*s1)/N;
                 }
             }
         }
+
+
     }
 }
 
@@ -523,13 +573,24 @@ void Membrane::write_averages(string path)
             it.second.mean_curvature.save_to_file(fmt::format("{}/mean_curv_{}_gr{}.dat",path,it.first,i));
             it.second.gaussian_curvature.save_to_file(fmt::format("{}/gauss_curv_{}_gr{}.dat",path,it.first,i));
 
-            for(int t=0; t<it.second.order.size(); ++t){
+            int num_tails = (it.second.equal_tails) ? it.second.order.size()-1 : it.second.order.size();
+
+            for(int t=0; t<num_tails; ++t){
                 ofstream f(fmt::format("{}/order_{}_t{}_gr{}.dat",path,it.first,t,i));
-                for(int at=1; at<it.second.order[t].size()-1; ++at){
-                    f << at << " " << it.second.order[t][at-1] << endl;
+                for(int j=0; j<it.second.order[t].size()/2; ++j){
+                    f << j << " " << it.second.order[t][j*2] << " " << it.second.order[t][j*2+1] << endl;
+                }
+                f.close();
+            }            
+
+            if(it.second.equal_tails){
+                ofstream f(fmt::format("{}/order_{}_aver_gr{}.dat",path,it.first,i));
+                for(int j=0; j<it.second.order[num_tails].size()/2; ++j){
+                    f << j << " " << it.second.order[num_tails][j*2] << " " << it.second.order[num_tails][j*2+1] << endl;
                 }
                 f.close();
             }
+
         }
     }
 }

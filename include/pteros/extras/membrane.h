@@ -99,6 +99,7 @@ struct Average_props_per_type {
     Histogram mean_curvature;
     Histogram coord_number;
     std::vector<std::vector<float>> order; //Sz order parameter identical to "gmx order -szonly"
+    bool equal_tails;
 };
 
 using Lipid_group = std::map<std::string,Average_props_per_type>;
