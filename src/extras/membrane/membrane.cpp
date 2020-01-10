@@ -539,7 +539,7 @@ void Membrane::compute_averages()
                     float s1 = it.second.order[t][j*2];
                     float s2 = it.second.order[t][j*2+1];
                     it.second.order[t][j*2] = s1/N;
-                    it.second.order[t][j*2+1] = sqrt(N*s2-s1*s1)/N;
+                    it.second.order[t][j*2+1] = sqrt(s2/N - s1*s1/N/N)/sqrt(N);
 
                     if(it.second.equal_tails){
                         it.second.order[num_tails][j*2] += s1/float(num_tails);
@@ -553,7 +553,7 @@ void Membrane::compute_averages()
                     float s1 = it.second.order[num_tails][j*2];
                     float s2 = it.second.order[num_tails][j*2+1];
                     it.second.order[num_tails][j*2] = s1/N;
-                    it.second.order[num_tails][j*2+1] = sqrt(N*s2-s1*s1)/N;
+                    it.second.order[num_tails][j*2+1] = sqrt(s2/N - s1*s1/N/N)/sqrt(N);
                 }
             }
         }
