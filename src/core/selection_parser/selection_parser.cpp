@@ -81,9 +81,9 @@ Pteros_PEG_parser _parser(R"(
         POW                <- < '^' / '**' >
         UNARY_MINUS        <- < '-' >
 
-        X                  <-  ('X' / 'x') ('of' COM)?
-        Y                  <-  ('Y' / 'y') ('of' COM)?
-        Z                  <-  ('Z' / 'z') ('of' COM)?
+        X                  <-  ('X' / 'x') ('of' VEC3)?
+        Y                  <-  ('Y' / 'y') ('of' VEC3)?
+        Z                  <-  ('Z' / 'z') ('of' VEC3)?
         BETA               <- < 'beta' >
         OCC                <- < 'occupancy' / 'occ' >
         RESINDEX           <- < 'resindex' >
@@ -95,10 +95,12 @@ Pteros_PEG_parser _parser(R"(
         COM                <- COM_TYPE PBC? 'of' LOGICAL_OPERAND
         COM_TYPE           <- < 'com' / 'cog' >
 
+        VEC3               <- COM / FLOAT FLOAT FLOAT / 'index' INTEGER
+
         DIST               <- ('dist' / 'distance') (POINT / VECTOR / PLANE)
-        POINT              <- 'point' PBC? (FLOAT FLOAT FLOAT / COM)
-        VECTOR             <- 'vector' PBC? (FLOAT FLOAT FLOAT / COM) FLOAT FLOAT FLOAT
-        PLANE              <- 'plane' PBC? (FLOAT FLOAT FLOAT / COM) FLOAT FLOAT FLOAT
+        POINT              <- 'point' PBC? VEC3
+        VECTOR             <- 'vector' PBC? VEC3 VEC3
+        PLANE              <- 'plane' PBC? VEC3 VEC3
 
         FLOAT              <- < INTEGER ('.' [0-9]+ )? ( ('e' / 'E' ) INTEGER )? >
         INTEGER            <- < ('-' / '+')? [0-9]+ >
@@ -511,6 +513,8 @@ void Selection_parser::eval_node(const std::shared_ptr<MyAst> &node, std::vector
         }
     }
 
+    //---------------------------------------------------------------------------
+
     else if(node->name == "LOGICAL_OPERAND")
     {
         vector<int> res;
@@ -680,6 +684,19 @@ Eigen::Vector3f Selection_parser::get_vector(const std::shared_ptr<MyAst> &node)
         current_subset = old_subset;
 
         return sel.center(with_mass,pbc);
+
+    } else if(node->name == "INTEGER") { // this is index expression
+        int ind = stol(node->token);
+        if(ind<0 || ind>=sys->num_atoms()) throw Pteros_error("Invalid atom index!");
+        return sys->traj[frame].coord[ind];
+
+    } else {
+        // Get 3 floats
+        Eigen::Vector3f v;
+        v(0) = stof(node->nodes[0]->token);
+        v(1) = stof(node->nodes[1]->token);
+        v(2) = stof(node->nodes[2]->token);
+        return v;
     }
 }
 
@@ -773,7 +790,6 @@ std::function<float(int)> Selection_parser::get_numeric(const std::shared_ptr<My
     } else if(node->name == "POINT") {
         Eigen::Vector3f p;
 
-        int N = node->nodes.size();
         int offset = 0;
 
         bool pbc = false;
@@ -782,13 +798,7 @@ std::function<float(int)> Selection_parser::get_numeric(const std::shared_ptr<My
             offset = 1;
         }
 
-        if(N==1 || N==2){ // com and possibly pbc
-            p = get_vector(node->nodes[0+offset]);
-        } else { // 3 floats and possibly pbc
-            p(0) = get_numeric(node->nodes[0+offset])(0);
-            p(1) = get_numeric(node->nodes[1+offset])(0);
-            p(2) = get_numeric(node->nodes[2+offset])(0);
-        }
+        p = get_vector(node->nodes[0+offset]);
 
         // Return distance
         if(pbc){
@@ -804,7 +814,6 @@ std::function<float(int)> Selection_parser::get_numeric(const std::shared_ptr<My
     } else if(node->name == "VECTOR" || node->name == "PLANE") {
         Eigen::Vector3f p,dir;
 
-        int N = node->nodes.size();
         int offset = 0;
 
         bool pbc = false;
@@ -813,19 +822,9 @@ std::function<float(int)> Selection_parser::get_numeric(const std::shared_ptr<My
             offset = 1;
         }
 
-        if(N==4 || N==5){ // com + 3 floats
-            p = get_vector(node->nodes[0+offset]);
-            dir(0) = get_numeric(node->nodes[1+offset])(0);
-            dir(1) = get_numeric(node->nodes[2+offset])(0);
-            dir(2) = get_numeric(node->nodes[3+offset])(0);
-        } if(N==6){ // 6 floats
-            p(0) = get_numeric(node->nodes[0+offset])(0);
-            p(1) = get_numeric(node->nodes[1+offset])(0);
-            p(2) = get_numeric(node->nodes[2+offset])(0);
-            dir(0) = get_numeric(node->nodes[3+offset])(0);
-            dir(1) = get_numeric(node->nodes[4+offset])(0);
-            dir(2) = get_numeric(node->nodes[5+offset])(0);
-        }
+        p = get_vector(node->nodes[0+offset]);
+        // Compute dir from two points
+        dir = get_vector(node->nodes[1+offset])-p;
 
         if(node->name == "VECTOR"){
             // For vector
