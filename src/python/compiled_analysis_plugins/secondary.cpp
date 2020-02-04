@@ -41,8 +41,16 @@ Output:
     File <label>.dat containing the following columns:
     time,DSSP
     There is no space after ','! Spaces are DSSP codes themselves.
+
+    The file dssp_map_<label>.dat is then written with -map option.
 Options:
-    None
+    -onlynum <boolean>
+        Output only the number of structured residues
+    -map <boolean>
+        Output secondary structure codes as numbers.
+        All helices are encodes as 1, all beta sheets as 2 and all
+        unstructured residues as 0.
+        (useful for plotting)
 )";
     }
 
