@@ -824,7 +824,7 @@ std::function<float(int)> Selection_parser::get_numeric(const std::shared_ptr<My
 
         p = get_vector(node->nodes[0+offset]);
         // Compute dir from two points
-        dir = get_vector(node->nodes[1+offset])-p;
+        dir = (get_vector(node->nodes[1+offset])-p).normalized();
 
         if(node->name == "VECTOR"){
             // For vector
