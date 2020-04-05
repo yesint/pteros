@@ -166,9 +166,18 @@ endif()
 
 # Gromacs
 if(WITH_GROMACS)
-    find_package(gromacs REQUIRED)
-    if(gromacs_FOUND)
-        message("Found Gromacs ${gromacs_VERSION} at ${GROMACS_INCLUDE_DIRS}")
+    # See if pathes are provided
+    if(NOT (GROMACS_SOURCES AND GROMACS_LIBRARIES))
+        message(FATAL_ERROR "In order to link to Gromacs you need to provide path "
+            "to Gromacs source tree matching your installed version "
+            "using -DGROMACS_SOURCES=<path> "
+            "and the path to installed Gromacs libs "
+            "using -DGROMACS_LIBRARIES=<path> ")
+    else()
+        # Report what is used
+        message("Searching for Gromacs sources in ${GROMACS_SOURCES}")
+        message("Searching for Gromacs libs in ${GROMACS_LIBRARIES}")
+        link_directories(${GROMACS_LIBRARIES})
     endif()
 endif()
 

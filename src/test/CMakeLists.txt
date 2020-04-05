@@ -7,8 +7,18 @@ test_selection.cpp
     #${PROJECT_SOURCE_DIR}/src/core/peg_parser.cpp
     #${PROJECT_SOURCE_DIR}/include/pteros/core/peg_parser.h
 )
+
+set_target_properties(pteros_test PROPERTIES CXX_STANDARD 17)
+
 target_link_libraries(pteros_test pteros_analysis pteros)
 
+install(TARGETS
+    pteros_test
+
+    RUNTIME DESTINATION bin
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+)
 
 #add_executable(pteros_peglib_test
 #grammar2.cpp

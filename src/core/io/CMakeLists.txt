@@ -37,15 +37,13 @@ if(WITH_OPENBABEL AND OPENBABEL2_FOUND)
 endif()
 
 
-if(WITH_GROMACS AND gromacs_FOUND)
+if(WITH_GROMACS AND GROMACS_SOURCES AND GROMACS_LIBRARIES)
     target_compile_definitions(pteros_io PRIVATE USE_GROMACS)
-    # with gromacs link to gmxlib
-    target_include_directories(pteros_io PRIVATE ${GROMACS_INCLUDE_DIRS})    
-    # If we have version < 2018 set flag for old API
-    if(${gromacs_VERSION_MAJOR} LESS 2018)
-        target_compile_definitions(pteros_io PRIVATE GROMACS_OLD)
-        message(STATUS "Gromacs version ${gromacs_VERSION_MAJOR} thus using old gmx_mtop_t_to_t_topology API")
-    endif()
+    # In case of Gromacs 2020+ we need some headers from gmx source tree
+    # since they are not installed any more, so do it also for earlier versions
+    # to keep things simpler
+    target_include_directories(pteros_io PRIVATE ${GROMACS_SOURCES}/src)
+
     target_sources(pteros_io PRIVATE
         tpr_file.h
         tpr_file.cpp)    

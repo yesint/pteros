@@ -9,15 +9,12 @@ target_link_libraries(pteros_gromacs_utils
         pteros_interface
 )
 
-target_include_directories(pteros_gromacs_utils
-    PUBLIC
-        ${GROMACS_INCLUDE_DIRS}
-        ${CMAKE_CURRENT_SOURCE_DIR}
-)
+target_include_directories(pteros_gromacs_utils PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
-if(WITH_GROMACS AND gromacs_FOUND)
+if(WITH_GROMACS)
     target_compile_definitions(pteros_gromacs_utils PRIVATE USE_GROMACS)
-    target_link_libraries(pteros_gromacs_utils PRIVATE ${GROMACS_LIBRARIES})
+    target_include_directories(pteros_gromacs_utils PUBLIC ${GROMACS_SOURCES}/src)
+    target_link_libraries(pteros_gromacs_utils PRIVATE gromacs)
 else()
     target_link_libraries(pteros_gromacs_utils PRIVATE xdrfile)
 endif()

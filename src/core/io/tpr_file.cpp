@@ -71,11 +71,15 @@ bool TPR_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
 
     read_tpx_state(fname.c_str(), &ir, &state, &mtop);
 
+/*
 #ifdef GROMACS_OLD
     top = gmx_mtop_t_to_t_topology(&mtop);
 #else
     top = gmx_mtop_t_to_t_topology(&mtop,true);
 #endif
+*/
+    // Only works for Gromacs>=2018.x
+    top = gmx_mtop_t_to_t_topology(&mtop,true);
 
     natoms = top.atoms.nr;
 
