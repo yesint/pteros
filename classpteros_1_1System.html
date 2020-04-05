@@ -144,6 +144,9 @@ virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="c
 <tr class="memitem:a81f8b52c4148a120c7ad987d76e20d75"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#a81f8b52c4148a120c7ad987d76e20d75">rearrange</a> (const std::vector&lt; <a class="el" href="classpteros_1_1Selection.html">Selection</a> &gt; &amp;sel_vec)</td></tr>
 <tr class="memdesc:a81f8b52c4148a120c7ad987d76e20d75"><td class="mdescLeft">&#160;</td><td class="mdescRight">Rearranges the atoms in the order of provided selections.  <a href="#a81f8b52c4148a120c7ad987d76e20d75">More...</a><br /></td></tr>
 <tr class="separator:a81f8b52c4148a120c7ad987d76e20d75"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae4be34fed3493f8a34d57f7c7ea68d98"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::pair&lt; std::string, int &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#ae4be34fed3493f8a34d57f7c7ea68d98">rearrange_by_resname</a> ()</td></tr>
+<tr class="memdesc:ae4be34fed3493f8a34d57f7c7ea68d98"><td class="mdescLeft">&#160;</td><td class="mdescRight">Rearranges the atoms in the alphabetical order of residue names.  <a href="#ae4be34fed3493f8a34d57f7c7ea68d98">More...</a><br /></td></tr>
+<tr class="separator:ae4be34fed3493f8a34d57f7c7ea68d98"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a28d7634b18a689c9bad251964b0b687c"><td class="memItemLeft" align="right" valign="top"><a id="a28d7634b18a689c9bad251964b0b687c"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#a28d7634b18a689c9bad251964b0b687c">keep</a> (const std::string &amp;sel_str)</td></tr>
 <tr class="memdesc:a28d7634b18a689c9bad251964b0b687c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Keep only atoms given by selection string. <br /></td></tr>
@@ -205,10 +208,10 @@ int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class
 <a class="el" href="classpteros_1_1Selection.html">Selection</a>&#160;</td><td class="memItemRight" valign="bottom"><b>operator()</b> (const std::function&lt; void(const <a class="el" href="classpteros_1_1System.html">System</a> &amp;, int, std::vector&lt; int &gt; &amp;)&gt; &amp;callback, int fr=0)</td></tr>
 <tr class="separator:ac103243672de25fb4871d6be9512d6b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><div class="groupHeader"></div></td></tr>
-<tr class="memitem:a531b5deb80fa2cd0aa81f8ccaa293796"><td class="memItemLeft" align="right" valign="top"><a id="a531b5deb80fa2cd0aa81f8ccaa293796"></a>
-<a class="el" href="classpteros_1_1Selection.html">Selection</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#a531b5deb80fa2cd0aa81f8ccaa293796">select_all</a> ()</td></tr>
-<tr class="memdesc:a531b5deb80fa2cd0aa81f8ccaa293796"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convenience functions to select all. <br /></td></tr>
-<tr class="separator:a531b5deb80fa2cd0aa81f8ccaa293796"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af75c96909b942b940d0973fbd2ebedee"><td class="memItemLeft" align="right" valign="top"><a id="af75c96909b942b940d0973fbd2ebedee"></a>
+<a class="el" href="classpteros_1_1Selection.html">Selection</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#af75c96909b942b940d0973fbd2ebedee">select_all</a> () const</td></tr>
+<tr class="memdesc:af75c96909b942b940d0973fbd2ebedee"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convenience functions to select all. <br /></td></tr>
+<tr class="separator:af75c96909b942b940d0973fbd2ebedee"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7267d1b1f4b7e0210deeb1277b425433"><td class="memItemLeft" align="right" valign="top"><a id="a7267d1b1f4b7e0210deeb1277b425433"></a>
 <a class="el" href="classpteros_1_1Selection.html">Selection</a>&#160;</td><td class="memItemRight" valign="bottom"><b>operator()</b> ()</td></tr>
 <tr class="separator:a7267d1b1f4b7e0210deeb1277b425433"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -281,6 +284,22 @@ Eigen::Vector3f &amp;&#160;</td><td class="memItemRight" valign="bottom"><a clas
 const Eigen::Vector3f &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#a34afc0cc44aea19eee75fb30ed829a7f">xyz</a> (int ind, int fr=0) const</td></tr>
 <tr class="memdesc:a34afc0cc44aea19eee75fb30ed829a7f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read only access for given coordinate of given frame. <br /></td></tr>
 <tr class="separator:a34afc0cc44aea19eee75fb30ed829a7f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2cd9b50c1c1dc11a11a034ff1798177f"><td class="memItemLeft" align="right" valign="top"><a id="a2cd9b50c1c1dc11a11a034ff1798177f"></a>
+Eigen::Vector3f &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#a2cd9b50c1c1dc11a11a034ff1798177f">vel</a> (int ind, int fr=0)</td></tr>
+<tr class="memdesc:a2cd9b50c1c1dc11a11a034ff1798177f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read/Write access for given velocity of given frame. <br /></td></tr>
+<tr class="separator:a2cd9b50c1c1dc11a11a034ff1798177f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a356cff575e2092f721d50c7200a14a70"><td class="memItemLeft" align="right" valign="top"><a id="a356cff575e2092f721d50c7200a14a70"></a>
+const Eigen::Vector3f &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#a356cff575e2092f721d50c7200a14a70">vel</a> (int ind, int fr=0) const</td></tr>
+<tr class="memdesc:a356cff575e2092f721d50c7200a14a70"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read only access for given velocity of given frame. <br /></td></tr>
+<tr class="separator:a356cff575e2092f721d50c7200a14a70"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab6d51deea0926a6b170c7606adf3d81a"><td class="memItemLeft" align="right" valign="top"><a id="ab6d51deea0926a6b170c7606adf3d81a"></a>
+Eigen::Vector3f &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#ab6d51deea0926a6b170c7606adf3d81a">force</a> (int ind, int fr=0)</td></tr>
+<tr class="memdesc:ab6d51deea0926a6b170c7606adf3d81a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read/Write access for given force of given frame. <br /></td></tr>
+<tr class="separator:ab6d51deea0926a6b170c7606adf3d81a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a93a45874765ca204f3e0543c179809f4"><td class="memItemLeft" align="right" valign="top"><a id="a93a45874765ca204f3e0543c179809f4"></a>
+const Eigen::Vector3f &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#a93a45874765ca204f3e0543c179809f4">force</a> (int ind, int fr=0) const</td></tr>
+<tr class="memdesc:a93a45874765ca204f3e0543c179809f4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read only access for given force of given frame. <br /></td></tr>
+<tr class="separator:a93a45874765ca204f3e0543c179809f4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0208f8c4c53273c7908136e196f0358a"><td class="memItemLeft" align="right" valign="top"><a id="a0208f8c4c53273c7908136e196f0358a"></a>
 <a class="el" href="classpteros_1_1Atom.html">Atom</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#a0208f8c4c53273c7908136e196f0358a">atom</a> (int ind)</td></tr>
 <tr class="memdesc:a0208f8c4c53273c7908136e196f0358a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read/Write access for given atom. <br /></td></tr>
@@ -372,6 +391,12 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 <tr class="memitem:a521c0ce9af1da689a66c21d2bf23321d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#a521c0ce9af1da689a66c21d2bf23321d">sort_by_resindex</a> ()</td></tr>
 <tr class="memdesc:a521c0ce9af1da689a66c21d2bf23321d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sorts atoms by resindex arranging atoms with the same resindexes into contigous pieces.  <a href="#a521c0ce9af1da689a66c21d2bf23321d">More...</a><br /></td></tr>
 <tr class="separator:a521c0ce9af1da689a66c21d2bf23321d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0499095aefc5ad9ae86e2e07cf42c43a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#a0499095aefc5ad9ae86e2e07cf42c43a">clear_vel</a> ()</td></tr>
+<tr class="memdesc:a0499095aefc5ad9ae86e2e07cf42c43a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Delete velocities from all frames.  <a href="#a0499095aefc5ad9ae86e2e07cf42c43a">More...</a><br /></td></tr>
+<tr class="separator:a0499095aefc5ad9ae86e2e07cf42c43a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2dc498f6260285fea8cf11d4bac8d15a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1System.html#a2dc498f6260285fea8cf11d4bac8d15a">clear_force</a> ()</td></tr>
+<tr class="memdesc:a2dc498f6260285fea8cf11d4bac8d15a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Delete forces from all frames.  <a href="#a2dc498f6260285fea8cf11d4bac8d15a">More...</a><br /></td></tr>
+<tr class="separator:a2dc498f6260285fea8cf11d4bac8d15a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>The system of atoms. </p>
@@ -472,6 +497,27 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 
 <p>Rearranges the atoms in the order of provided selections. </p>
 <p><a class="el" href="classpteros_1_1Atom.html" title="Class which represents a single atom. ">Atom</a>, which are not selected are appended at the end in their previous order. </p><dl class="section note"><dt>Note</dt><dd>Selections should not overlap (exception is thrown if they are). </dd></dl>
+
+</div>
+</div>
+<a id="ae4be34fed3493f8a34d57f7c7ea68d98"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae4be34fed3493f8a34d57f7c7ea68d98">&#9670;&nbsp;</a></span>rearrange_by_resname()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; std::pair&lt; string, int &gt; &gt; System::rearrange_by_resname </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Rearranges the atoms in the alphabetical order of residue names. </p>
+<p>Useful for liquid systems and membranes where each residue is a whole molecule. </p><dl class="section warning"><dt>Warning</dt><dd>If the molecules contain more than one resiude they will be broken! </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>vector of (residue name,number) pairs. </dd></dl>
 
 </div>
 </div>
@@ -727,6 +773,46 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 
 </div>
 </div>
+<a id="a0499095aefc5ad9ae86e2e07cf42c43a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0499095aefc5ad9ae86e2e07cf42c43a">&#9670;&nbsp;</a></span>clear_vel()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void System::clear_vel </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Delete velocities from all frames. </p>
+<p>Does nothing if no velocities. </p>
+
+</div>
+</div>
+<a id="a2dc498f6260285fea8cf11d4bac8d15a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2dc498f6260285fea8cf11d4bac8d15a">&#9670;&nbsp;</a></span>clear_force()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void System::clear_force </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Delete forces from all frames. </p>
+<p>Does nothing if no forces. </p>
+
+</div>
+</div>
 <hr/>The documentation for this class was generated from the following files:<ul>
 <li>include/pteros/core/<a class="el" href="system_8h_source.html">system.h</a></li>
 <li>src/core/system.cpp</li>
@@ -738,7 +824,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><b>pteros</b></li><li class="navelem"><a class="el" href="classpteros_1_1System.html">System</a></li>
-    <li class="footer">Generated on Sat Dec 22 2018 19:29:37 for Pteros by
+    <li class="footer">Generated on Sun Apr 5 2020 17:40:38 for Pteros by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.13 </li>
   </ul>

@@ -13,7 +13,6 @@ var annotated_dup =
       [ "GNM", "classpteros_1_1GNM.html", "classpteros_1_1GNM" ],
       [ "Grid", "classpteros_1_1Grid.html", "classpteros_1_1Grid" ],
       [ "GRO_file", "classpteros_1_1GRO__file.html", "classpteros_1_1GRO__file" ],
-      [ "Gromacs_trajectory_file", "classpteros_1_1Gromacs__trajectory__file.html", "classpteros_1_1Gromacs__trajectory__file" ],
       [ "Histogram", "classpteros_1_1Histogram.html", "classpteros_1_1Histogram" ],
       [ "Histogram2D", "classpteros_1_1Histogram2D.html", "classpteros_1_1Histogram2D" ],
       [ "MOL2_file", "classpteros_1_1MOL2__file.html", "classpteros_1_1MOL2__file" ],
@@ -28,9 +27,7 @@ var annotated_dup =
       [ "Task_plugin", "classpteros_1_1Task__plugin.html", "classpteros_1_1Task__plugin" ],
       [ "TNG_file", "classpteros_1_1TNG__file.html", "classpteros_1_1TNG__file" ],
       [ "Trajectory_reader", "classpteros_1_1Trajectory__reader.html", "classpteros_1_1Trajectory__reader" ],
-      [ "TRR_file", "classpteros_1_1TRR__file.html", "classpteros_1_1TRR__file" ],
       [ "VMD_molfile_plugin_wrapper", "classpteros_1_1VMD__molfile__plugin__wrapper.html", "classpteros_1_1VMD__molfile__plugin__wrapper" ],
-      [ "XTC_file", "classpteros_1_1XTC__file.html", "classpteros_1_1XTC__file" ],
       [ "XYZ_file", "classpteros_1_1XYZ__file.html", "classpteros_1_1XYZ__file" ]
     ] ]
 ];

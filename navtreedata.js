@@ -22,7 +22,7 @@ var NAVTREE =
         [ "Compiling", "install.html#compile", null ],
         [ "Building .deb package", "install.html#deb", null ],
         [ "Testing installation", "install.html#test", null ],
-        [ "Enabling SASA code", "install.html#sasa", null ],
+        [ "SASA code", "install.html#sasa", null ],
         [ "Enabling Gromacs support", "install.html#gmx", null ],
         [ "Building without Python", "install.html#no_python", null ],
         [ "Building standalone analysis plugins", "install.html#standalone", null ],
@@ -30,8 +30,7 @@ var NAVTREE =
       ] ],
       [ "Reporting bugs", "install.html#trouble", [
         [ "Known problems", "install.html#known_problems", null ]
-      ] ],
-      [ "Linking with Pteros", "install.html#linking", null ]
+      ] ]
     ] ],
     [ "User manual", "manual.html", "manual" ],
     [ "C++ Tutorial", "cpptutorial.html", [
@@ -72,9 +71,9 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 ".html",
-"classpteros_1_1Selection.html#a13376c1d68b45c53389040c91981c8fc",
-"classpteros_1_1TNG__file.html#afb1164dd3c402cbe8f0345ecd9114c83",
-"structpteros_1_1Frame.html#acaa5ff373f5ab4da4aa6733f17b04e20"
+"classpteros_1_1Selection.html#a0c60213a1f1d81bb6f00d0d3401f39b5",
+"classpteros_1_1System.html#ac0a3003bd2242bb8178588f054b7221e",
+"message__channel_8h_source.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

@@ -283,10 +283,6 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 <tr class="memitem:aca8593101b99b053d6b9fe04349b027c"><td class="memItemLeft" align="right" valign="top">Eigen::MatrixXf&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1Selection.html#aca8593101b99b053d6b9fe04349b027c">get_xyz</a> (bool make_row_major_matrix=false) const</td></tr>
 <tr class="memdesc:aca8593101b99b053d6b9fe04349b027c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get coordinates of all atoms in this selection for the current frame By default columnt of the matrix contain atom coordinates.  <a href="#aca8593101b99b053d6b9fe04349b027c">More...</a><br /></td></tr>
 <tr class="separator:aca8593101b99b053d6b9fe04349b027c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9a71828e534bd9169e9db282c2acdda1"><td class="memItemLeft" align="right" valign="top"><a id="a9a71828e534bd9169e9db282c2acdda1"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1Selection.html#a9a71828e534bd9169e9db282c2acdda1">get_xyz</a> (MatrixXf_ref res) const</td></tr>
-<tr class="memdesc:a9a71828e534bd9169e9db282c2acdda1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get coordinates of all atoms in this selection for the current frame in existing matrix. <br /></td></tr>
-<tr class="separator:a9a71828e534bd9169e9db282c2acdda1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af625e98a88317d5ef16532330950207e"><td class="memItemLeft" align="right" valign="top"><a id="af625e98a88317d5ef16532330950207e"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1Selection.html#af625e98a88317d5ef16532330950207e">set_xyz</a> (MatrixXf_const_ref coord)</td></tr>
 <tr class="memdesc:af625e98a88317d5ef16532330950207e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set coordinates of this selection for current frame. <br /></td></tr>
@@ -346,6 +342,20 @@ std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight" valign="bott
 void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1Selection.html#a5d6506a3c984490459722ec5c64a3843">set_tag</a> (std::string data)</td></tr>
 <tr class="memdesc:a5d6506a3c984490459722ec5c64a3843"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set tags of all selected atoms to the same given value. <br /></td></tr>
 <tr class="separator:a5d6506a3c984490459722ec5c64a3843"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a45df77222ee12426c083febb664414ce"><td class="memItemLeft" align="right" valign="top">Eigen::MatrixXf&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1Selection.html#a45df77222ee12426c083febb664414ce">get_vel</a> (bool make_row_major_matrix=false) const</td></tr>
+<tr class="memdesc:a45df77222ee12426c083febb664414ce"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get velocities of all atoms in this selection for the current frame By default columnt of the matrix contain atom coordinates.  <a href="#a45df77222ee12426c083febb664414ce">More...</a><br /></td></tr>
+<tr class="separator:a45df77222ee12426c083febb664414ce"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a93aafea59ee4dbd71632f2f76f737d5a"><td class="memItemLeft" align="right" valign="top"><a id="a93aafea59ee4dbd71632f2f76f737d5a"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1Selection.html#a93aafea59ee4dbd71632f2f76f737d5a">set_vel</a> (MatrixXf_const_ref data)</td></tr>
+<tr class="memdesc:a93aafea59ee4dbd71632f2f76f737d5a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set velocities of this selection for current frame. <br /></td></tr>
+<tr class="separator:a93aafea59ee4dbd71632f2f76f737d5a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7f5983e3f75f3ef19d9f6d2d67427d0d"><td class="memItemLeft" align="right" valign="top">Eigen::MatrixXf&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1Selection.html#a7f5983e3f75f3ef19d9f6d2d67427d0d">get_force</a> (bool make_row_major_matrix=false) const</td></tr>
+<tr class="memdesc:a7f5983e3f75f3ef19d9f6d2d67427d0d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get forces of all atoms in this selection for the current frame By default columnt of the matrix contain atom coordinates.  <a href="#a7f5983e3f75f3ef19d9f6d2d67427d0d">More...</a><br /></td></tr>
+<tr class="separator:a7f5983e3f75f3ef19d9f6d2d67427d0d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a414a661fc3c89db62dad9aaef5a74e35"><td class="memItemLeft" align="right" valign="top"><a id="a414a661fc3c89db62dad9aaef5a74e35"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1Selection.html#a414a661fc3c89db62dad9aaef5a74e35">set_force</a> (MatrixXf_const_ref coord)</td></tr>
+<tr class="memdesc:a414a661fc3c89db62dad9aaef5a74e35"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set forces of this selection for current frame. <br /></td></tr>
+<tr class="separator:a414a661fc3c89db62dad9aaef5a74e35"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><div class="groupHeader">Computing properties of selection</div></td></tr>
 <tr class="memitem:ac8e8dcd46b4bcbc5ef47593b75476599"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1Selection.html#ac8e8dcd46b4bcbc5ef47593b75476599">is_large</a> ()</td></tr>
 <tr class="memdesc:ac8e8dcd46b4bcbc5ef47593b75476599"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks if selection is larger than 1/2 of the box size in any dimension.  <a href="#ac8e8dcd46b4bcbc5ef47593b75476599">More...</a><br /></td></tr>
@@ -415,6 +425,10 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 <tr class="memitem:a64a43e03c5264dd077092fb4a37d8deb"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1Selection.html#a64a43e03c5264dd077092fb4a37d8deb">principal_orient</a> (Array3i_const_ref pbc=noPBC, int pbc_atom=-1)</td></tr>
 <tr class="memdesc:a64a43e03c5264dd077092fb4a37d8deb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Orient molecule by its principal axes.  <a href="#a64a43e03c5264dd077092fb4a37d8deb">More...</a><br /></td></tr>
 <tr class="separator:a64a43e03c5264dd077092fb4a37d8deb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a21b33fccbfa64ed4d5898c4f4eb563d9"><td class="memItemLeft" align="right" valign="top"><a id="a21b33fccbfa64ed4d5898c4f4eb563d9"></a>
+int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1Selection.html#a21b33fccbfa64ed4d5898c4f4eb563d9">num_residues</a> () const</td></tr>
+<tr class="memdesc:a21b33fccbfa64ed4d5898c4f4eb563d9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns total number of residues in selection. Partial residues are also included. <br /></td></tr>
+<tr class="separator:a21b33fccbfa64ed4d5898c4f4eb563d9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><div class="groupHeader">Energy functions</div></td></tr>
 <tr class="memitem:a766e4ac6d12b731df1087cf1fbc9588f"><td class="memItemLeft" align="right" valign="top">Eigen::Vector2f&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1Selection.html#a766e4ac6d12b731df1087cf1fbc9588f">non_bond_energy</a> (float cutoff=0, bool pbc=true) const</td></tr>
 <tr class="memdesc:a766e4ac6d12b731df1087cf1fbc9588f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Self-energy of selection computed within given interaction cut-off.  <a href="#a766e4ac6d12b731df1087cf1fbc9588f">More...</a><br /></td></tr>
@@ -538,6 +552,34 @@ const Eigen::Vector3f &amp;&#160;</td><td class="memItemRight" valign="bottom"><
 <tr class="memitem:ab13648d524061b70d464b625db0c810e"><td class="memItemLeft" align="right" valign="top"><a id="ab13648d524061b70d464b625db0c810e"></a>
 Eigen::Vector3f *&#160;</td><td class="memItemRight" valign="bottom"><b>xyz_ptr</b> (int ind, int fr) const</td></tr>
 <tr class="separator:ab13648d524061b70d464b625db0c810e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2dc852d8561a905cfa59e9848d136fe7"><td class="memItemLeft" align="right" valign="top"><a id="a2dc852d8561a905cfa59e9848d136fe7"></a>
+Eigen::Vector3f &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1Selection.html#a2dc852d8561a905cfa59e9848d136fe7">vel</a> (int ind)</td></tr>
+<tr class="memdesc:a2dc852d8561a905cfa59e9848d136fe7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extracts velocity for current frame. <br /></td></tr>
+<tr class="separator:a2dc852d8561a905cfa59e9848d136fe7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4c37aa5352d1e3c6884b45d88084d153"><td class="memItemLeft" align="right" valign="top"><a id="a4c37aa5352d1e3c6884b45d88084d153"></a>
+const Eigen::Vector3f &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>vel</b> (int ind) const</td></tr>
+<tr class="separator:a4c37aa5352d1e3c6884b45d88084d153"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a32e2dde9788261441f79abdca0f66cd7"><td class="memItemLeft" align="right" valign="top"><a id="a32e2dde9788261441f79abdca0f66cd7"></a>
+Eigen::Vector3f &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1Selection.html#a32e2dde9788261441f79abdca0f66cd7">vel</a> (int ind, int fr)</td></tr>
+<tr class="memdesc:a32e2dde9788261441f79abdca0f66cd7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extracts velocity for given frame fr. <br /></td></tr>
+<tr class="separator:a32e2dde9788261441f79abdca0f66cd7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab067383234a8d5ea4223222c9311dd6c"><td class="memItemLeft" align="right" valign="top"><a id="ab067383234a8d5ea4223222c9311dd6c"></a>
+const Eigen::Vector3f &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>vel</b> (int ind, int fr) const</td></tr>
+<tr class="separator:ab067383234a8d5ea4223222c9311dd6c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9943ed0459b92ce9e99bc149c080729f"><td class="memItemLeft" align="right" valign="top"><a id="a9943ed0459b92ce9e99bc149c080729f"></a>
+Eigen::Vector3f &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1Selection.html#a9943ed0459b92ce9e99bc149c080729f">force</a> (int ind)</td></tr>
+<tr class="memdesc:a9943ed0459b92ce9e99bc149c080729f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extracts force for current frame. <br /></td></tr>
+<tr class="separator:a9943ed0459b92ce9e99bc149c080729f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0ff72d3be8b1e8f12e83453e18d7bb8a"><td class="memItemLeft" align="right" valign="top"><a id="a0ff72d3be8b1e8f12e83453e18d7bb8a"></a>
+const Eigen::Vector3f &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>force</b> (int ind) const</td></tr>
+<tr class="separator:a0ff72d3be8b1e8f12e83453e18d7bb8a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a10989d9a7868fbf911c3d0b438a9c1cc"><td class="memItemLeft" align="right" valign="top"><a id="a10989d9a7868fbf911c3d0b438a9c1cc"></a>
+Eigen::Vector3f &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1Selection.html#a10989d9a7868fbf911c3d0b438a9c1cc">force</a> (int ind, int fr)</td></tr>
+<tr class="memdesc:a10989d9a7868fbf911c3d0b438a9c1cc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extracts force for given frame fr. <br /></td></tr>
+<tr class="separator:a10989d9a7868fbf911c3d0b438a9c1cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a53d1ebc39ae2e9baac4ee57c569386ee"><td class="memItemLeft" align="right" valign="top"><a id="a53d1ebc39ae2e9baac4ee57c569386ee"></a>
+const Eigen::Vector3f &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>force</b> (int ind, int fr) const</td></tr>
+<tr class="separator:a53d1ebc39ae2e9baac4ee57c569386ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8bde2059436e2d70e9175f923f6ff3c1"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpteros_1_1Selection.html#a8bde2059436e2d70e9175f923f6ff3c1">index</a> (int ind) const</td></tr>
 <tr class="memdesc:a8bde2059436e2d70e9175f923f6ff3c1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extracts type.  <a href="#a8bde2059436e2d70e9175f923f6ff3c1">More...</a><br /></td></tr>
 <tr class="separator:a8bde2059436e2d70e9175f923f6ff3c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1473,6 +1515,48 @@ int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class
 
 </div>
 </div>
+<a id="a45df77222ee12426c083febb664414ce"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a45df77222ee12426c083febb664414ce">&#9670;&nbsp;</a></span>get_vel()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">MatrixXf Selection::get_vel </td>
+          <td>(</td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>make_row_major_matrix</em> = <code>false</code></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Get velocities of all atoms in this selection for the current frame By default columnt of the matrix contain atom coordinates. </p>
+<p>Optional flag turns this to row-major format (mainly used by python binding) </p>
+
+</div>
+</div>
+<a id="a7f5983e3f75f3ef19d9f6d2d67427d0d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7f5983e3f75f3ef19d9f6d2d67427d0d">&#9670;&nbsp;</a></span>get_force()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">MatrixXf Selection::get_force </td>
+          <td>(</td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>make_row_major_matrix</em> = <code>false</code></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Get forces of all atoms in this selection for the current frame By default columnt of the matrix contain atom coordinates. </p>
+<p>Optional flag turns this to row-major format (mainly used by python binding) </p>
+
+</div>
+</div>
 <a id="ac8e8dcd46b4bcbc5ef47593b75476599"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ac8e8dcd46b4bcbc5ef47593b75476599">&#9670;&nbsp;</a></span>is_large()</h2>
 
@@ -2365,7 +2449,7 @@ template&lt;class F &gt; </div>
 </div><div class="memdoc">
 
 <p>Returns time stamp of the frame pointed by selection The same as: </p>
-<div class="fragment"><div class="line">sel.get_system()-&gt;Time(sel.get_frame());</div></div><!-- fragment --><p> This is a convenience method. The same time is returnedby all selection which point to the same frame. </p>
+<div class="fragment"><div class="line">sel.get_system()-&gt;Time(sel.get_frame());</div></div><!-- fragment --><p> This is a convenience method. The same time is returned by all selection which point to the same frame. </p>
 
 </div>
 </div>
@@ -2685,7 +2769,7 @@ template&lt;class F &gt; </div>
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><b>pteros</b></li><li class="navelem"><a class="el" href="classpteros_1_1Selection.html">Selection</a></li>
-    <li class="footer">Generated on Sat Dec 22 2018 19:29:37 for Pteros by
+    <li class="footer">Generated on Sun Apr 5 2020 17:40:38 for Pteros by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.13 </li>
   </ul>

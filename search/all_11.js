@@ -11,7 +11,6 @@ var searchData=
   ['trajectory_5freader',['Trajectory_reader',['../classpteros_1_1Trajectory__reader.html',1,'pteros::Trajectory_reader'],['../classpteros_1_1Trajectory__reader.html#a4c72c90010f762460f7b3fd43abf885d',1,'pteros::Trajectory_reader::Trajectory_reader()'],['../classpteros_1_1Trajectory__reader.html#afdbd60d242ecb678b81ffdbb572e0e68',1,'pteros::Trajectory_reader::Trajectory_reader(const Options &amp;opt)']]],
   ['translate',['translate',['../classpteros_1_1Selection.html#a13c49888503f09aaa0de55205fd99adb',1,'pteros::Selection']]],
   ['translate_5fto',['translate_to',['../classpteros_1_1Selection.html#a6a5f6fcc61bfeed975eeef5a60f4fa45',1,'pteros::Selection']]],
-  ['trr_5ffile',['TRR_file',['../classpteros_1_1TRR__file.html',1,'pteros']]],
   ['type',['type',['../classpteros_1_1Atom.html#a6737d0b88bda2afb13687c030bad92cd',1,'pteros::Atom']]],
   ['type_5fname',['type_name',['../classpteros_1_1Atom.html#afab1dbe2cf219a5927dd5406c95a4672',1,'pteros::Atom']]]
 ];

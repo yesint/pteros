@@ -83,6 +83,7 @@ $(document).ready(function(){initNavTree('structpteros_1_1Frame.html','');});
 
 <div class="header">
   <div class="summary">
+<a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#pub-attribs">Public Attributes</a> &#124;
 <a href="structpteros_1_1Frame-members.html">List of all members</a>  </div>
   <div class="headertitle">
@@ -95,12 +96,33 @@ $(document).ready(function(){initNavTree('structpteros_1_1Frame.html','');});
 
 <p><code>#include &lt;<a class="el" href="system_8h_source.html">system.h</a>&gt;</code></p>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
+Public Member Functions</h2></td></tr>
+<tr class="memitem:a5bbcde36e11b6202bc8107d9e50cca57"><td class="memItemLeft" align="right" valign="top"><a id="a5bbcde36e11b6202bc8107d9e50cca57"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>has_vel</b> () const</td></tr>
+<tr class="separator:a5bbcde36e11b6202bc8107d9e50cca57"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a47817a93187b0688cb8c68169c74dfca"><td class="memItemLeft" align="right" valign="top"><a id="a47817a93187b0688cb8c68169c74dfca"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>has_force</b> () const</td></tr>
+<tr class="separator:a47817a93187b0688cb8c68169c74dfca"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1f5ccf36908b99d1fbd17f778081aaba"><td class="memItemLeft" align="right" valign="top"><a id="a1f5ccf36908b99d1fbd17f778081aaba"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpteros_1_1Frame.html#a1f5ccf36908b99d1fbd17f778081aaba">swap</a> (int i, int j)</td></tr>
+<tr class="memdesc:a1f5ccf36908b99d1fbd17f778081aaba"><td class="mdescLeft">&#160;</td><td class="mdescRight">Swap values for atoms i and j taking care of v and f. <br /></td></tr>
+<tr class="separator:a1f5ccf36908b99d1fbd17f778081aaba"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:accedb8b5b82c7f44a947f43af20ea2d4"><td class="memItemLeft" align="right" valign="top"><a id="accedb8b5b82c7f44a947f43af20ea2d4"></a>
 std::vector&lt; Eigen::Vector3f &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpteros_1_1Frame.html#accedb8b5b82c7f44a947f43af20ea2d4">coord</a></td></tr>
 <tr class="memdesc:accedb8b5b82c7f44a947f43af20ea2d4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Coordinates of atoms. <br /></td></tr>
 <tr class="separator:accedb8b5b82c7f44a947f43af20ea2d4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9732eedd594f61d66bcba18d56c7c971"><td class="memItemLeft" align="right" valign="top"><a id="a9732eedd594f61d66bcba18d56c7c971"></a>
+std::vector&lt; Eigen::Vector3f &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpteros_1_1Frame.html#a9732eedd594f61d66bcba18d56c7c971">vel</a></td></tr>
+<tr class="memdesc:a9732eedd594f61d66bcba18d56c7c971"><td class="mdescLeft">&#160;</td><td class="mdescRight">Velocities of atoms. <br /></td></tr>
+<tr class="separator:a9732eedd594f61d66bcba18d56c7c971"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a11840cb48744563072c869a048f3d3a6"><td class="memItemLeft" align="right" valign="top"><a id="a11840cb48744563072c869a048f3d3a6"></a>
+std::vector&lt; Eigen::Vector3f &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpteros_1_1Frame.html#a11840cb48744563072c869a048f3d3a6">force</a></td></tr>
+<tr class="memdesc:a11840cb48744563072c869a048f3d3a6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Forces of atoms. <br /></td></tr>
+<tr class="separator:a11840cb48744563072c869a048f3d3a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3a92d02103af134ad46d07fbc72ae461"><td class="memItemLeft" align="right" valign="top"><a id="a3a92d02103af134ad46d07fbc72ae461"></a>
 <a class="el" href="classpteros_1_1Periodic__box.html">Periodic_box</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpteros_1_1Frame.html#a3a92d02103af134ad46d07fbc72ae461">box</a></td></tr>
 <tr class="memdesc:a3a92d02103af134ad46d07fbc72ae461"><td class="mdescLeft">&#160;</td><td class="mdescRight">Periodic box. <br /></td></tr>
@@ -113,8 +135,9 @@ float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="str
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Definition of single trajectory frame. </p>
 <p>Frames are stored in <a class="el" href="classpteros_1_1System.html" title="The system of atoms. ">System</a> class. They represent actual trajectory frames, which are loaded from MD trajectories. Coordinates are stored in nm as in Gromacs, not in Angstroms! </p>
-</div><hr/>The documentation for this struct was generated from the following file:<ul>
+</div><hr/>The documentation for this struct was generated from the following files:<ul>
 <li>include/pteros/core/<a class="el" href="system_8h_source.html">system.h</a></li>
+<li>src/core/system.cpp</li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->
@@ -122,7 +145,7 @@ float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="str
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><b>pteros</b></li><li class="navelem"><a class="el" href="structpteros_1_1Frame.html">Frame</a></li>
-    <li class="footer">Generated on Sat Dec 22 2018 19:29:37 for Pteros by
+    <li class="footer">Generated on Sun Apr 5 2020 17:40:38 for Pteros by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.13 </li>
   </ul>

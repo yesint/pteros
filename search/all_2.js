@@ -4,6 +4,8 @@ var searchData=
   ['chain',['chain',['../classpteros_1_1Atom.html#a5b230d8d51271a082f579293c1e83821',1,'pteros::Atom']]],
   ['charge',['charge',['../classpteros_1_1Atom.html#a6e1e0c1d214e0d49522506c6bc2aef17',1,'pteros::Atom']]],
   ['clear',['clear',['../classpteros_1_1Selection.html#a42c62cee4f889ef466446b408054ea19',1,'pteros::Selection::clear()'],['../classpteros_1_1System.html#a66bdd137db3fc914bbfe9518b6c71017',1,'pteros::System::clear()']]],
+  ['clear_5fforce',['clear_force',['../classpteros_1_1System.html#a2dc498f6260285fea8cf11d4bac8d15a',1,'pteros::System']]],
+  ['clear_5fvel',['clear_vel',['../classpteros_1_1System.html#a0499095aefc5ad9ae86e2e07cf42c43a',1,'pteros::System']]],
   ['closest_5fimage',['closest_image',['../classpteros_1_1Periodic__box.html#a342df0b5229cffbffe6e0fe665baefa0',1,'pteros::Periodic_box']]],
   ['coord',['coord',['../structpteros_1_1Frame.html#accedb8b5b82c7f44a947f43af20ea2d4',1,'pteros::Frame']]],
   ['coord_5fdependent',['coord_dependent',['../classpteros_1_1Selection.html#a24b208b1443a2e2ef93fdd5afa6ade12',1,'pteros::Selection']]],

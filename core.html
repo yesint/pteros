@@ -876,14 +876,14 @@ Solvent accessible surface area</h1>
 <li><a class="el" href="classpteros_1_1Selection.html#a6c7a6301a3039d77c6ffe7cc61726012" title="Get the SASA using powersasa algorithm. Returns area and computes volume and per-atom values if asked...">Selection::powersasa()</a>. Implements modern and robust POWERSASA algorithm developed in the <a href="http://www.kit.edu/english/">Karlsruhe Institute of Technology</a> and inclided into <a href="http://www.int.kit.edu/1636.php">SIMONA</a> package. This is fast algorithm of computing area of the molecules based on rather complex theory of power diagrams (<a href="http://onlinelibrary.wiley.com/doi/10.1002/jcc.21844/abstract">paper</a>). The method <a class="el" href="classpteros_1_1Selection.html#a6c7a6301a3039d77c6ffe7cc61726012" title="Get the SASA using powersasa algorithm. Returns area and computes volume and per-atom values if asked...">Selection::powersasa()</a> returns the solvent accessible area of atoms in selection. Optional argument could be used to set the probe radius and to get additional data like total volume, area per atom and volume per atom.</li>
 <li><a class="el" href="classpteros_1_1Selection.html#a83fab26d0b95584d51d4e1c4b2395cc9" title="Get SASA using Shrake and Rupley algorithm (slower than powersasa and can&#39;t compute volumes) ...">Selection::sasa()</a>. Implements older and slower Shrake and Rupley algorithm. The code is borrowed from <a href="mdtraj.org">MDTraj</a>. It is free from licence restrictions of POWERSASA (see note below) but slower and less functional, particularly it can't compute volumes.</li>
 </ul>
-<dl class="section note"><dt>Note</dt><dd>POWERSASA code is not open source. I contacted the authors of POWERSASA several times to ask for official permision to use their code in Pteros but all requestes were ignored. I concluded that nobody is concerned about the licensing of POWERSASA now. However, compilation of this code is disabled by default. See <a class="el" href="install.html#sasa">Enabling SASA code</a> for details how to enable it. </dd></dl>
+<dl class="section note"><dt>Note</dt><dd>POWERSASA code is not open source. I contacted the authors of POWERSASA several times to ask for official permision to use their code in Pteros but all requestes were ignored. I concluded that nobody is concerned about the licensing of POWERSASA now. However, compilation of this code is disabled by default. See <a class="el" href="install.html#sasa">SASA code</a> for details how to enable it. </dd></dl>
 </div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="manual.html">User manual</a></li>
-    <li class="footer">Generated on Sat Dec 22 2018 19:29:37 for Pteros by
+    <li class="footer">Generated on Sun Apr 5 2020 17:40:38 for Pteros by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.13 </li>
   </ul>

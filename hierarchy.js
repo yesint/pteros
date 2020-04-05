@@ -20,10 +20,6 @@ var hierarchy =
     [ "pteros::Mol_file", "classpteros_1_1Mol__file.html", [
       [ "pteros::Babel_wrapper", "classpteros_1_1Babel__wrapper.html", null ],
       [ "pteros::GRO_file", "classpteros_1_1GRO__file.html", null ],
-      [ "pteros::Gromacs_trajectory_file", "classpteros_1_1Gromacs__trajectory__file.html", [
-        [ "pteros::TRR_file", "classpteros_1_1TRR__file.html", null ],
-        [ "pteros::XTC_file", "classpteros_1_1XTC__file.html", null ]
-      ] ],
       [ "pteros::VMD_molfile_plugin_wrapper", "classpteros_1_1VMD__molfile__plugin__wrapper.html", [
         [ "pteros::DCD_file", "classpteros_1_1DCD__file.html", null ],
         [ "pteros::MOL2_file", "classpteros_1_1MOL2__file.html", null ],

@@ -3,8 +3,9 @@ var searchData=
   ['get_5fbeta',['get_beta',['../classpteros_1_1Selection.html#a861f9b640368086391b7768da8ae85e1',1,'pteros::Selection']]],
   ['get_5fchain',['get_chain',['../classpteros_1_1Selection.html#a40a8bc406f9f61d76a20790cfa4b456e',1,'pteros::Selection']]],
   ['get_5fcharge',['get_charge',['../classpteros_1_1Selection.html#a8e7aea825fb9007aca4ebd4f3fffa4c1',1,'pteros::Selection']]],
-  ['get_5fcontent_5ftype',['get_content_type',['../classpteros_1_1DCD__file.html#a2b2c87af41db7c8a50dbb5d18e074518',1,'pteros::DCD_file::get_content_type()'],['../classpteros_1_1GRO__file.html#af29963d0fd7c309a4198a0d4b4054025',1,'pteros::GRO_file::get_content_type()'],['../classpteros_1_1Gromacs__trajectory__file.html#a422e0b34e5b06a150b15924ce0fcb2b5',1,'pteros::Gromacs_trajectory_file::get_content_type()'],['../classpteros_1_1MOL2__file.html#a7d19c46a01b85afc9c6c82dc10462d9a',1,'pteros::MOL2_file::get_content_type()'],['../classpteros_1_1PDB__file.html#a1fcbc6d94c9b5a5d78b6f664a675cdad',1,'pteros::PDB_file::get_content_type()'],['../classpteros_1_1TNG__file.html#afb1164dd3c402cbe8f0345ecd9114c83',1,'pteros::TNG_file::get_content_type()'],['../classpteros_1_1XYZ__file.html#a93e6baa89db535dfec05d2a417894201',1,'pteros::XYZ_file::get_content_type()'],['../classpteros_1_1Mol__file.html#ab8701cf5b8a82a5c4894895570b6246f',1,'pteros::Mol_file::get_content_type()']]],
+  ['get_5fcontent_5ftype',['get_content_type',['../classpteros_1_1DCD__file.html#a2b2c87af41db7c8a50dbb5d18e074518',1,'pteros::DCD_file::get_content_type()'],['../classpteros_1_1GRO__file.html#af29963d0fd7c309a4198a0d4b4054025',1,'pteros::GRO_file::get_content_type()'],['../classpteros_1_1MOL2__file.html#a7d19c46a01b85afc9c6c82dc10462d9a',1,'pteros::MOL2_file::get_content_type()'],['../classpteros_1_1PDB__file.html#a1fcbc6d94c9b5a5d78b6f664a675cdad',1,'pteros::PDB_file::get_content_type()'],['../classpteros_1_1TNG__file.html#afb1164dd3c402cbe8f0345ecd9114c83',1,'pteros::TNG_file::get_content_type()'],['../classpteros_1_1XYZ__file.html#a93e6baa89db535dfec05d2a417894201',1,'pteros::XYZ_file::get_content_type()'],['../classpteros_1_1Mol__file.html#ab8701cf5b8a82a5c4894895570b6246f',1,'pteros::Mol_file::get_content_type()']]],
   ['get_5fcutoff',['get_cutoff',['../classpteros_1_1Force__field.html#ad82ba9dd7462d1bf9cdc76bd8729e758',1,'pteros::Force_field']]],
+  ['get_5fforce',['get_force',['../classpteros_1_1Selection.html#a7f5983e3f75f3ef19d9f6d2d67427d0d',1,'pteros::Selection']]],
   ['get_5fforce_5ffield',['get_force_field',['../classpteros_1_1System.html#aba072ecbc9a36c69fe61d7f1caf8ac70',1,'pteros::System']]],
   ['get_5fframe',['get_frame',['../classpteros_1_1Selection.html#a6c95da6478dd84a944a644984b6d93cf',1,'pteros::Selection']]],
   ['get_5findex',['get_index',['../classpteros_1_1Selection.html#abeceb23a4ebaf2680c0931d1bce45c5f',1,'pteros::Selection']]],
@@ -21,6 +22,7 @@ var searchData=
   ['get_5ftag',['get_tag',['../classpteros_1_1Selection.html#af1096ff150a12ee74ed390ffdec8df08',1,'pteros::Selection']]],
   ['get_5ftext',['get_text',['../classpteros_1_1Selection.html#a718b9c2d3a20c83fd8cde294ec0d26e6',1,'pteros::Selection']]],
   ['get_5fvector',['get_vector',['../classpteros_1_1Periodic__box.html#af3a8443d0207e60fe098e45c9591f69d',1,'pteros::Periodic_box']]],
-  ['get_5fxyz',['get_xyz',['../classpteros_1_1Selection.html#aca8593101b99b053d6b9fe04349b027c',1,'pteros::Selection::get_xyz(bool make_row_major_matrix=false) const'],['../classpteros_1_1Selection.html#a9a71828e534bd9169e9db282c2acdda1',1,'pteros::Selection::get_xyz(MatrixXf_ref res) const']]],
+  ['get_5fvel',['get_vel',['../classpteros_1_1Selection.html#a45df77222ee12426c083febb664414ce',1,'pteros::Selection']]],
+  ['get_5fxyz',['get_xyz',['../classpteros_1_1Selection.html#aca8593101b99b053d6b9fe04349b027c',1,'pteros::Selection']]],
   ['gyration',['gyration',['../classpteros_1_1Selection.html#a2f624fa542634418806429d44161ab17',1,'pteros::Selection']]]
 ];
