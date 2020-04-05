@@ -4,7 +4,7 @@
 
 \section port 	Portability
 
-Pteros is currently being developed on Linux Mint with gcc and clang compilers. Design decisions are made with portability to Linux, Windows and MacOS in mind but no testing on Windows and MacOS are made. Other systems are never considered. The code itself should be 100% portable providing that the dependencies are available for your system, but expect platform-dependent quirks and issues, which are common to all complex C++ programs, not only to Pteros.
+Pteros is currently being developed on Linux Mint with gcc and clang compilers. Design decisions are made with portability to Linux, Windows and MacOS in mind but no testing on Windows and MacOS are made. Other systems were never considered. The code itself should be 100% portable providing that the dependencies are available for your system, but expect platform-dependent quirks and issues, which are common to all complex C++ programs, not only to Pteros.
 
 \note
 If you managed to compile Pteros on MacOS, please share your experience because we have no Mac machines to perform the tests.
@@ -18,37 +18,37 @@ Intel ICC compiler was tested in the past on Linux, but was giving poor performa
 \section depend     Dependencies
 The prerequisites for compilation of Pteros are the following.
 
-Core dependencies:
+Core dependencies, that should be installed separately:
 - Standard-conforming C and C++11 compilers (tested with gcc>=4.8, clang>=3.1).
 - <a href="http://www.cmake.org/">cmake</a> build system.
 - <a href="http://www.boost.org/">boost</a> 1.48 or higher.
-- <a href="http://eigen.tuxfamily.org/index.php?title=Main_Page">Eigen</a> linear algebra library (>=3.2).
 - <a href="http://git-scm.com/">Git</a> for getting the source code.
+- <a href="https://www.python.org/">Python</a> 3.5 or higher (optional, needed for compiling dynamic plugins and python bindings).
+
+Dependencies, which are pulled in automatically by Pteros, but could also be used if installed system-wide:
+- <a href="http://eigen.tuxfamily.org/index.php?title=Main_Page">Eigen</a> linear algebra library (>=3.2).
+- <a href="https://github.com/gabime/spdlog">spdlog</a> Logging and text formatting library.
+- <a href="https://github.com/pybind/pybind11">Pybind11</a> binding generator library (optional, only needed for python bindings).
 
 Optional dependencies:
 
-For reading Gromacs TPR files and using Gromacs topologies (optional):
-- <a href="http://www.gromacs.org/">Gromacs</a> version 2016.x or higher.
+- <a href="http://www.gromacs.org/">Gromacs</a> version 2016.x or higher (for reading Gromacs TPR files and using Gromacs topologies).
+- <a href="https://github.com/openbabel/openbabel">OpenBabel</a> version 2.4 or higher (for reading MOL2 and PDBQT files, performing substructure search, determinign molecular symmetry).
 
-For reading MOL2 and PDBQT files, performing substructure search, determinign molecular symmetry :
-- <a href="https://github.com/openbabel/openbabel">OpenBabel</a> version 2.4 or higher.
-
-For compiling dynamic plugins and python bindings (optional if you only want C++ core):
-- <a href="https://www.python.org/">Python</a> (3.5 or higher).
-- <a href="https://github.com/pybind/pybind11">Pybind11</a> binding generator library.
 
 For building documentation (don't needed unless you want to contribute to the docs):
 - <a href="www.doxygen.org">Doxygen</a>
 - <a href="http://sphinx-doc.org/">Sphinx</a>
 
-If you are using latest Ubuntu or other debian-based system it should be enough to run the following command in the terminal to install most of dependencies:
+If you are using latest Ubuntu or other debian-based system it should be enough to run the following command in the terminal to install basic dependencies:
 \code{.unparsed}
 sudo apt-get install g++ cmake libeigen3-dev libboost-all-dev python3.5-dev python3.5-numpy pybind11-dev git doxygen python-sphinx
 \endcode
 
-\note If you need Gromacs support it is highly recommended to install it from source because version in the repositories is usually outdated significantly.
-
-\warning OpenBabel have to be install from source in Ubuntu 16.x and 18.x (and probably in later versions as well) because repository packages are corrupted and lack some header files. Do not install dev packege from repositories - it won't work! Your milleage in other linuxes may vary depending on the package quality. Compiled version of OpenBabel does not interfere with system version if installed to /usr/local (default).
+\warning
+- If you need Gromacs support it is highly recommended to install it from source because version in the repositories is usually outdated. Even if you prefer to use the version from repositories, you have to download the Gromacs source code matching your version since recent versions of Gromacs do not install all necessary low-level headers, which are used by Pteros.
+- In Ubuntu the spdlog package is corrupted and lacks some necessary files, thus is it advised not to install it system-wide and let Pteros to pull it from git repository automatically instead.
+- OpenBabel have to be install from source in Ubuntu 16.x and 18.x (and probably in later versions as well) because repository packages are corrupted and lack some header files. Do not install dev packege from repositories - it won't work! Your milleage in other linuxes may vary depending on the package quality. Compiled version of OpenBabel does not interfere with system version if installed to /usr/local (default).
 \code{.unparsed}
 git clone https://github.com/openbabel/openbabel.git
 mkdir openbabel-build
@@ -56,8 +56,7 @@ cd openbabel-build
 cmake ../openbabel
 sudo make install
 \endcode
-
-In older Ubuntu releases pybind11 is not yet packaged so it should be installed from source:
+- In older Ubuntu releases pybind11 is not packaged so you should let Pteros to pull it in automatically or to install it yourself from source:
 \code{.unparsed}
 git clone https://github.com/pybind/pybind11.git
 mkdir pybind11-build
@@ -91,11 +90,9 @@ The cmake command will print something like this:
 \code{.unparsed}
 ------------------------------
 IMPORTANT!
-In order to be able to link with Pteros and to use Pteros Python modules
-you have to add the following lines to your .bashrc file:
-export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:<path to Pteros>/lib"
-export PYTHONPATH="$PYTHONPATH:<path to Pteros>/python"
-export PATH="$PATH:<path to Pteros>/bin"
+In order to be able to link with` Pteros and to use Pteros Python modules
+you have to source the pterosrc file in your bash shell:
+source /home/semen/programs/pteros/lib/pterosrc
 ------------------------------
 \endcode
 
@@ -133,21 +130,25 @@ If you see any errors then Pteros can't load plugins or something elese went wro
 
 \note This is only applicable if you are building with Python support!
 
-\subsection sasa Enabling SASA code
+\subsection sasa SASA code
 
 Pteros performs the Solvent Accesible Surface Area (SASA) computatations using POWERSASA code developed in the <a href="http://www.kit.edu/english/">Karlsruhe Institute of Technology</a>. POWERSASA is licensed by specific and rather restrictive "Academic/Non-Profit SASA software license agreement".
 See the comment file `thirdparty/sasa/LICENSE` for details.
-This license is NOT Open Source and implies many restrictions. I contacted the authors of POWERSASA several times and asked for official permision to use their code but got no reply. It seems that the project is abandoned and nobody is concerned about the licensing of POWERSASA.
-If you still don't want to use this code due to licensing concerns you can swith it off:
+This license is NOT Open Source and implies many restrictions. I contacted the authors of POWERSASA several times and asked for official permision to use their code but got no reply. It seems that the project is abandoned and nobody is concerned about the licensing of POWERSASA for many years.
+If you still don't want to use this code due to licensing concerns, you can swith it off:
 \code{.unparsed}
--DWITH_POWERSASA="OFF"
+-DWITH_POWERSASA=OFF
 \endcode
 
 \subsection gmx Enabling Gromacs support
 
 Pteros could be linked against Gromacs. In this case it can read Gromacs TPR files and make advantage of Gromacs topologies.
-CMake can find Gromacs if it is either installed from repository package into standard location (/lib) or compiled from source and installed into default location (/usr/local). In other cases you should provide path to the directory containing gromacs-config.cmake file. For example:
-\code{.unparsed} -Dgromacs_DIR="/some-custom-path/gromacs/share/cmake/gromacs" \endcode
+
+Unfortunately Gromacs developers changed the public API dramatically starting from version 2020.x, while Pteros still needs some low-level facilities which are now not exposed in the installed headers. There are also bugs in Gromacs CMake files, which prevents it from being discovered and imported normally. Due to all these complications linking with Gromacs bocomes a bit more involved than it should be:
+- In addition to normal Gromacs installation you need a source code matching exactly the version installed.
+- You need to use the following CMake flags:
+\code{.unparsed} -DWITH_GROMACS=ON -DGROMACS_SOURCE=<path to gromacs source tree> -DGROMACS_LIBRARIES=<path to installed gromacs libs> \endcode
+
 
 \subsection no_python 	Building without Python
 
@@ -161,11 +162,11 @@ In this case compiled C++ plugins are not built as python extension modules and 
 
 Compiled analysis plugins, which are written in C++, are compiled as Python extensions by default. However, it is possible to build each plugin as a separate standalone program, which does not depend on Python, by adding the following flag to CMake:
 
-\code{.unparsed} -DSTANDALONE_PLUGINS="ON" \endcode
+\code{.unparsed} -DSTANDALONE_PLUGINS=ON \endcode
 
 If you want to build plugins as the standalone programs AND as python extensions at the same time use the following flags:
 \code{.unparsed}
-cmake <usual options> -DWITH_PYTHON="ON" -DSTANDALONE_PLUGINS="ON"
+cmake <usual options> -DWITH_PYTHON=ON -DSTANDALONE_PLUGINS=ON
 make
 make install
 \endcode
@@ -175,10 +176,10 @@ In this case each plugin will be compiled twice, so expect longer compilation ti
 
 \subsection no_omp Building Pteros without OpenMP
 
-By default Pteros is compiled with OpenMP paralellization for many internal operations. However, on certain computational clusters running SGE scheduler the usage of OpenMP is prohibited. There are also other situations when you may want to disable OpenMP. Use the following flag to compile without OpenMP:
+By default Pteros is compiled with OpenMP paralellization for many internal operations. However, on certain computational clusters the usage of OpenMP is prohibited. There are also other situations when you may want to disable OpenMP. Use the following flag to compile without OpenMP:
 
 \code{.unparsed}
-cmake <usual options> -DWITH_OPENMP="OFF"
+cmake <usual options> -DWITH_OPENMP=OFF
 \endcode
 
 
@@ -194,5 +195,9 @@ Use <a href="https://github.com/yesint/pteros/issues">issues on Github</a> to re
 \code{.unparsed} -DBoost_NO_SYSTEM_PATHS=ON -DBOOST_ROOT="Correct path to boost" \endcode
 - All Pteros plugins have to be up to date with the main library, but CMake doesn't always ensure this if you pull new updates from the repository. If plugins suddenly stop working after update delete CMakeCache.txt and CMakeFiles and recompile.
 - The error <i>"trying to overwrite '/usr/include/spdlog/async_logger.h', which is also in package libspdlog-dev 1.6-1"</i> occurs during installation. This happens if you have `spdlog` installed system-wide in Ubuntu from the package `libspdlog-dev`. This package is built in a wrong way and it lacks `spdlogConfig.cmake` file needed for correct library detection. That is why Pteros can't see it and tries to install its own bundled version of spdlog. Use `INSTALL_INTERNAL_SPDLOG=OFF` as a workaround.
+- On some systems, following some obscure CMake logic, certain third-party libraries are installed into `lib64` directory, while pteros libraries are installed to `lib`. So far I've seen this only once, but if you get the error message like <i>"can't find libtng_io.so"</i> you are likely to be affected by this strange behavior of CMake. In order to fix, find the file `<pteros install path>/lib/pterosrc` and add `lib64` to the first line. It should read:
+\code{.unparsed}
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:<path>/pteros/lib:<path>/pteros/lib64
+\endcode
 
 */
