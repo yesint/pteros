@@ -1,0 +1,13 @@
+language: cpp
+
+sudo: required
+
+services:
+  - docker
+  
+before_script:
+ - docker pull burningdaylight/docker-mingw-qt5
+
+script:
+ - mkdir build
+ - docker run --user $(id -u):$(id -g) --rm -v ${TRAVIS_BUILD_DIR}:/workdir:rw burningdaylight/docker-mingw-qt5 /bin/bash -c "cd build && x86_64-w64-mingw32-cmake -DWITH_PYTHON=OFF -DWITH_OPENBABEL=OFF -DWITH_GROMACS=OFF -DWITH_TNGIO=OFF .. && make"
