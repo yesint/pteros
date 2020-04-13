@@ -102,7 +102,7 @@ endmacro()
 
 # Boost
 set(Boost_USE_STATIC_LIBS OFF)
-find_package(Boost 1.50 REQUIRED COMPONENTS system date_time)
+find_package(Boost 1.50 REQUIRED COMPONENTS system date_time filesystem)
 
 # Eigen
 find_package(Eigen3 3.3 NO_MODULE)
