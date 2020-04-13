@@ -3,7 +3,7 @@ add_library(pteros_gnm SHARED
     ${PROJECT_SOURCE_DIR}/include/pteros/extras/gnm.h
     )
 
-target_link_libraries(pteros_gnm pteros)
+target_link_libraries(pteros_gnm spdlog::spdlog pteros)
 
 install(TARGETS pteros_gnm
     RUNTIME DESTINATION bin
