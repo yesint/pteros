@@ -31,6 +31,7 @@ OPTION(WITH_PYTHON "Build python bindings and compile analysis plugins as Python
 OPTION(WITH_OPENMP "Use OpenMP parallelization" ON)
 OPTION(WITH_OPENBABEL "Use OpenBabel. Required to read pdbqt files and for substructure search." ON)
 OPTION(WITH_GROMACS "Use Gromacs. Required to read tpr files." ON)
+OPTION(WITH_TNGIO "Use TNG_IO. Required to read tng files." ON)
 OPTION(WITH_POWERSASA "Use POWERSASA code. This implies license restrictions described here: thirdparty/sasa/LICENSE" ON)
 
 OPTION(MAKE_STANDALONE_PLUGINS "Compile analysis plugins as stand-alone executables" OFF)
@@ -187,7 +188,9 @@ endif()
 #----------------------------
 
 # tng_io
-add_subdirectory(thirdparty/tng_io)
+if(WITH_TNGIO)
+    add_subdirectory(thirdparty/tng_io)
+endif()
 
 # DSSP library
 add_subdirectory(thirdparty/dssp)

@@ -294,9 +294,12 @@ void VMD_molfile_plugin_wrapper::do_write(const Selection &sel, const Mol_file_c
 
 IMPORT_PLUGIN(pdb)
 IMPORT_PLUGIN(dcd)
-IMPORT_PLUGIN(tng)
 IMPORT_PLUGIN(xyz)
 IMPORT_PLUGIN(mol2)
+
+#ifdef USE_TNGIO
+IMPORT_PLUGIN(tng)
+#endif
 
 molfile_plugin_t *cur_plugin;
 string cur_name;
@@ -313,10 +316,12 @@ std::map<string,molfile_plugin_t*> register_all_plugins(){
 
     REGISTER_PLUGIN(pdb,ret)
     REGISTER_PLUGIN(dcd,ret)
-    REGISTER_PLUGIN(tng,ret)
     REGISTER_PLUGIN(xyz,ret)
     REGISTER_PLUGIN(mol2,ret)
 
+#ifdef USE_TNGIO
+    REGISTER_PLUGIN(tng,ret)
+#endif
     /*
     LOG()->debug("Registered VMD molfile plugins:");
     for(auto& item: ret){

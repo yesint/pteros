@@ -12,9 +12,7 @@ add_library(pteros_io STATIC
     dcd_file.h
     dcd_file.cpp
     gro_file.h
-    gro_file.cpp    
-    tng_file.h
-    tng_file.cpp
+    gro_file.cpp
     mol2_file.h
     mol2_file.cpp
     xyz_file.h
@@ -24,6 +22,14 @@ add_library(pteros_io STATIC
     xtc_file.h
     xtc_file.cpp
 )
+
+if(WITH_TNGIO)
+    target_sources(pteros_io PRIVATE
+        tng_file.h
+        tng_file.cpp)
+    target_compile_definitions(pteros_io PRIVATE USE_TNGIO)
+    target_link_libraries(pteros_io PRIVATE tng_io)
+endif()
 
 if(WITH_OPENBABEL AND OPENBABEL2_FOUND)
     target_sources(pteros_io PRIVATE
@@ -56,7 +62,6 @@ endif()
 target_link_libraries(pteros_io PRIVATE
     pteros_gromacs_utils
     molfile_plugins
-    tng_io
     spdlog::spdlog
     Boost::boost
     Eigen3::Eigen)
