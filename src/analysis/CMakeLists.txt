@@ -26,6 +26,9 @@ if(WITH_TNGIO)
     target_link_libraries(pteros_analysis PRIVATE tng_io)
 endif()
 
+if(MINGW)
+    target_link_libraries(pteros_analysis PRIVATE spdlog::spdlog)
+endif()
 target_link_libraries(pteros_analysis PUBLIC pteros)
 
 #--------------
