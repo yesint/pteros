@@ -27,8 +27,10 @@ if(WITH_TNGIO)
 endif()
 
 if(MINGW)
+    # Workaround CMake problem on mingw with incorrect implicit linking
     target_link_libraries(pteros_analysis PRIVATE spdlog::spdlog)
 endif()
+
 target_link_libraries(pteros_analysis PUBLIC pteros)
 
 #--------------

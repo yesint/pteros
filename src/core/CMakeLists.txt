@@ -106,7 +106,6 @@ if(WITH_OPENMP AND OpenMP_CXX_FOUND)
 endif()
 
 # Set target properties for exporting
-
 target_include_directories(pteros PUBLIC
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
