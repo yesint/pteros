@@ -31,11 +31,14 @@
 #include "pdb_file.h"
 #include "dcd_file.h"
 #include "gro_file.h"
-#include "tng_file.h"
 #include "mol2_file.h"
 #include "xyz_file.h"
 #include "trr_file.h"
 #include "xtc_file.h"
+
+#ifdef USE_TNGIO
+#include "tng_file.h"
+#endif
 
 #ifdef USE_OPENBABEL
 #include "pdbqt_file.h"
@@ -144,10 +147,12 @@ unique_ptr<Mol_file> Mol_file::recognize(string fname){
     else if(ext=="trr")     return unique_ptr<Mol_file>(new TRR_file(fname));
     else if(ext=="pdb")     return unique_ptr<Mol_file>(new PDB_file(fname));
     else if(ext=="gro")     return unique_ptr<Mol_file>(new GRO_file(fname));
-    else if(ext=="dcd")     return unique_ptr<Mol_file>(new DCD_file(fname));    
-    else if(ext=="tng")     return unique_ptr<Mol_file>(new TNG_file(fname));
+    else if(ext=="dcd")     return unique_ptr<Mol_file>(new DCD_file(fname));
     else if(ext=="mol2")    return unique_ptr<Mol_file>(new MOL2_file(fname));
     else if(ext=="xyz")     return unique_ptr<Mol_file>(new XYZ_file(fname));
+#ifdef USE_TNGIO
+    else if(ext=="tng")     return unique_ptr<Mol_file>(new TNG_file(fname));
+#endif
 #ifdef USE_GROMACS
     else if(ext=="tpr")     return unique_ptr<Mol_file>(new TPR_file(fname));
 #endif

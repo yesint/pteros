@@ -59,7 +59,7 @@
 
 
 /** "WIN32" is defined on both WIN32 and WIN64 platforms... */
-#if (defined(WIN32)) 
+#if (defined(WIN32)) && !defined __MINGW32__
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
