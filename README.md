@@ -1,4 +1,6 @@
 # Pteros
+[![Build Status](https://travis-ci.com/yesint/pteros.svg?branch=master)](https://travis-ci.com/yesint/pteros)
+
 Modern and fast molecular analysis and modeling library for C++ and Python
 
 ### What is Pteros?
