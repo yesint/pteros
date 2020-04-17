@@ -5,7 +5,9 @@
  * ###   Pteros molecular modeling library  ###
  * ============================================
  *
- * (C) 2009-2018, Semen Yesylevskyy
+ * https://github.com/yesint/pteros
+ *
+ * (C) 2009-2020, Semen Yesylevskyy
  *
  * All works, which use Pteros, should cite the following papers:
  *  
@@ -25,6 +27,7 @@
 */
 
 
+
 #include "bindings_util.h"
 #include "pteros/extras/solvate.h"
 
@@ -35,4 +38,5 @@ using namespace pybind11::literals;
 void make_bindings_solvate(py::module& m){
     m.def("solvate", &solvate,"solute"_a,"d"_a=0.25,"solvent_file"_a="","custom_sel"_a="");
 }
+
 

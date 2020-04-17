@@ -5,7 +5,9 @@
  * ###   Pteros molecular modeling library  ###
  * ============================================
  *
- * (C) 2009-2018, Semen Yesylevskyy
+ * https://github.com/yesint/pteros
+ *
+ * (C) 2009-2020, Semen Yesylevskyy
  *
  * All works, which use Pteros, should cite the following papers:
  *  
@@ -23,6 +25,7 @@
  * http://www.opensource.org/licenses/artistic-license-2.0.php
  *
 */
+
 
 
 #include "distance_search_base.h"
@@ -182,4 +185,5 @@ void Nlist_t::append(Vector3i_const_ref coor, bool wrap)
     data.push_back(coor);
     wrapped.push_back(wrap);
 }
+
 

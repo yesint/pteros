@@ -5,7 +5,9 @@
  * ###   Pteros molecular modeling library  ###
  * ============================================
  *
- * (C) 2009-2018, Semen Yesylevskyy
+ * https://github.com/yesint/pteros
+ *
+ * (C) 2009-2020, Semen Yesylevskyy
  *
  * All works, which use Pteros, should cite the following papers:
  *  
@@ -23,6 +25,7 @@
  * http://www.opensource.org/licenses/artistic-license-2.0.php
  *
 */
+
 
 
 #include "pteros/core/selection.h"
@@ -361,4 +364,5 @@ void make_bindings_Selection(py::module& m){
     m.def("copy_coord",[](const Selection& sel1, int fr1, Selection& sel2, int fr2){ return copy_coord(sel1,fr1,sel2,fr2); });
     m.def("copy_coord",[](const Selection& sel1, Selection& sel2){ return copy_coord(sel1,sel2); });
 }
+
 

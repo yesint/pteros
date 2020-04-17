@@ -5,7 +5,9 @@
  * ###   Pteros molecular modeling library  ###
  * ============================================
  *
- * (C) 2009-2018, Semen Yesylevskyy
+ * https://github.com/yesint/pteros
+ *
+ * (C) 2009-2020, Semen Yesylevskyy
  *
  * All works, which use Pteros, should cite the following papers:
  *  
@@ -23,6 +25,7 @@
  * http://www.opensource.org/licenses/artistic-license-2.0.php
  *
 */
+
 
 
 #include "pteros/analysis/options.h"
@@ -296,4 +299,5 @@ vector<string> Option::as_strings() const {
     if(data.empty()) throw Pteros_error("One or more STRING values are expected for key '{}'!",name);
     return data;
 }
+
 

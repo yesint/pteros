@@ -5,7 +5,9 @@
  * ###   Pteros molecular modeling library  ###
  * ============================================
  *
- * (C) 2009-2018, Semen Yesylevskyy
+ * https://github.com/yesint/pteros
+ *
+ * (C) 2009-2020, Semen Yesylevskyy
  *
  * All works, which use Pteros, should cite the following papers:
  *  
@@ -25,6 +27,7 @@
 */
 
 
+
 #include "bindings_util.h"
 #include "pteros/extras/substructure_search.h"
 
@@ -39,4 +42,5 @@ void make_bindings_substructure_search(py::module& m){
     m.def("find_substructures", &find_substructures, "source"_a, "query"_a, "find_all"_a=false);
     m.def("make_equivalent_to_template", &make_equivalent_to_template);
 }
+
 

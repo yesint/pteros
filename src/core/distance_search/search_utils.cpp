@@ -5,7 +5,9 @@
  * ###   Pteros molecular modeling library  ###
  * ============================================
  *
- * (C) 2009-2018, Semen Yesylevskyy
+ * https://github.com/yesint/pteros
+ *
+ * (C) 2009-2020, Semen Yesylevskyy
  *
  * All works, which use Pteros, should cite the following papers:
  *  
@@ -23,6 +25,7 @@
  * http://www.opensource.org/licenses/artistic-license-2.0.php
  *
 */
+
 
 
 #include "search_utils.h"
@@ -46,4 +49,5 @@ void overlap_1d(float a1, float a2, float b1, float b2, float& res1, float& res2
         }
     }
 }
+
 

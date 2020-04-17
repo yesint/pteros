@@ -29,7 +29,7 @@ IF(WITH_PYTHON)
     pybind11_add_module(_pteros_extras ${EXTRAS_FILES})
 
     target_link_libraries(_pteros PRIVATE pteros pteros_analysis)
-    target_link_libraries(_pteros_extras PRIVATE pteros_membrane pteros_solvate)
+    target_link_libraries(_pteros_extras PRIVATE pteros pteros_membrane pteros_solvate)
 
     if(WITH_OPENBABEL AND OPENBABEL2_FOUND)
         target_sources(_pteros_extras PRIVATE bindings_substructure_search.cpp)

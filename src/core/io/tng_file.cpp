@@ -5,7 +5,9 @@
  * ###   Pteros molecular modeling library  ###
  * ============================================
  *
- * (C) 2009-2018, Semen Yesylevskyy
+ * https://github.com/yesint/pteros
+ *
+ * (C) 2009-2020, Semen Yesylevskyy
  *
  * All works, which use Pteros, should cite the following papers:
  *  
@@ -25,6 +27,7 @@
 */
 
 
+
 #include "tng_file.h"
 
 using namespace std;
@@ -34,4 +37,5 @@ using namespace Eigen;
 TNG_file::TNG_file(string &fname): VMD_molfile_plugin_wrapper(fname){
    plugin = molfile_plugins["tng"];
 }
+
 

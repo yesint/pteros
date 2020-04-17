@@ -5,7 +5,9 @@
  * ###   Pteros molecular modeling library  ###
  * ============================================
  *
- * (C) 2009-2018, Semen Yesylevskyy
+ * https://github.com/yesint/pteros
+ *
+ * (C) 2009-2020, Semen Yesylevskyy
  *
  * All works, which use Pteros, should cite the following papers:
  *  
@@ -23,6 +25,7 @@
  * http://www.opensource.org/licenses/artistic-license-2.0.php
  *
 */
+
 
 
 #pragma once
@@ -44,4 +47,5 @@ py::array vector_to_array(std::vector<T>* ptr, size_t sz=-1){
     auto capsule = py::capsule(ptr, [](void *v) { delete reinterpret_cast<std::vector<T>*>(v); });
     return py::array(sz, ptr->data(), capsule);
 }
+
 

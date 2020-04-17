@@ -5,7 +5,9 @@
  * ###   Pteros molecular modeling library  ###
  * ============================================
  *
- * (C) 2009-2018, Semen Yesylevskyy
+ * https://github.com/yesint/pteros
+ *
+ * (C) 2009-2020, Semen Yesylevskyy
  *
  * All works, which use Pteros, should cite the following papers:
  *  
@@ -25,6 +27,7 @@
 */
 
 
+
 #include "pteros/analysis/histogram.h"
 #include "pteros/core/pteros_error.h"
 
@@ -38,4 +41,5 @@ Histogram::Histogram(HISTOGRAM_TYPE t, float min_val, float max_val, int N):
     data.resize(Nbins);
     delta = (max_val-min_val)/float(Nbins);
 }
+
 
