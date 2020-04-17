@@ -4,8 +4,10 @@ add_library(pteros_membrane SHARED
     )
 
 if(MINGW)
+    # Workaround CMake problem on mingw with incorrect implicit linking
     target_link_libraries(pteros_membrane PRIVATE spdlog::spdlog)
 endif()
+
 target_link_libraries(pteros_membrane PRIVATE pteros voro++)
 
 install(TARGETS pteros_membrane

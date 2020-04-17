@@ -4,8 +4,10 @@ add_library(pteros_gnm SHARED
     )
 
 if(MINGW)
+    # Workaround CMake problem on mingw with incorrect implicit linking
     target_link_libraries(pteros_gnm PRIVATE spdlog::spdlog)
 endif()
+
 target_link_libraries(pteros_gnm PRIVATE pteros)
 
 install(TARGETS pteros_gnm
