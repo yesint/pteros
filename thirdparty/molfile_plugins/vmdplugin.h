@@ -11,7 +11,7 @@
  *
  *      $RCSfile: vmdplugin.h,v $
  *      $Author: johns $       $Locker:  $             $State: Exp $
- *      $Revision: 1.32 $       $Date: 2009/02/24 05:12:35 $
+ *      $Revision: 1.34 $       $Date: 2018/05/02 03:12:56 $
  *
  ***************************************************************************/
 
@@ -59,7 +59,7 @@
 
 
 /** "WIN32" is defined on both WIN32 and WIN64 platforms... */
-#if (defined(WIN32)) && !defined __MINGW32__
+#if (defined(WIN32)) 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
@@ -144,7 +144,7 @@ typedef struct {
 /**
  * Use this macro to initialize the abiversion member of each plugin
  */
-#define vmdplugin_ABIVERSION  16
+#define vmdplugin_ABIVERSION  18
 
 /*@{*/
 /** Use this macro to indicate a plugin's thread-safety at registration time */
