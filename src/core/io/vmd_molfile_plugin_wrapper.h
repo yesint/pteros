@@ -26,10 +26,7 @@
  *
 */
 
-
-
-#ifndef VMD_MOLFILE_PLUGIN_WRAPPER_H
-#define VMD_MOLFILE_PLUGIN_WRAPPER_H
+#pragma once
 
 #include <string>
 #include "pteros/core/system.h"
@@ -57,7 +54,7 @@ protected:
     virtual void do_write(const Selection &sel, const Mol_file_content& what);
 
     // molfile plugin instance (set in derived class)
-    molfile_plugin_t* plugin;   
+    molfile_plugin_t* plugin;
 
     // Static map of all registered plagins.
     // Filled on first load of the library
@@ -65,6 +62,5 @@ protected:
 };
 
 }
-#endif /* MOL_FILE_H */
 
 

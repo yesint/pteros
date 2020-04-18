@@ -101,7 +101,7 @@ VMD_molfile_plugin_wrapper::VMD_molfile_plugin_wrapper(string& fname): Mol_file(
 VMD_molfile_plugin_wrapper::~VMD_molfile_plugin_wrapper(){
     if(mode=='r'){
         if(handle){
-            plugin->close_file_read(handle);            
+            plugin->close_file_read(handle);
             handle = NULL;
         }
 
@@ -110,7 +110,7 @@ VMD_molfile_plugin_wrapper::~VMD_molfile_plugin_wrapper(){
             plugin->close_file_write(w_handle);            
             w_handle = NULL;
         }
-    }    
+    }
 }
 
 void VMD_molfile_plugin_wrapper::open(char open_mode){
@@ -190,7 +190,6 @@ bool VMD_molfile_plugin_wrapper::do_read(System *sys, Frame *frame, const Mol_fi
         }
 
         for(int i=0; i<natoms; ++i) frame->coord[i].array() /= 10.0;
-
 
         // Convert box to our format
         Matrix3f b;
