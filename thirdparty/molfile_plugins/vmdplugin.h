@@ -24,17 +24,6 @@
 #define VMD_PLUGIN_H
 
 
-/* 
- * Preprocessor tricks to make it easier for us to redefine the names of
- * functions when building static plugins.
- */
-#if !defined(VMDPLUGIN)
-/** 
-  * macro defining VMDPLUGIN if it hasn't already been set to the name of 
-  * a static plugin that is being compiled.  This is the catch-all case.
-  */
-#define VMDPLUGIN vmdplugin
-#endif
 /** concatenation macro, joins args x and y together as a single string */
 #define xcat(x, y) cat(x, y)
 /** concatenation macro, joins args x and y together as a single string */
@@ -57,36 +46,11 @@
 #define VMDPLUGIN_fini         xcat(VMDPLUGIN, _fini)
 /*@}*/
 
+#define VMDPLUGIN_API
 
 /** "WIN32" is defined on both WIN32 and WIN64 platforms... */
-#if (defined(WIN32)) 
-#define WIN32_LEAN_AND_MEAN
+#if (defined(WIN32))
 #include <windows.h>
-
-#if !defined(STATIC_PLUGIN)
-#if defined(VMDPLUGIN_EXPORTS)
-/** 
- *  Only define DllMain for plugins, not in VMD or in statically linked plugins
- *  VMDPLUGIN_EXPORTS is only defined when compiling dynamically loaded plugins
- */
-BOOL APIENTRY DllMain( HANDLE hModule,
-                       DWORD ul_reason_for_call,
-                       LPVOID lpReserved
-                     )
-{
-  return TRUE;
-}
-
-#define VMDPLUGIN_API __declspec(dllexport)
-#else
-#define VMDPLUGIN_API __declspec(dllimport)
-#endif /* VMDPLUGIN_EXPORTS */
-#else  /* ! STATIC_PLUGIN */
-#define VMDPLUGIN_API
-#endif /* ! STATIC_PLUGIN */
-#else
-/** If we're not compiling on Windows, then this macro is defined empty */
-#define VMDPLUGIN_API 
 #endif
 
 /** define plugin linkage correctly for both C and C++ based plugins */
