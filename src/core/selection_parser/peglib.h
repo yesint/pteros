@@ -2237,7 +2237,7 @@ struct AstBase : public Annotation
     const std::string                 token;
 
     std::vector<std::shared_ptr<AstBase<Annotation>>> nodes;
-    std::shared_ptr<AstBase<Annotation>>              parent;
+    std::weak_ptr<AstBase<Annotation>>              parent;
 };
 
 template <typename T>
