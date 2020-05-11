@@ -78,7 +78,7 @@ public:
     Eigen::Vector3f get_vector(int i) const;
 
     /// Set i-th box vector
-    Eigen::Vector3f set_vector(Vector3f_const_ref vec, int i);
+    void set_vector(Vector3f_const_ref vec, int i);
 
     /// Get stored matrix of box vectors
     Eigen::Matrix3f get_matrix() const;

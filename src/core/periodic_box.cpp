@@ -89,7 +89,7 @@ Vector3f Periodic_box::get_vector(int i) const{
     return _box.col(i);
 }
 
-Vector3f Periodic_box::set_vector(Vector3f_const_ref vec, int i)
+void Periodic_box::set_vector(Vector3f_const_ref vec, int i)
 {
     _box.col(i) = vec;
     recompute_internals();
