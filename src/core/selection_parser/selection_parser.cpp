@@ -133,12 +133,20 @@ Pteros_PEG_parser _parser(R"(
 
 
 bool is_node_coordinate_dependent(const std::shared_ptr<MyAst>& node){
-    if(node->name == "X" || node->name == "Y" || node->name == "Z" || node->name == "WITHIN"
-            || node->name == "POINT" || node->name == "PLANE" || node->name == "VECTOR" || node->name == "COM"
-      ){
-        return true;
-    } else {
-        return false;
+    using namespace peg::udl;
+
+    switch(node->tag){
+        case "X"_:
+        case "Y"_:
+        case "Z"_:
+        case "WITHIN"_:
+        case "POINT"_:
+        case "PLANE"_:
+        case "VECTOR"_:
+        case "COM"_:
+            return true;
+        default:
+            return false;
     }
 }
 
@@ -170,28 +178,35 @@ void set_coord_dependence(const std::shared_ptr<MyAst>& node){
 
 
 void Selection_parser::optimize(std::shared_ptr<MyAst>& node){
-    // optimize arithmetics
-    if(node->name == "NUM_EXPR" || node->name == "NUM_TERM" || node->name == "NUM_POWER") {
+    using namespace peg::udl;
+
+    // optimize arithmetics    
+    switch(node->tag) {
+    case "NUM_EXPR"_:
+    case "NUM_TERM"_:
+    case "NUM_POWER"_:
         // If not-coord dependent just optimize
         if(!node->is_coord_dependent){
             // Replace with float node
             node = std::make_shared<MyAst>("",0,0,"FLOAT", fmt::format("{}", get_numeric(node)(0)));
             node->is_coord_dependent = false; // Keep correct flag just in case
         }
-    }
-
-    // Convert chained logic into a tree
-    if(node->name == "LOGICAL_EXPR" && node->nodes.size()>3){
-        // second operand and all after it should become new node
-        vector<std::shared_ptr<MyAst>> ch;
-        copy(node->nodes.begin()+2,node->nodes.end(),back_inserter(ch));
-        auto operand2 = std::make_shared<MyAst>("",0,0,"LOGICAL_EXPR",ch);
-        // Inherit coord dependence for this new node (important in order not to mislead precomputer)
-        operand2->is_coord_dependent = node->is_coord_dependent;
-        // keep only 3 nodes
-        node->nodes.resize(3);
-        // Put new second operand
-        node->nodes[2] = operand2;
+        break;
+    case "LOGICAL_EXPR"_:
+        // Convert chained logic into a tree
+        if(node->nodes.size()>3){
+            // second operand and all after it should become new node
+            vector<std::shared_ptr<MyAst>> ch;
+            copy(node->nodes.begin()+2,node->nodes.end(),back_inserter(ch));
+            auto operand2 = std::make_shared<MyAst>("",0,0,"LOGICAL_EXPR",ch);
+            // Inherit coord dependence for this new node (important in order not to mislead precomputer)
+            operand2->is_coord_dependent = node->is_coord_dependent;
+            // keep only 3 nodes
+            node->nodes.resize(3);
+            // Put new second operand
+            node->nodes[2] = operand2;
+        }
+        break;
     }
 
     // Recurse into children
@@ -200,22 +215,24 @@ void Selection_parser::optimize(std::shared_ptr<MyAst>& node){
 
 
 void Selection_parser::precompute(std::shared_ptr<MyAst>& node){
-    if(    node->name!="PRE"
-        && node->name!="NUM_COMPARISON"
-        && node->name!="STR_KEYWORD_EXPR"
-        && node->name!="INT_KEYWORD_EXPR"
-        && node->name!="LOGICAL_EXPR"
-        && node->name!="LOGICAL_OPERAND"
-        && node->name!="ALL"
-        && node->name!="WITHIN"
-        && node->name!="BYRES") return;
+    using namespace peg::udl;
 
-    if(!node->is_coord_dependent){        
-        auto ast = std::make_shared<MyAst>("",0,0,"PRE","");
-        eval_node(node, ast->precomputed);
-        node = ast;
-    } else if(!node->nodes.empty()) {
-        for(int i=0;i<node->nodes.size();++i) precompute(node->nodes[i]);
+    switch(node->tag){
+    case "NUM_COMPARISON"_:
+    case "STR_KEYWORD_EXPR"_:
+    case "INT_KEYWORD_EXPR"_:
+    case "LOGICAL_EXPR"_:
+    case "LOGICAL_OPERAND"_:
+    case "ALL"_:
+    case "WITHIN"_:
+    case "BYRES"_:
+        if(!node->is_coord_dependent){
+            auto ast = std::make_shared<MyAst>("",0,0,"PRE","");
+            eval_node(node, ast->precomputed);
+            node = ast;
+        } else if(!node->nodes.empty()) {
+            for(int i=0;i<node->nodes.size();++i) precompute(node->nodes[i]);
+        }
     }
 }
 
@@ -257,16 +274,22 @@ void Selection_parser::apply_ast(size_t fr, vector<int>& result){
 
 
 void Selection_parser::eval_node(const std::shared_ptr<MyAst> &node, std::vector<int>& result){
+    using namespace peg::udl;
 
     result.clear();
 
-    // Here starts evaluation
+    //==========================
+    // Here evaluation starts
+    //==========================
+    switch(node->tag){
 
-    if(node->name == "PRE"){ // Precomputed nodes are created during optimization stage
+    case "PRE"_:
+        // Precomputed nodes are created during optimization stage
         result = node->precomputed;
-    }
+        break;
 
-    else if(node->name == "NUM_COMPARISON")
+    //---------------------------------------------------------------------------
+    case "NUM_COMPARISON"_:
     {
         vector<string> c; // comparison operators
         vector<std::function<float(int)>> op; // comparison operands
@@ -326,9 +349,12 @@ void Selection_parser::eval_node(const std::shared_ptr<MyAst> &node, std::vector
                     if( comparison[0](op[0](at),op[1](at)) && comparison[1](op[1](at),op[2](at)) ) result.push_back(at);
             }
         }
+
+        break;
     }
 
-    else if(node->name == "STR_KEYWORD_EXPR")
+    //---------------------------------------------------------------------------
+    case "STR_KEYWORD_EXPR"_:
     {
         std::function<bool(int,const string&)> comp_func_str;
         std::function<bool(int,const std::regex&)> comp_func_regex;
@@ -399,10 +425,12 @@ void Selection_parser::eval_node(const std::shared_ptr<MyAst> &node, std::vector
         sort(result.begin(),result.end());
         vector<int>::iterator it = unique(result.begin(), result.end());
         result.resize( it - result.begin() );
+
+        break;
     }
 
     //---------------------------------------------------------------------------
-    else if(node->name == "INT_KEYWORD_EXPR")
+    case "INT_KEYWORD_EXPR"_:
     {
         const string& keyword = node->nodes[0]->token;
         int Nchildren = node->nodes.size(); // Get number of children
@@ -481,11 +509,12 @@ void Selection_parser::eval_node(const std::shared_ptr<MyAst> &node, std::vector
         sort(result.begin(),result.end());
         vector<int>::iterator it = unique(result.begin(), result.end());
         result.resize( it - result.begin() );
+
+        break;
     }
 
     //---------------------------------------------------------------------------
-
-    else if(node->name == "LOGICAL_EXPR")
+    case "LOGICAL_EXPR"_:
     {
         if(node->nodes[1]->token == "or") {
             vector<int> res1,res2;
@@ -514,11 +543,12 @@ void Selection_parser::eval_node(const std::shared_ptr<MyAst> &node, std::vector
                 current_subset = nullptr;
             }
         }
-    }
+
+        break;
+    }    
 
     //---------------------------------------------------------------------------
-
-    else if(node->name == "LOGICAL_OPERAND")
+    case "LOGICAL_OPERAND"_:
     {
         vector<int> res;
         eval_node(node->nodes[1],res);
@@ -594,15 +624,19 @@ void Selection_parser::eval_node(const std::shared_ptr<MyAst> &node, std::vector
 
             } // mol
         } //BY
+
+        break;
     }
 
-    else if(node->name == "ALL")
-    {
+    //---------------------------------------------------------------------------
+    case "ALL"_:
         result.resize(Natoms);
         for(int at=0;at<Natoms;++at) result[at] = at;
-    }
 
-    else if(node->name == "WITHIN")
+        break;
+
+    //---------------------------------------------------------------------------
+    case "WITHIN"_:
     {        
         float cutoff = stof(node->nodes[0]->token);
         bool periodic = false;
@@ -658,17 +692,22 @@ void Selection_parser::eval_node(const std::shared_ptr<MyAst> &node, std::vector
         dum2.set_frame(frame);
 
         search_within(cutoff,dum1,dum2,result,include_self,periodic);
+
+        break;
     }
 
-    else
-    {
-        throw Pteros_error("Unknown node {}!",node->name);
-    }
+    //---------------------------------------------------------------------------
+    default:
+        throw Pteros_error("Unknown node {}!",node->name);   
+    } // case
 }
 
 //returns a 3-vector
 Eigen::Vector3f Selection_parser::get_vector(const std::shared_ptr<MyAst> &node){
-    if(node->name == "COM")
+    using namespace peg::udl;
+
+    switch(node->tag){
+    case "COM"_:
     {
         bool with_mass = (node->nodes[0]->token == "com") ? true : false;
 
@@ -687,76 +726,101 @@ Eigen::Vector3f Selection_parser::get_vector(const std::shared_ptr<MyAst> &node)
         current_subset = old_subset;
 
         return sel.center(with_mass,pbc);
+    }
 
-    } else if(node->name == "INTEGER") { // this is index expression
+    case "INTEGER"_:
+    { // this is index expression
         int ind = stol(node->token);
         if(ind<0 || ind>=sys->num_atoms()) throw Pteros_error("Invalid atom index!");
         return sys->traj[frame].coord[ind];
+    }
 
-    } else {
-        // Get 3 floats
+    default:
+    { // Get 3 floats
         Eigen::Vector3f v;
         v(0) = stof(node->nodes[0]->token);
         v(1) = stof(node->nodes[1]->token);
         v(2) = stof(node->nodes[2]->token);
         return v;
     }
+
+    } // case
 }
 
 // Returns callable, which returns value for numeric node for atom at
 std::function<float(int)> Selection_parser::get_numeric(const std::shared_ptr<MyAst> &node){
+    using namespace peg::udl;
 
-    std::function<float(int)> res;
-
+    switch(node->tag){
     // terminals
-    if(node->name == "INTEGER"){
+    case "INTEGER"_:
+    {
         float val = stol(node->token);
-        res = [val](int at){ return val; };
-    } else if(node->name == "FLOAT"){
+        return [val](int at){ return val; };
+    }
+
+    case "FLOAT"_:
+    {
         float val = stof(node->token);
-        res = [val](int at){ return val; };
-    } else if(node->name == "X"){
+        return [val](int at){ return val; };
+    }
+
+    case "X"_:
         if(node->nodes.empty())
-            res =[this](int at){ return sys->traj[frame].coord[at](0); };
+            return [this](int at){ return sys->traj[frame].coord[at](0); };
         else {
             float x = get_vector(node->nodes[0])[0];
-            res =[x](int at){ return x; };
+            return [x](int at){ return x; };
         }
-    } else if(node->name == "Y"){
+
+    case "Y"_:
         if(node->nodes.empty())
-            res =[this](int at){ return sys->traj[frame].coord[at](1); };
+            return [this](int at){ return sys->traj[frame].coord[at](1); };
         else {
             float y = get_vector(node->nodes[0])[1];
-            res =[y](int at){ return y; };
+            return [y](int at){ return y; };
         }
-    } else if(node->name == "Z"){
+
+    case "Z"_:
         if(node->nodes.empty())
-            res =[this](int at){ return sys->traj[frame].coord[at](2); };
+            return [this](int at){ return sys->traj[frame].coord[at](2); };
         else {
             float z = get_vector(node->nodes[0])[2];
-            res =[z](int at){ return z; };
+            return [z](int at){ return z; };
         }
-    } else if(node->name == "BETA"){
-        res = [this](int at){ return sys->atoms[at].beta; };
-    } else if(node->name == "OCC"){
-        res = [this](int at){ return sys->atoms[at].occupancy; };
-    } else if(node->name == "INDEX"){
-        res = [](int at){ return at; };
-    } else if(node->name == "RESINDEX"){
-        res = [this](int at){ return sys->atoms[at].resindex; };
-    } else if(node->name == "RESID"){
-        res = [this](int at){ return sys->atoms[at].resid; };
-    } else if(node->name == "MASS"){
-        res = [this](int at){ return sys->atoms[at].mass; };
-    } else if(node->name == "CHARGE"){
-        res = [this](int at){ return sys->atoms[at].charge; };
+
+    case "BETA"_:
+        return [this](int at){ return sys->atoms[at].beta; };
+
+    case "OCC"_:
+        return [this](int at){ return sys->atoms[at].occupancy; };
+
+    case "INDEX"_:
+        return [](int at){ return at; };
+
+    case "RESINDEX"_:
+        return [this](int at){ return sys->atoms[at].resindex; };
+
+    case "RESID"_:
+        return [this](int at){ return sys->atoms[at].resid; };
+
+    case "MASS"_:
+        return [this](int at){ return sys->atoms[at].mass; };
+
+    case "CHARGE"_:
+        return [this](int at){ return sys->atoms[at].charge; };
+
     // Compounds
-    } else if(node->name == "UNARY_MINUS"){
+    case "UNARY_MINUS"_:
+    {
         auto func = get_numeric(node->nodes[0]);
-        res = [func](int at){ return -func(at); };
+        return [func](int at){ return -func(at); };
+    }
 
-    } else if(node->name == "NUM_EXPR" || node->name == "NUM_TERM" || node->name == "NUM_POWER") {
-
+    case "NUM_EXPR"_:
+    case "NUM_TERM"_:
+    case "NUM_POWER"_:
+    {
         int N = node->nodes.size();
 
         vector<std::function<float(int)>> operands((N-1)/2+1);
@@ -784,13 +848,15 @@ std::function<float(int)> Selection_parser::get_numeric(const std::shared_ptr<My
             }
         }
 
-        res = [operands,operators](int at){
+        return [operands,operators](int at){
             float result = operands[0](at);
             for(int i=0;i<operators.size();++i) result = operators[i](result,operands[i+1](at));
             return result;
         };
+    }
 
-    } else if(node->name == "POINT") {
+    case "POINT"_:
+    {
         Eigen::Vector3f p;
 
         int offset = 0;
@@ -805,16 +871,19 @@ std::function<float(int)> Selection_parser::get_numeric(const std::shared_ptr<My
 
         // Return distance
         if(pbc){
-            res = [this,p](int at){
+            return [this,p](int at){
                 return sys->box(frame).distance(p, sys->traj[frame].coord[at]);
             };
         } else {
-            res = [this,p](int at){
+            return [this,p](int at){
                 return (p - sys->traj[frame].coord[at]).norm();
             };
         }
+    }
 
-    } else if(node->name == "VECTOR" || node->name == "PLANE") {
+    case "VECTOR"_:
+    case "PLANE"_:
+    {
         Eigen::Vector3f p,dir;
 
         int offset = 0;
@@ -829,9 +898,9 @@ std::function<float(int)> Selection_parser::get_numeric(const std::shared_ptr<My
         // Compute dir from two points
         dir = (get_vector(node->nodes[1+offset])-p).normalized();
 
-        if(node->name == "VECTOR"){
+        if(node->tag == "VECTOR"_){
             // For vector
-            res = [this,p,dir,pbc](int at){
+            return [this,p,dir,pbc](int at){
                 Eigen::Vector3f atom = sys->traj[frame].coord[at];
                 // Get vector from p to current atom
                 Eigen::Vector3f v = atom - p;
@@ -848,7 +917,7 @@ std::function<float(int)> Selection_parser::get_numeric(const std::shared_ptr<My
             };
         } else {
             // For plane
-            res = [this,p,dir,pbc](int at){
+            return [this,p,dir,pbc](int at){
                 Eigen::Vector3f atom = sys->traj[frame].coord[at];
                 // Get vector from p to current atom
                 Eigen::Vector3f v = atom - p;
@@ -864,12 +933,12 @@ std::function<float(int)> Selection_parser::get_numeric(const std::shared_ptr<My
                 }
             };
         }
-
-    }  else {
-        throw Pteros_error("Wrong numeric node!");
     }
 
-    return res;    
+    default:
+        throw Pteros_error("Wrong numeric node!");
+
+    } // case
 }
 
 
