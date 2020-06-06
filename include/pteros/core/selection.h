@@ -562,6 +562,14 @@ class Selection {
     */
     float gyration(Array3i_const_ref pbc = noPBC, int pbc_atom = -1) const;
 
+    /* Computes dipole moment of selection in Debye
+    If the size of selection is larger than 1/2 of the box size in
+    any dimension you will get incorrect results if periodic is set to true.
+    This is not checked automatically!
+    In this case use one of unwrapping options first.
+    */
+    Eigen::Vector3f dipole(Array3i_const_ref pbc = fullPBC, int pbc_atom = -1) const;
+
     /// Get distance between two atoms (periodic in given dimensions if needed).
     /// \note
     /// This function takes selection indexes, not absolute indexes.
