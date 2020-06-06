@@ -391,6 +391,10 @@ void Membrane::compute_properties(float d, bool use_external_normal, Vector3f_co
         }
         lip.normal.normalized();
 
+        // Dipole
+        lip.dipole = lip.whole_sel.dipole();
+        lip.dipole_proj = lip.dipole.dot(lip.normal); // normal is normalized, no need to devide y norm
+
         //-----------------------------------
         // Smooth and find local curvatures
         //-----------------------------------

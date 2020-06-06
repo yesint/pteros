@@ -78,6 +78,8 @@ void make_bindings_Membrane(py::module& m){
             .def_readonly("mean_curvature",&Lipid::mean_curvature)
             .def_readonly("coord_number",&Lipid::coord_number)
             .def_readonly("order",&Lipid::order)
+            .def_readonly("dipole",&Lipid::dipole)
+            .def_readonly("dipole_proj",&Lipid::dipole_proj)
     ;
 
     py::class_<Membrane>(m,"Membrane")

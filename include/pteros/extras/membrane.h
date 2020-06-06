@@ -59,6 +59,7 @@ public:
     std::string name;
     int group;
 
+    // Properties
     Eigen::Vector3f normal;
     Eigen::Vector3f smoothed_mid_xyz;
     float tilt;    
@@ -69,6 +70,8 @@ public:
     float mean_curvature;
     int coord_number;
     std::vector<std::vector<float>> order; //Sz order parameter identical to "gmx order -szonly"
+    Eigen::Vector3f dipole; // Dipole
+    float dipole_proj; // Dipole projected onto the normal
 
 private:    
     // Set markers to current COM coordinates of seletions
