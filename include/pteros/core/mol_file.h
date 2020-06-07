@@ -26,10 +26,7 @@
  *
 */
 
-
-
-#ifndef MOL_FILE_H
-#define MOL_FILE_H
+#pragma once
 
 #include <string>
 #include "pteros/core/system.h"
@@ -128,6 +125,3 @@ protected:
 void get_element_from_atom_name(std::string& name, int& anum, float& mass);
 
 }
-#endif /* MOL_FILE_H */
-
-

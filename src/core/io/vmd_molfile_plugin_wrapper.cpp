@@ -30,6 +30,7 @@
 
 #include "vmd_molfile_plugin_wrapper.h"
 #include "pteros/core/pteros_error.h"
+#include "pteros/core/logging.h"
 #include "../molfile_plugins/periodic_table.h"
 #include <Eigen/Core>
 #include <cmath>
@@ -324,12 +325,13 @@ std::map<string,molfile_plugin_t*> register_all_plugins(){
 #ifdef USE_TNGIO
     REGISTER_PLUGIN(tng,ret)
 #endif
-    /*
+
+    // Debug output on loaded plugins
     LOG()->debug("Registered VMD molfile plugins:");
     for(auto& item: ret){
          LOG()->debug("{}", item.first);
     }
-    */
+
 
     /*
     setvbuf(stdout,NULL,_IOLBF,0);    

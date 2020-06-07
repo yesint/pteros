@@ -66,7 +66,7 @@ struct Frame {
     bool has_vel() const { return !vel.empty(); }
     bool has_force() const { return !force.empty(); }
 
-    /// Swap values for atoms i and j taking care of v and f
+    /// Swap atoms i and j taking care of v and f
     void swap(int i, int j);
 };
 

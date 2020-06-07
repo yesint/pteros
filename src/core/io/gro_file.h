@@ -26,10 +26,7 @@
  *
 */
 
-
-
-#ifndef GRO_FILE_H
-#define GRO_FILE_H
+#pragma once
 
 #include <string>
 #include <fstream>
@@ -58,6 +55,5 @@ protected:
 };
 
 }
-#endif /* MOL_FILE_H */
 
 
