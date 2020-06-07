@@ -220,7 +220,7 @@ void make_bindings_Selection(py::module& m){
             },"pbc"_a=noPBC,"pbc_atom"_a=-1)
 
         .def("gyration",&Selection::gyration, "pbc"_a=noPBC,"pbc_atom"_a=-1)
-        .def("dipole",&Selection::dipole, "pbc"_a=noPBC,"pbc_atom"_a=-1)
+        .def("dipole",&Selection::dipole, "is_charged"_a=false,"pbc"_a=noPBC,"pbc_atom"_a=-1)
 
         .def("distance", &Selection::distance, "i"_a, "j"_a, "pbc"_a=fullPBC)
         .def("angle", &Selection::angle, "i"_a, "j"_a, "k"_a, "pbc"_a=fullPBC)

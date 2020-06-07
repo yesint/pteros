@@ -389,11 +389,7 @@ void Membrane::compute_properties(float d, bool use_external_normal, Vector3f_co
             lip.normal = -normal;
             lip.tilt = M_PI-ang;
         }
-        lip.normal.normalized();
-
-        // Dipole
-        lip.dipole = lip.whole_sel.dipole();
-        lip.dipole_proj = lip.dipole.dot(lip.normal); // normal is normalized, no need to devide y norm
+        lip.normal.normalized();        
 
         //-----------------------------------
         // Smooth and find local curvatures
@@ -442,6 +438,13 @@ void Membrane::compute_properties(float d, bool use_external_normal, Vector3f_co
         }
 
     } // Over lipids
+
+
+    // Dipole (should be done when markers unset!)
+    for(auto& lip: lipids){
+        lip.dipole = lip.whole_sel.dipole(true);
+        lip.dipole_proj = lip.dipole.dot(lip.normal); // normal is normalized, no need to devide y norm
+    }
 
 
     //-----------------------------------

@@ -568,7 +568,7 @@ class Selection {
     This is not checked automatically!
     In this case use one of unwrapping options first.
     */
-    Eigen::Vector3f dipole(Array3i_const_ref pbc = fullPBC, int pbc_atom = -1) const;
+    Eigen::Vector3f dipole(bool is_charged=false, Array3i_const_ref pbc = fullPBC, int pbc_atom = -1) const;
 
     /// Get distance between two atoms (periodic in given dimensions if needed).
     /// \note

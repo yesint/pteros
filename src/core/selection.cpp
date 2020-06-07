@@ -1754,14 +1754,18 @@ float Selection::gyration(Array3i_const_ref pbc, int pbc_atom) const {
     return sqrt(a/b);
 }
 
-Vector3f Selection::dipole(Array3i_const_ref pbc, int pbc_atom) const {
+Vector3f Selection::dipole(bool is_charged, Array3i_const_ref pbc, int pbc_atom) const {
     process_pbc_atom(pbc_atom);
+
+    Vector3f shift(0,0,0);
+    if(is_charged) shift = center(true,pbc,pbc_atom);
+
     Vector3f res(0,0,0);
     for(int i=0;i<size();++i){
         if( (pbc!=0).any() ){
-            res += system->box(frame).closest_image(xyz(i),xyz(pbc_atom),pbc) * charge(i);
+            res += (system->box(frame).closest_image(xyz(i),xyz(pbc_atom),pbc)-shift) * charge(i);
         } else {
-            res += xyz(i)*charge(i);
+            res += (xyz(i)-shift)*charge(i);
         }
     }
     return res * 0.02081943; // Convert to Debye
