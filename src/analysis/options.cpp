@@ -77,7 +77,7 @@ void parse_command_line(int argc, char** argv,
             }
 
             // See if we got task tag
-            if(str==task_tag){            
+            if(str==task_tag){
                 if(i==argc-1) throw Pteros_error("Incomplete task at the end of command line!");
                 // If we already been in task mode, then end old task
                 if(in_task){

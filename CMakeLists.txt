@@ -162,7 +162,7 @@ endif()
 # OpenBabel
 if(WITH_OPENBABEL)
     set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules)
-    find_package(OpenBabel2 2.4.9 REQUIRED)
+    find_package(OpenBabel3 3.0.0 REQUIRED)
 endif()
 
 # Gromacs
