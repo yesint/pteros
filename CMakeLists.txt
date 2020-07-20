@@ -41,6 +41,9 @@ OPTION(MAKE_TEST "Compile tests" OFF)
 
 OPTION(DOWNLOAD_DEPS "Automatically download and compile dependencies if they are not found in the system" ON)
 
+set(GROMACS_LIBRARIES "" CACHE STRING "Path to Gromacs libraries")
+set(GROMACS_SOURCES "" CACHE STRING "Path to Gromacs source tree")
+
 ##############################
 # Global compilation options:
 ##############################
@@ -162,7 +165,13 @@ endif()
 # OpenBabel
 if(WITH_OPENBABEL)
     set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules)
+    # Try to find OpenBabel 3
     find_package(OpenBabel3 3.0.0 REQUIRED)
+    message("OpenBabel v3 not found, searching for v2...")
+    if(NOT OPENBABEL3_FOUND)
+        # Try to find OpenBabel 2
+        find_package(OpenBabel2 2.4.9 REQUIRED)
+    endif()
 endif()
 
 # Gromacs
