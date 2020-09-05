@@ -163,6 +163,7 @@ void make_bindings_Selection(py::module& m){
         .def("set_occupancy",py::overload_cast<const std::vector<float>&>(&Selection::set_occupancy))
 
         .def("get_charge",&Selection::get_charge)
+        .def("get_total_charge",&Selection::get_total_charge)
         .def("set_charge",py::overload_cast<float>(&Selection::set_charge))
         .def("set_charge",py::overload_cast<const std::vector<float>&>(&Selection::set_charge))
 

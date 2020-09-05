@@ -1,4 +1,4 @@
-if(WITH_OPENBABEL AND OPENBABEL2_FOUND)
+if(WITH_OPENBABEL AND (OPENBABEL2_FOUND OR OPENBABEL3_FOUND))
 
     add_library(pteros_babel_utils STATIC
         babel_utils.cpp
@@ -7,14 +7,14 @@ if(WITH_OPENBABEL AND OPENBABEL2_FOUND)
 
     target_link_libraries(pteros_babel_utils
         PUBLIC
-            ${OPENBABEL2_LIBRARIES}
+            ${OPENBABEL2_LIBRARIES} ${OPENBABEL3_LIBRARIES}
             Eigen3::Eigen
             pteros_interface
     )
 
     target_include_directories(pteros_babel_utils
         PUBLIC
-            ${OPENBABEL2_INCLUDE_DIR}
+            ${OPENBABEL2_INCLUDE_DIR} ${OPENBABEL3_INCLUDE_DIR}
             ${CMAKE_CURRENT_SOURCE_DIR}
     )
 

@@ -34,6 +34,7 @@
 #include <string>
 #include <memory>
 #include <map>
+#include <vector>
 #include <functional>
 #include <Eigen/Core>
 #include <Eigen/Geometry>
@@ -467,7 +468,8 @@ class Selection {
     /// Sets charge of all selected atoms to the same given value.
     void set_charge(float data);
 
-
+    /// Computes total charge of selection
+    float get_total_charge() const;
 
     /// Get tags
     std::vector<std::string> get_tag(bool unique=false) const;
@@ -584,7 +586,6 @@ class Selection {
     /// \note
     /// This function takes selection indexes, not absolute indexes.
     float dihedral(int i, int j, int k, int l, Array3i_const_ref pbc = fullPBC) const;
-
     /// @}
 
 

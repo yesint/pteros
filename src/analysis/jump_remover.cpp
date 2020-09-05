@@ -88,31 +88,37 @@ void Jump_remover::remove_jumps(System& system){
         // Do unwrapping if more than 1 atom and distance >=0
         if(no_jump_ind.size()>1 && unwrap_d>=0){            
             if(unwrap_d==0){
-                // Auto find distance
-                unwrap_d = 0.2;
-                LOG()->info("Trying unwrapping for jump remover, cutoff {}...",unwrap_d);
+                if(sel.get_system()->force_field_ready()){
+                    // Use topology
+                    LOG()->info("Unwrapping using provided topology...");
+                    sel.unwrap_bonds(0,dims,pbc_atom);
+                } else {
+                    // Auto find distance
+                    unwrap_d = 0.2;
+                    LOG()->info("Trying unwrapping for jump remover, cutoff {}...",unwrap_d);
 
-                // Find minimal box extent in needed dimensions
-                float min_extent = 1e20;
-                for(int i=0;i<3;++i)
-                    if(dims(i))
-                        if(sel.box().extent(i)<min_extent)
-                            min_extent = sel.box().extent(i);
+                    // Find minimal box extent in needed dimensions
+                    float min_extent = 1e20;
+                    for(int i=0;i<3;++i)
+                        if(dims(i))
+                            if(sel.box().extent(i)<min_extent)
+                                min_extent = sel.box().extent(i);
 
-                while(sel.unwrap_bonds(unwrap_d,dims,pbc_atom)>1){
-                    LOG()->info("Cutoff {} is too small, trying {}...", unwrap_d, 2.0*unwrap_d);
-                    unwrap_d *= 2.0;
-                    if(unwrap_d > 8.0){
-                        LOG()->warn("Cutoff becomes too large! Beware huge memory usage!");
+                    while(sel.unwrap_bonds(unwrap_d,dims,pbc_atom)>1){
+                        LOG()->info("Cutoff {} is too small, trying {}...", unwrap_d, 2.0*unwrap_d);
+                        unwrap_d *= 2.0;
+                        if(unwrap_d > 8.0){
+                            LOG()->warn("Cutoff becomes too large! Beware huge memory usage!");
+                        }
+                        if(unwrap_d > 0.5*min_extent){
+                            LOG()->warn("Reached cutoff {} > 0.5 of box extents!\n"
+                                        "Selection is likely to consist of disconnected parts.\n"
+                                        "Continuing as is.",unwrap_d);
+                            break;
+                        }
                     }
-                    if(unwrap_d > 0.5*min_extent){
-                        LOG()->warn("Reached cutoff {} > 0.5 of box extents!\n"
-                                "Selection is likely to consist of disconnected parts.\n"
-                                "Continuing as is.",unwrap_d);
-                        break;
-                    }
+                    LOG()->info("Unwrapping done at cutoff {}",unwrap_d);
                 }
-                LOG()->info("Unwrapping done at cutoff {}",unwrap_d);
             } else {
                 // Unwrap with given distance
                 LOG()->info("Unwrapping for jump remover, fixed cutoff {}",unwrap_d);

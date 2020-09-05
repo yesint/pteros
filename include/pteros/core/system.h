@@ -257,7 +257,6 @@ public:
      first argument and the index of current stored frame as the second.
      If callback returns false loading stops.
     */
-    // Skip functionality suggested by Raul Mera
     void load(std::string fname,
               int b=0,
               int e=-1,

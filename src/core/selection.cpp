@@ -83,7 +83,7 @@ void Selection::sort_and_remove_duplicates()
         _index.resize( it - _index.begin() );
         if(_index[0]<0) throw Pteros_error("Negative index {} present in Selection!",_index[0]);
     } else {
-        LOG()->warn("Selection '{}' is empty! Any call of its methods (except size()) will crash your program!", sel_text);
+        LOG()->debug("Selection '{}' is empty! Any call of its methods (except size()) will crash your program!", sel_text);
     }
 }
 
@@ -122,7 +122,7 @@ Selection::Selection(const System &sys, string str, int fr){
     allocate_parser();
 
     // Show warning if empty selection is created
-    if(size()==0) LOG()->warn("Selection '{}' is empty! Any call of its methods (except size()) will crash your program!", sel_text);
+    if(size()==0) LOG()->debug("Selection '{}' is empty! Any call of its methods (except size()) will crash your program!", sel_text);
 }
 
 // Constructor without immediate parsing
@@ -152,7 +152,7 @@ Selection::Selection(const System &sys, int ind1, int ind2){
 
     // Show warning if empty selection is created
     if(size()==0)
-        LOG()->warn("Selection {}:{} is empty! Any call of its methods (except size()) will crash your program!", ind1, ind2);
+        LOG()->debug("Selection {}:{} is empty! Any call of its methods (except size()) will crash your program!", ind1, ind2);
 }
 
 Selection::Selection(const System &sys, const std::vector<int> &ind){
@@ -326,7 +326,7 @@ Selection Selection::select(string str)
 
     // Show warning if empty selection is created
     if(sub.size()==0)
-        LOG()->warn("Selection '{}' is empty! Any call of its methods (except size()) will crash your program!", sub.sel_text);
+        LOG()->debug("Selection '{}' is empty! Any call of its methods (except size()) will crash your program!", sub.sel_text);
 
     // And finally return sub
     return sub;
@@ -836,6 +836,12 @@ void Selection::set_force(pteros::MatrixXf_const_ref data){
     }
 }
 
+
+float Selection::get_total_charge() const {
+    float q = 0.0;
+    for(int i=0; i<size(); ++i) q += system->atoms[_index[i]].charge;
+    return q;
+}
 
 // Compute average structure
 MatrixXf Selection::average_structure(int b, int e, bool make_row_major_matrix) const {
@@ -1402,7 +1408,7 @@ std::vector<std::vector<int>> Selection::get_internal_bonds(float d, bool period
 
     if(d==0){
         // Use bonds from topology
-        get_local_bonds_from_topology(con);
+        get_local_bonds_from_topology(con);        
     } else {
         // Find all connectivity pairs for given cut-off
         vector<Vector2i> pairs;
@@ -2076,17 +2082,16 @@ void Selection::get_local_bonds_from_topology(vector<vector<int>>& con) const {
     int bind = index(0);
     int eind = index(size()-1);
     int a1,a2;
-    auto bit = std::begin(_index);
-    auto cur_b = bit;
+    auto bit = std::begin(_index);    
     auto eit = std::end(_index);
 
     for(int i=0;i<system->force_field.bonds.size();++i){
         a1 = system->force_field.bonds[i](0);
         a2 = system->force_field.bonds[i](1);
         if(a1>=bind && a1<=eind && a2>=bind && a2<=eind){
-            auto it1 = std::find(cur_b,eit,a1);
-            cur_b = it1;
-            auto it2 = std::find(cur_b,eit,a2);
+            auto it1 = std::find(bit,eit,a1);
+            auto it2 = std::find(it1,eit,a2);
+            cout << it1-bit << " " << it2-bit << " " << size() << endl;
             con[it1-bit].push_back(it2-bit);
             con[it2-bit].push_back(it1-bit);
         }

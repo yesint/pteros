@@ -27,7 +27,6 @@
 */
 
 
-
 #pragma once
 
 #include <string>

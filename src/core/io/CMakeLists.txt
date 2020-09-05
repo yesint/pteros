@@ -31,14 +31,14 @@ if(WITH_TNGIO)
     target_link_libraries(pteros_io PRIVATE tng_io)
 endif()
 
-if(WITH_OPENBABEL AND OPENBABEL2_FOUND)
+if(WITH_OPENBABEL AND (OPENBABEL2_FOUND OR OPENBABEL3_FOUND))
     target_sources(pteros_io PRIVATE
         babel_wrapper.h
         babel_wrapper.cpp
         pdbqt_file.h
         pdbqt_file.cpp)
     target_compile_definitions(pteros_io PRIVATE USE_OPENBABEL)
-    target_include_directories(pteros_io PRIVATE ${OPENBABEL2_INCLUDE_DIR})
+    target_include_directories(pteros_io PRIVATE ${OPENBABEL2_INCLUDE_DIR} ${OPENBABEL3_INCLUDE_DIR})
     target_link_libraries(pteros_io PRIVATE pteros_babel_utils)
 endif()
 

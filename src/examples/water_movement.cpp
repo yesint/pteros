@@ -3,6 +3,7 @@
 #include "pteros/core/pteros_error.h"
 #include "pteros/analysis/trajectory_reader.h"
 #include "pteros/analysis/task_plugin.h"
+#include <Eigen/Core>
 
 using namespace std;
 using namespace pteros;
@@ -50,7 +51,7 @@ protected:
         int i,j,k,n,w,ind;
 
         if(info.valid_frame==0){
-            water.get_xyz(last_pos);
+            last_pos = water.get_xyz();
             return;
         }
 
@@ -66,13 +67,11 @@ protected:
                         ind = searcher.cell(i,j,k)[w].index;
                         // For current water get delta of prev and cur coorfinates
                         // And add it to result grid
-
-                        grid[i][j][k] += pow( system.box(0).distance(water.xyz(ind),last_pos.col(ind)) ,2);
-                        //grid[i][j][k] += 1;
+                        grid[i][j][k] += system.box(0).distance_squared(water.xyz(ind),last_pos.col(ind));
                     }
                 }
 
-        water.get_xyz(last_pos);        
+        last_pos = water.get_xyz();
     }
 
 
