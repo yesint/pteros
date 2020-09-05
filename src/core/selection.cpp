@@ -2091,7 +2091,6 @@ void Selection::get_local_bonds_from_topology(vector<vector<int>>& con) const {
         if(a1>=bind && a1<=eind && a2>=bind && a2<=eind){
             auto it1 = std::find(bit,eit,a1);
             auto it2 = std::find(it1,eit,a2);
-            cout << it1-bit << " " << it2-bit << " " << size() << endl;
             con[it1-bit].push_back(it2-bit);
             con[it2-bit].push_back(it1-bit);
         }
