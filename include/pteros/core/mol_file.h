@@ -96,13 +96,25 @@ public:
     /// Reports content of this file type
     virtual Mol_file_content get_content_type() const = 0;
 
+    // Seek frame, only for random-access trajectories
+    virtual void seek_frame(int fr);
+
+    // Seek time, only for random-access trajectories
+    virtual void seek_time(float t);
+
+    // Report current position in trajectory, only for random-access trajectories
+    virtual void tell_current_frame_and_time(int& step, float& t);
+
+    // Report last position in trajectory, only for random-access trajectories
+    virtual void tell_last_frame_and_time(int& step, float& t);
+
 protected:    
     Mol_file(std::string& file_name);
 
     // Stores file name
     std::string fname;
     // Number of atoms
-    int natoms;    
+    int natoms;
     // Functions called to update System on file reading
     // Mol_file is a friend of System and can access it's internals
     // but derived *_file classes are not friends and need to call these functions.

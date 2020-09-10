@@ -71,6 +71,26 @@ void Mol_file::write(const Selection &sel, const Mol_file_content &what) {
     do_write(sel,what);
 }
 
+void Mol_file::seek_frame(int fr)
+{
+    throw Pteros_error("Can't seek frame - this is not a random-access trajectory");
+}
+
+void Mol_file::seek_time(float t)
+{
+    throw Pteros_error("Can't seek time - this is not a random-access trajectory");
+}
+
+void Mol_file::tell_current_frame_and_time(int &step, float &t)
+{
+    throw Pteros_error("Can't report current position - this is not a random-access trajectory");
+}
+
+void Mol_file::tell_last_frame_and_time(int &step, float &t)
+{
+    throw Pteros_error("Can't report last position - this is not a random-access trajectory");
+}
+
 
 void Mol_file::allocate_atoms_in_system(System &sys, int n){
     sys.atoms.resize(n);

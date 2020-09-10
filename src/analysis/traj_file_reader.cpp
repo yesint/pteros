@@ -55,7 +55,7 @@ Traj_file_reader::Traj_file_reader(Options &options, int natoms){
     process_suffix_value(options("dt","-1").as_string(),
                          nullptr, &custom_dt);
     if(custom_start_time>=0 && custom_dt==-1) custom_dt = 1;
-    if(custom_start_time==-1 && custom_dt>=0) custom_start_time = 0;
+    if(custom_start_time==-1 && custom_dt>0) custom_start_time = 0;
 
     // Check if the range is valid
     if(first_frame>=0 && last_frame>=0 && last_frame<first_frame)
@@ -113,18 +113,63 @@ void Traj_file_reader::join(){ t.join(); }
 
 void Traj_file_reader::reader_thread_body(const vector<string> &traj_files, const Data_channel_ptr &channel){
     try {
-        int abs_frame = -1;
+        int abs_frame = 0;
+        float abs_time = 0.0;
+
         int valid_frame = -1;
         // Saved first frame and time
-        int saved_first_frame = -1;
-        float saved_first_time = -1.0;
+        int first_valid_frame = -1;
+        float first_valid_time = -1.0;
 
         bool finished = false;
+
+        // Seek status:
+        // 0 - don't need to seek
+        // 1 - waiting for seeking
+        int seek_status = 0;
+        // Check if we need to seek for beginning
+        if(first_frame>0 || first_time>0) seek_status = 1;
 
         for(const string& fname: traj_files){
             log->info("Reading trajectory {}...", fname);
 
             auto trj = Mol_file::open(fname,'r');
+
+            // If we need to seek do it now if trajectory supports it
+            if(seek_status==1 && trj->get_content_type().rand()){
+                int last_fr;
+                float last_t;
+                trj->tell_last_frame_and_time(last_fr,last_t);
+                if(first_frame>0){
+                    // If beyond this trajectory try the next one
+                    if(first_frame>=last_fr){
+                        log->info("First frame is {}, while this trajectory ends at {}.",first_frame,last_fr);
+                        abs_frame += last_fr;
+                        abs_time += last_t;
+                        continue;
+                    }
+                    log->info("Fast forward to frame {}...",first_frame);
+                    trj->seek_frame(first_frame);
+                } else if(first_time>0){
+                    // If beyond this trajectory try the next one
+                    if(first_time>=last_t){
+                        log->info("First time is {}, while this trajectory ends at {}.",first_frame,last_fr);
+                        abs_frame += last_fr;
+                        abs_time += last_t;
+                        continue;
+                    }
+                    log->info("Fast forward to time {}...",first_time);
+                    trj->seek_time(first_time);
+                }
+                seek_status = 0; // Seeking done
+                // Set absolute frame count and time
+                int fr;
+                float t;
+                trj->tell_current_frame_and_time(fr,t);
+                abs_frame += fr;
+                abs_time += t;
+                if(custom_dt>0) abs_time = custom_start_time + custom_dt*abs_frame;
+            }
 
             // Main loop over trajectory frames
             while(true){
@@ -142,20 +187,20 @@ void Traj_file_reader::reader_thread_body(const vector<string> &traj_files, cons
                     throw Pteros_error("Expected {} atoms but trajectory has {}.",data->frame.coord.size(),Natoms);
 
                 // Check if EOF reached in trajectory
-                if(!good) break;
+                if(!good) break;                
 
-                ++abs_frame; // Next absolute frame
-
-                // If time stamps are overriden, use overrides
+                // If time stamps are overriden, override time
                 if(custom_dt>=0){
-                    data->frame.time = custom_start_time + custom_dt*abs_frame;
+                    abs_time = custom_start_time + custom_dt*abs_frame;
+                } else {
+                    abs_time = data->frame.time;
                 }
 
                 if(log_interval>0 && abs_frame%log_interval==0)
-                    log->info("At frame {}, {} ps",abs_frame,data->frame.time);
+                    log->info("At frame {}, {} ps",abs_frame,abs_time);
 
                 // Check if end of requested interval is reached
-                if( is_end_of_interval(abs_frame,data->frame.time) ){
+                if( is_end_of_interval(abs_frame,abs_time) ){
                     // Send stop to the queue
                     channel->send_stop();
                     finished = true;
@@ -165,30 +210,32 @@ void Traj_file_reader::reader_thread_body(const vector<string> &traj_files, cons
 
                 // Check if new frame falls into needed range of time.
                 // If not go to next frame
-                if( !is_frame_valid(abs_frame,data->frame.time) ) continue;
+                if( !is_frame_valid(abs_frame,abs_time) ) continue;
 
                 // This is valid frame
                 ++valid_frame;
 
                 if(valid_frame==0){
                     // This is the very first valid frame, set start time
-                    saved_first_frame = abs_frame;
-                    saved_first_time = data->frame.time;
+                    first_valid_frame = abs_frame;
+                    first_valid_time = abs_time;
                     // print a message
-                    log->info("First valid frame is {}, {} ps",abs_frame,data->frame.time);
+                    log->info("First valid frame is {}, {} ps",abs_frame,abs_time);
                 }
 
                 // Fill data container, which will be sent to the queue
-                data->frame_info.absolute_time = data->frame.time;
+                data->frame_info.absolute_time = abs_time;
                 data->frame_info.absolute_frame = abs_frame;
                 data->frame_info.valid_frame = valid_frame;
-                data->frame_info.first_frame = saved_first_frame;
-                data->frame_info.first_time = saved_first_time;
+                data->frame_info.first_frame = first_valid_frame;
+                data->frame_info.first_time = first_valid_time;
                 data->frame_info.last_frame = abs_frame;
-                data->frame_info.last_time = data->frame.time;
+                data->frame_info.last_time = abs_time;
 
                 // Send frame to the queue
                 channel->send(data);
+
+                ++abs_frame; // Next absolute frame follows
             } // Over frames
 
             log->info("Done with trajectory {}", fname);

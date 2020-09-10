@@ -50,14 +50,19 @@ public:
     virtual ~XTC_file();
 
     virtual Mol_file_content get_content_type() const {        
-        return Mol_file_content().traj(true);
+        return Mol_file_content().traj(true).rand(true);
     }
 
 protected:        
 
-    virtual void do_write(const Selection &sel, const Mol_file_content& what);
-
-    virtual bool do_read(System *sys, Frame *frame, const Mol_file_content& what);
+    virtual void do_write(const Selection &sel, const Mol_file_content& what) override;
+    virtual bool do_read(System *sys, Frame *frame, const Mol_file_content& what) override ;
+#ifdef USE_GROMACS
+    virtual void seek_frame(int fr) override;
+    virtual void seek_time(float t) override;
+    virtual void tell_current_frame_and_time(int& step, float& t) override;
+    virtual void tell_last_frame_and_time(int& step, float& t) override;
+#endif
 
 private:
 #ifdef USE_GROMACS
@@ -65,6 +70,9 @@ private:
     t_fileio* handle;
     matrix box;
     int64_t step;
+    int steps_per_frame;
+    int64_t num_frames;
+    float dt, max_t;
 #else
     // for xdrfile
     XDRFILE* handle;

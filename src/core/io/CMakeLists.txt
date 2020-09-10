@@ -49,6 +49,7 @@ if(WITH_GROMACS AND GROMACS_SOURCES AND GROMACS_LIBRARIES)
     # since they are not installed any more, so do it also for earlier versions
     # to keep things simpler
     target_include_directories(pteros_io PRIVATE ${GROMACS_SOURCES}/src)
+    target_include_directories(pteros_io PRIVATE ${GROMACS_SOURCES}/src/external/thread_mpi/include)
 
     target_sources(pteros_io PRIVATE
         tpr_file.h
