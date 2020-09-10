@@ -49,8 +49,13 @@ public:
     virtual void open(char open_mode);
     virtual ~XTC_file();
 
-    virtual Mol_file_content get_content_type() const {        
+    virtual Mol_file_content get_content_type() const {
+#ifdef USE_GROMACS
+        // With gromacs XTC becomes random-access
         return Mol_file_content().traj(true).rand(true);
+#else
+        return Mol_file_content().traj(true);
+#endif
     }
 
 protected:        
