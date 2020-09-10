@@ -71,9 +71,7 @@ bool Traj_file_reader::is_frame_valid(int fr, float t){
             (first_frame<0 || fr>=first_frame)
             &&
             (first_time<0 || t>=first_time)
-            &&
-            (skip<0 || fr%skip==0)
-            ){//------------------------------------------
+      ){//------------------------------------------
         // This frame is valid
         return true;
     } else {
@@ -87,7 +85,7 @@ bool Traj_file_reader::is_end_of_interval(int fr, float t){
             (fr>last_frame && last_frame>=0)
             ||
             (t>last_time && last_time>=0)
-            ){//------------------------------------------
+      ){//------------------------------------------
         // End reached
         return true;
     } else {
@@ -117,6 +115,7 @@ void Traj_file_reader::reader_thread_body(const vector<string> &traj_files, cons
         float abs_time = 0.0;
 
         int valid_frame = -1;
+        int frame_in_range = -1;
         // Saved first frame and time
         int first_valid_frame = -1;
         float first_valid_time = -1.0;
@@ -171,6 +170,8 @@ void Traj_file_reader::reader_thread_body(const vector<string> &traj_files, cons
                 if(custom_dt>0) abs_time = custom_start_time + custom_dt*abs_frame;
             }
 
+            --abs_frame;
+
             // Main loop over trajectory frames
             while(true){
                 if(stop_now) return;
@@ -187,7 +188,9 @@ void Traj_file_reader::reader_thread_body(const vector<string> &traj_files, cons
                     throw Pteros_error("Expected {} atoms but trajectory has {}.",data->frame.coord.size(),Natoms);
 
                 // Check if EOF reached in trajectory
-                if(!good) break;                
+                if(!good) break;
+
+                ++abs_frame; // Next absolute frame loaded
 
                 // If time stamps are overriden, override time
                 if(custom_dt>=0){
@@ -212,6 +215,11 @@ void Traj_file_reader::reader_thread_body(const vector<string> &traj_files, cons
                 // If not go to next frame
                 if( !is_frame_valid(abs_frame,abs_time) ) continue;
 
+                ++frame_in_range;
+
+                // See if we need to skip it
+                if(skip>0 && frame_in_range%skip!=0) continue;
+
                 // This is valid frame
                 ++valid_frame;
 
@@ -235,7 +243,15 @@ void Traj_file_reader::reader_thread_body(const vector<string> &traj_files, cons
                 // Send frame to the queue
                 channel->send(data);
 
-                ++abs_frame; // Next absolute frame follows
+                // Do fast-forward skipping if asked
+                if(skip>0){
+                    if(trj->get_content_type().rand() && skip>0){
+                        log->debug("Skipping {} frames by fast-forward...",skip);
+                        trj->seek_frame(abs_frame+skip);
+                        abs_frame += skip;
+                        frame_in_range += skip;
+                    }
+                }
             } // Over frames
 
             log->info("Done with trajectory {}", fname);
