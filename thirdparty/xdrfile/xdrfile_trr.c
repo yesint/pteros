@@ -1,14 +1,30 @@
-/* -*- mode: c; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- 
+ /* -*- mode: c; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*-
  *
  * $Id$
  *
- * Copyright (c) Erik Lindahl, David van der Spoel 2003,2004.
- * Coordinate compression (c) by Frans van Hoesel. 
+ * Copyright (c) 2009-2014, Erik Lindahl & David van der Spoel
+ * All rights reserved.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public License
- * as published by the Free Software Foundation; either version 3
- * of the License, or (at your option) any later version.
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 #include <stdlib.h>
@@ -71,16 +87,23 @@ static int nFloatSize(t_trnheader *sh,int *nflsz)
     return exdrOK;
 }
 
-static int do_trnheader(XDRFILE *xd,mybool bRead,t_trnheader *sh)
+extern int do_trnheader(XDRFILE *xd,mybool bRead,t_trnheader *sh)
 {
 	int magic=GROMACS_MAGIC;
 	int nflsz,slen,result;
 	char *version = "GMX_trn_file";
 	char buf[BUFSIZE];
   
-	if (xdrfile_read_int(&magic,1,xd) != 1)
-		return exdrINT;
-  
+	if (xdrfile_read_int(&magic,1,xd) != 1) {
+	    /* modification by RTM to return the right EOF code
+	    this is what's happening in the XTC code */
+	    if (bRead)
+			return exdrENDOFFILE;
+        else
+		    return exdrINT;
+    }
+	if (magic != GROMACS_MAGIC)
+		return exdrMAGIC;
 	if (bRead) 
     {
         if (xdrfile_read_int(&slen,1,xd) != 1)
@@ -427,6 +450,7 @@ static int do_trn(XDRFILE *xd,mybool bRead,int *step,float *t,float *lambda,
     }
     if ((result = do_trnheader(xd,bRead,sh)) != exdrOK)
         return result;
+
     if (bRead) {
         *natoms = sh->natoms;
         *step   = sh->step;
@@ -456,12 +480,43 @@ int read_trr_natoms(char *fn,int *natoms)
 	xd = xdrfile_open(fn,"r");
 	if (NULL == xd)
 		return exdrFILENOTFOUND;
-	if ((result = do_trnheader(xd,1,&sh)) != exdrOK)
+	if ((result = do_trnheader(xd,1,&sh)) != exdrOK) {
+                xdrfile_close(xd);
 		return result;
+        }
 	xdrfile_close(xd);
 	*natoms = sh.natoms;
 	
 	return exdrOK;
+}
+
+int read_trr_nframes(char *fn, unsigned long *nframes) {
+    XDRFILE *xd;
+    int result, step;
+    float time, lambda;
+	int natoms;
+	matrix box;
+	rvec *x;
+	*nframes = 0;
+
+	read_trr_natoms(fn, &natoms);
+	x = malloc(natoms * sizeof(*x));
+
+    xd = xdrfile_open(fn, "r");
+    if (NULL == xd)
+        return exdrFILENOTFOUND;
+
+    do {
+            result = read_trr(xd, natoms, &step, &time, &lambda,
+                                              box, x, NULL, NULL);
+            if (exdrENDOFFILE != result) {
+                    (*nframes)++;
+            }
+    } while (result == exdrOK);
+
+    xdrfile_close(xd);
+    free(x);
+    return exdrOK;
 }
 
 int write_trr(XDRFILE *xd,int natoms,int step,float t,float lambda,
@@ -476,29 +531,3 @@ int read_trr(XDRFILE *xd,int natoms,int *step,float *t,float *lambda,
 	return do_trn(xd,1,step,t,lambda,box,&natoms,x,v,f);
 }
 
-
-/////////////////////////////////////
-///  Added by Pteros !!!
-/////////////////////////////////////
-
-// Check if forces and velocities are present
-int check_trr_content(char *fn, int* natoms, int* xsz, int* vsz, int* fsz)
-{
-    XDRFILE *xd;
-    t_trnheader sh;
-    int  result;
-
-    xd = xdrfile_open(fn,"r");
-    if (NULL == xd)
-        return exdrFILENOTFOUND;
-    if ((result = do_trnheader(xd,1,&sh)) != exdrOK)
-        return result;
-    xdrfile_close(xd);
-
-    *natoms = sh.natoms;
-    *xsz = sh.x_size;
-    *vsz = sh.v_size;
-    *fsz = sh.f_size;
-
-    return exdrOK;
-}

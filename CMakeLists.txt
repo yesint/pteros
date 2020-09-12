@@ -207,10 +207,9 @@ add_subdirectory(thirdparty/dssp)
 # VMD molfile plugins
 add_subdirectory(thirdparty/molfile_plugins)
 
-# xdrfile library (only built if Gromacs is not linked)
-if(NOT WITH_GROMACS)
-    add_subdirectory(thirdparty/xdrfile)
-endif()
+# xdrfile library
+
+add_subdirectory(thirdparty/xdrfile)
 
 # voro++ library
 add_subdirectory(thirdparty/voro++)

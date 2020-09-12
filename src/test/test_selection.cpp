@@ -26,7 +26,7 @@ int main(int argc, char* argv[]){
     h->tell_current_frame_and_time(fr,t);
     cout << fr << " " << t << endl;
 
-    h->seek_time(12000);
+    h->seek_time(128010);
     h->tell_current_frame_and_time(fr,t);
     cout << fr << " " << t << endl;
 

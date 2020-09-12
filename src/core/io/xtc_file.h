@@ -32,13 +32,8 @@
 
 #include "pteros/core/mol_file.h"
 
-#ifdef USE_GROMACS
-#include "gromacs/fileio/xtcio.h"
-#else
 #include "xdrfile.h"
 #include "xdrfile_xtc.h"
-#endif
-
 
 namespace pteros {
 
@@ -50,40 +45,27 @@ public:
     virtual ~XTC_file();
 
     virtual Mol_file_content get_content_type() const {
-#ifdef USE_GROMACS
-        // With gromacs XTC becomes random-access
         return Mol_file_content().traj(true).rand(true);
-#else
-        return Mol_file_content().traj(true);
-#endif
     }
 
 protected:        
 
     virtual void do_write(const Selection &sel, const Mol_file_content& what) override;
     virtual bool do_read(System *sys, Frame *frame, const Mol_file_content& what) override ;
-#ifdef USE_GROMACS
+
     virtual void seek_frame(int fr) override;
     virtual void seek_time(float t) override;
     virtual void tell_current_frame_and_time(int& step, float& t) override;
     virtual void tell_last_frame_and_time(int& step, float& t) override;
-#endif
 
 private:
-#ifdef USE_GROMACS
-    // for gmxlib
-    t_fileio* handle;
-    matrix box;
-    int64_t step;
-    int steps_per_frame;
-    int64_t num_frames;
-    float dt, max_t;
-#else
     // for xdrfile
     XDRFILE* handle;
     matrix box;
     int step;
-#endif
+    int steps_per_frame;
+    int64_t num_frames;
+    float dt, max_t;
 };
 
 }
