@@ -247,9 +247,13 @@ void Traj_file_reader::reader_thread_body(const vector<string> &traj_files, cons
                 if(skip>0){
                     if(trj->get_content_type().rand() && skip>0){
                         log->debug("Skipping {} frames by fast-forward...",skip);
-                        trj->seek_frame(abs_frame+skip);
-                        abs_frame += skip;
-                        frame_in_range += skip;
+                        try {
+                            trj->seek_frame(abs_frame+skip);
+                            abs_frame += skip;
+                            frame_in_range += skip;
+                        } catch(Pteros_error e){
+                            log->debug("Can't seek, maybe EOF is reached");
+                        }
                     }
                 }
             } // Over frames
