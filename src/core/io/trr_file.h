@@ -27,18 +27,11 @@
 */
 
 
-
 #pragma once
 
 #include "pteros/core/mol_file.h"
-
-#ifdef USE_GROMACS
-#include "gromacs/fileio/trrio.h"
-#else
 #include "xdrfile.h"
 #include "xdrfile_trr.h"
-#endif
-
 
 namespace pteros {
 
@@ -56,21 +49,13 @@ public:
 protected:
 
     virtual void do_write(const Selection &sel, const Mol_file_content& what);
-
     virtual bool do_read(System *sys, Frame *frame, const Mol_file_content& what);
 
 private:
-#ifdef USE_GROMACS
-    // for gmxlib
-    t_fileio* handle;
-    matrix box;
-    int64_t step;
-#else
     // for xdrfile
     XDRFILE* handle;
     matrix box;
     int step;
-#endif
 };
 
 }

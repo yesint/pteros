@@ -25,6 +25,14 @@ typedef struct		/* This struct describes the order and the	*/
     double	lambdad;		/* Current value of lambda			*/
 } t_trnheader;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int do_trnheader(XDRFILE *xd, char bRead, t_trnheader *sh);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include "xdr_utils.h"
 #include "xdr_seek.h"
+#include "trr_header.h"
 
 #ifndef XTC_MAGIC
 #    define XTC_MAGIC 1995
@@ -622,4 +623,20 @@ int xdr_xtc_seek_time(float time, XDRFILE* handle, int natoms, bool bSeekForward
         return -1;
     }
     return 0;
+}
+
+
+// Check if forces and velocities are present in TRR file
+int check_trr_content(XDRFILE* handle, int* natoms, int* xsz, int* vsz, int* fsz)
+{
+    t_trnheader sh;
+    int  ret = do_trnheader(handle,1,&sh);
+    if(ret != exdrOK) return ret;
+
+    *natoms = sh.natoms;
+    *xsz = sh.x_size;
+    *vsz = sh.v_size;
+    *fsz = sh.f_size;
+
+    return exdrOK;
 }

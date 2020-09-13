@@ -1,3 +1,5 @@
+#pragma once
+
 #include "xdrfile.h"
 
 int xdr_xtc_get_natoms(XDRFILE* handle, int* natoms);
@@ -10,3 +12,4 @@ int xdr_xtc_get_last_frame_number(XDRFILE* handle, int natoms, bool* bOK);
 float xdr_xtc_get_last_frame_time(XDRFILE* handle, int natoms, bool* bOK);
 int xdr_xtc_seek_frame(int frame, XDRFILE* handle, int natoms);
 int xdr_xtc_seek_time(float time, XDRFILE* handle, int natoms, bool bSeekForwardOnly);
+int check_trr_content(XDRFILE* handle, int* natoms, int* xsz, int* vsz, int* fsz);
