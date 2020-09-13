@@ -124,7 +124,7 @@ void XTC_file::seek_time(float t)
 
 void XTC_file::tell_current_frame_and_time(int &step, float &t)
 {
-    gmx_bool bOk;
+    bool bOk;
     int ret = xtc_get_current_frame_number(handle,natoms,&bOk);
     if(!bOk || ret<0) throw Pteros_error("Can't get current frame number");
     step = ret/steps_per_frame;
