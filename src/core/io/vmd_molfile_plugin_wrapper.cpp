@@ -229,7 +229,7 @@ void VMD_molfile_plugin_wrapper::do_write(const Selection &sel, const Mol_file_c
             atoms[i].bfactor = sel.beta(i);
             atoms[i].mass = sel.mass(i);
             atoms[i].charge = sel.charge(i);
-            atoms[i].atomicnumber = sel.element_number(i);
+            atoms[i].atomicnumber = sel.atomic_number(i);
 
             // For MOL2 we also need to set atom type as a string
             strcpy( atoms[i].type, sel.element_name(i).c_str() );

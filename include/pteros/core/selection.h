@@ -942,7 +942,7 @@ class Selection {
     /// Extracts resindex
     DEFINE_ACCESSOR(int,resindex)
     /// Extracts atomic number
-    DEFINE_ACCESSOR(int,element_number)
+    DEFINE_ACCESSOR(int,atomic_number)
 
     /// Computes VDW radius. Read only.
     /// If atomic number is set uses whole periodic table from VMD

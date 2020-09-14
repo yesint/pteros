@@ -702,7 +702,7 @@ Selection System::atom_add_1h(int target, int at1, int at2, int at3, float dist,
     Selection newat = atoms_dup({target});
     newat.name(0) = "H";
     newat.mass(0) = 1.0;
-    newat.element_number(0) = 1;
+    newat.atomic_number(0) = 1;
 
     for(int fr=0; fr<num_frames(); ++fr){
         auto coor0 = xyz(target,fr);
@@ -733,7 +733,7 @@ Selection System::atom_add_2h(int target, int at1, int at2, float dist, bool pbc
     Selection newat1 = atoms_dup({target});
     newat1.name(0) = "H";
     newat1.mass(0) = 1.0;
-    newat1.element_number(0) = 1;
+    newat1.atomic_number(0) = 1;
     Selection newat2 = atoms_dup({newat1.index(0)});
 
     for(int fr=0; fr<num_frames(); ++fr){
@@ -767,7 +767,7 @@ Selection System::atom_add_3h(int target, int at1, float dist, bool pbc)
     Selection newat1 = atoms_dup({target});
     newat1.name(0) = "H";
     newat1.mass(0) = 1.0;
-    newat1.element_number(0) = 1;
+    newat1.atomic_number(0) = 1;
     Selection newat2 = atoms_dup({newat1.index(0),});
     Selection newat3 = atoms_dup({newat2.index(0),});
 

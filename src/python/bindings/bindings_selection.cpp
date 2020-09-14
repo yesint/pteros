@@ -57,7 +57,7 @@ void make_bindings_Selection(py::module& m){
         DEF_PROPERTY(mass,float)
         DEF_PROPERTY(charge,float)
         DEF_PROPERTY(type,int)
-        DEF_PROPERTY(element_number,int)
+        DEF_PROPERTY(atomic_number,int)
         DEF_PROPERTY(type_name,string)
         DEF_PROPERTY(atom,Atom)
         DEF_PROPERTY(x,float)

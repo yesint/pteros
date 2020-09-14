@@ -1484,11 +1484,11 @@ string Selection::dssp() const{
 
 
 float Selection::vdw(int ind) const {
-    return get_vdw_radius(element_number(ind),name(ind));
+    return get_vdw_radius(atomic_number(ind),name(ind));
 }
 
 string Selection::element_name(int ind) const {
-    int el = element_number(ind);
+    int el = atomic_number(ind);
     return get_element_name(el);
 }
 
