@@ -27,9 +27,7 @@
 */
 
 
-
-#ifndef ATOM_H
-#define ATOM_H
+#pragma once
 
 #include <string>
 
@@ -63,7 +61,7 @@ class Atom {
     int  resindex;
     /// Element atomic number
     /// zero means particle, which is not real atom (for example dummy)
-    int element_number;
+    int atomic_number;
     /// @}
 
     /// @name Force-field related fields
@@ -92,12 +90,10 @@ class Atom {
         charge(0),
         type(-1),
         type_name(""),
-        element_number(0)
+        atomic_number(0)
     {}
 };
 
 }
-
-#endif /* ATOM_H */
 
 

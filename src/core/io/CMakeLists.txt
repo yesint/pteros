@@ -54,12 +54,11 @@ if(WITH_GROMACS AND GROMACS_SOURCES AND GROMACS_LIBRARIES)
         tpr_file.cpp)    
 endif()
 
-target_link_libraries(pteros_io PRIVATE xdrfile)
-
 # Unconditional libs
 target_link_libraries(pteros_io PRIVATE
     pteros_gromacs_utils
     molfile_plugins
+    xdrfile
     spdlog::spdlog
     Boost::boost
     Eigen3::Eigen)

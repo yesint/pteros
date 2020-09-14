@@ -153,7 +153,7 @@ bool VMD_molfile_plugin_wrapper::do_read(System *sys, Frame *frame, const Mol_fi
             at.occupancy = atoms[i].occupancy;
             at.beta = atoms[i].bfactor;
             at.charge = atoms[i].charge;
-            at.element_number = atoms[i].atomicnumber;
+            at.atomic_number = atoms[i].atomicnumber;
 
             // pdb_plugin guesses mass based on element record, which is
             // often absent. So it is likely that mass will be zero here!
@@ -166,7 +166,7 @@ bool VMD_molfile_plugin_wrapper::do_read(System *sys, Frame *frame, const Mol_fi
                 at.mass = atoms[i].mass;
             } else {
                 // Guess atomfrom atom name
-                get_element_from_atom_name(at.name, at.element_number, at.mass);
+                get_element_from_atom_name(at.name, at.atomic_number, at.mass);
             }
 
             set_atom_in_system(*sys,i,at);

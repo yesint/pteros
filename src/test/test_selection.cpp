@@ -14,6 +14,7 @@ using namespace pteros;
 using namespace std;
 using namespace Eigen;
 
+
 int main(int argc, char* argv[]){
     LOG()->set_level(spdlog::level::debug);
     string path="/home/semen/work/stored/Projects/SquaMem/new_bending/cyl_DOPC/R100/";

@@ -208,7 +208,6 @@ add_subdirectory(thirdparty/dssp)
 add_subdirectory(thirdparty/molfile_plugins)
 
 # xdrfile library
-
 add_subdirectory(thirdparty/xdrfile)
 
 # voro++ library

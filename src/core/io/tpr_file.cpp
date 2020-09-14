@@ -93,7 +93,7 @@ bool TPR_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
         at.resname = *(top.atoms.resinfo[resi].name);
         at.mass = top.atoms.atom[i].m;
         at.charge = top.atoms.atom[i].q;
-        at.element_number = top.atoms.atom[i].atomnumber;
+        at.atomic_number = top.atoms.atom[i].atomnumber;
         char c = top.atoms.resinfo[resi].chainid;
         if(c!='\0') at.chain = c;
         if(top.atoms.pdbinfo){

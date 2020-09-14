@@ -1,5 +1,5 @@
 #------------------------------
-# xdrfile library from Gromacs
+# Modified xdrfile library
 #------------------------------
 
 add_library(xdrfile STATIC

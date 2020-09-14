@@ -57,7 +57,7 @@ public:
     bool top() const { return flags[3]; }
     Mol_file_content top(bool val){ flags[3] = val; return *this;}
 
-    // Random access trajectory (for the future)
+    // Random access trajectory
     bool rand() const { return flags[4]; }
     Mol_file_content rand(bool val){ flags[4] = val; return *this;}
 

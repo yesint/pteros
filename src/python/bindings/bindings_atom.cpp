@@ -50,7 +50,7 @@ void make_bindings_Atom(py::module& m){
         .def_readwrite("charge",    &Atom::charge)
         .def_readwrite("type",      &Atom::type)
         .def_readwrite("type_name", &Atom::type_name)
-        .def_readwrite("element_number", &Atom::element_number)
+        .def_readwrite("atomic_number", &Atom::atomic_number)
     ;
 }
 

@@ -23,7 +23,7 @@ void pteros::selection_to_obmol(const Selection& sel, OpenBabel::OBMol &mol, boo
         // Create new atom in this mol
         auto oba = mol.NewAtom();
 
-        oba->SetAtomicNum(at.element_number);
+        oba->SetAtomicNum(at.atomic_number);
         oba->SetPartialCharge(at.charge);
         oba->SetVector(10.0*sel.x(i),10.0*sel.y(i),10.0*sel.z(i));
 

@@ -182,7 +182,7 @@ unique_ptr<Mol_file> Mol_file::recognize(string fname){
 #ifdef USE_OPENBABEL
     else if(ext=="pdbqt")   return unique_ptr<Mol_file>(new PDBQT_file(fname));
 #endif
-    else throw Pteros_error("File extension '{}' not recognized!",ext);
+    else throw Pteros_error("File extension '{}' is not recognized!",ext);
 }
 
 std::unique_ptr<Mol_file> Mol_file::open(string fname, char open_mode)

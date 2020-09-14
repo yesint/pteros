@@ -92,7 +92,7 @@ bool Babel_wrapper::do_read(System *sys, Frame *frame, const Mol_file_content &w
             at.occupancy = 0.0;
             at.beta = 0.0;
             at.charge = ba->GetPartialCharge();
-            at.element_number = ba->GetAtomicNum();
+            at.atomic_number = ba->GetAtomicNum();
             at.mass = ba->GetAtomicMass();
 
             set_atom_in_system(*sys,i,at);

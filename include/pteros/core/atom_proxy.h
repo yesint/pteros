@@ -107,8 +107,8 @@ public:
     inline Atom& atom(){ return *atom_ptr; }
     inline const Atom& atom() const { return *atom_ptr; }
 
-    inline int& element_number(){ return atom_ptr->element_number; }
-    inline const int& element_number() const { return atom_ptr->element_number; }
+    inline int& element_number(){ return atom_ptr->atomic_number; }
+    inline const int& element_number() const { return atom_ptr->atomic_number; }
 
     std::string element_name() const;
 
