@@ -42,6 +42,8 @@ void XTC_file::open(char open_mode)
     bool bOk;
     handle = xdrfile_open(fname.c_str(),&open_mode);
 
+    if(!handle) throw Pteros_error("Unable to open XTC file {}", fname);
+
     // Extract number of atoms
     int ok = xdr_xtc_get_natoms(handle,&natoms);
     if(!ok) throw Pteros_error("Can't read XTC number of atoms");
