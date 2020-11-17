@@ -33,6 +33,7 @@
 
 #include <string>
 #include <vector>
+#include <Eigen/Core>
 
 namespace pteros {
 
@@ -67,6 +68,7 @@ public:
     std::vector<int> as_ints() const;
     std::vector<float> as_floats() const;
     std::vector<bool> as_bools() const;
+    Eigen::VectorXf as_VectorXf() const;
 private:
     // Internal storage is just a vector of strings representing values
     std::vector<std::string> data;

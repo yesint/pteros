@@ -34,6 +34,7 @@
 #include <boost/algorithm/string.hpp> // For to_lower
 #include <sstream>
 
+
 using namespace std;
 using namespace pteros;
 
@@ -278,6 +279,22 @@ vector<float> Option::as_floats() const {
     }
     return res;
 }
+
+Eigen::VectorXf Option::as_VectorXf() const {
+    if(data.empty()) throw Pteros_error("One or more FLOAT values are expected for key '{}'!",name);
+    vector<float> vec;
+    for(auto& str: data){
+        try {
+            vec.push_back( boost::lexical_cast<float>(str) );
+        } catch(boost::bad_lexical_cast){
+            throw Pteros_error("Value '{}' is not FLOAT!",str);
+        }
+    }
+    Eigen::VectorXf res(vec.size());
+    for(int i=0;i<vec.size();++i) res(i)=vec[i];
+    return res;
+}
+
 
 vector<bool> Option::as_bools() const {
     if(data.empty()) throw Pteros_error("One or more BOOL values are expected for key '{}'!",name);
