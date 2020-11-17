@@ -8,20 +8,18 @@ jobs:
     - name: "MinGW-w64_x64"
       env: 
       - CMAKE_BIN=x86_64-w64-mingw32-cmake
-      - DOCKER_IMG=burningdaylight/docker-mingw-qt5
+      - DOCKER_IMG=burningdaylight/mingw-arch
       - WITH_PYTHON=OFF
-      - WITH_TNGIO=OFF
     - name: "Ubuntu LTS x64"
       env: 
       - CMAKE_BIN=cmake
       - DOCKER_IMG=burningdaylight/ubuntu-latest-devel
       - WITH_PYTHON=ON
-      - WITH_TNGIO=ON
 
 before_script:
  - docker pull ${DOCKER_IMG}
 
 script:
  - mkdir build
- - docker run --user $(id -u):$(id -g) --rm -v ${TRAVIS_BUILD_DIR}:/workdir:rw ${DOCKER_IMG} /bin/bash -c "cd build && ${CMAKE_BIN} -DWITH_PYTHON=${WITH_PYTHON} -DWITH_OPENBABEL=OFF -DWITH_GROMACS=OFF -DWITH_TNGIO=${WITH_TNGIO} .. && make"
+ - docker run --user $(id -u):$(id -g) --rm -v ${TRAVIS_BUILD_DIR}:/workdir:rw ${DOCKER_IMG} /bin/bash -c "cd build && ${CMAKE_BIN} -DWITH_PYTHON=${WITH_PYTHON} -DWITH_OPENBABEL=OFF -DWITH_GROMACS=OFF .. && make"
  - rm -rf build
