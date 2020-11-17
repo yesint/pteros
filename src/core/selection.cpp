@@ -888,14 +888,17 @@ void Selection::process_pbc_atom(int& a) const {
 
 
 // Center of geometry
-Vector3f Selection::center(bool mass_weighted, Array3i_const_ref pbc, int pbc_atom) const {
+Vector3f Selection::center(bool mass_weighted, Array3i_const_ref pbc, int pbc_atom) const {    
+    int n = size();
+
+    if(n==0) throw Pteros_error("Can't get center of empty selection!");
+    // in case of just one atom nothing to compute
+    if(n==1) return xyz(0);
+
     Vector3f res;
     int i;
-    int n = _index.size();
 
     process_pbc_atom(pbc_atom);
-
-    if(n==0) throw Pteros_error("Can't get the center of empty selection!");
 
     res.fill(0.0);
 
