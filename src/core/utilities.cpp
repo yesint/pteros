@@ -183,7 +183,7 @@ void greeting(string tool_name)
     string s1 = "|***    Pteros molecular modeling library    ***|";
     string ver_str = fmt::format("Version: {} ({})", _version_tag, _git_revision);
     string timestamp = fmt::format("Built at: {}", _build_time);
-    string author = "(C) Semen Yesylevskyy, 2019";
+    string author = "(C) Semen Yesylevskyy, 2020";
     string cite = "Please cite: 10.1002/jcc.23943";
     string web = "Web: github.com/yesint/pteros";
     // Line
