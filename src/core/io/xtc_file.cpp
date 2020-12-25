@@ -27,10 +27,10 @@
 */
 
 #include "xtc_file.h"
+#include "xdr_utils.h"
 #include "pteros/core/pteros_error.h"
 #include "pteros/core/logging.h"
 #include "gromacs_utils.h"
-#include "xdr_utils.h"
 
 using namespace std;
 using namespace pteros;
@@ -68,9 +68,6 @@ void XTC_file::open(char open_mode)
     if(!bOk || max_t<0) throw Pteros_error("Can't get last frame time");
 
     LOG()->debug("There are {} frames, max_t= {}, dt={}",num_frames,max_t,dt);
-
-
-
 
     if(!handle) throw Pteros_error("Unable to open XTC file {}", fname);
 
@@ -112,7 +109,7 @@ void XTC_file::seek_frame(int fr)
 {
     if(fr>=num_frames) throw Pteros_error("Can't seek to frame {}, there are {} frames in this file",fr,num_frames);
     int ret = xdr_xtc_seek_frame(fr*steps_per_frame,handle,natoms);
-    if(ret<0) throw Pteros_error("Error seeking to frame {}",fr,num_frames);
+    if(ret<0) throw Pteros_error("Error seeking to frame {}",fr);
 }
 
 void XTC_file::seek_time(float t)
@@ -121,7 +118,7 @@ void XTC_file::seek_time(float t)
     // We assume equally spaced frames in the trajectory. It's much faster
     int ret = xdr_xtc_seek_frame(ceil(t/dt)*steps_per_frame,handle,natoms);
     //int ret = xdr_xtc_seek_time(t,handle,natoms,false);
-    if(ret<0) throw Pteros_error("Can't seek to time {}",t,num_frames);
+    if(ret<0) throw Pteros_error("Can't seek to time {}",t);
 }
 
 void XTC_file::tell_current_frame_and_time(int &step, float &t)
