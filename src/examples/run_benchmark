@@ -2,8 +2,8 @@
 time \
 ./benchmark \
 --trajectory[ \
-  /home/semen/work/Projects/kornelyuk/Sasha/dimer_md/1/dimer_noPBC_1.xtc \
-  /home/semen/work/Projects/kornelyuk/Sasha/dimer_md/1/dimer_pdb2gmx.gro \
+  dimer_noPBC_1.xtc \
+  dimer_pdb2gmx.gro \
   --last_frame 1000 \
 ] \
 --log_interval 100 \

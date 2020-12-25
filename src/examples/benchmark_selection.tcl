@@ -1,7 +1,7 @@
 source bigdcd.tcl
 
-set gro_file /home/semen/work/Projects/kornelyuk/Sasha/dimer_md/1/dimer_pdb2gmx.gro
-set xtc_file /home/semen/work/Projects/kornelyuk/Sasha/dimer_md/1/dimer_noPBC_1.xtc
+set gro_file dimer_pdb2gmx.gro
+set xtc_file dimer_noPBC_1.xtc
 
 proc bench {num} {
     global sel gro_file id xtc_file

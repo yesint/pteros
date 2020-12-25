@@ -1,4 +1,4 @@
-mol new "/media/semen/data/semen/trajectories/2lao/after_em.gro"
+mol new "after_em.gro"
 
 set all0 [atomselect top all]
 set all1 [atomselect top all]
