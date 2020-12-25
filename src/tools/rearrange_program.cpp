@@ -44,6 +44,9 @@ int main(int argc, char* argv[]){
         vector<string> begin_sels = opt("begin").as_strings();
         vector<string> end_sels = opt("end").as_strings();
 
+        if(begin_sels.empty() && end_sels.empty())
+            throw Pteros_error("You must specify at least some selections to rearrange!s");
+
         string prefix = opt("prefix","").as_string();
         if(prefix!=""){
             for(auto& s: begin_sels) s = prefix+s;
