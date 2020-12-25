@@ -10,13 +10,19 @@ using namespace Eigen;
 string help(){
     return
 R"(Usage:
--sel <sel1 sel2 sel3...>  - text for selections to rearrange in order of apperance
-    All atoms not covered by passed selections are written "as is" after selected atoms.
+-begin <sel1 sel2 sel3...>  - begin with these selections in the order of apperance
     Selections should not overlap.
--prefix <text> - prefix to add to each selection (i.e. resname)
+-end <sel1 sel2 sel3...>  - end with these selections in the order of apperance
+    Selections should not overlap.
+
+Either "-begin" or "-end" or both should be specified.
+All atoms not covered by "-begin" and "-end" are written "as is" between them.
+
+-prefix <text>, optional - prefix to add to each selection (i.e. resname)
     Defaults to empty string.
     No space is added after prefix! Add one explicitly is needed.
--f <filename> - file to read
+
+-f <filename>, required - file to read
 -o <filename>, optional, default: rearranged.pdb - file to write.
 )";
 }
@@ -35,14 +41,18 @@ int main(int argc, char* argv[]){
             return 0;
         }
 
-        vector<string> sels = opt("sel").as_strings();
+        vector<string> begin_sels = opt("begin").as_strings();
+        vector<string> end_sels = opt("end").as_strings();
 
         string prefix = opt("prefix","").as_string();
-        for(auto& s: sels) s = prefix+s;
+        if(prefix!=""){
+            for(auto& s: begin_sels) s = prefix+s;
+            for(auto& s: end_sels) s = prefix+s;
+        }
 
         string fname = opt("f").as_string();
         System sys(fname);
-        sys.rearrange(sels);
+        sys.rearrange(begin_sels,end_sels);
         sys().write(opt("o","rearranged.pdb").as_string());
 
 

@@ -17,7 +17,7 @@ set_target_properties(pteros_solvate_program PROPERTIES OUTPUT_NAME pteros_solva
 #------------------------
 
 add_executable(pteros_rearrange_program
-    rearrange.cpp
+    rearrange_program.cpp
 )
 if(MINGW)
     target_link_libraries(pteros_rearrange_program PRIVATE spdlog::spdlog)

@@ -114,7 +114,7 @@ class Selection {
       Vector may be filled in any order and may contain duplicates.
       \warning
       Resulting selection is neither coordinate-dependent nor text-based.
-      It will not recompute itself on the frame change even if it involves atom coordinates.
+      It won't recompute itself on the frame change even if it involves atom coordinates.
     */
     Selection(const System& sys,
               const std::function<void(const System&,int,std::vector<int>&)>& callback,
@@ -195,6 +195,9 @@ class Selection {
 
     /// Append absolute index to selection
     void append(int ind);
+
+    /// Append several selections to this one
+    void append(const std::vector<Selection>& sel_vec);
 
     /// Remove all atoms of sel from current selection
     void remove(const Selection& sel);

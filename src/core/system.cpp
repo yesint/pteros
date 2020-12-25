@@ -825,7 +825,8 @@ Selection System::append(const System &sys){
 }
 
 Selection System::append(const Selection &sel, bool current_frame){
-    //Sanity check    
+    //Sanity check
+    if(sel.size()==0) return Selection(*this); // In case of empty selection just exit
     if(!current_frame && num_frames()>0 && num_frames()!=sel.get_system()->num_frames())
         throw Pteros_error("Can't merge system with selection: different number of frames! ({} and {})",
                            num_frames(),sel.get_system()->num_frames());
@@ -920,21 +921,67 @@ void System::rearrange(const std::vector<Selection> &sel_vec){
     // Overlap check
     if(check_selection_overlap(sel_vec)) throw Pteros_error("Selections for rearrange should not overlap!");
 
-    Selection rest(*this);
     System result;
-
     // Append all explicitly given selections to result
-    for (auto &s: sel_vec){
-        if(s.size()>0){
-            result.append(s);
-            rest.append(s);
-        }
-    }
-    // Invert to get rest
-    rest = ~rest;
+    for (auto &s: sel_vec) result.append(s);
 
-    // Only append rest to result if it is not empty
-    if(rest.size()) result.append(rest);
+    // Rest
+    Selection rest(*this);
+    rest.append(sel_vec);
+    rest.invert();
+
+    // append rest
+    result.append(rest);
+
+    *this = result;
+}
+
+void System::rearrange(const std::vector<string> &begin_strings, const std::vector<string> &end_strings)
+{
+    vector<Selection> begin_vec(begin_strings.size());
+    for (int i=0; i<begin_strings.size(); ++i){
+        begin_vec[i].modify(*this, begin_strings[i]);
+    }
+
+    vector<Selection> end_vec(end_strings.size());
+    for (int i=0; i<end_strings.size(); ++i){
+        end_vec[i].modify(*this, end_strings[i]);
+    }
+
+    rearrange(begin_vec, end_vec);
+}
+
+void System::rearrange(const std::vector<Selection> &begin_vec, const std::vector<Selection> &end_vec)
+{
+    // Index of middle
+    int mid = begin_vec.size();
+
+    // Combine vectors
+    vector<Selection> vec;
+    vec.insert(vec.end(),begin_vec.begin(),begin_vec.end());
+    vec.insert(vec.end(),end_vec.begin(),end_vec.end());
+
+    // Sanity check
+    for(auto &s: vec){
+        if(s.size()==0) LOG()->warn("Empty selection '{}' in rearrange will be ignored!", s.get_text());
+        if(s.get_system()!=this) throw Pteros_error("Rearrange needs selections from the same system!");
+    }
+
+    // Overlap check
+    if(check_selection_overlap(begin_vec)) throw Pteros_error("Selections for rearrange should not overlap!");
+
+    // Compute rest
+    Selection rest(*this);
+    rest.append(vec);
+    rest.invert();
+
+    System result;
+    // Append all starting selections to result
+    for(int i=0;i<mid;++i) result.append(vec[i]);
+    // Append rest
+    result.append(rest);
+    // Append all ending selections to result
+    for(int i=mid;i<vec.size();++i) result.append(vec[i]);
 
     *this = result;
 }

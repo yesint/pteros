@@ -665,6 +665,7 @@ Lipid::Lipid(const Selection &sel, const Lipid_descr &descr){
     tail_carbon_indexes.resize(descr.tail_carbon_sels.size());
     order.resize(descr.tail_carbon_sels.size());
     for(int t=0; t<descr.tail_carbon_sels.size(); ++t){
+        //LOG()->info("tail {}: {} carbons ",t,whole_sel(descr.tail_carbon_sels[t]).size());
         tail_carbon_indexes[t] = whole_sel(descr.tail_carbon_sels[t]).get_index();
         // Allocate array for order
         order[t].resize(tail_carbon_indexes[t].size()-2);

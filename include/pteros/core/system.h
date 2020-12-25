@@ -157,9 +157,23 @@ public:
     void rearrange(const std::vector<std::string>& sel_strings);
 
     /// Rearranges the atoms in the order of provided selections.
-    /// Atom, which are not selected are appended at the end in their previous order.
+    /// Atoms, which are not selected are appended as is at the end.
     /// \note Selections should not overlap (exception is thrown if they are).
     void rearrange(const std::vector<Selection>& sel_vec);
+
+    /// Rearranges the atoms in the order of provided selection strings.
+    /// @param begin_strings selection strings to begin with.
+    /// @param end_strings   selection strings to end with.
+    /// Atoms, which are not selected are placed as is between begin and end.
+    /// \note Selections should not overlap (exception is thrown if they are).
+    void rearrange(const std::vector<std::string>& begin_strings, const std::vector<std::string>& end_strings);
+
+    /// Rearranges the atoms in the order of provided selections.
+    /// @param begin_vec selections to begin with.
+    /// @param end_vec   selections to end with.
+    /// Atoms, which are not selected are placed as is between begin and end.
+    /// \note Selections should not overlap (exception is thrown if they are).
+    void rearrange(const std::vector<Selection>& begin_vec, const std::vector<Selection>& end_vec);
 
     /// Rearranges the atoms in the alphabetical order of residue names.
     /// Useful for liquid systems and membranes where each residue is a whole molecule.

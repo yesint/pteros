@@ -232,6 +232,24 @@ void Selection::append(int ind){
     parser.reset();
 }
 
+void Selection::append(const std::vector<Selection> &sel_vec)
+{
+    if(!system) throw Pteros_error("Can't append to selection with undefined system!");
+    for(const auto& sel: sel_vec){
+        if(!sel.system) throw Pteros_error("Can't append selection with undefined system!");
+        if(sel.system!=system) throw Pteros_error("Can't append atoms from other system!");
+    }
+
+    for(const auto& sel: sel_vec){
+        copy(sel._index.begin(),sel._index.end(),back_inserter(_index));
+    }
+
+    sort_and_remove_duplicates();
+
+    sel_text = "";
+    parser.reset();
+}
+
 void Selection::remove(const Selection &sel)
 {
     vector<int> tmp;
