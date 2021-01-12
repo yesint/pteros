@@ -27,161 +27,165 @@
 */
 
 
-
 #include "distance_search_contacts.h"
 #include <thread>
+#include <algorithm>
+#include <execution>
 
 using namespace std;
 using namespace pteros;
 using namespace Eigen;
 
-void Distance_search_contacts::do_search(){
-    int i,j,k,i1;
-    int nlist_size;
 
-    // Search
-    result_pairs->clear();
-    if(result_distances) result_distances->clear();
+void Distance_search_contacts::do_search()
+{
+    // Plan of search. Contain pairs of cells to search between
+    // If two cells are the same then search inside the cell
+    vector< Matrix<int,3,2> > plan;
+    make_search_plan(plan);
 
-    // Init visited cells array
-    for(i=0;i<NgridX;++i)
-        for(j=0;j<NgridY;++j)
-            for(k=0;k<NgridZ;++k){
-                visited[i][j][k] = false;
-            }
+    // Prepare for searching
+    pairs->clear();
+    distances->clear();
 
-    // See if we need parallelization
-    int max_N, max_dim;
-    Vector3i dims(NgridX,NgridY,NgridZ);
-    max_N = dims.maxCoeff(&max_dim);
-
-    int nt = std::min(max_N, int(std::thread::hardware_concurrency()));
+    // See if we need parallelization    
+    int nt = std::min(plan.size(), size_t(std::thread::hardware_concurrency()));
 
     if(nt==1){
-        deque<Vector2i> _bon;
-        deque<float> _dist_vec;
-        deque<float>* _dist_vec_ptr;
-        _dist_vec_ptr = result_distances ? &_dist_vec : nullptr;
-
-        do_part(0,0,NgridX,_bon,_dist_vec_ptr);
-
-        // Collect results
-        result_pairs->reserve(_bon.size());
-
-        copy(_bon.begin(),_bon.end(),back_inserter(*result_pairs));
-
-        if(result_distances){
-            result_distances->reserve(_dist_vec.size());
-            copy(_dist_vec.begin(),_dist_vec.end(),back_inserter(*result_distances));
+        // Serial
+        for(auto& pair: plan){
+            search_planned_pair(pair.col(0),pair.col(1), *pairs, *distances);
         }
 
     } else {
-        // Parallel searching
+        // Thread parallel
+        vector<vector<Vector2i>> pairs_buf(nt);
+        vector<vector<float>>    dist_buf(nt);
 
-        // Determine parts for each thread
-        vector<int> b(nt),e(nt);
-        int cur=0;
-        for(int i=0;i<nt-1;++i){
-            b[i]=cur;
-            cur += dims(max_dim)/nt;
-            e[i]=cur;
-        }
-        b[nt-1]=cur;
-        e[nt-1]=dims(max_dim);
-
-        // Prepare arrays per each thread
-        vector< deque<Vector2i> > _bon(nt);
-        vector< deque<float> > _dist_vec(nt);
-        vector< deque<float>* > _dist_vec_ptr(nt);
-        for(int i=0;i<nt;++i) _dist_vec_ptr[i] = result_distances ? &_dist_vec[i] : nullptr;
-
-        // Launch threads
         vector<thread> threads;
+        int chunk = floor(plan.size()/nt);
+
         for(int i=0;i<nt;++i){
+            int b = chunk*i;
+            int e = (i<nt-1) ? chunk*(i+1) : plan.size();
+
+            // Launch thread
             threads.emplace_back(
-                                   std::bind(
-                                       &Distance_search_contacts::do_part,
-                                       this,
-                                       max_dim,
-                                       b[i],
-                                       e[i],
-                                       ref(_bon[i]),
-                                       ref(_dist_vec_ptr[i])
-                                   )                                
-                             );
+            [&,b,e,i](){
+                for(int j=b; j<e; ++j){
+                    search_planned_pair(plan[j].col(0), plan[j].col(1), pairs_buf[i], dist_buf[i]);
+                }
+            }
+            );
         }
 
         // Wait for threads
         for(auto& t: threads) t.join();
 
         // Collect results
-        int sz = 0;
-        for(int i=0;i<nt;++i) sz+= _bon[i].size();
-
-        result_pairs->reserve(sz);
         for(int i=0;i<nt;++i){
-            copy(_bon[i].begin(),_bon[i].end(),back_inserter(*result_pairs));
-        }
-
-        if(result_distances){
-            result_distances->reserve(sz);
-            for(int i=0;i<nt;++i)
-                copy(_dist_vec[i].begin(),_dist_vec[i].end(),back_inserter(*result_distances));
+            copy(begin(pairs_buf[i]),end(pairs_buf[i]),back_inserter(*pairs));
+            copy(begin(dist_buf[i]),end(dist_buf[i]),back_inserter(*distances));
         }
     }
 }
 
 
-void Distance_search_contacts::search_in_pair_of_cells(int x1, int y1, int z1, // cell 1
-                             int x2, int y2, int z2, // cell 2
-                             Grid& grid1,
-                             Grid& grid2,
-                             deque<Vector2i>& bon,
-                             deque<float>* dist_vec, bool is_periodic)
+void Distance_search_contacts::search_between_cells(Vector3i_const_ref c1,
+                                                Vector3i_const_ref c2,
+                                                const Grid& grid1,
+                                                const Grid& grid2,
+                                                std::vector<Eigen::Vector2i>& pairs_buffer,
+                                                std::vector<float>& distances_buffer)
 {
-    int N1,N2,ind1,ind2,i1,i2;
-    float d;
-    float cutoff2 = cutoff*cutoff;
+    const Grid_cell& cell1 = grid1.cell(c1);
+    const Grid_cell& cell2 = grid2.cell(c2);
 
-    N1 = grid1.cell(x1,y1,z1).size();
-    N2 = grid2.cell(x2,y2,z2).size();
+    // The cells could be not adjucent if one of them is wrapped around
+    // but this only happens in peridic case and is treated automatically
+
+    int N1 = cell1.size();
+    int N2 = cell2.size();
 
     if(N1*N2==0) return; // Nothing to do
 
-    const vector<Grid_element>& v1 = grid1.cell(x1,y1,z1);
-    const vector<Grid_element>& v2 = grid2.cell(x2,y2,z2);
+    float cutoff2 = cutoff*cutoff;
 
     if(is_periodic){
 
-        for(i1=0;i1<N1;++i1){
-            Vector3f* p = v1[i1].coor_ptr; // Coord of point in grid1
-            for(i2=0;i2<N2;++i2){
-                d = box.distance_squared(*(v2[i2].coor_ptr),*p);
+        for(int i1=0;i1<N1;++i1){
+            Vector3f p = cell1.get_coord(i1); // Coord of point in grid1
+            for(int i2=0;i2<N2;++i2){
+                float d = box.distance_squared(cell2.get_coord(i2),p,periodic_dims);
                 if(d<=cutoff2){
-                    ind1 = v1[i1].index; //index
-                    ind2 = v2[i2].index; //index
-                    bon.emplace_back(ind1,ind2);
-                    if(dist_vec) dist_vec->push_back(sqrt(d));
+                    pairs_buffer.emplace_back(cell1.get_index(i1),
+                                              cell2.get_index(i2));
+                    distances_buffer.push_back(sqrt(d));
                 }
             }
         }
 
     } else {
 
-        for(i1=0;i1<N1;++i1){
-            Vector3f* p = v1[i1].coor_ptr; // Coord of point in grid1
-            for(i2=0;i2<N2;++i2){
-                d = (*(v2[i2].coor_ptr)-*p).squaredNorm();
+        for(int i1=0;i1<N1;++i1){
+            Vector3f p = cell1.get_coord(i1); // Coord of point in grid1
+            for(int i2=0;i2<N2;++i2){
+                float d = (cell2.get_coord(i2)-p).squaredNorm();
                 if(d<=cutoff2){
-                    ind1 = v1[i1].index; //index
-                    ind2 = v2[i2].index; //index
-                    bon.emplace_back(ind1,ind2);
-                    if(dist_vec) dist_vec->push_back(sqrt(d));
+                    pairs_buffer.emplace_back(cell1.get_index(i1),
+                                              cell2.get_index(i2));
+                    distances_buffer.push_back(sqrt(d));
                 }
             }
         }
 
     }
 }
+
+void Distance_search_contacts::search_inside_cell(Vector3i_const_ref c,
+                                                  const Grid &grid,
+                                                  std::vector<Vector2i> &pairs_buffer,
+                                                  std::vector<float> &distances_buffer)
+{
+    const Grid_cell& cell = grid.cell(c);
+
+    int N = cell.size();
+
+    if(N==0) return; // Nothing to do
+
+    float cutoff2 = cutoff*cutoff;
+
+    if(is_periodic){
+
+        for(int i1=0;i1<N-1;++i1){
+            Vector3f p = cell.get_coord(i1); // Coord of point in grid1
+            for(int i2=i1+1;i2<N;++i2){
+                float d = box.distance_squared(cell.get_coord(i2),p,periodic_dims);
+                if(d<=cutoff2){
+                    pairs_buffer.emplace_back(cell.get_index(i1),
+                                              cell.get_index(i2));
+                    distances_buffer.push_back(sqrt(d));
+                }
+            }
+        }
+
+    } else {
+
+        for(int i1=0;i1<N-1;++i1){
+            Vector3f p = cell.get_coord(i1); // Coord of point in grid1
+            for(int i2=i1+1;i2<N;++i2){
+                float d = (cell.get_coord(i2)-p).squaredNorm();
+                if(d<=cutoff2){
+                    pairs_buffer.emplace_back(cell.get_index(i1),
+                                              cell.get_index(i2));
+                    distances_buffer.push_back(sqrt(d));
+                }
+            }
+        }
+
+    }
+}
+
+
 
 

@@ -315,7 +315,8 @@ void Membrane::compute_properties(float d, bool use_external_normal, Vector3f_co
 
     // Get connectivity
     vector<Vector2i> bon;
-    search_contacts(d,all_mid_sel,bon,false,true);
+    vector<float> dist;
+    search_contacts(d,all_mid_sel,bon,dist,false,fullPBC);
 
     // Convert the list of bonds to convenient form
     // atom ==> 1 2 3...

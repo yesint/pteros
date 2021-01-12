@@ -691,7 +691,9 @@ void Selection_parser::eval_node(const std::shared_ptr<MyAst> &node, std::vector
         dum1.set_frame(frame);
         dum2.set_frame(frame);
 
-        search_within(cutoff,dum1,dum2,result,include_self,periodic);
+        Eigen::Vector3i pbc = periodic ? fullPBC : noPBC;
+
+        search_within(cutoff,dum1,dum2,result,include_self,pbc);
 
         break;
     }

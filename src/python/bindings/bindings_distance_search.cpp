@@ -43,44 +43,40 @@ void make_bindings_Distance_search(py::module& m){
     m.def("search_contacts",[](float d,
           const Selection& sel,
           bool absolute_index = false,
-          bool periodic = false,
-          bool do_dist_vec = false
-          )
+          Array3i_const_ref pbc = noPBC )
     {
-        std::vector<float>* dist_vec_ptr = do_dist_vec ? new std::vector<float> : nullptr;
+        std::vector<float>* dist_vec_ptr = new std::vector<float>;
         std::vector<Vector2i>* pairs_ptr = new std::vector<Vector2i>;
 
-        search_contacts(d,sel,*pairs_ptr,absolute_index,periodic,dist_vec_ptr);
+        search_contacts(d,sel,*pairs_ptr,*dist_vec_ptr,absolute_index,pbc);
 
-        // Interpret pairs array as 1D array of ints first and convert to py::array
-        // Pass size*2 explicitly to ensure correct size
-        py::array m = vector_to_array<int>(reinterpret_cast<std::vector<int>*>(pairs_ptr),2*pairs_ptr->size());
-        // Reshape into 2D array (no reallocation)
-        m.resize(vector<size_t>{pairs_ptr->size(),2});
+        if(pairs_ptr->size()){
+            // Interpret pairs array as 1D array of ints first and convert to py::array
+            // Pass size*2 explicitly to ensure correct size
+            py::array m = vector_to_array<int>(reinterpret_cast<std::vector<int>*>(pairs_ptr),2*pairs_ptr->size());
+            // Reshape into 2D array (no reallocation)
+            m.resize(vector<size_t>{pairs_ptr->size(),2});
 
-        //cout << (*pairs_ptr)[1] << " " << pairs_ptr->data() << " " << m.data() << endl;
-
-        if(do_dist_vec){
             // Make py::array for distances
             py::array v = vector_to_array<float>(dist_vec_ptr);
             return py::make_tuple(m,v);
         } else {
-            return py::make_tuple(m,py::none());
+            // Empty
+            return py::make_tuple(py::list(),py::list());
         }
-    }, "d"_a, "sel"_a, "abs_ind"_a=false, "periodic"_a=false,"do_distances"_a=false);
+
+    }, "d"_a, "sel"_a, "abs_ind"_a=false, "pbc"_a=noPBC);
 
 
     m.def("search_contacts",[](float d,
           const Selection& sel1,
           const Selection& sel2,
           bool absolute_index = false,
-          bool periodic = false,
-          bool do_dist_vec = false
-          )
+          Vector3i_const_ref pbc = noPBC )
     {
-        std::vector<float>* dist_vec_ptr = do_dist_vec ? new std::vector<float> : nullptr;
+        std::vector<float>* dist_vec_ptr = new std::vector<float>;
         std::vector<Vector2i>* pairs_ptr = new std::vector<Vector2i>;
-        search_contacts(d,sel1,sel2,*pairs_ptr,absolute_index,periodic,dist_vec_ptr);
+        search_contacts(d,sel1,sel2,*pairs_ptr,*dist_vec_ptr,absolute_index,pbc);
 
         if(pairs_ptr->size()){
             // Interpret pairs array as 1D array of ints first
@@ -89,37 +85,33 @@ void make_bindings_Distance_search(py::module& m){
             // Reshape into 2D array (no reallocation)
             m.resize(vector<size_t>{pairs_ptr->size(),2});
 
-            if(do_dist_vec){
-                // Make py::array for distances
-                py::array v = vector_to_array<float>(dist_vec_ptr);
-                return py::make_tuple(m,v);
-            } else {
-                return py::make_tuple(m,py::none());
-            }
+            // Make py::array for distances
+            py::array v = vector_to_array<float>(dist_vec_ptr);
+            return py::make_tuple(m,v);
+
         } else {
             // Empty
-            return py::make_tuple(py::list(),py::none());
+            return py::make_tuple(py::list(),py::list());
         }
 
-    }, "d"_a, "sel1"_a, "sel2"_a, "abs_ind"_a=false, "periodic"_a=false,"do_distances"_a=false);
+    }, "d"_a, "sel1"_a, "sel2"_a, "abs_ind"_a=false, "pbc"_a=noPBC);
 
 
     m.def("search_within",[](float d,
           const Selection& src,
           const Selection& target,
           bool include_self = true,
-          bool periodic = false
-          )
+          Vector3i_const_ref pbc = noPBC )
     {
         std::vector<int>* res_ptr = new std::vector<int>;
-        search_within(d,src,target,*res_ptr,include_self,periodic);
+        search_within(d,src,target,*res_ptr,include_self,pbc);
         return vector_to_array<int>(res_ptr);
-    }, "d"_a, "src"_a, "target"_a, "include_self"_a=true, "periodic"_a=false);
+    }, "d"_a, "src"_a, "target"_a, "include_self"_a=true, "pbc"_a=noPBC);
 
 
     py::class_<Distance_search_within>(m, "Distance_search_within")
-            .def(py::init<float,const Selection&,bool,bool>(), "d"_a,"src"_a,"abs_ind"_a=false,"periodic"_a=false)
-            .def("setup",&Distance_search_within::setup, "d"_a,"src"_a,"abs_ind"_a=false,"periodic"_a=false)
+            .def(py::init<float,const Selection&,bool,Vector3i_const_ref>(), "d"_a,"src"_a,"abs_ind"_a=false,"pbc"_a=noPBC)
+            .def("setup",&Distance_search_within::setup, "d"_a,"src"_a,"abs_ind"_a=false,"pbc"_a=noPBC)
 
             .def("search_within",[](Distance_search_within* obj, Vector3f_const_ref coord)
                 {

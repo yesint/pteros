@@ -27,39 +27,41 @@
 */
 
 
-
-#ifndef DISTANCE_SEARCH_CONTACTS_H_INCLUDED
-#define DISTANCE_SEARCH_CONTACTS_H_INCLUDED
+#pragma once
 
 #include "distance_search_base.h"
 
-namespace pteros {       
+namespace pteros {
+
 
 class Distance_search_contacts: public Distance_search_base {
-public:
 protected:
-    // wisited array
-    boost::multi_array<bool, 3> visited;
-    // Pointers for final results
-    std::vector<Eigen::Vector2i>* result_pairs;
-    std::vector<float>* result_distances;
+    // Implements logic for calling search_between_cells() or search_inside_cell()
+    // with correct grids in derived classes
+    virtual void search_planned_pair(Vector3i_const_ref c1,
+                                     Vector3i_const_ref c2,
+                                     std::vector<Eigen::Vector2i> &pairs_buffer,
+                                     std::vector<float> &distances_buffer) = 0;
 
     void do_search();
-    virtual void do_part(int dim, int _b, int _e,
-                         std::deque<Eigen::Vector2i>& bon,
-                         std::deque<float>* dist_vec) = 0;
 
-    void search_in_pair_of_cells(int x1, int y1, int z1,
-                                 int x2, int y2, int z2,
-                                 Grid &grid1,
-                                 Grid &grid2,
-                                 std::deque<Eigen::Vector2i> &bon,
-                                 std::deque<float> *dist_vec,
-                                 bool is_periodic);
+    void search_between_cells(Vector3i_const_ref c1,
+                              Vector3i_const_ref c2,
+                              const Grid &grid1,
+                              const Grid &grid2,
+                              std::vector<Eigen::Vector2i> &pairs_buffer,
+                              std::vector<float> &distances_buffer);
+
+    void search_inside_cell(Vector3i_const_ref c,
+                            const Grid &grid,
+                            std::vector<Eigen::Vector2i> &pairs_buffer,
+                            std::vector<float> &distances_buffer);
+
+    // Pointers to search results
+    std::vector<Eigen::Vector2i>* pairs;
+    std::vector<float>* distances;
 };
 
 }
-
-#endif
 
 

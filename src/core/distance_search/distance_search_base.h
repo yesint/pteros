@@ -26,29 +26,16 @@
  *
 */
 
-
-
-#ifndef DISTANCE_SEARCH_BASE_H_INCLUDED
-#define DISTANCE_SEARCH_BASE_H_INCLUDED
+#pragma once
 
 #include <Eigen/Core>
 #include <vector>
 #include "pteros/core/periodic_box.h"
 #include "pteros/core/grid.h"
 
-namespace pteros {       
+namespace pteros {
 
-    struct Nlist_t {
-        std::vector<Eigen::Vector3i> data;
-        std::vector<bool> wrapped;
-
-        void clear();
-        void append(Vector3i_const_ref coor, bool wrap = false);
-    };
-
-
-    class Distance_search_base {
-    public:
+    class Distance_search_base {    
     protected:
         // Min and max of the bounding box (for non-periodic case)
         Eigen::Vector3f min,max;
@@ -56,24 +43,31 @@ namespace pteros {
         Periodic_box box;
         // Grid dimensions
         int NgridX, NgridY, NgridZ;
-        // Grids with coordinate pointers
+        // Grids with coordinates
         Grid grid1,grid2;
         // Cut-off
         float cutoff;
         // If true absolute index rather then selection index is returned in the bond list
-        bool abs_index;
-        // Periodicity
+        bool abs_index;        
+        // Periodic dimensions
+        Eigen::Vector3i periodic_dims;
+        // Is periodicity required?
         bool is_periodic;
 
-        void set_grid_size(const Eigen::Vector3f& min, const Eigen::Vector3f& max,
-                           int Natoms, const Periodic_box& box);
+        // Search plan
+        void make_search_plan(std::vector<Eigen::Matrix<int,3,2>>& plan);
+        // Periodic grid size
+        void set_grid_size(const Eigen::Vector3f& min,
+                           const Eigen::Vector3f& max);
+        // Non-periodic grid size
+        void set_grid_size(const Periodic_box& box);
+        // Create single grid
+        void create_grid(const Selection &sel);
+        // Create two grids
+        void create_grids(const Selection &sel1, const Selection &sel2);
 
-
-        void get_nlist(int i, int j, int k, Nlist_t &nlist);
     };
 
 }
-
-#endif // GRID_SEARCH_H_INCLUDED
 
 

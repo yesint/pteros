@@ -27,9 +27,7 @@
 */
 
 
-
-#ifndef DISTANCE_SEARCH_WITHIN_SEL_H_INCLUDED
-#define DISTANCE_SEARCH_WITHIN_SEL_H_INCLUDED
+#pragma once
 
 #include "distance_search_within_base.h"
 #include "atomic_wrapper.h"
@@ -43,16 +41,15 @@ public:
     /// which are within given distance from the atoms of target.
     /// Used in internal parsing of within selections.
     /// \warning Returns absolute indexes only!
+    /// \warning Result is not sorted!
     Distance_search_within_sel(float d,
                            const Selection& src,
                            const Selection& target,
                            std::vector<int> &res,
                            bool include_self=true,
-                           bool periodic = false);
+                           Vector3i_const_ref pbc = noPBC);
 };
 
 }
-
-#endif
 
 

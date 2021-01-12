@@ -39,21 +39,37 @@ using namespace Eigen;
 
 namespace pteros {
 
-void search_contacts(float d, const Selection &sel, std::vector<Vector2i> &pairs, bool absolute_index, bool periodic, std::vector<float> *dist_vec)
+void search_contacts(float d,
+                     const Selection& sel,
+                     std::vector<Eigen::Vector2i>& pairs,
+                     std::vector<float>& distances,
+                     bool absolute_index = false,
+                     Vector3i_const_ref pbc = noPBC)
 {    
-    Distance_search_contacts_1sel(d,sel,pairs,absolute_index,periodic,dist_vec);
+    Distance_search_contacts_1sel(d,sel,pairs,distances,absolute_index,pbc);
 }
 
 
-void search_contacts(float d, const Selection &sel1, const Selection &sel2, std::vector<Vector2i> &pairs, bool absolute_index, bool periodic, std::vector<float> *dist_vec)
+void search_contacts(float d,
+                     const Selection& sel1,
+                     const Selection& sel2,
+                     std::vector<Eigen::Vector2i>& pairs,
+                     std::vector<float>& distances,
+                     bool absolute_index = false,
+                     Vector3i_const_ref pbc = noPBC)
 {
-    Distance_search_contacts_2sel(d,sel1,sel2,pairs,absolute_index,periodic,dist_vec);
+    Distance_search_contacts_2sel(d,sel1,sel2,pairs,distances,absolute_index,pbc);
 }
 
 
-void search_within(float d, const Selection &src, const Selection &target, std::vector<int> &res, bool include_self, bool periodic)
-{
-    Distance_search_within_sel(d,src,target,res,include_self,periodic);
+void search_within(float d,
+                   const Selection &src,
+                   const Selection &target,
+                   std::vector<int> &res,
+                   bool include_self,
+                   Vector3i_const_ref pbc)
+{    
+    Distance_search_within_sel(d,src,target,res,include_self,pbc);
 }
 
 }

@@ -40,8 +40,9 @@ protected:
 
     virtual void process_frame(const Frame_info& info) override {
         vector<Eigen::Vector2i> bon;
+        vector<float> dist;
         bon.clear();
-        search_contacts(0.5,sel1,sel2,bon,true);
+        search_contacts(0.5,sel1,sel2,bon,dist,true,noPBC);
 
         cout << "frame " << info.valid_frame << " bonds: " << bon.size() << endl;        
     }

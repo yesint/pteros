@@ -17,18 +17,17 @@ using namespace Eigen;
 
 int main(int argc, char* argv[]){
     LOG()->set_level(spdlog::level::debug);
-    string path="/home/semen/work/stored/Projects/SquaMem/new_bending/cyl_DOPC/R100/";
-    std::unique_ptr<Mol_file> h = Mol_file::open(path+"nojump.xtc",'r');
 
-    int fr;
-    float t;
+    for(int i=0;i<1;++i){
+        string path="/home/semen/work/stored/Projects/SquaMem/curved_charmm_sym/0_sym_flip";
+        System s(path+"/last.gro");
+        Selection sel(s,"within 0.5 of resid 1");
+        LOG()->info("size {}",sel.size());
 
-    h->seek_frame(19);
-    h->tell_current_frame_and_time(fr,t);
-    cout << fr << " " << t << endl;
-
-    h->seek_time(128010);
-    h->tell_current_frame_and_time(fr,t);
-    cout << fr << " " << t << endl;
+        vector<Vector2i> pairs;
+        vector<float> dist;
+        search_contacts(0.5,s("resid 1-10"),s("resid 11-20"),pairs,dist,true,fullPBC);
+        LOG()->info("size {}",pairs.size());
+    }
 
 }

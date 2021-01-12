@@ -148,7 +148,8 @@ protected:
         sel1.apply();
         sel2.apply();
 
-        search_contacts(cutoff,sel1,sel2,bon,true,periodic,&dist_vec); // global indexes returned!
+        Vector3i pbc = periodic ? fullPBC : noPBC;
+        search_contacts(cutoff,sel1,sel2,bon,dist_vec,true,pbc); // global indexes returned!
 
         Vector2f total_en(0,0);
         pair_en.resize(bon.size());

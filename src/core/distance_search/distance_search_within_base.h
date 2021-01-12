@@ -28,29 +28,37 @@
 
 
 
-#ifndef DISTANCE_SEARCH_WITHIN_BASE_H_INCLUDED
-#define DISTANCE_SEARCH_WITHIN_BASE_H_INCLUDED
+#pragma once
 
 #include "distance_search_base.h"
 #include "atomic_wrapper.h"
 
 namespace pteros {       
 
+// In this class searching returns only the list of atoms from the source seletion.
+// No distances are computed.
 class Distance_search_within_base: public Distance_search_base {
 protected:
-    // Array of atomic bools for used source points
-    std::vector<atomic_wrapper<bool>> used;
-    void do_search(int sel_size);
-    void do_part(int dim, int _b, int _e);
-    // Pointer to source selection
-    Selection* src_ptr;
-    void search_in_pair_of_cells(int sx, int sy, int sz, int tx, int ty, int tz, bool is_periodic);
-    void used_to_result(std::vector<int>& res, bool include_self,
-                        const Selection &src, const Selection &target);
+    // Implements logic for calling search_between_cells() or search_inside_cell()
+    // with correct grids in derived classes
+
+    // Pointer to search results
+    std::vector<int>* result;
+
+    void do_search();
+
+private:
+    void search_between_cells(Vector3i_const_ref c1,
+                              Vector3i_const_ref c2,
+                              const Grid &grid1,
+                              const Grid &grid2,
+                              std::vector<int> &res_buffer);
+
+    void search_planned_pair(Vector3i_const_ref c1,
+                             Vector3i_const_ref c2,
+                             std::vector<int> &res_buffer);
 };
 
 }
-
-#endif
 
 

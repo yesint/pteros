@@ -42,19 +42,19 @@ namespace pteros {
 /// Optionally returns distances for each pair.
 void search_contacts(float d,
                      const Selection& sel,
-                     std::vector<Eigen::Vector2i> &pairs,
-                     bool absolute_index = false,
-                     bool periodic = false,
-                     std::vector<float> *dist_vec = nullptr);
+                     std::vector<Eigen::Vector2i>& pairs,
+                     std::vector<float>& distances,
+                     bool absolute_index,
+                     Vector3i_const_ref pbc);
 
 /// Search contacts between two selections
 void search_contacts(float d,
                      const Selection& sel1,
                      const Selection& sel2,
                      std::vector<Eigen::Vector2i>& pairs,
-                     bool absolute_index = false,
-                     bool periodic = false,
-                     std::vector<float>* dist_vec = nullptr);
+                     std::vector<float>& distances,
+                     bool absolute_index,
+                     Vector3i_const_ref pbc);
 
 /// Search atoms from source selection around the traget selection
 /// Returns absolute indexes only!
@@ -62,8 +62,8 @@ void search_within(float d,
                    const Selection& src,
                    const Selection& target,
                    std::vector<int> &res,
-                   bool include_self=true,
-                   bool periodic = false);
+                   bool include_self,
+                   Vector3i_const_ref pbc);
 
 }
 

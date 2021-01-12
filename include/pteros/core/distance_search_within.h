@@ -27,9 +27,7 @@
 */
 
 
-
-#ifndef DISTANCE_SEARCH_WITHIN_INCLUDED
-#define DISTANCE_SEARCH_WITHIN_INCLUDED
+#pragma once
 
 #include "pteros/core/selection.h"
 
@@ -43,14 +41,14 @@ public:
     Distance_search_within(float d,
                            const Selection& src,
                            bool absolute_index = false,
-                           bool periodic = false);
+                           Vector3i_const_ref pbc = fullPBC);
 
     virtual ~Distance_search_within();
 
     void setup(float d,
                const Selection& src,
                bool absolute_index = false,
-               bool periodic = false);
+               Vector3i_const_ref pbc = fullPBC);
 
     void search_within(Vector3f_const_ref coord,
                        std::vector<int> &res);
@@ -66,6 +64,5 @@ private:
 
 }
 
-#endif
 
 

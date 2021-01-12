@@ -1093,7 +1093,8 @@ Vector2f non_bond_energy(const Selection& sel1,
     // Perform grid search
     vector<Vector2i> pairs;
     vector<float> dist;
-    search_contacts(d,sel1,sel2,pairs,true, pbc,&dist);
+    Vector3i pbc_dims = pbc ? fullPBC : noPBC;
+    search_contacts(d,sel1,sel2,pairs,dist,true, pbc_dims);
 
     // Restore frames if needed
     if(fr1!=fr) const_cast<Selection&>(sel1).set_frame(fr1);
@@ -1241,8 +1242,9 @@ Vector2f Selection::non_bond_energy(float cutoff, bool pbc) const
 
     // Perform grid search
     vector<Vector2i> pairs;
-    vector<float> dist;    
-    search_contacts(d,*this,pairs,true, pbc,&dist);
+    vector<float> dist;
+    Vector3i pbc_dims = pbc ? fullPBC : noPBC;
+    search_contacts(d,*this,pairs,dist,true, pbc_dims);
 
     // Now get energy using pair list and distances
     return get_energy_for_list(pairs,dist,*system);
@@ -1433,7 +1435,9 @@ std::vector<std::vector<int>> Selection::get_internal_bonds(float d, bool period
     } else {
         // Find all connectivity pairs for given cut-off
         vector<Vector2i> pairs;
-        search_contacts(d,*this,pairs,false,periodic); // local indexes
+        vector<float> dist;
+        Vector3i pbc_dims = periodic ? fullPBC : noPBC;
+        search_contacts(d,*this,pairs,dist,false, pbc_dims); // local indexes
 
         // Form a connectivity structure in the form con[i]->1,2,5...
         con.resize(size());

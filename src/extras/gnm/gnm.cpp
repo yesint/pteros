@@ -67,7 +67,8 @@ void GNM::compute(Selection& sel, float cutoff){
     */
 
     vector<Eigen::Vector2i> bon;
-    search_contacts(cutoff,sel,bon);
+    vector<float> dist;
+    search_contacts(cutoff,sel,bon,dist,false,noPBC);
     for(int i=0; i<bon.size(); ++i){
         kirk(bon[i](0),bon[i](1)) = kirk(bon[i](1),bon[i](0)) = -1.0;
     }

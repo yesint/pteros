@@ -29,9 +29,7 @@
 
 
 #include "pteros/core/distance_search_within.h"
-#include "pteros/core/pteros_error.h"
 #include "distance_search_within_base.h"
-#include <thread>
 
 using namespace std;
 using namespace pteros;
@@ -47,9 +45,9 @@ public:
     Distance_search_within_impl(float d,
                            const Selection& src,
                            bool absolute_index = false,
-                           bool periodic = false)
+                           Vector3i_const_ref pbc = fullPBC)
     {
-        setup(d,src,absolute_index,periodic);
+        setup(d,src,absolute_index,pbc);
     }
 
     ~Distance_search_within_impl(){}
@@ -58,46 +56,21 @@ public:
     void setup(float d,
                const Selection& src,
                bool absolute_index = false,
-               bool periodic = false)
+               Vector3i_const_ref pbc = fullPBC)
     {
         cutoff = d;
-        is_periodic = periodic;
+        periodic_dims = pbc;
+        is_periodic = (pbc.array()!=0).any();
         abs_index = absolute_index;
         box = src.box();
 
-        // Grid creation
-        if(!is_periodic){
-            // Get the minmax of selection
-            src.minmax(min,max);
-            // Add a "halo: of size cutoff
-            min.array() -= cutoff;
-            max.array() += cutoff;
-        } else {
-            // Check if we have periodicity
-            if(!box.is_periodic())
-                throw Pteros_error("Asked for pbc in within selection, but there is no periodic box!");
-            // Set dimensions of the current unit cell
-            min.fill(0.0);
-            max = box.extents();
-        }
+        create_grid(src);
 
-        set_grid_size(min,max, src.size(), box);
-        // Allocate first grid
-        grid1.resize(NgridX,NgridY,NgridZ);
-
-        // Populate first grid
-        // We have to force local indexes here in order to allow atomic array to work correctly
-        bool saved_abs = abs_index;
-        abs_index = false;
         if(is_periodic){
-            grid1.populate_periodic(src,box,abs_index);
+            grid1.populate_periodic(src,box,periodic_dims,abs_index);
         } else {
             grid1.populate(src,min,max,abs_index);
         }
-        // Restore abs_index
-        abs_index = saved_abs;
-
-        src_ptr = const_cast<Selection*>(&src);
     }
 
 
@@ -105,53 +78,47 @@ public:
     void search_within(Vector3f_const_ref coord,
                        std::vector<int> &res)
     {
-
+        result = &res;
         // grid1 has parent selection, which is "src". Our point is "target"
         System tmp; // tmp system with just one atom with coordinates coord
         vector<Vector3f> crd{coord};
         vector<Atom> atm(1);
         tmp.atoms_add(atm,crd);
-        auto target = tmp.select_all();
+        auto target = tmp.select_all(); // This is our target selection
+
         // Allocate second grid of the same size
         grid2.resize(NgridX,NgridY,NgridZ);
 
         // We have to force local indexes here in order to allow atomic array to work correctly
-        bool saved_abs = abs_index;
-        abs_index = false;
         if(is_periodic){
-            grid2.populate_periodic(target,box,abs_index);
+            grid2.populate_periodic(target,box,periodic_dims,abs_index);
         } else {
             grid2.populate(target,min,max,abs_index);
         }
-        // Restore
-        abs_index = saved_abs;
 
         // Now search
-        do_search(src_ptr->size());
-
-        //second src_ptr is not used inside. Passed just to satisfy signature
-        used_to_result(res,true,*src_ptr,*src_ptr);
+        do_search();
     }
 
 
-    /// Search atoms from source within given distance from target selection
-    /// \warning Target must be the subset of source to give meaningful results!
+    /// Find atoms from source within given distance from target selection
     void search_within(const Selection& target,
                        std::vector<int> &res,
                        bool include_self=true)
     {
+        result = &res;
         // Allocate second grid of the same size
         grid2.resize(NgridX,NgridY,NgridZ);
 
         if(is_periodic){
-            grid2.populate_periodic(target,box,abs_index);
+            grid2.populate_periodic(target,box,periodic_dims,abs_index);
         } else {
             grid2.populate(target,min,max,abs_index);
         }
 
-        do_search(src_ptr->size());
+        do_search();
 
-        used_to_result(res,include_self,*src_ptr,target);
+        if(include_self) copy(target.index_begin(),target.index_end(),back_inserter(*result));
     }
 
 };
@@ -163,9 +130,9 @@ Distance_search_within::Distance_search_within()
     p = unique_ptr<Distance_search_within_impl>(new Distance_search_within_impl());
 }
 
-Distance_search_within::Distance_search_within(float d, const Selection &src, bool absolute_index, bool periodic)
+Distance_search_within::Distance_search_within(float d, const Selection &src, bool absolute_index, Vector3i_const_ref pbc)
 {
-    p = unique_ptr<Distance_search_within_impl>(new Distance_search_within_impl(d,src,absolute_index,periodic));
+    p = unique_ptr<Distance_search_within_impl>(new Distance_search_within_impl(d,src,absolute_index,pbc));
 }
 
 Distance_search_within::~Distance_search_within()
@@ -173,9 +140,9 @@ Distance_search_within::~Distance_search_within()
 
 }
 
-void Distance_search_within::setup(float d, const Selection &src, bool absolute_index, bool periodic)
+void Distance_search_within::setup(float d, const Selection &src, bool absolute_index, Vector3i_const_ref pbc)
 {
-    p->setup(d,src,absolute_index,periodic);
+    p->setup(d,src,absolute_index,pbc);
 }
 
 void Distance_search_within::search_within(Vector3f_const_ref coord, std::vector<int> &res)

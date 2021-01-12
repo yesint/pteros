@@ -26,10 +26,7 @@
  *
 */
 
-
-
-#ifndef DISTANCE_SEARCH_CONTACTS_2SEL_H_INCLUDED
-#define DISTANCE_SEARCH_CONTACTS_2SEL_H_INCLUDED
+#pragma once
 
 #include "distance_search_contacts.h"
 
@@ -37,21 +34,20 @@ namespace pteros {
 
 class Distance_search_contacts_2sel: public Distance_search_contacts {
 public:
-    Distance_search_contacts_2sel(float d, const Selection& sel1, const Selection& sel2,
-                                  std::vector<Eigen::Vector2i>& pairs,
-                                  bool absolute_index = false,
-                                  bool periodic = false,
-                                  std::vector<float>* dist_vec = nullptr);
-protected:
-    void create_grids(const Selection &sel1, const Selection &sel2);
 
-    void do_part(int dim, int _b, int _e,
-                 std::deque<Eigen::Vector2i>& bon,
-                 std::deque<float>* dist_vec) override;
+    Distance_search_contacts_2sel(float d,
+                                  const Selection& sel1,
+                                  const Selection& sel2,
+                                  std::vector<Eigen::Vector2i>& res_pairs,
+                                  std::vector<float>& res_distances,
+                                  bool absolute_index = false,
+                                  Vector3i_const_ref pbc = fullPBC);
+protected:
+
+    virtual void search_planned_pair(Vector3i_const_ref c1,
+                                     Vector3i_const_ref c2,
+                                     std::vector<Eigen::Vector2i> &pairs_buffer,
+                                     std::vector<float> &distances_buffer) override;
 };
 
 }
-
-#endif
-
-

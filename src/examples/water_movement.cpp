@@ -56,7 +56,7 @@ protected:
         }
 
         // Assign waters to grid
-        searcher.populate_periodic(water,false);
+        searcher.populate_periodic(water);
         // Cycle over grid cells
         for(i=0;i<NgridX;++i)
             for(j=0;j<NgridY;++j)
@@ -64,7 +64,7 @@ protected:
                     // Get waters in this cell
                     n = searcher.cell(i,j,k).size();
                     for(w=0;w<n;++w){
-                        ind = searcher.cell(i,j,k)[w].index;
+                        ind = searcher.cell(i,j,k).get_index(w);
                         // For current water get delta of prev and cur coorfinates
                         // And add it to result grid
                         grid[i][j][k] += system.box(0).distance_squared(water.xyz(ind),last_pos.col(ind));
