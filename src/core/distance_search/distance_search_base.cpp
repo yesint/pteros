@@ -126,6 +126,29 @@ void Distance_search_base::create_grid(const Selection &sel)
     grid1.resize(NgridX,NgridY,NgridZ);
 }
 
+
+// Get intersection of two 1d bars
+void overlap_1d(float a1, float a2, float b1, float b2, float& res1, float& res2){
+    res1 = res2 = 0.0;
+    if(a1<b1){
+        if(a2<b1){
+            return; // No overlap
+         } else { //a2>b1
+            res1 = b1;
+            if(a2<b2) res2=a2; else res2=b2;
+        }
+    } else { //a1>b1
+        if(a1>b2){
+            return; //No overlap
+        } else { //a1<b2
+            res1 = a1;
+            if(a2>b2) res2=b2; else res2=a2;
+        }
+    }
+}
+
+
+
 void Distance_search_base::create_grids(const Selection &sel1, const Selection &sel2)
 {
     if(!is_periodic){

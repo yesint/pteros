@@ -9,10 +9,6 @@ target_sources(pteros PRIVATE
     ${PROJECT_SOURCE_DIR}/include/pteros/core/distance_search_within.h
     ${CMAKE_CURRENT_LIST_DIR}/distance_search_within.cpp
 
-    ${CMAKE_CURRENT_LIST_DIR}/atomic_wrapper.h
-    ${CMAKE_CURRENT_LIST_DIR}/search_utils.h
-    ${CMAKE_CURRENT_LIST_DIR}/search_utils.cpp
-
     ${CMAKE_CURRENT_LIST_DIR}/distance_search_base.h
     ${CMAKE_CURRENT_LIST_DIR}/distance_search_base.cpp
 
