@@ -30,7 +30,6 @@
 
 #include "distance_search_within_sel.h"
 #include "pteros/core/pteros_error.h"
-#include "search_utils.h"
 #include <thread>
 
 using namespace std;

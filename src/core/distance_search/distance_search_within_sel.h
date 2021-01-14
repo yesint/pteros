@@ -30,7 +30,6 @@
 #pragma once
 
 #include "distance_search_within_base.h"
-#include "atomic_wrapper.h"
 
 namespace pteros {       
 

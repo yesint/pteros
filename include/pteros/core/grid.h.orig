@@ -1,0 +1,147 @@
+/*
+ * This file is a part of
+ *
+ * ============================================
+ * ###   Pteros molecular modeling library  ###
+ * ============================================
+ *
+ * https://github.com/yesint/pteros
+ *
+ * (C) 2009-2020, Semen Yesylevskyy
+ *
+ * All works, which use Pteros, should cite the following papers:
+ *  
+ *  1.  Semen O. Yesylevskyy, "Pteros 2.0: Evolution of the fast parallel
+ *      molecular analysis library for C++ and python",
+ *      Journal of Computational Chemistry, 2015, 36(19), 1480–1488.
+ *      doi: 10.1002/jcc.23943.
+ *
+ *  2.  Semen O. Yesylevskyy, "Pteros: Fast and easy to use open-source C++
+ *      library for molecular analysis",
+ *      Journal of Computational Chemistry, 2012, 33(19), 1632–1636.
+ *      doi: 10.1002/jcc.22989.
+ *
+ * This is free software distributed under Artistic License:
+ * http://www.opensource.org/licenses/artistic-license-2.0.php
+ *
+*/
+
+
+#pragma once
+
+#include <Eigen/Core>
+#include <vector>
+#include <deque>
+#include "pteros/core/selection.h"
+
+#define BOOST_DISABLE_ASSERTS
+#include "boost/multi_array.hpp"
+
+namespace pteros {    
+
+<<<<<<< Updated upstream
+    class Grid_cell {
+    public:
+        void add_point(int ind, Vector3f_const_ref crd);
+        void clear();
+        int get_index(int i) const {return indexes[i];}
+        Eigen::Vector3f get_coord(int i) const {return coords[i];}
+        size_t size() const {return indexes.size();}
+
+    private:
+        std::vector<int> indexes;
+        std::vector<Eigen::Vector3f> coords;
+=======
+    using NB_list_t = std::vector<Eigen::Vector3i>;
+
+    // In most cases we are not limited by memory
+    // while local layout in memory is very favorable.
+    // Thus it's better to store coordinates locally rather then pointers to them
+    // This also simplifies wrapping and other manipulations
+    struct Grid_cell {
+        std::vector<int> indexes; // Point indexes
+        Eigen::Vector3f coords; // Point coordinates
+        int nb_index; // Index of the nb list for this cell
+
+        void add(int ind, Vector3f_const_ref coor);        
+>>>>>>> Stashed changes
+    };
+
+    /**
+    Sorting the atoms from given selection into the cells of
+    3D grid with given dimensions. Useful for producing volumetric datasets or
+    various 3D histrograms (for examples density or the residence time maps).
+    \code
+    // Create 100x100x100 grid
+    Grid g(100,100,100);
+    // Populate it from given selection
+    // in periodic manner
+    g.populate_periodic(sel);
+
+    // Print number of atoms in the grid cells
+    for(int i=0;i< 100;++i){
+        for(int j=0;j< 100;++j)
+            for(int k=0;k< 100;++k)
+                cout << g.cell(i,j,k).size() << endl;
+    \endcode
+     */
+    class Grid {
+    public:
+        Grid(Vector3i_const_ref ext,
+             bool abs_index,
+             Vector3i_const_ref pbc_dims = {-1,-1,-1} // -1 means use defaults from box
+             );
+
+        virtual ~Grid(){}
+
+        void clear();
+<<<<<<< Updated upstream
+        void resize(int X, int Y, int Z);
+        Grid_cell& cell(int i, int j, int k){ return data[i][j][k]; }
+        Grid_cell& cell(Vector3i_const_ref ind){ return data[ind(0)][ind(1)][ind(2)]; }
+        const Grid_cell& cell(Vector3i_const_ref ind) const { return data[ind(0)][ind(1)][ind(2)]; }
+=======
+        void resize(Vector3i_const_ref extents);
+
+        Grid_cell& cell(int i, int j, int k){ return data[i][j][k]; }
+        Grid_cell& cell(Vector3i_const_ref pos){ return data[pos(0)][pos(1)][pos(2)]; }
+>>>>>>> Stashed changes
+
+        /// Non-periodic populate
+        void populate(const Selection& sel,bool abs_index = false);
+
+        void populate(const Selection& sel,
+                      Vector3f_const_ref min,
+                      Vector3f_const_ref max,
+                      bool abs_index);
+
+        /// Periodic populate
+        void populate_periodic(const Selection& sel,
+                               Vector3i_const_ref pbc_dims = fullPBC,
+                               bool abs_index = false);
+
+        void populate_periodic(const Selection& sel,
+<<<<<<< Updated upstream
+                               const Periodic_box& box,
+                               Vector3i_const_ref pbc_dims = fullPBC,
+                               bool abs_index = false);
+    private:
+        boost::multi_array<Grid_cell,3> data;
+=======
+                      const Periodic_box& box,
+                               bool abs_index);
+
+    private:
+        void get_shifts_for_dim(int dim, std::vector<Eigen::Vector2i> &shifts);
+
+        boost::multi_array<std::vector<Grid_cell>,3> data;
+        Eigen::Vector3i periodic_dims;
+        Eigen::Vector3i extents;
+        int get_nb_list_index(Vector3i_const_ref pos);
+>>>>>>> Stashed changes
+    };
+
+    //========================================================================  
+}
+
+
