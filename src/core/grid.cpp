@@ -59,7 +59,7 @@ void Grid::populate(const Selection &sel, bool abs_index)
 }
 
 void Grid::populate(const Selection &sel, Vector3f_const_ref min, Vector3f_const_ref max, bool abs_index)
-{
+{    
     int Natoms = sel.size();
     int NX = data.shape()[0];
     int NY = data.shape()[1];
@@ -85,7 +85,7 @@ void Grid::populate(const Selection &sel, Vector3f_const_ref min, Vector3f_const
             cell(n1,n2,n3).add_point(sel.index(i),*coor);
         } else {
             cell(n1,n2,n3).add_point(i,*coor);
-        }
+        }        
     }
 }
 

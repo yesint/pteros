@@ -43,56 +43,56 @@ void Distance_search_base::set_grid_size(const Vector3f &min, const Vector3f &ma
 
 <<<<<<< Updated upstream
     // Cell size should be >= cutoff for all dimentions
-    NgridX = floor(extents(0)/cutoff);
-    NgridY = floor(extents(1)/cutoff);
-    NgridZ = floor(extents(2)/cutoff);
+    Ngrid(0) = floor(extents(0)/cutoff);
+    Ngrid(1) = floor(extents(1)/cutoff);
+    Ngrid(2) = floor(extents(2)/cutoff);
 =======
     /*  Our grids should satisfy these equations:
-            NgridX * NgridY * NgridZ = Natoms
-            NgridX/NgridY = a/b
-            NgridY/NgridZ = b/c
-            NgridX/NgridZ = a/c
+            Ngrid(0) * Ngrid(1) * Ngrid(2) = Natoms
+            Ngrid(0)/Ngrid(1) = a/b
+            Ngrid(1)/Ngrid(2) = b/c
+            Ngrid(0)/Ngrid(2) = a/c
             This lead to the following:
         */
 
-    NgridX = floor(std::pow(double(Natoms*(max(0)-min(0))*(max(0)-min(0))/
+    Ngrid(0) = floor(std::pow(double(Natoms*(max(0)-min(0))*(max(0)-min(0))/
                                    ((max(1)-min(1))*(max(2)-min(2)))), double(1.0/3.0))) ;
-    NgridY = floor(std::pow(double(Natoms*(max(1)-min(1))*(max(1)-min(1))/
+    Ngrid(1) = floor(std::pow(double(Natoms*(max(1)-min(1))*(max(1)-min(1))/
                                    ((max(0)-min(0))*(max(2)-min(2)))), double(1.0/3.0))) ;
-    NgridZ = floor(std::pow(double(Natoms*(max(2)-min(2))*(max(2)-min(2))/
+    Ngrid(2) = floor(std::pow(double(Natoms*(max(2)-min(2))*(max(2)-min(2))/
                                    ((max(0)-min(0))*(max(1)-min(1)))), double(1.0/3.0))) ;
 
-    if(NgridX==0) NgridX = 1;
-    if(NgridY==0) NgridY = 1;
-    if(NgridZ==0) NgridZ = 1;
+    if(Ngrid(0)==0) Ngrid(0) = 1;
+    if(Ngrid(1)==0) Ngrid(1) = 1;
+    if(Ngrid(2)==0) Ngrid(2) = 1;
 
     // Real grid vectors:
-    float dX = (max(0)-min(0))/NgridX;
-    float dY = (max(1)-min(1))/NgridY;
-    float dZ = (max(2)-min(2))/NgridZ;
+    float dX = (max(0)-min(0))/Ngrid(0);
+    float dY = (max(1)-min(1))/Ngrid(1);
+    float dZ = (max(2)-min(2))/Ngrid(2);
 
     // See if some of grid vectors projected to lab axes smaller than cutoff
     //TODO: This need to be refactored to get rid of the while loop and to
     // compute optimal size in one operation.
     if(is_periodic) {
 
-        while(box.box_to_lab(Vector3f(dX,0.0,0.0))(0) < cutoff && NgridX>1){
-            --NgridX;
-            dX = (max(0)-min(0))/NgridX;
+        while(box.box_to_lab(Vector3f(dX,0.0,0.0))(0) < cutoff && Ngrid(0)>1){
+            --Ngrid(0);
+            dX = (max(0)-min(0))/Ngrid(0);
         }
-        while(box.box_to_lab(Vector3f(0.0,dY,0.0))(1) < cutoff && NgridY>1){
-            --NgridY;
-            dY = (max(1)-min(1))/NgridY;
+        while(box.box_to_lab(Vector3f(0.0,dY,0.0))(1) < cutoff && Ngrid(1)>1){
+            --Ngrid(1);
+            dY = (max(1)-min(1))/Ngrid(1);
         }
-        while(box.box_to_lab(Vector3f(0.0,0.0,dZ))(2) < cutoff && NgridZ>1){
-            --NgridZ;
-            dZ = (max(2)-min(2))/NgridZ;
+        while(box.box_to_lab(Vector3f(0.0,0.0,dZ))(2) < cutoff && Ngrid(2)>1){
+            --Ngrid(2);
+            dZ = (max(2)-min(2))/Ngrid(2);
         }
 >>>>>>> Stashed changes
 
-    if(NgridX<1) NgridX = 1;
-    if(NgridY<1) NgridY = 1;
-    if(NgridZ<1) NgridZ = 1;
+    if(Ngrid(0)<1) Ngrid(0) = 1;
+    if(Ngrid(1)<1) Ngrid(1) = 1;
+    if(Ngrid(2)<1) Ngrid(2) = 1;
 }
 
 // Periodic variant
@@ -104,13 +104,13 @@ void Distance_search_base::set_grid_size(const Periodic_box &box)
     extents(2) = box.box_to_lab(box.get_vector(2))(2);
 
     // Cell size should be >= cutoff for all dimentions
-    NgridX = floor(extents(0)/cutoff);
-    NgridY = floor(extents(1)/cutoff);
-    NgridZ = floor(extents(2)/cutoff);
+    Ngrid(0) = floor(extents(0)/cutoff);
+    Ngrid(1) = floor(extents(1)/cutoff);
+    Ngrid(2) = floor(extents(2)/cutoff);
 
-    if(NgridX<1) NgridX = 1;
-    if(NgridY<1) NgridY = 1;
-    if(NgridZ<1) NgridZ = 1;
+    if(Ngrid(0)<1) Ngrid(0) = 1;
+    if(Ngrid(1)<1) Ngrid(1) = 1;
+    if(Ngrid(2)<1) Ngrid(2) = 1;
 }
 
 void Distance_search_base::make_search_plan(vector<Matrix<int,3,2>>& plan){
@@ -121,28 +121,28 @@ void Distance_search_base::make_search_plan(vector<Matrix<int,3,2>>& plan){
     // Z*(X*Y) pairs along Z
     // = 4*X*Y*Z
     // In non-periodic variant less then this but we reserve memory for periodic variant anyway for simplicity
-    plan.reserve(NgridX*NgridY*NgridZ*8);
+    plan.reserve(Ngrid(0)*Ngrid(1)*Ngrid(2)*8);
 
     // Fill the plan
     // Go to the right of the current cell on each axis
     // In non-periodic variant skip wrapping
     Matrix<int,3,2> pair;
-    for(int x=0;x<NgridX;++x){
-        if(x==NgridX-1 && !periodic_dims(0)) continue;
+    for(int x=0;x<Ngrid(0);++x){
+        if(x==Ngrid(0)-1 && !periodic_dims(0)) continue;
 
-        for(int y=0;y<NgridY;++y){
-            if(y==NgridY-1 && !periodic_dims(1)) continue;
+        for(int y=0;y<Ngrid(1);++y){
+            if(y==Ngrid(1)-1 && !periodic_dims(1)) continue;
 
-            for(int z=0;z<NgridZ;++z){
-                if(z==NgridZ-1 && !periodic_dims(2)) continue;
+            for(int z=0;z<Ngrid(2);++z){
+                if(z==Ngrid(2)-1 && !periodic_dims(2)) continue;
 
                 // We make a step forward by +1 in each direction
                 for(int i1=0;i1<2;++i1){
                     for(int i2=0;i2<2;++i2){
                         for(int i3=0;i3<2;++i3){
-                            pair << x,(x+i1) % NgridX,
-                                    y,(y+i2) % NgridY,
-                                    z,(z+i3) % NgridZ;
+                            pair << x,(x+i1) % Ngrid(0),
+                                    y,(y+i2) % Ngrid(1),
+                                    z,(z+i3) % Ngrid(2);
                             plan.push_back(pair);
                         } //i3
                     } //i2
@@ -167,7 +167,7 @@ void Distance_search_base::create_grid(const Selection &sel)
     }
 
     // Allocate one grid
-    grid1.resize(NgridX,NgridY,NgridZ);
+    grid1.resize(Ngrid(0),Ngrid(1),Ngrid(2));
 }
 
 
@@ -224,6 +224,6 @@ void Distance_search_base::create_grids(const Selection &sel1, const Selection &
     }
 
     // Allocate both grids
-    grid1.resize(NgridX,NgridY,NgridZ);
-    grid2.resize(NgridX,NgridY,NgridZ);
+    grid1.resize(Ngrid(0),Ngrid(1),Ngrid(2));
+    grid2.resize(Ngrid(0),Ngrid(1),Ngrid(2));
 }

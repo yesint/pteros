@@ -48,7 +48,8 @@ Distance_search_within_sel::Distance_search_within_sel(float d,
     is_periodic = (pbc.array()!=0).any();
     abs_index = true; // Absolute index is enforced here!
     box = src.box();
-    result = &res;
+
+    res.clear();
 
     create_grids(src,target);
 
@@ -62,7 +63,10 @@ Distance_search_within_sel::Distance_search_within_sel(float d,
 
     do_search();
 
-    if(include_self) copy(target.index_begin(),target.index_end(),back_inserter(*result));
+    if(include_self) result.insert(target.index_begin(),target.index_end());
+    // Elements in set are unique already, need to copy to result and sort
+    copy(result.begin(),result.end(),back_inserter(res));
+    sort(res.begin(),res.end());
 }
 
 

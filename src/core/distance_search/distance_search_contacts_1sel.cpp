@@ -63,17 +63,16 @@ Distance_search_contacts_1sel::Distance_search_contacts_1sel(float d,
     do_search();
 }
 
-void Distance_search_contacts_1sel::search_planned_pair(Vector3i_const_ref c1,
-                                                        Vector3i_const_ref c2,
+void Distance_search_contacts_1sel::search_planned_pair(const Planned_pair& pair,
                                                         std::vector<Vector2i> &pairs_buffer,
                                                         std::vector<float> &distances_buffer)
 {
-    if(c1==c2){
+    if(pair.c1==pair.c2){
         // Inside cell
-        search_inside_cell(c1,grid1,pairs_buffer,distances_buffer);
+        search_inside_cell(pair,grid1,pairs_buffer,distances_buffer);
     } else {
         // Between cells
-        search_between_cells(c1,c2,grid1,grid1,pairs_buffer,distances_buffer);
+        search_between_cells(pair,grid1,grid1,pairs_buffer,distances_buffer);
     }
 }
 

@@ -41,13 +41,13 @@ void Distance_search_base::set_grid_size(const Vector3f &min, const Vector3f &ma
     Vector3f extents = max-min;    
 
     // Cell size should be >= cutoff for all dimentions
-    NgridX = floor(extents(0)/cutoff);
-    NgridY = floor(extents(1)/cutoff);
-    NgridZ = floor(extents(2)/cutoff);
+    Ngrid(0) = floor(extents(0)/cutoff);
+    Ngrid(1) = floor(extents(1)/cutoff);
+    Ngrid(2) = floor(extents(2)/cutoff);
 
-    if(NgridX<1) NgridX = 1;
-    if(NgridY<1) NgridY = 1;
-    if(NgridZ<1) NgridZ = 1;
+    if(Ngrid(0)<1) Ngrid(0) = 1;
+    if(Ngrid(1)<1) Ngrid(1) = 1;
+    if(Ngrid(2)<1) Ngrid(2) = 1;
 }
 
 // Periodic variant
@@ -59,59 +59,85 @@ void Distance_search_base::set_grid_size(const Periodic_box &box)
     extents(2) = box.box_to_lab(box.get_vector(2))(2);
 
     // Cell size should be >= cutoff for all dimentions
-    NgridX = floor(extents(0)/cutoff);
-    NgridY = floor(extents(1)/cutoff);
-    NgridZ = floor(extents(2)/cutoff);
+    Ngrid(0) = floor(extents(0)/cutoff);
+    Ngrid(1) = floor(extents(1)/cutoff);
+    Ngrid(2) = floor(extents(2)/cutoff);
 
-    if(NgridX<1) NgridX = 1;
-    if(NgridY<1) NgridY = 1;
-    if(NgridZ<1) NgridZ = 1;
+    if(Ngrid(0)<1) Ngrid(0) = 1;
+    if(Ngrid(1)<1) Ngrid(1) = 1;
+    if(Ngrid(2)<1) Ngrid(2) = 1;
 }
 
-void Distance_search_base::make_search_plan(vector<Matrix<int,3,2>>& plan){
-    // Number of pairs to search:
-    // X*Y*Z single cells
-    // X*(Y*Z) pairs along X
-    // Y*(X*Z) pairs along Y
-    // Z*(X*Y) pairs along Z
-    // = 4*X*Y*Z
-    // In non-periodic variant less then this but we reserve memory for periodic variant anyway for simplicity
-    plan.reserve(NgridX*NgridY*NgridZ*8);
+bool Distance_search_base::process_neighbour_pair(Planned_pair& pair){
+    pair.wrapped.fill(0);
+    for(int dim=0;dim<3;++dim){
+        if(pair.c1(dim)==Ngrid(dim)){ // point beyond the right edge
+            if(periodic_dims(dim)){
+                pair.c1(dim) = pair.c1(dim) % Ngrid(dim); // Wrap this dimension
+                pair.wrapped(dim) = 1;
+            } else {
+                return false; // don't use this pair
+            }
+        }
 
-    // Fill the plan
-    // Go to the right of the current cell on each axis
-    // In non-periodic variant skip wrapping
-    Matrix<int,3,2> pair;
-    for(int x=0;x<NgridX;++x){
-        if(x==NgridX-1 && !periodic_dims(0)) continue;
+        if(pair.c2(dim)==Ngrid(dim)){ // point beyond the right edge
+            if(periodic_dims(dim)){
+                pair.c2(dim) = pair.c2(dim) % Ngrid(dim); // Wrap this dimension
+                pair.wrapped(dim) = 1;
+            } else {
+                return false; // don't use this pair
+            }
+        }
 
-        for(int y=0;y<NgridY;++y){
-            if(y==NgridY-1 && !periodic_dims(1)) continue;
+        // Corner case: if cutoff>=0.5*extent then all pairs along this extent should
+        // be forced periodic.
+        if(periodic_dims(dim) && Ngrid(dim)<=2) pair.wrapped(dim) = 1;
+    }
 
-            for(int z=0;z<NgridZ;++z){
-                if(z==NgridZ-1 && !periodic_dims(2)) continue;
+    return true; // use this pair
+}
 
-                // We make a step forward by +1 in each direction
-                for(int i1=0;i1<2;++i1){
-                    for(int i2=0;i2<2;++i2){
-                        for(int i3=0;i3<2;++i3){
-                            pair << x,(x+i1) % NgridX,
-                                    y,(y+i2) % NgridY,
-                                    z,(z+i3) % NgridZ;
-                            plan.push_back(pair);
-                        } //i3
-                    } //i2
-                } //i1
+
+Vector3i Distance_search_base::index_to_pos(int i){
+    Vector3i pos;
+    // i = z+Nz*y+Nz*Ny*x
+    pos(2) = i % Ngrid(2);
+    pos(1) = (i/Ngrid(2)) % Ngrid(1);
+    pos(0) = (i/Ngrid(2)/Ngrid(1)) % Ngrid(0);
+    return pos;
+}
+
+/*
+void Distance_search_base::make_search_plan(vector<Planned_pair>& plan){
+    plan.reserve(Ngrid.prod()*stencil.size());
+
+    Planned_pair pair;
+
+    for(int x=0;x<Ngrid(0);++x){
+        for(int y=0;y<Ngrid(1);++y){
+            for(int z=0;z<Ngrid(2);++z){
+
+                Vector3i p(x,y,z);
+                for(int i=0;i<stencil.size();i+=2){
+                    pair.c1 = p + stencil[i];
+                    pair.c2 = p + stencil[i+1];
+                    if(process_neighbour_pair(pair)) plan.push_back(pair);
+                }
 
             } //z
         } //y
     } //x
+
 }
+*/
 
 void Distance_search_base::create_grid(const Selection &sel)
 {
     if(!is_periodic){
         sel.minmax(min,max);
+        // add small margin to tolerate numeric errors
+        max.array() += 1e-5;
+        min.array() -= 1e-5;
         set_grid_size(min,max);
     } else {
         // Check if we have periodicity
@@ -122,7 +148,7 @@ void Distance_search_base::create_grid(const Selection &sel)
     }
 
     // Allocate one grid
-    grid1.resize(NgridX,NgridY,NgridZ);
+    grid1.resize(Ngrid(0),Ngrid(1),Ngrid(2));
 }
 
 
@@ -155,18 +181,18 @@ void Distance_search_base::create_grids(const Selection &sel1, const Selection &
         Vector3f min1,min2,max1,max2;
 
         sel1.minmax(min1,max1);
-        sel2.minmax(min2,max2);        
+        sel2.minmax(min2,max2);
 
-        // Find bounding box
+        // Find bounding box (intersection is tested with cutoff halo)
         for(int i=0;i<3;++i){
-            overlap_1d(min1(i),max1(i),min2(i),max2(i),min(i),max(i));
+            overlap_1d(min1(i)-cutoff,max1(i)+cutoff,min2(i)-cutoff,max2(i)+cutoff,min(i),max(i));
             // If no overlap just exit
             if(max(i)==min(i)) return;
         }
 
-        // Add a "halo: of size cutoff to bounding box
-        min.array() -= cutoff;
-        max.array() += cutoff;
+        // In case of intersection add small margin to tolerate numeric errors
+        max.array() += 1e-5;
+        min.array() -= 1e-5;
 
         set_grid_size(min,max);
 
@@ -179,6 +205,6 @@ void Distance_search_base::create_grids(const Selection &sel1, const Selection &
     }
 
     // Allocate both grids
-    grid1.resize(NgridX,NgridY,NgridZ);
-    grid2.resize(NgridX,NgridY,NgridZ);
+    grid1.resize(Ngrid(0),Ngrid(1),Ngrid(2));
+    grid2.resize(Ngrid(0),Ngrid(1),Ngrid(2));
 }

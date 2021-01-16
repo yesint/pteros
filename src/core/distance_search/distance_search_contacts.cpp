@@ -37,25 +37,36 @@ using namespace pteros;
 using namespace Eigen;
 
 
+void Distance_search_contacts::compute_chunk(int b, int e,
+                                             vector<Eigen::Vector2i>& pairs_buf,
+                                             vector<float>& dist_buf)
+{
+    Planned_pair pair;
+    for(int ind=b;ind<e;++ind){
+        // Get array position
+        auto p = index_to_pos(ind);
+        // Apply stencil
+        for(int j=0;j<stencil.size();j+=2){
+            pair.c1 = p + stencil[j];
+            pair.c2 = p + stencil[j+1];
+            if(process_neighbour_pair(pair)){
+                search_planned_pair(pair, pairs_buf, dist_buf);
+            }
+        }
+    }
+}
+
 void Distance_search_contacts::do_search()
 {
-    // Plan of search. Contain pairs of cells to search between
-    // If two cells are the same then search inside the cell
-    vector< Matrix<int,3,2> > plan;
-    make_search_plan(plan);
-
     // Prepare for searching
     pairs->clear();
     distances->clear();
 
     // See if we need parallelization    
-    int nt = std::min(plan.size(), size_t(std::thread::hardware_concurrency()));
+    int nt = std::min(size_t(Ngrid.prod()), size_t(std::thread::hardware_concurrency()));
 
-    if(nt==1){
-        // Serial
-        for(auto& pair: plan){
-            search_planned_pair(pair.col(0),pair.col(1), *pairs, *distances);
-        }
+    if(nt==1){        
+        compute_chunk(0,Ngrid.prod(),*pairs,*distances);
 
     } else {
         // Thread parallel
@@ -63,18 +74,16 @@ void Distance_search_contacts::do_search()
         vector<vector<float>>    dist_buf(nt);
 
         vector<thread> threads;
-        int chunk = floor(plan.size()/nt);
+        int chunk = floor(Ngrid.prod()/nt);
 
         for(int i=0;i<nt;++i){
             int b = chunk*i;
-            int e = (i<nt-1) ? chunk*(i+1) : plan.size();
+            int e = (i<nt-1) ? chunk*(i+1) : Ngrid.prod();
 
             // Launch thread
             threads.emplace_back(
             [&,b,e,i](){
-                for(int j=b; j<e; ++j){
-                    search_planned_pair(plan[j].col(0), plan[j].col(1), pairs_buf[i], dist_buf[i]);
-                }
+                compute_chunk(b,e, pairs_buf[i], dist_buf[i]);
             }
             );
         }
@@ -91,15 +100,14 @@ void Distance_search_contacts::do_search()
 }
 
 
-void Distance_search_contacts::search_between_cells(Vector3i_const_ref c1,
-                                                Vector3i_const_ref c2,
+void Distance_search_contacts::search_between_cells(const pteros::Planned_pair &pair,
                                                 const Grid& grid1,
                                                 const Grid& grid2,
                                                 std::vector<Eigen::Vector2i>& pairs_buffer,
                                                 std::vector<float>& distances_buffer)
 {
-    const Grid_cell& cell1 = grid1.cell(c1);
-    const Grid_cell& cell2 = grid2.cell(c2);
+    const Grid_cell& cell1 = grid1.cell(pair.c1);
+    const Grid_cell& cell2 = grid2.cell(pair.c2);
 
     // The cells could be not adjucent if one of them is wrapped around
     // but this only happens in peridic case and is treated automatically
@@ -111,12 +119,12 @@ void Distance_search_contacts::search_between_cells(Vector3i_const_ref c1,
 
     float cutoff2 = cutoff*cutoff;
 
-    if(is_periodic){
+    if((pair.wrapped.array()>0).any()){
 
         for(int i1=0;i1<N1;++i1){
             Vector3f p = cell1.get_coord(i1); // Coord of point in grid1
             for(int i2=0;i2<N2;++i2){
-                float d = box.distance_squared(cell2.get_coord(i2),p,periodic_dims);
+                float d = box.distance_squared(cell2.get_coord(i2), p, pair.wrapped);
                 if(d<=cutoff2){
                     pairs_buffer.emplace_back(cell1.get_index(i1),
                                               cell2.get_index(i2));
@@ -142,12 +150,12 @@ void Distance_search_contacts::search_between_cells(Vector3i_const_ref c1,
     }
 }
 
-void Distance_search_contacts::search_inside_cell(Vector3i_const_ref c,
+void Distance_search_contacts::search_inside_cell(const Planned_pair& pair,
                                                   const Grid &grid,
                                                   std::vector<Vector2i> &pairs_buffer,
                                                   std::vector<float> &distances_buffer)
 {
-    const Grid_cell& cell = grid.cell(c);
+    const Grid_cell& cell = grid.cell(pair.c1);
 
     int N = cell.size();
 
@@ -155,12 +163,12 @@ void Distance_search_contacts::search_inside_cell(Vector3i_const_ref c,
 
     float cutoff2 = cutoff*cutoff;
 
-    if(is_periodic){
+    if((pair.wrapped.array()>0).any()){
 
         for(int i1=0;i1<N-1;++i1){
             Vector3f p = cell.get_coord(i1); // Coord of point in grid1
             for(int i2=i1+1;i2<N;++i2){
-                float d = box.distance_squared(cell.get_coord(i2),p,periodic_dims);
+                float d = box.distance_squared(cell.get_coord(i2),p,pair.wrapped);
                 if(d<=cutoff2){
                     pairs_buffer.emplace_back(cell.get_index(i1),
                                               cell.get_index(i2));

@@ -44,8 +44,7 @@ public:
                                   Vector3i_const_ref pbc = fullPBC);
 protected:
 
-    virtual void search_planned_pair(Vector3i_const_ref c1,
-                                     Vector3i_const_ref c2,
+    virtual void search_planned_pair(const Planned_pair& pair,
                                      std::vector<Eigen::Vector2i> &pairs_buffer,
                                      std::vector<float> &distances_buffer) override;
 };

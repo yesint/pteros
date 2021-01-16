@@ -35,44 +35,52 @@ using namespace std;
 using namespace pteros;
 using namespace Eigen;
 
+void Distance_search_within_base::compute_chunk(int b, int e,
+                                             std::unordered_set<int>& res_buf)
+{
+    Planned_pair pair;
+    for(int ind=b;ind<e;++ind){
+        // Get array position
+        auto p = index_to_pos(ind);
+        // Apply stencil
+        for(int j=0;j<stencil.size();j+=2){
+            pair.c1 = p + stencil[j];
+            pair.c2 = p + stencil[j+1];
+            if(process_neighbour_pair(pair)){
+                search_planned_pair(pair, res_buf);
+            }
+        }
+    }
+}
 
 
 void Distance_search_within_base::do_search()
 {
-    // Plan of search. Contain pairs of cells to search between
-    // If two cells are the same then search inside the cell
-    vector< Matrix<int,3,2> > plan;
-    make_search_plan(plan);
-
     // Prepare for searching
-    result->clear();
+    result.clear();
 
     // See if we need parallelization
-    int nt = std::min(plan.size(), size_t(std::thread::hardware_concurrency()));
+    int nt = std::min(size_t(Ngrid.prod()), size_t(std::thread::hardware_concurrency()));
 
     if(nt==1){
         // Serial
-        for(auto& pair: plan){
-            search_planned_pair(pair.col(0),pair.col(1), *result);
-        }
+        compute_chunk(0,Ngrid.prod(),result);
 
     } else {
         // Thread parallel
-        vector<vector<int>> res_buf(nt);
+        vector<unordered_set<int>> res_buf(nt);
 
         vector<thread> threads;
-        int chunk = floor(plan.size()/nt);
+        int chunk = floor(Ngrid.prod()/nt);
 
         for(int i=0;i<nt;++i){
             int b = chunk*i;
-            int e = (i<nt-1) ? chunk*(i+1) : plan.size();
+            int e = (i<nt-1) ? chunk*(i+1) : Ngrid.prod();
 
             // Launch thread
             threads.emplace_back(
             [&,b,e,i](){
-                for(int j=b; j<e; ++j){
-                    search_planned_pair(plan[j].col(0), plan[j].col(1), res_buf[i]);
-                }
+                compute_chunk(b,e, res_buf[i]);
             }
             );
         }
@@ -82,7 +90,8 @@ void Distance_search_within_base::do_search()
 
         // Collect results
         for(int i=0;i<nt;++i){
-            copy(begin(res_buf[i]),end(res_buf[i]),back_inserter(*result));
+            // Copy to result guarantied to be unique, but not sorted
+            result.insert(begin(res_buf[i]),end(res_buf[i]));
         }
     }
 }
@@ -90,9 +99,8 @@ void Distance_search_within_base::do_search()
 // grid1 is the source which is searched
 void Distance_search_within_base::search_between_cells(Vector3i_const_ref c1,
                                                        Vector3i_const_ref c2,
-                                                       const Grid &grid1,
-                                                       const Grid &grid2,
-                                                       std::vector<int> &res_buffer)
+                                                       Vector3i_const_ref wrapped,
+                                                       std::unordered_set<int> &res_buffer)
 {
     const Grid_cell& cell1 = grid1.cell(c1);
     const Grid_cell& cell2 = grid2.cell(c2);
@@ -107,14 +115,14 @@ void Distance_search_within_base::search_between_cells(Vector3i_const_ref c1,
 
     float cutoff2 = cutoff*cutoff;
 
-    if(is_periodic){
+    if((wrapped.array()>0).any()){
 
         for(int i1=0;i1<N1;++i1){
             Vector3f p = cell1.get_coord(i1); // Coord of point in grid1
             for(int i2=0;i2<N2;++i2){
-                float d = box.distance_squared(cell2.get_coord(i2),p,periodic_dims);
+                float d = box.distance_squared(cell2.get_coord(i2), p, wrapped);
                 if(d<=cutoff2){
-                    res_buffer.push_back(cell1.get_index(i1));
+                    res_buffer.insert(cell1.get_index(i1));
                 }
             }
         }
@@ -123,10 +131,10 @@ void Distance_search_within_base::search_between_cells(Vector3i_const_ref c1,
 
         for(int i1=0;i1<N1;++i1){
             Vector3f p = cell1.get_coord(i1); // Coord of point in grid1
-            for(int i2=0;i2<N2;++i2){
-                float d = (cell2.get_coord(i2)-p).squaredNorm();
+            for(int i2=0;i2<N2;++i2){                
+                float d = (cell2.get_coord(i2)-p).squaredNorm();                
                 if(d<=cutoff2){                    
-                    res_buffer.push_back(cell1.get_index(i1));
+                    res_buffer.insert(cell1.get_index(i1));
                 }
             }
         }
@@ -134,9 +142,11 @@ void Distance_search_within_base::search_between_cells(Vector3i_const_ref c1,
     }
 }
 
-void Distance_search_within_base::search_planned_pair(Vector3i_const_ref c1, Vector3i_const_ref c2, std::vector<int> &res_buffer)
+void Distance_search_within_base::search_planned_pair(const Planned_pair &pair, std::unordered_set<int> &res_buffer)
 {
-    search_between_cells(c1,c2,grid1,grid2,res_buffer);
-    if(c1!=c2) search_between_cells(c1,c2,grid2,grid1,res_buffer);
+    search_between_cells(pair.c1,pair.c2,pair.wrapped,res_buffer);
+    if(pair.c1!=pair.c2){
+        search_between_cells(pair.c2,pair.c1,pair.wrapped,res_buffer);
+    }
 }
 

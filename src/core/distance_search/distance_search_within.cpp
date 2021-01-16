@@ -78,7 +78,7 @@ public:
     void search_within(Vector3f_const_ref coord,
                        std::vector<int> &res)
     {
-        result = &res;
+        res.clear();
         // grid1 has parent selection, which is "src". Our point is "target"
         System tmp; // tmp system with just one atom with coordinates coord
         vector<Vector3f> crd{coord};
@@ -87,7 +87,7 @@ public:
         auto target = tmp.select_all(); // This is our target selection
 
         // Allocate second grid of the same size
-        grid2.resize(NgridX,NgridY,NgridZ);
+        grid2.resize(Ngrid(0),Ngrid(1),Ngrid(2));
 
         // We have to force local indexes here in order to allow atomic array to work correctly
         if(is_periodic){
@@ -98,6 +98,9 @@ public:
 
         // Now search
         do_search();
+
+        copy(result.begin(),result.end(),back_inserter(res));
+        sort(res.begin(),res.end());
     }
 
 
@@ -106,9 +109,9 @@ public:
                        std::vector<int> &res,
                        bool include_self=true)
     {
-        result = &res;
+        res.clear();
         // Allocate second grid of the same size
-        grid2.resize(NgridX,NgridY,NgridZ);
+        grid2.resize(Ngrid(0),Ngrid(1),Ngrid(2));
 
         if(is_periodic){
             grid2.populate_periodic(target,box,periodic_dims,abs_index);
@@ -118,7 +121,10 @@ public:
 
         do_search();
 
-        if(include_self) copy(target.index_begin(),target.index_end(),back_inserter(*result));
+        if(include_self) result.insert(target.index_begin(),target.index_end());
+        // Elements in set are unique already, need to copy to result and sort
+        copy(result.begin(),result.end(),back_inserter(res));
+        sort(res.begin(),res.end());
     }
 
 };

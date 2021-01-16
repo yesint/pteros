@@ -35,6 +35,13 @@
 
 namespace pteros {
 
+    struct Planned_pair {
+        Eigen::Vector3i c1;
+        Eigen::Vector3i c2;
+        Eigen::Vector3i wrapped;
+    };
+
+
     class Distance_search_base {    
     protected:
         // Min and max of the bounding box (for non-periodic case)
@@ -42,7 +49,7 @@ namespace pteros {
         // Current periodic box (for periodic case)
         Periodic_box box;
         // Grid dimensions
-        int NgridX, NgridY, NgridZ;
+        Eigen::Vector3i Ngrid;
         // Grids with coordinates
         Grid grid1,grid2;
         // Cut-off
@@ -54,8 +61,6 @@ namespace pteros {
         // Is periodicity required?
         bool is_periodic;
 
-        // Search plan
-        void make_search_plan(std::vector<Eigen::Matrix<int,3,2>>& plan);
         // Periodic grid size
         void set_grid_size(const Eigen::Vector3f& min,
                            const Eigen::Vector3f& max);
@@ -66,6 +71,32 @@ namespace pteros {
         // Create two grids
         void create_grids(const Selection &sel1, const Selection &sel2);
 
+        // Neighbours stencil
+        const std::vector<Eigen::Vector3i> stencil = {
+            // Center
+            {0,0,0},{0,0,0},
+            // Edges
+            {0,0,0},{1,0,0}, //X
+            {0,0,0},{0,1,0}, //Y
+            {0,0,0},{0,0,1}, //Z
+            // Face angles
+            {0,0,0},{1,1,0}, //XY
+            {0,0,0},{1,0,1}, //XZ
+            {0,0,0},{0,1,1}, //YZ
+            // Far angle
+            {0,0,0},{1,1,1}, //XYZ
+            // Face-diagonals
+            {1,0,0},{0,1,0}, // XY
+            {1,0,0},{0,0,1}, // XZ
+            {0,1,0},{0,0,1}, // YZ
+            // Cross-diagonals
+            {1,1,0},{0,0,1}, // XY-Z
+            {1,0,1},{0,1,0}, // XZ-Y
+            {0,1,1},{1,0,0}, // YZ-X
+        };
+
+        Eigen::Vector3i index_to_pos(int i);
+        bool process_neighbour_pair(Planned_pair &pair);
     };
 
 }

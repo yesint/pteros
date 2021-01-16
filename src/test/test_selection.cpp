@@ -18,16 +18,23 @@ using namespace Eigen;
 int main(int argc, char* argv[]){
     LOG()->set_level(spdlog::level::debug);
 
-    for(int i=0;i<1;++i){
-        string path="/home/semen/work/stored/Projects/SquaMem/curved_charmm_sym/0_sym_flip";
-        System s(path+"/last.gro");
-        Selection sel(s,"within 0.5 of resid 1");
-        LOG()->info("size {}",sel.size());
 
-        vector<Vector2i> pairs;
-        vector<float> dist;
-        search_contacts(0.5,s("resid 1-10"),s("resid 11-20"),pairs,dist,true,fullPBC);
-        LOG()->info("size {}",pairs.size());
-    }
+    string path="/home/semen/work/Projects/pteros/github/pteros/src/test";
+    System s(path+"/cg.gro");
+    Selection sel1(s,"resid 3");
+    Selection sel2(s,"resname  W");
+
+    vector<Vector2i> bon;
+    vector<float> dist;
+    //search_contacts(1.5,sel1,bon,dist,true,noPBC);
+    search_contacts(1.5,sel1,sel2,bon,dist,true,noPBC);
+
+    cout << bon.size() << endl;
+
+    Selection selw(s,"within 0.5 self nopbc of resid 3");
+    cout <<selw.size() << endl;
+    //cout << selw << endl;
+    //for(int i=0;i<bon.size();++i)
+    //    cout << bon[i].transpose() << " " << dist[i] << endl;
 
 }

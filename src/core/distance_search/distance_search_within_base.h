@@ -42,20 +42,20 @@ protected:
     // with correct grids in derived classes
 
     // Pointer to search results
-    std::vector<int>* result;
+    std::unordered_set<int> result;
 
     void do_search();
+
+    void compute_chunk(int b, int e, std::unordered_set<int> &res_buf);
 
 private:
     void search_between_cells(Vector3i_const_ref c1,
                               Vector3i_const_ref c2,
-                              const Grid &grid1,
-                              const Grid &grid2,
-                              std::vector<int> &res_buffer);
+                              Vector3i_const_ref wrapped,
+                              std::unordered_set<int> &res_buffer);
 
-    void search_planned_pair(Vector3i_const_ref c1,
-                             Vector3i_const_ref c2,
-                             std::vector<int> &res_buffer);
+    void search_planned_pair(const Planned_pair& pair,
+                             std::unordered_set<int> &res_buffer);
 };
 
 }
