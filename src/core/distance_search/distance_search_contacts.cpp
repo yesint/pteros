@@ -30,7 +30,6 @@
 #include "distance_search_contacts.h"
 #include <thread>
 #include <algorithm>
-#include <execution>
 
 using namespace std;
 using namespace pteros;
