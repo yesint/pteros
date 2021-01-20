@@ -165,15 +165,12 @@ Selection_parser::~Selection_parser(){}
 void set_coord_dependence(const std::shared_ptr<MyAst>& node){
     node->is_coord_dependent = is_node_coordinate_dependent(node);
     if(node->nodes.size()){
-        // tree
-        node->is_coord_dependent = is_node_coordinate_dependent(node);
-        for(int i=0;i<node->nodes.size();++i){
-            set_coord_dependence(node->nodes[i]);
-            if(node->nodes[i]->is_coord_dependent) node->is_coord_dependent = true;
+        // check children recursively
+        for(auto& child: node->nodes){
+            set_coord_dependence(child);
+            if(child->is_coord_dependent) node->is_coord_dependent = true;
         }
     }
-
-    //cout << node->name << " :: " << node->is_coord_dependent << endl;
 }
 
 
@@ -210,7 +207,7 @@ void Selection_parser::optimize(std::shared_ptr<MyAst>& node){
     }
 
     // Recurse into children
-    for(int i=0;i<node->nodes.size();++i) optimize(node->nodes[i]);
+    for(auto& child: node->nodes) optimize(child);
 }
 
 
@@ -227,11 +224,12 @@ void Selection_parser::precompute(std::shared_ptr<MyAst>& node){
     case "WITHIN"_:
     case "BYRES"_:
         if(!node->is_coord_dependent){
-            auto ast = std::make_shared<MyAst>("",0,0,"PRE","");
-            eval_node(node, ast->precomputed);
-            node = ast;
+            auto new_node = std::make_shared<MyAst>("",0,0,"PRE","");
+            eval_node(node, new_node->precomputed);
+            node = new_node;
         } else if(!node->nodes.empty()) {
-            for(int i=0;i<node->nodes.size();++i) precompute(node->nodes[i]);
+            // Try children, some of them could be coord-independent
+            for(auto& child: node->nodes) precompute(child);
         }
     }
 }
