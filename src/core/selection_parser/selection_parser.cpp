@@ -42,6 +42,7 @@
 using namespace std;
 using namespace pteros;
 using namespace boost;
+using namespace Eigen;
 
 
 //===============================================
@@ -66,11 +67,12 @@ public:
 // Instance of the parser itself
 Pteros_PEG_parser _parser(R"(
         LOGICAL_EXPR       <-  LOGICAL_OPERAND (LOGICAL_OPERATOR LOGICAL_OPERAND)*
-        LOGICAL_OPERATOR   <-  < 'or' / 'and' >
+        LOGICAL_OPERATOR   <-  < < 'or' / 'and' > _ >
         LOGICAL_OPERAND    <-  (NOT / BY)? ( '(' LOGICAL_EXPR ')' / ALL / NUM_COMPARISON / KEYWORD_EXPR / WITHIN )
         ALL                <-  < 'all' >
         NOT                <-  < 'not' >
-        BY                 <-  'by' < ('residue' / 'chain' / 'mol') > / 'same' < ('residue' / 'chain' / 'mol') > 'as'
+        BY                 <-  <  'by' _ < ('residue' / 'chain' / 'mol') > _ >
+                             / < 'same' _ < ('residue' / 'chain' / 'mol') > _ 'as' _ >
 
         NUM_COMPARISON     <-  NUM_EXPR COMPARISON_OPERATOR NUM_EXPR (COMPARISON_OPERATOR NUM_EXPR)?
         COMPARISON_OPERATOR <- <  '==' / '<=' / '>=' / '<>' / '!=' / '<' / '>' / '=' >
@@ -100,34 +102,44 @@ Pteros_PEG_parser _parser(R"(
 
         VEC3               <- COM / FLOAT FLOAT FLOAT / 'index' INTEGER
 
-        DIST               <- ('dist' / 'distance') (POINT / VECTOR / PLANE)
-        POINT              <- 'point' PBC? VEC3
-        VECTOR             <- 'vector' PBC? VEC3 VEC3
-        PLANE              <- 'plane' PBC? VEC3 VEC3
+        DIST               <- ('dist' / 'distance') PBC? 'from' (VEC3 / DIST_VECTOR / DIST_PLANE)
+
+        DIST_VECTOR        <- 'vector' ('from' VEC3 'to' VEC3) / ('point' VEC3 'dir' VEC3)
+        DIST_PLANE         <- 'plane' ('point' VEC3 'normal' VEC3) / ('point' VEC3 'point' VEC3 'point' VEC3)
 
         FLOAT              <- < INTEGER ('.' [0-9]+ )? ( ('e' / 'E' ) INTEGER )? >
         INTEGER            <- < ('-' / '+')? [0-9]+ >
 
         KEYWORD_EXPR       <- STR_KEYWORD_EXPR / INT_KEYWORD_EXPR
         STR_KEYWORD_EXPR   <- STR_KEYWORD (STR / REGEX)+
-        STR_KEYWORD        <- < 'name' / 'resname' / 'tag' / 'chain' / 'type' >
+        STR_KEYWORD        <- < < 'name' / 'resname' / 'tag' / 'chain' / 'type' > _ >
         STR                <- !('or'/'and') < [a-zA-Z0-9]+ >
 
         INT_KEYWORD_EXPR   <- INT_KEYWORD (RANGE / INTEGER)+
-        INT_KEYWORD        <- < 'resindex' / 'index' / 'resid' >
+        INT_KEYWORD        <- < < 'resindex' / 'index' / 'resid' > _ >
         RANGE              <- INTEGER ('-'/'to'/':') INTEGER
 
-        WITHIN             <- 'within' FLOAT (PBC SELF / SELF PBC / PBC / SELF)? 'of' LOGICAL_OPERAND
+        WITHIN             <- 'within' FLOAT ((PBC SELF / SELF PBC / PBC / SELF))? 'of' LOGICAL_OPERAND
 
-        PBC                <- < 'pbc' / 'nopbc' / 'periodic' / 'nonperiodic' >
-        SELF               <- < 'self' / 'noself' >
+        PBC                <- PBC_KEYWORD PBC_DIMS / PBC_KEYWORD / NOPBC_KEYWORD
+       ~PBC_KEYWORD        <- < <'pbc'> _ >
+       ~NOPBC_KEYWORD      <- < <'nopbc'> _ >
+        PBC_DIMS           <- < < [01ynYN]{3} > _ >
 
-        %whitespace      <-  [ \t\r\n]*
+        SELF               <- < < 'self' / 'noself' > _ >
+
+        _                  <- [ \t]+
+        %whitespace        <-  [ \t\r\n]*
 
         REGEX              <- '"' <(!'"' .)*> '"' / "'" <(!"'" .)*> "'"
     )");
 
 
+//by residue (within 0.5 pbc YYN self of resid 1:5)
+//dist pbc yny plane normal 2.1 3.4 5.1 point 1.2 0.2 5.2
+//dist         plane point 2.1 3.4 5.1 point 1.2 0.2 5.2 point 1.2 0.2 5.2
+//dist vector point 2.1 3.4 5.1 point 2.1 3.4 5.1
+//dist vector point 2.1 3.4 5.1 dir 2.1 3.4 5.1
 
 //===============================================
 
@@ -273,6 +285,25 @@ void Selection_parser::apply_ast(size_t fr, vector<int>& result){
 }
 
 
+Eigen::Vector3i process_pbc(const std::shared_ptr<MyAst> &node){
+    using namespace peg::udl;
+
+    if(node->original_tag != "PBC"_) throw Pteros_error("Invalid PBC node!");
+
+    Vector3i ret;
+    if(node->choice == 2){ // nopbc
+        ret << 0,0,0;
+    } else if(node->choice == 1) { // pbc
+        ret << 1,1,1;
+    } else { // pbc dims
+        for(int dim=0;dim<3;++dim){
+            char c = node->token[dim];
+            ret(dim) = (c=='y' || c=='Y' || c=='1') ? 1 : 0;
+        }
+    }
+    return ret;
+}
+
 void Selection_parser::eval_node(const std::shared_ptr<MyAst> &node, std::vector<int>& result){
     using namespace peg::udl;
 
@@ -359,7 +390,7 @@ void Selection_parser::eval_node(const std::shared_ptr<MyAst> &node, std::vector
         std::function<bool(int,const string&)> comp_func_str;
         std::function<bool(int,const std::regex&)> comp_func_regex;
 
-        const string& keyword = node->nodes[0]->token;
+        const auto& keyword = node->nodes[0]->token;
 
         if(keyword == "name"){
             comp_func_str = [this](int at, const string& str){ return sys->atoms[at].name == str; };
@@ -388,7 +419,7 @@ void Selection_parser::eval_node(const std::shared_ptr<MyAst> &node, std::vector
             if(node->nodes[i]->name=="STR")
                 str_values.emplace_back(node->nodes[i]->token);
             else
-                regex_values.emplace_back(node->nodes[i]->token);
+                regex_values.emplace_back(string(node->nodes[i]->token));
         }
 
         // Loop body
@@ -432,7 +463,7 @@ void Selection_parser::eval_node(const std::shared_ptr<MyAst> &node, std::vector
     //---------------------------------------------------------------------------
     case "INT_KEYWORD_EXPR"_:
     {
-        const string& keyword = node->nodes[0]->token;
+        const auto& keyword = node->nodes[0]->token;
         int Nchildren = node->nodes.size(); // Get number of children
 
         // If starting subset is present than this is a subselection and
@@ -441,7 +472,7 @@ void Selection_parser::eval_node(const std::shared_ptr<MyAst> &node, std::vector
             // Cycle over children
             for(int i=1;i<Nchildren;++i){
                 if(node->nodes[i]->name == "INTEGER") {
-                    int k = stoi(node->nodes[i]->token);
+                    int k = stoi(string(node->nodes[i]->token));
                     // Shift to local index for subselection if needed
                     if(starting_subset) k+=(*starting_subset)[0];
                     // We have to check the range here
@@ -449,8 +480,8 @@ void Selection_parser::eval_node(const std::shared_ptr<MyAst> &node, std::vector
                         result.push_back(k);
                 } else {
                     // this is a range, not an integer
-                    int i1 = stoi(node->nodes[i]->nodes[0]->token);
-                    int i2 = stoi(node->nodes[i]->nodes[1]->token);
+                    int i1 = stoi(string(node->nodes[i]->nodes[0]->token));
+                    int i2 = stoi(string(node->nodes[i]->nodes[1]->token));
                     // Shift to local index for subselection if needed
                     if(starting_subset){
                         i1+=(*starting_subset)[0];
@@ -470,10 +501,10 @@ void Selection_parser::eval_node(const std::shared_ptr<MyAst> &node, std::vector
             vector<int> range_list;
             for(int i=1;i<Nchildren;++i){
                 if(node->nodes[i]->name == "INTEGER") {
-                    int_list.push_back(stoi(node->nodes[i]->token));
+                    int_list.push_back(stoi(string(node->nodes[i]->token)));
                 } else {
-                    range_list.push_back(stoi(node->nodes[i]->nodes[0]->token));
-                    range_list.push_back(stoi(node->nodes[i]->nodes[1]->token));
+                    range_list.push_back(stoi(string(node->nodes[i]->nodes[0]->token)));
+                    range_list.push_back(stoi(string(node->nodes[i]->nodes[1]->token)));
                 }
             }
 
@@ -638,38 +669,31 @@ void Selection_parser::eval_node(const std::shared_ptr<MyAst> &node, std::vector
     //---------------------------------------------------------------------------
     case "WITHIN"_:
     {        
-        float cutoff = stof(node->nodes[0]->token);
-        bool periodic = false;
-        bool include_self = true;        
+        Vector3i pbc = noPBC;
+        bool include_self = false;
+        int eval_ind = 1; // Index of the child for internal selection
 
-        int eval_ind;
+        // Child 0 is always a cutoff
+        float cutoff = stof(string(node->nodes[0]->token));
+        //float cutoff = (node->nodes[0]->token_to_number<float>());
 
-        if(node->nodes.size() == 4){ // Both pbc and self
-            if(node->nodes[1]->name == "PBC" && (node->nodes[1]->token == "pbc" || node->nodes[1]->token == "periodic"))
-                periodic = true;
-
-            if(node->nodes[2]->name == "PBC" && (node->nodes[2]->token == "pbc" || node->nodes[2]->token == "periodic"))
-                periodic = true;
-
-            if(node->nodes[1]->name == "SELF" && node->nodes[1]->token == "noself")
-                include_self = false;
-
-            if(node->nodes[2]->name == "SELF" && node->nodes[2]->token == "noself")
-                include_self = false;
-
-            eval_ind = 3;
-
-        } else if(node->nodes.size() == 3){ // Either pbc or self
-            if(node->nodes[1]->name == "PBC" && (node->nodes[1]->token == "pbc" || node->nodes[1]->token == "periodic"))
-                periodic = true;
-
-            if(node->nodes[1]->name == "SELF" && node->nodes[1]->token == "noself")
-                include_self = false;
-
-            eval_ind = 2;
-
-        } else { // Neither pbc nor self
-            eval_ind = 1;
+        // Child 1 could be either PBC or SELF
+        if(node->nodes[1]->tag == "PBC"_){
+            ++eval_ind;
+            pbc = process_pbc(node->nodes[1]);
+            // Check next for self
+            if(node->nodes[2]->tag == "SELF"_){
+                ++eval_ind;
+                if(node->nodes[2]->token == "self") include_self = true;
+            }
+        } else if(node->nodes[1]->tag == "SELF"_) {
+            ++eval_ind;
+            if(node->nodes[1]->token == "self") include_self = true;
+            // Check next for pbc
+            if(node->nodes[2]->tag == "PBC"_){
+                ++eval_ind;
+                pbc = process_pbc(node->nodes[2]);
+            }
         }
 
         Selection dum1(*sys), dum2(*sys);
@@ -689,9 +713,7 @@ void Selection_parser::eval_node(const std::shared_ptr<MyAst> &node, std::vector
 
         // Set frame for both selections
         dum1.set_frame(frame);
-        dum2.set_frame(frame);
-
-        Eigen::Vector3i pbc = periodic ? fullPBC : noPBC;
+        dum2.set_frame(frame);        
 
         search_within(cutoff,dum1,dum2,result,include_self,pbc);
 
@@ -732,7 +754,7 @@ Eigen::Vector3f Selection_parser::get_vector(const std::shared_ptr<MyAst> &node)
 
     case "INTEGER"_:
     { // this is index expression
-        int ind = stol(node->token);
+        int ind = stol(string(node->token));
         if(ind<0 || ind>=sys->num_atoms()) throw Pteros_error("Invalid atom index!");
         return sys->traj[frame].coord[ind];
     }
@@ -740,9 +762,9 @@ Eigen::Vector3f Selection_parser::get_vector(const std::shared_ptr<MyAst> &node)
     default:
     { // Get 3 floats
         Eigen::Vector3f v;
-        v(0) = stof(node->nodes[0]->token);
-        v(1) = stof(node->nodes[1]->token);
-        v(2) = stof(node->nodes[2]->token);
+        v(0) = stof(string(node->nodes[0]->token));
+        v(1) = stof(string(node->nodes[1]->token));
+        v(2) = stof(string(node->nodes[2]->token));
         return v;
     }
 
@@ -757,13 +779,13 @@ std::function<float(int)> Selection_parser::get_numeric(const std::shared_ptr<My
     // terminals
     case "INTEGER"_:
     {
-        float val = stol(node->token);
+        float val = stol(string(node->token));
         return [val](int at){ return val; };
     }
 
     case "FLOAT"_:
     {
-        float val = stof(node->token);
+        float val = stof(string(node->token));
         return [val](int at){ return val; };
     }
 

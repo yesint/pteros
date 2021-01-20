@@ -8,7 +8,12 @@ test_selection.cpp
     #${PROJECT_SOURCE_DIR}/include/pteros/core/peg_parser.h
 )
 
-set_target_properties(pteros_test PROPERTIES CXX_STANDARD 17)
+#set_target_properties(pteros_test PROPERTIES CXX_STANDARD 17)
+#set_property(TARGET pteros_test
+#    PROPERTY CXX_STANDARD 17
+#    PROPERTY CXX_STANDARD_REQUIRED ON
+#)
+
 
 target_link_libraries(pteros_test pteros_analysis pteros)
 

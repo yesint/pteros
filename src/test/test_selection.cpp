@@ -9,6 +9,8 @@
 #include <functional>
 #include <memory>
 #include <variant>
+#include <charconv>
+#include <string_view>
 
 using namespace pteros;
 using namespace std;
@@ -21,8 +23,10 @@ int main(int argc, char* argv[]){
 
     string path="/home/semen/work/Projects/pteros/github/pteros/src/test";
     System s(path+"/cg.gro");
-    Selection sel1(s,"resid 3");
+    Selection sel1(s,"resid 3 ");
     Selection sel2(s,"resname  W");
+
+
 
     vector<Vector2i> bon;
     vector<float> dist;

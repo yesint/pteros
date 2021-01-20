@@ -51,8 +51,8 @@ set(GROMACS_SOURCES "" CACHE STRING "Path to Gromacs source tree")
 # -fPIC
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-# C++14 and C99
-set(CMAKE_CXX_STANDARD 14)
+# C++17 and C99
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_C_STANDARD 99)
 
 #Sets optmization in Release build
