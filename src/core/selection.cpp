@@ -993,6 +993,67 @@ Vector3f Selection::center(bool mass_weighted, Array3i_const_ref pbc, int pbc_at
     }
 }
 
+Vector3f Selection::center(const std::vector<float> &weights, Array3i_const_ref pbc, int pbc_atom) const
+{
+    int n = size();
+
+    if(n==0) throw Pteros_error("Can't get center of empty selection!");
+    if(weights.size()!=size()) throw Pteros_error("Weights array has {} elements, while selection has {}!",weights.size(),size());
+    // in case of just one atom nothing to compute
+    if(n==1) return xyz(0);
+
+    Vector3f res;
+    int i;
+
+    process_pbc_atom(pbc_atom);
+
+    res.fill(0.0);
+
+    if( (pbc==0).all() ){
+        // Non-periodic variant
+        float W = 0.0;
+        #pragma omp parallel
+        {
+            Vector3f r(Vector3f::Zero());
+            #pragma omp for nowait reduction(+:W)
+            for(i=0; i<n; ++i){
+                r += xyz(i)*weights[i];
+                W += weights[i];
+            }
+            #pragma omp critical
+            {
+                res += r;
+            }
+        }
+        if(W==0) throw Pteros_error("Sum of weights is zero mass! Center failed!");
+        return res/W;
+
+    } else {
+        // Periodic center
+        // We will find closest periodic images of all points
+        // using leading point as a reference
+        Vector3f ref_point = xyz(pbc_atom);
+        Periodic_box& b = system->box(frame);
+
+        float W = 0.0;
+        #pragma omp parallel
+        {
+            Vector3f r(Vector3f::Zero());
+            #pragma omp for nowait reduction(+:W)
+            for(i=0; i<n; ++i){
+                r += b.closest_image(xyz(i),ref_point,pbc) * weights[i];
+                W += weights[i];
+            }
+            #pragma omp critical
+            {
+                res += r;
+            }
+        }
+        if(W==0) throw Pteros_error("Sum of weights is zero mass! Center failed!");
+        return res/W;
+    }
+}
+
 // Plain translation
 void Selection::translate(Vector3f_const_ref v){
     int i,n = _index.size();

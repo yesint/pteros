@@ -172,7 +172,9 @@ void make_bindings_Selection(py::module& m){
         .def("set_tag",py::overload_cast<const std::vector<string>&>(&Selection::set_tag))
 
         // Properties
-        .def("center",&Selection::center,"mass_weighted"_a=false,"pbc"_a=noPBC,"pbc_atom"_a=-1)
+        .def("center",py::overload_cast<bool,Array3i_const_ref,int>(&Selection::center,py::const_),"mass_weighted"_a=false,"pbc"_a=noPBC,"pbc_atom"_a=-1)
+        .def("center",py::overload_cast<const std::vector<float>&,Array3i_const_ref,int>(&Selection::center,py::const_),"weight"_a,"pbc"_a=noPBC,"pbc_atom"_a=-1)
+
         .def("minmax",[](Selection* sel){Vector3f min,max; sel->minmax(min,max); return py::make_tuple(min,max);})
         .def("is_large",&Selection::is_large)
 

@@ -526,6 +526,10 @@ class Selection {
                            Array3i_const_ref pbc = noPBC,
                            int pbc_atom = -1) const;
 
+    Eigen::Vector3f center(const std::vector<float>& weights,
+                           Array3i_const_ref pbc = noPBC,
+                           int pbc_atom = -1) const;
+
     /// Get minimal and maximal coordinates in selection
     void minmax(Vector3f_ref min, Vector3f_ref max) const;
 
