@@ -42,6 +42,7 @@ namespace pteros {
 struct MyAst_annotation {
     bool is_coord_dependent;
     std::vector<int> precomputed;
+    float numeric_value;
 };
 
 typedef peg::AstBase<MyAst_annotation> MyAst;
