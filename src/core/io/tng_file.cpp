@@ -7,10 +7,10 @@
  *
  * https://github.com/yesint/pteros
  *
- * (C) 2009-2020, Semen Yesylevskyy
+ * (C) 2009-2021, Semen Yesylevskyy
  *
  * All works, which use Pteros, should cite the following papers:
- *  
+ *
  *  1.  Semen O. Yesylevskyy, "Pteros 2.0: Evolution of the fast parallel
  *      molecular analysis library for C++ and python",
  *      Journal of Computational Chemistry, 2015, 36(19), 1480–1488.
@@ -28,6 +28,8 @@
 
 
 
+
+
 #include "tng_file.h"
 
 using namespace std;
@@ -37,5 +39,7 @@ using namespace Eigen;
 TNG_file::TNG_file(string &fname): VMD_molfile_plugin_wrapper(fname){
    plugin = molfile_plugins["tng"];
 }
+
+
 
 

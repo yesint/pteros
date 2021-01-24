@@ -23,7 +23,7 @@ int main(int argc, char* argv[]){
 
     string path="/home/semen/work/Projects/pteros/github/pteros/src/test";
     System s(path+"/cg.gro");
-    Selection sel1(s,"resid 3 ");
+    Selection sel1(s,"within 0.6 pbc of resid 3 ");
     Selection sel2(s,"resname  W");
 
 

@@ -1,7 +1,7 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Modified version of xdrfile from MDTraj with further changes and fixes
 Changes:
- - Added correct extern declaration to call seek fucntions from C++
+ - Added correct extern declaration to call seek functions from C++
  - Added xdr_utils.cpp with many functions hacked from Gromacs 2020.1
    Gromacs code is modified to call xdrfile functions instead of native Gromacs ones
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

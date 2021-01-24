@@ -7,10 +7,10 @@
  *
  * https://github.com/yesint/pteros
  *
- * (C) 2009-2020, Semen Yesylevskyy
+ * (C) 2009-2021, Semen Yesylevskyy
  *
  * All works, which use Pteros, should cite the following papers:
- *  
+ *
  *  1.  Semen O. Yesylevskyy, "Pteros 2.0: Evolution of the fast parallel
  *      molecular analysis library for C++ and python",
  *      Journal of Computational Chemistry, 2015, 36(19), 1480–1488.
@@ -28,6 +28,8 @@
 
 
 
+
+
 #include "bindings_util.h"
 #include "pteros/extras/solvate.h"
 
@@ -38,5 +40,7 @@ using namespace pybind11::literals;
 void make_bindings_solvate(py::module& m){
     m.def("solvate", &solvate,"solute"_a,"d"_a=0.25,"solvent_file"_a="","custom_sel"_a="");
 }
+
+
 
 

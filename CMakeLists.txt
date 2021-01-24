@@ -5,7 +5,7 @@
 #      Pteros molecular modeling library
 # ============================================
 #
-# (C) 2009-2019, Semen Yesylevskyy
+# (C) 2009-2021, Semen Yesylevskyy
 #
 # All works, which use Pteros, should cite the following papers:
 #
@@ -23,7 +23,7 @@
 # http://www.opensource.org/licenses/artistic-license-2.0.php
 #
 
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.10)
 
 project(pteros)
 
@@ -32,7 +32,7 @@ OPTION(WITH_OPENMP "Use OpenMP parallelization" ON)
 OPTION(WITH_OPENBABEL "Use OpenBabel. Required to read pdbqt files and for substructure search." ON)
 OPTION(WITH_GROMACS "Use Gromacs. Required to read tpr files." ON)
 OPTION(WITH_TNGIO "Use TNG_IO. Required to read tng files." ON)
-OPTION(WITH_POWERSASA "Use POWERSASA code. This implies license restrictions described here: thirdparty/sasa/LICENSE" ON)
+OPTION(WITH_POWERSASA "Use POWERSASA code. This implies license restrictions described here: thirdparty/powersasa/LICENSE" ON)
 
 OPTION(MAKE_STANDALONE_PLUGINS "Compile analysis plugins as stand-alone executables" OFF)
 OPTION(MAKE_PACKAGE "Generate package" OFF)
