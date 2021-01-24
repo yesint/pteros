@@ -92,7 +92,7 @@ private:
     std::vector<int>* current_subset;
 
     void precompute(std::shared_ptr<MyAst> &node);
-    void optimize(std::shared_ptr<MyAst> &node);
+    void optimize_numeric(std::shared_ptr<MyAst> &node);
 };
 
 }

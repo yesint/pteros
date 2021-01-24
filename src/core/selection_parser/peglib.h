@@ -22,6 +22,7 @@
 #include <memory>
 #include <mutex>
 #include <set>
+#include <sstream>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -472,10 +473,17 @@ struct SemanticValues : protected std::vector<std::any> {
   }
 
   template <typename T> T token_to_number() const {
-    auto sv = token();
     T n = 0;
-    std::from_chars(sv.data(), sv.data() + sv.size(), n);
-    return n;
+    if constexpr (std::is_floating_point<T>::value) {
+      // TODO: The following code should be removed eventually.
+      std::istringstream ss(token_to_string());
+      ss >> n;
+      return n;
+    } else {
+      auto sv = token();
+      std::from_chars(sv.data(), sv.data() + sv.size(), n);
+      return n;
+    }
   }
 
   // Transform the semantic value vector to another vector
@@ -635,7 +643,7 @@ struct ErrorInfo {
     if (message_pos) {
       auto line = line_info(s, message_pos);
       std::string msg;
-      if (auto unexpected_token = heuristic_error_token(log, s, n, message_pos);
+      if (auto unexpected_token = heuristic_error_token(s, n, message_pos);
           !unexpected_token.empty()) {
         msg = replace_all(message, "%t", unexpected_token);
       } else {
@@ -652,7 +660,7 @@ struct ErrorInfo {
         msg = "syntax error";
 
         // unexpected token
-        if (auto unexpected_token = heuristic_error_token(log, s, n, error_pos);
+        if (auto unexpected_token = heuristic_error_token(s, n, error_pos);
             !unexpected_token.empty()) {
           msg += ", unexpected '";
           msg += unexpected_token;
@@ -690,7 +698,7 @@ struct ErrorInfo {
   }
 
 private:
-  std::string heuristic_error_token(const Log &log, const char *s, size_t n,
+  std::string heuristic_error_token(const char *s, size_t n,
                                     const char *error_pos) const {
     auto len = n - std::distance(s, error_pos);
     if (len) {
@@ -2279,6 +2287,7 @@ public:
   bool disable_action = false;
 
   std::string error_message;
+  bool no_ast_opt = false;
 
 private:
   friend class Reference;
@@ -2684,8 +2693,9 @@ inline size_t PrecedenceClimbing::parse_expression(const char *s, size_t n,
   return i;
 }
 
-inline size_t Recovery::parse_core(const char *s, size_t n, SemanticValues &vs,
-                                   Context &c, std::any &dt) const {
+inline size_t Recovery::parse_core(const char *s, size_t n,
+                                   SemanticValues & /*vs*/, Context &c,
+                                   std::any & /*dt*/) const {
   auto save_log = c.log;
   c.log = nullptr;
 
@@ -3049,10 +3059,10 @@ private:
     ~g["COMMA"] <= seq(chr(','), g["Spacing"]);
 
     // Instruction grammars
-    g["Instruction"] <=
-        seq(g["BeginBlacket"],
-            cho(cho(g["PrecedenceClimbing"]), cho(g["ErrorMessage"])),
-            g["EndBlacket"]);
+    g["Instruction"] <= seq(g["BeginBlacket"],
+                            cho(cho(g["PrecedenceClimbing"]),
+                                cho(g["ErrorMessage"]), cho(g["NoAstOpt"])),
+                            g["EndBlacket"]);
 
     ~g["SpacesZom"] <= zom(g["Space"]);
     ~g["SpacesOom"] <= oom(g["Space"]);
@@ -3074,6 +3084,9 @@ private:
     // Error message instruction
     g["ErrorMessage"] <=
         seq(lit("message"), g["SpacesOom"], g["LiteralD"], g["SpacesZom"]);
+
+    // No Ast node optimazation instruction
+    g["NoAstOpt"] <= seq(lit("no_ast_opt"), g["SpacesZom"]);
 
     // Set definition names
     for (auto &x : g) {
@@ -3394,6 +3407,12 @@ private:
       instruction.data = std::any_cast<std::string>(vs[0]);
       return instruction;
     };
+
+    g["NoAstOpt"] = [](const SemanticValues & /*vs*/) {
+      Instruction instruction;
+      instruction.type = "no_ast_opt";
+      return instruction;
+    };
   }
 
   bool apply_precedence_instruction(Definition &rule,
@@ -3609,6 +3628,8 @@ private:
         }
       } else if (instruction.type == "message") {
         rule.error_message = std::any_cast<std::string>(instruction.data);
+      } else if (instruction.type == "no_ast_opt") {
+        rule.no_ast_opt = true;
       }
     }
 
@@ -3683,10 +3704,17 @@ template <typename Annotation> struct AstBase : public Annotation {
   }
 
   template <typename T> T token_to_number() const {
-    assert(is_token);
     T n = 0;
-    std::from_chars(token.data(), token.data() + token.size(), n);
-    return n;
+    if constexpr (std::is_floating_point<T>::value) {
+      // TODO: The following code should be removed eventually.
+      std::istringstream ss(token_to_string());
+      ss >> n;
+      return n;
+    } else {
+      assert(is_token);
+      std::from_chars(token.data(), token.data() + token.size(), n);
+      return n;
+    }
   }
 };
 
@@ -4019,11 +4047,10 @@ public:
 
   const Definition &operator[](const char *s) const { return (*grammar_)[s]; }
 
-  std::vector<std::string> get_rule_names() {
+  std::vector<std::string> get_rule_names() const {
     std::vector<std::string> rules;
-    rules.reserve(grammar_->size());
-    for (auto const &r : *grammar_) {
-      rules.emplace_back(r.first);
+    for (auto &[name, _] : *grammar_) {
+      rules.push_back(name);
     }
     return rules;
   }
@@ -4035,20 +4062,23 @@ public:
     }
   }
 
-  template <typename T = Ast> parser &enable_ast() {
-    for (auto &x : *grammar_) {
-      auto &rule = x.second;
-      if (!rule.action) { add_ast_action<T>(rule); }
-    }
-    return *this;
-  }
-
   void enable_trace(TracerEnter tracer_enter, TracerLeave tracer_leave) {
     if (grammar_ != nullptr) {
       auto &rule = (*grammar_)[start_];
       rule.tracer_enter = tracer_enter;
       rule.tracer_leave = tracer_leave;
     }
+  }
+
+  template <typename T = Ast> parser &enable_ast() {
+    for (auto &[_, rule] : *grammar_) {
+      if (!rule.action) { add_ast_action<T>(rule); }
+    }
+    return *this;
+  }
+
+  template <typename T> std::shared_ptr<T> optimize_ast(std::shared_ptr<T> ast, bool opt_mode = true) const {
+    return AstOptimizer(opt_mode, get_no_ast_opt_rules()).optimize(ast);
   }
 
   Log log;
@@ -4059,6 +4089,14 @@ private:
     auto ret = r.ret && r.len == n;
     if (log && !ret) { r.error_info.output_log(log, s, n); }
     return ret && !r.recovered;
+  }
+
+  std::vector<std::string> get_no_ast_opt_rules() const {
+    std::vector<std::string> rules;
+    for (auto &[name, rule] : *grammar_) {
+      if (rule.no_ast_opt) { rules.push_back(name); }
+    }
+    return rules;
   }
 
   std::shared_ptr<Grammar> grammar_;
