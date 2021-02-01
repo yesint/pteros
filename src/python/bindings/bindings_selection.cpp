@@ -365,7 +365,7 @@ void make_bindings_Selection(py::module& m){
 
     m.def("non_bond_energy", [](const Selection& sel1, const Selection& sel2,float cutoff,int fr,bool pbc){
         return non_bond_energy(sel1,sel2,cutoff,fr,pbc);
-    },"sel1"_a, "sel2"_a, "cutoff"_a=0.0, "fr"_a=-1, "pbc"_a=fullPBC);
+    },"sel1"_a, "sel2"_a, "cutoff"_a=0.0, "fr"_a=-1, "pbc"_a=true);
 
     m.def("copy_coord",[](const Selection& sel1, int fr1, Selection& sel2, int fr2){ return copy_coord(sel1,fr1,sel2,fr2); });
     m.def("copy_coord",[](const Selection& sel1, Selection& sel2){ return copy_coord(sel1,sel2); });
