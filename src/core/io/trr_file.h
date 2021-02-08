@@ -27,8 +27,6 @@
 */
 
 
-
-
 #pragma once
 
 #include "pteros/core/mol_file.h"
@@ -45,7 +43,8 @@ public:
     virtual ~TRR_file();
 
     virtual Mol_file_content get_content_type() const {
-        return Mol_file_content().traj(true);
+        return Mol_file_content()
+                .traj(true);
     }
 
 protected:

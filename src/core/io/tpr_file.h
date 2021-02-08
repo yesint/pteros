@@ -27,9 +27,6 @@
 */
 
 
-
-
-
 #pragma once
 
 #include "pteros/core/mol_file.h"
@@ -44,7 +41,10 @@ public:
     ~TPR_file();
 
     virtual Mol_file_content get_content_type() const {        
-        return Mol_file_content().atoms(true).coord(true).top(true);
+        return Mol_file_content()
+                .atoms(true)
+                .coord(true)
+                .top(true);
     }
 
 protected:        

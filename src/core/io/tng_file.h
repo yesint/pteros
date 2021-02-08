@@ -27,11 +27,7 @@
 */
 
 
-
-
-
-#ifndef TNG_FILE_H
-#define TNG_FILE_H
+#pragma once
 
 #include <string>
 #include "vmd_molfile_plugin_wrapper.h"
@@ -45,13 +41,15 @@ public:
     TNG_file(std::string& fname);
 
     virtual Mol_file_content get_content_type() const {                
-        return Mol_file_content().atoms(true).traj(true);
+        return Mol_file_content()
+                .atoms(true)
+                .traj(true);
     }
 
 };
 
 }
-#endif /* MOL_FILE_H */
+
 
 
 

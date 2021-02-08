@@ -58,5 +58,6 @@ void pteros::selection_to_obmol(const Selection& sel, OpenBabel::OBMol &mol, boo
 
     mol.EndModify();
 
-    mol.SetPartialChargesPerceived(); // Needed again (openbabel is written by retarded perverts!!!)
+    // Needed again (openbabel is written by retarded perverts!!!)
+    mol.SetPartialChargesPerceived();
 }

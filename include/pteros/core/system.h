@@ -72,11 +72,15 @@ struct Frame {
     void swap(int i, int j);
 };
 
+//====================================================================================
+
 //Forward declarations
 class Selection;
 class Mol_file;
 class Mol_file_content;
 class Atom_proxy;
+
+//====================================================================================
 
 /**
 *  The system of atoms.
@@ -94,8 +98,8 @@ class System {
     friend class Selection;    
     // Selection_parser must access internals of Selection
     friend class Selection_parser;
-    // Mol_file needs an access too
-    friend class Mol_file;
+    // Needs an access for constructing the system in IO handlers
+    friend class System_builder;
 
 public:    
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -517,6 +521,8 @@ protected:
     void filter_coord(int fr);
 };
 
+//====================================================================================
+
 /// Low level energy evaluation function
 /// Returns total energy
 /// Individual pair energies could be returned to pair_en if provided.
@@ -526,7 +532,29 @@ Eigen::Vector2f get_energy_for_list(const std::vector<Eigen::Vector2i>& pairs,
                                     std::vector<Eigen::Vector2f>* pair_en=nullptr);
 
 
-}
+//====================================================================================
+
+// Mol_file is a friend of System and can access it's internals
+// but derived *_file classes are not friends.
+// In order to access internals of the System we define special access class
+class System_builder {
+public:
+    System_builder(System& s): sys(&s) {}
+    System_builder(System* s): sys(s) {}
+    // When destroyed builer calls assign_resindex() and duing other preparations
+    ~System_builder();
+
+    void allocate_atoms(int n);
+    void set_atom(int i, const Atom& at);
+    Atom& atom(int i);
+    void add_atom(const Atom& at);
+private:
+    System* sys;
+};
+
+
+
+} // namespace
 
 
 

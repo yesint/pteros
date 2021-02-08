@@ -40,14 +40,16 @@
 namespace pteros {
 
 
-class XTC_file: public Mol_file {
+class XTC_file: public Mol_file_random_access {
 public:
-    XTC_file(std::string& fname): Mol_file(fname), handle(nullptr) {}
+    XTC_file(std::string& fname): Mol_file_random_access(fname), handle(nullptr) {}
     virtual void open(char open_mode);
     virtual ~XTC_file();
 
     virtual Mol_file_content get_content_type() const {
-        return Mol_file_content().traj(true).rand(true);
+        return Mol_file_content()
+                .traj(true)
+                .rand(true);
     }
 
 protected:        

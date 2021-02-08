@@ -27,9 +27,6 @@
 */
 
 
-
-
-
 #ifndef DCD_FILE_H
 #define DCD_FILE_H
 
@@ -44,7 +41,8 @@ public:
     DCD_file(std::string fname);
 
     virtual Mol_file_content get_content_type() const {
-        return Mol_file_content().traj(true);
+        return Mol_file_content()
+                .traj(true);
     }
 
 };

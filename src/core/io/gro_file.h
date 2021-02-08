@@ -27,7 +27,6 @@
 */
 
 
-
 #pragma once
 
 #include <string>
@@ -45,7 +44,9 @@ public:
     virtual ~GRO_file();
 
     virtual Mol_file_content get_content_type() const {        
-        return Mol_file_content().atoms(true).coord(true);
+        return Mol_file_content()
+                .atoms(true)
+                .coord(true);
     }
 
 protected:

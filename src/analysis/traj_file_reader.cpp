@@ -136,9 +136,12 @@ void Traj_file_reader::reader_thread_body(const vector<string> &traj_files, cons
 
             // If we need to seek do it now if trajectory supports it
             if(seek_status==1 && trj->get_content_type().rand()){
+                // Cast to random-access handler
+                auto rand_trj = dynamic_cast<Mol_file_random_access*>(trj.get());
+
                 int last_fr;
                 float last_t;
-                trj->tell_last_frame_and_time(last_fr,last_t);
+                rand_trj->tell_last_frame_and_time(last_fr,last_t);
                 if(first_frame>0){
                     // If beyond this trajectory try the next one
                     if(first_frame>=last_fr){
@@ -148,7 +151,7 @@ void Traj_file_reader::reader_thread_body(const vector<string> &traj_files, cons
                         continue;
                     }
                     log->info("Fast forward to frame {}...",first_frame);
-                    trj->seek_frame(first_frame);
+                    rand_trj->seek_frame(first_frame);
                 } else if(first_time>0){
                     // If beyond this trajectory try the next one
                     if(first_time>=last_t){
@@ -158,13 +161,13 @@ void Traj_file_reader::reader_thread_body(const vector<string> &traj_files, cons
                         continue;
                     }
                     log->info("Fast forward to time {}...",first_time);
-                    trj->seek_time(first_time);
+                    rand_trj->seek_time(first_time);
                 }
                 seek_status = 0; // Seeking done
                 // Set absolute frame count and time
                 int fr;
                 float t;
-                trj->tell_current_frame_and_time(fr,t);
+                rand_trj->tell_current_frame_and_time(fr,t);
                 abs_frame += fr;
                 abs_time += t;
                 if(custom_dt>0) abs_time = custom_start_time + custom_dt*abs_frame;
@@ -248,7 +251,7 @@ void Traj_file_reader::reader_thread_body(const vector<string> &traj_files, cons
                     if(trj->get_content_type().rand() && skip>0){
                         log->debug("Skipping {} frames by fast-forward...",skip);
                         try {
-                            trj->seek_frame(abs_frame+skip);
+                            dynamic_cast<Mol_file_random_access*>(trj.get())->seek_frame(abs_frame+skip);
                             abs_frame += skip;
                             frame_in_range += skip;
                         } catch(Pteros_error e){

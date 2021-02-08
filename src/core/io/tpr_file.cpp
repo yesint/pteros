@@ -26,8 +26,6 @@
  *
 */
 
-
-
 #include "tpr_file.h"
 #include "pteros/core/pteros_error.h"
 #include "pteros/core/logging.h"
@@ -84,6 +82,8 @@ bool TPR_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
         if(what.coord()) frame->box.set_matrix(Map<Matrix3f>((float*)&state.box,3,3));
     }
 
+    System_builder builder(sys);
+
     // Read atoms and coordinates
     for(int i=0;i<natoms;++i){
         Atom at;
@@ -108,10 +108,10 @@ bool TPR_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
 
         if(what.atoms()){
             // Add atoms to system
-            append_atom_in_system(*sys,at);
+            builder.add_atom(at);
         } else {
             // Update atoms in system
-            atom_in_system(*sys,i) = at;
+            builder.atom(i) = at;
         }
     }
 

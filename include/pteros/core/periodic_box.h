@@ -40,17 +40,7 @@ namespace pteros {
 /** @brief Class encapsulating all operations with arbitrary triclinic periodic boxes
  This class stores the periodic box itself and also contains pre-computed matrices
  for converting laboratory coordinates to the coordinates in triclinic basis and vice versa.
- Extents of the periodic box are also precomputed and stored internally.
- All data in the class are read-only. The user can set the box by using the constructor
- or by calling modify(box), than all internal data would be precomputed.
- Individual components of the box can't be changed. The only way to change is to get the
- whole box, modify the component and set it back:
- \code
- Periodic_box box(some_data);
- Matrix3f b = box.get_matrix();
- b(1,2) *= 2.0; // Modify the box element
- box.modify(b); // Set new box. This will recompute internal matrices
- \endcode
+ Extents of the periodic box are also precomputed and stored internally. 
  */
 class Periodic_box {
 public:

@@ -26,10 +26,6 @@
  *
 */
 
-
-
-
-
 #include "babel_wrapper.h"
 #include "pteros/core/pteros_error.h"
 #include "openbabel/atom.h"
@@ -76,9 +72,11 @@ bool Babel_wrapper::do_read(System *sys, Frame *frame, const Mol_file_content &w
 
     int natoms = mol.NumAtoms();
 
+    System_builder builder(sys);
+
     if(what.atoms()){
         // Allocate atoms in the system
-        allocate_atoms_in_system(*sys, natoms);
+        builder.allocate_atoms(natoms);
 
         Atom at;
         // Cycle over atoms
@@ -97,7 +95,7 @@ bool Babel_wrapper::do_read(System *sys, Frame *frame, const Mol_file_content &w
             at.atomic_number = ba->GetAtomicNum();
             at.mass = ba->GetAtomicMass();
 
-            set_atom_in_system(*sys,i,at);
+            builder.set_atom(i,at);
             ++i;
         }
         sys->assign_resindex();

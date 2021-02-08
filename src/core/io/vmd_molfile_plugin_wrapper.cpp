@@ -26,10 +26,6 @@
  *
 */
 
-
-
-
-
 #include "vmd_molfile_plugin_wrapper.h"
 #include "pteros/core/pteros_error.h"
 #include "pteros/core/logging.h"
@@ -135,6 +131,7 @@ bool VMD_molfile_plugin_wrapper::do_read(System *sys, Frame *frame, const Mol_fi
 
     if(what.atoms()){
         // READ STRUCTURE:
+        System_builder builder(sys);
 
         if(sys->num_atoms()>0)
             throw Pteros_error("Can't read structure to the system, which is not empty!");
@@ -143,7 +140,7 @@ bool VMD_molfile_plugin_wrapper::do_read(System *sys, Frame *frame, const Mol_fi
         vector<molfile_atom_t> atoms(natoms);
         plugin->read_structure(handle,&flags,(molfile_atom_t*)&atoms.front());
         // Allocate atoms in the system
-        allocate_atoms_in_system(*sys,natoms);
+        builder.allocate_atoms(natoms);
         // Copy atoms to the system
         Atom at;
         int pos,idx;
@@ -171,10 +168,10 @@ bool VMD_molfile_plugin_wrapper::do_read(System *sys, Frame *frame, const Mol_fi
                 get_element_from_atom_name(at.name, at.atomic_number, at.mass);
             }
 
-            set_atom_in_system(*sys,i,at);
+            builder.set_atom(i,at);
         }
-        sys->assign_resindex();
 
+        // Here builder goes out of scope and finalizes the system in destructor
     }
 
     if(what.coord() || what.traj()){
@@ -333,11 +330,6 @@ std::map<string,molfile_plugin_t*> register_all_plugins(){
     for(auto& item: ret){
          LOG()->debug("{}", item.first);
     }
-
-
-    /*
-    setvbuf(stdout,NULL,_IOLBF,0);    
-    */
 
     return ret;
 }

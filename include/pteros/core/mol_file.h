@@ -26,8 +26,6 @@
  *
 */
 
-
-
 #pragma once
 
 #include <string>
@@ -67,6 +65,8 @@ private:
     std::bitset<5> flags;
 };
 
+//------------------------------------------------------------------------------
+
 /// Generic API for reading and writing any molecule file formats
 class Mol_file {
 public:
@@ -98,32 +98,13 @@ public:
     /// Reports content of this file type
     virtual Mol_file_content get_content_type() const = 0;
 
-    // Seek frame, only for random-access trajectories
-    virtual void seek_frame(int fr);
-
-    // Seek time, only for random-access trajectories
-    virtual void seek_time(float t);
-
-    // Report current position in trajectory, only for random-access trajectories
-    virtual void tell_current_frame_and_time(int& step, float& t);
-
-    // Report last position in trajectory, only for random-access trajectories
-    virtual void tell_last_frame_and_time(int& step, float& t);
-
 protected:    
     Mol_file(std::string& file_name);
 
     // Stores file name
     std::string fname;
     // Number of atoms
-    int natoms;
-    // Functions called to update System on file reading
-    // Mol_file is a friend of System and can access it's internals
-    // but derived *_file classes are not friends and need to call these functions.
-    void allocate_atoms_in_system(System& sys, int n);
-    void set_atom_in_system(System& sys, int i, Atom& at);
-    Atom& atom_in_system(System& sys, int i);
-    void append_atom_in_system(System& sys, Atom& at);
+    int natoms;    
 
     // Method to sanity check parameters send to read and write
     void sanity_check_read(System* sys, Frame* frame, const Mol_file_content &what) const;
@@ -136,8 +117,30 @@ protected:
     virtual void do_write(const Selection& sel, const Mol_file_content& what) = 0;
 };
 
+//------------------------------------------------------------------------------
+
+class Mol_file_random_access: public Mol_file {
+protected:
+    Mol_file_random_access(std::string& file_name): Mol_file(file_name) {}
+
+public:
+    // Seek frame
+    virtual void seek_frame(int fr) = 0;
+
+    // Seek time
+    virtual void seek_time(float t) = 0;
+
+    // Report current position in trajectory
+    virtual void tell_current_frame_and_time(int& step, float& t) = 0;
+
+    // Report last position in trajectory
+    virtual void tell_last_frame_and_time(int& step, float& t) = 0;
+};
+
+//------------------------------------------------------------------------------
+
 void get_element_from_atom_name(std::string& name, int& anum, float& mass);
 
-}
+} // namespace pteros
 
 

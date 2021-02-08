@@ -26,9 +26,6 @@
  *
 */
 
-
-
-
 #pragma once
 
 #include "vmd_molfile_plugin_wrapper.h"
@@ -42,7 +39,10 @@ public:
     PDB_file(std::string& fname);
 
     virtual Mol_file_content get_content_type() const {        
-        return Mol_file_content().atoms(true).coord(true).traj(true);
+        return Mol_file_content()
+                .atoms(true)
+                .coord(true)
+                .traj(true);
     }
 
 };

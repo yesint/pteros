@@ -27,9 +27,6 @@
 */
 
 
-
-
-
 #include "gro_file.h"
 #include "pteros/core/pteros_error.h"
 #include "pteros/core/utilities.h"
@@ -78,6 +75,8 @@ bool GRO_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
 
     frame->coord.resize(N);
 
+    System_builder builder(sys);
+
     // Read coordinates
     for(i=0;i<N;++i){
         getline(f,line);
@@ -106,7 +105,7 @@ bool GRO_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
             // We have to deduce the element number
             tmp_atom.atomic_number = get_element_number(tmp_atom.name);
             // Add new atom to the system
-            append_atom_in_system(*sys,tmp_atom);
+            builder.add_atom(tmp_atom);
         }
 
         if(what.coord()){

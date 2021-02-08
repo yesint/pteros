@@ -27,9 +27,6 @@
 */
 
 
-
-
-
 #include "pteros/core/mol_file.h"
 #include "pteros/core/pteros_error.h"
 
@@ -72,44 +69,6 @@ void Mol_file::write(const Selection &sel, const Mol_file_content &what) {
     sanity_check_write(sel,what);
     do_write(sel,what);
 }
-
-void Mol_file::seek_frame(int fr)
-{
-    throw Pteros_error("Can't seek frame - this is not a random-access trajectory");
-}
-
-void Mol_file::seek_time(float t)
-{
-    throw Pteros_error("Can't seek time - this is not a random-access trajectory");
-}
-
-void Mol_file::tell_current_frame_and_time(int &step, float &t)
-{
-    throw Pteros_error("Can't report current position - this is not a random-access trajectory");
-}
-
-void Mol_file::tell_last_frame_and_time(int &step, float &t)
-{
-    throw Pteros_error("Can't report last position - this is not a random-access trajectory");
-}
-
-
-void Mol_file::allocate_atoms_in_system(System &sys, int n){
-    sys.atoms.resize(n);
-}
-
-void Mol_file::set_atom_in_system(System &sys, int i, Atom &at){
-    sys.atoms[i] = at;
-}
-
-Atom &Mol_file::atom_in_system(System &sys, int i){
-    return sys.atoms[i];
-}
-
-void Mol_file::append_atom_in_system(System &sys, Atom &at){
-    sys.atoms.push_back(at);
-}
-
 
 void Mol_file::sanity_check_read(System *sys, Frame *frame, const Mol_file_content& what) const {
     auto c = get_content_type();
@@ -160,7 +119,7 @@ void get_element_from_atom_name(string& name, int &anum, float &mass){
     else if(name[i]=='P') { mass = 31.0; anum = 15; }
     else if(name[i]=='F') { mass = 19.0; anum = 9; }
     else if(name[i]=='B') { mass = 11.0; anum = 5; }
-    else { mass = 1.0; anum = 0; } //default
+         else { mass = 1.0; anum = 0; } //default
 }
 
 }
@@ -193,6 +152,3 @@ std::unique_ptr<Mol_file> Mol_file::open(string fname, char open_mode)
     handle->open(open_mode);
     return handle;
 }
-
-
-

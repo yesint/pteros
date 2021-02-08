@@ -27,9 +27,6 @@
 */
 
 
-
-
-
 #include "mol2_file.h"
 #include "pteros/core/pteros_error.h"
 
