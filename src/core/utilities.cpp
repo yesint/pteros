@@ -185,7 +185,7 @@ void greeting(string tool_name)
     string s1 = "|***    Pteros molecular modeling library    ***|";
     string ver_str = fmt::format("Version: {} ({})", _version_tag, _git_revision);
     string timestamp = fmt::format("Built at: {}", _build_time);
-    string author = "(C) Semen Yesylevskyy, 2020";
+    string author = "(C) Semen Yesylevskyy, 2021";
     string cite = "Please cite: 10.1002/jcc.23943";
     string web = "Web: github.com/yesint/pteros";
     // Line
@@ -208,7 +208,23 @@ void greeting(string tool_name)
     }
 }
 
-} // namespace
+void get_element_from_atom_name(const string& name, int &anum, float &mass){
+    // Find first character, which is not digit to account for cases like 21C2
+    int i = name.find_first_not_of("1234567890");
+
+         if(name[i]=='C') { mass = 12.0; anum = 6; }
+    else if(name[i]=='O') { mass = 16.0; anum = 8; }
+    else if(name[i]=='N') { mass = 14.0; anum = 7; }
+    else if(name[i]=='S') { mass = 32.0; anum = 16; }
+    else if(name[i]=='H') { mass = 1.0;  anum = 1; }
+    else if(name[i]=='P') { mass = 31.0; anum = 15; }
+    else if(name[i]=='F') { mass = 19.0; anum = 9; }
+    else if(name[i]=='B') { mass = 11.0; anum = 5; }
+         else { mass = 1.0; anum = 0; } //default
+}
+
+
+} // namespace pteros
 
 
 
@@ -352,6 +368,3 @@ void Histogram2D::save_to_file(const string &fname)
     }
     f.close();
 }
-
-
-

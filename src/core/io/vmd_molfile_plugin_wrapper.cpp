@@ -29,6 +29,7 @@
 #include "vmd_molfile_plugin_wrapper.h"
 #include "pteros/core/pteros_error.h"
 #include "pteros/core/logging.h"
+#include "pteros/core/utilities.h"
 #include "../molfile_plugins/periodic_table.h"
 #include <Eigen/Core>
 #include <cmath>

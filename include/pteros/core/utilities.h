@@ -26,10 +26,6 @@
  *
 */
 
-
-
-
-
 #pragma once
 
 #include "pteros/core/typedefs.h"
@@ -45,14 +41,13 @@ namespace pteros {
     float rad_to_deg(float ang);
     float deg_to_rad(float ang);
 
-    constexpr long double operator"" _deg ( long double ang ) {
+    constexpr long double operator"" _deg (long double ang) {
         return ang*3.141592/180.0;
     }
 
-    constexpr long double operator"" _rad ( long double ang ) {
+    constexpr long double operator"" _rad (long double ang) {
         return ang*180.0/3.141592;
     }
-
 
     std::string get_element_name(int elnum);
 
@@ -60,8 +55,11 @@ namespace pteros {
 
     float get_vdw_radius(int elnum, const std::string& name);
 
+    // Guess element using VMD logic
     void guess_element(const std::string& name, int& anum, float& mass);
 
+    // Guess element using our own simplified logic
+    void get_element_from_atom_name(const std::string& name, int& anum, float& mass);
 
     /// Returns rotation matrix given pivot, axis and angle in radians
     Eigen::Affine3f rotation_transform(Vector3f_const_ref pivot, Vector3f_const_ref axis, float angle);

@@ -139,8 +139,6 @@ public:
 
 //------------------------------------------------------------------------------
 
-void get_element_from_atom_name(std::string& name, int& anum, float& mass);
-
 } // namespace pteros
 
 

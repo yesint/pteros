@@ -105,25 +105,6 @@ void Mol_file::sanity_check_write(const Selection &sel, const Mol_file_content &
         throw Pteros_error("Can't write topology from this file type!");
 }
 
-namespace pteros {
-
-void get_element_from_atom_name(string& name, int &anum, float &mass){
-    // Find first character, which is not digit to account for cases like 21C2
-    int i = name.find_first_not_of("1234567890");
-
-         if(name[i]=='C') { mass = 12.0; anum = 6; }
-    else if(name[i]=='O') { mass = 16.0; anum = 8; }
-    else if(name[i]=='N') { mass = 14.0; anum = 7; }
-    else if(name[i]=='S') { mass = 32.0; anum = 16; }
-    else if(name[i]=='H') { mass = 1.0;  anum = 1; }
-    else if(name[i]=='P') { mass = 31.0; anum = 15; }
-    else if(name[i]=='F') { mass = 19.0; anum = 9; }
-    else if(name[i]=='B') { mass = 11.0; anum = 5; }
-         else { mass = 1.0; anum = 0; } //default
-}
-
-}
-
 unique_ptr<Mol_file> Mol_file::recognize(string fname){
     std::string ext = fname.substr(fname.find_last_of(".") + 1);
 
