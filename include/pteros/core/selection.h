@@ -720,10 +720,9 @@ class Selection {
     *   If @param b is not set or -1 it means current frame
     *   If @param e is not set or -1 it means the last frame
     */
-    // Can't be made const because of internal calls
-    void write(std::string fname, int b=-1,int e=-1);
+    void write(std::string fname, int b=-1,int e=-1) const;
 
-    void write(const std::unique_ptr<Mol_file>& handler, Mol_file_content what,int b=-1,int e=-1);    
+    void write(const std::unique_ptr<Mol_file>& handler, Mol_file_content what,int b=-1,int e=-1) const;
     /// @}
 
 

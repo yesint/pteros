@@ -294,6 +294,10 @@ public:
               Mol_file_content what,         
               std::function<bool(System*,int)> on_frame = 0);    
 
+    void write(std::string fname, int b=-1,int e=-1) const;
+
+    void write(const std::unique_ptr<Mol_file>& handler, Mol_file_content what,int b=-1,int e=-1) const;
+
 
     /// Load Gromacs .ndx file and crease selections acording to it from existing system
     /// Returns a vector of pairs {name,Selection}

@@ -320,6 +320,16 @@ bool System::load(const std::unique_ptr<Mol_file>& handler, Mol_file_content wha
     return true;
 }
 
+void System::write(string fname, int b, int e) const
+{
+    select_all().write(fname,b,e);
+}
+
+void System::write(const std::unique_ptr<Mol_file> &handler, Mol_file_content what, int b, int e) const
+{
+    select_all().write(handler,what,b,e);
+}
+
 std::vector<std::pair<string,Selection>> System::load_gromacs_ndx(string fname)
 {
     stringstream ss;

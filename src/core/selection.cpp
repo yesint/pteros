@@ -1394,7 +1394,7 @@ void Selection::minmax(Vector3f_ref min, Vector3f_ref max) const {
 // IO functions
 //###############################################
 
-void Selection::write(string fname, int b, int e) {    
+void Selection::write(string fname, int b, int e) const {
     // -1 has special meaning
     if(b==-1) b=get_frame(); // current frame
     if(e==-1) e=system->num_frames()-1; // last frame
@@ -1413,13 +1413,16 @@ void Selection::write(string fname, int b, int e) {
 
     LOG()->debug("Writing {} frames to file '{}'...",e-b,fname);
 
+    // Save current frame
+    int cur_fr = get_frame();
     for(int fr=b;fr<=e;++fr){        
-        set_frame(fr);
+        const_cast<Selection*>(this)->set_frame(fr);
         f->write(*this,f->get_content_type());
     }
+    const_cast<Selection*>(this)->set_frame(cur_fr);
 }
 
-void Selection::write(const std::unique_ptr<Mol_file> &handler, Mol_file_content what, int b, int e)
+void Selection::write(const std::unique_ptr<Mol_file> &handler, Mol_file_content what, int b, int e) const
 {
     // -1 has special meaning
     if(b==-1) b=get_frame(); // current frame
@@ -1446,10 +1449,12 @@ void Selection::write(const std::unique_ptr<Mol_file> &handler, Mol_file_content
 
     // Now write trajectory if asked
     if(what.traj()){
+        int cur_fr = get_frame();
         for(int fr=b;fr<=e;++fr){
-            set_frame(fr);
+            const_cast<Selection*>(this)->set_frame(fr);
             handler->write(*this, Mol_file_content().traj(true));
         }
+        const_cast<Selection*>(this)->set_frame(cur_fr);
     }
 }
 
