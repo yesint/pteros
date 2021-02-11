@@ -1853,11 +1853,11 @@ float Selection::gyration(Array3i_const_ref pbc, int pbc_atom) const {
     return sqrt(a/b);
 }
 
-Vector3f Selection::dipole(bool is_charged, Array3i_const_ref pbc, int pbc_atom) const {
+Vector3f Selection::dipole(bool as_charged, Array3i_const_ref pbc, int pbc_atom) const {
     process_pbc_atom(pbc_atom);
 
     Vector3f shift(0,0,0);
-    if(is_charged) shift = center(true,pbc,pbc_atom);
+    if(as_charged) shift = center(true,pbc,pbc_atom);
 
     Vector3f res(0,0,0);
     for(int i=0;i<size();++i){

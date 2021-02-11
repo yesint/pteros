@@ -72,6 +72,7 @@ void make_bindings_System(py::module& m){
         .def("load", py::overload_cast<string,int,int,int,std::function<bool(System*,int)>>(&System::load),
              "fname"_a, "b"_a=0, "e"_a=-1, "skip"_a=0, "on_frame"_a=nullptr)
 
+        // Writing
         .def("write", py::overload_cast<string,int,int>(&System::write,py::const_), "fname"_a, "b"_a=0, "e"_a=-1)
 
         // Selecting
