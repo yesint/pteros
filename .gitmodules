@@ -1,6 +1,6 @@
 [submodule "external/eigen"]
 	path = external/eigen
-	url = ../../eigenteam/eigen-git-mirror
+	url = https://gitlab.com/libeigen/eigen.git
 [submodule "external/spdlog"]
 	path = external/spdlog
 	url = ../../gabime/spdlog
