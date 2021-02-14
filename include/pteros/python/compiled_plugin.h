@@ -26,10 +26,6 @@
  *
 */
 
-
-
-
-
 #ifndef COMPILED_PLUGIN_H
 #define COMPILED_PLUGIN_H
 

@@ -27,9 +27,6 @@
 */
 
 
-
-
-
 #include "pteros/python/compiled_plugin.h"
 #include "pteros/core/pteros_error.h"
 #include "pteros/core/distance_search.h"

@@ -27,8 +27,6 @@
 */
 
 
-
-
 #include "pteros/python/compiled_plugin.h"
 #include <fstream>
 

@@ -27,9 +27,6 @@
 */
 
 
-
-
-
 #include "pteros/python/compiled_plugin.h"
 #include <fstream>
 #include "spdlog/fmt/fmt.h"
