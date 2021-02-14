@@ -120,6 +120,7 @@ endif()
 # spdlog
 find_package(spdlog CONFIG)
 if(NOT spdlog_FOUND)
+    cmake_policy(SET CMP0077 OLD) # To silence warnings
     set(SPDLOG_MASTER_PROJECT ON)
     set(SPDLOG_INSTALL ON)
     set(SPDLOG_BUILD_TESTS OFF)
