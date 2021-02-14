@@ -1,6 +1,6 @@
 from pteros import *
 
-class Task:
+class Task(Task_base):
     def pre_process(self):
         self.log.info("{} pre process".format(self.label))
 
