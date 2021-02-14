@@ -141,7 +141,7 @@ endif()
 # Python
 if(WITH_PYTHON)    
     # Configure pybind11
-    find_package(pybind11)
+    find_package(pybind11 QUIET)
     if(NOT pybind11_FOUND)
         download(pybind11)
     endif()
