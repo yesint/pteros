@@ -254,7 +254,7 @@ install(EXPORT pterosTargets
 # Generate cmake version file
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file("${CMAKE_CURRENT_BINARY_DIR}/cmake/pterosConfigVersion.cmake"
-    VERSION 2.9
+    VERSION 3.0
     COMPATIBILITY SameMajorVersion
 )
 
@@ -278,6 +278,7 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     SET(_ld "${CMAKE_INSTALL_PREFIX}/lib:${CMAKE_INSTALL_PREFIX}/lib64")
     SET(_py ${CMAKE_INSTALL_PREFIX}/python)
     SET(_path ${CMAKE_INSTALL_PREFIX}/bin)
+    SET(_cmake ${CMAKE_INSTALL_PREFIX}/lib/cmake)
     configure_file(${PROJECT_SOURCE_DIR}/cmake/pterosrc.in
                    ${CMAKE_CURRENT_BINARY_DIR}/pterosrc @ONLY)
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/pterosrc DESTINATION lib)
@@ -297,14 +298,14 @@ IF(MAKE_PACKAGE)
     message("Configuring package...")
     INCLUDE(InstallRequiredSystemLibraries)
     SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Pteros molecular modeling library")
-    SET(CPACK_PACKAGE_VERSION_MAJOR "2")
-    SET(CPACK_PACKAGE_VERSION_MINOR "9")
-    SET(CPACK_PACKAGE_VERSION_PATCH "1")
+    SET(CPACK_PACKAGE_VERSION_MAJOR "3")
+    SET(CPACK_PACKAGE_VERSION_MINOR "0")
+    SET(CPACK_PACKAGE_VERSION_PATCH "0")
     SET(CPACK_PACKAGE_INSTALL_DIRECTORY "CMake ${CMake_VERSION_MAJOR}.${CMake_VERSION_MINOR}")
     IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
         SET(CPACK_GENERATOR DEB)
         SET(CPACK_PACKAGE_CONTACT "Semen Yesylevskyy yesint4@yahoo.com")
-        SET(CPACK_DEBIAN_PACKAGE_DEPENDS "g++ (>=5.0), libboost-all-dev (>=1.50), python3-dev (>=3.5), python3-numpy, libeigen3-dev, libspdlog-dev, pybind11-dev")
+        SET(CPACK_DEBIAN_PACKAGE_DEPENDS "g++ (>=9.0), libboost-all-dev (>=1.50), python3-dev (>=3.5), python3-numpy, libeigen3-dev, libspdlog-dev, pybind11-dev")
     ENDIF()
     INCLUDE(CPack)
 ENDIF()
