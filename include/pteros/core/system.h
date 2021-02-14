@@ -535,29 +535,6 @@ Eigen::Vector2f get_energy_for_list(const std::vector<Eigen::Vector2i>& pairs,
                                     const System& sys,
                                     std::vector<Eigen::Vector2f>* pair_en=nullptr);
 
-
-//====================================================================================
-
-// Mol_file is a friend of System and can access it's internals
-// but derived *_file classes are not friends.
-// In order to access internals of the System we define special access class
-class System_builder {
-public:
-    System_builder(System& s): sys(&s) {}
-    System_builder(System* s): sys(s) {}
-    // When destroyed builer calls assign_resindex() and duing other preparations
-    ~System_builder();
-
-    void allocate_atoms(int n);
-    void set_atom(int i, const Atom& at);
-    Atom& atom(int i);
-    void add_atom(const Atom& at);
-private:
-    System* sys;
-};
-
-
-
 } // namespace
 
 

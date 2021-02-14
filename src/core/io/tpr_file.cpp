@@ -29,6 +29,7 @@
 #include "tpr_file.h"
 #include "pteros/core/pteros_error.h"
 #include "pteros/core/logging.h"
+#include "system_builder.h"
 
 #include "gromacs/fileio/tpxio.h"
 #include "gromacs/mdtypes/inputrec.h"

@@ -1275,28 +1275,3 @@ void Frame::swap(int i, int j)
 
 
 }
-
-
-
-//---------------------------------------------------
-
-System_builder::~System_builder()
-{
-    sys->assign_resindex();
-}
-
-void System_builder::allocate_atoms(int n){
-    sys->atoms.resize(n);
-}
-
-void System_builder::set_atom(int i, const Atom &at){
-    sys->atoms[i] = at;
-}
-
-Atom& System_builder::atom(int i){
-    return sys->atoms[i];
-}
-
-void System_builder::add_atom(const Atom &at){
-    sys->atoms.push_back(at);
-}

@@ -31,6 +31,7 @@
 #include "pteros/core/pteros_error.h"
 #include "pteros/core/utilities.h"
 #include <boost/algorithm/string.hpp>
+#include "system_builder.h"
 
 using namespace std;
 using namespace pteros;

@@ -5,6 +5,8 @@
 add_library(pteros_io STATIC
     ${PROJECT_SOURCE_DIR}/include/pteros/core/mol_file.h
     mol_file.cpp
+    system_builder.h
+    system_builder.cpp
     vmd_molfile_plugin_wrapper.h
     vmd_molfile_plugin_wrapper.cpp
     pdb_file.h
@@ -41,7 +43,6 @@ if(WITH_OPENBABEL AND (OPENBABEL2_FOUND OR OPENBABEL3_FOUND))
     target_include_directories(pteros_io PRIVATE ${OPENBABEL2_INCLUDE_DIR} ${OPENBABEL3_INCLUDE_DIR})
     target_link_libraries(pteros_io PRIVATE pteros_babel_utils)
 endif()
-
 
 if(WITH_GROMACS AND GROMACS_SOURCES AND GROMACS_LIBRARIES)
     target_compile_definitions(pteros_io PRIVATE USE_GROMACS)
