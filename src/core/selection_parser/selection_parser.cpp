@@ -564,7 +564,7 @@ void Selection_parser::eval_node(const std::shared_ptr<MyAst> &node, std::vector
     case "NOT"_:
     {
         vector<int> res;
-        eval_node(node->nodes[1],res);
+        eval_node(node->nodes[0],res);
 
         if(!current_subset){
             auto r = boost::counting_range(0,Natoms);
@@ -662,7 +662,7 @@ void Selection_parser::eval_node(const std::shared_ptr<MyAst> &node, std::vector
 
         // Child 0 is always a cutoff
         // Numeric expression should not be coord dependent!
-        if(node->nodes[0]->is_coord_dependent) throw Pteros_error("Within cutoff cen't depend on atomic coordinates!");
+        if(node->nodes[0]->is_coord_dependent) throw Pteros_error("Within cutoff can't depend on atomic coordinates!");
         float cutoff = get_numeric(node->nodes[0])(0);
 
         // Child 1 could be either PBC or SELF
