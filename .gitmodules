@@ -1,9 +1,9 @@
-[submodule "external/eigen"]
-	path = external/eigen
-	url = https://gitlab.com/libeigen/eigen.git
 [submodule "external/spdlog"]
 	path = external/spdlog
 	url = ../../gabime/spdlog
 [submodule "external/pybind11"]
 	path = external/pybind11
 	url = ../../pybind/pybind11
+[submodule "external/eigen"]
+	path = external/eigen
+	url = https://gitlab.com/libeigen/eigen.git
