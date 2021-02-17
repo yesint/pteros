@@ -27,12 +27,7 @@
 */
 
 
-
-
-
-
-#ifndef TRAJECTORY_READER_H
-#define TRAJECTORY_READER_H
+#pragma once
 
 #include <string>
 #include <functional>
@@ -63,9 +58,7 @@ public:
         virtual ~Trajectory_reader(){}
 
         /// Pass options
-        void set_options(const Options& opt){
-            options = opt;
-        }
+        void set_options(const Options& opt);
 
         /// Read trajectory
         virtual void run();
@@ -74,30 +67,21 @@ public:
         std::string help();
 
         /// Adds new task
-        void add_task(Task_base* task){
-            tasks.emplace_back(task);
-        }
-
-        void add_task(const Task_ptr& task){
-            tasks.push_back( task );
-        }        
+        void add_task(Task_base* task);
+        void add_task(const Task_ptr& task);
 
 private:
-
         // Options
         Options options;
 
-        //void reader_thread_body(const Data_channel_ptr &channel);
-
-        std::vector<std::string> traj_files;        
-
+        std::vector<std::string> traj_files;
         std::vector<Task_ptr> tasks;
 
         bool is_parallel;
 };
 
 }
-#endif
+
 
 
 

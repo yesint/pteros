@@ -27,9 +27,6 @@
 */
 
 
-
-
-
 #include "pteros/core/utilities.h"
 #include "pteros/core/pteros_error.h"
 #include "pteros/core/version.h"

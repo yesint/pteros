@@ -26,12 +26,7 @@
  *
 */
 
-
-
-
-
-#ifndef OPTIONS_H
-#define OPTIONS_H
+#pragma once
 
 #include <string>
 #include <vector>
@@ -110,8 +105,6 @@ private:
 
 
 } // namespace
-
-#endif
 
 
 

@@ -1,4 +1,3 @@
-
 /*
  *
  *                This source code is part of
@@ -21,8 +20,8 @@
  *
 */
 
-#ifndef MESSAGE_CHANNEL_H
-#define MESSAGE_CHANNEL_H
+
+#pragma once
 
 #include <thread>
 #include <mutex>
@@ -90,6 +89,3 @@ private:
     std::queue<T> queue;
     bool stop_requested;
 };
-
-
-#endif // MESSAGE_CHANNEL_H

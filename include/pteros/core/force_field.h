@@ -27,11 +27,7 @@
 */
 
 
-
-
-
-#ifndef FORCE_FIELD_H
-#define FORCE_FIELD_H
+#pragma once
 
 #include <vector>
 #include <unordered_set>
@@ -127,8 +123,6 @@ public:
 };
 
 }
-
-#endif /* FORCE_FIELD_H */
 
 
 

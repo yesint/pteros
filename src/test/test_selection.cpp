@@ -21,24 +21,12 @@ int main(int argc, char* argv[]){
     LOG()->set_level(spdlog::level::debug);
 
 
-    string path="/home/semen/work/Projects/pteros/github/pteros/src/test";
-    System s(path+"/cg.gro");
-    Selection sel1(s,"within 0.6 pbc of resid 3 ");
-    Selection sel2(s,"resname  W");
+    string path="/home/semen/work/stored/Projects/ticagrelor/TIC_with_membranes/realistic_membr_with_TIC_Florentin/data";
+    System s(path+"/1500ns_wt_TIC.gro");
 
+    vector<Selection> l;
+    s().split_by_residue(l);
 
-
-    vector<Vector2i> bon;
-    vector<float> dist;
-    //search_contacts(1.5,sel1,bon,dist,true,noPBC);
-    search_contacts(1.5,sel1,sel2,bon,dist,true,noPBC);
-
-    cout << bon.size() << endl;
-
-    Selection selw(s,"within 0.5 self nopbc of resid 3");
-    cout <<selw.size() << endl;
-    //cout << selw << endl;
-    //for(int i=0;i<bon.size();++i)
-    //    cout << bon[i].transpose() << " " << dist[i] << endl;
+    cout << l[0][0].resname() << endl;
 
 }

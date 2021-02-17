@@ -102,6 +102,14 @@ Suffixes:
 )";
 }
 
+void Trajectory_reader::add_task(Task_base *task){
+    tasks.emplace_back(task);
+}
+
+void Trajectory_reader::add_task(const Task_ptr &task){
+    tasks.push_back(task);
+}
+
 
 
 Trajectory_reader::Trajectory_reader()
@@ -112,6 +120,10 @@ Trajectory_reader::Trajectory_reader()
 Trajectory_reader::Trajectory_reader(const Options &opt): options(opt)
 {
 
+}
+
+void Trajectory_reader::set_options(const Options &opt){
+    options = opt;
 }
 
 void Trajectory_reader::run(){    

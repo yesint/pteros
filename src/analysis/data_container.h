@@ -1,5 +1,4 @@
-#ifndef DATA_CONTAINER_H
-#define DATA_CONTAINER_H
+#pragma once
 
 #include "pteros/core/system.h"
 #include "pteros/analysis/frame_info.h"
@@ -15,5 +14,3 @@ struct Data_container {
 };
 
 }
-
-#endif // DATA_CONTAINER_H
