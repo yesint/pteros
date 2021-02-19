@@ -50,26 +50,28 @@ void XTC_file::open(char open_mode)
     int ok = xdr_xtc_get_natoms(handle,&natoms);
     if(!ok) throw Pteros_error("Can't read XTC number of atoms");
 
-    // XTC file contains step number in terms of simulation steps, not saved frames
-    // So we have to extract conversion factor
-    int next = xtc_get_next_frame_number(handle,natoms);
-    int cur = xtc_get_current_frame_number(handle,natoms,&bOk);
-    if(cur<0 || next<0 || !bOk) throw Pteros_error("Can't detect number of steps per frame");
-    steps_per_frame = next-cur;
+    if(open_mode=='r'){
+        // XTC file contains step number in terms of simulation steps, not saved frames
+        // So we have to extract conversion factor
+        int next = xtc_get_next_frame_number(handle,natoms);
+        int cur = xtc_get_current_frame_number(handle,natoms,&bOk);
+        if(cur<0 || next<0 || !bOk) throw Pteros_error("Can't detect number of steps per frame");
+        steps_per_frame = next-cur;
 
-    // Get total number of frames in the trajectory
-    num_frames = xdr_xtc_get_last_frame_number(handle,natoms,&bOk);
-    if(num_frames<0 || !bOk) throw Pteros_error("Can't get number of frames");
-    num_frames /= steps_per_frame;
+        // Get total number of frames in the trajectory
+        num_frames = xdr_xtc_get_last_frame_number(handle,natoms,&bOk);
+        if(num_frames<0 || !bOk) throw Pteros_error("Can't get number of frames");
+        num_frames /= steps_per_frame;
 
-    // Get time step
-    dt = xdr_xtc_estimate_dt(handle,natoms,&bOk);
-    if(!bOk) throw Pteros_error("Can't get time step");    
+        // Get time step
+        dt = xdr_xtc_estimate_dt(handle,natoms,&bOk);
+        if(!bOk) throw Pteros_error("Can't get time step");
 
-    max_t = xdr_xtc_get_last_frame_time(handle,natoms,&bOk);
-    if(!bOk || max_t<0) throw Pteros_error("Can't get last frame time");
+        max_t = xdr_xtc_get_last_frame_time(handle,natoms,&bOk);
+        if(!bOk || max_t<0) throw Pteros_error("Can't get last frame time");
 
-    LOG()->debug("There are {} frames, max_t= {}, dt={}",num_frames,max_t,dt);
+        LOG()->debug("There are {} frames, max_t= {}, dt={}",num_frames,max_t,dt);
+    }
 
     if(!handle) throw Pteros_error("Unable to open XTC file {}", fname);
 

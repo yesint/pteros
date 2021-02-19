@@ -24,9 +24,6 @@ int main(int argc, char* argv[]){
     string path="/home/semen/work/stored/Projects/ticagrelor/TIC_with_membranes/realistic_membr_with_TIC_Florentin/data";
     System s(path+"/1500ns_wt_TIC.gro");
 
-    vector<Selection> l;
-    s().split_by_residue(l);
-
-    cout << l[0][0].resname() << endl;
+    s.write("a.xtc");
 
 }

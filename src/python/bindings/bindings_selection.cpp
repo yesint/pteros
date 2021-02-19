@@ -267,7 +267,7 @@ void make_bindings_Selection(py::module& m){
         .def("non_bond_energy", &Selection::non_bond_energy, "cutoff"_a=0.0, "pbc"_a=true)
 
         // IO
-        .def("write", py::overload_cast<string,int,int>(&Selection::write,py::const_), "fname"_a, "b"_a=0, "e"_a=-1)
+        .def("write", py::overload_cast<string,int,int>(&Selection::write,py::const_), "fname"_a, "b"_a=-1, "e"_a=-1)
 
         // Util
         .def("is_large",&Selection::is_large)

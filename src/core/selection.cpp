@@ -1409,7 +1409,7 @@ void Selection::write(string fname, int b, int e) const {
         throw Pteros_error("Can't write the range of frames to structure file!");
     }    
 
-    LOG()->debug("Writing {} frames to file '{}'...",e-b,fname);
+    LOG()->debug("Writing {} frames to file '{}'...",e-b+1,fname);
 
     // Save current frame
     int cur_fr = get_frame();
