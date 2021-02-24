@@ -63,10 +63,15 @@ Distance_search_within_sel::Distance_search_within_sel(float d,
 
     do_search();
 
-    if(include_self) result.insert(target.index_begin(),target.index_end());
     // Elements in set are unique already, need to copy to result and sort
     copy(result.begin(),result.end(),back_inserter(res));
     sort(res.begin(),res.end());
+
+    if(!include_self){
+        auto tmp = res;
+        res.clear();
+        set_difference(tmp.begin(),tmp.end(),target.index_begin(),target.index_end(),back_inserter(res));
+    }
 }
 
 
