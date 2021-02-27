@@ -535,10 +535,14 @@ void Membrane::compute_properties(float d, bool use_external_normal, Vector3f_co
 
 void Membrane::compute_averages()
 {
-
+    log->info("Computing averages...");
     for(int i=0;i<groups.size();++i){
+        log->info(" Group #{}",i);
         for(auto& it: groups[i]){
             float N = float(it.second.num);
+            if(N==0) continue;
+
+            log->info("  Lipid {}, N={}",it.first,N);
             it.second.area.normalize(N);
             it.second.coord_number.normalize(N);
             it.second.gaussian_curvature.normalize(N);
@@ -559,7 +563,7 @@ void Membrane::compute_averages()
                         it.second.order[num_tails][j*2+1] += s2/float(num_tails);
                     }
                 }
-            }
+            }            
 
             if(it.second.equal_tails){
                 for(int j=0; j<it.second.order[num_tails].size()/2; ++j){
@@ -568,7 +572,7 @@ void Membrane::compute_averages()
                     it.second.order[num_tails][j*2] = s1/N;
                     it.second.order[num_tails][j*2+1] = sqrt(s2/N - s1*s1/N/N)/sqrt(N);
                 }
-            }
+            }            
         }
 
 
@@ -577,9 +581,12 @@ void Membrane::compute_averages()
 
 void Membrane::write_averages(string path)
 {
+    log->info("Writing averages...");
     if(path.size()==0) path+=".";
     for(int i=0;i<groups.size();++i){
         for(auto& it: groups[i]){
+            if(it.second.num==0) continue;
+
             it.second.area.save_to_file(fmt::format("{}/area_{}_gr{}.dat",path,it.first,i));
             it.second.tilt.save_to_file(fmt::format("{}/tilt_{}_gr{}.dat",path,it.first,i));
             it.second.coord_number.save_to_file(fmt::format("{}/coord_num_{}_gr{}.dat",path,it.first,i));
