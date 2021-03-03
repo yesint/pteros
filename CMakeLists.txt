@@ -228,6 +228,10 @@ add_subdirectory(src/python)
 add_subdirectory(src/python/compiled_analysis_plugins)
 add_subdirectory(src/extras)
 
+
+#add_subdirectory(src/v3)
+
+
 IF(MAKE_TEST)
     add_subdirectory(src/test)
 ENDIF()

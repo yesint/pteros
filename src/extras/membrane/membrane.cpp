@@ -27,9 +27,6 @@
 */
 
 
-
-
-
 #include "pteros/extras/membrane.h"
 #include "pteros/core/pteros_error.h"
 #include "pteros/core/distance_search.h"

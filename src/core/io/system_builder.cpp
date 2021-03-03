@@ -34,7 +34,7 @@ using namespace pteros;
 
 System_builder::~System_builder()
 {
-    sys->assign_resindex();
+
 }
 
 void System_builder::allocate_atoms(int n){

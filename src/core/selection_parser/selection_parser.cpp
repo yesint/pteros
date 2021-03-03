@@ -226,6 +226,7 @@ void Selection_parser::precompute(std::shared_ptr<MyAst>& node){
     case "BY"_:
     case "NOT"_:
         if(!node->is_coord_dependent){
+            //cout << "precomputing " << node->name << endl;
             auto new_node = std::make_shared<MyAst>("",0,0,"PRE","");
             eval_node(node, new_node->precomputed);
             node = new_node;

@@ -176,6 +176,8 @@ bool VMD_molfile_plugin_wrapper::do_read(System *sys, Frame *frame, const Mol_fi
         // Here builder goes out of scope and finalizes the system in destructor
     }
 
+    if(what.atoms()) sys->assign_resindex();
+
     if(what.coord() || what.traj()){
         // READ FRAME:
         molfile_timestep_t ts;        

@@ -116,6 +116,8 @@ bool TPR_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
         }
     }
 
+    if(what.atoms()) sys->assign_resindex();
+
     // Read topology
     if(what.top()){
         Force_field& ff = sys->get_force_field();

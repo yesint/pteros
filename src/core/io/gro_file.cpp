@@ -115,6 +115,8 @@ bool GRO_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
         }
     }
 
+    if(what.atoms()) sys->assign_resindex();
+
     if(what.coord()){
         // Read box. Adapted form VMD.
         stringstream ss;

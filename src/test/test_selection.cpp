@@ -23,7 +23,13 @@ int main(int argc, char* argv[]){
 
     string path="/home/semen/work/stored/Projects/ticagrelor/TIC_with_membranes/realistic_membr_with_TIC_Florentin/data";
     System s(path+"/1500ns_wt_TIC.gro");
+    //s.load(path+"/1500ns_wt_TIC.gro");
+    s.load(path+"/1500ns_wt_TIC.gro");
 
-    s.write("a.xtc");
+    Selection sel(s,"within 0.3 of resid 1");
+    cout << sel.coord_dependent() << " " << sel.size() <<  endl;
+
+    sel.set_frame(1);
+    cout << sel.coord_dependent() << " " << sel.size() <<  endl;
 
 }
