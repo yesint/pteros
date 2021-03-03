@@ -641,8 +641,9 @@ Selection::Selection(const Selection& other){
 
     // If parser in sel is persistent, allocate it
     if(other.parser){
-        parser.reset(new Selection_parser);
-        *parser = *(other.parser);
+        //parser.reset(new Selection_parser);
+        //*parser = *(other.parser);
+        update(); // Needed to update internal references in parse AST
     }
 }
 
