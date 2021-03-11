@@ -37,10 +37,10 @@ using namespace std;
 using namespace pteros;
 using namespace Eigen;
 
-void Distance_search_within_base::compute_chunk(int b, int e,
+void DistanceSearchWithinBase::compute_chunk(int b, int e,
                                              std::unordered_set<int>& res_buf)
 {
-    Planned_pair pair;
+    PlannedPair pair;
     for(int ind=b;ind<e;++ind){
         // Get array position
         auto p = index_to_pos(ind);
@@ -56,7 +56,7 @@ void Distance_search_within_base::compute_chunk(int b, int e,
 }
 
 
-void Distance_search_within_base::do_search()
+void DistanceSearchWithinBase::do_search()
 {
     // Prepare for searching
     result.clear();
@@ -99,13 +99,13 @@ void Distance_search_within_base::do_search()
 }
 
 // grid1 is the source which is searched
-void Distance_search_within_base::search_between_cells(Vector3i_const_ref c1,
+void DistanceSearchWithinBase::search_between_cells(Vector3i_const_ref c1,
                                                        Vector3i_const_ref c2,
                                                        Vector3i_const_ref wrapped,
                                                        std::unordered_set<int> &res_buffer)
 {
-    const Grid_cell& cell1 = grid1.cell(c1);
-    const Grid_cell& cell2 = grid2.cell(c2);
+    const GridCell& cell1 = grid1.cell(c1);
+    const GridCell& cell2 = grid2.cell(c2);
 
     // The cells could be not adjucent if one of them is wrapped around
     // but this only happens in peridic case and is treated automatically
@@ -144,7 +144,7 @@ void Distance_search_within_base::search_between_cells(Vector3i_const_ref c1,
     }
 }
 
-void Distance_search_within_base::search_planned_pair(const Planned_pair &pair, std::unordered_set<int> &res_buffer)
+void DistanceSearchWithinBase::search_planned_pair(const PlannedPair &pair, std::unordered_set<int> &res_buffer)
 {
     search_between_cells(pair.c1,pair.c2,pair.wrapped,res_buffer);
     if(pair.c1!=pair.c2){

@@ -37,7 +37,7 @@ using namespace std;
 using namespace pteros;
 using namespace Eigen;
 
-DCD_file::DCD_file(string fname): VMD_molfile_plugin_wrapper(fname){
+DcdFile::DcdFile(string fname): VmdMolfilePluginWrapper(fname){
     plugin = molfile_plugins["dcd"];
 }
 

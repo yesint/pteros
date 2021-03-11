@@ -26,8 +26,7 @@
  *
 */
 
-#ifndef COMPILED_PLUGIN_H
-#define COMPILED_PLUGIN_H
+#pragma once
 
 #include "pteros/analysis/task_plugin.h"
 
@@ -47,7 +46,7 @@ namespace py = pybind11;
 #define _EVAL(arg) #arg
 #define CREATE_COMPILED_PLUGIN(_name) \
 PYBIND11_MODULE(_name, m) {\
-    py::class_<_name,Task_plugin,std::shared_ptr<_name>>(m, _EVAL(_name))\
+    py::class_<_name,TaskPlugin,std::shared_ptr<_name>>(m, _EVAL(_name))\
         .def(py::init<const Options&>())\
         .def("help",&_name::help)\
     ;\
@@ -107,8 +106,6 @@ int main(int argc, char** argv){\
 
 
 #endif //STANDALONE_PLUGINS
-
-#endif //COMPILED_PLUGIN_H
 
 
 

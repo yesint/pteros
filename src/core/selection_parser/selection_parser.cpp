@@ -169,7 +169,7 @@ bool is_node_coordinate_dependent(const std::shared_ptr<MyAst>& node){
 }
 
 
-Selection_parser::Selection_parser(std::vector<int> *subset):
+SelectionParser::SelectionParser(std::vector<int> *subset):
     has_coord(false),
     starting_subset(subset),
     sys(nullptr)
@@ -177,7 +177,7 @@ Selection_parser::Selection_parser(std::vector<int> *subset):
 
 }
 
-Selection_parser::~Selection_parser(){}
+SelectionParser::~SelectionParser(){}
 
 
 void set_coord_dependence(const std::shared_ptr<MyAst>& node){
@@ -192,7 +192,7 @@ void set_coord_dependence(const std::shared_ptr<MyAst>& node){
 }
 
 
-void Selection_parser::optimize_numeric(std::shared_ptr<MyAst>& node){
+void SelectionParser::optimize_numeric(std::shared_ptr<MyAst>& node){
     using namespace peg::udl;
 
     // optimize arithmetics    
@@ -212,7 +212,7 @@ void Selection_parser::optimize_numeric(std::shared_ptr<MyAst>& node){
 }
 
 
-void Selection_parser::precompute(std::shared_ptr<MyAst>& node){
+void SelectionParser::precompute(std::shared_ptr<MyAst>& node){
     using namespace peg::udl;
 
     switch(node->tag){
@@ -237,12 +237,12 @@ void Selection_parser::precompute(std::shared_ptr<MyAst>& node){
     }
 }
 
-void Selection_parser::create_ast(string& sel_str, System* system){
+void SelectionParser::create_ast(string& sel_str, System* system){
     if (_parser.parse(sel_str.c_str(), tree)) {
         tree = _parser.optimize_ast(tree);
         set_coord_dependence(tree);
     } else {
-        throw Pteros_error(_parser.error_message);
+        throw PterosError(_parser.error_message);
     }
 
     if(tree->is_coord_dependent) has_coord = true; // Global coord dependence
@@ -262,7 +262,7 @@ void Selection_parser::create_ast(string& sel_str, System* system){
     if(has_coord) precompute(tree);
 }
 
-void Selection_parser::apply_ast(size_t fr, vector<int>& result){
+void SelectionParser::apply_ast(size_t fr, vector<int>& result){
     frame = fr;
     eval_node(tree,result);
 }
@@ -271,7 +271,7 @@ void Selection_parser::apply_ast(size_t fr, vector<int>& result){
 Eigen::Vector3i process_pbc(const std::shared_ptr<MyAst> &node){
     using namespace peg::udl;
 
-    if(node->tag != "PBC"_) throw Pteros_error("Invalid PBC node!");
+    if(node->tag != "PBC"_) throw PterosError("Invalid PBC node!");
 
     Vector3i ret;
     if(node->choice == 2){ // nopbc
@@ -287,7 +287,7 @@ Eigen::Vector3i process_pbc(const std::shared_ptr<MyAst> &node){
     return ret;
 }
 
-void Selection_parser::eval_node(const std::shared_ptr<MyAst> &node, std::vector<int>& result){
+void SelectionParser::eval_node(const std::shared_ptr<MyAst> &node, std::vector<int>& result){
     using namespace peg::udl;
 
     result.clear();
@@ -615,7 +615,7 @@ void Selection_parser::eval_node(const std::shared_ptr<MyAst> &node, std::vector
             std::sort(result.begin(),result.end());
 
         } else if(node->nodes[0]->token == "mol") {
-            if(!sys->force_field.ready) throw Pteros_error("Can't select by molecule: no topology!");
+            if(!sys->force_field.ready) throw PterosError("Can't select by molecule: no topology!");
 
             // set of mols we need to include
             std::unordered_set<int> mols;
@@ -663,7 +663,7 @@ void Selection_parser::eval_node(const std::shared_ptr<MyAst> &node, std::vector
 
         // Child 0 is always a cutoff
         // Numeric expression should not be coord dependent!
-        if(node->nodes[0]->is_coord_dependent) throw Pteros_error("Within cutoff can't depend on atomic coordinates!");
+        if(node->nodes[0]->is_coord_dependent) throw PterosError("Within cutoff can't depend on atomic coordinates!");
         float cutoff = get_numeric(node->nodes[0])(0);
 
         // Child 1 could be either PBC or SELF
@@ -695,7 +695,7 @@ void Selection_parser::eval_node(const std::shared_ptr<MyAst> &node, std::vector
 
         if(node->nodes.back()->tag == "VEC3"_){
             // Distance from point (with abs indexes!)
-            Distance_search_within searcher(cutoff,dum1,true,pbc);
+            DistanceSearchWithin searcher(cutoff,dum1,true,pbc);
             Eigen::Vector3f point = get_vector(node->nodes.back());
             searcher.search_within(point,result);
         } else {
@@ -714,12 +714,12 @@ void Selection_parser::eval_node(const std::shared_ptr<MyAst> &node, std::vector
 
     //---------------------------------------------------------------------------
     default:
-        throw Pteros_error("Unknown node {}!",node->name);   
+        throw PterosError("Unknown node {}!",node->name);   
     } // case
 }
 
 //returns a 3-vector
-Eigen::Vector3f Selection_parser::get_vector(const std::shared_ptr<MyAst> &node)
+Eigen::Vector3f SelectionParser::get_vector(const std::shared_ptr<MyAst> &node)
 {
     using namespace peg::udl;
 
@@ -788,13 +788,13 @@ Eigen::Vector3f Selection_parser::get_vector(const std::shared_ptr<MyAst> &node)
 
     //---------------------------------------------------------------------------
     default:
-        throw Pteros_error("Unknown node {}!",node->name);
+        throw PterosError("Unknown node {}!",node->name);
     } //case
 
 }
 
 // Returns callable, which returns value for numeric node for atom at
-std::function<float(int)> Selection_parser::get_numeric(const std::shared_ptr<MyAst> &node){
+std::function<float(int)> SelectionParser::get_numeric(const std::shared_ptr<MyAst> &node){
     using namespace peg::udl;
 
     switch(node->tag){
@@ -879,7 +879,7 @@ std::function<float(int)> Selection_parser::get_numeric(const std::shared_ptr<My
             op= [](float a,float b){ return a*b; };
         else if(node->nodes[1]->token == "/")
             op= [](float a,float b){
-                if(b==0.0) throw Pteros_error("Division by zero in selection!");
+                if(b==0.0) throw PterosError("Division by zero in selection!");
                 return a/b;
             };            
         else if(node->nodes[1]->token == "^")
@@ -1007,7 +1007,7 @@ std::function<float(int)> Selection_parser::get_numeric(const std::shared_ptr<My
     } // DIST_EXPR
     //---------------------------------------------------------------------------
     default:
-        throw Pteros_error("Wrong numeric node!");
+        throw PterosError("Wrong numeric node!");
 
     } // case
 }

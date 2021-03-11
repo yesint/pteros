@@ -62,14 +62,14 @@ Options:
 protected:
 
     void pre_process() override {
-        if(!system.force_field_ready()) throw Pteros_error("Need valid force field to compute energy!");
+        if(!system.force_field_ready()) throw PterosError("Need valid force field to compute energy!");
 
         cutoff = options("cutoff","0").as_float();
         is_periodic = options("periodic","true").as_bool();
 
         // Get selections
         std::vector<string> sels = options("sel").as_strings();
-        if(sels.size()<1 || sels.size()>2) throw Pteros_error("Either 1 or 2 selections should be passed");
+        if(sels.size()<1 || sels.size()>2) throw PterosError("Either 1 or 2 selections should be passed");
         if(sels.size()==1){            
             sel1.modify(system,sels[0]);
             is_self_energy = true;            
@@ -77,7 +77,7 @@ protected:
             sel1.modify(system,sels[0]);
             sel2.modify(system,sels[1]);
             is_self_energy = false;
-            if(check_selection_overlap({sel1,sel2})) throw Pteros_error("Selections could not overlap!");
+            if(check_selection_overlap({sel1,sel2})) throw PterosError("Selections could not overlap!");
         }
 
         // Output        
@@ -96,7 +96,7 @@ protected:
         out << "# time total q lj" << endl;
     }
 
-    void process_frame(const Frame_info &info) override {
+    void process_frame(const FrameInfo &info) override {
         Vector2f e;
 
         if(is_self_energy){
@@ -110,7 +110,7 @@ protected:
         out << info.absolute_time << " " << e.sum() << " " << e.transpose() << endl;
     }
 
-    void post_process(const Frame_info& info) override {
+    void post_process(const FrameInfo& info) override {
         out.close();
     }
 

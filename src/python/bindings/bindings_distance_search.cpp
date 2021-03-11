@@ -27,9 +27,6 @@
 */
 
 
-
-
-
 #include "pteros/core/distance_search.h"
 #include "bindings_util.h"
 
@@ -111,18 +108,18 @@ void make_bindings_Distance_search(py::module& m){
     }, "d"_a, "src"_a, "target"_a, "include_self"_a=true, "pbc"_a=noPBC);
 
 
-    py::class_<Distance_search_within>(m, "Distance_search_within")
+    py::class_<DistanceSearchWithin>(m, "DistanceSearchWithin")
             .def(py::init<float,const Selection&,bool,Vector3i_const_ref>(), "d"_a,"src"_a,"abs_ind"_a=false,"pbc"_a=noPBC)
-            .def("setup",&Distance_search_within::setup, "d"_a,"src"_a,"abs_ind"_a=false,"pbc"_a=noPBC)
+            .def("setup",&DistanceSearchWithin::setup, "d"_a,"src"_a,"abs_ind"_a=false,"pbc"_a=noPBC)
 
-            .def("search_within",[](Distance_search_within* obj, Vector3f_const_ref coord)
+            .def("search_within",[](DistanceSearchWithin* obj, Vector3f_const_ref coord)
                 {
                    std::vector<int>* res_ptr = new std::vector<int>;
                    obj->search_within(coord,*res_ptr);
                    return vector_to_array<int>(res_ptr);
                 })
 
-            .def("search_within",[](Distance_search_within* obj, const Selection& target, bool include_self)
+            .def("search_within",[](DistanceSearchWithin* obj, const Selection& target, bool include_self)
                 {
                     std::vector<int>* res_ptr = new std::vector<int>;
                     obj->search_within(target,*res_ptr,include_self);

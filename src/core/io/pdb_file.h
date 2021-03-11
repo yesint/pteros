@@ -33,13 +33,13 @@
 namespace pteros {
 
 /// Use VMD plugin for PDB
-class PDB_file: public VMD_molfile_plugin_wrapper {
+class PdbFile: public VmdMolfilePluginWrapper {
 public:    
 
-    PDB_file(std::string& fname);
+    PdbFile(std::string& fname);
 
-    virtual Mol_file_content get_content_type() const {        
-        return Mol_file_content()
+    virtual FileContent get_content_type() const {        
+        return FileContent()
                 .atoms(true)
                 .coord(true)
                 .traj(true);

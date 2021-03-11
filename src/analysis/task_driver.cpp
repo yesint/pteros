@@ -26,12 +26,12 @@
 using namespace std;
 using namespace pteros;
 
-Task_driver::Task_driver(Task_base *_task): task(_task), stop_now(false)
+TaskDriver::TaskDriver(TaskBase *_task): task(_task), stop_now(false)
 {
     //cout << "ctor: Task_driver" << endl;
 }
 
-Task_driver::~Task_driver()
+TaskDriver::~TaskDriver()
 {
     if(t.joinable()){
         // Stop the thread
@@ -41,12 +41,12 @@ Task_driver::~Task_driver()
     }
 }
 
-void Task_driver::set_data_channel_and_system(const Data_channel_ptr &ch, const System &sys){
+void TaskDriver::set_data_channel_and_system(const DataChannel_ptr &ch, const System &sys){
     channel = ch;
     task->put_system(sys);
 }
 
-void Task_driver::process_until_end() {
+void TaskDriver::process_until_end() {
     pre_process_done = false;
     while(channel->recieve(data)){
         if(stop_now) return; // Emergency stop point
@@ -66,9 +66,9 @@ void Task_driver::process_until_end() {
     }
 }
 
-void Task_driver::process_until_end_in_thread() {
-    t = std::thread(&Task_driver::process_until_end, this);
+void TaskDriver::process_until_end_in_thread() {
+    t = std::thread(&TaskDriver::process_until_end, this);
 }
 
-void Task_driver::join_thread() { t.join(); }
+void TaskDriver::join_thread() { t.join(); }
 

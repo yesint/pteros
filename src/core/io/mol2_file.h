@@ -61,12 +61,12 @@ protected:
 namespace pteros {
 
 /// Use VMD plugin for MOL2
-class MOL2_file: public Babel_wrapper {
+class Mol2File: public BabelWrapper {
 public:
-    MOL2_file(std::string& fname);
+    Mol2File(std::string& fname);
 
-    virtual Mol_file_content get_content_type() const {
-        return Mol_file_content()
+    virtual FileContent get_content_type() const {
+        return FileContent()
                 .atoms(true)
                 .coord(true);
 

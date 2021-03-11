@@ -36,21 +36,21 @@
 namespace pteros {
 
 
-class TRR_file: public Mol_file {
+class TrrFile: public FileHandler {
 public:
-    TRR_file(std::string& fname): Mol_file(fname), handle(nullptr) {}
+    TrrFile(std::string& fname): FileHandler(fname), handle(nullptr) {}
     virtual void open(char open_mode);
-    virtual ~TRR_file();
+    virtual ~TrrFile();
 
-    virtual Mol_file_content get_content_type() const {
-        return Mol_file_content()
+    virtual FileContent get_content_type() const {
+        return FileContent()
                 .traj(true);
     }
 
 protected:
 
-    virtual void do_write(const Selection &sel, const Mol_file_content& what);
-    virtual bool do_read(System *sys, Frame *frame, const Mol_file_content& what);
+    virtual void do_write(const Selection &sel, const FileContent& what);
+    virtual bool do_read(System *sys, Frame *frame, const FileContent& what);
 
 private:
     // for xdrfile

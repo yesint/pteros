@@ -54,7 +54,7 @@ void make_bindings_System(py::module& m){
         .def("append", py::overload_cast<const System&>(&System::append))
         .def("append", py::overload_cast<const Selection&,bool>(&System::append),"sel"_a,"current_frame"_a=false)
         .def("append", py::overload_cast<const Atom&, Vector3f_const_ref>(&System::append))
-        .def("append", py::overload_cast<const Atom_proxy&>(&System::append))
+        .def("append", py::overload_cast<const AtomProxy&>(&System::append))
 
         // Reaaranging
         .def("rearrange", py::overload_cast<const vector<string>&>(&System::rearrange))
@@ -104,7 +104,7 @@ void make_bindings_System(py::module& m){
         //.def("getBox", py::overload_cast<int>(&System::box, py::const_), "fr"_a=0)
         .def("getBox", py::overload_cast<int>(&System::box), "fr"_a=0, py::return_value_policy::reference_internal)
 
-        .def("setBox", [](System* s,const Periodic_box& b, int fr){ s->box(fr)=b; }, "box"_a, "fr"_a=0)
+        .def("setBox", [](System* s,const PeriodicBox& b, int fr){ s->box(fr)=b; }, "box"_a, "fr"_a=0)
 
         .def("getTime", py::overload_cast<int>(&System::time, py::const_), "fr"_a=0)
         .def("setTime", [](System* s,int t,int fr){ s->time(fr)=t; }, "t"_a, "fr"_a=0)

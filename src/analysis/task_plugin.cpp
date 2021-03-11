@@ -1,18 +1,18 @@
 #include "pteros/analysis/task_plugin.h"
 
 
-pteros::Task_plugin::Task_plugin(const pteros::Task_plugin &other): Task_base(other)
+pteros::TaskPlugin::TaskPlugin(const pteros::TaskPlugin &other): TaskBase(other)
 {
     jump_remover = other.jump_remover;
 }
 
-void pteros::Task_plugin::before_spawn_handler() {
+void pteros::TaskPlugin::before_spawn_handler() {
     before_spawn();
     // For parallel tasks init jump remover here
     if(is_parallel()) jump_remover.remove_jumps(system);
 }
 
-void pteros::Task_plugin::pre_process_handler()
+void pteros::TaskPlugin::pre_process_handler()
 {
     try {
         pre_process();
@@ -26,7 +26,7 @@ void pteros::Task_plugin::pre_process_handler()
     }
 }
 
-void pteros::Task_plugin::process_frame_handler(const pteros::Frame_info &info)
+void pteros::TaskPlugin::process_frame_handler(const pteros::FrameInfo &info)
 {
     try {
         jump_remover.remove_jumps(system);
@@ -38,7 +38,7 @@ void pteros::Task_plugin::process_frame_handler(const pteros::Frame_info &info)
     }
 }
 
-void pteros::Task_plugin::post_process_handler(const pteros::Frame_info &info)
+void pteros::TaskPlugin::post_process_handler(const pteros::FrameInfo &info)
 {
     try {
         post_process(info);

@@ -95,9 +95,9 @@ GNM::GNM(Selection& sel, float cutoff){
 }
 
 void GNM::write_eigenvectors(string fname, int v1, int v2){
-    if(v1<0 || v2>N-2 || v2<v1) throw Pteros_error("Can't write these eigenvectors!");
+    if(v1<0 || v2>N-2 || v2<v1) throw PterosError("Can't write these eigenvectors!");
     ofstream f(fname.c_str());
-    if(!f) throw Pteros_error("Can't open file "+fname+" for writing!");
+    if(!f) throw PterosError("Can't open file "+fname+" for writing!");
     int i,j;
     for(i=0;i<N;++i){
         f << i << " ";
@@ -167,7 +167,7 @@ void GNM::write_c_matrix(string fname){
 
     int i,j;
     ofstream f(fname.c_str());
-    if(!f) throw Pteros_error("Can't open file "+fname+" for writing!");
+    if(!f) throw PterosError("Can't open file "+fname+" for writing!");
     for(i=0;i<N;++i){
         for(j=0;j<N;++j)
             f << c(i,j) << " ";
@@ -182,7 +182,7 @@ void GNM::write_p_matrix(string fname){
 
     int i,j;
     ofstream f(fname.c_str());
-    if(!f) throw Pteros_error("Can't open file "+fname+" for writing!");
+    if(!f) throw PterosError("Can't open file "+fname+" for writing!");
 
     for(i=0;i<N;++i){
         for(j=0;j<N;++j)

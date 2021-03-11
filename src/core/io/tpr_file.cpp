@@ -43,8 +43,6 @@ using namespace pteros;
 using namespace Eigen;
 
 
-TPR_file::~TPR_file(){
-}
 
 
 string coulomb_names[] = {"Cut-off", "Reaction-Field", "Generalized-Reaction-Field",
@@ -59,13 +57,18 @@ string mod_names[] = {"Potential-shift-Verlet", "Potential-shift", "None", "Pote
                       "Exact-cutoff", "Force-switch"};
 
 
-void TPR_file::open(char open_mode)
+void TprFile::open(char open_mode)
 {
     if(open_mode=='w')
-        throw Pteros_error("TPR files could not be written!");
+        throw PterosError("TPR files could not be written!");
 }
 
-bool TPR_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
+void TprFile::close()
+{
+
+}
+
+bool TprFile::do_read(System *sys, Frame *frame, const FileContent &what){
     t_inputrec ir;    
     gmx_mtop_t mtop;
     t_topology top;
@@ -83,7 +86,7 @@ bool TPR_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
         if(what.coord()) frame->box.set_matrix(Map<Matrix3f>((float*)&state.box,3,3));
     }
 
-    System_builder builder(sys);
+    SystemBuilder builder(sys);
 
     // Read atoms and coordinates
     for(int i=0;i<natoms;++i){
@@ -120,7 +123,7 @@ bool TPR_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
 
     // Read topology
     if(what.top()){
-        Force_field& ff = sys->get_force_field();
+        ForceField& ff = sys->get_force_field();
         ff.bonds.clear();
 
         ff.natoms = natoms;

@@ -45,7 +45,7 @@ namespace pteros {
 
 // Forward declaration of friend classes
 class System;
-class Selection_parser;
+class SelectionParser;
 
 
 /** @brief Selection class.
@@ -65,7 +65,7 @@ class Selection_parser;
 class Selection {
   // System and Selection are friends because they are closely integrated.
   friend class System;
-  friend class Selection_parser;
+  friend class SelectionParser;
   friend class Grid_searcher;
 
   public:
@@ -159,9 +159,9 @@ class Selection {
 
      Otherwise it is slower than conventional syntax like sel.name(i)
      */
-    Atom_proxy operator[](int ind);
+    AtomProxy operator[](int ind);
 
-    Atom_proxy operator[](const std::pair<int,int>& ind_fr);
+    AtomProxy operator[](const std::pair<int,int>& ind_fr);
 
     /// Writing selection to stream.
     /// Outputs indexes as a space separated list
@@ -719,7 +719,7 @@ class Selection {
     */
     void write(std::string fname, int b=-1,int e=-1) const;
 
-    void write(const std::unique_ptr<Mol_file>& handler, Mol_file_content what,int b=-1,int e=-1) const;
+    void write(const std::unique_ptr<FileHandler>& handler, FileContent what,int b=-1,int e=-1) const;
     /// @}
 
 
@@ -965,8 +965,8 @@ class Selection {
         This is a convenience method. The same box is returned by all selection
         which point to the same frame.
     */
-    inline Periodic_box& box() { return system->traj[frame].box; }
-    inline const Periodic_box& box() const { return system->traj[frame].box; }
+    inline PeriodicBox& box() { return system->traj[frame].box; }
+    inline const PeriodicBox& box() const { return system->traj[frame].box; }
 
     /** Returns time stamp of the frame pointed by selection
         The same as:
@@ -993,7 +993,7 @@ protected:
     int frame;
 
     // Holds an instance of selection parser
-    std::unique_ptr<Selection_parser> parser;
+    std::unique_ptr<SelectionParser> parser;
     void allocate_parser();
     void sort_and_remove_duplicates();    
     void process_pbc_atom(int& a) const;
@@ -1004,10 +1004,10 @@ protected:
 /// Random-access forward iterator for Selection
 class Selection::iterator {
 public:
-    typedef Atom_proxy value_type;
+    typedef AtomProxy value_type;
     typedef int difference_type;
-    typedef Atom_proxy* pointer;
-    typedef Atom_proxy& reference;
+    typedef AtomProxy* pointer;
+    typedef AtomProxy& reference;
     typedef std::forward_iterator_tag iterator_category;
 
     iterator(Selection* sel, int pos): ind(pos), sel_ptr(sel) {}
@@ -1023,7 +1023,7 @@ public:
 private:
     int ind;
     Selection* sel_ptr;
-    Atom_proxy proxy;
+    AtomProxy proxy;
 };
 
 /// Checks if several selections overlap

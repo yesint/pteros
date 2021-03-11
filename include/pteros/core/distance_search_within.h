@@ -34,16 +34,16 @@
 namespace pteros {       
 
 /// Class for within searching
-class Distance_search_within {
+class DistanceSearchWithin {
 public:
-    Distance_search_within();
+    DistanceSearchWithin();
 
-    Distance_search_within(float d,
+    DistanceSearchWithin(float d,
                            const Selection& src,
                            bool absolute_index = false,
                            Vector3i_const_ref pbc = fullPBC);
 
-    virtual ~Distance_search_within();
+    virtual ~DistanceSearchWithin();
 
     void setup(float d,
                const Selection& src,
@@ -58,8 +58,8 @@ public:
                        bool include_self=true);
 
 private:
-    class Distance_search_within_impl;
-    std::unique_ptr<Distance_search_within_impl> p;
+    class DistanceSearchWithinImpl;
+    std::unique_ptr<DistanceSearchWithinImpl> p;
 };
 
 }

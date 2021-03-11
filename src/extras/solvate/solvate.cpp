@@ -47,7 +47,7 @@ std::map<std::string,int> solvate(System& solute, float d, std::string solvent_f
         if (const char* env_gmx = std::getenv("GMXDATA")) {
             solvent_file = string(env_gmx)+"/top/spc216.gro";
         } else {
-            throw Pteros_error("Can't find default gromacs solvent file spc216.gro!");
+            throw PterosError("Can't find default gromacs solvent file spc216.gro!");
         }
     }
 
@@ -55,7 +55,7 @@ std::map<std::string,int> solvate(System& solute, float d, std::string solvent_f
     solvent.load( solvent_file );
 
     if(solvent.box(0).is_triclinic())
-        throw Pteros_error("Only rectangular solvent boxes are allowed!");
+        throw PterosError("Only rectangular solvent boxes are allowed!");
 
     // See how many solvent boxes should be used to cover solute
 

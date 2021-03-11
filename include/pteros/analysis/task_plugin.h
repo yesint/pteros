@@ -40,18 +40,18 @@ namespace pteros {
 /// Base class for plugins. Has options and jump remover
 /// Also has constructor with options
 
-class Task_plugin: public Task_base {
+class TaskPlugin: public TaskBase {
 public:
 
-    Task_plugin(const Options& opt): options(opt), Task_base() {  }
-    Task_plugin(const Task_plugin& other);
+    TaskPlugin(const Options& opt): options(opt), TaskBase() {  }
+    TaskPlugin(const TaskPlugin& other);
 
     Options options;
-    Jump_remover jump_remover;
+    JumpRemover jump_remover;
 
     virtual std::string help(){ return ""; }
 
-    Task_plugin* clone() const override {
+    TaskPlugin* clone() const override {
         return nullptr;
     }
 
@@ -59,16 +59,16 @@ protected:
 
     void before_spawn_handler() override;
     void pre_process_handler() override;
-    void process_frame_handler(const Frame_info& info) override;
-    virtual void post_process_handler(const Frame_info& info) override;
+    void process_frame_handler(const FrameInfo& info) override;
+    virtual void post_process_handler(const FrameInfo& info) override;
 };
 
 }
 
 #define _TASK_(_name) \
-    class _name: public Task_plugin { \
+    class _name: public TaskPlugin { \
     public: \
-        using Task_plugin::Task_plugin; \
+        using TaskPlugin::TaskPlugin; \
         void set_id(int _id) override {\
             log = create_logger(fmt::format(#_name ".{}",_id)); \
             task_id = _id; \

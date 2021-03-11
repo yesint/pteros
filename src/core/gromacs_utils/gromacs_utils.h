@@ -36,7 +36,7 @@
 namespace pteros {
 
 void init_gmx_box(matrix box);
-void gmx_box_to_pteros(const matrix m, Periodic_box& b);
-void pteros_box_to_gmx(const Periodic_box& b, matrix m);
+void gmx_box_to_pteros(const matrix m, PeriodicBox& b);
+void pteros_box_to_gmx(const PeriodicBox& b, matrix m);
 
 }

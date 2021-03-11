@@ -39,7 +39,7 @@
 
 namespace pteros {    
 
-    class Grid_cell {
+    class GridCell {
     public:
         void add_point(int ind, Vector3f_const_ref crd);
         void clear();
@@ -78,9 +78,9 @@ namespace pteros {
 
         void clear();
         void resize(int X, int Y, int Z);
-        Grid_cell& cell(int i, int j, int k){ return data[i][j][k]; }
-        Grid_cell& cell(Vector3i_const_ref ind){ return data[ind(0)][ind(1)][ind(2)]; }
-        const Grid_cell& cell(Vector3i_const_ref ind) const { return data[ind(0)][ind(1)][ind(2)]; }
+        GridCell& cell(int i, int j, int k){ return data[i][j][k]; }
+        GridCell& cell(Vector3i_const_ref ind){ return data[ind(0)][ind(1)][ind(2)]; }
+        const GridCell& cell(Vector3i_const_ref ind) const { return data[ind(0)][ind(1)][ind(2)]; }
 
         /// Non-periodic populate
         void populate(const Selection& sel,bool abs_index = false);
@@ -96,11 +96,11 @@ namespace pteros {
                                bool abs_index = false);
 
         void populate_periodic(const Selection& sel,
-                               const Periodic_box& box,
+                               const PeriodicBox& box,
                                Vector3i_const_ref pbc_dims = fullPBC,
                                bool abs_index = false);
     private:
-        boost::multi_array<Grid_cell,3> data;
+        boost::multi_array<GridCell,3> data;
     };
 
 }

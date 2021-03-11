@@ -9,7 +9,7 @@ using namespace pteros;
 
 void process_suffix_value(const string& s, int* intval, float* floatval){
     size_t pos = s.find_last_of("0123456789");
-    if(pos==string::npos) throw Pteros_error("A number with optional suffix required!");
+    if(pos==string::npos) throw PterosError("A number with optional suffix required!");
     string val = s.substr(0,pos+1);
     string suffix = s.substr(pos+1);
     boost::algorithm::to_lower(val);
@@ -31,7 +31,7 @@ void process_suffix_value(const string& s, int* intval, float* floatval){
             *floatval *= 1000000000.0;
         }
     } else if(floatval==nullptr && intval==nullptr){
-        throw Pteros_error("Both int and float vals are NULL! WTF?");
+        throw PterosError("Both int and float vals are NULL! WTF?");
     }
 }
 
@@ -59,9 +59,9 @@ Traj_file_reader::Traj_file_reader(Options &options, int natoms){
 
     // Check if the range is valid
     if(first_frame>=0 && last_frame>=0 && last_frame<first_frame)
-        throw Pteros_error("Last frame {} is smaller that first frame {}", last_frame,first_frame);
+        throw PterosError("Last frame {} is smaller that first frame {}", last_frame,first_frame);
     if(first_time>=0 && last_time>=0 && last_time<first_time)
-        throw Pteros_error("Last time {} is smaller that first time {}", last_time, first_time);
+        throw PterosError("Last time {} is smaller that first time {}", last_time, first_time);
 
     log_interval = options("log","-1").as_int();
 }
@@ -93,7 +93,7 @@ bool Traj_file_reader::is_end_of_interval(int fr, float t){
     }
 }
 
-void Traj_file_reader::run(const vector<string> &traj_files, const Data_channel_ptr &ch){
+void Traj_file_reader::run(const vector<string> &traj_files, const DataChannel_ptr &ch){
     stop_now = false;
     t = std::thread( &Traj_file_reader::reader_thread_body, this, ref(traj_files), ref(ch) );
 }
@@ -109,7 +109,7 @@ Traj_file_reader::~Traj_file_reader(){
 
 void Traj_file_reader::join(){ t.join(); }
 
-void Traj_file_reader::reader_thread_body(const vector<string> &traj_files, const Data_channel_ptr &channel){
+void Traj_file_reader::reader_thread_body(const vector<string> &traj_files, const DataChannel_ptr &channel){
     try {
         int abs_frame = 0;
         float abs_time = 0.0;
@@ -132,12 +132,12 @@ void Traj_file_reader::reader_thread_body(const vector<string> &traj_files, cons
         for(const string& fname: traj_files){
             log->info("Reading trajectory {}...", fname);
 
-            auto trj = Mol_file::open(fname,'r');
+            auto trj = FileHandler::open(fname,'r');
 
             // If we need to seek do it now if trajectory supports it
             if(seek_status==1 && trj->get_content_type().rand()){
                 // Cast to random-access handler
-                auto rand_trj = dynamic_cast<Mol_file_random_access*>(trj.get());
+                auto rand_trj = dynamic_cast<FileHandlerRandomAccess*>(trj.get());
 
                 int last_fr;
                 float last_t;
@@ -181,14 +181,14 @@ void Traj_file_reader::reader_thread_body(const vector<string> &traj_files, cons
 
                 // To avoid excessive copy operations we allocate a shared pointer
                 // and will load data into its storage
-                std::shared_ptr<Data_container> data(new Data_container);
+                std::shared_ptr<DataContainer> data(new DataContainer);
 
                 // Load data to this container
-                bool good = trj->read(nullptr, &data->frame, Mol_file_content().traj(true));
+                bool good = trj->read(nullptr, &data->frame, FileContent().traj(true));
 
                 // Check number of atoms
                 if(data->frame.coord.size() != Natoms)
-                    throw Pteros_error("Expected {} atoms but trajectory has {}.",data->frame.coord.size(),Natoms);
+                    throw PterosError("Expected {} atoms but trajectory has {}.",data->frame.coord.size(),Natoms);
 
                 // Check if EOF reached in trajectory
                 if(!good) break;
@@ -251,10 +251,10 @@ void Traj_file_reader::reader_thread_body(const vector<string> &traj_files, cons
                     if(trj->get_content_type().rand() && skip>0){
                         log->debug("Skipping {} frames by fast-forward...",skip);
                         try {
-                            dynamic_cast<Mol_file_random_access*>(trj.get())->seek_frame(abs_frame+skip);
+                            dynamic_cast<FileHandlerRandomAccess*>(trj.get())->seek_frame(abs_frame+skip);
                             abs_frame += skip;
                             frame_in_range += skip;
-                        } catch(Pteros_error e){
+                        } catch(PterosError e){
                             log->debug("Can't seek, maybe EOF is reached");
                         }
                     }
@@ -271,7 +271,7 @@ void Traj_file_reader::reader_thread_body(const vector<string> &traj_files, cons
         // Send stop at the end
         channel->send_stop();
 
-    } catch(const Pteros_error& e) {
+    } catch(const PterosError& e) {
         // Send stop if exception raised
         channel->send_stop();
         log->error(e.what());

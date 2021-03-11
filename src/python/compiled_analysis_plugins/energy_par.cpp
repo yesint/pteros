@@ -63,14 +63,14 @@ Options:
 protected:
 
     void before_spawn() override {
-        if(!system.force_field_ready()) throw Pteros_error("Need valid force field to compute energy!");
+        if(!system.force_field_ready()) throw PterosError("Need valid force field to compute energy!");
 
         cutoff = options("cutoff","0").as_float();
         is_periodic = options("periodic","true").as_bool();
 
         // Get selection texts
         sel_texts = options("sel").as_strings();
-        if(sel_texts.size()<1 || sel_texts.size()>2) throw Pteros_error("Either 1 or 2 selections should be passed");
+        if(sel_texts.size()<1 || sel_texts.size()>2) throw PterosError("Either 1 or 2 selections should be passed");
         is_self_energy = (sel_texts.size()==1) ? true : false;
     }
 
@@ -80,12 +80,12 @@ protected:
         } else {
             sel1.modify(system,sel_texts[0]);
             sel2.modify(system,sel_texts[1]);
-            if(check_selection_overlap({sel1,sel2})) throw Pteros_error("Selections could not overlap!");
+            if(check_selection_overlap({sel1,sel2})) throw PterosError("Selections could not overlap!");
             log->debug(sel1.get_text());
         }
     }
 
-    void process_frame(const Frame_info &info) override {
+    void process_frame(const FrameInfo &info) override {
         Vector2f e;
 
         if(is_self_energy){
@@ -100,11 +100,11 @@ protected:
         data[info.absolute_time] = e;
     }
 
-    void post_process(const Frame_info& info) override {
+    void post_process(const FrameInfo& info) override {
     }
 
 
-    void collect_data(const std::vector<std::shared_ptr<Task_base>>& tasks, int n_frames) override {
+    void collect_data(const std::vector<std::shared_ptr<TaskBase>>& tasks, int n_frames) override {
         for(const auto& it: tasks){
             auto h = dynamic_cast<energy_par*>(it.get());
             data.insert(h->data.begin(),h->data.end());

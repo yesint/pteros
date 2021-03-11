@@ -252,7 +252,7 @@ int Histogram::get_bin(float v)
 
 void Histogram::add(float v,float  weight)
 {
-    if(normalized) throw Pteros_error("Can't add value to normalized histogram!");
+    if(normalized) throw PterosError("Can't add value to normalized histogram!");
     int b = floor((v-minv)/d);
     if(b>=0 && b<nbins) val(b) += weight;
 }
@@ -264,7 +264,7 @@ void Histogram::add(const std::vector<float>& v)
 
 void Histogram::add_cylindrical(float r, float w, float sector, float cyl_h)
 {
-    if(normalized) throw Pteros_error("Can't add value to normalized histogram!");
+    if(normalized) throw PterosError("Can't add value to normalized histogram!");
     int b = floor((r-minv)/d);
     if(b>=0 && b<nbins){
         float r1 = pos(b)-0.5*d;
@@ -339,7 +339,7 @@ void Histogram2D::create(float minval1, float maxval1, int n1, float minval2, fl
 
 void Histogram2D::add(float v1, float v2, float weight)
 {
-    if(normalized) throw Pteros_error("Can't add value to normalized histogram!");
+    if(normalized) throw PterosError("Can't add value to normalized histogram!");
     int b1 = floor((v1-minv(0))/d(0));
     int b2 = floor((v2-minv(1))/d(1));
     if(b1>=0 && b1<nbins(0) && b2>=0 && b2<nbins(1)) val(b1,b2) += weight;

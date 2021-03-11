@@ -81,7 +81,7 @@ if __name__ == '__main__':
     log = Logger('analysis')
 
     # Create trajectory reader
-    reader = Trajectory_reader(opt)
+    reader = TrajectoryReader(opt)
 
     # Container for tasks
     python_tasks = []

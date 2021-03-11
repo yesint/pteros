@@ -35,31 +35,31 @@
 
 namespace pteros {
 
-class Mol_file_content {
+class FileContent {
 public:
-    Mol_file_content(){
+    FileContent(){
         flags.reset();
     }
 
     // The list of atoms and their properties
     bool atoms() const { return flags[0]; }
-    Mol_file_content atoms(bool val){ flags[0] = val; return *this;}
+    FileContent atoms(bool val){ flags[0] = val; return *this;}
 
     // Single set of coordinates
     bool coord() const { return flags[1]; }
-    Mol_file_content coord(bool val){ flags[1] = val; return *this;}
+    FileContent coord(bool val){ flags[1] = val; return *this;}
 
     // Many frames
     bool traj() const { return flags[2]; }
-    Mol_file_content traj(bool val){ flags[2] = val; return *this;}
+    FileContent traj(bool val){ flags[2] = val; return *this;}
 
     // Molecular topology
     bool top() const { return flags[3]; }
-    Mol_file_content top(bool val){ flags[3] = val; return *this;}
+    FileContent top(bool val){ flags[3] = val; return *this;}
 
     // Random access trajectory
     bool rand() const { return flags[4]; }
-    Mol_file_content rand(bool val){ flags[4] = val; return *this;}
+    FileContent rand(bool val){ flags[4] = val; return *this;}
 
 private:
     std::bitset<5> flags;
@@ -67,11 +67,14 @@ private:
 
 //------------------------------------------------------------------------------
 
+class FileHandler;
+using FileHandler_ptr = std::unique_ptr<FileHandler>;
+
 /// Generic API for reading and writing any molecule file formats
-class Mol_file {
+class FileHandler {
 public:
     /// Recognizes file extension and returns a file handler
-    static std::unique_ptr<Mol_file> recognize(std::string fname);
+    static FileHandler_ptr recognize(std::string fname);
 
     /** Recognize file extension, open file for reading or writing and return a file handler.
      This function is aquivalent to:
@@ -80,26 +83,27 @@ public:
      f.open(mode);
      \endcode
     */
-    static std::unique_ptr<Mol_file> open(std::string fname, char open_mode);
+    static FileHandler_ptr open(std::string fname, char open_mode);
 
     /// Opens a file with given access mode. Need to be defined by derived classes.
     virtual void open(char open_mode) = 0;
+    virtual void close();
 
-    virtual ~Mol_file();
+    virtual ~FileHandler();
 
     /// Reads data, which are specified by what.
     /// Pointers to System and Frame could be nullptr if not used
     /// Returns true if read operation is succesfull and false if not.    
-    bool read(System* sys, Frame* frame, const Mol_file_content& what);
+    bool read(System* sys, Frame* frame, const FileContent& what);
 
     /// Write data from selection specidied by what.
-    void write(const Selection& sel, const Mol_file_content& what);
+    void write(const Selection& sel, const FileContent& what);
 
     /// Reports content of this file type
-    virtual Mol_file_content get_content_type() const = 0;
+    virtual FileContent get_content_type() const = 0;
 
 protected:    
-    Mol_file(std::string& file_name);
+    FileHandler(std::string& file_name);
 
     // Stores file name
     std::string fname;
@@ -107,21 +111,21 @@ protected:
     int natoms;    
 
     // Method to sanity check parameters send to read and write
-    void sanity_check_read(System* sys, Frame* frame, const Mol_file_content &what) const;
-    void sanity_check_write(const Selection& sel, const Mol_file_content& what) const;
+    void sanity_check_read(System* sys, Frame* frame, const FileContent &what) const;
+    void sanity_check_write(const Selection& sel, const FileContent& what) const;
 
     /// User-overriden method for reading
-    virtual bool do_read(System* sys, Frame* frame, const Mol_file_content& what) = 0;
+    virtual bool do_read(System* sys, Frame* frame, const FileContent& what) = 0;
 
     /// User-overriden method for writing
-    virtual void do_write(const Selection& sel, const Mol_file_content& what) = 0;
+    virtual void do_write(const Selection& sel, const FileContent& what) = 0;
 };
 
 //------------------------------------------------------------------------------
 
-class Mol_file_random_access: public Mol_file {
+class FileHandlerRandomAccess: public FileHandler {
 protected:
-    Mol_file_random_access(std::string& file_name): Mol_file(file_name) {}
+    FileHandlerRandomAccess(std::string& file_name): FileHandler(file_name) {}
 
 public:
     // Seek frame

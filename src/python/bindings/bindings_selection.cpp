@@ -41,13 +41,13 @@ using namespace Eigen;
 using namespace pybind11::literals;
 
 #define DEF_PROPERTY(_name,_dtype) \
-    .def_property(#_name, [](Atom_proxy* obj){return obj->_name();}, [](Atom_proxy* obj,const _dtype& val){obj->_name()=val;})
+    .def_property(#_name, [](AtomProxy* obj){return obj->_name();}, [](AtomProxy* obj,const _dtype& val){obj->_name()=val;})
 
 void make_bindings_Selection(py::module& m){
 
     using RowMatrixXf = Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
 
-    py::class_<Atom_proxy>(m, "Atom_proxy")        
+    py::class_<AtomProxy>(m, "Atom_proxy")        
         DEF_PROPERTY(resid,int)
         DEF_PROPERTY(resindex,int)
         DEF_PROPERTY(resname,string)
@@ -65,12 +65,12 @@ void make_bindings_Selection(py::module& m){
         DEF_PROPERTY(x,float)
         DEF_PROPERTY(y,float)
         DEF_PROPERTY(z,float)
-        .def_property("xyz", [](Atom_proxy* obj){return obj->xyz();}, [](Atom_proxy* obj,Vector3f_const_ref val){obj->xyz()=val;})
-        .def_property("vel", [](Atom_proxy* obj){return obj->vel();}, [](Atom_proxy* obj,Vector3f_const_ref val){obj->vel()=val;})
-        .def_property("force", [](Atom_proxy* obj){return obj->force();}, [](Atom_proxy* obj,Vector3f_const_ref val){obj->force()=val;})
-        .def_property_readonly("element_name", [](Atom_proxy* obj){return obj->element_name();})
-        .def_property_readonly("vdw", [](Atom_proxy* obj){return obj->vdw();})        
-        .def_property_readonly("index", [](Atom_proxy* obj){return obj->index();})
+        .def_property("xyz", [](AtomProxy* obj){return obj->xyz();}, [](AtomProxy* obj,Vector3f_const_ref val){obj->xyz()=val;})
+        .def_property("vel", [](AtomProxy* obj){return obj->vel();}, [](AtomProxy* obj,Vector3f_const_ref val){obj->vel()=val;})
+        .def_property("force", [](AtomProxy* obj){return obj->force();}, [](AtomProxy* obj,Vector3f_const_ref val){obj->force()=val;})
+        .def_property_readonly("element_name", [](AtomProxy* obj){return obj->element_name();})
+        .def_property_readonly("vdw", [](AtomProxy* obj){return obj->vdw();})        
+        .def_property_readonly("index", [](AtomProxy* obj){return obj->index();})
     ;
 
     py::class_<Selection>(m, "Selection")
@@ -347,7 +347,7 @@ void make_bindings_Selection(py::module& m){
         .def("dssp", py::overload_cast<>(&Selection::dssp, py::const_))
 
         // Accessors
-        .def_property("box", [](Selection* obj){return obj->box();}, [](Selection* obj,const Periodic_box& val){obj->box()=val;})
+        .def_property("box", [](Selection* obj){return obj->box();}, [](Selection* obj,const PeriodicBox& val){obj->box()=val;})
         .def_property("time", [](Selection* obj){return obj->time();}, [](Selection* obj, float val){obj->time()=val;})
 
         // No other accessors are exposed in favor to [] operator

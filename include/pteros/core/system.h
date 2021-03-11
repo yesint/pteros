@@ -56,7 +56,7 @@ struct Frame {
     /// Forces of atoms
     std::vector<Eigen::Vector3f> force;
     /// Periodic box
-    Periodic_box box;
+    PeriodicBox box;
     /// Timestamp
     float time;
 
@@ -73,9 +73,9 @@ struct Frame {
 
 //Forward declarations
 class Selection;
-class Mol_file;
-class Mol_file_content;
-class Atom_proxy;
+class FileHandler;
+class FileContent;
+class AtomProxy;
 
 //====================================================================================
 
@@ -94,9 +94,9 @@ class System {
     // System and Selection are friends because they are closely integrated.
     friend class Selection;    
     // Selection_parser must access internals of Selection
-    friend class Selection_parser;
+    friend class SelectionParser;
     // Needs an access for constructing the system in IO handlers
-    friend class System_builder;
+    friend class SystemBuilder;
 
 public:    
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -152,7 +152,7 @@ public:
      }
      \endcode
     */
-    Selection append(const Atom_proxy& at);
+    Selection append(const AtomProxy& at);
 
     /// Rearranges the atoms in the order of provided selection strings.
     /// Atom, which are not selected are appended at the end in their previous order.
@@ -287,13 +287,13 @@ public:
      * It can be called several times to read trajectory frames one by one
      * from the same pre-opened file.
      */
-    bool load(const std::unique_ptr<Mol_file> &handler,
-              Mol_file_content what,         
+    bool load(const std::unique_ptr<FileHandler> &handler,
+              FileContent what,
               std::function<bool(System*,int)> on_frame = 0);    
 
     void write(std::string fname, int b=-1,int e=-1) const;
 
-    void write(const std::unique_ptr<Mol_file>& handler, Mol_file_content what,int b=-1,int e=-1) const;
+    void write(const std::unique_ptr<FileHandler>& handler, FileContent what,int b=-1,int e=-1) const;
 
 
     /// Load Gromacs .ndx file and crease selections acording to it from existing system
@@ -366,10 +366,10 @@ public:
     /// @{
 
     /// Read/write access for periodic box for given frame
-    inline Periodic_box& box(int fr=0){ return traj[fr].box; }
+    inline PeriodicBox& box(int fr=0){ return traj[fr].box; }
 
     /// Read only access for periodic box for given frame
-    inline const Periodic_box& box(int fr=0) const { return traj[fr].box; }
+    inline const PeriodicBox& box(int fr=0) const { return traj[fr].box; }
 
     /// Read/Write access to the time stamp of given frame
     inline float& time(int fr=0){ return traj[fr].time; }
@@ -480,7 +480,7 @@ public:
     bool force_field_ready(){return force_field.ready;}
 
     /// Returns internal Force_field object
-    Force_field& get_force_field(){
+    ForceField& get_force_field(){
         return force_field;
     }
 
@@ -511,7 +511,7 @@ protected:
     std::vector<Frame> traj;
 
     // Force field parameters
-    Force_field force_field;
+    ForceField force_field;
 
     // Indexes for filtering
     std::vector<int> filter;
@@ -533,8 +533,5 @@ Eigen::Vector2f get_energy_for_list(const std::vector<Eigen::Vector2i>& pairs,
                                     std::vector<Eigen::Vector2f>* pair_en=nullptr);
 
 } // namespace
-
-
-
 
 

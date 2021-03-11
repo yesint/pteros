@@ -93,13 +93,30 @@ void box_from_vmd_rep(float fa, float fb, float fc,
 
 
 
-VMD_molfile_plugin_wrapper::VMD_molfile_plugin_wrapper(string& fname): Mol_file(fname),
+VmdMolfilePluginWrapper::VmdMolfilePluginWrapper(string& fname): FileHandler(fname),
     handle(nullptr), w_handle(nullptr)
 {
 
 }
 
-VMD_molfile_plugin_wrapper::~VMD_molfile_plugin_wrapper(){
+
+void VmdMolfilePluginWrapper::open(char open_mode){
+    mode = open_mode;
+
+    if(mode=='r'){
+        if(handle) throw PterosError("Can't open file for reading twice - handle busy!");        
+        handle = NULL;
+        handle = plugin->open_file_read(fname.c_str(), &open_mode, &natoms);
+        if(!handle) throw PterosError("Can't open file '{}'!",fname);
+    } else {
+        if(w_handle) throw PterosError("Can't open file for writing twice - handle busy!");        
+        w_handle = NULL;
+    }
+
+}
+
+void VmdMolfilePluginWrapper::close()
+{
     if(mode=='r'){
         if(handle){
             plugin->close_file_read(handle);
@@ -108,35 +125,20 @@ VMD_molfile_plugin_wrapper::~VMD_molfile_plugin_wrapper(){
 
     } else {
         if(w_handle){
-            plugin->close_file_write(w_handle);            
+            plugin->close_file_write(w_handle);
             w_handle = NULL;
         }
     }
 }
 
-void VMD_molfile_plugin_wrapper::open(char open_mode){
-    mode = open_mode;
-
-    if(mode=='r'){
-        if(handle) throw Pteros_error("Can't open file for reading twice - handle busy!");        
-        handle = NULL;
-        handle = plugin->open_file_read(fname.c_str(), &open_mode, &natoms);
-        if(!handle) throw Pteros_error("Can't open file '{}'!",fname);
-    } else {
-        if(w_handle) throw Pteros_error("Can't open file for writing twice - handle busy!");        
-        w_handle = NULL;
-    }
-
-}
-
-bool VMD_molfile_plugin_wrapper::do_read(System *sys, Frame *frame, const Mol_file_content &what){
+bool VmdMolfilePluginWrapper::do_read(System *sys, Frame *frame, const FileContent &what){
 
     if(what.atoms()){
         // READ STRUCTURE:
-        System_builder builder(sys);
+        SystemBuilder builder(sys);
 
         if(sys->num_atoms()>0)
-            throw Pteros_error("Can't read structure to the system, which is not empty!");
+            throw PterosError("Can't read structure to the system, which is not empty!");
 
         int flags;
         vector<molfile_atom_t> atoms(natoms);
@@ -213,7 +215,7 @@ bool VMD_molfile_plugin_wrapper::do_read(System *sys, Frame *frame, const Mol_fi
     return false;
 }
 
-void VMD_molfile_plugin_wrapper::do_write(const Selection &sel, const Mol_file_content &what) {
+void VmdMolfilePluginWrapper::do_write(const Selection &sel, const FileContent &what) {
 
     if(what.atoms()){
         // WRITE STRUCTURE:        
@@ -338,7 +340,7 @@ std::map<string,molfile_plugin_t*> register_all_plugins(){
     return ret;
 }
 
-std::map<string,molfile_plugin_t*> VMD_molfile_plugin_wrapper::molfile_plugins = register_all_plugins();
+std::map<string,molfile_plugin_t*> VmdMolfilePluginWrapper::molfile_plugins = register_all_plugins();
 
 
 

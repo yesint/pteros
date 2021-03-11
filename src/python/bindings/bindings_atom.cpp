@@ -27,9 +27,6 @@
 */
 
 
-
-
-
 #include "pteros/core/atom.h"
 #include "bindings_util.h"
 

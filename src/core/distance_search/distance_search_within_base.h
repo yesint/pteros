@@ -38,7 +38,7 @@ namespace pteros {
 
 // In this class searching returns only the list of atoms from the source seletion.
 // No distances are computed.
-class Distance_search_within_base: public Distance_search_base {
+class DistanceSearchWithinBase: public DistanceSearchBase {
 protected:
     // Implements logic for calling search_between_cells() or search_inside_cell()
     // with correct grids in derived classes
@@ -56,7 +56,7 @@ private:
                               Vector3i_const_ref wrapped,
                               std::unordered_set<int> &res_buffer);
 
-    void search_planned_pair(const Planned_pair& pair,
+    void search_planned_pair(const PlannedPair& pair,
                              std::unordered_set<int> &res_buffer);
 };
 

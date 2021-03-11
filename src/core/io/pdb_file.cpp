@@ -39,7 +39,7 @@ using namespace std;
 using namespace pteros;
 using namespace Eigen;
 
-PDB_file::PDB_file(string &fname): VMD_molfile_plugin_wrapper(fname)
+PdbFile::PdbFile(string &fname): VmdMolfilePluginWrapper(fname)
 {
    plugin = molfile_plugins["pdb"];
 }

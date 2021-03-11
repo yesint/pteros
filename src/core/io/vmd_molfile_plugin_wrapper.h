@@ -37,12 +37,12 @@
 namespace pteros {
 
 /// Generic API for reading and writing any molecule file formats
-class VMD_molfile_plugin_wrapper: public Mol_file {
+class VmdMolfilePluginWrapper: public FileHandler {
 public:
     // High-level API        
-    VMD_molfile_plugin_wrapper(std::string& fname);
+    VmdMolfilePluginWrapper(std::string& fname);
     virtual void open(char open_mode);
-    virtual ~VMD_molfile_plugin_wrapper();
+    virtual void close();
 
 protected:       
     void* handle; // Handle for reading
@@ -50,8 +50,8 @@ protected:
 
     char mode;
 
-    virtual bool do_read(System *sys, Frame *frame, const Mol_file_content& what);
-    virtual void do_write(const Selection &sel, const Mol_file_content& what);
+    virtual bool do_read(System *sys, Frame *frame, const FileContent& what);
+    virtual void do_write(const Selection &sel, const FileContent& what);
 
     // molfile plugin instance (set in derived class)
     molfile_plugin_t* plugin;

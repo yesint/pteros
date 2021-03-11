@@ -38,7 +38,7 @@ using namespace std;
 using namespace pteros;
 using namespace Eigen;
 
-Distance_search_within_sel::Distance_search_within_sel(float d,
+DistanceSearchWithinSel::DistanceSearchWithinSel(float d,
                             const Selection &src,
                             const Selection &target,
                             std::vector<int>& res,

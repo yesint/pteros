@@ -48,7 +48,7 @@ void search_contacts(float d,
                      bool absolute_index = false,
                      Vector3i_const_ref pbc = noPBC)
 {    
-    Distance_search_contacts_1sel(d,sel,pairs,distances,absolute_index,pbc);
+    DistanceSearchContacts1sel(d,sel,pairs,distances,absolute_index,pbc);
 }
 
 
@@ -60,7 +60,7 @@ void search_contacts(float d,
                      bool absolute_index = false,
                      Vector3i_const_ref pbc = noPBC)
 {
-    Distance_search_contacts_2sel(d,sel1,sel2,pairs,distances,absolute_index,pbc);
+    DistanceSearchContacts2sel(d,sel1,sel2,pairs,distances,absolute_index,pbc);
 }
 
 
@@ -71,7 +71,7 @@ void search_within(float d,
                    bool include_self,
                    Vector3i_const_ref pbc)
 {    
-    Distance_search_within_sel(d,src,target,res,include_self,pbc);
+    DistanceSearchWithinSel(d,src,target,res,include_self,pbc);
 }
 
 }

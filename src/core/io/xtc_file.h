@@ -40,22 +40,22 @@
 namespace pteros {
 
 
-class XTC_file: public Mol_file_random_access {
+class XtcFile: public FileHandlerRandomAccess {
 public:
-    XTC_file(std::string& fname): Mol_file_random_access(fname), handle(nullptr) {}
+    XtcFile(std::string& fname): FileHandlerRandomAccess(fname), handle(nullptr) {}
     virtual void open(char open_mode);
-    virtual ~XTC_file();
+    virtual ~XtcFile();
 
-    virtual Mol_file_content get_content_type() const {
-        return Mol_file_content()
+    virtual FileContent get_content_type() const {
+        return FileContent()
                 .traj(true)
                 .rand(true);
     }
 
 protected:        
 
-    virtual void do_write(const Selection &sel, const Mol_file_content& what) override;
-    virtual bool do_read(System *sys, Frame *frame, const Mol_file_content& what) override ;
+    virtual void do_write(const Selection &sel, const FileContent& what) override;
+    virtual bool do_read(System *sys, Frame *frame, const FileContent& what) override ;
 
     virtual void seek_frame(int fr) override;
     virtual void seek_time(float t) override;

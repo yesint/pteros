@@ -27,9 +27,6 @@
 */
 
 
-
-
-
 #include "pteros/core/system.h"
 #include "bindings_util.h"
 

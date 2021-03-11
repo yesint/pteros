@@ -40,23 +40,23 @@ namespace pteros {
  for converting laboratory coordinates to the coordinates in triclinic basis and vice versa.
  Extents of the periodic box are also precomputed and stored internally. 
  */
-class Periodic_box {
+class PeriodicBox {
 public:
 
     /// Default constructor
-    Periodic_box();
+    PeriodicBox();
 
     /// Constructor from matrix
-    Periodic_box(Matrix3f_const_ref m);
+    PeriodicBox(Matrix3f_const_ref m);
 
     /// Constructor from vector lengths and angles
-    Periodic_box(Vector3f_const_ref vectors, Vector3f_const_ref angles);
+    PeriodicBox(Vector3f_const_ref vectors, Vector3f_const_ref angles);
 
     /// Copy constructor
-    Periodic_box(const Periodic_box& other);
+    PeriodicBox(const PeriodicBox& other);
 
     /// Assignment operator
-    Periodic_box& operator=(const Periodic_box& other);
+    PeriodicBox& operator=(const PeriodicBox& other);
 
     // Get box element
     float get_element(int i, int j) const;

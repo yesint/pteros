@@ -47,110 +47,110 @@ using namespace std;
 using namespace pteros;
 using namespace Eigen;
 
-Periodic_box::Periodic_box():_is_periodic(false),_is_triclinic(false),_box(Eigen::Matrix3f::Zero()){}
+PeriodicBox::PeriodicBox():_is_periodic(false),_is_triclinic(false),_box(Eigen::Matrix3f::Zero()){}
 
-Periodic_box::Periodic_box(Matrix3f_const_ref m){
+PeriodicBox::PeriodicBox(Matrix3f_const_ref m){
     set_matrix(m);
 }
 
-Periodic_box::Periodic_box(Vector3f_const_ref vectors, Vector3f_const_ref angles)
+PeriodicBox::PeriodicBox(Vector3f_const_ref vectors, Vector3f_const_ref angles)
 {
     from_vectors_angles(vectors,angles);
 }
 
-Periodic_box::Periodic_box(const Periodic_box &other)
+PeriodicBox::PeriodicBox(const PeriodicBox &other)
 {
     if(&other == this) return;
     set_matrix(other._box);
 }
 
-Periodic_box& Periodic_box::operator=(const Periodic_box& other){
+PeriodicBox& PeriodicBox::operator=(const PeriodicBox& other){
     if(&other == this) return *this;
     set_matrix(other._box);
     return *this;
 }
 
-float Periodic_box::get_element(int i, int j) const
+float PeriodicBox::get_element(int i, int j) const
 {
     return _box(i,j);
 }
 
-void Periodic_box::set_element(int i, int j, float val)
+void PeriodicBox::set_element(int i, int j, float val)
 {
     _box(i,j) = val;
     recompute_internals();
 }
 
-void Periodic_box::set_matrix(Matrix3f_const_ref matr)
+void PeriodicBox::set_matrix(Matrix3f_const_ref matr)
 {
     _box = matr;
     recompute_internals();
 }
 
-Vector3f Periodic_box::get_vector(int i) const{
+Vector3f PeriodicBox::get_vector(int i) const{
     return _box.col(i);
 }
 
-void Periodic_box::set_vector(Vector3f_const_ref vec, int i)
+void PeriodicBox::set_vector(Vector3f_const_ref vec, int i)
 {
     _box.col(i) = vec;
     recompute_internals();
 }
 
-Matrix3f Periodic_box::get_matrix() const {
+Matrix3f PeriodicBox::get_matrix() const {
     return _box;
 }
 
-void Periodic_box::scale_vectors(Vector3f_const_ref scale)
+void PeriodicBox::scale_vectors(Vector3f_const_ref scale)
 {
-    if(!_is_periodic) throw Pteros_error("No periodicity! Can't scale!");
+    if(!_is_periodic) throw PterosError("No periodicity! Can't scale!");
     for(int i=0;i<3;i++) _box.col(i) *= scale(i);
     _box_inv = _box.inverse();
 }
 
-Matrix3f Periodic_box::get_inv_matrix() const {
+Matrix3f PeriodicBox::get_inv_matrix() const {
     return _box_inv;
 }
 
-Vector3f Periodic_box::lab_to_box(Vector3f_const_ref point) const {
+Vector3f PeriodicBox::lab_to_box(Vector3f_const_ref point) const {
     return _box_inv.colwise().normalized()*point;
 }
 
-Matrix3f Periodic_box::lab_to_box_transform() const {
+Matrix3f PeriodicBox::lab_to_box_transform() const {
     return _box_inv.colwise().normalized();
 }
 
-Vector3f Periodic_box::box_to_lab(Vector3f_const_ref point) const{
+Vector3f PeriodicBox::box_to_lab(Vector3f_const_ref point) const{
     return _box.colwise().normalized()*point;
 }
 
-Matrix3f Periodic_box::box_to_lab_transform() const {
+Matrix3f PeriodicBox::box_to_lab_transform() const {
     return _box.colwise().normalized();
 }
 
-float Periodic_box::extent(int i) const {
+float PeriodicBox::extent(int i) const {
     return _box.col(i).norm();
 }
 
-Vector3f Periodic_box::extents() const {
+Vector3f PeriodicBox::extents() const {
     return _box.colwise().norm();
 }
 
-float Periodic_box::distance_squared(Vector3f_const_ref point1, Vector3f_const_ref point2, Array3i_const_ref pbc) const
+float PeriodicBox::distance_squared(Vector3f_const_ref point1, Vector3f_const_ref point2, Array3i_const_ref pbc) const
 {
     return shortest_vector(point1,point2,pbc).squaredNorm();
 }
 
-float Periodic_box::distance(Vector3f_const_ref point1, Vector3f_const_ref point2, Array3i_const_ref pbc) const
+float PeriodicBox::distance(Vector3f_const_ref point1, Vector3f_const_ref point2, Array3i_const_ref pbc) const
 {
     return shortest_vector(point1,point2,pbc).norm();
 }
 
-float Periodic_box::volume(){
+float PeriodicBox::volume(){
     return _box.col(1).cross( _box.col(2) ).dot( _box.col(0) );
 }
 
-void Periodic_box::wrap_point(Vector3f_ref point, Array3i_const_ref pbc, Vector3f_const_ref origin) const
+void PeriodicBox::wrap_point(Vector3f_ref point, Array3i_const_ref pbc, Vector3f_const_ref origin) const
 {
     point = _box_inv*(point-origin);
     for(int i=0;i<3;++i){
@@ -162,7 +162,7 @@ void Periodic_box::wrap_point(Vector3f_ref point, Array3i_const_ref pbc, Vector3
     point = _box*point + origin;
 }
 
-bool Periodic_box::in_box(Vector3f_const_ref point, Vector3f_const_ref origin) const
+bool PeriodicBox::in_box(Vector3f_const_ref point, Vector3f_const_ref origin) const
 {
     Vector3f p = _box_inv*(point-origin);
 
@@ -173,12 +173,12 @@ bool Periodic_box::in_box(Vector3f_const_ref point, Vector3f_const_ref origin) c
 }
 
 
-Eigen::Vector3f Periodic_box::closest_image(Vector3f_const_ref point, Vector3f_const_ref target, Array3i_const_ref pbc) const
+Eigen::Vector3f PeriodicBox::closest_image(Vector3f_const_ref point, Vector3f_const_ref target, Array3i_const_ref pbc) const
 {    
     return target + shortest_vector(target,point,pbc);
 }
 
-Vector3f Periodic_box::shortest_vector(Vector3f_const_ref point1, Vector3f_const_ref point2, Array3i_const_ref pbc) const
+Vector3f PeriodicBox::shortest_vector(Vector3f_const_ref point1, Vector3f_const_ref point2, Array3i_const_ref pbc) const
 {
     if(_is_periodic){
         Vector3f d = _box_inv*(point2-point1);
@@ -227,7 +227,7 @@ static inline float cos_angle_no_table(const Eigen::Vector3f a,const Eigen::Vect
   return cos;
 }
 
-void Periodic_box::from_pdb_box(const char *line)
+void PeriodicBox::from_pdb_box(const char *line)
 {
 #define SG_SIZE 11
     char sa[12],sb[12],sc[12],sg[SG_SIZE+1],ident;
@@ -298,7 +298,7 @@ void Periodic_box::from_pdb_box(const char *line)
 }
 
 // This function works with column-ordered box!
-void Periodic_box::to_vectors_angles(Vector3f_ref vectors, Vector3f_ref angles) const {
+void PeriodicBox::to_vectors_angles(Vector3f_ref vectors, Vector3f_ref angles) const {
     //
     Eigen::Matrix3f boxT = _box.transpose();
     if (boxT.row(YY).squaredNorm()*boxT.row(ZZ).squaredNorm()!=0)
@@ -319,7 +319,7 @@ void Periodic_box::to_vectors_angles(Vector3f_ref vectors, Vector3f_ref angles) 
     vectors(2) = boxT.row(ZZ).norm();
 }
 
-std::string Periodic_box::to_pdb_box() const {
+std::string PeriodicBox::to_pdb_box() const {
   float alpha,beta,gamma;
   char ch[80];
 
@@ -343,7 +343,7 @@ std::string Periodic_box::to_pdb_box() const {
   return std::string(ch);
 }
 
-void Periodic_box::from_vectors_angles(Vector3f_const_ref vectors, Vector3f_const_ref angles){
+void PeriodicBox::from_vectors_angles(Vector3f_const_ref vectors, Vector3f_const_ref angles){
     double cosa,cosb,cosg,sing;
 
     Matrix3f box;
@@ -387,7 +387,7 @@ void Periodic_box::from_vectors_angles(Vector3f_const_ref vectors, Vector3f_cons
     set_matrix(box);
 }
 
-void Periodic_box::recompute_internals()
+void PeriodicBox::recompute_internals()
 {
     _is_periodic = (_box.array()!=0).any() ? true : false;
     if(!_is_periodic) return;

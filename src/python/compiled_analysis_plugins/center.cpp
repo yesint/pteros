@@ -63,13 +63,13 @@ protected:
         sel.modify(system,sel_text);        
     }
 
-    void process_frame(const Frame_info &info) override {
+    void process_frame(const FrameInfo &info) override {
         sel.apply();
         f << info.absolute_time << " " << sel.center(use_mass).transpose() << endl;
         log->info("{} {}",info.absolute_time, sel.center(use_mass).transpose());
     }
 
-    void post_process(const Frame_info &info) override {
+    void post_process(const FrameInfo &info) override {
         f.close();
     }    
 

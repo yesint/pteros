@@ -50,7 +50,7 @@ namespace pteros {
 
 */
 
-class Force_field {
+class ForceField {
 public:
     int natoms;
     /// Exclusions.
@@ -89,10 +89,10 @@ public:
     bool ready;
 
     /// Pointer to chosen coulomb kernel
-    float (*coulomb_kernel_ptr)(float,float,float,const Force_field&);
+    float (*coulomb_kernel_ptr)(float,float,float,const ForceField&);
 
     /// Pointer to chosen VDW kernel
-    float (*LJ_kernel_ptr)(float,float,float,const Force_field&);
+    float (*LJ_kernel_ptr)(float,float,float,const ForceField&);
 
     // Aux constants to be precomputed by set_kernels()
     float coulomb_prefactor, k_rf, c_rf;
@@ -100,13 +100,13 @@ public:
     Eigen::Vector3f shift_1, shift_6, shift_12;
 
     /// Constructor
-    Force_field();
+    ForceField();
 
     /// Copy constructor
-    Force_field(const Force_field& other);
+    ForceField(const ForceField& other);
 
     /// Assignment operator
-    Force_field& operator=(Force_field other);
+    ForceField& operator=(ForceField other);
 
     // Clear ff
     void clear();

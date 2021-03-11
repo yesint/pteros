@@ -44,36 +44,37 @@ using namespace pteros;
 using namespace Eigen;
 
 
-Babel_wrapper::Babel_wrapper(string &fname): Mol_file(fname){ }
+BabelWrapper::BabelWrapper(string &fname): FileHandler(fname){ }
 
-void Babel_wrapper::open(char open_mode)
+void BabelWrapper::open(char open_mode)
 {
     string ext = fname.substr(fname.find_last_of(".") + 1);
     bool ok;
 
     if(open_mode=='r'){
         ok = conv.SetInFormat(ext.c_str());
-        if(!ok) throw Pteros_error("OpenBabel can't read format '{}'!",ext);
+        if(!ok) throw PterosError("OpenBabel can't read format '{}'!",ext);
     } else {
         ok = conv.SetOutFormat(ext.c_str());
-        if(!ok) throw Pteros_error("OpenBabel can't write format '{}'!",ext);
+        if(!ok) throw PterosError("OpenBabel can't write format '{}'!",ext);
     }
 }
 
-Babel_wrapper::~Babel_wrapper()
+void BabelWrapper::close()
 {
 
 }
 
-bool Babel_wrapper::do_read(System *sys, Frame *frame, const Mol_file_content &what)
+
+bool BabelWrapper::do_read(System *sys, Frame *frame, const FileContent &what)
 {
     bool ok;
     ok = conv.ReadFile(&mol,fname);
-    if(!ok) throw Pteros_error("Babel can't read file {}",fname);
+    if(!ok) throw PterosError("Babel can't read file {}",fname);
 
     int natoms = mol.NumAtoms();
 
-    System_builder builder(sys);
+    SystemBuilder builder(sys);
 
     if(what.atoms()){
         // Allocate atoms in the system
@@ -117,7 +118,7 @@ bool Babel_wrapper::do_read(System *sys, Frame *frame, const Mol_file_content &w
     return true;
 }
 
-void Babel_wrapper::do_write(const Selection &sel, const Mol_file_content &what)
+void BabelWrapper::do_write(const Selection &sel, const FileContent &what)
 {
     if(what.atoms() && what.coord()){
         selection_to_obmol(sel,mol);

@@ -54,12 +54,12 @@ protected:
         volume.clear();
     }
 
-    void process_frame(const Frame_info &info) override {
+    void process_frame(const FrameInfo &info) override {
         data.push_back(system.box(0).extents());
         volume.push_back(system.box(0).volume());
     }
 
-    void post_process(const Frame_info &info) override {
+    void post_process(const FrameInfo &info) override {
         // Output
         string fname = fmt::format("box_id{}.dat",get_id());
         // Get time step in frames and time

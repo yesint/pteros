@@ -6,11 +6,11 @@
 namespace pteros {
 
 /// Auxiliary container for sending data to tasks
-struct Data_container {
+struct DataContainer {
     /// Frame itself
     Frame frame;
     /// Frame information
-    Frame_info frame_info;
+    FrameInfo frame_info;
 };
 
 }

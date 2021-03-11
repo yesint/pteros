@@ -27,20 +27,16 @@
 */
 
 
-
-
-
-#ifndef JUMP_REMOVER_H
-#define JUMP_REMOVER_H
+#pragma once
 
 #include "pteros/core/selection.h"
 #include "pteros/analysis/frame_info.h"
 
 namespace pteros {
 
-class Jump_remover {    
+class JumpRemover {
 public:    
-    Jump_remover();
+    JumpRemover();
     void add_atoms(const Selection &sel);
     void set_pbc(Array3i_const_ref pbc);
     /// -1 means do not unwrap, 0 means auto find distance
@@ -66,9 +62,3 @@ private:
 };
 
 } // namespace
-
-#endif
-
-
-
-

@@ -38,11 +38,11 @@ using namespace pteros;
 using namespace Eigen;
 
 
-void Distance_search_contacts::compute_chunk(int b, int e,
+void DistanceSearchContacts::compute_chunk(int b, int e,
                                              vector<Eigen::Vector2i>& pairs_buf,
                                              vector<float>& dist_buf)
 {
-    Planned_pair pair;
+    PlannedPair pair;
     for(int ind=b;ind<e;++ind){
         // Get array position
         auto p = index_to_pos(ind);
@@ -57,7 +57,7 @@ void Distance_search_contacts::compute_chunk(int b, int e,
     }
 }
 
-void Distance_search_contacts::do_search()
+void DistanceSearchContacts::do_search()
 {
     // Prepare for searching
     pairs->clear();
@@ -101,14 +101,14 @@ void Distance_search_contacts::do_search()
 }
 
 
-void Distance_search_contacts::search_between_cells(const pteros::Planned_pair &pair,
+void DistanceSearchContacts::search_between_cells(const pteros::PlannedPair &pair,
                                                 const Grid& grid1,
                                                 const Grid& grid2,
                                                 std::vector<Eigen::Vector2i>& pairs_buffer,
                                                 std::vector<float>& distances_buffer)
 {
-    const Grid_cell& cell1 = grid1.cell(pair.c1);
-    const Grid_cell& cell2 = grid2.cell(pair.c2);
+    const GridCell& cell1 = grid1.cell(pair.c1);
+    const GridCell& cell2 = grid2.cell(pair.c2);
 
     // The cells could be not adjucent if one of them is wrapped around
     // but this only happens in peridic case and is treated automatically
@@ -151,12 +151,12 @@ void Distance_search_contacts::search_between_cells(const pteros::Planned_pair &
     }
 }
 
-void Distance_search_contacts::search_inside_cell(const Planned_pair& pair,
+void DistanceSearchContacts::search_inside_cell(const PlannedPair& pair,
                                                   const Grid &grid,
                                                   std::vector<Vector2i> &pairs_buffer,
                                                   std::vector<float> &distances_buffer)
 {
-    const Grid_cell& cell = grid.cell(pair.c1);
+    const GridCell& cell = grid.cell(pair.c1);
 
     int N = cell.size();
 

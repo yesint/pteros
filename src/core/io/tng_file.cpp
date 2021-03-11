@@ -27,16 +27,13 @@
 */
 
 
-
-
-
 #include "tng_file.h"
 
 using namespace std;
 using namespace pteros;
 using namespace Eigen;
 
-TNG_file::TNG_file(string &fname): VMD_molfile_plugin_wrapper(fname){
+TngFile::TngFile(string &fname): VmdMolfilePluginWrapper(fname){
    plugin = molfile_plugins["tng"];
 }
 

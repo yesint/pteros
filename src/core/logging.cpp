@@ -54,7 +54,7 @@ void pteros::set_log_level(const std::string &lev)
     else if(lev=="err") Log::instance().default_level = spdlog::level::err;
     else if(lev=="critical") Log::instance().default_level = spdlog::level::critical;
     else if(lev=="off") Log::instance().default_level = spdlog::level::off;
-    else throw Pteros_error("Invalid log level '{}'",lev);
+    else throw PterosError("Invalid log level '{}'",lev);
     spdlog::set_level(Log::instance().default_level);
 }
 

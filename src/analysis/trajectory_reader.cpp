@@ -44,7 +44,7 @@ using namespace pteros;
 using namespace std;
 
 
-string Trajectory_reader::help(){
+string TrajectoryReader::help(){
     return
 R"(Trajectory processing options:
 General usage:
@@ -102,31 +102,31 @@ Suffixes:
 )";
 }
 
-void Trajectory_reader::add_task(Task_base *task){
+void TrajectoryReader::add_task(TaskBase *task){
     tasks.emplace_back(task);
 }
 
-void Trajectory_reader::add_task(const Task_ptr &task){
+void TrajectoryReader::add_task(const Task_ptr &task){
     tasks.push_back(task);
 }
 
 
 
-Trajectory_reader::Trajectory_reader()
+TrajectoryReader::TrajectoryReader()
 {
 
 }
 
-Trajectory_reader::Trajectory_reader(const Options &opt): options(opt)
+TrajectoryReader::TrajectoryReader(const Options &opt): options(opt)
 {
 
 }
 
-void Trajectory_reader::set_options(const Options &opt){
+void TrajectoryReader::set_options(const Options &opt){
     options = opt;
 }
 
-void Trajectory_reader::run(){    
+void TrajectoryReader::run(){    
     // Separate logger (not registered since only used here)
     auto log = create_logger("trj_reader");
 
@@ -150,7 +150,7 @@ void Trajectory_reader::run(){
     string structure_file = "";    
 
     for(string& s: file_list){                
-        auto h = Mol_file::recognize(s);
+        auto h = FileHandler::recognize(s);
         auto c = h->get_content_type();
 
         // traj file is always added as traj even if this is TNG
@@ -163,7 +163,7 @@ void Trajectory_reader::run(){
             if(top_file=="")
                 top_file = s;
             else
-                throw Pteros_error("Only one topology file allowed!");
+                throw PterosError("Only one topology file allowed!");
         }
 
         if(c.atoms()){
@@ -175,17 +175,17 @@ void Trajectory_reader::run(){
                 if(structure_file == top_file){
                     structure_file = s;
                 } else if(!c.top()) {
-                    throw Pteros_error("Only one structure file allowed!");
+                    throw PterosError("Only one structure file allowed!");
                 }
             }
 
         }
     }
 
-    if(traj_files.empty()) throw Pteros_error("At least one trajectory file is required!");
+    if(traj_files.empty()) throw PterosError("At least one trajectory file is required!");
 
     // Ensure we have tasks
-    if(tasks.size()<1) throw Pteros_error("At least one task is required!");
+    if(tasks.size()<1) throw PterosError("At least one task is required!");
     // Will read into the system of the first task
     System& system = tasks[0]->system;
 
@@ -206,7 +206,7 @@ void Trajectory_reader::run(){
         // No topology and no structure!
         // try using first TNG traj file as structure
         for(auto& s: traj_files){            
-            auto trj = Mol_file::recognize(s);
+            auto trj = FileHandler::recognize(s);
             auto c = trj->get_content_type();
             if(c.atoms() && c.traj()){                
                 structure_file = s;
@@ -214,14 +214,14 @@ void Trajectory_reader::run(){
                 log->debug("Using trajectory file '{}' to read structure...", s);
                 trj->open('r');
                 Frame fr;
-                trj->read(&system, &fr, Mol_file_content().atoms(true));
+                trj->read(&system, &fr, FileContent().atoms(true));
                 system.frame_append(fr);
                 break;
             }
         }
 
         // If still no structure give up
-        if(structure_file=="") throw Pteros_error("Structure AND/OR topology file is required!");
+        if(structure_file=="") throw PterosError("Structure AND/OR topology file is required!");
     }
 
     // Analysing which kind of tasks we have
@@ -229,7 +229,7 @@ void Trajectory_reader::run(){
     is_parallel = false;
     for(auto& task: tasks){
         if(task->is_parallel()){
-            if(tasks.size()>1) throw Pteros_error("No other tasks can run if parallel task is present!");
+            if(tasks.size()>1) throw PterosError("No other tasks can run if parallel task is present!");
             is_parallel = true;
             break;
         }
@@ -252,7 +252,7 @@ void Trajectory_reader::run(){
     int buf_size = options("buffer","10").as_int();    
 
     // Channel for frames
-    Data_channel_ptr reader_channel(new Data_channel);
+    DataChannel_ptr reader_channel(new DataChannel);
     reader_channel->set_buffer_size(buf_size);
 
     int Nproc = std::thread::hardware_concurrency();
@@ -265,7 +265,7 @@ void Trajectory_reader::run(){
     reader.run(traj_files, reader_channel);
 
     // Data container
-    using Data_container_ptr = std::shared_ptr<Data_container>;
+    using Data_container_ptr = std::shared_ptr<DataContainer>;
     Data_container_ptr data;
 
     // Processing depends on which tasks we have
@@ -335,7 +335,7 @@ void Trajectory_reader::run(){
          * Each worker still runs in it's own thread.
          */        
 
-        vector<Data_channel_ptr> worker_channels;
+        vector<DataChannel_ptr> worker_channels;
 
         if(tasks.size() > 1){
             // More than 1 consumer, start all of them in separate threads
@@ -351,7 +351,7 @@ void Trajectory_reader::run(){
 
             for(int i=0; i<tasks.size(); ++i){
                 // Create new channel
-                auto channel=std::make_shared<Data_channel>();
+                auto channel=std::make_shared<DataChannel>();
                 channel->set_buffer_size(buf_size);
                 worker_channels.push_back(channel);
 

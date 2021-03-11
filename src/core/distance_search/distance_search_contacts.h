@@ -27,8 +27,6 @@
 */
 
 
-
-
 #pragma once
 
 #include "distance_search_base.h"
@@ -36,23 +34,23 @@
 namespace pteros {
 
 
-class Distance_search_contacts: public Distance_search_base {
+class DistanceSearchContacts: public DistanceSearchBase {
 protected:
     // Implements logic for calling search_between_cells() or search_inside_cell()
     // with correct grids in derived classes
-    virtual void search_planned_pair(const Planned_pair& pair,
+    virtual void search_planned_pair(const PlannedPair& pair,
                                      std::vector<Eigen::Vector2i> &pairs_buffer,
                                      std::vector<float> &distances_buffer) = 0;
 
     void do_search();
 
-    void search_between_cells(const Planned_pair &pair,
+    void search_between_cells(const PlannedPair &pair,
                               const Grid &grid1,
                               const Grid &grid2,
                               std::vector<Eigen::Vector2i> &pairs_buffer,
                               std::vector<float> &distances_buffer);
 
-    void search_inside_cell(const Planned_pair &pair,
+    void search_inside_cell(const PlannedPair &pair,
                             const Grid &grid,
                             std::vector<Eigen::Vector2i> &pairs_buffer,
                             std::vector<float> &distances_buffer);

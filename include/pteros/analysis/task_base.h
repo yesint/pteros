@@ -34,24 +34,24 @@
 #include <spdlog/spdlog.h>
 
 // Forward declaration of the message channel
-template<class T> class Message_channel;
+template<class T> class MessageChannel;
 
 namespace pteros {
 
 // Forward declarations
-class Data_container;
-class Task_driver;
+class DataContainer;
+class TaskDriver;
 
 
-class Task_base {
-    friend class Task_driver;
-    friend class Trajectory_reader;
+class TaskBase {
+    friend class TaskDriver;
+    friend class TrajectoryReader;
 
 public:
-    Task_base();
-    Task_base(const Task_base& other);
-    virtual ~Task_base(){}
-    virtual Task_base* clone() const = 0;
+    TaskBase();
+    TaskBase(const TaskBase& other);
+    virtual ~TaskBase(){}
+    virtual TaskBase* clone() const = 0;
 
     int get_id(){ return task_id; }
 
@@ -60,11 +60,11 @@ public:
     std::shared_ptr<spdlog::logger> log;
 
     virtual void pre_process() = 0;
-    virtual void process_frame(const Frame_info& info) = 0;
-    virtual void post_process(const Frame_info& info) = 0;
+    virtual void process_frame(const FrameInfo& info) = 0;
+    virtual void post_process(const FrameInfo& info) = 0;
 
     // Default implementation of collector for parallel tasks
-    virtual void collect_data(const std::vector<std::shared_ptr<Task_base>>& tasks, int n_frames){}
+    virtual void collect_data(const std::vector<std::shared_ptr<TaskBase>>& tasks, int n_frames){}
 
     // Default implementation of global preprocess for parallel tasks
     virtual void before_spawn(){}
@@ -84,11 +84,11 @@ protected:
         pre_process();
     }
 
-    virtual void process_frame_handler(const Frame_info& info){
+    virtual void process_frame_handler(const FrameInfo& info){
         process_frame(info);
     }
 
-    virtual void post_process_handler(const Frame_info& info){
+    virtual void post_process_handler(const FrameInfo& info){
         post_process(info);
     }
 
@@ -100,7 +100,7 @@ private:
     void put_frame(const Frame& frame);
     void put_system(const System& sys);
 
-    std::shared_ptr<Task_driver> driver;
+    std::shared_ptr<TaskDriver> driver;
 };
 
 }

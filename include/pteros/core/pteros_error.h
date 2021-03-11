@@ -34,13 +34,13 @@
 namespace pteros {
 
 /// Represents an error in the Pteros code. Used for all Pteros-related exceptions.
-class Pteros_error: public std::runtime_error {
+class PterosError: public std::runtime_error {
 public:
 
     using runtime_error::runtime_error;
 
     template <typename... Args>
-    Pteros_error(const char *format, const Args & ... args): runtime_error(fmt::format(format, args...)) { }
+    PterosError(const char *format, const Args & ... args): runtime_error(fmt::format(format, args...)) { }
 };
 
 }

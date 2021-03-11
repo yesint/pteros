@@ -27,18 +27,13 @@
 */
 
 
-
-
-
-
-#ifndef FRAME_INFO_H
-#define FRAME_INFO_H
+#pragma once
 
 namespace pteros {
 
 /// Information about current frame, which is passed to Consumer for analysis
 /// along with the frame itself
-struct Frame_info {
+struct FrameInfo {
     /// Counts *all* frames in trajectory starting from 0
     int absolute_frame;
     /// Current time stamp
@@ -57,9 +52,5 @@ struct Frame_info {
 };
 
 }
-
-#endif
-
-
 
 

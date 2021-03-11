@@ -27,8 +27,6 @@
 */
 
 
-
-
 #pragma once
 
 #include "distance_search_within_base.h"
@@ -36,14 +34,14 @@
 namespace pteros {       
 
 
-class Distance_search_within_sel: public Distance_search_within_base {
+class DistanceSearchWithinSel: public DistanceSearchWithinBase {
 public:
     /// Constuctor for very fast immediate search of atoms from src,
     /// which are within given distance from the atoms of target.
     /// Used in internal parsing of within selections.
     /// \warning Returns absolute indexes only!
     /// \warning Result is not sorted!
-    Distance_search_within_sel(float d,
+    DistanceSearchWithinSel(float d,
                            const Selection& src,
                            const Selection& target,
                            std::vector<int> &res,

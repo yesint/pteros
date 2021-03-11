@@ -27,8 +27,6 @@
 */
 
 
-
-
 #pragma once
 
 #include <string>
@@ -42,12 +40,12 @@
 namespace pteros {
 
 /// Generic API for reading and writing any molecule file formats
-class Babel_wrapper: public Mol_file {
+class BabelWrapper: public FileHandler {
 public:
     // High-level API        
-    Babel_wrapper(std::string& fname);
+    BabelWrapper(std::string& fname);
     virtual void open(char open_mode);
-    virtual ~Babel_wrapper();
+    virtual void close();
 
 protected:       
     OpenBabel::OBConversion conv;
@@ -56,8 +54,8 @@ protected:
     // Tells if the format need bonds to be present
     virtual bool need_bonds() = 0;
 
-    virtual bool do_read(System *sys, Frame *frame, const Mol_file_content& what);
-    virtual void do_write(const Selection &sel, const Mol_file_content& what);
+    virtual bool do_read(System *sys, Frame *frame, const FileContent& what);
+    virtual void do_write(const Selection &sel, const FileContent& what);
 };
 
 }

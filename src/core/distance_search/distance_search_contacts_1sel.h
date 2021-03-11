@@ -35,10 +35,10 @@
 
 namespace pteros {       
 
-class Distance_search_contacts_1sel: public Distance_search_contacts {
+class DistanceSearchContacts1sel: public DistanceSearchContacts {
 public:
 
-    Distance_search_contacts_1sel(float d,
+    DistanceSearchContacts1sel(float d,
                                   const Selection& sel,
                                   std::vector<Eigen::Vector2i>& res_pairs,
                                   std::vector<float>& res_distances,
@@ -46,7 +46,7 @@ public:
                                   Vector3i_const_ref pbc = fullPBC);
 protected:    
 
-    virtual void search_planned_pair(const Planned_pair& pair,
+    virtual void search_planned_pair(const PlannedPair& pair,
                                      std::vector<Eigen::Vector2i> &pairs_buffer,
                                      std::vector<float> &distances_buffer) override;
 };

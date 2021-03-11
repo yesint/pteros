@@ -37,24 +37,24 @@ using namespace std;
 using namespace pteros;
 using namespace Eigen;
 
-void GRO_file::open(char open_mode)
+void GroFile::open(char open_mode)
 {
     if(open_mode=='r'){
         f.open(fname.c_str(),ios_base::in);
-        if(!f) throw Pteros_error("Can't open GRO file '{}' for reading",fname);
+        if(!f) throw PterosError("Can't open GRO file '{}' for reading",fname);
     } else {
         f.open(fname.c_str(),ios_base::out);
-        if(!f) throw Pteros_error("Can't open GRO file '{}' for writing",fname);
+        if(!f) throw PterosError("Can't open GRO file '{}' for writing",fname);
     }
 }
 
-GRO_file::~GRO_file(){
+void GroFile::close(){
     if(f){
         f.close();
     }
 }
 
-bool GRO_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
+bool GroFile::do_read(System *sys, Frame *frame, const FileContent &what){
 
     string line;
 
@@ -76,7 +76,7 @@ bool GRO_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
 
     frame->coord.resize(N);
 
-    System_builder builder(sys);
+    SystemBuilder builder(sys);
 
     // Read coordinates
     for(i=0;i<N;++i){
@@ -144,12 +144,12 @@ bool GRO_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
     return true;
 }
 
-void GRO_file::do_write(const Selection &sel, const Mol_file_content &what){
+void GroFile::do_write(const Selection &sel, const FileContent &what){
     int n = sel.size();
     char ch[80];
 
     if(!(what.coord() && what.atoms()))
-        throw Pteros_error("It is impossible to write individual components to GRO file!");
+        throw PterosError("It is impossible to write individual components to GRO file!");
 
     // Print title
     f << "Created by Pteros" << endl;

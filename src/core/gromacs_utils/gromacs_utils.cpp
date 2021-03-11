@@ -36,7 +36,7 @@ void init_gmx_box(matrix box)
 }
 
 
-void gmx_box_to_pteros(const matrix m, Periodic_box &b)
+void gmx_box_to_pteros(const matrix m, PeriodicBox &b)
 {
     Eigen::Matrix3f matr;
     for(int i=0;i<3;++i)
@@ -45,7 +45,7 @@ void gmx_box_to_pteros(const matrix m, Periodic_box &b)
     b.set_matrix(matr);
 }
 
-void pteros_box_to_gmx(const Periodic_box &box, matrix m)
+void pteros_box_to_gmx(const PeriodicBox &box, matrix m)
 {
     Eigen::Matrix3f matr = box.get_matrix();
     for(int i=0;i<3;++i)

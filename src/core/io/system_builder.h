@@ -36,12 +36,12 @@ namespace pteros {
 // Mol_file is a friend of System and can access it's internals
 // but derived *_file classes are not friends.
 // In order to access internals of the System we define special access class
-class System_builder {
+class SystemBuilder {
 public:
-    System_builder(System& s): sys(&s) {}
-    System_builder(System* s): sys(s) {}
+    SystemBuilder(System& s): sys(&s) {}
+    SystemBuilder(System* s): sys(s) {}
     // When destroyed builer calls assign_resindex() and duing other preparations
-    ~System_builder();
+    ~SystemBuilder();
 
     void allocate_atoms(int n);
     void set_atom(int i, const Atom& at);

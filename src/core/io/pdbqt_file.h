@@ -34,12 +34,12 @@
 
 namespace pteros {
 
-class PDBQT_file: public Babel_wrapper {
+class PdbqtFile: public BabelWrapper {
 public:
-    PDBQT_file(std::string& fname);
+    PdbqtFile(std::string& fname);
 
-    virtual Mol_file_content get_content_type() const {
-        return Mol_file_content()
+    virtual FileContent get_content_type() const {
+        return FileContent()
                 .atoms(true)
                 .coord(true);
     }

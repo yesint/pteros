@@ -38,20 +38,20 @@ using namespace std;
 using namespace pteros;
 
 
-Jump_remover::Jump_remover():
+JumpRemover::JumpRemover():
     dims(fullPBC),
     unwrap_d(0),
     pbc_atom(0),
     initialized(false)
 { }
 
-void Jump_remover::add_atoms(const Selection &sel)
+void JumpRemover::add_atoms(const Selection &sel)
 {    
     int ind;
     int n = sel.get_system()->num_atoms();
     for(int i=0;i<sel.size();++i){
         ind = sel.index(i);
-        if(ind<0 || ind>=n) throw Pteros_error("Index {} for jump removal out of range (0:{})!",ind,n-1);
+        if(ind<0 || ind>=n) throw PterosError("Index {} for jump removal out of range (0:{})!",ind,n-1);
         no_jump_ind.push_back(ind);
     }
 
@@ -61,23 +61,23 @@ void Jump_remover::add_atoms(const Selection &sel)
     no_jump_ind.resize( it - no_jump_ind.begin() );
 }
 
-void Jump_remover::set_pbc(Array3i_const_ref pbc)
+void JumpRemover::set_pbc(Array3i_const_ref pbc)
 {
     dims = pbc;
     if(dims.sum()==0) LOG()->warn("No periodic dimensions, skipping jump removing.");
 }
 
-void Jump_remover::set_unwrap_dist(float d)
+void JumpRemover::set_unwrap_dist(float d)
 {
     unwrap_d = d;
 }
 
-void Jump_remover::set_pbc_atom(int ind)
+void JumpRemover::set_pbc_atom(int ind)
 {
     pbc_atom = ind;
 }
 
-void Jump_remover::remove_jumps(System& system){
+void JumpRemover::remove_jumps(System& system){
     // Exit immediately if no atoms or no valid dimensions
     // If not periodic also do nothing
     if(no_jump_ind.empty() || dims.sum()==0 || !system.box(0).is_periodic()) return;

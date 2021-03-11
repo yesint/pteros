@@ -45,7 +45,7 @@ int main(int argc, char* argv[]){
         vector<string> end_sels = opt("end").as_strings();
 
         if(begin_sels.empty() && end_sels.empty())
-            throw Pteros_error("You must specify at least some selections to rearrange!s");
+            throw PterosError("You must specify at least some selections to rearrange!s");
 
         string prefix = opt("prefix","").as_string();
         if(prefix!=""){
@@ -59,7 +59,7 @@ int main(int argc, char* argv[]){
         sys().write(opt("o","rearranged.pdb").as_string());
 
 
-    } catch(const Pteros_error& e) {
+    } catch(const PterosError& e) {
         LOG()->error(e.what());
     }
 }

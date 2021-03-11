@@ -39,7 +39,7 @@ using namespace pteros;
 using namespace Eigen;
 
 
-Distance_search_contacts_2sel::Distance_search_contacts_2sel(float d,
+DistanceSearchContacts2sel::DistanceSearchContacts2sel(float d,
                                                              const Selection &sel1,
                                                              const Selection &sel2,
                                                              std::vector<Eigen::Vector2i>& res_pairs,
@@ -53,7 +53,7 @@ Distance_search_contacts_2sel::Distance_search_contacts_2sel(float d,
     abs_index = absolute_index;
 
     if(sel1.get_system() != sel2.get_system())
-        throw Pteros_error("Selections for distance search should be from the same system!");
+        throw PterosError("Selections for distance search should be from the same system!");
 
     box = sel1.box();
     pairs = &res_pairs;
@@ -72,7 +72,7 @@ Distance_search_contacts_2sel::Distance_search_contacts_2sel(float d,
     do_search();
 }
 
-void Distance_search_contacts_2sel::search_planned_pair(const Planned_pair &pair,
+void DistanceSearchContacts2sel::search_planned_pair(const PlannedPair &pair,
                                                         std::vector<Vector2i> &pairs_buffer,
                                                         std::vector<float> &distances_buffer)
 {

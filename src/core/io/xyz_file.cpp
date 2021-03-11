@@ -36,7 +36,7 @@ using namespace std;
 using namespace pteros;
 using namespace Eigen;
 
-XYZ_file::XYZ_file(string fname): VMD_molfile_plugin_wrapper(fname){
+XyzFile::XyzFile(string fname): VmdMolfilePluginWrapper(fname){
     plugin = molfile_plugins["xyz"];
 }
 

@@ -36,7 +36,7 @@
 using namespace pteros;
 using namespace std;
 
-PDBQT_file::PDBQT_file(string &fname): Babel_wrapper(fname){ }
+PdbqtFile::PdbqtFile(string &fname): BabelWrapper(fname){ }
 
 
 

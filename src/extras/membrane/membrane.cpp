@@ -528,7 +528,7 @@ void Membrane::compute_properties(float d, bool use_external_normal, Vector3f_co
         if(lip.group<0) continue; // Skip excluded lipids
 
         if(lip.group>=groups.size())
-            throw Pteros_error("Invalid lipid group {}. Valid range is [0:{}]",lip.group,groups.size()-1);
+            throw PterosError("Invalid lipid group {}. Valid range is [0:{}]",lip.group,groups.size()-1);
 
         auto& prop = groups[lip.group][lip.name];
 

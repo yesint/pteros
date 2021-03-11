@@ -27,9 +27,6 @@
 */
 
 
-
-
-
 #include "pteros/analysis/options.h"
 #include "bindings_util.h"
 

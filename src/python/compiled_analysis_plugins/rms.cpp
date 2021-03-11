@@ -68,11 +68,11 @@ protected:
 
         // rms_selections
         vector<string> strs = options("rms_sel").as_strings();
-        if(strs.size()==0) throw Pteros_error("At least one rms selection required!");
+        if(strs.size()==0) throw PterosError("At least one rms selection required!");
         // Create selections
         for(auto& s: strs) rms_sel.emplace_back(system,s);
 
-        if(check_selection_overlap(rms_sel)) throw Pteros_error("Selections should not overlap!");
+        if(check_selection_overlap(rms_sel)) throw PterosError("Selections should not overlap!");
 
         // fit_sel is optional
         string fit_str = options("fit_sel","").as_string();
@@ -84,7 +84,7 @@ protected:
         }
 
         if(fit_sel.size()<3){
-            throw Pteros_error("Can't fit selection with less than 3 atoms!");
+            throw PterosError("Can't fit selection with less than 3 atoms!");
         }
 
         float d = options("nojump","0").as_float();
@@ -98,7 +98,7 @@ protected:
         data.resize(rms_sel.size());
     }     
 
-    void process_frame(const pteros::Frame_info &info) override {
+    void process_frame(const pteros::FrameInfo &info) override {
         if(info.valid_frame==0){
             // Create frame 1 for fitting
             system.frame_dup(0);
@@ -113,7 +113,7 @@ protected:
         }
     }
 
-    void post_process(const pteros::Frame_info &info) override {
+    void post_process(const pteros::FrameInfo &info) override {
         // Output
         string fname = fmt::format("rms_id{}.dat",get_id());
         // Get time step in frames and time

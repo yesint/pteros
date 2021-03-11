@@ -72,7 +72,7 @@ protected:
         f << "#frame N :DSSP_code_string. NO space after ':'!" << endl;               
     }
 
-    void process_frame(const Frame_info &info) override {
+    void process_frame(const FrameInfo &info) override {
         string s = sel.dssp();
         // Count all structured residues
         int N = std::count_if(s.begin(), s.end(), [](char c){return c!='T' && c!='S' && c!=' ';});
@@ -105,7 +105,7 @@ protected:
         }
     }
 
-    void post_process(const Frame_info &info) override {
+    void post_process(const FrameInfo &info) override {
         f.close();
 
         // Write map if asked

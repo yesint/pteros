@@ -45,7 +45,7 @@ void MOL2_file::do_write(const Selection &sel, const Mol_file_content &what){
 
 #else
 
-MOL2_file::MOL2_file(string &fname): Babel_wrapper(fname){ }
+Mol2File::Mol2File(string &fname): BabelWrapper(fname){ }
 
 #endif
 

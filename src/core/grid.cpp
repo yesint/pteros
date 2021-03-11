@@ -1,4 +1,4 @@
-/*
+﻿/*
  * This file is a part of
  *
  * ============================================
@@ -96,10 +96,10 @@ void Grid::populate_periodic(const Selection &sel, Vector3i_const_ref pbc_dims, 
     populate_periodic(sel, sel.box(), pbc_dims, abs_index);
 }
 
-void Grid::populate_periodic(const Selection &sel, const Periodic_box &box, Vector3i_const_ref pbc_dims, bool abs_index)
+void Grid::populate_periodic(const Selection &sel, const PeriodicBox &box, Vector3i_const_ref pbc_dims, bool abs_index)
 {
     if( pbc_dims(0)==0 && pbc_dims(1)==0 && pbc_dims(2)==0 )
-        throw Pteros_error("No periodic dimensions specified for periodic grid!");
+        throw PterosError("No periodic dimensions specified for periodic grid!");
 
     int Natoms = sel.size();
     int NX = data.shape()[0];
@@ -157,12 +157,12 @@ void Grid::populate_periodic(const Selection &sel, const Periodic_box &box, Vect
 
 
 
-void Grid_cell::add_point(int ind, Vector3f_const_ref crd){
+void GridCell::add_point(int ind, Vector3f_const_ref crd){
     indexes.push_back(ind);
     coords.push_back(crd);
 }
 
-void Grid_cell::clear(){
+void GridCell::clear(){
     indexes.clear();
     coords.clear();
 }

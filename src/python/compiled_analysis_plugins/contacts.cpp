@@ -91,7 +91,7 @@ protected:
         all.modify(system, "all");
 
         // Check if selection overlap        
-        if(check_selection_overlap({sel1,sel2})) throw Pteros_error("Selections could not overlap!");
+        if(check_selection_overlap({sel1,sel2})) throw PterosError("Selections could not overlap!");
 
         // Set periodicity
         periodic = options("periodic","false").as_bool();
@@ -138,7 +138,7 @@ protected:
         en_f.open(options("en_file",fmt::format("energy_{}.dat",get_id())).as_string());
     }     
 
-    void process_frame(const pteros::Frame_info &info) override {
+    void process_frame(const pteros::FrameInfo &info) override {
         // Search for contacts
         vector<Vector2i> bon;
         vector<float> dist_vec;
@@ -250,7 +250,7 @@ protected:
         en_f << info.absolute_time << " " << total_en.sum() << " " << total_en.transpose() << endl;
     }
 
-    void post_process(const pteros::Frame_info &info) override {
+    void post_process(const pteros::FrameInfo &info) override {
         en_f.close();
 
         // Analyze atom contacts

@@ -34,14 +34,14 @@
 namespace pteros {
 
 
-class TPR_file: public Mol_file {
+class TprFile: public FileHandler {
 public:
-    TPR_file(std::string& fname): Mol_file(fname) {}
+    TprFile(std::string& fname): FileHandler(fname) {}
     virtual void open(char open_mode);
-    ~TPR_file();
+    virtual void close();
 
-    virtual Mol_file_content get_content_type() const {        
-        return Mol_file_content()
+    virtual FileContent get_content_type() const {        
+        return FileContent()
                 .atoms(true)
                 .coord(true)
                 .top(true);
@@ -49,9 +49,9 @@ public:
 
 protected:        
 
-    virtual void do_write(const Selection &sel, const Mol_file_content& what) {}
+    virtual void do_write(const Selection &sel, const FileContent& what) {}
 
-    virtual bool do_read(System *sys, Frame *frame, const Mol_file_content& what);
+    virtual bool do_read(System *sys, Frame *frame, const FileContent& what);
 };
 
 }

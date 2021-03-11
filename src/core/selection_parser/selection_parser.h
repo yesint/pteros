@@ -27,8 +27,6 @@
 */
 
 
-
-
 #pragma once
 
 #include <string>
@@ -41,13 +39,13 @@
 namespace pteros {
 
 // Custom annoation for peglib ast structure
-struct MyAst_annotation {
+struct MyAstAnnotation {
     bool is_coord_dependent;
     std::vector<int> precomputed;
     float numeric_value;
 };
 
-typedef peg::AstBase<MyAst_annotation> MyAst;
+typedef peg::AstBase<MyAstAnnotation> MyAst;
 typedef std::function<void(std::vector<int>&)> result_func_t;
 
 /**
@@ -58,7 +56,7 @@ typedef std::function<void(std::vector<int>&)> result_func_t;
 *   which holds the parser.
     This class should never be used directly.
 */
-class Selection_parser{    
+class SelectionParser{
 public:
     /** True if there are coordinate keywords in selection.
     *   If true, the parser will persist (not deleted after parsing).
@@ -68,9 +66,9 @@ public:
     */
     bool has_coord;  //There are coordinates in selection
     /// Constructor
-    Selection_parser(std::vector<int>* subset = nullptr);
+    SelectionParser(std::vector<int>* subset = nullptr);
     /// Destructor
-    virtual ~Selection_parser();
+    virtual ~SelectionParser();
     /// Generates AST from selection string
     void create_ast(std::string& sel_str, System *system);
     /// Apply ast to the given frame. Fills the vector passed from

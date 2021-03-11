@@ -27,9 +27,6 @@
 */
 
 
-
-
-
 #include "pteros/core/distance_search_within.h"
 #include "distance_search_within_base.h"
 
@@ -38,13 +35,13 @@ using namespace pteros;
 using namespace Eigen;
 
 
-class Distance_search_within::Distance_search_within_impl: public Distance_search_within_base {
+class DistanceSearchWithin::DistanceSearchWithinImpl: public DistanceSearchWithinBase {
 public:
-    Distance_search_within_impl(){}
+    DistanceSearchWithinImpl(){}
 
     /// Constructor for two-stage within searching.
     /// Sets source selection.
-    Distance_search_within_impl(float d,
+    DistanceSearchWithinImpl(float d,
                            const Selection& src,
                            bool absolute_index = false,
                            Vector3i_const_ref pbc = fullPBC)
@@ -52,7 +49,7 @@ public:
         setup(d,src,absolute_index,pbc);
     }
 
-    ~Distance_search_within_impl(){}
+    ~DistanceSearchWithinImpl(){}
 
 
     void setup(float d,
@@ -133,32 +130,32 @@ public:
 
 
 
-Distance_search_within::Distance_search_within()
+DistanceSearchWithin::DistanceSearchWithin()
 {
-    p = unique_ptr<Distance_search_within_impl>(new Distance_search_within_impl());
+    p = unique_ptr<DistanceSearchWithinImpl>(new DistanceSearchWithinImpl());
 }
 
-Distance_search_within::Distance_search_within(float d, const Selection &src, bool absolute_index, Vector3i_const_ref pbc)
+DistanceSearchWithin::DistanceSearchWithin(float d, const Selection &src, bool absolute_index, Vector3i_const_ref pbc)
 {
-    p = unique_ptr<Distance_search_within_impl>(new Distance_search_within_impl(d,src,absolute_index,pbc));
+    p = unique_ptr<DistanceSearchWithinImpl>(new DistanceSearchWithinImpl(d,src,absolute_index,pbc));
 }
 
-Distance_search_within::~Distance_search_within()
+DistanceSearchWithin::~DistanceSearchWithin()
 {
 
 }
 
-void Distance_search_within::setup(float d, const Selection &src, bool absolute_index, Vector3i_const_ref pbc)
+void DistanceSearchWithin::setup(float d, const Selection &src, bool absolute_index, Vector3i_const_ref pbc)
 {
     p->setup(d,src,absolute_index,pbc);
 }
 
-void Distance_search_within::search_within(Vector3f_const_ref coord, std::vector<int> &res)
+void DistanceSearchWithin::search_within(Vector3f_const_ref coord, std::vector<int> &res)
 {
     p->search_within(coord,res);
 }
 
-void Distance_search_within::search_within(const Selection &target, std::vector<int> &res, bool include_self)
+void DistanceSearchWithin::search_within(const Selection &target, std::vector<int> &res, bool include_self)
 {
     p->search_within(target,res,include_self);
 }
