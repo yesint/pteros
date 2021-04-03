@@ -32,12 +32,12 @@ def get_class_name(module):
     nparent = 0
     for c in class_list:
         for base in c[1].__bases__:
-            if 'Task_base' in str(base):
+            if 'TaskBase' in str(base):
                nparent+=1
                class_name = c[0]
 
     if nparent!=1:
-        log.error('Plugin file "{}" must contain exactly one class derived from Task_base!'.format(f))
+        log.error('Plugin file "{}" must contain exactly one class derived from TaskBase!'.format(f))
         print(class_list)
         exit()
 
