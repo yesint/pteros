@@ -39,7 +39,7 @@
 #include "pteros/core/pteros_error.h"
 #include "pteros/core/distance_search.h"
 #include "selection_parser.h"
-#include "pteros/core/mol_file.h"
+#include "pteros/core/file_handler.h"
 #include "pteros/core/utilities.h"
 
 #ifdef USE_POWERSASA

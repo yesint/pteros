@@ -27,7 +27,7 @@
 */
 
 
-#include "pteros/core/mol_file.h"
+#include "pteros/core/file_handler.h"
 #include "pteros/core/pteros_error.h"
 
 #include "pdb_file.h"

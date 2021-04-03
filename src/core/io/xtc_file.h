@@ -32,7 +32,7 @@
 
 #pragma once
 
-#include "pteros/core/mol_file.h"
+#include "pteros/core/file_handler.h"
 
 #include "xdrfile.h"
 #include "xdrfile_xtc.h"

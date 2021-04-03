@@ -27,9 +27,6 @@
 */
 
 
-
-
-
 #include "distance_search_base.h"
 #include "pteros/core/pteros_error.h"
 

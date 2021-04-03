@@ -34,7 +34,7 @@
 #include "message_channel.h"
 #include "data_container.h"
 #include "pteros/core/pteros_error.h"
-#include "pteros/core/mol_file.h"
+#include "pteros/core/file_handler.h"
 #include "task_driver.h"
 #include "traj_file_reader.h"
 #include "pteros/core/logging.h"

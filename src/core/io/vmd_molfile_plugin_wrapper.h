@@ -31,7 +31,7 @@
 #include <string>
 #include "pteros/core/system.h"
 #include "pteros/core/selection.h"
-#include "pteros/core/mol_file.h"
+#include "pteros/core/file_handler.h"
 #include "molfile_plugin.h"
 
 namespace pteros {

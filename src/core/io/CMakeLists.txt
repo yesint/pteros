@@ -3,8 +3,8 @@
 #---------------------
 
 add_library(pteros_io STATIC
-    ${PROJECT_SOURCE_DIR}/include/pteros/core/mol_file.h
-    mol_file.cpp
+    ${PROJECT_SOURCE_DIR}/include/pteros/core/file_handler.h
+    file_handler.cpp
     system_builder.h
     system_builder.cpp
     vmd_molfile_plugin_wrapper.h

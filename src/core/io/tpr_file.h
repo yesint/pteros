@@ -29,7 +29,7 @@
 
 #pragma once
 
-#include "pteros/core/mol_file.h"
+#include "pteros/core/file_handler.h"
 
 namespace pteros {
 

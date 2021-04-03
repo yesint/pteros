@@ -1,6 +1,6 @@
 #include "traj_file_reader.h"
 #include "pteros/core/pteros_error.h"
-#include "pteros/core/mol_file.h"
+#include "pteros/core/file_handler.h"
 #include <boost/algorithm/string.hpp> // For to_lower
 #include <boost/lexical_cast.hpp>
 

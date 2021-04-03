@@ -2,7 +2,7 @@
 //auto FLOAT = g.rule() << INTEGER << (any_char("eE") << INTEGER)('?')
 
 #include <pteros/pteros.h>
-#include <pteros/core/mol_file.h>
+#include <pteros/core/file_handler.h>
 #include <map>
 #include <string>
 #include <iostream>
