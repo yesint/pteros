@@ -305,7 +305,6 @@ void VmdMolfilePluginWrapper::do_write(const Selection &sel, const FileContent &
 IMPORT_PLUGIN(pdb)
 IMPORT_PLUGIN(dcd)
 IMPORT_PLUGIN(xyz)
-IMPORT_PLUGIN(mol2)
 
 #ifdef USE_TNGIO
 IMPORT_PLUGIN(tng)
@@ -326,8 +325,7 @@ std::map<string,molfile_plugin_t*> register_all_plugins(){
 
     REGISTER_PLUGIN(pdb,ret)
     REGISTER_PLUGIN(dcd,ret)
-    REGISTER_PLUGIN(xyz,ret)
-    REGISTER_PLUGIN(mol2,ret)
+    REGISTER_PLUGIN(xyz,ret)    
 
 #ifdef USE_TNGIO
     REGISTER_PLUGIN(tng,ret)

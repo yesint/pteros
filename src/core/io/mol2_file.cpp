@@ -33,21 +33,6 @@
 using namespace pteros;
 using namespace std;
 
-#ifndef USE_OPENBABEL
-
-MOL2_file::MOL2_file(string &fname): VMD_molfile_plugin_wrapper(fname){
-    plugin = molfile_plugins["mol2"];
-}
-
-void MOL2_file::do_write(const Selection &sel, const Mol_file_content &what){
-    throw Pteros_error("In order to write MOL2 files you need to compile with OpenBabel support!");
-}
-
-#else
-
 Mol2File::Mol2File(string &fname): BabelWrapper(fname){ }
-
-#endif
-
 
 

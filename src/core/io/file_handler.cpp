@@ -33,7 +33,6 @@
 #include "pdb_file.h"
 #include "dcd_file.h"
 #include "gro_file.h"
-#include "mol2_file.h"
 #include "xyz_file.h"
 #include "trr_file.h"
 #include "xtc_file.h"
@@ -44,6 +43,7 @@
 
 #ifdef USE_OPENBABEL
 #include "pdbqt_file.h"
+#include "mol2_file.h"
 #endif
 
 #ifdef USE_GROMACS
@@ -114,7 +114,6 @@ unique_ptr<FileHandler> FileHandler::recognize(string fname){
     else if(ext=="pdb")     return FileHandler_ptr(new PdbFile(fname));
     else if(ext=="gro")     return FileHandler_ptr(new GroFile(fname));
     else if(ext=="dcd")     return FileHandler_ptr(new DcdFile(fname));
-    else if(ext=="mol2")    return FileHandler_ptr(new Mol2File(fname));
     else if(ext=="xyz")     return FileHandler_ptr(new XyzFile(fname));
 #ifdef USE_TNGIO
     else if(ext=="tng")     return FileHandler_ptr(new TngFile(fname));
@@ -123,6 +122,7 @@ unique_ptr<FileHandler> FileHandler::recognize(string fname){
     else if(ext=="tpr")     return FileHandler_ptr(new TprFile(fname));
 #endif
 #ifdef USE_OPENBABEL
+    else if(ext=="mol2")    return FileHandler_ptr(new Mol2File(fname));
     else if(ext=="pdbqt")   return FileHandler_ptr(new PdbqtFile(fname));
 #endif
     else throw PterosError("File extension '{}' is not recognized!",ext);

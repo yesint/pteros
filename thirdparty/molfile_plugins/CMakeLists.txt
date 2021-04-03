@@ -6,7 +6,7 @@
 # Build machinery
 #---------------------------
 
-SET(MOLFILE_PLUGINS pdbplugin dcdplugin mol2plugin xyzplugin)
+SET(MOLFILE_PLUGINS pdbplugin dcdplugin xyzplugin)
 if(WITH_TNGIO)
     list(APPEND MOLFILE_PLUGINS tngplugin)
 endif()

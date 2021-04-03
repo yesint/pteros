@@ -14,9 +14,7 @@ add_library(pteros_io STATIC
     dcd_file.h
     dcd_file.cpp
     gro_file.h
-    gro_file.cpp
-    mol2_file.h
-    mol2_file.cpp
+    gro_file.cpp    
     xyz_file.h
     xyz_file.cpp
     trr_file.h
@@ -38,7 +36,9 @@ if(WITH_OPENBABEL AND (OPENBABEL2_FOUND OR OPENBABEL3_FOUND))
         babel_wrapper.h
         babel_wrapper.cpp
         pdbqt_file.h
-        pdbqt_file.cpp)
+        pdbqt_file.cpp
+        mol2_file.h
+        mol2_file.cpp)
     target_compile_definitions(pteros_io PRIVATE USE_OPENBABEL)
     target_include_directories(pteros_io PRIVATE ${OPENBABEL2_INCLUDE_DIR} ${OPENBABEL3_INCLUDE_DIR})
     target_link_libraries(pteros_io PRIVATE pteros_babel_utils)

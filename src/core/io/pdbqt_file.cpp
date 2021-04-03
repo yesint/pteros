@@ -27,9 +27,6 @@
 */
 
 
-
-
-
 #include "pdbqt_file.h"
 #include "pteros/core/pteros_error.h"
 

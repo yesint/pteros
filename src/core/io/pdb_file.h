@@ -44,7 +44,6 @@ public:
                 .coord(true)
                 .traj(true);
     }
-
 };
 
 }
