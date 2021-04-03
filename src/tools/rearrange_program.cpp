@@ -41,8 +41,11 @@ int main(int argc, char* argv[]){
             return 0;
         }
 
-        vector<string> begin_sels = opt("begin").as_strings();
-        vector<string> end_sels = opt("end").as_strings();
+        vector<string> begin_sels = opt("begin","").as_strings();
+        vector<string> end_sels = opt("end","").as_strings();
+
+        if(begin_sels.size()==1 && begin_sels[0]=="") begin_sels.clear();
+        if(end_sels.size()==1 && end_sels[0]=="") end_sels.clear();
 
         if(begin_sels.empty() && end_sels.empty())
             throw PterosError("You must specify at least some selections to rearrange!s");
