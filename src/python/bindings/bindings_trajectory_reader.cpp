@@ -27,9 +27,6 @@
 */
 
 
-
-
-
 #include "pteros/analysis/trajectory_reader.h"
 #include "pteros/analysis/options.h"
 #include "pteros/analysis/task_plugin.h"
@@ -64,7 +61,7 @@ public:
             TaskPlugin,      /* Parent class */
             pre_process,          /* Name of function in C++ (must match Python name) */
                           /* Argument(s) */
-        );        
+        );
     }
 
     void process_frame(const FrameInfo& info) override {
@@ -74,7 +71,7 @@ public:
             TaskPlugin,      /* Parent class */
             process_frame,          /* Name of function in C++ (must match Python name) */
             info              /* Argument(s) */
-        );        
+        );
     }
 
     void post_process(const FrameInfo& info) override {

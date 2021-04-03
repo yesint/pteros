@@ -23,7 +23,6 @@
 
 #pragma once
 
-#include <thread>
 #include <mutex>
 #include <condition_variable>
 #include <queue>
@@ -76,7 +75,7 @@ public:
         // If stop requested see if there is something in, if not return false
         if(stop_requested && queue.empty()) return false;
 
-        popped_value=queue.front();
+        popped_value = queue.front();
         queue.pop();
         cond.notify_all();
         return true;

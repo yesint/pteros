@@ -44,8 +44,8 @@ public:
     virtual void open(char open_mode);
     virtual void close();
 
-protected:       
-    void* handle; // Handle for reading
+protected:
+    void* r_handle; // Handle for reading
     void* w_handle; // Handle for writing
 
     char mode;

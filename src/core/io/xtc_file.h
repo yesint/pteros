@@ -52,7 +52,7 @@ public:
                 .rand(true);
     }
 
-protected:        
+protected:
 
     virtual void do_write(const Selection &sel, const FileContent& what) override;
     virtual bool do_read(System *sys, Frame *frame, const FileContent& what) override ;

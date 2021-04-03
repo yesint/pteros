@@ -27,9 +27,6 @@
 */
 
 
-
-
-
 #include "pteros/analysis/jump_remover.h"
 #include "pteros/core/pteros_error.h"
 #include "pteros/core/logging.h"
@@ -153,7 +150,3 @@ void JumpRemover::remove_jumps(System& system){
 
     }
 }
-
-
-
-
