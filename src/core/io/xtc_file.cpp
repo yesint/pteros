@@ -60,7 +60,13 @@ void XtcFile::open(char open_mode)
 
         // Get total number of frames in the trajectory
         num_frames = xdr_xtc_get_last_frame_number(handle,natoms,&bOk);
-        if(num_frames<0 || !bOk) throw PterosError("Can't get number of frames");
+
+        if(!bOk) throw PterosError("Can't get number of frames");
+        if(num_frames<0){
+            LOG()->warn("Weird XTC file: negative number of frames returned ({})!",num_frames);
+            LOG()->warn("Random access operations disabled on this trajectory.");
+            content.rand(false);
+        }
         num_frames /= steps_per_frame;
 
         // Get time step

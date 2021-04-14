@@ -39,14 +39,12 @@ namespace pteros {
 
 class XtcFile: public FileHandlerRandomAccess {
 public:
-    XtcFile(std::string& fname): FileHandlerRandomAccess(fname), handle(nullptr) {}
+    XtcFile(std::string& fname): FileHandlerRandomAccess(fname), handle(nullptr), content(FileContent().traj(true).rand(true)) {}
     virtual void open(char open_mode);
     virtual ~XtcFile();
 
     virtual FileContent get_content_type() const {
-        return FileContent()
-                .traj(true)
-                .rand(true);
+        return content;
     }
 
 protected:
@@ -67,6 +65,7 @@ private:
     int steps_per_frame;
     int64_t num_frames;
     float dt, max_t;
+    FileContent content;
 };
 
 }
