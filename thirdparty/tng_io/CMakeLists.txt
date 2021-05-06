@@ -46,6 +46,7 @@ configure_file(              src/lib/tng_io-configVersion.cmake.in
 
 install(TARGETS tng_io
         EXPORT tng_io
+        RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
         LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
         ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}")
 
