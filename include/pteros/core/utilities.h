@@ -105,6 +105,7 @@ namespace pteros {
         void add(float v1, float v2, float weight=1.0);
         void normalize(float norm=0);
         Eigen::Vector2f delta() const {return d;}
+        float value(int i,int j) const;
 
         void save_to_file(const std::string& fname);
     private:

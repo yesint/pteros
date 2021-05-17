@@ -87,5 +87,6 @@ PYBIND11_MODULE(_pteros, m) {
             .def("add",&Histogram2D::add,"v1"_a,"v2"_a,"weight"_a=1.0)
             .def("normalize",&Histogram2D::normalize,"norm"_a=0)
             .def("save_to_file",&Histogram2D::save_to_file)
+            .def("value",&Histogram2D::value)
     ;
 }

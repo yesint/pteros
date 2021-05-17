@@ -355,6 +355,11 @@ void Histogram2D::normalize(float norm)
     normalized = true;
 }
 
+float Histogram2D::value(int i, int j) const
+{
+    return val(i,j);
+}
+
 void Histogram2D::save_to_file(const string &fname)
 {
     ofstream f(fname);
