@@ -705,6 +705,7 @@ vector<T> Selection::get_##prop(bool unique) const { \
     for(i=0; i<n; ++i) tmp[i] = system->atoms[_index[i]].prop; \
     if(unique){ \
         vector<T> res; \
+        sort(tmp.begin(),tmp.end()); \
         unique_copy(tmp.begin(),tmp.end(), back_inserter(res)); \
         return res; \
     } \
