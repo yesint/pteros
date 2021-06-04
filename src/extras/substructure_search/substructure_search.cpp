@@ -83,7 +83,7 @@ std::vector<std::vector<int>> find_equivalent_atoms(const Selection& sel, int x_
 
 vector<vector<int>> find_substructures(const Selection& source, const Selection& query, bool find_all)
 {
-    if(query.size()>source.size()) throw Pteros_error("Query should be smaller than source molecule!");
+    if(query.size()>source.size()) throw PterosError("Query should be smaller than source molecule!");
 
     vector<vector<int>> res;
 
@@ -118,7 +118,7 @@ vector<vector<int>> find_substructures(const Selection& source, const Selection&
 
 System make_equivalent_to_template(const Selection &target, const Selection &templ)
 {
-    if(target.size()>templ.size()) throw Pteros_error("Target can't be larger than template!");
+    if(target.size()>templ.size()) throw PterosError("Target can't be larger than template!");
 
     System result;
 
@@ -136,7 +136,7 @@ System make_equivalent_to_template(const Selection &target, const Selection &tem
     delete mapper;
     delete ob_query;
 
-    if(mapping.size()!=templ.size()) throw Pteros_error("Molecules are not topologically equivalent!");
+    if(mapping.size()!=templ.size()) throw PterosError("Molecules are not topologically equivalent!");
 
     result = templ;
     for(int i=0; i<mapping.size();++i){
