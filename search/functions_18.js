@@ -1,7 +1,7 @@
 var searchData=
 [
-  ['_7eselection',['~Selection',['../classpteros_1_1Selection.html#a1860ec524d11c03de8c10a9354319839',1,'pteros::Selection']]],
-  ['_7eselection_5fparser',['~Selection_parser',['../classpteros_1_1Selection__parser.html#a46db0b28346e7aa71e80120cf9d5b073',1,'pteros::Selection_parser']]],
-  ['_7esystem',['~System',['../classpteros_1_1System.html#a3be70bb338e3f062f821173fd15680d0',1,'pteros::System']]],
-  ['_7etrajectory_5freader',['~Trajectory_reader',['../classpteros_1_1Trajectory__reader.html#aa156f6827fbb55404c6dc2d86c8b7e38',1,'pteros::Trajectory_reader']]]
+  ['_7eselection_464',['~Selection',['../classpteros_1_1Selection.html#a1860ec524d11c03de8c10a9354319839',1,'pteros::Selection']]],
+  ['_7eselectionparser_465',['~SelectionParser',['../classpteros_1_1SelectionParser.html#a0dc56b99673eec2b9c9d1cc72b2a00e2',1,'pteros::SelectionParser']]],
+  ['_7esystem_466',['~System',['../classpteros_1_1System.html#a3be70bb338e3f062f821173fd15680d0',1,'pteros::System']]],
+  ['_7etrajectoryreader_467',['~TrajectoryReader',['../classpteros_1_1TrajectoryReader.html#aaad711ecd6f6a04df90f4593e9513717',1,'pteros::TrajectoryReader']]]
 ];

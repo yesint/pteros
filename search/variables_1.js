@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['beta',['beta',['../classpteros_1_1Atom.html#a36a0555fe6089f945dc644bcdc19579b',1,'pteros::Atom']]],
-  ['bonds',['bonds',['../classpteros_1_1Force__field.html#afb89677692aa93e4c7c3b25aa6cdb948',1,'pteros::Force_field']]],
-  ['box',['box',['../structpteros_1_1Frame.html#a3a92d02103af134ad46d07fbc72ae461',1,'pteros::Frame']]]
+  ['beta_471',['beta',['../classpteros_1_1Atom.html#a36a0555fe6089f945dc644bcdc19579b',1,'pteros::Atom']]],
+  ['bonds_472',['bonds',['../classpteros_1_1ForceField.html#afd1bcd10e097665000fe2753f640f6b7',1,'pteros::ForceField']]],
+  ['box_473',['box',['../structpteros_1_1Frame.html#a6464a4c3b4d1825cda9b0a0798f76659',1,'pteros::Frame']]]
 ];

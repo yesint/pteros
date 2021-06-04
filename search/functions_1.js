@@ -1,7 +1,7 @@
 var searchData=
 [
-  ['begin',['begin',['../classpteros_1_1Selection.html#aa5551a11482b6db769c5cf5ff4401c2b',1,'pteros::Selection']]],
-  ['box',['box',['../classpteros_1_1Selection.html#ad72feafdb3e5f02f97e2820ad65b0c0c',1,'pteros::Selection::box()'],['../classpteros_1_1System.html#ac55f99f3cc1006b179e993d7d90a598f',1,'pteros::System::box(int fr=0)'],['../classpteros_1_1System.html#a15d92d06748814e095aff08e4070b385',1,'pteros::System::box(int fr=0) const']]],
-  ['box_5fto_5flab',['box_to_lab',['../classpteros_1_1Periodic__box.html#a31739e4bb4e06dd50e1bda17eccb60df',1,'pteros::Periodic_box']]],
-  ['box_5fto_5flab_5ftransform',['box_to_lab_transform',['../classpteros_1_1Periodic__box.html#a81ccc42eb46b5148997cd6676a81580b',1,'pteros::Periodic_box']]]
+  ['begin_301',['begin',['../classpteros_1_1Selection.html#aa5551a11482b6db769c5cf5ff4401c2b',1,'pteros::Selection']]],
+  ['box_302',['box',['../classpteros_1_1Selection.html#a0d4508d8320d69e3262e538e6f294d44',1,'pteros::Selection::box()'],['../classpteros_1_1System.html#a325a52331c94c862be47f7e4d49573b9',1,'pteros::System::box(int fr=0)'],['../classpteros_1_1System.html#abb05e74aca436eb9e4f0ff91807fa5f5',1,'pteros::System::box(int fr=0) const']]],
+  ['box_5fto_5flab_303',['box_to_lab',['../classpteros_1_1PeriodicBox.html#a3ef3fb548a460acc34de29d9432a0373',1,'pteros::PeriodicBox']]],
+  ['box_5fto_5flab_5ftransform_304',['box_to_lab_transform',['../classpteros_1_1PeriodicBox.html#aba18d00f60bc57e53c9e5f04f85baa91',1,'pteros::PeriodicBox']]]
 ];

@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['element_5fnumber',['element_number',['../classpteros_1_1Atom.html#aef3b7c688cb7b828c440e62ed4e2ff82',1,'pteros::Atom']]],
-  ['exclusions',['exclusions',['../classpteros_1_1Force__field.html#a171418c492c3842cfba35668ce00faae',1,'pteros::Force_field']]]
+  ['exclusions_478',['exclusions',['../classpteros_1_1ForceField.html#a01ae771fd1898f359f82cf12d78c25ff',1,'pteros::ForceField']]]
 ];

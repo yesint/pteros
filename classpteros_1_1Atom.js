@@ -9,7 +9,7 @@ var classpteros_1_1Atom =
     [ "occupancy", "classpteros_1_1Atom.html#ada7a0ba34f30ff2905a342718f297aab", null ],
     [ "beta", "classpteros_1_1Atom.html#a36a0555fe6089f945dc644bcdc19579b", null ],
     [ "resindex", "classpteros_1_1Atom.html#aedf6b3ea2c72356db628ffeec7c4c278", null ],
-    [ "element_number", "classpteros_1_1Atom.html#aef3b7c688cb7b828c440e62ed4e2ff82", null ],
+    [ "atomic_number", "classpteros_1_1Atom.html#ab910565d7875d4b60368cb235ab13b23", null ],
     [ "mass", "classpteros_1_1Atom.html#aab843585ce61b814dd709f1add431bb9", null ],
     [ "charge", "classpteros_1_1Atom.html#a6e1e0c1d214e0d49522506c6bc2aef17", null ],
     [ "type", "classpteros_1_1Atom.html#a6737d0b88bda2afb13687c030bad92cd", null ],

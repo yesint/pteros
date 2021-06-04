@@ -1,5 +1,6 @@
 var searchData=
 [
-  ['absolute_5fframe',['absolute_frame',['../structpteros_1_1Frame__info.html#aa77e2ed13fc89c8b5e82c8803cdc8ae2',1,'pteros::Frame_info']]],
-  ['absolute_5ftime',['absolute_time',['../structpteros_1_1Frame__info.html#acc9b6d5fd0bfd6cecdef13ab111579cf',1,'pteros::Frame_info']]]
+  ['absolute_5fframe_468',['absolute_frame',['../structpteros_1_1FrameInfo.html#a7ee2a69afcb782fe3e2c2e80777493d1',1,'pteros::FrameInfo']]],
+  ['absolute_5ftime_469',['absolute_time',['../structpteros_1_1FrameInfo.html#aecb530a4b2ac8d2e5ec3453e269922e6',1,'pteros::FrameInfo']]],
+  ['atomic_5fnumber_470',['atomic_number',['../classpteros_1_1Atom.html#ab910565d7875d4b60368cb235ab13b23',1,'pteros::Atom']]]
 ];

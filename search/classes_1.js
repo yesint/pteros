@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['babel_5fwrapper',['Babel_wrapper',['../classpteros_1_1Babel__wrapper.html',1,'pteros']]]
+  ['babelwrapper_255',['BabelWrapper',['../classpteros_1_1BabelWrapper.html',1,'pteros']]]
 ];

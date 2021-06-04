@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['help',['help',['../classpteros_1_1Trajectory__reader.html#ae131187dc1d0bc650f9984fe0b94b750',1,'pteros::Trajectory_reader']]]
+  ['help_363',['help',['../classpteros_1_1TrajectoryReader.html#a2aff8587a984fa3af336e7e60880cb27',1,'pteros::TrajectoryReader']]]
 ];

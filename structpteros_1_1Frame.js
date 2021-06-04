@@ -7,6 +7,6 @@ var structpteros_1_1Frame =
     [ "coord", "structpteros_1_1Frame.html#accedb8b5b82c7f44a947f43af20ea2d4", null ],
     [ "vel", "structpteros_1_1Frame.html#a9732eedd594f61d66bcba18d56c7c971", null ],
     [ "force", "structpteros_1_1Frame.html#a11840cb48744563072c869a048f3d3a6", null ],
-    [ "box", "structpteros_1_1Frame.html#a3a92d02103af134ad46d07fbc72ae461", null ],
+    [ "box", "structpteros_1_1Frame.html#a6464a4c3b4d1825cda9b0a0798f76659", null ],
     [ "time", "structpteros_1_1Frame.html#ad6c13b851a594d8dda18c29404e37294", null ]
 ];
