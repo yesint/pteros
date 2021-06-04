@@ -7,10 +7,10 @@
  *
  * https://github.com/yesint/pteros
  *
- * (C) 2009-2020, Semen Yesylevskyy
+ * (C) 2009-2021, Semen Yesylevskyy
  *
  * All works, which use Pteros, should cite the following papers:
- *  
+ *
  *  1.  Semen O. Yesylevskyy, "Pteros 2.0: Evolution of the fast parallel
  *      molecular analysis library for C++ and python",
  *      Journal of Computational Chemistry, 2015, 36(19), 1480–1488.
@@ -25,7 +25,6 @@
  * http://www.opensource.org/licenses/artistic-license-2.0.php
  *
 */
-
 
 
 #include "pteros/python/compiled_plugin.h"
@@ -92,7 +91,7 @@ protected:
         all.modify(system, "all");
 
         // Check if selection overlap        
-        if(check_selection_overlap({sel1,sel2})) throw Pteros_error("Selections could not overlap!");
+        if(check_selection_overlap({sel1,sel2})) throw PterosError("Selections could not overlap!");
 
         // Set periodicity
         periodic = options("periodic","false").as_bool();
@@ -139,7 +138,7 @@ protected:
         en_f.open(options("en_file",fmt::format("energy_{}.dat",get_id())).as_string());
     }     
 
-    void process_frame(const pteros::Frame_info &info) override {
+    void process_frame(const pteros::FrameInfo &info) override {
         // Search for contacts
         vector<Vector2i> bon;
         vector<float> dist_vec;
@@ -251,7 +250,7 @@ protected:
         en_f << info.absolute_time << " " << total_en.sum() << " " << total_en.transpose() << endl;
     }
 
-    void post_process(const pteros::Frame_info &info) override {
+    void post_process(const pteros::FrameInfo &info) override {
         en_f.close();
 
         // Analyze atom contacts
@@ -368,5 +367,7 @@ private:
 
 
 CREATE_COMPILED_PLUGIN(contacts)
+
+
 
 

@@ -7,10 +7,10 @@
  *
  * https://github.com/yesint/pteros
  *
- * (C) 2009-2020, Semen Yesylevskyy
+ * (C) 2009-2021, Semen Yesylevskyy
  *
  * All works, which use Pteros, should cite the following papers:
- *  
+ *
  *  1.  Semen O. Yesylevskyy, "Pteros 2.0: Evolution of the fast parallel
  *      molecular analysis library for C++ and python",
  *      Journal of Computational Chemistry, 2015, 36(19), 1480–1488.
@@ -26,6 +26,7 @@
  *
 */
 
+
 #pragma once
 
 #include <Eigen/Core>
@@ -35,19 +36,19 @@
 
 namespace pteros {
 
-    struct Planned_pair {
+    struct PlannedPair {
         Eigen::Vector3i c1;
         Eigen::Vector3i c2;
         Eigen::Vector3i wrapped;
     };
 
 
-    class Distance_search_base {    
+    class DistanceSearchBase {
     protected:
         // Min and max of the bounding box (for non-periodic case)
         Eigen::Vector3f min,max;
         // Current periodic box (for periodic case)
-        Periodic_box box;
+        PeriodicBox box;
         // Grid dimensions
         Eigen::Vector3i Ngrid;
         // Grids with coordinates
@@ -65,7 +66,7 @@ namespace pteros {
         void set_grid_size(const Eigen::Vector3f& min,
                            const Eigen::Vector3f& max);
         // Non-periodic grid size
-        void set_grid_size(const Periodic_box& box);
+        void set_grid_size(const PeriodicBox& box);
         // Create single grid
         void create_grid(const Selection &sel);
         // Create two grids
@@ -96,9 +97,11 @@ namespace pteros {
         };
 
         Eigen::Vector3i index_to_pos(int i);
-        bool process_neighbour_pair(Planned_pair &pair);
+        bool process_neighbour_pair(PlannedPair &pair);
     };
 
 }
+
+
 
 

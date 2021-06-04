@@ -7,10 +7,10 @@
  *
  * https://github.com/yesint/pteros
  *
- * (C) 2009-2020, Semen Yesylevskyy
+ * (C) 2009-2021, Semen Yesylevskyy
  *
  * All works, which use Pteros, should cite the following papers:
- *  
+ *
  *  1.  Semen O. Yesylevskyy, "Pteros 2.0: Evolution of the fast parallel
  *      molecular analysis library for C++ and python",
  *      Journal of Computational Chemistry, 2015, 36(19), 1480–1488.
@@ -26,16 +26,16 @@
  *
 */
 
-
-
 #include "vmd_molfile_plugin_wrapper.h"
 #include "pteros/core/pteros_error.h"
 #include "pteros/core/logging.h"
+#include "pteros/core/utilities.h"
 #include "../molfile_plugins/periodic_table.h"
 #include <Eigen/Core>
 #include <cmath>
 // General molfile_plugin includes
 #include "molfile_plugin.h"
+#include "system_builder.h"
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846264338327950288
@@ -93,55 +93,58 @@ void box_from_vmd_rep(float fa, float fb, float fc,
 
 
 
-VMD_molfile_plugin_wrapper::VMD_molfile_plugin_wrapper(string& fname): Mol_file(fname),
-    handle(nullptr), w_handle(nullptr)
+VmdMolfilePluginWrapper::VmdMolfilePluginWrapper(string& fname): FileHandler(fname),
+    r_handle(nullptr), w_handle(nullptr)
 {
 
 }
 
-VMD_molfile_plugin_wrapper::~VMD_molfile_plugin_wrapper(){
-    if(mode=='r'){
-        if(handle){
-            plugin->close_file_read(handle);
-            handle = NULL;
-        }
 
-    } else {
-        if(w_handle){
-            plugin->close_file_write(w_handle);            
-            w_handle = NULL;
-        }
-    }
-}
-
-void VMD_molfile_plugin_wrapper::open(char open_mode){
+void VmdMolfilePluginWrapper::open(char open_mode){
     mode = open_mode;
 
     if(mode=='r'){
-        if(handle) throw Pteros_error("Can't open file for reading twice - handle busy!");        
-        handle = NULL;
-        handle = plugin->open_file_read(fname.c_str(), &open_mode, &natoms);
-        if(!handle) throw Pteros_error("Can't open file '{}'!",fname);
+        if(r_handle) throw PterosError("Can't open file for reading twice - handle busy!");
+        r_handle = NULL;
+        r_handle = plugin->open_file_read(fname.c_str(), &open_mode, &natoms);
+        if(!r_handle) throw PterosError("Can't open file '{}'!",fname);
     } else {
-        if(w_handle) throw Pteros_error("Can't open file for writing twice - handle busy!");        
+        if(w_handle) throw PterosError("Can't open file for writing twice - handle busy!");        
         w_handle = NULL;
     }
 
 }
 
-bool VMD_molfile_plugin_wrapper::do_read(System *sys, Frame *frame, const Mol_file_content &what){
+void VmdMolfilePluginWrapper::close()
+{
+    if(mode=='r'){
+        if(r_handle){
+            plugin->close_file_read(r_handle);
+            r_handle = NULL;
+        }
+
+    } else {
+        if(w_handle){
+            plugin->close_file_write(w_handle);
+            w_handle = NULL;
+        }
+    }
+}
+
+bool VmdMolfilePluginWrapper::do_read(System *sys, Frame *frame, const FileContent &what){
 
     if(what.atoms()){
         // READ STRUCTURE:
+        SystemBuilder builder(sys);
 
         if(sys->num_atoms()>0)
-            throw Pteros_error("Can't read structure to the system, which is not empty!");
+            throw PterosError("Can't read structure to the system, which is not empty!");
 
         int flags;
         vector<molfile_atom_t> atoms(natoms);
-        plugin->read_structure(handle,&flags,(molfile_atom_t*)&atoms.front());
+        plugin->read_structure(r_handle,&flags,(molfile_atom_t*)&atoms.front());
         // Allocate atoms in the system
-        allocate_atoms_in_system(*sys,natoms);
+        builder.allocate_atoms(natoms);
         // Copy atoms to the system
         Atom at;
         int pos,idx;
@@ -169,11 +172,13 @@ bool VMD_molfile_plugin_wrapper::do_read(System *sys, Frame *frame, const Mol_fi
                 get_element_from_atom_name(at.name, at.atomic_number, at.mass);
             }
 
-            set_atom_in_system(*sys,i,at);
+            builder.set_atom(i,at);
         }
-        sys->assign_resindex();
 
+        // Here builder goes out of scope and finalizes the system in destructor
     }
+
+    if(what.atoms()) sys->assign_resindex();
 
     if(what.coord() || what.traj()){
         // READ FRAME:
@@ -184,7 +189,7 @@ bool VMD_molfile_plugin_wrapper::do_read(System *sys, Frame *frame, const Mol_fi
         frame->coord.resize(natoms);
         ts.coords = (float*)&frame->coord.front();
 
-        int ret = plugin->read_next_timestep(handle,natoms,&ts);
+        int ret = plugin->read_next_timestep(r_handle,natoms,&ts);
 
         if(ret!=MOLFILE_SUCCESS){
             return false;
@@ -204,13 +209,13 @@ bool VMD_molfile_plugin_wrapper::do_read(System *sys, Frame *frame, const Mol_fi
         frame->time = ts.physical_time;
 
         return true;
-    }       
+    }
 
     // If we are here than something is wrong
     return false;
 }
 
-void VMD_molfile_plugin_wrapper::do_write(const Selection &sel, const Mol_file_content &what) {
+void VmdMolfilePluginWrapper::do_write(const Selection &sel, const FileContent &what) {
 
     if(what.atoms()){
         // WRITE STRUCTURE:        
@@ -222,9 +227,11 @@ void VMD_molfile_plugin_wrapper::do_write(const Selection &sel, const Mol_file_c
             strcpy( atoms[i].name, sel.name(i).c_str() );
             strcpy( atoms[i].resname, sel.resname(i).c_str() );
             atoms[i].resid = sel.resid(i);
-            stringstream ss;
-            ss << sel.chain(i);
-            strcpy( atoms[i].chain, ss.str().c_str() );
+            //stringstream ss;
+            //ss << sel.chain(i);
+            //strcpy( atoms[i].chain, ss.str().c_str() );
+            atoms[i].chain[0] = sel.chain(i);
+            atoms[i].chain[1] = '\0';
             atoms[i].occupancy = sel.occupancy(i);
             atoms[i].bfactor = sel.beta(i);
             atoms[i].mass = sel.mass(i);
@@ -298,7 +305,6 @@ void VMD_molfile_plugin_wrapper::do_write(const Selection &sel, const Mol_file_c
 IMPORT_PLUGIN(pdb)
 IMPORT_PLUGIN(dcd)
 IMPORT_PLUGIN(xyz)
-IMPORT_PLUGIN(mol2)
 
 #ifdef USE_TNGIO
 IMPORT_PLUGIN(tng)
@@ -319,8 +325,7 @@ std::map<string,molfile_plugin_t*> register_all_plugins(){
 
     REGISTER_PLUGIN(pdb,ret)
     REGISTER_PLUGIN(dcd,ret)
-    REGISTER_PLUGIN(xyz,ret)
-    REGISTER_PLUGIN(mol2,ret)
+    REGISTER_PLUGIN(xyz,ret)    
 
 #ifdef USE_TNGIO
     REGISTER_PLUGIN(tng,ret)
@@ -332,14 +337,11 @@ std::map<string,molfile_plugin_t*> register_all_plugins(){
          LOG()->debug("{}", item.first);
     }
 
-
-    /*
-    setvbuf(stdout,NULL,_IOLBF,0);    
-    */
-
     return ret;
 }
 
-std::map<string,molfile_plugin_t*> VMD_molfile_plugin_wrapper::molfile_plugins = register_all_plugins();
+std::map<string,molfile_plugin_t*> VmdMolfilePluginWrapper::molfile_plugins = register_all_plugins();
+
+
 
 

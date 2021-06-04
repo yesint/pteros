@@ -7,10 +7,10 @@
  *
  * https://github.com/yesint/pteros
  *
- * (C) 2009-2020, Semen Yesylevskyy
+ * (C) 2009-2021, Semen Yesylevskyy
  *
  * All works, which use Pteros, should cite the following papers:
- *  
+ *
  *  1.  Semen O. Yesylevskyy, "Pteros 2.0: Evolution of the fast parallel
  *      molecular analysis library for C++ and python",
  *      Journal of Computational Chemistry, 2015, 36(19), 1480–1488.
@@ -26,6 +26,8 @@
  *
 */
 
+
+
 #include "trr_file.h"
 #include "pteros/core/pteros_error.h"
 #include "pteros/core/logging.h"
@@ -37,11 +39,11 @@ using namespace pteros;
 using namespace Eigen;
 
 
-void TRR_file::open(char open_mode)
+void TrrFile::open(char open_mode)
 {    
     handle = xdrfile_open(fname.c_str(),&open_mode);
 
-    if(!handle) throw Pteros_error("Unable to open TRR file {}", fname);
+    if(!handle) throw PterosError("Unable to open TRR file {}", fname);
 
     // Prepare the box just in case
     init_gmx_box(box);
@@ -50,13 +52,13 @@ void TRR_file::open(char open_mode)
     step = (open_mode=='r') ? -1 : 0;
 }
 
-TRR_file::~TRR_file()
+TrrFile::~TrrFile()
 {
     if(handle) xdrfile_close(handle);
 }
 
 
-bool TRR_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
+bool TrrFile::do_read(System *sys, Frame *frame, const FileContent &what){
     bool has_x, has_v, has_f, ok;
 
     if(step<0){
@@ -66,7 +68,7 @@ bool TRR_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
         has_x = (xsz>0);
         has_v = (vsz>0);
         has_f = (fsz>0);
-        if(!has_x) throw Pteros_error("Pteros can't read TRR files without coordinates!");
+        if(!has_x) throw PterosError("Pteros can't read TRR files without coordinates!");
     }
 
     if(step<0) LOG()->debug("TRR file has: x({}), v({}), f({})",has_x,has_v,has_f);
@@ -78,7 +80,7 @@ bool TRR_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
         frame->coord.resize(natoms);
         x = (rvec*)frame->coord.data();
     } else {
-        throw Pteros_error("Pteros can't read TRR files without coordinates!");
+        throw PterosError("Pteros can't read TRR files without coordinates!");
     }
 
     if(has_v){
@@ -98,7 +100,7 @@ bool TRR_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
     return ok;
 }
 
-void TRR_file::do_write(const Selection &sel, const Mol_file_content &what)
+void TrrFile::do_write(const Selection &sel, const FileContent &what)
 {
     // Set box    
     pteros_box_to_gmx(sel.box(),box);
@@ -124,8 +126,10 @@ void TRR_file::do_write(const Selection &sel, const Mol_file_content &what)
     }
 
     int ret = write_trr(handle,sel.size(),step,fr.time,0,box,x,v,f);
-    if(ret!=exdrOK) throw Pteros_error("Unable to write TRR frame");
+    if(ret!=exdrOK) throw PterosError("Unable to write TRR frame");
 
     ++step;
 }
+
+
 

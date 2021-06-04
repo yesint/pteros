@@ -7,10 +7,10 @@
  *
  * https://github.com/yesint/pteros
  *
- * (C) 2009-2020, Semen Yesylevskyy
+ * (C) 2009-2021, Semen Yesylevskyy
  *
  * All works, which use Pteros, should cite the following papers:
- *  
+ *
  *  1.  Semen O. Yesylevskyy, "Pteros 2.0: Evolution of the fast parallel
  *      molecular analysis library for C++ and python",
  *      Journal of Computational Chemistry, 2015, 36(19), 1480–1488.
@@ -29,6 +29,7 @@
 #include "tpr_file.h"
 #include "pteros/core/pteros_error.h"
 #include "pteros/core/logging.h"
+#include "system_builder.h"
 
 #include "gromacs/fileio/tpxio.h"
 #include "gromacs/mdtypes/inputrec.h"
@@ -42,8 +43,6 @@ using namespace pteros;
 using namespace Eigen;
 
 
-TPR_file::~TPR_file(){
-}
 
 
 string coulomb_names[] = {"Cut-off", "Reaction-Field", "Generalized-Reaction-Field",
@@ -58,13 +57,18 @@ string mod_names[] = {"Potential-shift-Verlet", "Potential-shift", "None", "Pote
                       "Exact-cutoff", "Force-switch"};
 
 
-void TPR_file::open(char open_mode)
+void TprFile::open(char open_mode)
 {
     if(open_mode=='w')
-        throw Pteros_error("TPR files could not be written!");
+        throw PterosError("TPR files could not be written!");
 }
 
-bool TPR_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
+void TprFile::close()
+{
+
+}
+
+bool TprFile::do_read(System *sys, Frame *frame, const FileContent &what){
     t_inputrec ir;    
     gmx_mtop_t mtop;
     t_topology top;
@@ -81,6 +85,8 @@ bool TPR_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
         frame->coord.resize(natoms);
         if(what.coord()) frame->box.set_matrix(Map<Matrix3f>((float*)&state.box,3,3));
     }
+
+    SystemBuilder builder(sys);
 
     // Read atoms and coordinates
     for(int i=0;i<natoms;++i){
@@ -106,16 +112,18 @@ bool TPR_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
 
         if(what.atoms()){
             // Add atoms to system
-            append_atom_in_system(*sys,at);
+            builder.add_atom(at);
         } else {
             // Update atoms in system
-            atom_in_system(*sys,i) = at;
+            builder.atom(i) = at;
         }
     }
 
+    if(what.atoms()) sys->assign_resindex();
+
     // Read topology
     if(what.top()){
-        Force_field& ff = sys->get_force_field();
+        ForceField& ff = sys->get_force_field();
         ff.bonds.clear();
 
         ff.natoms = natoms;
@@ -258,4 +266,6 @@ bool TPR_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
 
     return true;
 }
+
+
 

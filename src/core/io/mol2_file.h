@@ -7,10 +7,10 @@
  *
  * https://github.com/yesint/pteros
  *
- * (C) 2009-2020, Semen Yesylevskyy
+ * (C) 2009-2021, Semen Yesylevskyy
  *
  * All works, which use Pteros, should cite the following papers:
- *  
+ *
  *  1.  Semen O. Yesylevskyy, "Pteros 2.0: Evolution of the fast parallel
  *      molecular analysis library for C++ and python",
  *      Journal of Computational Chemistry, 2015, 36(19), 1480–1488.
@@ -30,43 +30,19 @@
 #pragma once
 
 #include <string>
-
-#ifndef USE_OPENBABEL
-// If babel is not available use VMD as fallback
-
-#include "vmd_molfile_plugin_wrapper.h"
-
-namespace pteros {
-
-/// Use VMD plugin for MOL2
-class MOL2_file: public VMD_molfile_plugin_wrapper {
-public:
-    MOL2_file(std::string& fname);
-
-    virtual Mol_file_content get_content_type() const {                
-        return Mol_file_content().atoms(true).coord(true);
-
-    }
-protected:
-    // Override write to report that we can't write if babel is not used
-    virtual void do_write(const Selection &sel, const Mol_file_content& what) override;
-};
-
-}
-
-#else
-
 #include "babel_wrapper.h"
 
 namespace pteros {
 
 /// Use VMD plugin for MOL2
-class MOL2_file: public Babel_wrapper {
+class Mol2File: public BabelWrapper {
 public:
-    MOL2_file(std::string& fname);
+    Mol2File(std::string& fname);
 
-    virtual Mol_file_content get_content_type() const {
-        return Mol_file_content().atoms(true).coord(true);
+    virtual FileContent get_content_type() const {
+        return FileContent()
+                .atoms(true)
+                .coord(true);
 
     }
 
@@ -77,5 +53,5 @@ protected:
 
 }
 
-#endif
+
 

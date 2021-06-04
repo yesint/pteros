@@ -7,10 +7,10 @@
  *
  * https://github.com/yesint/pteros
  *
- * (C) 2009-2020, Semen Yesylevskyy
+ * (C) 2009-2021, Semen Yesylevskyy
  *
  * All works, which use Pteros, should cite the following papers:
- *  
+ *
  *  1.  Semen O. Yesylevskyy, "Pteros 2.0: Evolution of the fast parallel
  *      molecular analysis library for C++ and python",
  *      Journal of Computational Chemistry, 2015, 36(19), 1480–1488.
@@ -27,10 +27,7 @@
 */
 
 
-
-
-#ifndef TRAJECTORY_READER_H
-#define TRAJECTORY_READER_H
+#pragma once
 
 #include <string>
 #include <functional>
@@ -40,9 +37,9 @@
 
 namespace pteros {
 
-using Task_ptr = std::shared_ptr<Task_base> ;
-using Data_channel = Message_channel<std::shared_ptr<pteros::Data_container> > ;
-using Data_channel_ptr = std::shared_ptr<Data_channel> ;
+using Task_ptr = std::shared_ptr<TaskBase> ;
+using DataChannel = MessageChannel<std::shared_ptr<pteros::DataContainer> > ;
+using DataChannel_ptr = std::shared_ptr<DataChannel> ;
 
 /** The base class for trajectory processing
 *   It provides facilities for loading large trajectories by frames
@@ -50,20 +47,18 @@ using Data_channel_ptr = std::shared_ptr<Data_channel> ;
 *   The range of processing could be given
 *   by frame number or by physical time.
 */
-class Trajectory_reader {
+class TrajectoryReader {
 public:
 
         /// Default constructor
-        Trajectory_reader();
+        TrajectoryReader();
         /// Constructor with options
-        Trajectory_reader(const Options& opt);
+        TrajectoryReader(const Options& opt);
         /// Destructor
-        virtual ~Trajectory_reader(){}
+        virtual ~TrajectoryReader(){}
 
         /// Pass options
-        void set_options(const Options& opt){
-            options = opt;
-        }
+        void set_options(const Options& opt);
 
         /// Read trajectory
         virtual void run();
@@ -72,30 +67,23 @@ public:
         std::string help();
 
         /// Adds new task
-        void add_task(Task_base* task){
-            tasks.emplace_back(task);
-        }
-
-        void add_task(const Task_ptr& task){
-            tasks.push_back( task );
-        }        
+        void add_task(TaskBase* task);
+        void add_task(const Task_ptr& task);
 
 private:
-
         // Options
         Options options;
 
-        //void reader_thread_body(const Data_channel_ptr &channel);
-
-        std::vector<std::string> traj_files;        
-
+        std::vector<std::string> traj_files;
         std::vector<Task_ptr> tasks;
 
         bool is_parallel;
 };
 
 }
-#endif
+
+
+
 
 
 

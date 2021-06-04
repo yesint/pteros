@@ -5,7 +5,7 @@
 #      Pteros molecular modeling library
 # ============================================
 #
-# (C) 2009-2019, Semen Yesylevskyy
+# (C) 2009-2021, Semen Yesylevskyy
 #
 # All works, which use Pteros, should cite the following papers:
 #
@@ -23,7 +23,7 @@
 # http://www.opensource.org/licenses/artistic-license-2.0.php
 #
 
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.10)
 
 project(pteros)
 
@@ -32,7 +32,7 @@ OPTION(WITH_OPENMP "Use OpenMP parallelization" ON)
 OPTION(WITH_OPENBABEL "Use OpenBabel. Required to read pdbqt files and for substructure search." ON)
 OPTION(WITH_GROMACS "Use Gromacs. Required to read tpr files." ON)
 OPTION(WITH_TNGIO "Use TNG_IO. Required to read tng files." ON)
-OPTION(WITH_POWERSASA "Use POWERSASA code. This implies license restrictions described here: thirdparty/sasa/LICENSE" ON)
+OPTION(WITH_POWERSASA "Use POWERSASA code. This implies license restrictions described here: thirdparty/powersasa/LICENSE" ON)
 
 OPTION(MAKE_STANDALONE_PLUGINS "Compile analysis plugins as stand-alone executables" OFF)
 OPTION(MAKE_PACKAGE "Generate package" OFF)
@@ -51,8 +51,8 @@ set(GROMACS_SOURCES "" CACHE STRING "Path to Gromacs source tree")
 # -fPIC
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-# C++14 and C99
-set(CMAKE_CXX_STANDARD 14)
+# C++17 and C99
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_C_STANDARD 99)
 
 #Sets optmization in Release build
@@ -120,6 +120,7 @@ endif()
 # spdlog
 find_package(spdlog CONFIG)
 if(NOT spdlog_FOUND)
+    cmake_policy(SET CMP0077 OLD) # To silence warnings
     set(SPDLOG_MASTER_PROJECT ON)
     set(SPDLOG_INSTALL ON)
     set(SPDLOG_BUILD_TESTS OFF)
@@ -140,7 +141,7 @@ endif()
 # Python
 if(WITH_PYTHON)    
     # Configure pybind11
-    find_package(pybind11)
+    find_package(pybind11 QUIET)
     if(NOT pybind11_FOUND)
         download(pybind11)
     endif()
@@ -227,6 +228,10 @@ add_subdirectory(src/python)
 add_subdirectory(src/python/compiled_analysis_plugins)
 add_subdirectory(src/extras)
 
+
+#add_subdirectory(src/v3)
+
+
 IF(MAKE_TEST)
     add_subdirectory(src/test)
 ENDIF()
@@ -253,7 +258,7 @@ install(EXPORT pterosTargets
 # Generate cmake version file
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file("${CMAKE_CURRENT_BINARY_DIR}/cmake/pterosConfigVersion.cmake"
-    VERSION 2.9
+    VERSION 3.0
     COMPATIBILITY SameMajorVersion
 )
 
@@ -277,6 +282,7 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     SET(_ld "${CMAKE_INSTALL_PREFIX}/lib:${CMAKE_INSTALL_PREFIX}/lib64")
     SET(_py ${CMAKE_INSTALL_PREFIX}/python)
     SET(_path ${CMAKE_INSTALL_PREFIX}/bin)
+    SET(_cmake ${CMAKE_INSTALL_PREFIX}/lib/cmake)
     configure_file(${PROJECT_SOURCE_DIR}/cmake/pterosrc.in
                    ${CMAKE_CURRENT_BINARY_DIR}/pterosrc @ONLY)
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/pterosrc DESTINATION lib)
@@ -296,14 +302,14 @@ IF(MAKE_PACKAGE)
     message("Configuring package...")
     INCLUDE(InstallRequiredSystemLibraries)
     SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Pteros molecular modeling library")
-    SET(CPACK_PACKAGE_VERSION_MAJOR "2")
-    SET(CPACK_PACKAGE_VERSION_MINOR "9")
-    SET(CPACK_PACKAGE_VERSION_PATCH "1")
+    SET(CPACK_PACKAGE_VERSION_MAJOR "3")
+    SET(CPACK_PACKAGE_VERSION_MINOR "0")
+    SET(CPACK_PACKAGE_VERSION_PATCH "0")
     SET(CPACK_PACKAGE_INSTALL_DIRECTORY "CMake ${CMake_VERSION_MAJOR}.${CMake_VERSION_MINOR}")
     IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
         SET(CPACK_GENERATOR DEB)
         SET(CPACK_PACKAGE_CONTACT "Semen Yesylevskyy yesint4@yahoo.com")
-        SET(CPACK_DEBIAN_PACKAGE_DEPENDS "g++ (>=5.0), libboost-all-dev (>=1.50), python3-dev (>=3.5), python3-numpy, libeigen3-dev, libspdlog-dev, pybind11-dev")
+        SET(CPACK_DEBIAN_PACKAGE_DEPENDS "g++ (>=9.0), libboost-all-dev (>=1.50), python3-dev (>=3.5), python3-numpy, libeigen3-dev, libspdlog-dev, pybind11-dev")
     ENDIF()
     INCLUDE(CPack)
 ENDIF()

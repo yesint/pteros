@@ -7,10 +7,10 @@
  *
  * https://github.com/yesint/pteros
  *
- * (C) 2009-2020, Semen Yesylevskyy
+ * (C) 2009-2021, Semen Yesylevskyy
  *
  * All works, which use Pteros, should cite the following papers:
- *  
+ *
  *  1.  Semen O. Yesylevskyy, "Pteros 2.0: Evolution of the fast parallel
  *      molecular analysis library for C++ and python",
  *      Journal of Computational Chemistry, 2015, 36(19), 1480–1488.
@@ -39,10 +39,10 @@ class System;
 /// Auxilary type used to incapsulate the atom and its current coordinates
 /// Used internally in Selection::operator[] and in iterator access to Selection.
 /// Objects of this class should not be created by the user in normal situation.
-class Atom_proxy {    
+class AtomProxy {
 public:
-    Atom_proxy(): atom_ptr(nullptr), coord_ptr(nullptr), ind(-1) {}
-    Atom_proxy(System* s, int i, int fr);
+    AtomProxy(): atom_ptr(nullptr), coord_ptr(nullptr), ind(-1) {}
+    AtomProxy(System* s, int i, int fr);
 
     void set(System* s, int i, int fr);
 
@@ -116,12 +116,12 @@ public:
     /// @}
 
     /// Equality operator
-    bool operator==(const Atom_proxy& other) const {
+    bool operator==(const AtomProxy& other) const {
         return (coord_ptr==other.coord_ptr && atom_ptr==other.atom_ptr);
     }
 
     /// Inequality operator
-    bool operator!=(const Atom_proxy &other) const {
+    bool operator!=(const AtomProxy &other) const {
         return !(*this == other);
     }    
 
@@ -134,4 +134,6 @@ private:
 };
 
 }
+
+
 

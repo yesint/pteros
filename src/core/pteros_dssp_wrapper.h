@@ -1,5 +1,4 @@
-#ifndef PTEROS_DSSP_WRAPPER_H
-#define PTEROS_DSSP_WRAPPER_H
+#pragma once
 
 #include "pteros/core/selection.h"
 
@@ -8,4 +7,3 @@ namespace pteros {
     std::string dssp_string(pteros::Selection& sel);
 }
 
-#endif

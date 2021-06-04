@@ -9,8 +9,8 @@
 
 namespace pteros {
 
-using Data_channel = Message_channel<std::shared_ptr<pteros::Data_container> > ;
-using Data_channel_ptr = std::shared_ptr<Data_channel> ;
+using DataChannel = MessageChannel<std::shared_ptr<pteros::DataContainer> > ;
+using DataChannel_ptr = std::shared_ptr<DataChannel> ;
 
 
 class Traj_file_reader {
@@ -22,13 +22,13 @@ public:
     bool is_end_of_interval(int fr, float t);
 
 
-    void run(const std::vector<std::string>& traj_files, const Data_channel_ptr& ch);
+    void run(const std::vector<std::string>& traj_files, const DataChannel_ptr& ch);
 
     ~Traj_file_reader();
 
     void join();
 
-    void reader_thread_body(const std::vector<std::string>& traj_files, const Data_channel_ptr &channel);
+    void reader_thread_body(const std::vector<std::string>& traj_files, const DataChannel_ptr &channel);
 
 private:
     int Natoms; // Number of atoms requested in trajectory

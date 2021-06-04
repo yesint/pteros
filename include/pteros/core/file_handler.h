@@ -7,10 +7,10 @@
  *
  * https://github.com/yesint/pteros
  *
- * (C) 2009-2020, Semen Yesylevskyy
+ * (C) 2009-2021, Semen Yesylevskyy
  *
  * All works, which use Pteros, should cite the following papers:
- *  
+ *
  *  1.  Semen O. Yesylevskyy, "Pteros 2.0: Evolution of the fast parallel
  *      molecular analysis library for C++ and python",
  *      Journal of Computational Chemistry, 2015, 36(19), 1480–1488.
@@ -35,41 +35,46 @@
 
 namespace pteros {
 
-class Mol_file_content {
+class FileContent {
 public:
-    Mol_file_content(){
+    FileContent(){
         flags.reset();
     }
 
     // The list of atoms and their properties
     bool atoms() const { return flags[0]; }
-    Mol_file_content atoms(bool val){ flags[0] = val; return *this;}
+    FileContent atoms(bool val){ flags[0] = val; return *this;}
 
     // Single set of coordinates
     bool coord() const { return flags[1]; }
-    Mol_file_content coord(bool val){ flags[1] = val; return *this;}
+    FileContent coord(bool val){ flags[1] = val; return *this;}
 
     // Many frames
     bool traj() const { return flags[2]; }
-    Mol_file_content traj(bool val){ flags[2] = val; return *this;}
+    FileContent traj(bool val){ flags[2] = val; return *this;}
 
     // Molecular topology
     bool top() const { return flags[3]; }
-    Mol_file_content top(bool val){ flags[3] = val; return *this;}
+    FileContent top(bool val){ flags[3] = val; return *this;}
 
     // Random access trajectory
     bool rand() const { return flags[4]; }
-    Mol_file_content rand(bool val){ flags[4] = val; return *this;}
+    FileContent rand(bool val){ flags[4] = val; return *this;}
 
 private:
     std::bitset<5> flags;
 };
 
+//------------------------------------------------------------------------------
+
+class FileHandler;
+using FileHandler_ptr = std::unique_ptr<FileHandler>;
+
 /// Generic API for reading and writing any molecule file formats
-class Mol_file {
+class FileHandler {
 public:
     /// Recognizes file extension and returns a file handler
-    static std::unique_ptr<Mol_file> recognize(std::string fname);
+    static FileHandler_ptr recognize(std::string fname);
 
     /** Recognize file extension, open file for reading or writing and return a file handler.
      This function is aquivalent to:
@@ -78,62 +83,66 @@ public:
      f.open(mode);
      \endcode
     */
-    static std::unique_ptr<Mol_file> open(std::string fname, char open_mode);
+    static FileHandler_ptr open(std::string fname, char open_mode);
 
     /// Opens a file with given access mode. Need to be defined by derived classes.
     virtual void open(char open_mode) = 0;
+    virtual void close();
 
-    virtual ~Mol_file();
+    virtual ~FileHandler();
 
     /// Reads data, which are specified by what.
     /// Pointers to System and Frame could be nullptr if not used
     /// Returns true if read operation is succesfull and false if not.    
-    bool read(System* sys, Frame* frame, const Mol_file_content& what);
+    bool read(System* sys, Frame* frame, const FileContent& what);
 
     /// Write data from selection specidied by what.
-    void write(const Selection& sel, const Mol_file_content& what);
+    void write(const Selection& sel, const FileContent& what);
 
     /// Reports content of this file type
-    virtual Mol_file_content get_content_type() const = 0;
-
-    // Seek frame, only for random-access trajectories
-    virtual void seek_frame(int fr);
-
-    // Seek time, only for random-access trajectories
-    virtual void seek_time(float t);
-
-    // Report current position in trajectory, only for random-access trajectories
-    virtual void tell_current_frame_and_time(int& step, float& t);
-
-    // Report last position in trajectory, only for random-access trajectories
-    virtual void tell_last_frame_and_time(int& step, float& t);
+    virtual FileContent get_content_type() const = 0;
 
 protected:    
-    Mol_file(std::string& file_name);
+    FileHandler(std::string& file_name);
 
     // Stores file name
     std::string fname;
     // Number of atoms
-    int natoms;
-    // Functions called to update System on file reading
-    // Mol_file is a friend of System and can access it's internals
-    // but derived *_file classes are not friends and need to call these functions.
-    void allocate_atoms_in_system(System& sys, int n);
-    void set_atom_in_system(System& sys, int i, Atom& at);
-    Atom& atom_in_system(System& sys, int i);
-    void append_atom_in_system(System& sys, Atom& at);
+    int natoms;    
 
     // Method to sanity check parameters send to read and write
-    void sanity_check_read(System* sys, Frame* frame, const Mol_file_content &what) const;
-    void sanity_check_write(const Selection& sel, const Mol_file_content& what) const;
+    void sanity_check_read(System* sys, Frame* frame, const FileContent &what) const;
+    void sanity_check_write(const Selection& sel, const FileContent& what) const;
 
     /// User-overriden method for reading
-    virtual bool do_read(System* sys, Frame* frame, const Mol_file_content& what) = 0;
+    virtual bool do_read(System* sys, Frame* frame, const FileContent& what) = 0;
 
     /// User-overriden method for writing
-    virtual void do_write(const Selection& sel, const Mol_file_content& what) = 0;
+    virtual void do_write(const Selection& sel, const FileContent& what) = 0;
 };
 
-void get_element_from_atom_name(std::string& name, int& anum, float& mass);
+//------------------------------------------------------------------------------
 
-}
+class FileHandlerRandomAccess: public FileHandler {
+protected:
+    FileHandlerRandomAccess(std::string& file_name): FileHandler(file_name) {}
+
+public:
+    // Seek frame
+    virtual void seek_frame(int fr) = 0;
+
+    // Seek time
+    virtual void seek_time(float t) = 0;
+
+    // Report current position in trajectory
+    virtual void tell_current_frame_and_time(int& step, float& t) = 0;
+
+    // Report last position in trajectory
+    virtual void tell_last_frame_and_time(int& step, float& t) = 0;
+};
+
+//------------------------------------------------------------------------------
+
+} // namespace pteros
+
+

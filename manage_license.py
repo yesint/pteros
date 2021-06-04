@@ -8,7 +8,10 @@ for root, subdirs, files in os.walk(rootdir):
     for f in files:
         if f.endswith(".cpp") or f.endswith(".h"):
             # Try this file
-            text = open(os.path.join(root,f)).read()
+            try:
+                text = open(os.path.join(root,f)).read()
+            except:
+                pass
             # Try to extract leading comment
             lines = text.split('\n');
 

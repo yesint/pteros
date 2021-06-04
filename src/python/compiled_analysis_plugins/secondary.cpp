@@ -7,10 +7,10 @@
  *
  * https://github.com/yesint/pteros
  *
- * (C) 2009-2020, Semen Yesylevskyy
+ * (C) 2009-2021, Semen Yesylevskyy
  *
  * All works, which use Pteros, should cite the following papers:
- *  
+ *
  *  1.  Semen O. Yesylevskyy, "Pteros 2.0: Evolution of the fast parallel
  *      molecular analysis library for C++ and python",
  *      Journal of Computational Chemistry, 2015, 36(19), 1480–1488.
@@ -72,7 +72,7 @@ protected:
         f << "#frame N :DSSP_code_string. NO space after ':'!" << endl;               
     }
 
-    void process_frame(const Frame_info &info) override {
+    void process_frame(const FrameInfo &info) override {
         string s = sel.dssp();
         // Count all structured residues
         int N = std::count_if(s.begin(), s.end(), [](char c){return c!='T' && c!='S' && c!=' ';});
@@ -105,7 +105,7 @@ protected:
         }
     }
 
-    void post_process(const Frame_info &info) override {
+    void post_process(const FrameInfo &info) override {
         f.close();
 
         // Write map if asked
@@ -129,5 +129,7 @@ private:
 };
 
 CREATE_COMPILED_PLUGIN(secondary)
+
+
 
 

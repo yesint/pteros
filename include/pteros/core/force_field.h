@@ -7,10 +7,10 @@
  *
  * https://github.com/yesint/pteros
  *
- * (C) 2009-2020, Semen Yesylevskyy
+ * (C) 2009-2021, Semen Yesylevskyy
  *
  * All works, which use Pteros, should cite the following papers:
- *  
+ *
  *  1.  Semen O. Yesylevskyy, "Pteros 2.0: Evolution of the fast parallel
  *      molecular analysis library for C++ and python",
  *      Journal of Computational Chemistry, 2015, 36(19), 1480–1488.
@@ -27,9 +27,7 @@
 */
 
 
-
-#ifndef FORCE_FIELD_H
-#define FORCE_FIELD_H
+#pragma once
 
 #include <vector>
 #include <unordered_set>
@@ -52,7 +50,7 @@ namespace pteros {
 
 */
 
-class Force_field {
+class ForceField {
 public:
     int natoms;
     /// Exclusions.
@@ -91,10 +89,10 @@ public:
     bool ready;
 
     /// Pointer to chosen coulomb kernel
-    float (*coulomb_kernel_ptr)(float,float,float,const Force_field&);
+    float (*coulomb_kernel_ptr)(float,float,float,const ForceField&);
 
     /// Pointer to chosen VDW kernel
-    float (*LJ_kernel_ptr)(float,float,float,const Force_field&);
+    float (*LJ_kernel_ptr)(float,float,float,const ForceField&);
 
     // Aux constants to be precomputed by set_kernels()
     float coulomb_prefactor, k_rf, c_rf;
@@ -102,13 +100,13 @@ public:
     Eigen::Vector3f shift_1, shift_6, shift_12;
 
     /// Constructor
-    Force_field();
+    ForceField();
 
     /// Copy constructor
-    Force_field(const Force_field& other);
+    ForceField(const ForceField& other);
 
     /// Assignment operator
-    Force_field& operator=(Force_field other);
+    ForceField& operator=(ForceField other);
 
     // Clear ff
     void clear();
@@ -126,6 +124,6 @@ public:
 
 }
 
-#endif /* FORCE_FIELD_H */
+
 
 

@@ -7,10 +7,10 @@
  *
  * https://github.com/yesint/pteros
  *
- * (C) 2009-2020, Semen Yesylevskyy
+ * (C) 2009-2021, Semen Yesylevskyy
  *
  * All works, which use Pteros, should cite the following papers:
- *  
+ *
  *  1.  Semen O. Yesylevskyy, "Pteros 2.0: Evolution of the fast parallel
  *      molecular analysis library for C++ and python",
  *      Journal of Computational Chemistry, 2015, 36(19), 1480–1488.
@@ -26,16 +26,18 @@
  *
 */
 
+
+
 #pragma once
 
 #include "distance_search_contacts.h"
 
 namespace pteros {       
 
-class Distance_search_contacts_2sel: public Distance_search_contacts {
+class DistanceSearchContacts2sel: public DistanceSearchContacts {
 public:
 
-    Distance_search_contacts_2sel(float d,
+    DistanceSearchContacts2sel(float d,
                                   const Selection& sel1,
                                   const Selection& sel2,
                                   std::vector<Eigen::Vector2i>& res_pairs,
@@ -44,9 +46,11 @@ public:
                                   Vector3i_const_ref pbc = fullPBC);
 protected:
 
-    virtual void search_planned_pair(const Planned_pair& pair,
+    virtual void search_planned_pair(const PlannedPair& pair,
                                      std::vector<Eigen::Vector2i> &pairs_buffer,
                                      std::vector<float> &distances_buffer) override;
 };
 
 }
+
+

@@ -7,10 +7,10 @@
  *
  * https://github.com/yesint/pteros
  *
- * (C) 2009-2020, Semen Yesylevskyy
+ * (C) 2009-2021, Semen Yesylevskyy
  *
  * All works, which use Pteros, should cite the following papers:
- *  
+ *
  *  1.  Semen O. Yesylevskyy, "Pteros 2.0: Evolution of the fast parallel
  *      molecular analysis library for C++ and python",
  *      Journal of Computational Chemistry, 2015, 36(19), 1480–1488.
@@ -27,34 +27,34 @@
 */
 
 
-
 #include "gro_file.h"
 #include "pteros/core/pteros_error.h"
 #include "pteros/core/utilities.h"
 #include <boost/algorithm/string.hpp>
+#include "system_builder.h"
 
 using namespace std;
 using namespace pteros;
 using namespace Eigen;
 
-void GRO_file::open(char open_mode)
+void GroFile::open(char open_mode)
 {
     if(open_mode=='r'){
         f.open(fname.c_str(),ios_base::in);
-        if(!f) throw Pteros_error("Can't open GRO file '{}' for reading",fname);
+        if(!f) throw PterosError("Can't open GRO file '{}' for reading",fname);
     } else {
         f.open(fname.c_str(),ios_base::out);
-        if(!f) throw Pteros_error("Can't open GRO file '{}' for writing",fname);
+        if(!f) throw PterosError("Can't open GRO file '{}' for writing",fname);
     }
 }
 
-GRO_file::~GRO_file(){
+void GroFile::close(){
     if(f){
         f.close();
     }
 }
 
-bool GRO_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
+bool GroFile::do_read(System *sys, Frame *frame, const FileContent &what){
 
     string line;
 
@@ -75,6 +75,8 @@ bool GRO_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
     sscanf(line.c_str(),"%d",&N);
 
     frame->coord.resize(N);
+
+    SystemBuilder builder(sys);
 
     // Read coordinates
     for(i=0;i<N;++i){
@@ -104,7 +106,7 @@ bool GRO_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
             // We have to deduce the element number
             tmp_atom.atomic_number = get_element_number(tmp_atom.name);
             // Add new atom to the system
-            append_atom_in_system(*sys,tmp_atom);
+            builder.add_atom(tmp_atom);
         }
 
         if(what.coord()){
@@ -112,6 +114,8 @@ bool GRO_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
             frame->coord[i] = tmp_coor;
         }
     }
+
+    if(what.atoms()) sys->assign_resindex();
 
     if(what.coord()){
         // Read box. Adapted form VMD.
@@ -140,12 +144,12 @@ bool GRO_file::do_read(System *sys, Frame *frame, const Mol_file_content &what){
     return true;
 }
 
-void GRO_file::do_write(const Selection &sel, const Mol_file_content &what){
+void GroFile::do_write(const Selection &sel, const FileContent &what){
     int n = sel.size();
     char ch[80];
 
     if(!(what.coord() && what.atoms()))
-        throw Pteros_error("It is impossible to write individual components to GRO file!");
+        throw PterosError("It is impossible to write individual components to GRO file!");
 
     // Print title
     f << "Created by Pteros" << endl;
@@ -192,5 +196,7 @@ void GRO_file::do_write(const Selection &sel, const Mol_file_content &what){
     // Mandatory endline at the end of file!
     f << endl;
 }
+
+
 
 

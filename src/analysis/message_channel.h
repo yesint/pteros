@@ -1,4 +1,3 @@
-
 /*
  *
  *                This source code is part of
@@ -21,21 +20,20 @@
  *
 */
 
-#ifndef MESSAGE_CHANNEL_H
-#define MESSAGE_CHANNEL_H
 
-#include <thread>
+#pragma once
+
 #include <mutex>
 #include <condition_variable>
 #include <queue>
 #include <functional>
 
 template<class T>
-class Message_channel {
+class MessageChannel {
 public:
-    Message_channel(): buffer_size(10), stop_requested(false) { }
+    MessageChannel(): buffer_size(10), stop_requested(false) { }
 
-    Message_channel(int sz): buffer_size(sz), stop_requested(false) { }
+    MessageChannel(int sz): buffer_size(sz), stop_requested(false) { }
 
     void set_buffer_size(int sz){        
         std::lock_guard<std::mutex> lock(mutex);
@@ -77,7 +75,7 @@ public:
         // If stop requested see if there is something in, if not return false
         if(stop_requested && queue.empty()) return false;
 
-        popped_value=queue.front();
+        popped_value = queue.front();
         queue.pop();
         cond.notify_all();
         return true;
@@ -90,6 +88,3 @@ private:
     std::queue<T> queue;
     bool stop_requested;
 };
-
-
-#endif // MESSAGE_CHANNEL_H

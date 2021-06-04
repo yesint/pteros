@@ -7,10 +7,10 @@
  *
  * https://github.com/yesint/pteros
  *
- * (C) 2009-2020, Semen Yesylevskyy
+ * (C) 2009-2021, Semen Yesylevskyy
  *
  * All works, which use Pteros, should cite the following papers:
- *  
+ *
  *  1.  Semen O. Yesylevskyy, "Pteros 2.0: Evolution of the fast parallel
  *      molecular analysis library for C++ and python",
  *      Journal of Computational Chemistry, 2015, 36(19), 1480–1488.
@@ -28,6 +28,8 @@
 
 
 
+
+
 #include "distance_search_contacts_1sel.h"
 #include "pteros/core/pteros_error.h"
 #include <thread>
@@ -37,7 +39,7 @@ using namespace pteros;
 using namespace Eigen;
 
 
-Distance_search_contacts_1sel::Distance_search_contacts_1sel(float d,
+DistanceSearchContacts1sel::DistanceSearchContacts1sel(float d,
                                                              const Selection& sel,
                                                              std::vector<Eigen::Vector2i>& res_pairs,
                                                              std::vector<float>& res_distances,
@@ -63,7 +65,7 @@ Distance_search_contacts_1sel::Distance_search_contacts_1sel(float d,
     do_search();
 }
 
-void Distance_search_contacts_1sel::search_planned_pair(const Planned_pair& pair,
+void DistanceSearchContacts1sel::search_planned_pair(const PlannedPair& pair,
                                                         std::vector<Vector2i> &pairs_buffer,
                                                         std::vector<float> &distances_buffer)
 {
@@ -75,5 +77,7 @@ void Distance_search_contacts_1sel::search_planned_pair(const Planned_pair& pair
         search_between_cells(pair,grid1,grid1,pairs_buffer,distances_buffer);
     }
 }
+
+
 
 

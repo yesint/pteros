@@ -7,10 +7,10 @@
  *
  * https://github.com/yesint/pteros
  *
- * (C) 2009-2020, Semen Yesylevskyy
+ * (C) 2009-2021, Semen Yesylevskyy
  *
  * All works, which use Pteros, should cite the following papers:
- *  
+ *
  *  1.  Semen O. Yesylevskyy, "Pteros 2.0: Evolution of the fast parallel
  *      molecular analysis library for C++ and python",
  *      Journal of Computational Chemistry, 2015, 36(19), 1480–1488.
@@ -25,6 +25,8 @@
  * http://www.opensource.org/licenses/artistic-license-2.0.php
  *
 */
+
+
 
 
 
@@ -52,8 +54,10 @@ void pteros::set_log_level(const std::string &lev)
     else if(lev=="err") Log::instance().default_level = spdlog::level::err;
     else if(lev=="critical") Log::instance().default_level = spdlog::level::critical;
     else if(lev=="off") Log::instance().default_level = spdlog::level::off;
-    else throw Pteros_error("Invalid log level '{}'",lev);
+    else throw PterosError("Invalid log level '{}'",lev);
     spdlog::set_level(Log::instance().default_level);
 }
+
+
 
 

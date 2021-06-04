@@ -7,10 +7,10 @@
  *
  * https://github.com/yesint/pteros
  *
- * (C) 2009-2020, Semen Yesylevskyy
+ * (C) 2009-2021, Semen Yesylevskyy
  *
  * All works, which use Pteros, should cite the following papers:
- *  
+ *
  *  1.  Semen O. Yesylevskyy, "Pteros 2.0: Evolution of the fast parallel
  *      molecular analysis library for C++ and python",
  *      Journal of Computational Chemistry, 2015, 36(19), 1480–1488.
@@ -25,6 +25,8 @@
  * http://www.opensource.org/licenses/artistic-license-2.0.php
  *
 */
+
+
 
 
 #include "pteros/extras/solvate.h"
@@ -45,7 +47,7 @@ std::map<std::string,int> solvate(System& solute, float d, std::string solvent_f
         if (const char* env_gmx = std::getenv("GMXDATA")) {
             solvent_file = string(env_gmx)+"/top/spc216.gro";
         } else {
-            throw Pteros_error("Can't find default gromacs solvent file spc216.gro!");
+            throw PterosError("Can't find default gromacs solvent file spc216.gro!");
         }
     }
 
@@ -53,7 +55,7 @@ std::map<std::string,int> solvate(System& solute, float d, std::string solvent_f
     solvent.load( solvent_file );
 
     if(solvent.box(0).is_triclinic())
-        throw Pteros_error("Only rectangular solvent boxes are allowed!");
+        throw PterosError("Only rectangular solvent boxes are allowed!");
 
     // See how many solvent boxes should be used to cover solute
 
@@ -164,4 +166,6 @@ std::map<std::string,int> solvate(System& solute, float d, std::string solvent_f
 }
 
 } //namespace
+
+
 

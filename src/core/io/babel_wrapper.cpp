@@ -7,10 +7,10 @@
  *
  * https://github.com/yesint/pteros
  *
- * (C) 2009-2020, Semen Yesylevskyy
+ * (C) 2009-2021, Semen Yesylevskyy
  *
  * All works, which use Pteros, should cite the following papers:
- *  
+ *
  *  1.  Semen O. Yesylevskyy, "Pteros 2.0: Evolution of the fast parallel
  *      molecular analysis library for C++ and python",
  *      Journal of Computational Chemistry, 2015, 36(19), 1480–1488.
@@ -26,8 +26,6 @@
  *
 */
 
-
-
 #include "babel_wrapper.h"
 #include "pteros/core/pteros_error.h"
 #include "openbabel/atom.h"
@@ -35,6 +33,7 @@
 #include "openbabel/bondtyper.h"
 #include "openbabel/generic.h"
 #include "babel_utils.h"
+#include "system_builder.h"
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846264338327950288
@@ -45,38 +44,41 @@ using namespace pteros;
 using namespace Eigen;
 
 
-Babel_wrapper::Babel_wrapper(string &fname): Mol_file(fname){ }
+BabelWrapper::BabelWrapper(string &fname): FileHandler(fname){ }
 
-void Babel_wrapper::open(char open_mode)
+void BabelWrapper::open(char open_mode)
 {
     string ext = fname.substr(fname.find_last_of(".") + 1);
     bool ok;
 
     if(open_mode=='r'){
         ok = conv.SetInFormat(ext.c_str());
-        if(!ok) throw Pteros_error("OpenBabel can't read format '{}'!",ext);
+        if(!ok) throw PterosError("OpenBabel can't read format '{}'!",ext);
     } else {
         ok = conv.SetOutFormat(ext.c_str());
-        if(!ok) throw Pteros_error("OpenBabel can't write format '{}'!",ext);
+        if(!ok) throw PterosError("OpenBabel can't write format '{}'!",ext);
     }
 }
 
-Babel_wrapper::~Babel_wrapper()
+void BabelWrapper::close()
 {
 
 }
 
-bool Babel_wrapper::do_read(System *sys, Frame *frame, const Mol_file_content &what)
+
+bool BabelWrapper::do_read(System *sys, Frame *frame, const FileContent &what)
 {
     bool ok;
     ok = conv.ReadFile(&mol,fname);
-    if(!ok) throw Pteros_error("Babel can't read file {}",fname);
+    if(!ok) throw PterosError("Babel can't read file {}",fname);
 
     int natoms = mol.NumAtoms();
 
+    SystemBuilder builder(sys);
+
     if(what.atoms()){
         // Allocate atoms in the system
-        allocate_atoms_in_system(*sys, natoms);
+        builder.allocate_atoms(natoms);
 
         Atom at;
         // Cycle over atoms
@@ -95,7 +97,7 @@ bool Babel_wrapper::do_read(System *sys, Frame *frame, const Mol_file_content &w
             at.atomic_number = ba->GetAtomicNum();
             at.mass = ba->GetAtomicMass();
 
-            set_atom_in_system(*sys,i,at);
+            builder.set_atom(i,at);
             ++i;
         }
         sys->assign_resindex();
@@ -116,7 +118,7 @@ bool Babel_wrapper::do_read(System *sys, Frame *frame, const Mol_file_content &w
     return true;
 }
 
-void Babel_wrapper::do_write(const Selection &sel, const Mol_file_content &what)
+void BabelWrapper::do_write(const Selection &sel, const FileContent &what)
 {
     if(what.atoms() && what.coord()){
         selection_to_obmol(sel,mol);
@@ -124,4 +126,6 @@ void Babel_wrapper::do_write(const Selection &sel, const Mol_file_content &what)
 
     conv.WriteFile(&mol,fname);
 }
+
+
 

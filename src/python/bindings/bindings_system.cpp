@@ -7,10 +7,10 @@
  *
  * https://github.com/yesint/pteros
  *
- * (C) 2009-2020, Semen Yesylevskyy
+ * (C) 2009-2021, Semen Yesylevskyy
  *
  * All works, which use Pteros, should cite the following papers:
- *  
+ *
  *  1.  Semen O. Yesylevskyy, "Pteros 2.0: Evolution of the fast parallel
  *      molecular analysis library for C++ and python",
  *      Journal of Computational Chemistry, 2015, 36(19), 1480–1488.
@@ -25,6 +25,8 @@
  * http://www.opensource.org/licenses/artistic-license-2.0.php
  *
 */
+
+
 
 
 
@@ -52,7 +54,7 @@ void make_bindings_System(py::module& m){
         .def("append", py::overload_cast<const System&>(&System::append))
         .def("append", py::overload_cast<const Selection&,bool>(&System::append),"sel"_a,"current_frame"_a=false)
         .def("append", py::overload_cast<const Atom&, Vector3f_const_ref>(&System::append))
-        .def("append", py::overload_cast<const Atom_proxy&>(&System::append))
+        .def("append", py::overload_cast<const AtomProxy&>(&System::append))
 
         // Reaaranging
         .def("rearrange", py::overload_cast<const vector<string>&>(&System::rearrange))
@@ -69,6 +71,9 @@ void make_bindings_System(py::module& m){
         // Loading
         .def("load", py::overload_cast<string,int,int,int,std::function<bool(System*,int)>>(&System::load),
              "fname"_a, "b"_a=0, "e"_a=-1, "skip"_a=0, "on_frame"_a=nullptr)
+
+        // Writing
+        .def("write", py::overload_cast<string,int,int>(&System::write,py::const_), "fname"_a, "b"_a=0, "e"_a=-1)
 
         // Selecting
         .def("__call__", py::overload_cast<>(&System::operator()), py::keep_alive<0,1>())
@@ -99,7 +104,7 @@ void make_bindings_System(py::module& m){
         //.def("getBox", py::overload_cast<int>(&System::box, py::const_), "fr"_a=0)
         .def("getBox", py::overload_cast<int>(&System::box), "fr"_a=0, py::return_value_policy::reference_internal)
 
-        .def("setBox", [](System* s,const Periodic_box& b, int fr){ s->box(fr)=b; }, "box"_a, "fr"_a=0)
+        .def("setBox", [](System* s,const PeriodicBox& b, int fr){ s->box(fr)=b; }, "box"_a, "fr"_a=0)
 
         .def("getTime", py::overload_cast<int>(&System::time, py::const_), "fr"_a=0)
         .def("setTime", [](System* s,int t,int fr){ s->time(fr)=t; }, "t"_a, "fr"_a=0)
@@ -147,5 +152,7 @@ void make_bindings_System(py::module& m){
 
     ;
 }
+
+
 
 

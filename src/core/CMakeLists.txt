@@ -111,10 +111,10 @@ target_include_directories(pteros PUBLIC
     $<INSTALL_INTERFACE:include>
 )
 
-set_property(TARGET pteros
-    PROPERTY CXX_STANDARD 14
-    PROPERTY CXX_STANDARD_REQUIRED ON
-)
+#set_property(TARGET pteros
+#    PROPERTY CXX_STANDARD 17
+#    PROPERTY CXX_STANDARD_REQUIRED ON
+#)
 
 #--------------
 # Installation

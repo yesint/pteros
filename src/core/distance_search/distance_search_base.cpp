@@ -7,10 +7,10 @@
  *
  * https://github.com/yesint/pteros
  *
- * (C) 2009-2020, Semen Yesylevskyy
+ * (C) 2009-2021, Semen Yesylevskyy
  *
  * All works, which use Pteros, should cite the following papers:
- *  
+ *
  *  1.  Semen O. Yesylevskyy, "Pteros 2.0: Evolution of the fast parallel
  *      molecular analysis library for C++ and python",
  *      Journal of Computational Chemistry, 2015, 36(19), 1480–1488.
@@ -27,7 +27,6 @@
 */
 
 
-
 #include "distance_search_base.h"
 #include "pteros/core/pteros_error.h"
 
@@ -36,7 +35,7 @@ using namespace pteros;
 using namespace Eigen;
 
 // Non-periodic variant
-void Distance_search_base::set_grid_size(const Vector3f &min, const Vector3f &max)
+void DistanceSearchBase::set_grid_size(const Vector3f &min, const Vector3f &max)
 {
     Vector3f extents = max-min;    
 
@@ -51,7 +50,7 @@ void Distance_search_base::set_grid_size(const Vector3f &min, const Vector3f &ma
 }
 
 // Periodic variant
-void Distance_search_base::set_grid_size(const Periodic_box &box)
+void DistanceSearchBase::set_grid_size(const PeriodicBox &box)
 {
     Vector3f extents;
     extents(0) = box.box_to_lab(box.get_vector(0))(0);
@@ -68,7 +67,7 @@ void Distance_search_base::set_grid_size(const Periodic_box &box)
     if(Ngrid(2)<1) Ngrid(2) = 1;
 }
 
-bool Distance_search_base::process_neighbour_pair(Planned_pair& pair){
+bool DistanceSearchBase::process_neighbour_pair(PlannedPair& pair){
     pair.wrapped.fill(0);
     for(int dim=0;dim<3;++dim){
         if(pair.c1(dim)==Ngrid(dim)){ // point beyond the right edge
@@ -98,7 +97,7 @@ bool Distance_search_base::process_neighbour_pair(Planned_pair& pair){
 }
 
 
-Vector3i Distance_search_base::index_to_pos(int i){
+Vector3i DistanceSearchBase::index_to_pos(int i){
     Vector3i pos;
     // i = z+Nz*y+Nz*Ny*x
     pos(2) = i % Ngrid(2);
@@ -131,7 +130,7 @@ void Distance_search_base::make_search_plan(vector<Planned_pair>& plan){
 }
 */
 
-void Distance_search_base::create_grid(const Selection &sel)
+void DistanceSearchBase::create_grid(const Selection &sel)
 {
     if(!is_periodic){
         sel.minmax(min,max);
@@ -142,7 +141,7 @@ void Distance_search_base::create_grid(const Selection &sel)
     } else {
         // Check if we have periodicity
         if(!box.is_periodic())
-            throw Pteros_error("Asked for pbc in distance search, but there is no periodic box!");
+            throw PterosError("Asked for pbc in distance search, but there is no periodic box!");
         // Set dimensions of the current unit cell
         set_grid_size(box);
     }
@@ -174,7 +173,7 @@ void overlap_1d(float a1, float a2, float b1, float b2, float& res1, float& res2
 
 
 
-void Distance_search_base::create_grids(const Selection &sel1, const Selection &sel2)
+void DistanceSearchBase::create_grids(const Selection &sel1, const Selection &sel2)
 {
     if(!is_periodic){
         // Get the minmax of each selection
@@ -199,7 +198,7 @@ void Distance_search_base::create_grids(const Selection &sel1, const Selection &
     } else {
         // Check if we have periodicity
         if(!box.is_periodic())
-            throw Pteros_error("Asked for pbc in distance search, but there is no periodic box!");
+            throw PterosError("Asked for pbc in distance search, but there is no periodic box!");
         // Set dimensions of the current unit cell
         set_grid_size(box);
     }
@@ -208,3 +207,5 @@ void Distance_search_base::create_grids(const Selection &sel1, const Selection &
     grid1.resize(Ngrid(0),Ngrid(1),Ngrid(2));
     grid2.resize(Ngrid(0),Ngrid(1),Ngrid(2));
 }
+
+

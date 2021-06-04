@@ -7,10 +7,10 @@
  *
  * https://github.com/yesint/pteros
  *
- * (C) 2009-2020, Semen Yesylevskyy
+ * (C) 2009-2021, Semen Yesylevskyy
  *
  * All works, which use Pteros, should cite the following papers:
- *  
+ *
  *  1.  Semen O. Yesylevskyy, "Pteros 2.0: Evolution of the fast parallel
  *      molecular analysis library for C++ and python",
  *      Journal of Computational Chemistry, 2015, 36(19), 1480–1488.
@@ -25,7 +25,6 @@
  * http://www.opensource.org/licenses/artistic-license-2.0.php
  *
 */
-
 
 
 #pragma once
@@ -57,7 +56,7 @@ struct Frame {
     /// Forces of atoms
     std::vector<Eigen::Vector3f> force;
     /// Periodic box
-    Periodic_box box;
+    PeriodicBox box;
     /// Timestamp
     float time;
 
@@ -70,11 +69,15 @@ struct Frame {
     void swap(int i, int j);
 };
 
+//====================================================================================
+
 //Forward declarations
 class Selection;
-class Mol_file;
-class Mol_file_content;
-class Atom_proxy;
+class FileHandler;
+class FileContent;
+class AtomProxy;
+
+//====================================================================================
 
 /**
 *  The system of atoms.
@@ -91,9 +94,9 @@ class System {
     // System and Selection are friends because they are closely integrated.
     friend class Selection;    
     // Selection_parser must access internals of Selection
-    friend class Selection_parser;
-    // Mol_file needs an access too
-    friend class Mol_file;
+    friend class SelectionParser;
+    // Needs an access for constructing the system in IO handlers
+    friend class SystemBuilder;
 
 public:    
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -149,7 +152,7 @@ public:
      }
      \endcode
     */
-    Selection append(const Atom_proxy& at);
+    Selection append(const AtomProxy& at);
 
     /// Rearranges the atoms in the order of provided selection strings.
     /// Atom, which are not selected are appended at the end in their previous order.
@@ -284,9 +287,13 @@ public:
      * It can be called several times to read trajectory frames one by one
      * from the same pre-opened file.
      */
-    bool load(const std::unique_ptr<Mol_file> &handler,
-              Mol_file_content what,         
+    bool load(const std::unique_ptr<FileHandler> &handler,
+              FileContent what,
               std::function<bool(System*,int)> on_frame = 0);    
+
+    void write(std::string fname, int b=-1,int e=-1) const;
+
+    void write(const std::unique_ptr<FileHandler>& handler, FileContent what,int b=-1,int e=-1) const;
 
 
     /// Load Gromacs .ndx file and crease selections acording to it from existing system
@@ -359,10 +366,10 @@ public:
     /// @{
 
     /// Read/write access for periodic box for given frame
-    inline Periodic_box& box(int fr=0){ return traj[fr].box; }
+    inline PeriodicBox& box(int fr=0){ return traj[fr].box; }
 
     /// Read only access for periodic box for given frame
-    inline const Periodic_box& box(int fr=0) const { return traj[fr].box; }
+    inline const PeriodicBox& box(int fr=0) const { return traj[fr].box; }
 
     /// Read/Write access to the time stamp of given frame
     inline float& time(int fr=0){ return traj[fr].time; }
@@ -473,7 +480,7 @@ public:
     bool force_field_ready(){return force_field.ready;}
 
     /// Returns internal Force_field object
-    Force_field& get_force_field(){
+    ForceField& get_force_field(){
         return force_field;
     }
 
@@ -504,7 +511,7 @@ protected:
     std::vector<Frame> traj;
 
     // Force field parameters
-    Force_field force_field;
+    ForceField force_field;
 
     // Indexes for filtering
     std::vector<int> filter;
@@ -515,6 +522,8 @@ protected:
     void filter_coord(int fr);
 };
 
+//====================================================================================
+
 /// Low level energy evaluation function
 /// Returns total energy
 /// Individual pair energies could be returned to pair_en if provided.
@@ -523,8 +532,6 @@ Eigen::Vector2f get_energy_for_list(const std::vector<Eigen::Vector2i>& pairs,
                                     const System& sys,
                                     std::vector<Eigen::Vector2f>* pair_en=nullptr);
 
-
-}
-
+} // namespace
 
 

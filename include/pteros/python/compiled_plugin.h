@@ -7,10 +7,10 @@
  *
  * https://github.com/yesint/pteros
  *
- * (C) 2009-2020, Semen Yesylevskyy
+ * (C) 2009-2021, Semen Yesylevskyy
  *
  * All works, which use Pteros, should cite the following papers:
- *  
+ *
  *  1.  Semen O. Yesylevskyy, "Pteros 2.0: Evolution of the fast parallel
  *      molecular analysis library for C++ and python",
  *      Journal of Computational Chemistry, 2015, 36(19), 1480–1488.
@@ -26,10 +26,7 @@
  *
 */
 
-
-
-#ifndef COMPILED_PLUGIN_H
-#define COMPILED_PLUGIN_H
+#pragma once
 
 #include "pteros/analysis/task_plugin.h"
 
@@ -49,7 +46,7 @@ namespace py = pybind11;
 #define _EVAL(arg) #arg
 #define CREATE_COMPILED_PLUGIN(_name) \
 PYBIND11_MODULE(_name, m) {\
-    py::class_<_name,Task_plugin,std::shared_ptr<_name>>(m, _EVAL(_name))\
+    py::class_<_name,TaskPlugin,std::shared_ptr<_name>>(m, _EVAL(_name))\
         .def(py::init<const Options&>())\
         .def("help",&_name::help)\
     ;\
@@ -110,6 +107,6 @@ int main(int argc, char** argv){\
 
 #endif //STANDALONE_PLUGINS
 
-#endif //COMPILED_PLUGIN_H
+
 
 

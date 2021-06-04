@@ -7,10 +7,10 @@
  *
  * https://github.com/yesint/pteros
  *
- * (C) 2009-2020, Semen Yesylevskyy
+ * (C) 2009-2021, Semen Yesylevskyy
  *
  * All works, which use Pteros, should cite the following papers:
- *  
+ *
  *  1.  Semen O. Yesylevskyy, "Pteros 2.0: Evolution of the fast parallel
  *      molecular analysis library for C++ and python",
  *      Journal of Computational Chemistry, 2015, 36(19), 1480–1488.
@@ -25,6 +25,8 @@
  * http://www.opensource.org/licenses/artistic-license-2.0.php
  *
 */
+
+
 
 
 
@@ -46,7 +48,7 @@ void search_contacts(float d,
                      bool absolute_index = false,
                      Vector3i_const_ref pbc = noPBC)
 {    
-    Distance_search_contacts_1sel(d,sel,pairs,distances,absolute_index,pbc);
+    DistanceSearchContacts1sel(d,sel,pairs,distances,absolute_index,pbc);
 }
 
 
@@ -58,7 +60,7 @@ void search_contacts(float d,
                      bool absolute_index = false,
                      Vector3i_const_ref pbc = noPBC)
 {
-    Distance_search_contacts_2sel(d,sel1,sel2,pairs,distances,absolute_index,pbc);
+    DistanceSearchContacts2sel(d,sel1,sel2,pairs,distances,absolute_index,pbc);
 }
 
 
@@ -69,9 +71,11 @@ void search_within(float d,
                    bool include_self,
                    Vector3i_const_ref pbc)
 {    
-    Distance_search_within_sel(d,src,target,res,include_self,pbc);
+    DistanceSearchWithinSel(d,src,target,res,include_self,pbc);
 }
 
 }
+
+
 
 

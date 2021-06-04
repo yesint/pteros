@@ -7,10 +7,10 @@
  *
  * https://github.com/yesint/pteros
  *
- * (C) 2009-2020, Semen Yesylevskyy
+ * (C) 2009-2021, Semen Yesylevskyy
  *
  * All works, which use Pteros, should cite the following papers:
- *  
+ *
  *  1.  Semen O. Yesylevskyy, "Pteros 2.0: Evolution of the fast parallel
  *      molecular analysis library for C++ and python",
  *      Journal of Computational Chemistry, 2015, 36(19), 1480–1488.
@@ -25,7 +25,6 @@
  * http://www.opensource.org/licenses/artistic-license-2.0.php
  *
 */
-
 
 
 #pragma once
@@ -70,6 +69,7 @@ public:
     float mean_curvature;
     int coord_number;
     std::vector<std::vector<float>> order; //Sz order parameter identical to "gmx order -szonly"
+    std::vector<std::vector<float>> tail_dihedrals; //Tail dihedral angles
     Eigen::Vector3f dipole; // Dipole
     float dipole_proj; // Dipole projected onto the normal
 
@@ -104,8 +104,9 @@ struct Average_props_per_type {
     Histogram gaussian_curvature;
     Histogram mean_curvature;
     Histogram coord_number;
+    Histogram tail_dihedrals;
     std::vector<std::vector<float>> order; //Sz order parameter identical to "gmx order -szonly"
-    bool equal_tails;
+    bool equal_tails;    
 };
 
 using Lipid_group = std::map<std::string,Average_props_per_type>;
@@ -134,10 +135,10 @@ public:
     // Properties
     std::vector<Lipid> lipids; // All per-lipid properties are inside
     std::vector<Splay_pair> splay;
-    std::vector<std::vector<int>> neighbors;
+    std::vector<std::vector<int>> neighbors;    
 
     // Per group averages
-
+    std::vector<Eigen::Vector3f> trans_dih_ratio;
 
 private:
     System* system;
@@ -152,5 +153,7 @@ private:
 };
 
 }
+
+
 
 

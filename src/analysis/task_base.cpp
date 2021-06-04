@@ -4,26 +4,26 @@
 using namespace std;
 using namespace pteros;
 
-Task_base::Task_base(): task_id(-1), n_consumed(0)
+TaskBase::TaskBase(): task_id(-1), n_consumed(0)
 {
     //cout << "ctor: Task_base" << endl;
-    driver.reset(new Task_driver(this));
+    driver.reset(new TaskDriver(this));
 }
 
-Task_base::Task_base(const Task_base &other)
+TaskBase::TaskBase(const TaskBase &other)
 {
     //cout << "ctor copy: Task_base from " << other.task_id << endl;
 
-    driver.reset(new Task_driver(this));
+    driver.reset(new TaskDriver(this));
     system = other.system;
     task_id = -1;
     n_consumed = 0;
 }
 
-void pteros::Task_base::put_frame(const pteros::Frame &frame){
+void pteros::TaskBase::put_frame(const pteros::Frame &frame){
     system.frame(0) = frame;
 }
 
-void pteros::Task_base::put_system(const pteros::System &sys){
+void pteros::TaskBase::put_system(const pteros::System &sys){
     if(!system.num_atoms()) system = sys;
 }

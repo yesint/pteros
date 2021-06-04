@@ -7,10 +7,10 @@
  *
  * https://github.com/yesint/pteros
  *
- * (C) 2009-2020, Semen Yesylevskyy
+ * (C) 2009-2021, Semen Yesylevskyy
  *
  * All works, which use Pteros, should cite the following papers:
- *  
+ *
  *  1.  Semen O. Yesylevskyy, "Pteros 2.0: Evolution of the fast parallel
  *      molecular analysis library for C++ and python",
  *      Journal of Computational Chemistry, 2015, 36(19), 1480–1488.
@@ -28,6 +28,8 @@
 
 
 
+
+
 #include "pteros/core/selection.h"
 #include "pteros/core/pteros_error.h"
 #include "bindings_util.h"
@@ -39,13 +41,13 @@ using namespace Eigen;
 using namespace pybind11::literals;
 
 #define DEF_PROPERTY(_name,_dtype) \
-    .def_property(#_name, [](Atom_proxy* obj){return obj->_name();}, [](Atom_proxy* obj,const _dtype& val){obj->_name()=val;})
+    .def_property(#_name, [](AtomProxy* obj){return obj->_name();}, [](AtomProxy* obj,const _dtype& val){obj->_name()=val;})
 
 void make_bindings_Selection(py::module& m){
 
     using RowMatrixXf = Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
 
-    py::class_<Atom_proxy>(m, "Atom_proxy")        
+    py::class_<AtomProxy>(m, "Atom_proxy")        
         DEF_PROPERTY(resid,int)
         DEF_PROPERTY(resindex,int)
         DEF_PROPERTY(resname,string)
@@ -63,12 +65,12 @@ void make_bindings_Selection(py::module& m){
         DEF_PROPERTY(x,float)
         DEF_PROPERTY(y,float)
         DEF_PROPERTY(z,float)
-        .def_property("xyz", [](Atom_proxy* obj){return obj->xyz();}, [](Atom_proxy* obj,Vector3f_const_ref val){obj->xyz()=val;})
-        .def_property("vel", [](Atom_proxy* obj){return obj->vel();}, [](Atom_proxy* obj,Vector3f_const_ref val){obj->vel()=val;})
-        .def_property("force", [](Atom_proxy* obj){return obj->force();}, [](Atom_proxy* obj,Vector3f_const_ref val){obj->force()=val;})
-        .def_property_readonly("element_name", [](Atom_proxy* obj){return obj->element_name();})
-        .def_property_readonly("vdw", [](Atom_proxy* obj){return obj->vdw();})        
-        .def_property_readonly("index", [](Atom_proxy* obj){return obj->index();})
+        .def_property("xyz", [](AtomProxy* obj){return obj->xyz();}, [](AtomProxy* obj,Vector3f_const_ref val){obj->xyz()=val;})
+        .def_property("vel", [](AtomProxy* obj){return obj->vel();}, [](AtomProxy* obj,Vector3f_const_ref val){obj->vel()=val;})
+        .def_property("force", [](AtomProxy* obj){return obj->force();}, [](AtomProxy* obj,Vector3f_const_ref val){obj->force()=val;})
+        .def_property_readonly("element_name", [](AtomProxy* obj){return obj->element_name();})
+        .def_property_readonly("vdw", [](AtomProxy* obj){return obj->vdw();})        
+        .def_property_readonly("index", [](AtomProxy* obj){return obj->index();})
     ;
 
     py::class_<Selection>(m, "Selection")
@@ -233,7 +235,7 @@ void make_bindings_Selection(py::module& m){
         // Geometry transforms
         .def("translate", &Selection::translate)
         .def("translate_to", &Selection::translate_to, "vec"_a, "mass_weighted"_a=false, "pbc"_a=noPBC, "pbc_atom"_a=-1)
-        .def("rotate",&Selection::rotate)
+        .def("rotate",&Selection::rotate, "pivot"_a, "axis"_a, "angle"_a)
 
         .def("wrap", &Selection::wrap, "pbc"_a=fullPBC)
         .def("unwrap", &Selection::unwrap, "pbc"_a=fullPBC, "pbc_atom"_a=-1)
@@ -265,7 +267,7 @@ void make_bindings_Selection(py::module& m){
         .def("non_bond_energy", &Selection::non_bond_energy, "cutoff"_a=0.0, "pbc"_a=true)
 
         // IO
-        .def("write", py::overload_cast<string,int,int>(&Selection::write), "fname"_a, "b"_a=0, "e"_a=-1)
+        .def("write", py::overload_cast<string,int,int>(&Selection::write,py::const_), "fname"_a, "b"_a=-1, "e"_a=-1)
 
         // Util
         .def("is_large",&Selection::is_large)
@@ -345,7 +347,7 @@ void make_bindings_Selection(py::module& m){
         .def("dssp", py::overload_cast<>(&Selection::dssp, py::const_))
 
         // Accessors
-        .def_property("box", [](Selection* obj){return obj->box();}, [](Selection* obj,const Periodic_box& val){obj->box()=val;})
+        .def_property("box", [](Selection* obj){return obj->box();}, [](Selection* obj,const PeriodicBox& val){obj->box()=val;})
         .def_property("time", [](Selection* obj){return obj->time();}, [](Selection* obj, float val){obj->time()=val;})
 
         // No other accessors are exposed in favor to [] operator
@@ -363,10 +365,12 @@ void make_bindings_Selection(py::module& m){
 
     m.def("non_bond_energy", [](const Selection& sel1, const Selection& sel2,float cutoff,int fr,bool pbc){
         return non_bond_energy(sel1,sel2,cutoff,fr,pbc);
-    },"sel1"_a, "sel2"_a, "cutoff"_a=0.0, "fr"_a=-1, "pbc"_a=fullPBC);
+    },"sel1"_a, "sel2"_a, "cutoff"_a=0.0, "fr"_a=-1, "pbc"_a=true);
 
     m.def("copy_coord",[](const Selection& sel1, int fr1, Selection& sel2, int fr2){ return copy_coord(sel1,fr1,sel2,fr2); });
     m.def("copy_coord",[](const Selection& sel1, Selection& sel2){ return copy_coord(sel1,sel2); });
 }
+
+
 
 

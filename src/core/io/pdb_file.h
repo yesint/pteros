@@ -7,10 +7,10 @@
  *
  * https://github.com/yesint/pteros
  *
- * (C) 2009-2020, Semen Yesylevskyy
+ * (C) 2009-2021, Semen Yesylevskyy
  *
  * All works, which use Pteros, should cite the following papers:
- *  
+ *
  *  1.  Semen O. Yesylevskyy, "Pteros 2.0: Evolution of the fast parallel
  *      molecular analysis library for C++ and python",
  *      Journal of Computational Chemistry, 2015, 36(19), 1480–1488.
@@ -26,7 +26,6 @@
  *
 */
 
-
 #pragma once
 
 #include "vmd_molfile_plugin_wrapper.h"
@@ -34,18 +33,22 @@
 namespace pteros {
 
 /// Use VMD plugin for PDB
-class PDB_file: public VMD_molfile_plugin_wrapper {
+class PdbFile: public VmdMolfilePluginWrapper {
 public:    
 
-    PDB_file(std::string& fname);
+    PdbFile(std::string& fname);
 
-    virtual Mol_file_content get_content_type() const {        
-        return Mol_file_content().atoms(true).coord(true).traj(true);
+    virtual FileContent get_content_type() const {        
+        return FileContent()
+                .atoms(true)
+                .coord(true)
+                .traj(true);
     }
-
 };
 
 }
+
+
 
 
 

@@ -7,10 +7,10 @@
  *
  * https://github.com/yesint/pteros
  *
- * (C) 2009-2020, Semen Yesylevskyy
+ * (C) 2009-2021, Semen Yesylevskyy
  *
  * All works, which use Pteros, should cite the following papers:
- *  
+ *
  *  1.  Semen O. Yesylevskyy, "Pteros 2.0: Evolution of the fast parallel
  *      molecular analysis library for C++ and python",
  *      Journal of Computational Chemistry, 2015, 36(19), 1480–1488.
@@ -28,6 +28,8 @@
 
 
 
+
+
 #pragma once
 
 #include "distance_search_base.h"
@@ -36,7 +38,7 @@ namespace pteros {
 
 // In this class searching returns only the list of atoms from the source seletion.
 // No distances are computed.
-class Distance_search_within_base: public Distance_search_base {
+class DistanceSearchWithinBase: public DistanceSearchBase {
 protected:
     // Implements logic for calling search_between_cells() or search_inside_cell()
     // with correct grids in derived classes
@@ -54,10 +56,12 @@ private:
                               Vector3i_const_ref wrapped,
                               std::unordered_set<int> &res_buffer);
 
-    void search_planned_pair(const Planned_pair& pair,
+    void search_planned_pair(const PlannedPair& pair,
                              std::unordered_set<int> &res_buffer);
 };
 
 }
+
+
 
 

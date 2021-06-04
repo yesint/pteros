@@ -7,10 +7,10 @@
  *
  * https://github.com/yesint/pteros
  *
- * (C) 2009-2020, Semen Yesylevskyy
+ * (C) 2009-2021, Semen Yesylevskyy
  *
  * All works, which use Pteros, should cite the following papers:
- *  
+ *
  *  1.  Semen O. Yesylevskyy, "Pteros 2.0: Evolution of the fast parallel
  *      molecular analysis library for C++ and python",
  *      Journal of Computational Chemistry, 2015, 36(19), 1480–1488.
@@ -29,27 +29,28 @@
 
 #pragma once
 
-#include "pteros/core/mol_file.h"
+#include "pteros/core/file_handler.h"
 #include "xdrfile.h"
 #include "xdrfile_trr.h"
 
 namespace pteros {
 
 
-class TRR_file: public Mol_file {
+class TrrFile: public FileHandler {
 public:
-    TRR_file(std::string& fname): Mol_file(fname), handle(nullptr) {}
+    TrrFile(std::string& fname): FileHandler(fname), handle(nullptr) {}
     virtual void open(char open_mode);
-    virtual ~TRR_file();
+    virtual ~TrrFile();
 
-    virtual Mol_file_content get_content_type() const {
-        return Mol_file_content().traj(true);
+    virtual FileContent get_content_type() const {
+        return FileContent()
+                .traj(true);
     }
 
 protected:
 
-    virtual void do_write(const Selection &sel, const Mol_file_content& what);
-    virtual bool do_read(System *sys, Frame *frame, const Mol_file_content& what);
+    virtual void do_write(const Selection &sel, const FileContent& what);
+    virtual bool do_read(System *sys, Frame *frame, const FileContent& what);
 
 private:
     // for xdrfile
@@ -59,6 +60,8 @@ private:
 };
 
 }
+
+
 
 
 

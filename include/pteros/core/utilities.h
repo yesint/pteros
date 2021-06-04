@@ -7,10 +7,10 @@
  *
  * https://github.com/yesint/pteros
  *
- * (C) 2009-2020, Semen Yesylevskyy
+ * (C) 2009-2021, Semen Yesylevskyy
  *
  * All works, which use Pteros, should cite the following papers:
- *  
+ *
  *  1.  Semen O. Yesylevskyy, "Pteros 2.0: Evolution of the fast parallel
  *      molecular analysis library for C++ and python",
  *      Journal of Computational Chemistry, 2015, 36(19), 1480–1488.
@@ -25,7 +25,6 @@
  * http://www.opensource.org/licenses/artistic-license-2.0.php
  *
 */
-
 
 
 #pragma once
@@ -43,14 +42,13 @@ namespace pteros {
     float rad_to_deg(float ang);
     float deg_to_rad(float ang);
 
-    constexpr long double operator"" _deg ( long double ang ) {
+    constexpr long double operator"" _deg (long double ang) {
         return ang*3.141592/180.0;
     }
 
-    constexpr long double operator"" _rad ( long double ang ) {
+    constexpr long double operator"" _rad (long double ang) {
         return ang*180.0/3.141592;
     }
-
 
     std::string get_element_name(int elnum);
 
@@ -58,8 +56,11 @@ namespace pteros {
 
     float get_vdw_radius(int elnum, const std::string& name);
 
+    // Guess element using VMD logic
     void guess_element(const std::string& name, int& anum, float& mass);
 
+    // Guess element using our own simplified logic
+    void get_element_from_atom_name(const std::string& name, int& anum, float& mass);
 
     /// Returns rotation matrix given pivot, axis and angle in radians
     Eigen::Affine3f rotation_transform(Vector3f_const_ref pivot, Vector3f_const_ref axis, float angle);
@@ -104,6 +105,7 @@ namespace pteros {
         void add(float v1, float v2, float weight=1.0);
         void normalize(float norm=0);
         Eigen::Vector2f delta() const {return d;}
+        float value(int i,int j) const;
 
         void save_to_file(const std::string& fname);
     private:
@@ -117,6 +119,8 @@ namespace pteros {
     void greeting(std::string tool_name="");
 
 } // namespace
+
+
 
 
 

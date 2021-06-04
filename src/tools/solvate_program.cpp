@@ -66,7 +66,7 @@ int main(int argc, char* argv[]){
         LOG()->info("Writing output to '{}'...", out);
         solute().write(out);
 
-    } catch(const Pteros_error& e) {
+    } catch(const PterosError& e) {
         LOG()->error(e.what());
     }
 }

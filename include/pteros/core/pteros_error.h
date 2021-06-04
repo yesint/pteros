@@ -7,10 +7,10 @@
  *
  * https://github.com/yesint/pteros
  *
- * (C) 2009-2020, Semen Yesylevskyy
+ * (C) 2009-2021, Semen Yesylevskyy
  *
  * All works, which use Pteros, should cite the following papers:
- *  
+ *
  *  1.  Semen O. Yesylevskyy, "Pteros 2.0: Evolution of the fast parallel
  *      molecular analysis library for C++ and python",
  *      Journal of Computational Chemistry, 2015, 36(19), 1480–1488.
@@ -34,16 +34,18 @@
 namespace pteros {
 
 /// Represents an error in the Pteros code. Used for all Pteros-related exceptions.
-class Pteros_error: public std::runtime_error {
+class PterosError: public std::runtime_error {
 public:
 
     using runtime_error::runtime_error;
 
     template <typename... Args>
-    Pteros_error(const char *format, const Args & ... args): runtime_error(fmt::format(format, args...)) { }
+    PterosError(const char *format, const Args & ... args): runtime_error(fmt::format(format, args...)) { }
 };
 
 }
+
+
 
 
 

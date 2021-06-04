@@ -7,10 +7,10 @@
  *
  * https://github.com/yesint/pteros
  *
- * (C) 2009-2020, Semen Yesylevskyy
+ * (C) 2009-2021, Semen Yesylevskyy
  *
  * All works, which use Pteros, should cite the following papers:
- *  
+ *
  *  1.  Semen O. Yesylevskyy, "Pteros 2.0: Evolution of the fast parallel
  *      molecular analysis library for C++ and python",
  *      Journal of Computational Chemistry, 2015, 36(19), 1480–1488.
@@ -25,7 +25,6 @@
  * http://www.opensource.org/licenses/artistic-license-2.0.php
  *
 */
-
 
 
 #include "pteros/extras/membrane.h"
@@ -109,6 +108,7 @@ Membrane::Membrane(System *sys, const std::vector<Lipid_descr> &species,
                     for(auto& el: it->second.order[mol.order.size()]) el=0.0;
                 }
             }
+
         }
     }
 
@@ -116,6 +116,7 @@ Membrane::Membrane(System *sys, const std::vector<Lipid_descr> &species,
     for(int i=0;i<ngroups;++i){
         groups.push_back(gr);
     }
+    trans_dih_ratio.resize(ngroups);
 
     // form selection for lipid mids
     all_mid_sel.set_system(*system);
@@ -499,17 +500,35 @@ void Membrane::compute_properties(float d, bool use_external_normal, Vector3f_co
                 float ang = angle_between_vectors(coord1-coord2,lip.normal);
                 lip.order[t][at-1] = 1.5*pow(cos(ang),2)-0.5;
             }
+
+            // Compute dihedrals
+            for(int at=0; at<lip.tail_carbon_indexes[t].size(); ++at){
+                if(at+3>=lip.tail_carbon_indexes[t].size()) break;
+                lip.tail_dihedrals[t][at] = system->dihedral(lip.tail_carbon_indexes[t][at],
+                                                             lip.tail_carbon_indexes[t][at+1],
+                                                             lip.tail_carbon_indexes[t][at+2],
+                                                             lip.tail_carbon_indexes[t][at+3], 0,noPBC);
+            }
         }
+
+
+
     }
 
     //-----------------------------------
     // Put to averages according to group
     //-----------------------------------
+
+    VectorXi trans_dih(groups.size());
+    trans_dih.fill(0);
+    VectorXi all_dih(groups.size());
+    all_dih.fill(0);
+
     for(auto& lip: lipids){
         if(lip.group<0) continue; // Skip excluded lipids
 
         if(lip.group>=groups.size())
-            throw Pteros_error("Invalid lipid group {}. Valid range is [0:{}]",lip.group,groups.size()-1);
+            throw PterosError("Invalid lipid group {}. Valid range is [0:{}]",lip.group,groups.size()-1);
 
         auto& prop = groups[lip.group][lip.name];
 
@@ -518,30 +537,49 @@ void Membrane::compute_properties(float d, bool use_external_normal, Vector3f_co
         prop.coord_number.add(lip.coord_number);
         prop.gaussian_curvature.add(lip.gaussian_curvature);
         prop.mean_curvature.add(lip.mean_curvature);
-        prop.tilt.add(rad_to_deg(lip.tilt));
+        prop.tilt.add(rad_to_deg(lip.tilt));        
 
         for(int t=0; t<lip.tail_carbon_indexes.size(); ++t){
             for(int at=1; at<lip.tail_carbon_indexes[t].size()-1; ++at){
                 prop.order[t][(at-1)*2] += lip.order[t][at-1]; // 1-st order running sum
                 prop.order[t][(at-1)*2+1] += pow(lip.order[t][at-1],2); // 2-nd order running sum
             }
-        }
 
+            for(int at=0; at<lip.tail_dihedrals[t].size(); ++at){
+                float ang = abs(rad_to_deg(lip.tail_dihedrals[t][at]));
+                prop.tail_dihedrals.add(ang);
+
+                all_dih(lip.group) += 1;
+                if(ang>90.0) trans_dih(lip.group) += 1;
+            }
+        }
     }
+
+    for(int g=0; g<groups.size(); ++g){
+        trans_dih_ratio[g](0) += trans_dih(g)/float(all_dih(g)); // 1-st order running sum
+        trans_dih_ratio[g](1) += pow(trans_dih(g)/float(all_dih(g)),2); // 2-st order running sum
+        trans_dih_ratio[g](2) += 1; // number
+    }
+
 }
 
 
 void Membrane::compute_averages()
 {
-
+    log->info("Computing averages...");
     for(int i=0;i<groups.size();++i){
+        log->info(" Group #{}",i);
         for(auto& it: groups[i]){
             float N = float(it.second.num);
+            if(N==0) continue;
+
+            log->info("  Lipid {}, N={}",it.first,N);
             it.second.area.normalize(N);
             it.second.coord_number.normalize(N);
             it.second.gaussian_curvature.normalize(N);
             it.second.mean_curvature.normalize(N);
             it.second.tilt.normalize(N);
+            it.second.tail_dihedrals.normalize(N);
 
             int num_tails = (it.second.equal_tails) ? it.second.order.size()-1 : it.second.order.size();
 
@@ -557,7 +595,7 @@ void Membrane::compute_averages()
                         it.second.order[num_tails][j*2+1] += s2/float(num_tails);
                     }
                 }
-            }
+            }            
 
             if(it.second.equal_tails){
                 for(int j=0; j<it.second.order[num_tails].size()/2; ++j){
@@ -569,20 +607,32 @@ void Membrane::compute_averages()
             }
         }
 
+        // Trans dih ratio for group i
+        {
+            float N = trans_dih_ratio[i](2);
+            float s1 = trans_dih_ratio[i](0);
+            float s2 = trans_dih_ratio[i](1);
+            trans_dih_ratio[i](0) = s1/N;
+            trans_dih_ratio[i](1) = sqrt(s2/N - s1*s1/N/N);
+        }
 
     }
 }
 
 void Membrane::write_averages(string path)
 {
+    log->info("Writing averages...");
     if(path.size()==0) path+=".";
     for(int i=0;i<groups.size();++i){
         for(auto& it: groups[i]){
+            if(it.second.num==0) continue;
+
             it.second.area.save_to_file(fmt::format("{}/area_{}_gr{}.dat",path,it.first,i));
             it.second.tilt.save_to_file(fmt::format("{}/tilt_{}_gr{}.dat",path,it.first,i));
             it.second.coord_number.save_to_file(fmt::format("{}/coord_num_{}_gr{}.dat",path,it.first,i));
             it.second.mean_curvature.save_to_file(fmt::format("{}/mean_curv_{}_gr{}.dat",path,it.first,i));
             it.second.gaussian_curvature.save_to_file(fmt::format("{}/gauss_curv_{}_gr{}.dat",path,it.first,i));
+            it.second.tail_dihedrals.save_to_file(fmt::format("{}/tail_dihedrals_{}_gr{}.dat",path,it.first,i));
 
             int num_tails = (it.second.equal_tails) ? it.second.order.size()-1 : it.second.order.size();
 
@@ -604,6 +654,13 @@ void Membrane::write_averages(string path)
 
         }
     }
+
+    // Trans dihedrals
+    ofstream f(fmt::format("{}/trans_dihedrals_ratio.dat",path));
+    for(int i=0;i<groups.size();++i){
+        f << i << " " << trans_dih_ratio[i][0] << " " << trans_dih_ratio[i][1] << endl;
+    }
+    f.close();
 }
 
 
@@ -665,11 +722,14 @@ Lipid::Lipid(const Selection &sel, const Lipid_descr &descr){
     // Fill tail indexes if any
     tail_carbon_indexes.resize(descr.tail_carbon_sels.size());
     order.resize(descr.tail_carbon_sels.size());
+    tail_dihedrals.resize(descr.tail_carbon_sels.size());
     for(int t=0; t<descr.tail_carbon_sels.size(); ++t){
         //LOG()->info("tail {}: {} carbons ",t,whole_sel(descr.tail_carbon_sels[t]).size());
         tail_carbon_indexes[t] = whole_sel(descr.tail_carbon_sels[t]).get_index();
         // Allocate array for order
         order[t].resize(tail_carbon_indexes[t].size()-2);
+        // Allocate array for tail dihedrals
+        tail_dihedrals[t].resize(tail_carbon_indexes[t].size()-3);
     }
 }
 
@@ -701,5 +761,8 @@ Average_props_per_type::Average_props_per_type()
     coord_number.create(0,15,15);
     mean_curvature.create(-0.5,0.5,100);
     gaussian_curvature.create(-0.5,0.5,100);
+    tail_dihedrals.create(0,180,180);
 }
+
+
 

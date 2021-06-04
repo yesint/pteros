@@ -7,10 +7,10 @@
  *
  * https://github.com/yesint/pteros
  *
- * (C) 2009-2020, Semen Yesylevskyy
+ * (C) 2009-2021, Semen Yesylevskyy
  *
  * All works, which use Pteros, should cite the following papers:
- *  
+ *
  *  1.  Semen O. Yesylevskyy, "Pteros 2.0: Evolution of the fast parallel
  *      molecular analysis library for C++ and python",
  *      Journal of Computational Chemistry, 2015, 36(19), 1480–1488.
@@ -38,35 +38,25 @@ namespace pteros {
 /** @brief Class encapsulating all operations with arbitrary triclinic periodic boxes
  This class stores the periodic box itself and also contains pre-computed matrices
  for converting laboratory coordinates to the coordinates in triclinic basis and vice versa.
- Extents of the periodic box are also precomputed and stored internally.
- All data in the class are read-only. The user can set the box by using the constructor
- or by calling modify(box), than all internal data would be precomputed.
- Individual components of the box can't be changed. The only way to change is to get the
- whole box, modify the component and set it back:
- \code
- Periodic_box box(some_data);
- Matrix3f b = box.get_matrix();
- b(1,2) *= 2.0; // Modify the box element
- box.modify(b); // Set new box. This will recompute internal matrices
- \endcode
+ Extents of the periodic box are also precomputed and stored internally. 
  */
-class Periodic_box {
+class PeriodicBox {
 public:
 
     /// Default constructor
-    Periodic_box();
+    PeriodicBox();
 
     /// Constructor from matrix
-    Periodic_box(Matrix3f_const_ref m);
+    PeriodicBox(Matrix3f_const_ref m);
 
     /// Constructor from vector lengths and angles
-    Periodic_box(Vector3f_const_ref vectors, Vector3f_const_ref angles);
+    PeriodicBox(Vector3f_const_ref vectors, Vector3f_const_ref angles);
 
     /// Copy constructor
-    Periodic_box(const Periodic_box& other);
+    PeriodicBox(const PeriodicBox& other);
 
     /// Assignment operator
-    Periodic_box& operator=(const Periodic_box& other);
+    PeriodicBox& operator=(const PeriodicBox& other);
 
     // Get box element
     float get_element(int i, int j) const;
@@ -181,5 +171,7 @@ private:
 };
 
 }
+
+
 
 

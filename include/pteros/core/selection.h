@@ -7,10 +7,10 @@
  *
  * https://github.com/yesint/pteros
  *
- * (C) 2009-2020, Semen Yesylevskyy
+ * (C) 2009-2021, Semen Yesylevskyy
  *
  * All works, which use Pteros, should cite the following papers:
- *  
+ *
  *  1.  Semen O. Yesylevskyy, "Pteros 2.0: Evolution of the fast parallel
  *      molecular analysis library for C++ and python",
  *      Journal of Computational Chemistry, 2015, 36(19), 1480–1488.
@@ -25,7 +25,6 @@
  * http://www.opensource.org/licenses/artistic-license-2.0.php
  *
 */
-
 
 
 #pragma once
@@ -46,7 +45,7 @@ namespace pteros {
 
 // Forward declaration of friend classes
 class System;
-class Selection_parser;
+class SelectionParser;
 
 
 /** @brief Selection class.
@@ -66,7 +65,7 @@ class Selection_parser;
 class Selection {
   // System and Selection are friends because they are closely integrated.
   friend class System;
-  friend class Selection_parser;
+  friend class SelectionParser;
   friend class Grid_searcher;
 
   public:
@@ -160,9 +159,9 @@ class Selection {
 
      Otherwise it is slower than conventional syntax like sel.name(i)
      */
-    Atom_proxy operator[](int ind);
+    AtomProxy operator[](int ind);
 
-    Atom_proxy operator[](const std::pair<int,int>& ind_fr);
+    AtomProxy operator[](const std::pair<int,int>& ind_fr);
 
     /// Writing selection to stream.
     /// Outputs indexes as a space separated list
@@ -577,7 +576,7 @@ class Selection {
     This is not checked automatically!
     In this case use one of unwrapping options first.
     */
-    Eigen::Vector3f dipole(bool is_charged=false, Array3i_const_ref pbc = fullPBC, int pbc_atom = -1) const;
+    Eigen::Vector3f dipole(bool as_charged=false, Array3i_const_ref pbc = fullPBC, int pbc_atom = -1) const;
 
     /// Get distance between two atoms (periodic in given dimensions if needed).
     /// \note
@@ -718,10 +717,9 @@ class Selection {
     *   If @param b is not set or -1 it means current frame
     *   If @param e is not set or -1 it means the last frame
     */
-    // Can't be made const because of internal calls
-    void write(std::string fname, int b=-1,int e=-1);
+    void write(std::string fname, int b=-1,int e=-1) const;
 
-    void write(const std::unique_ptr<Mol_file>& handler, Mol_file_content what,int b=-1,int e=-1);    
+    void write(const std::unique_ptr<FileHandler>& handler, FileContent what,int b=-1,int e=-1) const;
     /// @}
 
 
@@ -967,8 +965,8 @@ class Selection {
         This is a convenience method. The same box is returned by all selection
         which point to the same frame.
     */
-    inline Periodic_box& box() { return system->traj[frame].box; }
-    inline const Periodic_box& box() const { return system->traj[frame].box; }
+    inline PeriodicBox& box() { return system->traj[frame].box; }
+    inline const PeriodicBox& box() const { return system->traj[frame].box; }
 
     /** Returns time stamp of the frame pointed by selection
         The same as:
@@ -995,7 +993,7 @@ protected:
     int frame;
 
     // Holds an instance of selection parser
-    std::unique_ptr<Selection_parser> parser;
+    std::unique_ptr<SelectionParser> parser;
     void allocate_parser();
     void sort_and_remove_duplicates();    
     void process_pbc_atom(int& a) const;
@@ -1006,10 +1004,10 @@ protected:
 /// Random-access forward iterator for Selection
 class Selection::iterator {
 public:
-    typedef Atom_proxy value_type;
+    typedef AtomProxy value_type;
     typedef int difference_type;
-    typedef Atom_proxy* pointer;
-    typedef Atom_proxy& reference;
+    typedef AtomProxy* pointer;
+    typedef AtomProxy& reference;
     typedef std::forward_iterator_tag iterator_category;
 
     iterator(Selection* sel, int pos): ind(pos), sel_ptr(sel) {}
@@ -1025,7 +1023,7 @@ public:
 private:
     int ind;
     Selection* sel_ptr;
-    Atom_proxy proxy;
+    AtomProxy proxy;
 };
 
 /// Checks if several selections overlap
@@ -1042,6 +1040,8 @@ Eigen::Vector2f non_bond_energy(const Selection& sel1,
                                        bool pbc = true);
 
 } // namespace pteros
+
+
 
 
 

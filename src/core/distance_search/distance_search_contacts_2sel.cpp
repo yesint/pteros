@@ -7,10 +7,10 @@
  *
  * https://github.com/yesint/pteros
  *
- * (C) 2009-2020, Semen Yesylevskyy
+ * (C) 2009-2021, Semen Yesylevskyy
  *
  * All works, which use Pteros, should cite the following papers:
- *  
+ *
  *  1.  Semen O. Yesylevskyy, "Pteros 2.0: Evolution of the fast parallel
  *      molecular analysis library for C++ and python",
  *      Journal of Computational Chemistry, 2015, 36(19), 1480–1488.
@@ -28,6 +28,8 @@
 
 
 
+
+
 #include "distance_search_contacts_2sel.h"
 #include "pteros/core/pteros_error.h"
 #include <thread>
@@ -37,7 +39,7 @@ using namespace pteros;
 using namespace Eigen;
 
 
-Distance_search_contacts_2sel::Distance_search_contacts_2sel(float d,
+DistanceSearchContacts2sel::DistanceSearchContacts2sel(float d,
                                                              const Selection &sel1,
                                                              const Selection &sel2,
                                                              std::vector<Eigen::Vector2i>& res_pairs,
@@ -51,7 +53,7 @@ Distance_search_contacts_2sel::Distance_search_contacts_2sel(float d,
     abs_index = absolute_index;
 
     if(sel1.get_system() != sel2.get_system())
-        throw Pteros_error("Selections for distance search should be from the same system!");
+        throw PterosError("Selections for distance search should be from the same system!");
 
     box = sel1.box();
     pairs = &res_pairs;
@@ -70,13 +72,15 @@ Distance_search_contacts_2sel::Distance_search_contacts_2sel(float d,
     do_search();
 }
 
-void Distance_search_contacts_2sel::search_planned_pair(const Planned_pair &pair,
+void DistanceSearchContacts2sel::search_planned_pair(const PlannedPair &pair,
                                                         std::vector<Vector2i> &pairs_buffer,
                                                         std::vector<float> &distances_buffer)
 {
     search_between_cells(pair,grid1,grid2,pairs_buffer,distances_buffer);
     if(pair.c1!=pair.c2) search_between_cells(pair,grid2,grid1,pairs_buffer,distances_buffer);
 }
+
+
 
 
 

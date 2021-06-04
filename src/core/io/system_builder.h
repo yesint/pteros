@@ -27,12 +27,33 @@
 */
 
 
-#include "mol2_file.h"
-#include "pteros/core/pteros_error.h"
+#pragma once
 
-using namespace pteros;
-using namespace std;
+#include "pteros/core/system.h"
 
-Mol2File::Mol2File(string &fname): BabelWrapper(fname){ }
+namespace pteros {
+
+// Mol_file is a friend of System and can access it's internals
+// but derived *_file classes are not friends.
+// In order to access internals of the System we define special access class
+class SystemBuilder {
+public:
+    SystemBuilder(System& s): sys(&s) {}
+    SystemBuilder(System* s): sys(s) {}
+    // When destroyed builer calls assign_resindex() and duing other preparations
+    ~SystemBuilder();
+
+    void allocate_atoms(int n);
+    void set_atom(int i, const Atom& at);
+    Atom& atom(int i);
+    void add_atom(const Atom& at);
+private:
+    System* sys;
+};
+
+} // namespace
+
+
+
 
 

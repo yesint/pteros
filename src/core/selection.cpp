@@ -7,10 +7,10 @@
  *
  * https://github.com/yesint/pteros
  *
- * (C) 2009-2020, Semen Yesylevskyy
+ * (C) 2009-2021, Semen Yesylevskyy
  *
  * All works, which use Pteros, should cite the following papers:
- *  
+ *
  *  1.  Semen O. Yesylevskyy, "Pteros 2.0: Evolution of the fast parallel
  *      molecular analysis library for C++ and python",
  *      Journal of Computational Chemistry, 2015, 36(19), 1480–1488.
@@ -39,7 +39,7 @@
 #include "pteros/core/pteros_error.h"
 #include "pteros/core/distance_search.h"
 #include "selection_parser.h"
-#include "pteros/core/mol_file.h"
+#include "pteros/core/file_handler.h"
 #include "pteros/core/utilities.h"
 
 #ifdef USE_POWERSASA
@@ -67,7 +67,7 @@ void Selection::allocate_parser(){
     // Parse selection here
     // Parser is heavy object, so if selection is not persistent
     // we will delete it after parsing is complete
-    parser.reset(new Selection_parser);
+    parser.reset(new SelectionParser);
     parser->create_ast(sel_text,system);
     parser->apply_ast(frame, _index);
     if(!parser->has_coord){
@@ -81,7 +81,7 @@ void Selection::sort_and_remove_duplicates()
         sort(_index.begin(),_index.end());
         vector<int>::iterator it = unique(_index.begin(), _index.end());
         _index.resize( it - _index.begin() );
-        if(_index[0]<0) throw Pteros_error("Negative index {} present in Selection!",_index[0]);
+        if(_index[0]<0) throw PterosError("Negative index {} present in Selection!",_index[0]);
     } else {
         LOG()->debug("Selection '{}' is empty! Any call of its methods (except size()) will crash your program!", sel_text);
     }
@@ -117,7 +117,7 @@ Selection::Selection(const System &sys, string str, int fr){
 
     // Sanity check
     if(frame<0 || frame>=system->num_frames())
-        throw Pteros_error("Can't make selection for non-existent frame {} (# of frames is {})", frame, system->num_frames());
+        throw PterosError("Can't make selection for non-existent frame {} (# of frames is {})", frame, system->num_frames());
 
     allocate_parser();
 
@@ -144,7 +144,7 @@ Selection::Selection(const System &sys, int ind1, int ind2){
     // No parser needed
     parser.reset();
 
-    if(ind2<ind1) throw Pteros_error("Wrong order of indexes {} and {} (must be ascending)", ind1,ind2);
+    if(ind2<ind1) throw PterosError("Wrong order of indexes {} and {} (must be ascending)", ind1,ind2);
 
     // Populate selection directly
     _index.reserve(ind2-ind1+1);
@@ -193,7 +193,7 @@ Selection::Selection(const System& sys,
     frame = fr;
     // Sanity check
     if(frame<0 || frame>=sys.num_frames())
-        throw Pteros_error("Can't make selection for non-existent frame {} (# of frames is {})", frame, sys.num_frames());
+        throw PterosError("Can't make selection for non-existent frame {} (# of frames is {})", frame, sys.num_frames());
 
     // set system
     system = const_cast<System*>(&sys);
@@ -207,9 +207,9 @@ Selection::~Selection(){
 }
 
 void Selection::append(const Selection &sel){
-    if(!system) throw Pteros_error("Can't append to selection with undefined system!");
-    if(!sel.system) throw Pteros_error("Can't append selection with undefined system!");
-    if(sel.system!=system) throw Pteros_error("Can't append atoms from other system!");
+    if(!system) throw PterosError("Can't append to selection with undefined system!");
+    if(!sel.system) throw PterosError("Can't append selection with undefined system!");
+    if(sel.system!=system) throw PterosError("Can't append atoms from other system!");
 
     copy(sel._index.begin(),sel._index.end(),back_inserter(_index));
 
@@ -220,8 +220,8 @@ void Selection::append(const Selection &sel){
 }
 
 void Selection::append(int ind){
-    if(!system) throw Pteros_error("Can't append to selection with undefined system!");
-    if(ind<0 || ind>=system->num_atoms()) throw Pteros_error("Appended index is out of range!");
+    if(!system) throw PterosError("Can't append to selection with undefined system!");
+    if(ind<0 || ind>=system->num_atoms()) throw PterosError("Appended index is out of range!");
 
     if(find(_index.begin(),_index.end(),ind)==_index.end()){
         _index.push_back(ind);
@@ -234,10 +234,10 @@ void Selection::append(int ind){
 
 void Selection::append(const std::vector<Selection> &sel_vec)
 {
-    if(!system) throw Pteros_error("Can't append to selection with undefined system!");
+    if(!system) throw PterosError("Can't append to selection with undefined system!");
     for(const auto& sel: sel_vec){
-        if(!sel.system) throw Pteros_error("Can't append selection with undefined system!");
-        if(sel.system!=system) throw Pteros_error("Can't append atoms from other system!");
+        if(!sel.system) throw PterosError("Can't append selection with undefined system!");
+        if(sel.system!=system) throw PterosError("Can't append atoms from other system!");
     }
 
     for(const auto& sel: sel_vec){
@@ -332,10 +332,10 @@ Selection Selection::select(string str)
 
     // Sanity check
     if(sub.frame<0 || sub.frame>=sub.system->num_frames())        
-        throw Pteros_error("Can't make selection for non-existent frame {} (# of frames is {})", sub.frame, sub.system->num_frames());
+        throw PterosError("Can't make selection for non-existent frame {} (# of frames is {})", sub.frame, sub.system->num_frames());
 
     // Manually allocate parser with subset from parent index
-    sub.parser.reset(new Selection_parser(&_index));
+    sub.parser.reset(new SelectionParser(&_index));
     sub.parser->create_ast(sub.sel_text,sub.system);
     sub.parser->apply_ast(sub.frame, sub._index);
     if(!sub.parser->has_coord){
@@ -385,7 +385,7 @@ Selection Selection::operator()(const std::vector<int> &ind)
 
 // Modify selection with new selection string
 void Selection::modify(string str, int fr){
-    if(system==nullptr) throw Pteros_error("Selection does not belong to any system!");
+    if(system==nullptr) throw PterosError("Selection does not belong to any system!");
     sel_text = str;
     boost::trim(sel_text);
     // Expand macro-definitions in the string
@@ -395,25 +395,25 @@ void Selection::modify(string str, int fr){
     frame = fr;
     // Sanity check
     if(frame<0 || frame>=system->num_frames())        
-        throw Pteros_error("Can't make selection for non-existent frame {} (# of frames is {})", frame, system->num_frames());
+        throw PterosError("Can't make selection for non-existent frame {} (# of frames is {})", frame, system->num_frames());
     allocate_parser();    
 }
 
 void Selection::modify(int ind1, int ind2){
-    if(system==nullptr) throw Pteros_error("Selection does not belong to any system!");
+    if(system==nullptr) throw PterosError("Selection does not belong to any system!");
     // no parser needed
     parser.reset();
     // not textual
     sel_text = "";    
     // Populate selection directly
-    if(ind2<ind1) throw Pteros_error("Wrong order of indexes {} and {} (must be ascending)", ind1,ind2);
+    if(ind2<ind1) throw PterosError("Wrong order of indexes {} and {} (must be ascending)", ind1,ind2);
     _index.clear();
     _index.reserve(ind2-ind1+1);
     for(int i=ind1; i<=ind2; ++i) _index.push_back(i);
 }
 
 void Selection::modify(const std::vector<int> &ind){
-    if(system==nullptr) throw Pteros_error("Selection does not belong to any system!");
+    if(system==nullptr) throw PterosError("Selection does not belong to any system!");
     // no parser needed
     parser.reset();    
     // not textual
@@ -424,7 +424,7 @@ void Selection::modify(const std::vector<int> &ind){
 }
 
 void Selection::modify(std::vector<int>::iterator it1, std::vector<int>::iterator it2){
-    if(system==nullptr) throw Pteros_error("Selection does not belong to any system!");
+    if(system==nullptr) throw PterosError("Selection does not belong to any system!");
     // no parser needed
     parser.reset();
     // not textual
@@ -437,7 +437,7 @@ void Selection::modify(std::vector<int>::iterator it1, std::vector<int>::iterato
 
 void Selection::modify(const std::function<void (const System &, int, std::vector<int> &)>& callback, int fr)
 {
-    if(system==nullptr) throw Pteros_error("Selection does not belong to any system!");
+    if(system==nullptr) throw PterosError("Selection does not belong to any system!");
     // no parser needed
     parser.reset();
     // not textual
@@ -447,7 +447,7 @@ void Selection::modify(const std::function<void (const System &, int, std::vecto
     frame = fr;
     // Sanity check
     if(frame<0 || frame>=system->num_frames())
-        throw Pteros_error("Can't make selection for non-existent frame {} (# of frames is {})", frame, system->num_frames());
+        throw PterosError("Can't make selection for non-existent frame {} (# of frames is {})", frame, system->num_frames());
     // fill
     callback(*system,frame,_index);
 
@@ -483,7 +483,7 @@ void Selection::modify(const System &sys, const std::function<void (const System
 // Assignment
 Selection& Selection::operator=(const Selection& other){
     // Sanity check
-    if(other.system==nullptr) Pteros_error("Operator '=' with selection, which does not belong to the system!");
+    if(other.system==nullptr) PterosError("Operator '=' with selection, which does not belong to the system!");
 
     // Self-assigmnet check
     if(&other==this) return *this;
@@ -500,7 +500,7 @@ Selection& Selection::operator=(const Selection& other){
     system = other.system;
 
     if(other.parser){
-        parser.reset(new Selection_parser);
+        parser.reset(new SelectionParser);
         *parser = *(other.parser);
     };
 
@@ -512,12 +512,12 @@ bool Selection::operator==(const Selection &other) const {
     return (system == other.system) && (_index == other._index);
 }
 
-Atom_proxy Selection::operator[](int ind) {
-    return Atom_proxy(system,_index[ind],frame);
+AtomProxy Selection::operator[](int ind) {
+    return AtomProxy(system,_index[ind],frame);
 }
 
-Atom_proxy Selection::operator[](const std::pair<int, int> &ind_fr) {
-    return Atom_proxy(system,_index[ind_fr.first],ind_fr.second);
+AtomProxy Selection::operator[](const std::pair<int, int> &ind_fr) {
+    return AtomProxy(system,_index[ind_fr.first],ind_fr.second);
 }
 
 Selection Selection::operator~() const {
@@ -545,8 +545,8 @@ Selection Selection::operator~() const {
 namespace pteros {
 
 Selection operator|(const Selection &sel1, const Selection &sel2){
-    if(sel1.system!=sel2.system) throw Pteros_error("Can't take logical OR of selections belonging to different systems!");
-    if(sel1.frame!=sel2.frame) throw Pteros_error("Can't take logical OR of selections pointing to different frames!");
+    if(sel1.system!=sel2.system) throw PterosError("Can't take logical OR of selections belonging to different systems!");
+    if(sel1.frame!=sel2.frame) throw PterosError("Can't take logical OR of selections pointing to different frames!");
     // Create resulting selection
     Selection res(*sel1.system);
     // Not text based
@@ -563,8 +563,8 @@ Selection operator|(const Selection &sel1, const Selection &sel2){
 }
 
 Selection operator&(const Selection &sel1, const Selection &sel2){
-    if(sel1.system!=sel2.system) throw Pteros_error("Can't take logical AND of selections belonging to different systems!");
-    if(sel1.frame!=sel2.frame) throw Pteros_error("Can't take logical AND of selections pointing to different frames!");
+    if(sel1.system!=sel2.system) throw PterosError("Can't take logical AND of selections belonging to different systems!");
+    if(sel1.frame!=sel2.frame) throw PterosError("Can't take logical AND of selections pointing to different frames!");
     // Create resulting selection
     Selection res(*sel1.system);
     // Not text based
@@ -641,8 +641,9 @@ Selection::Selection(const Selection& other){
 
     // If parser in sel is persistent, allocate it
     if(other.parser){
-        parser.reset(new Selection_parser);
-        *parser = *(other.parser);
+        //parser.reset(new Selection_parser);
+        //*parser = *(other.parser);
+        update(); // Needed to update internal references in parse AST
     }
 }
 
@@ -661,7 +662,7 @@ void Selection::apply(){
 
 void Selection::set_frame(int fr){
     if(fr<0 || fr >= system->num_frames())
-        throw Pteros_error("Invalid frame {} to set! Valid range is 0:", fr, system->num_frames());
+        throw PterosError("Invalid frame {} to set! Valid range is 0:", fr, system->num_frames());
 
     if(frame!=fr){
         frame = fr;
@@ -704,6 +705,7 @@ vector<T> Selection::get_##prop(bool unique) const { \
     for(i=0; i<n; ++i) tmp[i] = system->atoms[_index[i]].prop; \
     if(unique){ \
         vector<T> res; \
+        sort(tmp.begin(),tmp.end()); \
         unique_copy(tmp.begin(),tmp.end(), back_inserter(res)); \
         return res; \
     } \
@@ -715,7 +717,7 @@ vector<T> Selection::get_##prop(bool unique) const { \
 void Selection::set_##prop(const vector<T>& data){ \
     int i,n; \
     n = _index.size(); \
-    if(data.size()!=n) throw Pteros_error("Invalid data size {} for selection of size {}", data.size(),n); \
+    if(data.size()!=n) throw PterosError("Invalid data size {} for selection of size {}", data.size(),n); \
     for(i=0; i<n; ++i) system->atoms[_index[i]].prop = data[i]; \
 } \
 void Selection::set_##prop(T data){ \
@@ -785,7 +787,7 @@ MatrixXf Selection::get_xyz(bool make_row_major_matrix) const {
 void Selection::set_xyz(pteros::MatrixXf_const_ref coord){
     int n = _index.size();
     // Sanity check
-    if(coord.cols()!=n && coord.rows()!=n) throw Pteros_error("Invalid data size {} for selection of size {}", coord.size(),n);
+    if(coord.cols()!=n && coord.rows()!=n) throw PterosError("Invalid data size {} for selection of size {}", coord.size(),n);
     if(coord.cols()==n){ // Column major, default
         for(int i=0; i<n; ++i) xyz(i) = coord.col(i);
     } else { // row-major, from python bindings
@@ -794,7 +796,7 @@ void Selection::set_xyz(pteros::MatrixXf_const_ref coord){
 }
 
 MatrixXf Selection::get_vel(bool make_row_major_matrix) const {
-    if(!system->traj[frame].has_vel()) throw Pteros_error("System has no velocities");
+    if(!system->traj[frame].has_vel()) throw PterosError("System has no velocities");
 
     int n = _index.size();
     MatrixXf res;
@@ -812,7 +814,7 @@ MatrixXf Selection::get_vel(bool make_row_major_matrix) const {
 void Selection::set_vel(pteros::MatrixXf_const_ref data){
     int n = _index.size();
     // Sanity check
-    if(data.cols()!=n && data.rows()!=n) throw Pteros_error("Invalid data size {} for selection of size {}", data.size(),n);
+    if(data.cols()!=n && data.rows()!=n) throw PterosError("Invalid data size {} for selection of size {}", data.size(),n);
 
     system->traj[frame].vel.resize(n);
 
@@ -825,7 +827,7 @@ void Selection::set_vel(pteros::MatrixXf_const_ref data){
 
 
 MatrixXf Selection::get_force(bool make_row_major_matrix) const {
-    if(!system->traj[frame].has_force()) throw Pteros_error("System has no forces");
+    if(!system->traj[frame].has_force()) throw PterosError("System has no forces");
 
     int n = _index.size();
     MatrixXf res;
@@ -843,7 +845,7 @@ MatrixXf Selection::get_force(bool make_row_major_matrix) const {
 void Selection::set_force(pteros::MatrixXf_const_ref data){
     int n = _index.size();
     // Sanity check
-    if(data.cols()!=n && data.rows()!=n) throw Pteros_error("Invalid data size {} for selection of size {}", data.size(),n);
+    if(data.cols()!=n && data.rows()!=n) throw PterosError("Invalid data size {} for selection of size {}", data.size(),n);
 
     system->traj[frame].force.resize(n);
 
@@ -869,7 +871,7 @@ MatrixXf Selection::average_structure(int b, int e, bool make_row_major_matrix) 
 
     if(e==-1) e = system->num_frames()-1;
     if(e<b || b<0 || e>system->num_frames()-1 || e<0){
-        throw Pteros_error("Invalid frame range for average structure!");
+        throw PterosError("Invalid frame range for average structure!");
     }
 
     LOG()->debug("Computing avreage structure from frames {}:{}",b,e);
@@ -900,7 +902,7 @@ bool Selection::is_large(){
 
 
 void Selection::process_pbc_atom(int& a) const {
-    if(a>=size()) throw Pteros_error("Wrong pbc atom {} for selection with {} atoms!",a,size());
+    if(a>=size()) throw PterosError("Wrong pbc atom {} for selection with {} atoms!",a,size());
     if(a<0) a = size()/2;
 }
 
@@ -909,7 +911,7 @@ void Selection::process_pbc_atom(int& a) const {
 Vector3f Selection::center(bool mass_weighted, Array3i_const_ref pbc, int pbc_atom) const {    
     int n = size();
 
-    if(n==0) throw Pteros_error("Can't get center of empty selection!");
+    if(n==0) throw PterosError("Can't get center of empty selection!");
     // in case of just one atom nothing to compute
     if(n==1) return xyz(0);
 
@@ -937,7 +939,7 @@ Vector3f Selection::center(bool mass_weighted, Array3i_const_ref pbc, int pbc_at
                     res += r;
                 }
             }
-            if(M==0) throw Pteros_error("Selection has zero mass! Center of mass failed!");
+            if(M==0) throw PterosError("Selection has zero mass! Center of mass failed!");
             return res/M;
         } else {
             #pragma omp parallel
@@ -958,7 +960,7 @@ Vector3f Selection::center(bool mass_weighted, Array3i_const_ref pbc, int pbc_at
         // We will find closest periodic images of all points
         // using leading point as a reference
         Vector3f ref_point = xyz(pbc_atom);
-        Periodic_box& b = system->box(frame);
+        PeriodicBox& b = system->box(frame);
         if(mass_weighted){
             float M = 0.0;
             #pragma omp parallel
@@ -974,7 +976,7 @@ Vector3f Selection::center(bool mass_weighted, Array3i_const_ref pbc, int pbc_at
                     res += r;                    
                 }
             }
-            if(M==0) throw Pteros_error("Selection has zero mass! Center of mass failed!");
+            if(M==0) throw PterosError("Selection has zero mass! Center of mass failed!");
             return res/M;
         } else {
             #pragma omp parallel
@@ -997,8 +999,8 @@ Vector3f Selection::center(const std::vector<float> &weights, Array3i_const_ref 
 {
     int n = size();
 
-    if(n==0) throw Pteros_error("Can't get center of empty selection!");
-    if(weights.size()!=size()) throw Pteros_error("Weights array has {} elements, while selection has {}!",weights.size(),size());
+    if(n==0) throw PterosError("Can't get center of empty selection!");
+    if(weights.size()!=size()) throw PterosError("Weights array has {} elements, while selection has {}!",weights.size(),size());
     // in case of just one atom nothing to compute
     if(n==1) return xyz(0);
 
@@ -1025,7 +1027,7 @@ Vector3f Selection::center(const std::vector<float> &weights, Array3i_const_ref 
                 res += r;
             }
         }
-        if(W==0) throw Pteros_error("Sum of weights is zero mass! Center failed!");
+        if(W==0) throw PterosError("Sum of weights is zero mass! Center failed!");
         return res/W;
 
     } else {
@@ -1033,7 +1035,7 @@ Vector3f Selection::center(const std::vector<float> &weights, Array3i_const_ref 
         // We will find closest periodic images of all points
         // using leading point as a reference
         Vector3f ref_point = xyz(pbc_atom);
-        Periodic_box& b = system->box(frame);
+        PeriodicBox& b = system->box(frame);
 
         float W = 0.0;
         #pragma omp parallel
@@ -1049,7 +1051,7 @@ Vector3f Selection::center(const std::vector<float> &weights, Array3i_const_ref 
                 res += r;
             }
         }
-        if(W==0) throw Pteros_error("Sum of weights is zero mass! Center failed!");
+        if(W==0) throw PterosError("Sum of weights is zero mass! Center failed!");
         return res/W;
     }
 }
@@ -1083,7 +1085,7 @@ float Selection::rmsd(int fr1, int fr2) const{
 
     if(fr1<0 || fr1>=system->num_frames() ||
        fr2<0 || fr2>=system->num_frames())
-        throw Pteros_error("RMSD requested for frames {}:{} while the valid range is 0:{}", fr1,fr2,system->num_frames()-1);
+        throw PterosError("RMSD requested for frames {}:{} while the valid range is 0:{}", fr1,fr2,system->num_frames()-1);
 
     #pragma omp parallel for reduction(+:res)
     for(int i=0; i<n; ++i)
@@ -1095,7 +1097,7 @@ float Selection::rmsd(int fr1, int fr2) const{
 //RMSD between current and other frame
 float Selection::rmsd(int fr) const {
     if(fr<0 || fr>=system->num_frames())
-        throw Pteros_error("RMSD requested for frame {} while the valid range is 0:{}", fr,system->num_frames()-1);
+        throw PterosError("RMSD requested for frame {} while the valid range is 0:{}", fr,system->num_frames()-1);
 
     return rmsd(frame,fr);
 }
@@ -1114,7 +1116,7 @@ namespace pteros {
 void copy_coord(const Selection &from, int from_fr, Selection &to, int to_fr)
 {
     if(from.size()!=to.size())
-        throw Pteros_error("Can't copy coordinates between selections of different size!");
+        throw PterosError("Can't copy coordinates between selections of different size!");
 
     for(int i=0; i<from.size(); ++i){
         to.xyz(i,to_fr) = from.xyz(i,from_fr);
@@ -1133,7 +1135,7 @@ Vector2f non_bond_energy(const Selection& sel1,
 {
     // Check if both selections are from the same system
     if(sel1.get_system()!=sel2.get_system())
-        throw Pteros_error("Can't compute non-bond energy between selections from different systems!");
+        throw PterosError("Can't compute non-bond energy between selections from different systems!");
 
     if(fr<0) fr = sel1.get_frame();
 
@@ -1171,10 +1173,10 @@ float rmsd(const Selection& sel1, int fr1, const Selection& sel2, int fr2){
     int n1 = sel1._index.size();
     int n2 = sel2._index.size();
     float res = 0.0;
-    if(n1!=n2) throw Pteros_error("Incompatible selections for RMSD of sizes {} and {}", n1,n2);
+    if(n1!=n2) throw PterosError("Incompatible selections for RMSD of sizes {} and {}", n1,n2);
 
     if(fr1<0 || fr1>=sel1.system->num_frames() || fr2<0 || fr2>=sel2.system->num_frames())
-        throw Pteros_error("RMSD requested for frames {}:{} while the valid range is {}:{}",
+        throw PterosError("RMSD requested for frames {}:{} while the valid range is {}:{}",
                           fr1,fr2,sel1.system->num_frames()-1,sel2.system->num_frames()-1);
 
 
@@ -1195,7 +1197,7 @@ Affine3f fit_transform(const Selection& sel1, const Selection& sel2){
     int n1 = sel1.size();
     int n2 = sel2.size();
 
-    if(n1!=n2) throw Pteros_error("Incompatible selections for fitting of sizes {} and {}", n1, n2);
+    if(n1!=n2) throw PterosError("Incompatible selections for fitting of sizes {} and {}", n1, n2);
 
     Affine3f rot;
     Vector3f cm1, cm2;
@@ -1315,9 +1317,9 @@ Vector2f Selection::non_bond_energy(float cutoff, bool pbc) const
 void Selection::fit_trajectory(int ref_frame, int b, int e){
     if(e==-1) e = system->num_frames()-1;
     // Sanity check
-    if(b<0 || b>=system->num_frames() || b>e) throw Pteros_error("Invalid frame range!");
+    if(b<0 || b>=system->num_frames() || b>e) throw PterosError("Invalid frame range!");
     if(ref_frame<0 || ref_frame>=system->num_frames())
-        throw Pteros_error("Reference frame is out of range!");
+        throw PterosError("Reference frame is out of range!");
 
     // Aux reference selection
     Selection ref = *this;
@@ -1392,32 +1394,35 @@ void Selection::minmax(Vector3f_ref min, Vector3f_ref max) const {
 // IO functions
 //###############################################
 
-void Selection::write(string fname, int b, int e) {    
+void Selection::write(string fname, int b, int e) const {
     // -1 has special meaning
     if(b==-1) b=get_frame(); // current frame
     if(e==-1) e=system->num_frames()-1; // last frame
 
     int last = get_system()->num_frames();
 
-    if(b<-1 || b>=last) throw Pteros_error("First frame {} for writing is out of range [{}:{}]",b,0,last);
-    if(e<-1 || e>=last) throw Pteros_error("Last frame {} for writing is out of range [{}:{}]",e,0,last);
-    if(e<b) throw Pteros_error("Last frame {} before first one {} for writing!",e,b);
+    if(b<-1 || b>=last) throw PterosError("First frame {} for writing is out of range [{}:{}]",b,0,last);
+    if(e<-1 || e>=last) throw PterosError("Last frame {} for writing is out of range [{}:{}]",e,0,last);
+    if(e<b) throw PterosError("Last frame {} before first one {} for writing!",e,b);
 
-    auto f = Mol_file::open(fname,'w');
+    auto f = FileHandler::open(fname,'w');
 
     if(!(f->get_content_type().traj()) && e!=b){
-        throw Pteros_error("Can't write the range of frames to structure file!");
+        throw PterosError("Can't write the range of frames to structure file!");
     }    
 
-    LOG()->debug("Writing {} frames to file '{}'...",e-b,fname);
+    LOG()->debug("Writing {} frames to file '{}'...",e-b+1,fname);
 
+    // Save current frame
+    int cur_fr = get_frame();
     for(int fr=b;fr<=e;++fr){        
-        set_frame(fr);
+        const_cast<Selection*>(this)->set_frame(fr);
         f->write(*this,f->get_content_type());
     }
+    const_cast<Selection*>(this)->set_frame(cur_fr);
 }
 
-void Selection::write(const std::unique_ptr<Mol_file> &handler, Mol_file_content what, int b, int e)
+void Selection::write(const std::unique_ptr<FileHandler> &handler, FileContent what, int b, int e) const
 {
     // -1 has special meaning
     if(b==-1) b=get_frame(); // current frame
@@ -1425,12 +1430,12 @@ void Selection::write(const std::unique_ptr<Mol_file> &handler, Mol_file_content
 
     int last = get_system()->num_frames();
 
-    if(b<-1 || b>=last) throw Pteros_error("First frame {} for writing is out of range [{}:{}]",b,0,last);
-    if(e<-1 || e>=last) throw Pteros_error("Last frame {} for writing is out of range [{}:{}]",e,0,last);
-    if(e<b) throw Pteros_error("Last frame {} before first one {} for writing!",e,b);
+    if(b<-1 || b>=last) throw PterosError("First frame {} for writing is out of range [{}:{}]",b,0,last);
+    if(e<-1 || e>=last) throw PterosError("Last frame {} for writing is out of range [{}:{}]",e,0,last);
+    if(e<b) throw PterosError("Last frame {} before first one {} for writing!",e,b);
 
     if(!(handler->get_content_type().traj()) && e!=b && what.traj()){
-        throw Pteros_error("Can't write the range of frames to this file!");
+        throw PterosError("Can't write the range of frames to this file!");
     }
 
     // First write all except trajectory (if any)
@@ -1444,10 +1449,12 @@ void Selection::write(const std::unique_ptr<Mol_file> &handler, Mol_file_content
 
     // Now write trajectory if asked
     if(what.traj()){
+        int cur_fr = get_frame();
         for(int fr=b;fr<=e;++fr){
-            set_frame(fr);
-            handler->write(*this, Mol_file_content().traj(true));
+            const_cast<Selection*>(this)->set_frame(fr);
+            handler->write(*this, FileContent().traj(true));
         }
+        const_cast<Selection*>(this)->set_frame(cur_fr);
     }
 }
 
@@ -1544,7 +1551,7 @@ void Selection::each_residue(std::vector<Selection>& sel) const {
 void Selection::dssp(string fname) const {
     // Take all protein residues from current selection and select them whole
     auto sel = const_cast<Selection*>(this)->select("by residue protein");
-    if(!sel.size()) Pteros_error("Need some protein residues for DSSP!");
+    if(!sel.size()) PterosError("Need some protein residues for DSSP!");
 
     ofstream f(fname.c_str());
     dssp_wrapper(sel,f);
@@ -1554,7 +1561,7 @@ void Selection::dssp(string fname) const {
 void Selection::dssp(ostream& os) const {
     // Take all protein residues from current selection and select them whole
     auto sel = const_cast<Selection*>(this)->select("by residue protein");
-    if(!sel.size()) Pteros_error("Need some protein residues for DSSP!");
+    if(!sel.size()) PterosError("Need some protein residues for DSSP!");
 
     dssp_wrapper(sel,os);
 }
@@ -1563,7 +1570,7 @@ void Selection::dssp(ostream& os) const {
 string Selection::dssp() const{
     // Take all protein residues from current selection and select them whole
     auto sel = const_cast<Selection*>(this)->select("by residue protein");
-    if(!sel.size()) Pteros_error("Need some protein residues for DSSP!");
+    if(!sel.size()) PterosError("Need some protein residues for DSSP!");
 
     return dssp_string(sel);
 }
@@ -1582,8 +1589,8 @@ string Selection::element_name(int ind) const {
 MatrixXf Selection::atom_traj(int ind, int b, int e, bool make_row_major_matrix) const {
     if(e==-1) e = system->num_frames()-1;
     // Sanity check
-    if(ind<0 || ind>=_index.size()) throw Pteros_error("Selection index is out of range!");
-    if(b<0 || b>=system->num_frames() || b>e) throw Pteros_error("Invalid frame range!");
+    if(ind<0 || ind>=_index.size()) throw PterosError("Selection index is out of range!");
+    if(b<0 || b>=system->num_frames() || b>e) throw PterosError("Invalid frame range!");
 
     int Nfr = e-b+1;
     MatrixXf ret;
@@ -1653,7 +1660,7 @@ void Selection::split_by_connectivity(float d, std::vector<Selection> &res, bool
             int i=0;
             while(used(i)==1){
                 ++i;
-                if(i>=size()) throw Pteros_error("UPS! Wrong connectivity?");
+                if(i>=size()) throw PterosError("UPS! Wrong connectivity?");
             }
 
             todo.insert(i);
@@ -1695,7 +1702,7 @@ void Selection::split_by_residue(std::vector<Selection> &res)
 
 void Selection::split_by_molecule(std::vector<Selection> &res)
 {
-    if(!system->force_field.ready) throw Pteros_error("Can't split by molecule: no topology!");
+    if(!system->force_field.ready) throw PterosError("Can't split by molecule: no topology!");
 
     map<int,vector<int>> m;
     int bmol = 0;
@@ -1773,7 +1780,7 @@ void Selection::inertia(Vector3f_ref moments, Matrix3f_ref axes, Array3i_const_r
 
     if( (pbc!=0).any() ){
         Vector3f anchor = xyz(pbc_atom);
-        Periodic_box& b = system->box(frame);
+        PeriodicBox& b = system->box(frame);
         #pragma omp parallel
         {
             Vector3f p,d;
@@ -1846,11 +1853,11 @@ float Selection::gyration(Array3i_const_ref pbc, int pbc_atom) const {
     return sqrt(a/b);
 }
 
-Vector3f Selection::dipole(bool is_charged, Array3i_const_ref pbc, int pbc_atom) const {
+Vector3f Selection::dipole(bool as_charged, Array3i_const_ref pbc, int pbc_atom) const {
     process_pbc_atom(pbc_atom);
 
     Vector3f shift(0,0,0);
-    if(is_charged) shift = center(true,pbc,pbc_atom);
+    if(as_charged) shift = center(true,pbc,pbc_atom);
 
     Vector3f res(0,0,0);
     for(int i=0;i<size();++i){
@@ -1917,7 +1924,7 @@ int Selection::unwrap_bonds(float d, Array3i_const_ref pbc, int pbc_atom){
     todo.insert(pbc_atom);
     used[pbc_atom] = 1;
     int Nused = 1;
-    Periodic_box& b = system->box(frame);
+    PeriodicBox& b = system->box(frame);
 
     for(;;){
         while(!todo.empty()){
@@ -1946,7 +1953,7 @@ int Selection::unwrap_bonds(float d, Array3i_const_ref pbc, int pbc_atom){
             int i=0;
             while(used(i)==1){
                 ++i;
-                if(i>=size()) throw Pteros_error("Wrong connectivity?");
+                if(i>=size()) throw PterosError("Wrong connectivity?");
             }
 
             todo.insert(i);
@@ -2117,7 +2124,7 @@ float Selection::powersasa(float probe_r, vector<float> *area_per_atom,
 float Selection::powersasa(float probe_r, vector<float> *area_per_atom,
                            float *total_volume, vector<float> *volume_per_atom) const
 {
-    throw Pteros_error("Pteros is compiled without powersasa support!");
+    throw PterosError("Pteros is compiled without powersasa support!");
 }
 
 #endif
@@ -2159,8 +2166,8 @@ float Selection::sasa(float probe_r, vector<float> *area_per_atom, int n_sphere_
 
 
 void Selection::get_local_bonds_from_topology(vector<vector<int>>& con) const {
-    if(!system->force_field.ready) throw Pteros_error("No topology!");
-    if(system->force_field.bonds.size()==0) throw Pteros_error("No bonds in topology!");
+    if(!system->force_field.ready) throw PterosError("No topology!");
+    if(system->force_field.bonds.size()==0) throw PterosError("No bonds in topology!");
 
     con.clear();
     con.resize(size());
@@ -2182,4 +2189,6 @@ void Selection::get_local_bonds_from_topology(vector<vector<int>>& con) const {
         }
     }
 }
+
+
 

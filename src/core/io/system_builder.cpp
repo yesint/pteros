@@ -26,13 +26,29 @@
  *
 */
 
+#include "system_builder.h"
 
-#include "mol2_file.h"
-#include "pteros/core/pteros_error.h"
-
-using namespace pteros;
 using namespace std;
+using namespace pteros;
 
-Mol2File::Mol2File(string &fname): BabelWrapper(fname){ }
 
+SystemBuilder::~SystemBuilder()
+{
 
+}
+
+void SystemBuilder::allocate_atoms(int n){
+    sys->atoms.resize(n);
+}
+
+void SystemBuilder::set_atom(int i, const Atom &at){
+    sys->atoms[i] = at;
+}
+
+Atom& SystemBuilder::atom(int i){
+    return sys->atoms[i];
+}
+
+void SystemBuilder::add_atom(const Atom &at){
+    sys->atoms.push_back(at);
+}

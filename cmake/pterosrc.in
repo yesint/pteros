@@ -1,3 +1,4 @@
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:@_ld@
 export PYTHONPATH=$PYTHONPATH:@_py@
 export PATH=$PATH:@_path@
+export CMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH:@_cmake@

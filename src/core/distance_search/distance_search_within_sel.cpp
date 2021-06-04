@@ -7,10 +7,10 @@
  *
  * https://github.com/yesint/pteros
  *
- * (C) 2009-2020, Semen Yesylevskyy
+ * (C) 2009-2021, Semen Yesylevskyy
  *
  * All works, which use Pteros, should cite the following papers:
- *  
+ *
  *  1.  Semen O. Yesylevskyy, "Pteros 2.0: Evolution of the fast parallel
  *      molecular analysis library for C++ and python",
  *      Journal of Computational Chemistry, 2015, 36(19), 1480–1488.
@@ -27,7 +27,6 @@
 */
 
 
-
 #include "distance_search_within_sel.h"
 #include "pteros/core/pteros_error.h"
 #include <thread>
@@ -36,7 +35,7 @@ using namespace std;
 using namespace pteros;
 using namespace Eigen;
 
-Distance_search_within_sel::Distance_search_within_sel(float d,
+DistanceSearchWithinSel::DistanceSearchWithinSel(float d,
                             const Selection &src,
                             const Selection &target,
                             std::vector<int>& res,
@@ -61,7 +60,7 @@ Distance_search_within_sel::Distance_search_within_sel(float d,
         grid2.populate(target,min,max,abs_index);
     }
 
-    do_search();
+    do_search();    
 
     // Elements in set are unique already, need to copy to result and sort
     copy(result.begin(),result.end(),back_inserter(res));
@@ -73,6 +72,8 @@ Distance_search_within_sel::Distance_search_within_sel(float d,
         set_difference(tmp.begin(),tmp.end(),target.index_begin(),target.index_end(),back_inserter(res));
     }
 }
+
+
 
 
 

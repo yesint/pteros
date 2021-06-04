@@ -7,10 +7,10 @@
  *
  * https://github.com/yesint/pteros
  *
- * (C) 2009-2020, Semen Yesylevskyy
+ * (C) 2009-2021, Semen Yesylevskyy
  *
  * All works, which use Pteros, should cite the following papers:
- *  
+ *
  *  1.  Semen O. Yesylevskyy, "Pteros 2.0: Evolution of the fast parallel
  *      molecular analysis library for C++ and python",
  *      Journal of Computational Chemistry, 2015, 36(19), 1480–1488.
@@ -27,13 +27,14 @@
 */
 
 
-
 #include "pdbqt_file.h"
 #include "pteros/core/pteros_error.h"
 
 using namespace pteros;
 using namespace std;
 
-PDBQT_file::PDBQT_file(string &fname): Babel_wrapper(fname){ }
+PdbqtFile::PdbqtFile(string &fname): BabelWrapper(fname){ }
+
+
 
 

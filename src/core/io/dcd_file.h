@@ -7,10 +7,10 @@
  *
  * https://github.com/yesint/pteros
  *
- * (C) 2009-2020, Semen Yesylevskyy
+ * (C) 2009-2021, Semen Yesylevskyy
  *
  * All works, which use Pteros, should cite the following papers:
- *  
+ *
  *  1.  Semen O. Yesylevskyy, "Pteros 2.0: Evolution of the fast parallel
  *      molecular analysis library for C++ and python",
  *      Journal of Computational Chemistry, 2015, 36(19), 1480–1488.
@@ -27,7 +27,6 @@
 */
 
 
-
 #ifndef DCD_FILE_H
 #define DCD_FILE_H
 
@@ -37,17 +36,20 @@
 namespace pteros {
 
 /// Generic API for reading and writing any molecule file formats
-class DCD_file: public VMD_molfile_plugin_wrapper {
+class DcdFile: public VmdMolfilePluginWrapper {
 public:
-    DCD_file(std::string fname);
+    DcdFile(std::string fname);
 
-    virtual Mol_file_content get_content_type() const {
-        return Mol_file_content().traj(true);
+    virtual FileContent get_content_type() const {
+        return FileContent()
+                .traj(true);
     }
 
 };
 
 }
 #endif /* MOL_FILE_H */
+
+
 
 

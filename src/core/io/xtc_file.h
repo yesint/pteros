@@ -7,10 +7,10 @@
  *
  * https://github.com/yesint/pteros
  *
- * (C) 2009-2020, Semen Yesylevskyy
+ * (C) 2009-2021, Semen Yesylevskyy
  *
  * All works, which use Pteros, should cite the following papers:
- *  
+ *
  *  1.  Semen O. Yesylevskyy, "Pteros 2.0: Evolution of the fast parallel
  *      molecular analysis library for C++ and python",
  *      Journal of Computational Chemistry, 2015, 36(19), 1480–1488.
@@ -27,10 +27,9 @@
 */
 
 
-
 #pragma once
 
-#include "pteros/core/mol_file.h"
+#include "pteros/core/file_handler.h"
 
 #include "xdrfile.h"
 #include "xdrfile_xtc.h"
@@ -38,20 +37,20 @@
 namespace pteros {
 
 
-class XTC_file: public Mol_file {
+class XtcFile: public FileHandlerRandomAccess {
 public:
-    XTC_file(std::string& fname): Mol_file(fname), handle(nullptr) {}
+    XtcFile(std::string& fname): FileHandlerRandomAccess(fname), handle(nullptr), content(FileContent().traj(true).rand(true)) {}
     virtual void open(char open_mode);
-    virtual ~XTC_file();
+    virtual ~XtcFile();
 
-    virtual Mol_file_content get_content_type() const {
-        return Mol_file_content().traj(true).rand(true);
+    virtual FileContent get_content_type() const {
+        return content;
     }
 
-protected:        
+protected:
 
-    virtual void do_write(const Selection &sel, const Mol_file_content& what) override;
-    virtual bool do_read(System *sys, Frame *frame, const Mol_file_content& what) override ;
+    virtual void do_write(const Selection &sel, const FileContent& what) override;
+    virtual bool do_read(System *sys, Frame *frame, const FileContent& what) override ;
 
     virtual void seek_frame(int fr) override;
     virtual void seek_time(float t) override;
@@ -66,9 +65,12 @@ private:
     int steps_per_frame;
     int64_t num_frames;
     float dt, max_t;
+    FileContent content;
 };
 
 }
+
+
 
 
 

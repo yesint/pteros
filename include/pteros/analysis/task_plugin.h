@@ -1,5 +1,33 @@
-#ifndef TASK_PLUGIN_H
-#define TASK_PLUGIN_H
+/*
+ * This file is a part of
+ *
+ * ============================================
+ * ###   Pteros molecular modeling library  ###
+ * ============================================
+ *
+ * https://github.com/yesint/pteros
+ *
+ * (C) 2009-2021, Semen Yesylevskyy
+ *
+ * All works, which use Pteros, should cite the following papers:
+ *
+ *  1.  Semen O. Yesylevskyy, "Pteros 2.0: Evolution of the fast parallel
+ *      molecular analysis library for C++ and python",
+ *      Journal of Computational Chemistry, 2015, 36(19), 1480–1488.
+ *      doi: 10.1002/jcc.23943.
+ *
+ *  2.  Semen O. Yesylevskyy, "Pteros: Fast and easy to use open-source C++
+ *      library for molecular analysis",
+ *      Journal of Computational Chemistry, 2012, 33(19), 1632–1636.
+ *      doi: 10.1002/jcc.22989.
+ *
+ * This is free software distributed under Artistic License:
+ * http://www.opensource.org/licenses/artistic-license-2.0.php
+ *
+*/
+
+
+#pragma once
 
 #include "pteros/analysis/task_base.h"
 #include "pteros/analysis/options.h"
@@ -12,18 +40,18 @@ namespace pteros {
 /// Base class for plugins. Has options and jump remover
 /// Also has constructor with options
 
-class Task_plugin: public Task_base {
+class TaskPlugin: public TaskBase {
 public:
 
-    Task_plugin(const Options& opt): options(opt), Task_base() {  }
-    Task_plugin(const Task_plugin& other);
+    TaskPlugin(const Options& opt): options(opt), TaskBase() {  }
+    TaskPlugin(const TaskPlugin& other);
 
     Options options;
-    Jump_remover jump_remover;
+    JumpRemover jump_remover;
 
     virtual std::string help(){ return ""; }
 
-    Task_plugin* clone() const override {
+    TaskPlugin* clone() const override {
         return nullptr;
     }
 
@@ -31,16 +59,16 @@ protected:
 
     void before_spawn_handler() override;
     void pre_process_handler() override;
-    void process_frame_handler(const Frame_info& info) override;
-    virtual void post_process_handler(const Frame_info& info) override;
+    void process_frame_handler(const FrameInfo& info) override;
+    virtual void post_process_handler(const FrameInfo& info) override;
 };
 
 }
 
 #define _TASK_(_name) \
-    class _name: public Task_plugin { \
+    class _name: public TaskPlugin { \
     public: \
-        using Task_plugin::Task_plugin; \
+        using TaskPlugin::TaskPlugin; \
         void set_id(int _id) override {\
             log = create_logger(fmt::format(#_name ".{}",_id)); \
             task_id = _id; \
@@ -60,6 +88,3 @@ protected:
     protected: \
         bool is_parallel() final { return false; }
 
-
-
-#endif // TASK_BASE_H

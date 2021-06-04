@@ -7,10 +7,10 @@
  *
  * https://github.com/yesint/pteros
  *
- * (C) 2009-2020, Semen Yesylevskyy
+ * (C) 2009-2021, Semen Yesylevskyy
  *
  * All works, which use Pteros, should cite the following papers:
- *  
+ *
  *  1.  Semen O. Yesylevskyy, "Pteros 2.0: Evolution of the fast parallel
  *      molecular analysis library for C++ and python",
  *      Journal of Computational Chemistry, 2015, 36(19), 1480–1488.
@@ -31,27 +31,27 @@
 #include <string>
 #include "pteros/core/system.h"
 #include "pteros/core/selection.h"
-#include "pteros/core/mol_file.h"
+#include "pteros/core/file_handler.h"
 #include "molfile_plugin.h"
 
 namespace pteros {
 
 /// Generic API for reading and writing any molecule file formats
-class VMD_molfile_plugin_wrapper: public Mol_file {
+class VmdMolfilePluginWrapper: public FileHandler {
 public:
     // High-level API        
-    VMD_molfile_plugin_wrapper(std::string& fname);
+    VmdMolfilePluginWrapper(std::string& fname);
     virtual void open(char open_mode);
-    virtual ~VMD_molfile_plugin_wrapper();
+    virtual void close();
 
-protected:       
-    void* handle; // Handle for reading
+protected:
+    void* r_handle; // Handle for reading
     void* w_handle; // Handle for writing
 
     char mode;
 
-    virtual bool do_read(System *sys, Frame *frame, const Mol_file_content& what);
-    virtual void do_write(const Selection &sel, const Mol_file_content& what);
+    virtual bool do_read(System *sys, Frame *frame, const FileContent& what);
+    virtual void do_write(const Selection &sel, const FileContent& what);
 
     // molfile plugin instance (set in derived class)
     molfile_plugin_t* plugin;
@@ -62,5 +62,7 @@ protected:
 };
 
 }
+
+
 
 
