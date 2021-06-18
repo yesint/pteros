@@ -8,6 +8,7 @@ Pteros is currently being developed on Linux Mint with gcc and clang compilers. 
 
 \note
 If you managed to compile Pteros on MacOS, please share your experience because we have no Mac machines to perform the tests.
+
 \note
 You are wellcome to provide a guide for compiling Pteros on Windows. I maintained such guide some time ago but now I have no interest in this since I'm not doing any development on Windows.
 
@@ -16,12 +17,15 @@ Intel ICC compiler was tested in the past on Linux, but was giving poor performa
 
 
 \section depend     Dependencies
+
+\warning Current version of Pteros is 3.x. It depends on C++17 features and requires sufficiently modern compiler. If you are still limited by old compiler use branch v2 which is outdated but requires only C++11.
+
 The prerequisites for compilation of Pteros are the following.
 
 Core dependencies, that should be installed separately:
-- Standard-conforming C and C++11 compilers (tested with gcc>=4.8, clang>=3.1).
-- <a href="http://www.cmake.org/">cmake</a> build system.
-- <a href="http://www.boost.org/">boost</a> 1.48 or higher.
+- Standard-conforming C and C++17 compilers (tested with gcc>=9.0, clang>=10.0).
+- <a href="http://www.cmake.org/">cmake</a> 3.10 or higher.
+- <a href="http://www.boost.org/">boost</a> 1.50 or higher.
 - <a href="http://git-scm.com/">Git</a> for getting the source code.
 - <a href="https://www.python.org/">Python</a> 3.5 or higher (optional, needed for compiling dynamic plugins and python bindings).
 
@@ -42,12 +46,12 @@ For building documentation (don't needed unless you want to contribute to the do
 
 If you are using latest Ubuntu or other debian-based system it should be enough to run the following command in the terminal to install basic dependencies:
 \code{.unparsed}
-sudo apt-get install g++ cmake libeigen3-dev libboost-all-dev python3.5-dev python3.5-numpy pybind11-dev git doxygen python-sphinx
+sudo apt-get install g++ cmake libeigen3-dev libboost-all-dev python3-dev python3-numpy pybind11-dev git doxygen python-sphinx
 \endcode
 
 \warning
-- If you need Gromacs support it is highly recommended to install it from source because version in the repositories is usually outdated. Even if you prefer to use the version from repositories, you have to download the Gromacs source code matching your version since recent versions of Gromacs do not install all necessary low-level headers, which are used by Pteros.
-- In Ubuntu the spdlog package is corrupted and lacks some necessary files, thus is it advised not to install it system-wide and let Pteros to pull it from git repository automatically instead.
+- It is highly recommended to install Gromacs it from source because version in the repositories is usually outdated. Even if you prefer to use the version from repositories, you <b>must</b> download Gromacs source code matching your version because recent versions of Gromacs do not install all necessary low-level headers, which are used by Pteros.
+- In various versions of Ubuntu the spdlog package is corrupted and lacks some necessary files, thus is it advised not to install it system-wide and let Pteros to pull it from git repository automatically instead.
 - OpenBabel have to be install from source in Ubuntu 16.x and 18.x (and probably in later versions as well) because repository packages are corrupted and lack some header files. Do not install dev packege from repositories - it won't work! Your milleage in other linuxes may vary depending on the package quality. Compiled version of OpenBabel does not interfere with system version if installed to /usr/local (default).
 \code{.unparsed}
 git clone https://github.com/openbabel/openbabel.git
@@ -56,7 +60,7 @@ cd openbabel-build
 cmake ../openbabel
 sudo make install
 \endcode
-- In older Ubuntu releases pybind11 is not packaged so you should let Pteros to pull it in automatically or to install it yourself from source:
+- In older Ubuntu releases pybind11 is not packaged so you should let Pteros to pull it in automatically (recommended) or install it yourself from source:
 \code{.unparsed}
 git clone https://github.com/pybind/pybind11.git
 mkdir pybind11-build
@@ -75,14 +79,18 @@ git clone https://github.com/yesint/pteros.git pteros
 \endcode
 This will create a directory named "pteros" in you current working directory and will download the source code into it.
 
+\note Use branch v2 if you need older version which compiles by C++11 compilers.
+
 \subsection compile Compiling
 Create a separate build directory (for example 'pteros_build'). Go to this directory and issue the following commands:
 
 \code{.unparsed}
-cmake <path to Pteros source directory> -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=<where to install Pteros>
+cmake <path to Pteros source directory> -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=<where to install Pteros> -DWITH_GROMACS=OFF
 make
 make install
 \endcode
+
+\note If you need ability to read Gromacs files see \ref gmx.
 
 \warning The 'make install' command may require root access if you are installing into the system-wide location.
 
@@ -92,11 +100,11 @@ The cmake command will print something like this:
 IMPORTANT!
 In order to be able to link with` Pteros and to use Pteros Python modules
 you have to source the pterosrc file in your bash shell:
-source /home/semen/programs/pteros/lib/pterosrc
+source /home/user/programs/pteros/lib/pterosrc
 ------------------------------
 \endcode
 
-Copy suggested lines and add them to your .bashrc file (it is assumed that bash shell is used. If it is not the case use the syntax of your actual shell instead).
+Copy suggested line and add it to your .bashrc file (it is assumed that bash shell is used. If it is not the case use the syntax of your actual shell instead).
 
 If you want to compile with alternative compiler (for example Clang), add the following flags to cmake invocation:
 \code{.unparsed}
@@ -195,9 +203,4 @@ Use <a href="https://github.com/yesint/pteros/issues">issues on Github</a> to re
 \code{.unparsed} -DBoost_NO_SYSTEM_PATHS=ON -DBOOST_ROOT="Correct path to boost" \endcode
 - All Pteros plugins have to be up to date with the main library, but CMake doesn't always ensure this if you pull new updates from the repository. If plugins suddenly stop working after update delete CMakeCache.txt and CMakeFiles and recompile.
 - The error <i>"trying to overwrite '/usr/include/spdlog/async_logger.h', which is also in package libspdlog-dev 1.6-1"</i> occurs during installation. This happens if you have `spdlog` installed system-wide in Ubuntu from the package `libspdlog-dev`. This package is built in a wrong way and it lacks `spdlogConfig.cmake` file needed for correct library detection. That is why Pteros can't see it and tries to install its own bundled version of spdlog. Use `INSTALL_INTERNAL_SPDLOG=OFF` as a workaround.
-- On some systems, following some obscure CMake logic, certain third-party libraries are installed into `lib64` directory, while pteros libraries are installed to `lib`. So far I've seen this only once, but if you get the error message like <i>"can't find libtng_io.so"</i> you are likely to be affected by this strange behavior of CMake. In order to fix, find the file `<pteros install path>/lib/pterosrc` and add `lib64` to the first line. It should read:
-\code{.unparsed}
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:<path>/pteros/lib:<path>/pteros/lib64
-\endcode
-
 */

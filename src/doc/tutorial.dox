@@ -49,33 +49,36 @@ Instead of giving long and boring formal description of the selection syntax (av
 System sys("some-protein.pdb");
 
 // Select everything
-Selection sel0(sys,"all");
+Selection sel0 = sys("all");
+// Or just an empty pair of ()
+Selection sel0 = sys();
 
 // Select by atom name(s)
-Selection sel1(sys,"name CA");
-Selection sel2(sys,"name CA CB OA"); // Selects all CA, CB and OA atoms
+Selection sel1 = sys("name CA");
+Selection sel2 = sys("name CA CB OA"); // Selects all CA, CB and OA atoms
 
 // Select by residue number. You can use ranges in two forms with "-" and with "to".
-Selection sel3(sys,"resid 3"); // single residue number 3
-Selection sel4(sys,"resid 1-25"); // Residues from 1 to 25 inclusive
-Selection sel5(sys,"resid 100 1-25 200 to 206"); // Residues from 1 to 25, from 200 to 206 and also residue 100
+Selection sel3=sys("resid 3"); // single residue number 3
+Selection sel4=sys("resid 1-25"); // Residues from 1 to 25 inclusive
+Selection sel5=sys("resid 100 1-25 200 to 206"); // Residues from 1 to 25, from 200 to 206 and also residue 100
 
 // Select by atom index (starts from zero). You can also use ranges.
-Selection sel6(sys,"index 3");
-Selection sel7(sys,"index 20 5 100-600 700 9 0 2");
+Selection sel6=sys("index 3");
+Selection sel7=sys("index 20 5 100-600 700 9 0 2");
 
 // Select by residue name(s)
-Selection sel8(sys,"resname ALA"); // Selects all ALA residues
-Selection sel9(sys,"resname THR MET"); // Selects all THR and MET residues
+Selection sel8=sys("resname ALA"); // Selects all ALA residues
+Selection sel9=sys("resname THR MET"); // Selects all THR and MET residues
 
 // Select by chain(s)
-Selection sel10(sys,"chain A B"); // Selects chains A and B
+Selection sel10=sys("chain A B"); // Selects chains A and B
 
 // Select by coordinates of atoms (arbitrary arithmetic expressions are supported)
-Selection sel11(sys,"x<10 and y>z*4.5+x");
+Selection sel11=sys("x<10 and y>z*4.5+x");
 
 // This will select all atoms inside a cylinder aligned with Z axis with a radius of 2 Angstroms:
-Selection sel12(sys,"x^2+y^2 < 2^2");
+Selection sel12=sys("x^2+y^2 < 2^2");
+
 
 // Arbitraraly complex logic with AND, OR  and NOT could be used
 Selection sel13(sys,"((name CA and resid 10 to 100) or (name CB and resname ALA)) or x^2>y^2");
