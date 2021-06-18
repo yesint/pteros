@@ -27,37 +27,25 @@
 */
 
 
-#pragma once
+#include "bindings_util.h"
+#include "pteros/extras/gnm.h"
 
-#include "pteros/core/selection.h"
-#include <Eigen/Core>
+namespace py = pybind11;
+using namespace pteros;
+using namespace pybind11::literals;
 
-namespace pteros {
+void make_bindings_GNM(py::module& m){
 
-/** Implementation of the Gaussian Network Model (GNM) protein model.
-  */
-class GNM {
-public:
-    GNM(const Selection& sel, float cutoff=0.7);
-
-    Eigen::VectorXf get_eigenvector(int i);
-    Eigen::VectorXf get_B_factor();
-
-    void write_eigenvectors(std::string fname, int v1, int v2);
-    void compute_c_matrix();
-    void compute_p_matrix();
-    void write_c_matrix(std::string fname);
-    void write_p_matrix(std::string fname);
-
-    Eigen::MatrixXf get_subset_c_matrix(ArrayXi_const_ref subset);
-private:
-    int N;
-    Selection* sel;
-    Eigen::MatrixXf eigenvectors;
-    Eigen::VectorXf eigenvalues;
-    Eigen::MatrixXf c,p;
-    Eigen::VectorXf b; // B-factor
-};
+    py::class_<GNM>(m,"GNM")
+        .def(py::init<const Selection&,float>())
+        .def(py::init<const Selection&>())
+        .def("get_eigenvector",&GNM::get_eigenvector)
+        .def("get_B_factor",&GNM::get_B_factor)
+        .def("get_subset_c_matrix",&GNM::get_subset_c_matrix)
+        .def("write_eigenvectors",&GNM::write_eigenvectors)
+        .def("compute_c_matrix",&GNM::compute_c_matrix)
+        .def("write_c_matrix",&GNM::write_c_matrix)
+    ;
 
 }
 

@@ -46,6 +46,7 @@ using MatrixXf_const_ref = const Eigen::Ref<const Eigen::MatrixXf>& ;
 using Vector3i_const_ref = const Eigen::Ref<const Eigen::Vector3i>& ;
 
 using Array3i_const_ref = const Eigen::Ref<const Eigen::Array3i>& ;
+using ArrayXi_const_ref = const Eigen::Ref<const Eigen::ArrayXi>& ;
 
 static const Eigen::Array3i fullPBC = Eigen::Array3i::Ones();
 static const Eigen::Array3i noPBC   = Eigen::Array3i::Zero();
