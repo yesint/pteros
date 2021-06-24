@@ -42,6 +42,7 @@ void make_bindings_GNM(py::module& m){
         .def("get_eigenvector",&GNM::get_eigenvector)
         .def("get_B_factor",&GNM::get_B_factor)
         .def("get_subset_c_matrix",&GNM::get_subset_c_matrix)
+        .def("get_c_matrix",&GNM::get_c_matrix)
         .def("write_eigenvectors",&GNM::write_eigenvectors)
         .def("compute_c_matrix",&GNM::compute_c_matrix)
         .def("write_c_matrix",&GNM::write_c_matrix)

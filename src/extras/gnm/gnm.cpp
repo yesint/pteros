@@ -77,12 +77,12 @@ GNM::GNM(const Selection &sel, float cutoff){
     LOG()->debug(" Done in {} s.",(time2-time1)/CLOCKS_PER_SEC);
 }
 
-Eigen::VectorXf GNM::get_eigenvector(int i)
+Eigen::VectorXf GNM::get_eigenvector(int i) const
 {
     return eigenvectors.col(i);
 }
 
-VectorXf GNM::get_B_factor()
+VectorXf GNM::get_B_factor() const
 {
     return b;
 }
@@ -189,7 +189,7 @@ void GNM::write_p_matrix(string fname){
     f.close();
 }
 
-MatrixXf GNM::get_subset_c_matrix(ArrayXi_const_ref subset)
+MatrixXf GNM::get_subset_c_matrix(ArrayXi_const_ref subset) const
 {
     int sz = subset.size();
     MatrixXf ret(sz,sz);
@@ -201,4 +201,9 @@ MatrixXf GNM::get_subset_c_matrix(ArrayXi_const_ref subset)
     }
 
     return ret;
+}
+
+MatrixXf GNM::get_c_matrix() const
+{
+    return c;
 }

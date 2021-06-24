@@ -40,8 +40,8 @@ class GNM {
 public:
     GNM(const Selection& sel, float cutoff=0.7);
 
-    Eigen::VectorXf get_eigenvector(int i);
-    Eigen::VectorXf get_B_factor();
+    Eigen::VectorXf get_eigenvector(int i) const;
+    Eigen::VectorXf get_B_factor() const;
 
     void write_eigenvectors(std::string fname, int v1, int v2);
     void compute_c_matrix();
@@ -49,7 +49,8 @@ public:
     void write_c_matrix(std::string fname);
     void write_p_matrix(std::string fname);
 
-    Eigen::MatrixXf get_subset_c_matrix(ArrayXi_const_ref subset);
+    Eigen::MatrixXf get_subset_c_matrix(ArrayXi_const_ref subset) const;
+    Eigen::MatrixXf get_c_matrix() const;
 private:
     int N;
     Selection* sel;
