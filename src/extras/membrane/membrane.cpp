@@ -49,7 +49,6 @@ using namespace pteros;
 using namespace Eigen;
 
 
-
 Membrane::Membrane(System *sys, const std::vector<Lipid_descr> &species,
                    int ngroups, bool compute_splay): system(sys), lipid_species(species)
 {
@@ -765,4 +764,69 @@ Average_props_per_type::Average_props_per_type()
 }
 
 
+//--------------------------------------------
 
+LipidTail::LipidTail(const Selection& lipid_sel, const string &tail_sel_str)
+{
+    Selection tail_sel = const_cast<Selection&>(lipid_sel)(tail_sel_str);
+    int N = tail_sel.size();
+
+    // Set offsets
+    carbon_offsets.resize(N);
+    for(int i=0;i<N;++i) carbon_offsets[i] = tail_sel.index(i) - lipid_sel.index(0);
+
+    // Initialize order
+    order.resize(N-2);
+    order.fill(0.0);
+
+    // Initialize dihedrals
+    dihedrals.resize(N-3);
+    dihedrals.fill(0.0);
+}
+
+void LipidTail::compute(const LipidMolecule& lipid)
+{
+    int N = carbon_offsets.size();
+    // Compute order
+    for(int at=1; at<N-1; ++at){
+        // Vector from at+1 to at-1
+        auto coord1 = lipid.whole_sel.xyz(carbon_offsets[at+1]);
+        auto coord2 = lipid.whole_sel.xyz(carbon_offsets[at-1]);
+        float ang = angle_between_vectors(coord1-coord2,lipid.normal);
+        order[at-1] = 1.5*pow(cos(ang),2)-0.5;
+    }
+
+    // Compute dihedrals
+    for(int at=0; at<=N-3; ++at){
+        dihedrals[at] = lipid.whole_sel.dihedral(carbon_offsets[at],
+                                                 carbon_offsets[at+1],
+                                                 carbon_offsets[at+2],
+                                                 carbon_offsets[at+3],
+                                                 noPBC);
+    }
+}
+
+LipidMolecule::LipidMolecule(const Selection &lip_mol, const LipidSpecies &sp)
+{
+    name = sp.name;
+    whole_sel = lip_mol;
+    head_marker_sel = whole_sel(sp.head_marker_str);
+    tail_marker_sel = whole_sel(sp.tail_marker_str);
+    mid_marker_sel = whole_sel(sp.mid_marker_str);
+    // Create tails
+    tails.reserve(sp.tail_carbons_str.size());
+    for(const string& t_str: sp.tail_carbons_str){
+        tails.emplace_back(whole_sel, t_str);
+    }
+}
+
+PerSpeciesProperties::PerSpeciesProperties()
+{
+    count.fill(0.0);
+    area_hist.create(0,1.8,100);
+    area.fill(0.0);
+    tilt_hist.create(0,90,90);
+    tilt.fill(0.0);
+    trans_dihedrals_ratio.fill(0.0);
+
+}

@@ -36,6 +36,114 @@
 namespace pteros {
 
 
+struct LipidSpecies {
+    // Symbolic name of lipid
+    std::string name;
+    // Selection for the whole lipids
+    std::string whole_str;
+    // Selection for the head marker
+    std::string head_marker_str;
+    // Selection for the tail marker
+    std::string tail_marker_str;
+    // Selection for the middle marker
+    std::string mid_marker_str;
+    // Selections for the carbons of each tail
+    std::vector<std::string> tail_carbons_str;
+};
+
+
+class LipidTail;
+
+class LipidMolecule {
+public:
+    LipidMolecule(const Selection& lip_mol, const LipidSpecies& sp);
+
+    std::string name;
+    int id; // Unique ID equal to the index of lipid in the Membrane object
+    Selection whole_sel;
+    Selection head_marker_sel;
+    Selection tail_marker_sel;
+    Selection mid_marker_sel;
+
+    // Tails
+    std::vector<LipidTail> tails;
+    int num_tails() const {return tails.size();}
+
+    // General instanteneous properties
+    Eigen::Vector3f normal;
+    float tilt_angle;
+    float area;
+    int coord_number;
+    Eigen::Vector3f dipole; // Dipole
+    float dipole_proj; // Dipole projected onto the normal
+
+    // Curvature-related instanteneous properties
+    Eigen::Vector3f smoothed_mid_xyz;
+    float quad_fit_rms;
+    float gaussian_curvature;
+    float mean_curvature;
+
+private:
+    // Set markers to current COM coordinates of marker seletions
+    void set_markers();
+    void unset_markers();
+
+    // Coordinates of markers
+    Eigen::Vector3f head_marker, tail_marker, mid_marker, mid_saved;
+
+    Selection local_sel;
+};
+
+
+class LipidTail {
+public:
+    LipidTail(const Selection& lipid_sel, const std::string& tail_sel_str);
+
+    void compute(const LipidMolecule& lipid);
+    int size() const {return carbon_offsets.size();}
+
+    // Order parameters. Size N-2
+    Eigen::VectorXf order;
+    // Dihedral angles. Size N-3
+    Eigen::VectorXf dihedrals;
+private:
+    // Relative offsets of carbon atoms indexes in whole lipid selection. Size N.
+    Eigen::VectorXi carbon_offsets;
+};
+
+
+class PerSpeciesProperties {
+public:
+    PerSpeciesProperties();
+
+    Eigen::Vector2i count; // number of lipids (mean,std)
+    // Area
+    Histogram area_hist;
+    Eigen::Vector2f area; // (mean,std)
+    // Tilt
+    Histogram tilt_hist;
+    Eigen::Vector2f tilt; // (mean,std)
+    // Trans dihedrals ratio
+    Eigen::Vector2f trans_dihedrals_ratio; // (mean,std)
+    // Order parameter
+    std::vector<Eigen::VectorXf> order; //Sz order parameter identical to "gmx order -szonly"
+    bool equal_tails; // If true
+};
+
+
+class LipidGroup {
+public:
+    // Name of the group
+    std::string name;
+    // Lipids by ID
+    std::vector<int> ids;
+
+    // Per group averages (mean,std)
+    Eigen::Vector2i num_lipids;
+    Eigen::Vector2f trans_dihedrals_ratio;
+};
+
+//===================================================================
 struct Lipid_descr {
     std::string name;
     std::string whole_sel_str;
@@ -106,7 +214,7 @@ struct Average_props_per_type {
     Histogram coord_number;
     Histogram tail_dihedrals;
     std::vector<std::vector<float>> order; //Sz order parameter identical to "gmx order -szonly"
-    bool equal_tails;    
+    bool equal_tails;
 };
 
 using Lipid_group = std::map<std::string,Average_props_per_type>;
