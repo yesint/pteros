@@ -53,13 +53,15 @@ struct LipidSpecies {
 
 
 class LipidTail;
+class LipidMembrane;
 
 class LipidMolecule {
 public:
-    LipidMolecule(const Selection& lip_mol, const LipidSpecies& sp);
+    LipidMolecule(const Selection& lip_mol, const LipidSpecies& sp, int ind, LipidMembrane* parent);
+
+    void add_to_group(int gr);
 
     std::string name;
-    int id; // Unique ID equal to the index of lipid in the Membrane object
     Selection whole_sel;
     Selection head_marker_sel;
     Selection tail_marker_sel;
@@ -71,7 +73,7 @@ public:
 
     // General instanteneous properties
     Eigen::Vector3f normal;
-    float tilt_angle;
+    float tilt;
     float area;
     int coord_number;
     Eigen::Vector3f dipole; // Dipole
@@ -83,13 +85,16 @@ public:
     float gaussian_curvature;
     float mean_curvature;
 
-private:
-    // Set markers to current COM coordinates of marker seletions
     void set_markers();
     void unset_markers();
 
+//private:
+    int id;
+    LipidMembrane* membr_ptr;
+    // Set markers to current COM coordinates of marker seletions
+
     // Coordinates of markers
-    Eigen::Vector3f head_marker, tail_marker, mid_marker, mid_saved;
+    Eigen::Vector3f head_marker, tail_marker, mid_marker, pos_saved;
 
     Selection local_sel;
 };
@@ -103,9 +108,9 @@ public:
     int size() const {return carbon_offsets.size();}
 
     // Order parameters. Size N-2
-    Eigen::VectorXf order;
+    Eigen::ArrayXf order;
     // Dihedral angles. Size N-3
-    Eigen::VectorXf dihedrals;
+    Eigen::ArrayXf dihedrals;
 private:
     // Relative offsets of carbon atoms indexes in whole lipid selection. Size N.
     Eigen::VectorXi carbon_offsets;
@@ -116,7 +121,7 @@ class PerSpeciesProperties {
 public:
     PerSpeciesProperties();
 
-    Eigen::Vector2i count; // number of lipids (mean,std)
+    float count; // number of lipids of this species. float to avoid overflow.
     // Area
     Histogram area_hist;
     Eigen::Vector2f area; // (mean,std)
@@ -126,21 +131,95 @@ public:
     // Trans dihedrals ratio
     Eigen::Vector2f trans_dihedrals_ratio; // (mean,std)
     // Order parameter
-    std::vector<Eigen::VectorXf> order; //Sz order parameter identical to "gmx order -szonly"
-    bool equal_tails; // If true
+    std::vector<Eigen::ArrayXf> order; //Sz order parameter identical to "gmx order -szonly"
+    bool equal_tails; // If true the tails are of the same size
+
+    void add_data(const LipidMolecule& lip){
+        ++count;
+        // Area
+        area_hist.add(lip.area);
+        area[0] += lip.area; // mean
+        area[1] += pow(lip.area,2); // std
+        // Tilt
+        tilt_hist.add(lip.tilt);
+        tilt[0] += lip.tilt; // mean
+        tilt[1] += pow(lip.tilt,2); // std
+        // Tail stats
+        if(order.size()==0){
+            // This is very first invocation, so resize order arrays properly
+            order.resize(lip.tails.size());
+            for(int i=0;i<order.size();++i){
+                order[i].resize(lip.tails.size());
+                order[i].fill(0.0); // Init to zeros
+            }
+        }
+        // Order
+        for(int i=0;i<lip.tails.size();++i){
+            order[i] += lip.tails[i].order;
+        }
+        // Trans dihedrals
+        for(const auto& t: lip.tails){
+            float ratio = (t.dihedrals > M_PI_2).count()/float(t.dihedrals.size());
+            trans_dihedrals_ratio[0] += ratio;
+            trans_dihedrals_ratio[1] += ratio*ratio;
+        }
+
+    }
 };
 
 
 class LipidGroup {
 public:
-    // Name of the group
-    std::string name;
-    // Lipids by ID
-    std::vector<int> ids;
+
+    LipidGroup(LipidMembrane* ptr){
+        membr_ptr = ptr;
+        num_lipids.fill(0.0);
+        trans_dihedrals_ratio.fill(0.0);
+    }
+
+    void clear(){ ids.clear(); }
+    void add(int i){ids.push_back(i);}
+    void process();
 
     // Per group averages (mean,std)
     Eigen::Vector2i num_lipids;
     Eigen::Vector2f trans_dihedrals_ratio;
+    // Per species averages
+    std::map<std::string,PerSpeciesProperties> species_properties;
+
+private:
+    // Lipids by ID
+    std::vector<int> ids;
+    // Parent ptr
+    LipidMembrane* membr_ptr;
+};
+
+
+class LipidMembrane {
+public:
+    LipidMembrane(System *sys, const std::vector<LipidSpecies>& species, int ngroups);
+
+    void reset_groups(){
+        for(auto& gr: groups){
+            gr.clear();
+        }
+    }
+
+    void compute_properties(float d = 2.0,
+                            bool use_external_normal = false,
+                            Vector3f_const_ref external_pivot = Eigen::Vector3f::Zero(),
+                            Vector3i_const_ref external_dist_dim = Eigen::Vector3i::Ones());
+
+    void compute_averages();
+    void write_averages(std::string path="");
+
+    std::vector<LipidMolecule> lipids;
+    std::vector<LipidGroup> groups;
+private:
+    System* system; // Parent system
+    std::shared_ptr<spdlog::logger> log;
+
+    Selection all_mid_sel;
 };
 
 //===================================================================

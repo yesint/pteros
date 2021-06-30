@@ -806,8 +806,10 @@ void LipidTail::compute(const LipidMolecule& lipid)
     }
 }
 
-LipidMolecule::LipidMolecule(const Selection &lip_mol, const LipidSpecies &sp)
+LipidMolecule::LipidMolecule(const Selection& lip_mol, const LipidSpecies& sp, int ind, LipidMembrane* parent)
 {
+    id = ind;
+    membr_ptr = parent;
     name = sp.name;
     whole_sel = lip_mol;
     head_marker_sel = whole_sel(sp.head_marker_str);
@@ -820,13 +822,221 @@ LipidMolecule::LipidMolecule(const Selection &lip_mol, const LipidSpecies &sp)
     }
 }
 
+void LipidMolecule::add_to_group(int gr){
+    membr_ptr->groups[gr].add(id);
+}
+
+void LipidMolecule::set_markers()
+{
+    // Unwrap this lipid with leading index of mid marker
+    whole_sel.unwrap(fullPBC, mid_marker_sel.index(0)-whole_sel.index(0));
+
+    // Set markers to COM
+    head_marker = head_marker_sel.center(true);
+    tail_marker = tail_marker_sel.center(true);
+    mid_marker = mid_marker_sel.center(true);
+
+    pos_saved = mid_marker_sel.xyz(0);
+    mid_marker_sel.xyz(0) = mid_marker;
+}
+
+void LipidMolecule::unset_markers()
+{
+    mid_marker_sel.xyz(0) = pos_saved;
+}
+
 PerSpeciesProperties::PerSpeciesProperties()
 {
-    count.fill(0.0);
+    count = 0;
     area_hist.create(0,1.8,100);
     area.fill(0.0);
     tilt_hist.create(0,90,90);
     tilt.fill(0.0);
     trans_dihedrals_ratio.fill(0.0);
 
+}
+
+LipidMembrane::LipidMembrane(System *sys, const std::vector<LipidSpecies> &species, int ngroups)
+{
+    log = create_logger("membrane");
+
+    log->info('Processing lipids...');
+    int id = 0;
+    for(auto& sp: species){
+        vector<Selection> res;
+        system->select(sp.whole_str).split_by_residue(res);
+        log->info("Lipid {}: {}", sp.name,res.size());
+
+        for(auto& lip: res){
+            lipids.emplace_back(lip,sp,id,this);
+            ++id;
+        }
+    }
+
+    // Print statictics
+    log->info("Total number of lipids: {}",lipids.size());
+
+    // Create selection for all mid atoms
+    all_mid_sel.set_system(*system);
+    vector<int> ind;
+    ind.reserve(lipids.size());
+    for(auto& lip: lipids) ind.push_back(lip.mid_marker_sel.index(0));
+    all_mid_sel.modify(ind);
+
+    // Create groups
+    groups.reserve(ngroups);
+    for(int i=0;i<ngroups;++i) groups.emplace_back(this);
+    // Initialize groups stats
+    for(auto& gr: groups){
+        for(const auto& sp: species){
+            gr.species_properties[sp.name] = PerSpeciesProperties();
+        }
+    }
+}
+
+void LipidMembrane::compute_properties(float d, bool use_external_normal, Vector3f_const_ref external_pivot, Vector3i_const_ref external_dist_dim)
+{
+    Eigen::Matrix3f tr, tr_inv;
+
+    // Set markers for all lipids
+    // This unwraps each lipid
+    for(auto& l: lipids) l.set_markers();
+
+    // Get connectivity
+    vector<Vector2i> bon;
+    vector<float> dist;
+    search_contacts(d,all_mid_sel,bon,dist,false,fullPBC);
+
+    // Convert the list of bonds to convenient form
+    // atom ==> 1 2 3...
+    vector<vector<int> > conn(all_mid_sel.size());
+    for(int i=0;i<bon.size();++i){
+        conn[bon[i](0)].push_back(bon[i](1));
+        conn[bon[i](1)].push_back(bon[i](0));
+    }
+
+    // Process lipids
+    for(int i=0;i<lipids.size();++i){
+        LipidMolecule& lip = lipids[i];
+
+        // Save local selection for this lipid
+        lip.local_sel = all_mid_sel.select(conn[i]);
+
+        if(lip.local_sel.size()==0){
+            log->warn("Empty locality of lipid {}!",i);
+            continue;
+        }
+
+        // Local coordinate axes
+        Matrix3f axes;
+
+        //-----------------------------------
+        // Compute normal
+        //-----------------------------------
+
+        Vector3f normal;
+
+        if(use_external_normal){
+            // Compute external normal as a vector from pivot to COM of mid_sel (set as marker currently)
+            // over specified dimensions
+            axes.col(2) = (lip.mid_marker-external_pivot).array()*external_dist_dim.cast<float>().array();
+
+            // Find two vectors perpendicular to normal
+            if( axes.col(2).dot(Vector3f(1,0,0)) != 1.0 ){
+                axes.col(0) = axes.col(2).cross(Vector3f(1,0,0));
+            } else {
+                axes.col(0) = axes.col(2).cross(Vector3f(0,1,0));
+            }
+            axes.col(1) = axes.col(2).cross(axes.col(0));
+        } else {
+            // Compute normals from inertia axes
+            // Create selection for locality of this lipid including itself
+            Selection local_self(lip.local_sel);
+            local_self.append(all_mid_sel.index(i)); // Add central atom
+
+            // Get inertial axes
+            Vector3f moments;
+            local_self.inertia(moments,axes,fullPBC); // Have to use periodic variant
+            // axes.col(2) will be a normal
+        }
+
+        normal = axes.col(2);
+
+        // transformation matrix to local basis
+        for(int j=0;j<3;++j) tr.col(j) = axes.col(j).normalized();
+        tr_inv = tr.inverse();
+
+        // Need to check direction of the normal
+        float ang = angle_between_vectors(normal, lip.head_marker-lip.tail_marker);
+        if(ang < M_PI_2){
+            lip.normal = normal;
+            lip.tilt = ang;
+        } else {
+            lip.normal = -normal;
+            lip.tilt = M_PI-ang;
+        }
+        lip.normal.normalized();
+
+        // Create array of local points in local basis
+        MatrixXf coord(3,lip.local_sel.size()+1);
+        Vector3f c0 = lip.mid_marker; // Real coord of central point - the marker
+        coord.col(0) = Vector3f::Zero(); // Local coord of central point is zero
+        for(int j=0; j<lip.local_sel.size(); ++j)
+            coord.col(j+1) = tr_inv * system->box(0).shortest_vector(c0,lip.local_sel.xyz(j));
+
+        //-----------------------------------
+        // Smooth and find local curvatures
+        //-----------------------------------
+
+        //if(do_curvature){
+            // Fit a quad surface
+            Matrix<float,6,1> res;
+            Vector3f sm; // smoothed coords of central point
+            fit_quad_surface(coord,res,sm,lip.quad_fit_rms);
+            // Compute curvatures using quad fit coeefs
+            get_curvature(res, lip.gaussian_curvature, lip.mean_curvature);
+
+            // Get smoothed surface point in lab coords
+            lip.smoothed_mid_xyz = tr*sm + lip.mid_marker;
+        //}
+
+        //-----------------------------------
+        // Area and neighbours
+        //-----------------------------------
+        vector<int> neib;
+        lip.area = compute_area(coord,10.0,neib);
+        // Save coordination number of the lipid
+        lip.coord_number = neib.size();
+
+        // Revert markers for current lipid
+        // This restores all correct atomic coordinates for analysis
+        lip.unset_markers();
+
+        //-------------------------------
+        // Dipole
+        //-------------------------------
+        lip.dipole = lip.whole_sel.dipole(true);
+        lip.dipole_proj = lip.dipole.dot(lip.normal); // normal is normalized, no need to devide by norm
+
+        //-----------------------------------
+        // Tail properties
+        //-----------------------------------
+        for(auto& t: lip.tails) t.compute(lip);
+
+    } // Over lipids
+
+
+    // Process groups
+    for(auto& gr: groups){
+        gr.process();
+    }
+}
+
+void LipidGroup::process()
+{
+    // Cycle over lipids in this group
+    for(int id: ids){
+        auto name = membr_ptr->lipids[id].name;
+        species_properties[name].add_data(membr_ptr->lipids[id]);
+    }
 }
