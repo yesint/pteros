@@ -797,7 +797,7 @@ void LipidTail::compute(const LipidMolecule& lipid)
     }
 
     // Compute dihedrals
-    for(int at=0; at<=N-3; ++at){
+    for(int at=0; at<N-3; ++at){
         dihedrals[at] = lipid.whole_sel.dihedral(carbon_offsets[at],
                                                  carbon_offsets[at+1],
                                                  carbon_offsets[at+2],
@@ -823,7 +823,7 @@ LipidMolecule::LipidMolecule(const Selection& lip_mol, const LipidSpecies& sp, i
 }
 
 void LipidMolecule::add_to_group(int gr){
-    membr_ptr->groups[gr].add(id);
+    membr_ptr->groups[gr].add_lipid_id(id);
 }
 
 void LipidMolecule::set_markers()
@@ -848,19 +848,175 @@ void LipidMolecule::unset_markers()
 PerSpeciesProperties::PerSpeciesProperties()
 {
     count = 0;
+
     area_hist.create(0,1.8,100);
     area.fill(0.0);
+
     tilt_hist.create(0,90,90);
     tilt.fill(0.0);
-    trans_dihedrals_ratio.fill(0.0);
 
+    total_dipole.fill(0.0);
+    projected_dipole.fill(0.0);
+    coord_number.fill(0.0);
+
+    gaussian_curvature.fill(0.0);
+    mean_curvature.fill(0.0);
+
+    trans_dihedrals_ratio.fill(0.0);
+    order_initialized = false;
+}
+
+
+void accumulate_statistics(float val, Eigen::Vector2f& storage){
+    storage[0] += val; // mean
+    storage[1] += val*val; // std
+}
+
+void PerSpeciesProperties::add_data(const LipidMolecule &lip){
+    ++count;
+    // Area
+    area_hist.add(lip.area);
+    accumulate_statistics(lip.area,area);
+
+    // Tilt
+    tilt_hist.add(lip.tilt);
+    accumulate_statistics(lip.tilt,tilt);
+
+    // Dipoles
+    accumulate_statistics(lip.dipole.norm(), total_dipole);
+    accumulate_statistics(lip.dipole_proj, projected_dipole);
+
+    // Coordination number
+    accumulate_statistics(lip.coord_number, coord_number);
+
+    // Curvatures
+    accumulate_statistics(lip.mean_curvature, mean_curvature);
+    accumulate_statistics(lip.gaussian_curvature, gaussian_curvature);
+
+    // Tail stats
+    if(!order_initialized){
+        // This is very first invocation, so resize order arrays properly
+        // See if the tails are of the same length
+        int sz = lip.tails[0].size();
+        bool same = true;
+        for(int i=1;i<lip.tails.size();++i){
+            if(lip.tails[i].size()!=sz){
+                same = false;
+                break;
+            }
+        }
+
+        // Save number of tails for later averaging
+        num_tails = lip.tails.size();
+
+        if(!same){
+            order.resize(lip.tails.size());
+            for(int i=0;i<order.size();++i){
+                order[i].resize(lip.tails[i].size());
+                order[i].fill(0.0); // Init to zeros
+            }
+        } else {
+            // tails are the same add extra slot for average
+            order.resize(lip.tails.size()+1);
+            for(int i=0;i<order.size();++i){
+                order[i].resize(lip.tails[0].size()); // Resize also average correctly
+                order[i].fill(0.0); // Init to zeros
+            }
+        }
+
+        order_initialized = true;
+    } // Initialization
+
+    // Order
+    for(int i=0;i<lip.tails.size();++i){
+        order[i] += lip.tails[i].order;
+    }
+    // Trans dihedrals
+    for(const auto& t: lip.tails){
+        float ratio = (t.dihedrals > M_PI_2).count()/float(t.dihedrals.size());
+        accumulate_statistics(ratio,trans_dihedrals_ratio);
+    }
+
+}
+
+void mean_std_from_accumulated(Vector2f& storage, float N){
+    if(N>0){
+        float s1 = storage[0];
+        float s2 = storage[1];
+        storage[0] = s1/N;
+        storage[1] = sqrt(s2/N - s1*s1/N/N);
+    } else {
+        storage.fill(0.0);
+    }
+}
+
+void PerSpeciesProperties::post_process(float num_frames)
+{
+    // Skip if no data
+    if(count==0 || num_frames==0) return;
+
+    // Compute averages
+
+    // Area
+    mean_std_from_accumulated(area,count);
+    area_hist.normalize(count);
+
+    // Tilt
+    mean_std_from_accumulated(tilt,count);
+    tilt_hist.normalize(count);
+
+    // Trans dihedrals
+    mean_std_from_accumulated(trans_dihedrals_ratio, count*num_tails); // Note number of tails!
+
+    // Dipoles
+    mean_std_from_accumulated(total_dipole,count);
+    mean_std_from_accumulated(projected_dipole,count);
+
+    // Coordination number
+    mean_std_from_accumulated(coord_number,count);
+
+    // Curvatures
+    mean_std_from_accumulated(mean_curvature,count);
+    mean_std_from_accumulated(gaussian_curvature,count);
+
+    // Order
+    if(num_tails<order.size()){
+        // we have an extra slot - this is for average of the same size tails
+        for(int i=0;i<num_tails;++i) order[num_tails] += order[i]/float(num_tails);
+    }
+    // Average orders for all tails (including the average if present)
+    for(int i=0;i<order.size();++i) order[i] /= count;
+
+    // At the end set average number of lipids of this kind per frame
+    count /= num_frames;
+}
+
+string PerSpeciesProperties::summary()
+{
+    string s;
+    if(count>0){
+        s += fmt::format("\t\tCount:\t{}\n", count);
+        s += fmt::format("\t\tArea:\t{} +/- {} nm2\n", area[0],area[1]);
+        s += fmt::format("\t\tTilt:\t{} +/- {} deg\n", rad_to_deg(tilt[0]),rad_to_deg(tilt[1]));
+        s += fmt::format("\t\tDipole:\t{} +/- {} D\n", total_dipole[0],total_dipole[1]);
+        s += fmt::format("\t\tDip.proj.:\t{} +/- {} D\n", projected_dipole[0],projected_dipole[1]);
+        s += fmt::format("\t\tCoord.N:\t{} +/- {}\n", coord_number[0],coord_number[1]);
+        s += fmt::format("\t\tMean.curv.:\t{} +/- {} nm-1\n", mean_curvature[0],mean_curvature[1]);
+        s += fmt::format("\t\tGaus.curv.:\t{} +/- {} nm-1\n", gaussian_curvature[0],gaussian_curvature[1]);
+        s += fmt::format("\t\tTr.Dih.:\t{} +/- {}\n", trans_dihedrals_ratio[0],trans_dihedrals_ratio[1]);
+    } else {
+        s += "\t\tNo data\n";
+    }
+    return s;
 }
 
 LipidMembrane::LipidMembrane(System *sys, const std::vector<LipidSpecies> &species, int ngroups)
 {
     log = create_logger("membrane");
+    system = sys;
 
-    log->info('Processing lipids...');
+    log->info("There are {} lipid species",species.size());
+    log->info("Processing lipids...");
     int id = 0;
     for(auto& sp: species){
         vector<Selection> res;
@@ -882,15 +1038,23 @@ LipidMembrane::LipidMembrane(System *sys, const std::vector<LipidSpecies> &speci
     ind.reserve(lipids.size());
     for(auto& lip: lipids) ind.push_back(lip.mid_marker_sel.index(0));
     all_mid_sel.modify(ind);
+    log->info("Lipid markers selected");
 
     // Create groups
     groups.reserve(ngroups);
-    for(int i=0;i<ngroups;++i) groups.emplace_back(this);
+    for(int i=0;i<ngroups;++i) groups.emplace_back(this,i);
     // Initialize groups stats
     for(auto& gr: groups){
         for(const auto& sp: species){
             gr.species_properties[sp.name] = PerSpeciesProperties();
         }
+    }
+    log->info("{} groups created",ngroups);
+}
+
+void LipidMembrane::reset_groups(){
+    for(auto& gr: groups){
+        gr.reset();
     }
 }
 
@@ -900,7 +1064,7 @@ void LipidMembrane::compute_properties(float d, bool use_external_normal, Vector
 
     // Set markers for all lipids
     // This unwraps each lipid
-    for(auto& l: lipids) l.set_markers();
+    for(auto& l: lipids) l.set_markers();    
 
     // Get connectivity
     vector<Vector2i> bon;
@@ -913,7 +1077,7 @@ void LipidMembrane::compute_properties(float d, bool use_external_normal, Vector
     for(int i=0;i<bon.size();++i){
         conn[bon[i](0)].push_back(bon[i](1));
         conn[bon[i](1)].push_back(bon[i](0));
-    }
+    }    
 
     // Process lipids
     for(int i=0;i<lipids.size();++i){
@@ -1007,11 +1171,13 @@ void LipidMembrane::compute_properties(float d, bool use_external_normal, Vector
         lip.area = compute_area(coord,10.0,neib);
         // Save coordination number of the lipid
         lip.coord_number = neib.size();
+    } // for lipids
 
-        // Revert markers for current lipid
-        // This restores all correct atomic coordinates for analysis
-        lip.unset_markers();
+    // Unset markers. This restores all correct atomic coordinates for analysis
+    for(auto& lip: lipids) lip.unset_markers();
 
+    // Analysis whith requires restored coordinates of markers
+    for(auto& lip: lipids){
         //-------------------------------
         // Dipole
         //-------------------------------
@@ -1022,21 +1188,88 @@ void LipidMembrane::compute_properties(float d, bool use_external_normal, Vector
         // Tail properties
         //-----------------------------------
         for(auto& t: lip.tails) t.compute(lip);
-
     } // Over lipids
-
 
     // Process groups
     for(auto& gr: groups){
-        gr.process();
+        gr.process_frame();
     }
 }
 
-void LipidGroup::process()
+void LipidMembrane::compute_averages()
 {
-    // Cycle over lipids in this group
-    for(int id: ids){
-        auto name = membr_ptr->lipids[id].name;
-        species_properties[name].add_data(membr_ptr->lipids[id]);
+    // Run post-processing for all groups
+    for(auto& gr: groups){
+        gr.post_process();
     }
 }
+
+void LipidMembrane::write_averages(string path)
+{
+    string s;
+    s += "Run summary:\n";
+    for(auto& gr: groups){
+        s += gr.summary();
+    }
+    cout << s << endl;
+}
+
+LipidGroup::LipidGroup(LipidMembrane *ptr, int id){
+    gr_id = id;
+    membr_ptr = ptr;
+    num_lipids = 0;
+    num_frames = 0;
+    trans_dihedrals_ratio.fill(0.0);
+}
+
+void LipidGroup::process_frame()
+{
+    // Cycle over lipids in this group
+    for(int id: lip_ids){
+        auto name = membr_ptr->lipids[id].name;
+        // Add data to particular scpecies
+        species_properties[name].add_data(membr_ptr->lipids[id]);
+    }
+
+    ++num_frames;
+}
+
+void LipidGroup::post_process()
+{
+    // Collect bulk statistics for the group
+    int num_dihedrals = 0.0;
+    for(auto& it: species_properties){
+        num_lipids += it.second.count;
+        num_dihedrals += it.second.count*it.second.num_tails;
+        trans_dihedrals_ratio += it.second.trans_dihedrals_ratio;
+    }
+
+    // Compute correct averages for bulk properties
+    mean_std_from_accumulated(trans_dihedrals_ratio, num_dihedrals);
+    num_lipids = (num_frames) ? num_lipids/num_frames : 0;
+
+    // Compute averages per lipid species
+    for(auto& it: species_properties){
+        it.second.post_process(num_frames);
+    }
+}
+
+string LipidGroup::summary()
+{
+    string s;
+    s += fmt::format("Group #{}:\n",gr_id);
+    s += fmt::format("\tNum.lip.:\t{}\n",num_lipids);
+
+    if(num_lipids>0){
+        s += fmt::format("\tTr.Dih.:\t{} +/- {}\n", trans_dihedrals_ratio[0],trans_dihedrals_ratio[1]);
+        s += "\tLipid species:\n";
+        for(auto& it: species_properties){
+            s += fmt::format("\t{}:\n",it.first);
+            s += it.second.summary();
+        }
+    } else {
+        s += "\tNo data\n";
+    }
+    return s;
+}
+

@@ -128,68 +128,59 @@ public:
     // Tilt
     Histogram tilt_hist;
     Eigen::Vector2f tilt; // (mean,std)
+    // Total dipole
+    Eigen::Vector2f total_dipole; // (mean,std)
+    // Projected dipole
+    Eigen::Vector2f projected_dipole; // (mean,std)
+    // Coordination number
+    Eigen::Vector2f coord_number; // (mean,std)
     // Trans dihedrals ratio
     Eigen::Vector2f trans_dihedrals_ratio; // (mean,std)
+    // Curvature
+    Eigen::Vector2f gaussian_curvature;
+    Eigen::Vector2f mean_curvature;
     // Order parameter
-    std::vector<Eigen::ArrayXf> order; //Sz order parameter identical to "gmx order -szonly"
-    bool equal_tails; // If true the tails are of the same size
+    std::vector<Eigen::ArrayXf> order; //Sz order parameter identical to "gmx order -szonly"    
 
-    void add_data(const LipidMolecule& lip){
-        ++count;
-        // Area
-        area_hist.add(lip.area);
-        area[0] += lip.area; // mean
-        area[1] += pow(lip.area,2); // std
-        // Tilt
-        tilt_hist.add(lip.tilt);
-        tilt[0] += lip.tilt; // mean
-        tilt[1] += pow(lip.tilt,2); // std
-        // Tail stats
-        if(order.size()==0){
-            // This is very first invocation, so resize order arrays properly
-            order.resize(lip.tails.size());
-            for(int i=0;i<order.size();++i){
-                order[i].resize(lip.tails.size());
-                order[i].fill(0.0); // Init to zeros
-            }
-        }
-        // Order
-        for(int i=0;i<lip.tails.size();++i){
-            order[i] += lip.tails[i].order;
-        }
-        // Trans dihedrals
-        for(const auto& t: lip.tails){
-            float ratio = (t.dihedrals > M_PI_2).count()/float(t.dihedrals.size());
-            trans_dihedrals_ratio[0] += ratio;
-            trans_dihedrals_ratio[1] += ratio*ratio;
-        }
+    // Called at each lipid on each frame
+    void add_data(const LipidMolecule& lip);
+    // Called at the end
+    void post_process(float num_frames);
 
-    }
+    // Returns summary as a string
+    std::string summary();
+    int num_tails;
+private:
+    bool order_initialized;
+
 };
 
 
 class LipidGroup {
 public:
 
-    LipidGroup(LipidMembrane* ptr){
-        membr_ptr = ptr;
-        num_lipids.fill(0.0);
-        trans_dihedrals_ratio.fill(0.0);
-    }
+    LipidGroup(LipidMembrane* ptr, int id);
 
-    void clear(){ ids.clear(); }
-    void add(int i){ids.push_back(i);}
-    void process();
+    void reset(){ lip_ids.clear(); }
+    void add_lipid_id(int i){lip_ids.push_back(i);}
+    void add_lipid(const LipidMolecule& lip){lip_ids.push_back(lip.id);}
+    void process_frame();
+    void post_process();
+
+    // Returns summary as a string
+    std::string summary();
 
     // Per group averages (mean,std)
-    Eigen::Vector2i num_lipids;
+    float num_lipids, num_frames;
     Eigen::Vector2f trans_dihedrals_ratio;
     // Per species averages
     std::map<std::string,PerSpeciesProperties> species_properties;
 
 private:
+    // Group ID
+    int gr_id;
     // Lipids by ID
-    std::vector<int> ids;
+    std::vector<int> lip_ids;
     // Parent ptr
     LipidMembrane* membr_ptr;
 };
@@ -199,11 +190,7 @@ class LipidMembrane {
 public:
     LipidMembrane(System *sys, const std::vector<LipidSpecies>& species, int ngroups);
 
-    void reset_groups(){
-        for(auto& gr: groups){
-            gr.clear();
-        }
-    }
+    void reset_groups();
 
     void compute_properties(float d = 2.0,
                             bool use_external_normal = false,
@@ -221,6 +208,15 @@ private:
 
     Selection all_mid_sel;
 };
+
+
+
+
+
+
+
+
+
 
 //===================================================================
 struct Lipid_descr {
