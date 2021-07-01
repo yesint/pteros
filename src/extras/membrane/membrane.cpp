@@ -1010,6 +1010,46 @@ string PerSpeciesProperties::summary()
     return s;
 }
 
+void PerSpeciesProperties::save_order_to_file(const string &fname)
+{
+    ofstream out(fname);
+    if(num_tails<order.size()){
+        // we have an extra slot - this is for average of the same size tails
+        // Header
+        out << "# c_num\t";
+        for(int t=0;t<num_tails;++t) out << "t" << t << "\t";
+        out << "t_aver" << endl;
+
+        for(int c=0;c<order[0].size();++c){
+            out << c+1 << "\t";
+            for(int t=0;t<order.size();++t) out << order[t][c] << "\t";
+            out << endl;
+        }
+    } else {
+        // Tails are of different length
+        // Find the longest tail
+        int max_len = 0;
+        for(int t=0;t<num_tails;++t)
+            if(order[t].size()>max_len) max_len = order[t].size();
+        // Header
+        out << "# c_num\t";
+        for(int t=0;t<num_tails;++t) out << "t" << t << "\t";
+        out << endl;
+        // Body
+        for(int c=0;c<max_len;++c){
+            out << c+1 << "\t";
+            for(int t=0;t<num_tails;++t){
+                if(c<order[t].size())
+                    out << order[t][c] << "\t";
+                else
+                    out << "--";
+            }
+            out << endl;
+        }
+    }
+    out.close();
+}
+
 LipidMembrane::LipidMembrane(System *sys, const std::vector<LipidSpecies> &species, int ngroups)
 {
     log = create_logger("membrane");
@@ -1211,7 +1251,28 @@ void LipidMembrane::write_averages(string path)
     for(auto& gr: groups){
         s += gr.summary();
     }
+
+    // Print summary
     cout << s << endl;
+
+    // Save summary to file
+    ofstream out("summary.dat");
+    out << s;
+    out.close();
+
+    // Write files for species properties
+    for(int g=0;g<groups.size();++g){
+        for(auto& sp: groups[g].species_properties){
+            string file_prefix(fmt::format("gr{}_{}_",g,sp.first));
+            // Area
+            sp.second.area_hist.save_to_file(file_prefix+"area.dat");
+            // Tilt
+            sp.second.tilt_hist.save_to_file(file_prefix+"tilt.dat");
+            // Order
+            sp.second.save_order_to_file(file_prefix+"order.dat");
+
+        }
+    }
 }
 
 LipidGroup::LipidGroup(LipidMembrane *ptr, int id){

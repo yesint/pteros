@@ -56,6 +56,7 @@ class LipidTail;
 class LipidMembrane;
 
 class LipidMolecule {
+friend class LipidMembrane;
 public:
     LipidMolecule(const Selection& lip_mol, const LipidSpecies& sp, int ind, LipidMembrane* parent);
 
@@ -69,7 +70,6 @@ public:
 
     // Tails
     std::vector<LipidTail> tails;
-    int num_tails() const {return tails.size();}
 
     // General instanteneous properties
     Eigen::Vector3f normal;
@@ -85,13 +85,14 @@ public:
     float gaussian_curvature;
     float mean_curvature;
 
-    void set_markers();
-    void unset_markers();
 
-//private:
+private:
+
     int id;
     LipidMembrane* membr_ptr;
     // Set markers to current COM coordinates of marker seletions
+    void set_markers();
+    void unset_markers();
 
     // Coordinates of markers
     Eigen::Vector3f head_marker, tail_marker, mid_marker, pos_saved;
@@ -100,10 +101,8 @@ public:
 };
 
 
-class LipidTail {
-public:
+struct LipidTail {
     LipidTail(const Selection& lipid_sel, const std::string& tail_sel_str);
-
     void compute(const LipidMolecule& lipid);
     int size() const {return carbon_offsets.size();}
 
@@ -111,7 +110,6 @@ public:
     Eigen::ArrayXf order;
     // Dihedral angles. Size N-3
     Eigen::ArrayXf dihedrals;
-private:
     // Relative offsets of carbon atoms indexes in whole lipid selection. Size N.
     Eigen::VectorXi carbon_offsets;
 };
@@ -149,6 +147,10 @@ public:
 
     // Returns summary as a string
     std::string summary();
+
+    // Save order to file
+    void save_order_to_file(const std::string& fname);
+
     int num_tails;
 private:
     bool order_initialized;
@@ -158,12 +160,10 @@ private:
 
 class LipidGroup {
 public:
-
     LipidGroup(LipidMembrane* ptr, int id);
 
     void reset(){ lip_ids.clear(); }
     void add_lipid_id(int i){lip_ids.push_back(i);}
-    void add_lipid(const LipidMolecule& lip){lip_ids.push_back(lip.id);}
     void process_frame();
     void post_process();
 
@@ -208,10 +208,6 @@ private:
 
     Selection all_mid_sel;
 };
-
-
-
-
 
 
 
