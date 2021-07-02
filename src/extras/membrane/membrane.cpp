@@ -511,7 +511,6 @@ void Membrane::compute_properties(float d, bool use_external_normal, Vector3f_co
         }
 
 
-
     }
 
     //-----------------------------------
@@ -872,6 +871,7 @@ PerSpeciesProperties::PerSpeciesProperties(LipidMembrane *ptr)
         around[sp_name] = 0;
     }
 
+    num_tails = 0;
 }
 
 
@@ -902,7 +902,7 @@ void PerSpeciesProperties::add_data(const LipidMolecule &lip){
     accumulate_statistics(lip.gaussian_curvature, gaussian_curvature);
 
     // Tail stats
-    if(!order_initialized){
+    if(!order_initialized && lip.tails.size()){
         num_tails = lip.tails.size();
 
         // This is very first invocation, so resize order arrays properly
@@ -1032,20 +1032,20 @@ string PerSpeciesProperties::summary()
 void PerSpeciesProperties::save_order_to_file(const string &fname)
 {
     // Do nothing if no data
-    if(count==0) return;
+    if(count==0 || num_tails==0) return;
 
     ofstream out(fname);
     if(num_tails<order.size()){
         // we have an extra slot - this is for average of the same size tails
         // Header
-        out << "# c_num\t";
-        for(int t=0;t<num_tails;++t) out << "t" << t << "\t";
-        out << "t_aver" << endl;
+        fmt::print(out,"#c_num\t");
+        for(int t=0;t<num_tails;++t) fmt::print(out,"t{}\t",t);
+        fmt::print(out,"t_aver\n");
 
-        for(int c=0;c<order[0].size();++c){
-            out << c+2 << "\t";
-            for(int t=0;t<order.size();++t) out << order[t][c] << "\t";
-            out << endl;
+        for(int c=0;c<order[0].size();++c){            
+            fmt::print(out,"{}\t",c+2);
+            for(int t=0;t<order.size();++t) fmt::print(out,"{: .4f}\t",order[t][c]);
+            fmt::print(out,"\n");
         }
     } else {
         // Tails are of different length
@@ -1054,19 +1054,19 @@ void PerSpeciesProperties::save_order_to_file(const string &fname)
         for(int t=0;t<num_tails;++t)
             if(order[t].size()>max_len) max_len = order[t].size();
         // Header
-        out << "# c_num\t";
-        for(int t=0;t<num_tails;++t) out << "t" << t << "\t";
-        out << endl;
+        fmt::print(out,"#c_num\t");
+        for(int t=0;t<num_tails;++t) fmt::print(out,"t{}\t",t);
+        fmt::print(out,"\n");
         // Body
         for(int c=0;c<max_len;++c){
-            out << c+2 << "\t";
+            fmt::print(out,"{}\t",c+2);
             for(int t=0;t<num_tails;++t){
                 if(c<order[t].size())
-                    out << order[t][c] << "\t";
+                    fmt::print(out,"{: .4f}\t",order[t][c]);
                 else
-                    out << "--";
+                    fmt::print(out,"--\t");
             }
-            out << endl;
+            fmt::print(out,"\n");
         }
     }
     out.close();
@@ -1079,7 +1079,7 @@ void PerSpeciesProperties::save_around_to_file(const string &fname)
 
     ofstream out(fname);
     for(const auto& sp_name: membr_ptr->species_names){
-        out << sp_name << "\t" << around[sp_name] << endl;
+        fmt::print(out,"{}\t{:.4f}\n",sp_name,around[sp_name]);
     }
     out.close();
 }
