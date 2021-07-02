@@ -57,6 +57,7 @@ class LipidMembrane;
 
 class LipidMolecule {
 friend class LipidMembrane;
+friend class PerSpeciesProperties;
 public:
     LipidMolecule(const Selection& lip_mol, const LipidSpecies& sp, int ind, LipidMembrane* parent);
 
@@ -85,6 +86,8 @@ public:
     float gaussian_curvature;
     float mean_curvature;
 
+    // Indexes of neighbour lipids
+    std::vector<int> neib;
 
 private:
 
@@ -115,9 +118,9 @@ struct LipidTail {
 };
 
 
-class PerSpeciesProperties {
+class PerSpeciesProperties {    
 public:
-    PerSpeciesProperties();
+    PerSpeciesProperties(LipidMembrane* ptr);
 
     float count; // number of lipids of this species. float to avoid overflow.
     // Area
@@ -138,7 +141,9 @@ public:
     Eigen::Vector2f gaussian_curvature;
     Eigen::Vector2f mean_curvature;
     // Order parameter
-    std::vector<Eigen::ArrayXf> order; //Sz order parameter identical to "gmx order -szonly"    
+    std::vector<Eigen::ArrayXf> order; //Sz order parameter identical to "gmx order -szonly"
+    // Abundance of neighboring species
+    std::map<std::string,float> around;
 
     // Called at each lipid on each frame
     void add_data(const LipidMolecule& lip);
@@ -150,11 +155,12 @@ public:
 
     // Save order to file
     void save_order_to_file(const std::string& fname);
+    void save_around_to_file(const std::string& fname);
 
     int num_tails;
 private:
     bool order_initialized;
-
+    LipidMembrane* membr_ptr;
 };
 
 
@@ -198,10 +204,12 @@ public:
                             Vector3i_const_ref external_dist_dim = Eigen::Vector3i::Ones());
 
     void compute_averages();
-    void write_averages(std::string path="");
+    void write_averages(std::string path=".");
 
     std::vector<LipidMolecule> lipids;
     std::vector<LipidGroup> groups;
+
+    std::vector<std::string> species_names;
 private:
     System* system; // Parent system
     std::shared_ptr<spdlog::logger> log;

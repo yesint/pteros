@@ -820,6 +820,7 @@ LipidMolecule::LipidMolecule(const Selection& lip_mol, const LipidSpecies& sp, i
     for(const string& t_str: sp.tail_carbons_str){
         tails.emplace_back(whole_sel, t_str);
     }
+    neib.clear();
 }
 
 void LipidMolecule::add_to_group(int gr){
@@ -845,8 +846,9 @@ void LipidMolecule::unset_markers()
     mid_marker_sel.xyz(0) = pos_saved;
 }
 
-PerSpeciesProperties::PerSpeciesProperties()
+PerSpeciesProperties::PerSpeciesProperties(LipidMembrane *ptr)
 {
+    membr_ptr = ptr;
     count = 0;
 
     area_hist.create(0,1.8,100);
@@ -864,6 +866,12 @@ PerSpeciesProperties::PerSpeciesProperties()
 
     trans_dihedrals_ratio.fill(0.0);
     order_initialized = false;
+
+    // Initialize around
+    for(const auto& sp_name: ptr->species_names){
+        around[sp_name] = 0;
+    }
+
 }
 
 
@@ -895,6 +903,8 @@ void PerSpeciesProperties::add_data(const LipidMolecule &lip){
 
     // Tail stats
     if(!order_initialized){
+        num_tails = lip.tails.size();
+
         // This is very first invocation, so resize order arrays properly
         // See if the tails are of the same length
         int sz = lip.tails[0].size();
@@ -906,26 +916,24 @@ void PerSpeciesProperties::add_data(const LipidMolecule &lip){
             }
         }
 
-        // Save number of tails for later averaging
-        num_tails = lip.tails.size();
-
         if(!same){
             order.resize(lip.tails.size());
             for(int i=0;i<order.size();++i){
-                order[i].resize(lip.tails[i].size());
+                order[i].resize(lip.tails[i].order.size());
                 order[i].fill(0.0); // Init to zeros
             }
         } else {
             // tails are the same add extra slot for average
             order.resize(lip.tails.size()+1);
             for(int i=0;i<order.size();++i){
-                order[i].resize(lip.tails[0].size()); // Resize also average correctly
+                order[i].resize(lip.tails[0].order.size()); // Resize also average correctly
                 order[i].fill(0.0); // Init to zeros
             }
-        }
+        }        
 
         order_initialized = true;
     } // Initialization
+
 
     // Order
     for(int i=0;i<lip.tails.size();++i){
@@ -935,6 +943,12 @@ void PerSpeciesProperties::add_data(const LipidMolecule &lip){
     for(const auto& t: lip.tails){
         float ratio = (t.dihedrals > M_PI_2).count()/float(t.dihedrals.size());
         accumulate_statistics(ratio,trans_dihedrals_ratio);
+    }
+
+    // Lipid surrounding
+    for(int i: lip.neib){
+        //cout << i << " " << lip.membr_ptr->lipids.size() << endl;
+        around[lip.membr_ptr->lipids[i].name] += 1;
     }
 
 }
@@ -989,6 +1003,11 @@ void PerSpeciesProperties::post_process(float num_frames)
 
     // At the end set average number of lipids of this kind per frame
     count /= num_frames;
+
+    // Around
+    float N = 0;
+    for(auto& el: around) N += el.second;
+    for(auto& el: around) el.second /= N;
 }
 
 string PerSpeciesProperties::summary()
@@ -1012,6 +1031,9 @@ string PerSpeciesProperties::summary()
 
 void PerSpeciesProperties::save_order_to_file(const string &fname)
 {
+    // Do nothing if no data
+    if(count==0) return;
+
     ofstream out(fname);
     if(num_tails<order.size()){
         // we have an extra slot - this is for average of the same size tails
@@ -1021,7 +1043,7 @@ void PerSpeciesProperties::save_order_to_file(const string &fname)
         out << "t_aver" << endl;
 
         for(int c=0;c<order[0].size();++c){
-            out << c+1 << "\t";
+            out << c+2 << "\t";
             for(int t=0;t<order.size();++t) out << order[t][c] << "\t";
             out << endl;
         }
@@ -1037,7 +1059,7 @@ void PerSpeciesProperties::save_order_to_file(const string &fname)
         out << endl;
         // Body
         for(int c=0;c<max_len;++c){
-            out << c+1 << "\t";
+            out << c+2 << "\t";
             for(int t=0;t<num_tails;++t){
                 if(c<order[t].size())
                     out << order[t][c] << "\t";
@@ -1046,6 +1068,18 @@ void PerSpeciesProperties::save_order_to_file(const string &fname)
             }
             out << endl;
         }
+    }
+    out.close();
+}
+
+void PerSpeciesProperties::save_around_to_file(const string &fname)
+{
+    // Do nothing if no data
+    if(count==0) return;
+
+    ofstream out(fname);
+    for(const auto& sp_name: membr_ptr->species_names){
+        out << sp_name << "\t" << around[sp_name] << endl;
     }
     out.close();
 }
@@ -1067,6 +1101,8 @@ LipidMembrane::LipidMembrane(System *sys, const std::vector<LipidSpecies> &speci
             lipids.emplace_back(lip,sp,id,this);
             ++id;
         }
+
+        species_names.push_back(sp.name);
     }
 
     // Print statictics
@@ -1078,17 +1114,10 @@ LipidMembrane::LipidMembrane(System *sys, const std::vector<LipidSpecies> &speci
     ind.reserve(lipids.size());
     for(auto& lip: lipids) ind.push_back(lip.mid_marker_sel.index(0));
     all_mid_sel.modify(ind);
-    log->info("Lipid markers selected");
 
     // Create groups
     groups.reserve(ngroups);
-    for(int i=0;i<ngroups;++i) groups.emplace_back(this,i);
-    // Initialize groups stats
-    for(auto& gr: groups){
-        for(const auto& sp: species){
-            gr.species_properties[sp.name] = PerSpeciesProperties();
-        }
-    }
+    for(int i=0;i<ngroups;++i) groups.emplace_back(this,i);    
     log->info("{} groups created",ngroups);
 }
 
@@ -1122,6 +1151,10 @@ void LipidMembrane::compute_properties(float d, bool use_external_normal, Vector
     // Process lipids
     for(int i=0;i<lipids.size();++i){
         LipidMolecule& lip = lipids[i];
+
+        // conn[i] contains local indexes in all_mid_sel
+        // Sort it to have predictable order
+        std::sort(conn[i].begin(),conn[i].end());
 
         // Save local selection for this lipid
         lip.local_sel = all_mid_sel.select(conn[i]);
@@ -1207,10 +1240,26 @@ void LipidMembrane::compute_properties(float d, bool use_external_normal, Vector
         //-----------------------------------
         // Area and neighbours
         //-----------------------------------
-        vector<int> neib;
+        vector<int> neib;        
         lip.area = compute_area(coord,10.0,neib);
-        // Save coordination number of the lipid
-        lip.coord_number = neib.size();
+        if(lip.area>0){
+            // Save coordination number of the lipid
+            lip.coord_number = neib.size();
+            // Neighbours are in terms of point indexes in order of their addition
+            // this is the same as order in conn[i]. 0 is central atom, neighbors start from 1.
+            // conn[i] contains local indexes in all_mid_sel
+            lip.neib.resize(neib.size());
+            for(int j=0;j<neib.size();++j){
+                //cout << j << " " << neib[j] << " " << conn[i].size() <<  " " << conn[i][neib[j]] << endl;
+                lip.neib[j] = conn[i][neib[j]-1];
+            }
+        } else {
+            // Something is wrong
+            lip.coord_number = -1;
+            lip.neib.clear();
+        }
+
+
     } // for lipids
 
     // Unset markers. This restores all correct atomic coordinates for analysis
@@ -1256,21 +1305,22 @@ void LipidMembrane::write_averages(string path)
     cout << s << endl;
 
     // Save summary to file
-    ofstream out("summary.dat");
+    ofstream out(path+"/summary.dat");
     out << s;
     out.close();
 
     // Write files for species properties
     for(int g=0;g<groups.size();++g){
         for(auto& sp: groups[g].species_properties){
-            string file_prefix(fmt::format("gr{}_{}_",g,sp.first));
+            string file_prefix(fmt::format("{}/gr{}_{}_",path,g,sp.first));
             // Area
             sp.second.area_hist.save_to_file(file_prefix+"area.dat");
             // Tilt
             sp.second.tilt_hist.save_to_file(file_prefix+"tilt.dat");
             // Order
             sp.second.save_order_to_file(file_prefix+"order.dat");
-
+            // Around
+            sp.second.save_around_to_file(file_prefix+"around.dat");
         }
     }
 }
@@ -1281,6 +1331,10 @@ LipidGroup::LipidGroup(LipidMembrane *ptr, int id){
     num_lipids = 0;
     num_frames = 0;
     trans_dihedrals_ratio.fill(0.0);
+    // Initialize species_properties
+    for(const auto& sp_name: membr_ptr->species_names){
+        species_properties.emplace(sp_name,PerSpeciesProperties(membr_ptr));
+    }
 }
 
 void LipidGroup::process_frame()
@@ -1288,8 +1342,8 @@ void LipidGroup::process_frame()
     // Cycle over lipids in this group
     for(int id: lip_ids){
         auto name = membr_ptr->lipids[id].name;
-        // Add data to particular scpecies
-        species_properties[name].add_data(membr_ptr->lipids[id]);
+        // Add data to particular scpecies        
+        species_properties.at(name).add_data(membr_ptr->lipids[id]);
     }
 
     ++num_frames;
