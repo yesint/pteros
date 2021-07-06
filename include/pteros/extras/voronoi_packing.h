@@ -35,7 +35,7 @@
 
 namespace pteros {
 
-void compute_voronoi_3d(const Selection& sel, const std::string& solvent_sel);
+void compute_voronoi_3d(const std::vector<Selection>& species_sel);
 
 } // namespace pteros
 
