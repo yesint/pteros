@@ -45,6 +45,7 @@ struct Species {
     Species(): total_area(0.0), total_volume(0.0) {}
 
     Selection sel;
+    int num_residues;
     double total_area;
     double total_volume;
     // Mapping from pid to local indexes
@@ -68,6 +69,7 @@ void compute_voronoi_3d(const vector<Selection>& species_sel){
     vector<Species> species(species_sel.size());
     for(int i=0;i<species_sel.size();++i){
         species[i].sel = species_sel[i];
+        species[i].num_residues = species[i].sel.get_resindex(true).size();
     }
 
     // Initialize stats
@@ -133,7 +135,9 @@ void compute_voronoi_3d(const vector<Selection>& species_sel){
 
     // Compute areas of all species-species interfaces
     MatrixXd interf(species.size(),species.size());
+    MatrixXd interf_per_res(species.size(),species.size());
     interf.fill(0.0);
+    interf_per_res.fill(0.0);
     for(const auto& el: area_elements){
         int sp1 = pid_to_species[el.pids[0]];
         int sp2 = pid_to_species[el.pids[1]];
@@ -143,7 +147,13 @@ void compute_voronoi_3d(const vector<Selection>& species_sel){
     // Diagonal element are species areas
     for(int i=0;i<species.size();++i) interf(i,i)=species[i].total_area;
 
+    for(int i=0;i<species.size();++i){
+        interf_per_res.col(i) = interf.col(i)/float(species[i].num_residues);
+    }
+
+    // Print it
     fmt::print("Species interfaces areas:\n{}\n",interf);
+    fmt::print("Species interfaces areas per residue:\n{}\n",interf_per_res);
 
 }
 
