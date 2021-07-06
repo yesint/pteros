@@ -33,6 +33,14 @@
 #include "pteros/core/selection.h"
 #include <vector>
 
+#ifndef M_PI
+    #define M_PI 3.14159265358979323846
+#endif
+
+#ifndef M_PI_2
+    #define M_PI_2 9.86960440108935712052951
+#endif
+
 namespace pteros {
 
     float angle_between_vectors(Vector3f_const_ref vec1, Vector3f_const_ref vec2);
