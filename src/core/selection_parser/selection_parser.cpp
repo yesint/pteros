@@ -659,7 +659,7 @@ void SelectionParser::eval_node(const std::shared_ptr<MyAst> &node, std::vector<
     case "WITHIN_EXPR"_:
     {        
         Vector3i pbc = noPBC;
-        bool include_self = false;        
+        bool include_self = true;
 
         // Child 0 is always a cutoff
         // Numeric expression should not be coord dependent!
