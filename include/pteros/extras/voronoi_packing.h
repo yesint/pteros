@@ -35,7 +35,36 @@
 
 namespace pteros {
 
-void compute_voronoi_3d(const std::vector<Selection>& species_sel);
+/*
+class VoronoiPacking {
+public:
+    VoronoiPacking();
+    // Adds new group and returns its id
+    int add_group(const std::string& name, const Selection& sel);
+    // All interface areas. Column i gives areas of group i with all groups
+    Eigen::MatrixXd all_interface_areas();
+    // Return a vector of interface areas between this group and other groups
+    Eigen::VectorXd group_interface_areas(int gr);
+    Eigen::VectorXd group_interface_areas(const std::string& gr);
+    // Interface area between given groups
+    double pair_interface_area(const std::string& gr1,const std::string& gr2);
+    double pair_interface_area(int gr1,int gr2);
+    // Group volume
+    double group_volume(int gr);
+    double group_volume(const std::string& gr);
+    // Group area
+    double group_area(int gr);
+    double group_area(const std::string& gr);
+    // Average inside the group by residues
+    // Return a vector of average per residue type interface areas between this and other groups
+    Eigen::VectorXd per_resname_interface_areas(int gr, const std::string& resname);
+    // Per-atom stats for given resname
+    Eigen::VectorXd per_resname_interface_areas(int gr, const std::string& resname);
+private:
+};
+*/
+
+void compute_voronoi_3d(const std::vector<Selection>& groups_sel);
 
 } // namespace pteros
 
