@@ -2112,7 +2112,7 @@ float Selection::powersasa(float probe_r, vector<float> *area_per_atom,
     if(area_per_atom) area_per_atom->resize(size());
     for(int i = 0; i < size(); ++i){        
         v = ps.getSasa()[i];
-        cout << i << " " << v << endl;
+        //cout << i << " " << v << endl;
         if(do_a_per_atom) (*area_per_atom)[i] = v;
         surf += v;
     }
