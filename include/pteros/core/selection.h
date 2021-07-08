@@ -51,19 +51,19 @@ class SelectionParser;
 /** @brief Selection class.
 *
 *   Selections are key objects in Pteros. Technically speaking the selection
-*   is just an array, which contains indexes of selected atoms in particlar system.
+*   is just an array, which contains indexes of selected atoms in particular system.
 *   Selection does not hold the copies of the atoms or their coordinates, it
-*   just points to them serving like a handy alias for certain subset of atoms.
+*   just points to them serving like an alias for certain subset of atoms.
 *   Thus selections may overlap arbitrarily.
 *   Selections are used to perform various operations on the group of selected atoms.
 *   The changes become immediately visible to all other selections, which point to
 *   some of changed atoms.
 *   Each selection is bound to particular System. There are neither 'parentless' selection nor the
 *   selections, which combine the atoms from different systems.
-*   Selections are created using the syntax, which is very similar to those used in VMD.
+*   Selections are created using the syntax, which is very similar to those used in VMD but with
+*   many useful extensions.
 */
 class Selection {
-  // System and Selection are friends because they are closely integrated.
   friend class System;
   friend class SelectionParser;
   friend class Grid_searcher;
@@ -73,7 +73,7 @@ class Selection {
     /// @name Constructors and operators
     /// @{
 
-    /// Default constructor for absolutely empty selection.
+    /// Default constructor for empty selection.
     Selection();
 
     /** Associates selection with the system @param sys,
@@ -81,15 +81,14 @@ class Selection {
     */
     explicit Selection(const System& sys);
 
-    /** Main constructor.
+    /** Textual selection constructor.
     *   @param sys System pointed by this selection
     *   @param str Selection string    
     */
     Selection(const System& sys, std::string str, int fr = 0);
 
-    /** Constructor, which creates selection from the interval of indexes
-        instead of selection string.
-        It is much faster then parsing corresponding string, but is limited
+    /** Constructor, which creates selection from the interval of indexes.
+        It is much faster then parsing selection corresponding string, but is limited
         to contigous interval of indexes.
         @param sys System pointed by this selection
         @param ind1 First index in interval
@@ -97,7 +96,7 @@ class Selection {
      */
     Selection(const System& sys, int ind1, int ind2);
 
-    /// Constructor from vector of indexes
+    /// Constructor from the vector of indexes
     /// Vector may be in any order and may contain duplicates.
     Selection(const System& sys, const std::vector<int>& ind);
 
@@ -107,13 +106,13 @@ class Selection {
               std::vector<int>::iterator it1,
               std::vector<int>::iterator it2);
 
-    /** Constructor which takes user-defined callback
+    /** Constructor which takes user-defined callback function.
       Callback takes the system as first argument, target frame number as the second
       and the vector to be filled by selected atom indexes.
       Vector may be filled in any order and may contain duplicates.
       \warning
       Resulting selection is neither coordinate-dependent nor text-based.
-      It won't recompute itself on the frame change even if it involves atom coordinates.
+      It won't recompute itself on the frame change even if it involves coordinates.
     */
     Selection(const System& sys,
               const std::function<void(const System&,int,std::vector<int>&)>& callback,
@@ -153,7 +152,7 @@ class Selection {
      \code
      Selection sel(sys,"name CA");
      for(auto a: sel){
-        cout << a.name() << " " << a.X() << endl;
+        cout << a.name() << " " << a.x() << endl;
      }
      \endcode
 
@@ -161,6 +160,16 @@ class Selection {
      */
     AtomProxy operator[](int ind);
 
+    /** Indexing operator which sets both index and frame.
+     * Takes a pair of values.
+      \code
+      Selection sel(sys,"name CA");
+      int at = 123;
+      // Assign x coorditate of atom at for frame 0 from frame 1.
+      sel[{at,0}].x() = sel[{at,1}].x();
+      \endcode
+
+    */
     AtomProxy operator[](const std::pair<int,int>& ind_fr);
 
     /// Writing selection to stream.
@@ -238,21 +247,21 @@ class Selection {
     */
     void modify(const std::function<void(const System&,int,std::vector<int>&)>& callback, int fr = 0);
 
-    /// Convenience function, which combines set_system and modify(str)
+    /// Convenience method, which combines set_system and modify(str)
     void modify(const System& sys, std::string str, int fr = 0);
 
-    /// Convenience function, which combines set_system and modify(int,int)
+    /// Convenience method, which combines set_system and modify(int,int)
     void modify(const System& sys, int ind1, int ind2);
 
-    /// Convenience function, which combines set_system and modify(vector<int>)
+    /// Convenience method, which combines set_system and modify(vector<int>)
     void modify(const System& sys, const std::vector<int>& ind);
 
-    /// Convenience function, which combines set_system and modify(iter,iter)
+    /// Convenience method, which combines set_system and modify(iter,iter)
     void modify(const System& sys,
                 std::vector<int>::iterator it1,
                 std::vector<int>::iterator it2);
 
-    /// Convenience function, which combines set_system and modify(callback)
+    /// Convenience method, which combines set_system and modify(callback)
     void modify(const System& sys, const std::function<void(const System&,int,std::vector<int>&)>& callback, int fr = 0);
 
     /** Recomputes selection without re-parsing selection text.
@@ -525,6 +534,7 @@ class Selection {
                            Array3i_const_ref pbc = noPBC,
                            int pbc_atom = -1) const;
 
+    // Get the center of selection with user-supplied weights
     Eigen::Vector3f center(const std::vector<float>& weights,
                            Array3i_const_ref pbc = noPBC,
                            int pbc_atom = -1) const;
