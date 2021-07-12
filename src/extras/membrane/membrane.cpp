@@ -659,10 +659,10 @@ void LipidMembrane::compute_properties(float d, bool use_external_normal, Vector
         float ang = angle_between_vectors(normal, lip.head_marker-lip.tail_marker);
         if(ang < M_PI_2){
             lip.normal = normal;
-            lip.tilt = ang;
+            lip.tilt = rad_to_deg(ang);
         } else {
             lip.normal = -normal;
-            lip.tilt = M_PI-ang;
+            lip.tilt = rad_to_deg(M_PI-ang);
         }
         lip.normal.normalized();
 
