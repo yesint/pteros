@@ -632,6 +632,7 @@ class Selection {
       \warning
       If the size of selection is larger than 1/2 of the box size in
       any dimension unwrap() will not work as expected and will not make selection "compact"!
+      This is \e not checked automatically.
     */
     void unwrap(Array3i_const_ref pbc = fullPBC, int pbc_atom = -1);
 

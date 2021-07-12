@@ -1465,7 +1465,7 @@ void Selection::flatten()
 }
 
 string Selection::to_gromacs_ndx(string name) const
-{
+{    
     stringstream s;
     s << "[ " << name << " ]" << endl;
     int n=0;
