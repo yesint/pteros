@@ -765,15 +765,17 @@ void LipidMembrane::write_averages(string path)
     // Write files for species properties
     for(int g=0;g<groups.size();++g){
         for(auto& sp: groups[g].species_properties){
-            string file_prefix(fmt::format("{}/gr{}_{}_",path,g,sp.first));
-            // Area
-            sp.second.area_hist.save_to_file(file_prefix+"area.dat");
-            // Tilt
-            sp.second.tilt_hist.save_to_file(file_prefix+"tilt.dat");
-            // Order
-            sp.second.save_order_to_file(file_prefix+"order.dat");
-            // Around
-            sp.second.save_around_to_file(file_prefix+"around.dat");
+            if(sp.second.count>0){
+                string file_prefix(fmt::format("{}/gr{}_{}_",path,g,sp.first));
+                // Area
+                sp.second.area_hist.save_to_file(file_prefix+"area.dat");
+                // Tilt
+                sp.second.tilt_hist.save_to_file(file_prefix+"tilt.dat");
+                // Order
+                sp.second.save_order_to_file(file_prefix+"order.dat");
+                // Around
+                sp.second.save_around_to_file(file_prefix+"around.dat");
+            }
         }
     }
 }
