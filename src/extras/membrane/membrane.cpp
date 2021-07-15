@@ -275,6 +275,8 @@ LipidMolecule::LipidMolecule(const Selection& lip_mol, const LipidSpecies& sp, i
 }
 
 void LipidMolecule::add_to_group(int gr){
+    if(gr<0 || gr>=membr_ptr->groups.size()) throw PterosError("The group should be in the range (0:{}), not {}!",
+                                                               membr_ptr->groups.size(),gr);
     membr_ptr->groups[gr].add_lipid_id(id);
 }
 
