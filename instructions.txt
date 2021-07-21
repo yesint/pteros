@@ -1,0 +1,11 @@
+Commands to build pip package:
+    - python3 -m build;
+    - python3 -m pip install --upgrade twine - for installation twine if needed;
+    - python3 -m twine upload dist/*.
+Then write your username and password for account on https://pypi.org. (Usually you must write __token__ as username and generate your private API token inside your PyPi account for password).
+
+Then when you write pip install pteros, our bash script will appear in your bin directory inside python.
+    - If you use default python then the script will appear in the .local/bin directory.
+    - If you use Anaconda then the script will appead in the anaconda3/bin directory.
+
+Then you must run this script from Terminal from directory, where you want to install pteros, to install all dependencies that needed.
