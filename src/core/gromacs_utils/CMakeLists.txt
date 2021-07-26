@@ -14,7 +14,13 @@ target_include_directories(pteros_gromacs_utils PUBLIC ${CMAKE_CURRENT_SOURCE_DI
 if(WITH_GROMACS)
     target_compile_definitions(pteros_gromacs_utils PRIVATE USE_GROMACS)
     target_include_directories(pteros_gromacs_utils PUBLIC ${GROMACS_SOURCES}/src)
-    target_link_libraries(pteros_gromacs_utils PRIVATE gromacs)
+    target_link_libraries(pteros_gromacs_utils PRIVATE ${GROMACS_LIBRARIES})
+
+    # In case of inner Gromacs build we need to set the dependency
+    if(TARGET Gromacs_external)
+        add_dependencies(pteros_gromacs_utils Gromacs_external)
+    endif()
+
 else()
     target_link_libraries(pteros_gromacs_utils PRIVATE xdrfile)
 endif()

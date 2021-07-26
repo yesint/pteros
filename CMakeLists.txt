@@ -23,15 +23,26 @@
 # http://www.opensource.org/licenses/artistic-license-2.0.php
 #
 
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.14)
 
 project(pteros)
 
+# Optional dependencies
 OPTION(WITH_PYTHON "Build python bindings and compile analysis plugins as Python modules" ON)
 OPTION(WITH_OPENMP "Use OpenMP parallelization" ON)
 OPTION(WITH_OPENBABEL "Use OpenBabel. Required to read pdbqt files and for substructure search." ON)
 OPTION(WITH_GROMACS "Use Gromacs. Required to read tpr files." ON)
-OPTION(WITH_TNGIO "Use TNG_IO. Required to read tng files." ON)
+OPTION(WITH_TNG "Use TNG_IO. Required to read tng files." ON)
+
+# Options to search for pre-installed dependencies
+OPTION(WITH_SYSTEM_DEPENDENCIES "Try using system dependensies." ON)
+OPTION(WITH_SYSTEM_BOOST "Try using system boost." ON)
+OPTION(WITH_SYSTEM_EIGEN "Try using system Eigen." ON)
+OPTION(WITH_SYSTEM_SPDLOG "Try using system spdlog." ON)
+OPTION(WITH_SYSTEM_PYBIND11 "Try using system pybind11." ON)
+OPTION(WITH_SYSTEM_GROMACS "Try using system Gromacs." ON)
+OPTION(WITH_SYSTEM_OPENBABEL "Try using system OpenBabel" ON)
+
 OPTION(WITH_POWERSASA "Use POWERSASA code. This implies license restrictions described here: thirdparty/powersasa/LICENSE" ON)
 
 OPTION(MAKE_STANDALONE_PLUGINS "Compile analysis plugins as stand-alone executables" OFF)
@@ -41,9 +52,8 @@ OPTION(MAKE_TEST "Compile tests" OFF)
 
 OPTION(DOWNLOAD_DEPS "Automatically download and compile dependencies if they are not found in the system" ON)
 
-set(GROMACS_LIBRARIES "" CACHE STRING "Path to Gromacs libraries")
-set(GROMACS_SOURCES "" CACHE STRING "Path to Gromacs source tree")
 
+#---------------------------------------------------
 ##############################
 # Global compilation options:
 ##############################
@@ -72,135 +82,15 @@ ENDIF()
 # Main Pteros include dir should be visible everywhere
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
-# For downloading we need git
-if(DOWNLOAD_DEPS)
-    find_package(Git)
-    if(NOT (GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git"))
-        message(INFO "Git is not found! Disabling automatic downloading of dependencies.")
-        SET(DOWNLOAD_DEPS OFF)
-    endif()
-endif()
-
 ##############################
-# Unconditional dependencies:
+# Manage dependencies
 ##############################
 
-# Macro to download dependencies
-MACRO(download module)
-    if(DOWNLOAD_DEPS)
-        message(STATUS "=======================")
-        message(STATUS "Fetching git submodule for ${module}...")
-        message(STATUS " ")
-        execute_process(COMMAND git submodule update --init -- external/${module}
-                        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
-        if(NOT EXISTS "${PROJECT_SOURCE_DIR}/external/${module}/CMakeLists.txt")
-            message(FATAL_ERROR "${module} was not downloaded!")
-        endif()
-        add_subdirectory(${PROJECT_SOURCE_DIR}/external/${module})
-        message(STATUS "=======================")
-    else()
-        message(FATAL_ERROR "${module} was not found in the system. Try again with DOWNLOAD_DEPS=ON.")
-    endif()
-endmacro()
-
-
-# Boost
-set(Boost_USE_STATIC_LIBS OFF)
-find_package(Boost 1.50 REQUIRED COMPONENTS system date_time filesystem)
-
-# Eigen
-find_package(Eigen3 3.3 NO_MODULE)
-if(NOT Eigen3_FOUND)
-    download(eigen)
-    # Set Eigen location manually for openbabel.
-    # By default it points to build dir which is empty until build stage
-    set(Eigen3_location_for_babel ${PROJECT_SOURCE_DIR}/external/eigen)
-endif()
-
-# spdlog
-find_package(spdlog CONFIG)
-if(NOT spdlog_FOUND)
-    cmake_policy(SET CMP0077 OLD) # To silence warnings
-    set(SPDLOG_MASTER_PROJECT ON)
-    set(SPDLOG_INSTALL ON)
-    set(SPDLOG_BUILD_TESTS OFF)
-    set(SPDLOG_BUILD_EXAMPLE OFF)
-    download(spdlog)
-endif()
-
-
-##############################
-# Conditional dependencies:
-##############################
-
-# OpenMP
-if(WITH_OPENMP)
-    find_package(OpenMP REQUIRED COMPONENTS CXX)
-endif()
-
-# Python
-if(WITH_PYTHON)    
-    # Configure pybind11
-    find_package(pybind11 QUIET)
-    if(NOT pybind11_FOUND)
-        download(pybind11)
-    endif()
-
-    if(NOT MAKE_PACKAGE)
-        # Set python install dir
-        set(PY_INST_DIR python)
-        set(PLUGINS_ABS_PATH ${CMAKE_INSTALL_PREFIX}/python/pteros_analysis_plugins)
-    else()
-        set(PY_INST_DIR ${PYTHON_SITE_PACKAGES})
-        set(PLUGINS_ABS_PATH ${PY_INST_DIR}/pteros_analysis_plugins)
-        if(DEFINED CMAKE_INSTALL_PREFIX)
-            message(WARNING " You are building the package but set an install prefix.\n"
-                            " Install prefix ${CMAKE_INSTALL_PREFIX} will be ignored.\n"
-                            " Library files would be packaged to /usr\n"
-                            " Python files would be packaged to ${PY_INST_DIR}\n"
-                            " If this is not what you want rerun with -DMAKE_PACKAGE=OFF")
-        endif()
-    endif()
-endif()
-
-# OpenBabel
-if(WITH_OPENBABEL)
-    set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules)
-    # Try to find OpenBabel 3
-    find_package(OpenBabel3 3.0.0 REQUIRED)
-    if(NOT OPENBABEL3_FOUND)        
-        # Try to find OpenBabel 2
-        message("OpenBabel v3 not found, searching for v2...")
-        find_package(OpenBabel2 2.4.9 REQUIRED)
-    endif()
-endif()
-
-# Gromacs
-if(WITH_GROMACS)
-    # See if pathes are provided
-    if(NOT (GROMACS_SOURCES AND GROMACS_LIBRARIES))
-        message(FATAL_ERROR "In order to link to Gromacs you need to provide path "
-            "to Gromacs source tree matching your installed version "
-            "using -DGROMACS_SOURCES=<path> "
-            "and the path to installed Gromacs libs "
-            "using -DGROMACS_LIBRARIES=<path> ")
-    else()
-        # Report what is used
-        message("Searching for Gromacs sources in ${GROMACS_SOURCES}")
-        message("Searching for Gromacs libs in ${GROMACS_LIBRARIES}")
-        link_directories(${GROMACS_LIBRARIES})
-    endif()
-endif()
-
+include(dependencies.cmake)
 
 #----------------------------
 # Build bundled thirdparty libraries
 #----------------------------
-
-# tng_io
-if(WITH_TNGIO)
-    add_subdirectory(thirdparty/tng_io)
-endif()
 
 # DSSP library
 add_subdirectory(thirdparty/dssp)
@@ -227,10 +117,6 @@ add_subdirectory(src/tools)
 add_subdirectory(src/python)
 add_subdirectory(src/python/compiled_analysis_plugins)
 add_subdirectory(src/extras)
-
-
-#add_subdirectory(src/v3)
-
 
 IF(MAKE_TEST)
     add_subdirectory(src/test)

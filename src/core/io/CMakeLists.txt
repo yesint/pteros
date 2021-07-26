@@ -23,12 +23,17 @@ add_library(pteros_io STATIC
     xtc_file.cpp
 )
 
-if(WITH_TNGIO)
+if(WITH_TNG)
     target_sources(pteros_io PRIVATE
         tng_file.h
         tng_file.cpp)
     target_compile_definitions(pteros_io PRIVATE USE_TNGIO)
-    target_link_libraries(pteros_io PRIVATE tng_io)
+    target_link_libraries(pteros_io PRIVATE ${TNG_LIBRARIES})
+    target_include_directories(pteros_io PRIVATE ${TNG_INCLUDE_DIR})
+
+    if(TARGET TNG_external)
+        add_dependencies(pteros_io TNG_external)
+    endif()
 endif()
 
 if(WITH_OPENBABEL AND (OPENBABEL2_FOUND OR OPENBABEL3_FOUND))
@@ -52,7 +57,7 @@ if(WITH_GROMACS AND GROMACS_SOURCES AND GROMACS_LIBRARIES)
     target_include_directories(pteros_io PRIVATE ${GROMACS_SOURCES}/src)
     target_sources(pteros_io PRIVATE
         tpr_file.h
-        tpr_file.cpp)    
+        tpr_file.cpp)
 endif()
 
 # Unconditional libs
@@ -62,4 +67,5 @@ target_link_libraries(pteros_io PRIVATE
     xdrfile
     spdlog::spdlog
     Boost::boost
-    Eigen3::Eigen)
+    Eigen3::Eigen
+)

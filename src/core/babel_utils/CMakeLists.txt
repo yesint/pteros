@@ -18,4 +18,9 @@ if(WITH_OPENBABEL AND (OPENBABEL2_FOUND OR OPENBABEL3_FOUND))
             ${CMAKE_CURRENT_SOURCE_DIR}
     )
 
+    # In case of inner OpenBabel build we need to set the dependency
+    if(TARGET OpenBabel_external)
+        add_dependencies(pteros_babel_utils OpenBabel_external)
+    endif()
+
 endif()

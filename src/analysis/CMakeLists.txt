@@ -22,10 +22,6 @@ add_library(pteros_analysis SHARED
     data_container.h
     )
 
-if(WITH_TNGIO)
-    target_link_libraries(pteros_analysis PRIVATE tng_io)
-endif()
-
 if(MINGW)
     # Workaround CMake problem on mingw with incorrect implicit linking
     target_link_libraries(pteros_analysis PRIVATE spdlog::spdlog)
