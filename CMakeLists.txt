@@ -42,7 +42,6 @@ OPTION(WITH_SYSTEM_SPDLOG "Try using system spdlog." ON)
 OPTION(WITH_SYSTEM_PYBIND11 "Try using system pybind11." ON)
 OPTION(WITH_SYSTEM_GROMACS "Try using system Gromacs." ON)
 OPTION(WITH_SYSTEM_OPENBABEL "Try using system OpenBabel" ON)
-
 OPTION(WITH_POWERSASA "Use POWERSASA code. This implies license restrictions described here: thirdparty/powersasa/LICENSE" ON)
 
 OPTION(MAKE_STANDALONE_PLUGINS "Compile analysis plugins as stand-alone executables" OFF)
@@ -86,7 +85,7 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 # Manage dependencies
 ##############################
 
-include(dependencies.cmake)
+include(${PROJECT_SOURCE_DIR}/cmake/dependencies.cmake)
 
 #----------------------------
 # Build bundled thirdparty libraries

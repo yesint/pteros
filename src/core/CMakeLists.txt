@@ -62,9 +62,6 @@ add_library(pteros SHARED
     ${PROJECT_SOURCE_DIR}/include/pteros/core/periodic_box.h
     periodic_box.cpp
 
-    #SASA (will be empty if not used)
-    ${SASA_FILES}
-
     #DSSP wrapper
     pteros_dssp_wrapper.cpp
     pteros_dssp_wrapper.h
@@ -110,11 +107,6 @@ target_include_directories(pteros PUBLIC
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
-
-#set_property(TARGET pteros
-#    PROPERTY CXX_STANDARD 17
-#    PROPERTY CXX_STANDARD_REQUIRED ON
-#)
 
 #--------------
 # Installation
