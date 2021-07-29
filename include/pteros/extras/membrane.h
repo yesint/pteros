@@ -175,6 +175,8 @@ public:
 
     // Returns summary as a string
     std::string summary();
+    std::string properties_table();
+    void save_properties_table_to_file(const std::string& fname);
 
     // Per group averages (mean,std)
     float num_lipids, num_frames;

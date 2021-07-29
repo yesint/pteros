@@ -538,6 +538,7 @@ void PerSpeciesProperties::save_around_to_file(const string &fname)
     out.close();
 }
 
+
 LipidMembrane::LipidMembrane(System *sys, const std::vector<LipidSpecies> &species, int ngroups)
 {
     log = create_logger("membrane");
@@ -766,6 +767,8 @@ void LipidMembrane::write_averages(string path)
 
     // Write files for species properties
     for(int g=0;g<groups.size();++g){
+        groups[g].save_properties_table_to_file(fmt::format("{}/gr{}_properties.dat",path,g));
+
         for(auto& sp: groups[g].species_properties){
             if(sp.second.count>0){
                 string file_prefix(fmt::format("{}/gr{}_{}_",path,g,sp.first));
@@ -839,9 +842,34 @@ string LipidGroup::summary()
             s += fmt::format("\t{}:\n", sp);
             s += species_properties.at(sp).summary();
         }
+
+        // Write table summary
+        s += "\n\tProperties table:\n";
+        s += properties_table();
     } else {
         s += "\tNo data\n";
     }
     return s;
+}
+
+string LipidGroup::properties_table()
+{
+    string s;
+    s += "Species\tabund%\tTrDih\tTrDihErr\n";
+    for(auto& sp: membr_ptr->species_names){
+        s += fmt::format("{}", sp);
+        const auto& prop = species_properties.at(sp);
+        s += fmt::format("\t{: .4f}", 100.0*prop.count/float(num_lipids));
+        s += fmt::format("\t{: .4f}\t{: .4f}", prop.trans_dihedrals_ratio[0],prop.trans_dihedrals_ratio[1]);
+        s += "\n";
+    }
+    return s;
+}
+
+void LipidGroup::save_properties_table_to_file(const string &fname)
+{
+    ofstream out(fname);
+    out << properties_table();
+    out.close();
 }
 
