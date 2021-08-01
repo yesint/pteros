@@ -27,17 +27,15 @@
 */
 
 
-
-
-
 #include "pteros/core/system.h"
 #include "pteros/core/pteros_error.h"
 #include "pteros/core/distance_search.h"
 #include "pteros/core/force_field.h"
+#include "pteros/core/utilities.h"
 #include <cmath>
 #include <functional>
 #include "pteros/core/logging.h"
-#include <boost/algorithm/string.hpp>
+
 
 using namespace std;
 using namespace pteros;
@@ -115,8 +113,7 @@ float Coulomb_en_kernel_shifted(float q1, float q2, float r, const ForceField& f
 }
 
 
-
-#define LOWER(s) boost::algorithm::to_lower_copy(string(s))
+#define LOWER(s) str_to_lower_copy(s)
 
 void ForceField::setup_kernels(){    
     LOG()->debug("Coulomb type: {}",coulomb_type);
@@ -281,7 +278,3 @@ void ForceField::clear(){
 
     ready = false;
 }
-
-
-
-

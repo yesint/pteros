@@ -1,8 +1,7 @@
 #include "traj_file_reader.h"
 #include "pteros/core/pteros_error.h"
 #include "pteros/core/file_handler.h"
-#include <boost/algorithm/string.hpp> // For to_lower
-#include <boost/lexical_cast.hpp>
+#include "pteros/core/utilities.h"
 
 using namespace std;
 using namespace pteros;
@@ -12,15 +11,15 @@ void process_suffix_value(const string& s, int* intval, float* floatval){
     if(pos==string::npos) throw PterosError("A number with optional suffix required!");
     string val = s.substr(0,pos+1);
     string suffix = s.substr(pos+1);
-    boost::algorithm::to_lower(val);
-    boost::algorithm::to_lower(suffix);
+    str_to_lower_in_place(val);
+    str_to_lower_in_place(suffix);
     // Now analyze suffix
     if(intval!=nullptr && (suffix=="fr" || suffix=="")){
-        *intval = boost::lexical_cast<int>(val);
+        *intval = str_to_int(val);
         if(floatval) *floatval = -1.0;
     } else if(floatval!=nullptr) {
         if(intval) *intval = -1;
-        *floatval = boost::lexical_cast<float>(val);
+        *floatval = str_to_float(val);
         if(suffix=="ps" || suffix=="t"){
             *floatval *= 1.0;
         } else if(suffix=="ns"){

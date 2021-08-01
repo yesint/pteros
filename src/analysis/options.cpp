@@ -27,15 +27,11 @@
 */
 
 
-
-
-
 #include "pteros/analysis/options.h"
 #include "pteros/core/pteros_error.h"
-#include "boost/lexical_cast.hpp"
-#include <boost/algorithm/string.hpp> // For to_lower
+#include "pteros/core/utilities.h"
+#include <charconv>
 #include <sstream>
-
 
 using namespace std;
 using namespace pteros;
@@ -221,26 +217,19 @@ bool pteros::Options::has(string key)
 
 int Option::as_int() const {
     if(data.size()!=1) throw PterosError("Only one INT value expected for key '{}'!",name);
-    try {
-        return boost::lexical_cast<int>(data[0]);
-    } catch(boost::bad_lexical_cast){
-        throw PterosError("Value '{}' is not INT!",data[0]);
-    }
+    return str_to_int(data[0]);
 }
 
 float Option::as_float() const {
     if(data.size()!=1) throw PterosError("Only one FLOAT value expected for key '{}'!",name);
-    try {
-        return boost::lexical_cast<float>(data[0]);
-    } catch(boost::bad_lexical_cast){
-        throw PterosError("Value '{}' is not FLOAT!",data[0]);
-    }
+    return str_to_float(data[0]);
 }
 
 bool Option::as_bool() const {
     if(data.size()!=1) throw PterosError("Only one BOOL value expected for key '{}'!",name);
     string s(data[0]);
-    boost::algorithm::to_lower(s);
+    str_to_lower_in_place(s);
+
     if(s=="true"){
         return true;
     } else if(s=="false"){
@@ -260,11 +249,7 @@ vector<int> Option::as_ints() const {
     if(data.empty()) throw PterosError("One or more INT values are expected for key '{}'!",name);
     vector<int> res;
     for(auto& str: data){
-        try {
-            res.push_back( boost::lexical_cast<int>(str) );
-        } catch(boost::bad_lexical_cast){
-            throw PterosError("Value '{}' is not INT!",str);
-        }
+        res.push_back( str_to_int(str) );
     }
     return res;
 }
@@ -273,11 +258,7 @@ vector<float> Option::as_floats() const {
     if(data.empty()) throw PterosError("One or more FLOAT values are expected for key '{}'!",name);
     vector<float> res;
     for(auto& str: data){
-        try {
-            res.push_back( boost::lexical_cast<float>(str) );
-        } catch(boost::bad_lexical_cast){
-            throw PterosError("Value '{}' is not FLOAT!",str);
-        }
+        res.push_back( str_to_float(str) );
     }
     return res;
 }
@@ -286,11 +267,7 @@ Eigen::VectorXf Option::as_VectorXf() const {
     if(data.empty()) throw PterosError("One or more FLOAT values are expected for key '{}'!",name);
     vector<float> vec;
     for(auto& str: data){
-        try {
-            vec.push_back( boost::lexical_cast<float>(str) );
-        } catch(boost::bad_lexical_cast){
-            throw PterosError("Value '{}' is not FLOAT!",str);
-        }
+        vec.push_back( str_to_float(str) );
     }
     Eigen::VectorXf res(vec.size());
     for(int i=0;i<vec.size();++i) res(i)=vec[i];
@@ -302,7 +279,7 @@ vector<bool> Option::as_bools() const {
     if(data.empty()) throw PterosError("One or more BOOL values are expected for key '{}'!",name);
     vector<bool> res;
     for(auto s: data){
-        boost::algorithm::to_lower(s);
+        str_to_lower_in_place(s);
         if(s=="true"){
             res.push_back(true);
         } else if(s=="false"){

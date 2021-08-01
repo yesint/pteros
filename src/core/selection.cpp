@@ -32,7 +32,7 @@
 #include <algorithm>
 #include <set>
 #include <map>
-#include <boost/algorithm/string.hpp> // String algorithms
+#include <regex>
 #include "pteros/core/atom.h"
 #include "pteros/core/selection.h"
 #include "pteros/core/system.h"
@@ -96,7 +96,8 @@ Selection::Selection(){
 
 void expand_macro(string& str){    
     for(int i=0;i<selection_macro.size()/2;++i){
-        boost::replace_all(str,selection_macro[2*i].c_str(),selection_macro[2*i+1].c_str());
+        std::regex e(selection_macro[2*i]);
+        str = std::regex_replace(str,e,selection_macro[2*i+1]);
     }
 }
 
@@ -104,7 +105,7 @@ void expand_macro(string& str){
 Selection::Selection(const System &sys, string str, int fr){
     // Set selection string
     sel_text = str;
-    boost::trim(sel_text);
+    str_trim_in_place(sel_text);
 
     // Expand macro-definitions in the string
     expand_macro(sel_text);
@@ -319,7 +320,7 @@ Selection Selection::select(string str)
 
     // Set selection string
     sub.sel_text = str;
-    boost::trim(sub.sel_text);
+    str_trim_in_place(sub.sel_text);
 
     // Expand macro-definitions in the string
     expand_macro(sub.sel_text);
@@ -387,7 +388,7 @@ Selection Selection::operator()(const std::vector<int> &ind)
 void Selection::modify(string str, int fr){
     if(system==nullptr) throw PterosError("Selection does not belong to any system!");
     sel_text = str;
-    boost::trim(sel_text);
+    str_trim_in_place(sel_text);
     // Expand macro-definitions in the string
     expand_macro(sel_text);
 

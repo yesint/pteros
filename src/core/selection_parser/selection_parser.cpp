@@ -27,8 +27,6 @@
 */
 
 
-
-
 #include "selection_parser.h"
 #include "pteros/core/system.h"
 #include "pteros/core/selection.h"
@@ -36,14 +34,12 @@
 #include "pteros/core/pteros_error.h"
 #include "pteros/core/distance_search.h"
 #include <Eigen/Core>
-#include <boost/range/counting_range.hpp>
 #include <unordered_set>
 #include <regex>
 #include <list>
 
 using namespace std;
 using namespace pteros;
-using namespace boost;
 using namespace Eigen;
 
 
@@ -568,8 +564,9 @@ void SelectionParser::eval_node(const std::shared_ptr<MyAst> &node, std::vector<
         eval_node(node->nodes[0],res);
 
         if(!current_subset){
-            auto r = boost::counting_range(0,Natoms);
-            std::set_difference(r.begin(),r.end(), res.begin(),res.end(), back_inserter(result));
+            vector<int> v(Natoms);
+            for(int i=0;i<Natoms;++i) v[i]=i;
+            std::set_difference(v.begin(),v.end(), res.begin(),res.end(), back_inserter(result));
         } else {
             // For subset
             std::set_difference(current_subset->begin(),current_subset->end(), res.begin(),res.end(), back_inserter(result));

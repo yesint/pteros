@@ -33,9 +33,7 @@
 #include <vector>
 #include <deque>
 #include "pteros/core/selection.h"
-
-#define BOOST_DISABLE_ASSERTS
-#include "boost/multi_array.hpp"
+#include <unsupported/Eigen/CXX11/Tensor>
 
 namespace pteros {    
 
@@ -78,9 +76,9 @@ namespace pteros {
 
         void clear();
         void resize(int X, int Y, int Z);
-        GridCell& cell(int i, int j, int k){ return data[i][j][k]; }
-        GridCell& cell(Vector3i_const_ref ind){ return data[ind(0)][ind(1)][ind(2)]; }
-        const GridCell& cell(Vector3i_const_ref ind) const { return data[ind(0)][ind(1)][ind(2)]; }
+        GridCell& cell(int i, int j, int k){ return data(i,j,k); }
+        GridCell& cell(Vector3i_const_ref ind){ return data(ind(0),ind(1),ind(2)); }
+        const GridCell& cell(Vector3i_const_ref ind) const { return data(ind(0),ind(1),ind(2)); }
 
         /// Non-periodic populate
         void populate(const Selection& sel,bool abs_index = false);
@@ -100,7 +98,8 @@ namespace pteros {
                                Vector3i_const_ref pbc_dims = fullPBC,
                                bool abs_index = false);
     private:
-        boost::multi_array<GridCell,3> data;
+        //boost::multi_array<GridCell,3> data;
+        Eigen::Tensor<GridCell,3> data;
     };
 
 }

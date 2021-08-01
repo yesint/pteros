@@ -27,9 +27,6 @@
 */
 
 
-
-
-
 #include "pteros/core/grid.h"
 #include "pteros/core/pteros_error.h"
 
@@ -40,16 +37,16 @@ using namespace Eigen;
 void Grid::clear()
 {    
     int i,j,k;
-    for(i=0;i<data.shape()[0];++i)
-        for(j=0;j<data.shape()[1];++j)
-            for(k=0;k<data.shape()[2];++k){
-                data[i][j][k].clear();
+    for(i=0;i<data.dimension(0);++i)
+        for(j=0;j<data.dimension(1);++j)
+            for(k=0;k<data.dimension(2);++k){
+                data(i,j,k).clear();
         }    
 }
 
 void Grid::resize(int X, int Y, int Z)
 {
-    data.resize( boost::extents[X][Y][Z] );
+    data.resize(X,Y,Z);
     clear();
 }
 
@@ -63,9 +60,9 @@ void Grid::populate(const Selection &sel, bool abs_index)
 void Grid::populate(const Selection &sel, Vector3f_const_ref min, Vector3f_const_ref max, bool abs_index)
 {    
     int Natoms = sel.size();
-    int NX = data.shape()[0];
-    int NY = data.shape()[1];
-    int NZ = data.shape()[2];
+    int NX = data.dimension(0);
+    int NY = data.dimension(1);
+    int NZ = data.dimension(2);
     int n1,n2,n3;
 
     // Non-periodic variant
@@ -102,9 +99,9 @@ void Grid::populate_periodic(const Selection &sel, const PeriodicBox &box, Vecto
         throw PterosError("No periodic dimensions specified for periodic grid!");
 
     int Natoms = sel.size();
-    int NX = data.shape()[0];
-    int NY = data.shape()[1];
-    int NZ = data.shape()[2];
+    int NX = data.dimension(0);
+    int NY = data.dimension(1);
+    int NZ = data.dimension(2);
     int n1,n2,n3;
 
     // Periodic variant

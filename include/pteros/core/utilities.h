@@ -78,6 +78,13 @@ namespace pteros {
     /// Get 3-letter protein code from 1-letter
     std::string resname_3char(char code);
 
+    // Conversions
+    int str_to_int(const std::string& str);
+    float str_to_float(const std::string& str);
+    void str_to_lower_in_place(std::string& str);
+    std::string str_to_lower_copy(const std::string& str);
+    void str_trim_in_place(std::string &s);
+
     /// Simple histogram class
     class Histogram {
     public:

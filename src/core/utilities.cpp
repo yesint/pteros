@@ -220,7 +220,6 @@ void get_element_from_atom_name(const string& name, int &anum, float &mass){
          else { mass = 1.0; anum = 0; } //default
 }
 
-
 } // namespace pteros
 
 
@@ -370,3 +369,67 @@ void Histogram2D::save_to_file(const string &fname)
     }
     f.close();
 }
+
+namespace pteros {
+
+int str_to_int(const string& str){
+    /*
+    int val;
+    const auto res = std::from_chars(str.data(), str.data()+str.size(),val);
+    if (res.ec == std::errc::invalid_argument) throw PterosError("Value '{}' is not INT!",str);
+    return val;
+    */
+    //from_chars is not implemented for floats in gcc...
+    stringstream ss(str);
+    int val;
+    ss >> val;
+    return val;
+}
+
+float str_to_float(const string& str){
+    /*
+    float val;
+    const auto res = std::from_chars(str.data(), str.data()+str.size(),val);
+    if (res.ec == std::errc::invalid_argument) throw PterosError("Value '{}' is not FLOAT!",str);
+    return val;
+    */
+    //from_chars is not implemented for floats in gcc...
+    stringstream ss(str);
+    float val;
+    ss >> val;
+    return val;
+}
+
+void str_to_lower_in_place(string& str){
+    std::locale loc;
+    for(auto elem: str) tolower(elem,loc);
+}
+
+string str_to_lower_copy(const string &str)
+{
+    string s(str);
+    str_to_lower_in_place(s);
+    return s;
+}
+
+// trim from start (in place)
+static inline void ltrim(std::string &s) {
+    s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) {
+        return !std::isspace(ch);
+    }));
+}
+
+// trim from end (in place)
+static inline void rtrim(std::string &s) {
+    s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch) {
+        return !std::isspace(ch);
+    }).base(), s.end());
+}
+
+// trim from both ends (in place)
+void str_trim_in_place(std::string &s) {
+    ltrim(s);
+    rtrim(s);
+}
+
+} // namespace pteros

@@ -29,7 +29,7 @@ include(FetchContent)
 cmake_policy(SET CMP0077 NEW) # To silence warnings
 
 if(NOT WITH_SYSTEM_DEPENDENCIES)
-    set(WITH_SYSTEM_BOOST OFF)
+    #set(WITH_SYSTEM_BOOST OFF)
     set(WITH_SYSTEM_EIGEN OFF)
     set(WITH_SYSTEM_SPDLOG  OFF)
     set(WITH_SYSTEM_PYBIND11  OFF)
@@ -47,31 +47,27 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules)
 # Unconditional dependencies:
 ##############################
 
+# List of modules to fetch
+set(fetch_list "")
+
 #--------------------
 # Boost
 #--------------------
-if(WITH_SYSTEM_BOOST)
-    set(Boost_USE_STATIC_LIBS OFF)
-    find_package(Boost 1.50 REQUIRED COMPONENTS system date_time filesystem)
-endif()
-if(NOT Boost_FOUND)
-    message(STATUS "Will download and compile Boost in place")
 
-    FetchContent_Declare(
-            boost
-            GIT_REPOSITORY https://github.com/boostorg/boost.git
-            GIT_TAG        master
-    )
-    FetchContent_GetProperties(boost)
-    if(NOT boost_POPULATED)
-        FetchContent_Populate(boost)
-        set(BOOST_ENABLE_CMAKE ON)
-        add_subdirectory(${boost_SOURCE_DIR} ${boost_BINARY_DIR})
-    endif ()
+set(Boost_USE_STATIC_LIBS OFF)
+find_package(Boost 1.50 REQUIRED COMPONENTS system date_time filesystem)
 
-    #set(Boost_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/tng-install/include)
-    #set(Boost_LIBRARIES ${BOOST_LIB_FILE})
-endif()
+#if(NOT Boost_FOUND)
+#    message(STATUS "Will download and compile Boost in place")
+#
+#    FetchContent_Declare(
+#            boost
+#            GIT_REPOSITORY https://github.com/boostorg/boost.git
+#            GIT_TAG        master
+#            GIT_SUBMODULES libs/multi_array
+#    )
+#    list(APPEND fetch_list boost)
+#endif()
 
 #--------------------
 # Eigen
@@ -90,10 +86,11 @@ if(NOT Eigen3_FOUND)
     set(EIGEN_BUILD_DOC OFF CACHE INTERNAL "")
     set(BUILD_TESTING OFF CACHE INTERNAL "")
     set(EIGEN_BUILD_PKGCONFIG OFF CACHE INTERNAL "")
-    FetchContent_MakeAvailable(Eigen)
+    list(APPEND fetch_list Eigen)
+    #FetchContent_MakeAvailable(Eigen)
     # Set Eigen location manually for openbabel.
     # By default it points to build dir which is empty until build stage
-    set(Eigen3_location_for_babel ${PROJECT_SOURCE_DIR}/external/eigen)
+    #set(Eigen3_location_for_babel ${PROJECT_SOURCE_DIR}/external/eigen)
 endif()
 
 #--------------------
@@ -112,7 +109,8 @@ if(NOT spdlog_FOUND)
     set(SPDLOG_INSTALL ON CACHE INTERNAL "")
     set(SPDLOG_BUILD_TESTS OFF CACHE INTERNAL "")
     set(SPDLOG_BUILD_EXAMPLE OFF CACHE INTERNAL "")
-    FetchContent_MakeAvailable(spdlog)
+    list(APPEND fetch_list spdlog)
+    #FetchContent_MakeAvailable(spdlog)
 endif()
 
 ##############################
@@ -123,9 +121,6 @@ endif()
 if(WITH_OPENMP)
     find_package(OpenMP REQUIRED COMPONENTS CXX)
 endif()
-
-# List of modules to fetch
-set(fetch_list "")
 
 #--------------------
 # Python
@@ -165,6 +160,12 @@ if(WITH_PYTHON)
                             " If this is not what you want rerun with -DMAKE_PACKAGE=OFF")
         endif()
     endif()
+endif()
+
+# Fetch everything we need
+if(fetch_list)
+    message("Will fetch: ${fetch_list}")
+    FetchContent_MakeAvailable(${fetch_list})
 endif()
 
 #--------------------

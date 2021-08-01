@@ -30,7 +30,6 @@
 #include "gro_file.h"
 #include "pteros/core/pteros_error.h"
 #include "pteros/core/utilities.h"
-#include <boost/algorithm/string.hpp>
 #include "system_builder.h"
 
 using namespace std;
@@ -90,8 +89,8 @@ bool GroFile::do_read(System *sys, Frame *frame, const FileContent &what){
         tmp_coor(1) = atof(line.substr(28,8).c_str());
         tmp_coor(2) = atof(line.substr(36,8).c_str());
 
-        boost::algorithm::trim(tmp_atom.resname);
-        boost::algorithm::trim(tmp_atom.name);
+        str_trim_in_place(tmp_atom.resname);
+        str_trim_in_place(tmp_atom.name);
 
         // Coordinates are in nm, so no need to convert
 
