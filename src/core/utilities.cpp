@@ -405,6 +405,12 @@ void str_to_lower_in_place(string& str){
     for(auto elem: str) tolower(elem,loc);
 }
 
+void str_to_upper_in_place(string& str){
+    std::locale loc;
+    for(auto elem: str) toupper(elem,loc);
+}
+
+
 string str_to_lower_copy(const string &str)
 {
     string s(str);

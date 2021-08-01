@@ -7,25 +7,17 @@
 
 #include <iostream>
 #include <cstdio>
-
-#include <boost/bind.hpp>
-//#include <boost/thread.hpp>
-#include <boost/foreach.hpp>
-#define foreach BOOST_FOREACH
-//#include <boost/timer/timer.hpp>
-
-#include "align-2d.h"
 #include "utils.h"
 
 using namespace std;
-namespace fs = boost::filesystem;
+//namespace fs = boost::filesystem;
 
 // --------------------------------------------------------------------
-
+/*
 arg_vector::operator char* const*()
 {
 	m_argv.clear();
-	foreach (string& s, m_args)
+    for(string& s: m_args)
 	{
 		m_argv.push_back(s.c_str());
 		if (VERBOSE > 1)
@@ -41,13 +33,13 @@ arg_vector::operator char* const*()
 ostream& operator<<(ostream& os, const arg_vector& argv)
 {
 	os << "About to execute: " << endl;
-	foreach (const string& a, argv.m_args)
+    for(const string& a: argv.m_args)
 		os << a << ' ';
 	os << endl;
 
 	return os;
 }
-
+*/
 // --------------------------------------------------------------------
 
 mas_exception::mas_exception(const string& msg)
@@ -55,10 +47,12 @@ mas_exception::mas_exception(const string& msg)
 	snprintf(m_msg, sizeof(m_msg), "%s", msg.c_str());
 }
 
+/*
 mas_exception::mas_exception(const boost::format& msg)
 {
 	snprintf(m_msg, sizeof(m_msg), "%s", msg.str().c_str());
 }
+*/
 
 //// --------------------------------------------------------------------
 //
@@ -191,6 +185,7 @@ fs::path get_home()
 
 #else
 
+/*
 fs::path get_home()
 {
 	const char* home = getenv("HOME");
@@ -198,5 +193,5 @@ fs::path get_home()
 		throw mas_exception("No home defined");
 	return fs::path(home);
 }
-
+*/
 #endif

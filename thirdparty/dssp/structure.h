@@ -6,8 +6,6 @@
 #pragma once
 
 #include "primitives-3d.h"
-#include "align-2d.h"
-
 #include "pteros/core/selection.h"
 
 struct MAtom;
@@ -65,9 +63,9 @@ struct MAtom
 
 	void		SetChainID(char inID)					{ mChainID = inID;}
 	std::string	Getname() const							{ return mName; }
-	void		Translate(const MPoint& inTranslation)	{ mLoc += inTranslation; }
-	void		Rotate(const MQuaternion& inRotation)	{ mLoc.Rotate(inRotation); }
-	void		WritePDB(std::ostream& os) const;
+    //void		Translate(const MPoint& inTranslation)	{ mLoc += inTranslation; }
+    //void		Rotate(const MQuaternion& inRotation)	{ mLoc.Rotate(inRotation); }
+    //void		WritePDB(std::ostream& os) const;
 
 				operator const MPoint&() const			{ return mLoc; }
 				operator MPoint&()						{ return mLoc; }
@@ -228,9 +226,9 @@ class MResidue
 	uint16				GetNumber() const			{ return mNumber; }
 
 	void				Translate(const MPoint& inTranslation);
-	void				Rotate(const MQuaternion& inRotation);
+//	void				Rotate(const MQuaternion& inRotation);
 
-	void				WritePDB(std::ostream& os);
+    //void				WritePDB(std::ostream& os);
 
 	static double		CalculateHBondEnergy(MResidue& inDonor, MResidue& inAcceptor);
 
@@ -299,10 +297,10 @@ class MChain
 	
 	void				GetSequence(std::string& outSequence) const;
 
-	void				Translate(const MPoint& inTranslation);
-	void				Rotate(const MQuaternion& inRotation);
+    //void				Translate(const MPoint& inTranslation);
+    //void				Rotate(const MQuaternion& inRotation);
 
-	void				WritePDB(std::ostream& os);
+    //void				WritePDB(std::ostream& os);
 	
 	std::vector<MResidue*>&
 						GetResidues()						{ return mResidues; }
@@ -326,16 +324,16 @@ class MProtein
 
 	const std::string&	GetID() const					{ return mID; }
 						
-						MProtein(std::istream& is, bool inCAlphaOnly = false);
+                        //MProtein(std::istream& is, bool inCAlphaOnly = false);
 
                         //===========
                         MProtein(pteros::Selection& sel);
                         //===========
 	
-	const std::string&	GetHeader() const				{ return mHeader; }
-	std::string			GetCompound() const;
-	std::string			GetSource() const;
-	std::string			GetAuthor() const;
+    //const std::string&	GetHeader() const				{ return mHeader; }
+    //std::string			GetCompound() const;
+    //std::string			GetSource() const;
+    //std::string			GetAuthor() const;
 	const std::vector<std::string>&
 						GetDbRef() const				{ return mDbRef; }
 
@@ -348,14 +346,14 @@ class MProtein
 	void				GetCAlphaLocations(char inChain, std::vector<MPoint>& outPoints) const;
 	MPoint				GetCAlphaPosition(char inChain, int16 inPDBResSeq) const;
 	
-	void				GetSequence(char inChain, entry& outEntry) const;
-	void				GetSequence(char inChain, sequence& outSequence) const;
+    //void				GetSequence(char inChain, entry& outEntry) const;
+    //void				GetSequence(char inChain, sequence& outSequence) const;
 
-	void				Center();
-	void				Translate(const MPoint& inTranslation);
-	void				Rotate(const MQuaternion& inRotation);
+    //void				Center();
+    //void				Translate(const MPoint& inTranslation);
+    //void				Rotate(const MQuaternion& inRotation);
 
-	void				WritePDB(std::ostream& os);
+    //void				WritePDB(std::ostream& os);
 	
 	void				GetPoints(std::vector<MPoint>& outPoints) const;
 

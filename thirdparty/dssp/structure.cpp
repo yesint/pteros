@@ -10,23 +10,14 @@
 #include <set>
 #include <numeric>
 #include <functional>
-
-#include <boost/bind.hpp>
-#include <boost/format.hpp>
-#include <boost/lexical_cast.hpp>
-#include <boost/foreach.hpp>
-#define foreach BOOST_FOREACH
-#include <boost/algorithm/string.hpp>
-#include <boost/math/special_functions/round.hpp>
-
-#include "align-2d.h"
+#include <deque>
 #include "utils.h"
 //#include "buffer.h"
 #include "structure.h"
+#include "pteros/core/utilities.h"
+#include "spdlog/fmt/bundled/printf.h"
 
 using namespace std;
-namespace ba = boost::algorithm;
-namespace bm = boost::math;
 
 // --------------------------------------------------------------------
 
@@ -106,8 +97,8 @@ MSurfaceDots::MSurfaceDots(int32 N)
 
 MAtomType MapElement(string inElement)
 {
-	ba::trim(inElement);
-	ba::to_upper(inElement);
+    pteros::str_trim_in_place(inElement);
+    pteros::str_to_upper_in_place(inElement);
 	
 	MAtomType result = kUnknownAtom;
     if (inElement[0] == 'H')
@@ -137,13 +128,13 @@ MAtomType MapElement(string inElement)
     else if (inElement.substr(0,2) == "SE")
 		result = kSelenium;
 	else
-		throw mas_exception(boost::format("Unsupported element '%1%'") % inElement);
+        throw mas_exception(fmt::sprintf("Unsupported element '%1%'", inElement));
 	return result;
 }
 
 MResidueType MapResidue(string inName)
 {
-	ba::trim(inName);
+    pteros::str_trim_in_place(inName);
 
 	MResidueType result = kUnknownResidue;
 	
@@ -210,7 +201,7 @@ double ParseFloat(const string& s)
 					state = pFirst;
 				}
 				else
-					throw mas_exception(boost::format("invalid formatted floating point number '%1%'") % s);
+                    throw mas_exception(fmt::sprintf("invalid formatted floating point number '%1%'", s));
 				break;
 			
 			case pSign:
@@ -222,7 +213,7 @@ double ParseFloat(const string& s)
 					result = *ch - '0';
 				}
 				else
-					throw mas_exception(boost::format("invalid formatted floating point number '%1%'") % s);
+                    throw mas_exception(fmt::sprintf("invalid formatted floating point number '%1%'", s));
 				break;
 			
 			case pFirst:
@@ -231,7 +222,7 @@ double ParseFloat(const string& s)
 				else if (isdigit(*ch))
 					result = 10 * result + (*ch - '0');
 				else
-					throw mas_exception(boost::format("invalid formatted floating point number '%1%'") % s);
+                    throw mas_exception(fmt::sprintf("invalid formatted floating point number '%1%'", s));
 				break;
 			
 			case pSecond:
@@ -241,7 +232,7 @@ double ParseFloat(const string& s)
 					div *= 10;
 				}
 				else
-					throw mas_exception(boost::format("invalid formatted floating point number '%1%'") % s);
+                    throw mas_exception(fmt::sprintf("invalid formatted floating point number '%1%'", s));
 				break;
 		}
 	}
@@ -251,7 +242,7 @@ double ParseFloat(const string& s)
 	
 	return result;
 }
-
+/*
 void MAtom::WritePDB(ostream& os) const
 {
 	//	1 - 6	Record name "ATOM "
@@ -284,7 +275,7 @@ void MAtom::WritePDB(ostream& os) const
 	os << (atom % mSerial % mName % mAltLoc % mResName % mChainID % mResSeq % mICode %
 		   mLoc.mX % mLoc.mY % mLoc.mZ % mOccupancy % mTempFactor % mElement % charge) << endl;
 }
-
+*/
 const MResidueInfo kResidueInfo[] = {
 	{ kUnknownResidue,	'X', "UNK" },
 	{ kAlanine,			'A', "ALA" },
@@ -365,18 +356,18 @@ MResidue::MResidue(uint32 inNumber,
 	static const MAtom kNullAtom = {};
 	mN = mCA = mC = mO = kNullAtom;
 	
-	foreach (const MAtom& atom, inAtoms)
+    for(const MAtom& atom: inAtoms)
 	{
 		if (mChainID == 0)
 			mChainID = atom.mChainID;
 		
 		if (MapResidue(atom.mResName) != mType)
 			throw mas_exception(
-				boost::format("inconsistent residue types in atom records for residue %1% (%2% != %3%)")
-					% inNumber % atom.mResName % inAtoms.front().mResName);
+                fmt::sprintf("inconsistent residue types in atom records for residue %1% (%2% != %3%)",
+                    inNumber, atom.mResName, inAtoms.front().mResName));
 		
 		if (atom.mResSeq != mSeqNumber)
-			throw mas_exception(boost::format("inconsistent residue sequence numbers (%1% != %2%)") % atom.mResSeq % mSeqNumber);
+            throw mas_exception(fmt::sprintf("inconsistent residue sequence numbers (%1% != %2%)", atom.mResSeq, mSeqNumber));
 		
         if (atom.Getname().substr(0,2) == "N ")
 			mN = atom;
@@ -413,7 +404,7 @@ MResidue::MResidue(uint32 inNumber,
     Extendbox(mCA, kRadiusCA + 2 * kRadiusWater);
     Extendbox(mC, kRadiusC + 2 * kRadiusWater);
     Extendbox(mO, kRadiusO + 2 * kRadiusWater);
-	foreach (const MAtom& atom, mSideChain)
+    for(const MAtom& atom: mSideChain)
         Extendbox(atom, kRadiusSideAtom + 2 * kRadiusWater);
 	
 	mRadius = mBox[1].mX - mBox[0].mX;
@@ -516,7 +507,7 @@ void MResidue::SetChainID(char inID)
 	mO.SetChainID(inID);
 	mN.SetChainID(inID);
 	mH.SetChainID(inID);
-	for_each(mSideChain.begin(), mSideChain.end(), boost::bind(&MAtom::SetChainID, _1, inID));
+    for(auto at: mSideChain) at.SetChainID(inID);
 }
 
 bool MResidue::ValidDistance(const MResidue& inNext) const
@@ -652,7 +643,7 @@ double MResidue::CalculateHBondEnergy(MResidue& inDonor, MResidue& inAcceptor)
 			result = kCouplingConstant / distanceHO - kCouplingConstant / distanceHC + kCouplingConstant / distanceNC - kCouplingConstant / distanceNO;
 
 		// DSSP compatibility mode:
-		result = bm::round(result * 1000) / 1000;
+        result = std::round(result * 1000) / 1000;
 
 		if (result < kMinHBondEnergy)
 			result = kMinHBondEnergy;
@@ -740,7 +731,7 @@ void MResidue::CalculateSurface(const vector<MResidue*>& inResidues)
 {
 	vector<MResidue*> neighbours;
 	
-	foreach (MResidue* r, inResidues)
+    for(MResidue* r: inResidues)
 	{
 		MPoint center;
 		double radius;
@@ -755,7 +746,7 @@ void MResidue::CalculateSurface(const vector<MResidue*>& inResidues)
 					 CalculateSurface(mC, kRadiusC, neighbours) +
 					 CalculateSurface(mO, kRadiusO, neighbours);
 	
-	foreach (const MAtom& atom, mSideChain)
+    for(const MAtom& atom: mSideChain)
 		mAccessibility += CalculateSurface(atom, kRadiusSideAtom, neighbours);
 }
 
@@ -804,7 +795,7 @@ double MResidue::CalculateSurface(const MAtom& inAtom, double inRadius, const ve
 {
 	MAccumulator accumulate;
 
-	foreach (MResidue* r, inResidues)
+    for(MResidue* r: inResidues)
 	{
         if (r->AtomIntersectsbox(inAtom, inRadius))
 		{
@@ -813,7 +804,7 @@ double MResidue::CalculateSurface(const MAtom& inAtom, double inRadius, const ve
 			accumulate(inAtom, r->mC, inRadius, kRadiusC);
 			accumulate(inAtom, r->mO, inRadius, kRadiusO);
 				
-			foreach (const MAtom& atom, r->mSideChain)
+            for(const MAtom& atom: r->mSideChain)
 				accumulate(inAtom, atom, inRadius, kRadiusSideAtom);
 		}
 	}
@@ -840,6 +831,7 @@ double MResidue::CalculateSurface(const MAtom& inAtom, double inRadius, const ve
 	return surface * radius * radius;
 }
 
+/*
 void MResidue::Translate(const MPoint& inTranslation)
 {
 	mN.Translate(inTranslation);
@@ -849,7 +841,9 @@ void MResidue::Translate(const MPoint& inTranslation)
 	mH.Translate(inTranslation);
 	for_each(mSideChain.begin(), mSideChain.end(), boost::bind(&MAtom::Translate, _1, inTranslation));
 }
+*/
 
+/*
 void MResidue::Rotate(const MQuaternion& inRotation)
 {
 	mN.Rotate(inRotation);
@@ -859,6 +853,7 @@ void MResidue::Rotate(const MQuaternion& inRotation)
 	mH.Rotate(inRotation);
 	for_each(mSideChain.begin(), mSideChain.end(), boost::bind(&MAtom::Rotate, _1, inRotation));
 }
+*/
 
 void MResidue::GetPoints(vector<MPoint>& outPoints) const
 {
@@ -866,10 +861,11 @@ void MResidue::GetPoints(vector<MPoint>& outPoints) const
 	outPoints.push_back(mCA);
 	outPoints.push_back(mC);
 	outPoints.push_back(mO);
-	foreach (const MAtom& a, mSideChain)
+    for(const MAtom& a: mSideChain)
 		outPoints.push_back(a);
 }
 
+/*
 void MResidue::WritePDB(std::ostream& os)
 {
 	mN.WritePDB(os);
@@ -877,8 +873,9 @@ void MResidue::WritePDB(std::ostream& os)
 	mC.WritePDB(os);
 	mO.WritePDB(os);
 	
-	for_each(mSideChain.begin(), mSideChain.end(), boost::bind(&MAtom::WritePDB, _1, boost::ref(os)));
+    for_each(mSideChain.begin(), mSideChain.end(), [&os](MAtom& at){at.WritePDB(os);});
 }
+*/
 
 // --------------------------------------------------------------------
 
@@ -887,7 +884,7 @@ MChain::MChain(const MChain& chain)
 {
 	MResidue* previous = nullptr;
 	
-	foreach (const MResidue* residue, chain.mResidues)
+    for(const MResidue* residue: chain.mResidues)
 	{
 		MResidue* newResidue = new MResidue(*residue);
 		newResidue->SetPrev(previous);
@@ -898,17 +895,17 @@ MChain::MChain(const MChain& chain)
 
 MChain::~MChain()
 {
-	foreach (MResidue* residue, mResidues)
+    for(MResidue* residue: mResidues)
 		delete residue;
 }
 
 MChain& MChain::operator=(const MChain& chain)
 {
-	foreach (MResidue* residue, mResidues)
+    for(MResidue* residue: mResidues)
 		delete residue;
 	mResidues.clear();
 
-	foreach (const MResidue* residue, chain.mResidues)
+    for(const MResidue* residue: chain.mResidues)
 		mResidues.push_back(new MResidue(*residue));
 	
 	mChainID = chain.mChainID;
@@ -918,44 +915,52 @@ MChain& MChain::operator=(const MChain& chain)
 
 void MChain::SetChainID(char inID)
 {
-	mChainID = inID;
-	for_each(mResidues.begin(), mResidues.end(), boost::bind(&MResidue::SetChainID, _1, inID));
+	mChainID = inID;    
+    for(auto r: mResidues) r->SetChainID(inID);
 }
 
+/*
 void MChain::Translate(const MPoint& inTranslation)
 {
 	for_each(mResidues.begin(), mResidues.end(), boost::bind(&MResidue::Translate, _1, inTranslation));
 }
+*/
 
+/*
 void MChain::Rotate(const MQuaternion& inRotation)
 {
 	for_each(mResidues.begin(), mResidues.end(), boost::bind(&MResidue::Rotate, _1, inRotation));
 }
+*/
 
+/*
 void MChain::WritePDB(std::ostream& os)
 {
-	for_each(mResidues.begin(), mResidues.end(), boost::bind(&MResidue::WritePDB, _1, boost::ref(os)));
+    for_each(mResidues.begin(), mResidues.end(), [](MResidue& r){r.WritePDB(os);} );
 	
-	boost::format ter("TER    %4.4d      %3.3s %c%4.4d%c");
+    string ter("TER    %4.4d      %3.3s %c%4.4d%c");
 	
 	MResidue* last = mResidues.back();
 	
 	os << (ter % (last->GetCAlpha().mSerial + 1) % kResidueInfo[last->GetType()].name % mChainID % last->GetNumber() % ' ') << endl;
 }
+*/
 
 MResidue* MChain::GetResidueBySeqNumber(uint16 inSeqNumber, char inInsertionCode)
 {
 	vector<MResidue*>::iterator r = find_if(mResidues.begin(), mResidues.end(),
-		boost::bind(&MResidue::GetSeqNumber, _1) == inSeqNumber and
-		boost::bind(&MResidue::GetInsertionCode, _1) == inInsertionCode);
+                                            [inSeqNumber,inInsertionCode](MResidue* r){
+                                                return r->GetSeqNumber()==inSeqNumber && r->GetInsertionCode()==inInsertionCode;
+                                            }
+                                           );
 	if (r == mResidues.end())
-		throw mas_exception(boost::format("Residue %d%c not found") % inSeqNumber % inInsertionCode);
+        throw mas_exception(fmt::sprintf("Residue %d%c not found", inSeqNumber, inInsertionCode));
 	return *r;
 }
 
 void MChain::GetSequence(string& outSequence) const
 {
-	foreach (const MResidue* r, GetResidues())
+    for(const MResidue* r: GetResidues())
 		outSequence += kResidueInfo[r->GetType()].code;
 }
 
@@ -981,6 +986,7 @@ struct MResidueID
 					}
 };
 
+/*
 MProtein::MProtein(istream& is, bool cAlphaOnly)
 	: mResidueCount(0)
 	, mChainBreaks(0)
@@ -1229,6 +1235,7 @@ MProtein::MProtein(istream& is, bool cAlphaOnly)
 	if (mChains.empty())
 		throw mas_exception("empty protein, or no valid complete residues");
 }
+*/
 
 //================
 // Constructor from pteros::Selection
@@ -1341,7 +1348,7 @@ MProtein::MProtein(pteros::Selection& sel)
     // map the sulfur bridges
     uint32 ssbondNr = 1;
     typedef pair<MResidueID,MResidueID> SSBond;
-    foreach (const SSBond& ssbond, ssbonds)
+    for(const SSBond& ssbond: ssbonds)
     {
         try
         {
@@ -1366,7 +1373,7 @@ MProtein::MProtein(pteros::Selection& sel)
     }
 
     mChains.erase(
-        remove_if(mChains.begin(), mChains.end(), boost::bind(&MChain::Empty, _1)),
+        remove_if(mChains.begin(), mChains.end(), [](MChain* c){return c->Empty();}),
         mChains.end());
 
     if (VERBOSE and mIgnoredWaterMolecules)
@@ -1385,10 +1392,11 @@ MProtein::MProtein(const string& inID, MChain* inChain)
 
 MProtein::~MProtein()
 {
-	foreach (MChain* chain, mChains)
+    for(MChain* chain: mChains)
 		delete chain;
 }
 
+/*
 string MProtein::GetCompound() const
 {
 	string result;
@@ -1405,7 +1413,9 @@ string MProtein::GetCompound() const
 	}
 	return result;
 }
+*/
 
+/*
 string MProtein::GetSource() const
 {
 	string result;
@@ -1422,7 +1432,9 @@ string MProtein::GetSource() const
 	}
 	return result;
 }
+*/
 
+/*
 string MProtein::GetAuthor() const
 {
 	string result;
@@ -1439,6 +1451,7 @@ string MProtein::GetAuthor() const
 	}
 	return result;
 }
+*/
 
 void MProtein::GetStatistics(uint32& outNrOfResidues, uint32& outNrOfChains,
 	uint32& outNrOfSSBridges, uint32& outNrOfIntraChainSSBridges,
@@ -1459,9 +1472,9 @@ void MProtein::GetStatistics(uint32& outNrOfResidues, uint32& outNrOfChains,
 	}
 	
 	outNrOfHBonds = 0;
-	foreach (const MChain* chain, mChains)
+    for(const MChain* chain: mChains)
 	{
-		foreach (const MResidue* r, chain->GetResidues())
+        for(const MResidue* r: chain->GetResidues())
 		{
 			const HBond* donor = r->Donor();
 			
@@ -1483,11 +1496,11 @@ void MProtein::GetResiduesPerAlphaHelixHistogram(uint32 outHistogram[30]) const
 {
 	fill(outHistogram, outHistogram + 30, 0);
 
-	foreach (const MChain* chain, mChains)
+    for(const MChain* chain: mChains)
 	{
 		uint32 helixLength = 0;
 		
-		foreach (const MResidue* r, chain->GetResidues())
+        for(const MResidue* r: chain->GetResidues())
 		{
 			if (r->GetSecondaryStructure() == alphahelix)
 				++helixLength;
@@ -1521,7 +1534,7 @@ void MProtein::GetLaddersPerSheetHistogram(uint32 outHistogram[30]) const
 void MProtein::AddResidue(const vector<MAtom>& inAtoms)
 {
 	bool hasN = false, hasCA = false, hasC = false, hasO = false;
-	foreach (const MAtom& atom, inAtoms)
+    for(const MAtom& atom: inAtoms)
 	{
         if (atom.Getname().substr(0,2) == "N ")
 			hasN = true;
@@ -1547,8 +1560,8 @@ void MProtein::AddResidue(const vector<MAtom>& inAtoms)
 		if (prev != nullptr and not prev->ValidDistance(*r))	// check for chain breaks
 		{
 			if (VERBOSE)
-				cerr << boost::format("The distance between residue %1% and %2% is larger than the maximum peptide bond length")
-						% prev->GetNumber() % resNumber << endl;
+                cerr << fmt::sprintf("The distance between residue %1% and %2% is larger than the maximum peptide bond length",
+                        prev->GetNumber(),resNumber) << endl;
 			
 			++mChainBreaks;
 			r->SetNumber(resNumber + 1);
@@ -1585,30 +1598,34 @@ MChain& MProtein::GetChain(char inChainID)
 
 void MProtein::GetPoints(std::vector<MPoint>& outPoints) const
 {
-	foreach (const MChain* chain, mChains)
+    for(const MChain* chain: mChains)
 	{
-		foreach (const MResidue* r, chain->GetResidues())
+        for(const MResidue* r: chain->GetResidues())
 			r->GetPoints(outPoints);
 	}
 }
 
+/*
 void MProtein::Translate(const MPoint& inTranslation)
 {
-	foreach (MChain* chain, mChains)
+    for(MChain* chain: mChains)
 		chain->Translate(inTranslation);
 }
+*/
 
+/*
 void MProtein::Rotate(const MQuaternion& inRotation)
 {
 	foreach (MChain* chain, mChains)
 		chain->Rotate(inRotation);
 }
+*/
 
 void MProtein::CalculateSecondaryStructure(bool inPreferPiHelices)
 {
 	vector<MResidue*> residues;
 	residues.reserve(mResidueCount);
-	foreach (const MChain* chain, mChains)
+    for(const MChain* chain: mChains)
 		residues.insert(residues.end(), chain->GetResidues().begin(), chain->GetResidues().end());
 	
 	if (VERBOSE)
@@ -1655,7 +1672,7 @@ void MProtein::CalculateAlphaHelices(const std::vector<MResidue*>& inResidues, b
 		cerr << "Calculate alhpa helices" << endl;
 	
 	// Helix and Turn
-	foreach (const MChain* chain, mChains)
+    for(const MChain* chain: mChains)
 	{
 		for (uint32 stride = 3; stride <= 5; ++stride)
 		{
@@ -1683,7 +1700,7 @@ void MProtein::CalculateAlphaHelices(const std::vector<MResidue*>& inResidues, b
 		}
 	}
 	
-	foreach (MResidue* r, inResidues)
+    for(MResidue* r: inResidues)
 	{
 		double kappa = r->Kappa();
 		r->SetBend(kappa != 360 and kappa > 70);
@@ -1770,7 +1787,7 @@ void MProtein::CalculateBetaSheets(const std::vector<MResidue*>& inResidues)
 					continue;
 				
 				bool found = false;
-				foreach (MBridge& bridge, bridges)
+                for(MBridge& bridge: bridges)
 				{
 					if (type != bridge.type or i != bridge.i.back() + 1)
 						continue;
@@ -1854,7 +1871,7 @@ void MProtein::CalculateBetaSheets(const std::vector<MResidue*>& inResidues)
 
 	// Sheet
 	set<MBridge*> ladderset;
-	foreach (MBridge& bridge, bridges)
+    for(MBridge& bridge: bridges)
 	{
 		ladderset.insert(&bridge);
 		
@@ -1879,9 +1896,9 @@ void MProtein::CalculateBetaSheets(const std::vector<MResidue*>& inResidues)
 		while (not done)
 		{
 			done = true;
-			foreach (MBridge* a, sheetset)
+            for(MBridge* a: sheetset)
 			{
-				foreach (MBridge* b, ladderset)
+                for(MBridge* b: ladderset)
 				{
 					if (Linked(*a, *b))
 					{
@@ -1896,7 +1913,7 @@ void MProtein::CalculateBetaSheets(const std::vector<MResidue*>& inResidues)
 			}
 		}
 
-		foreach (MBridge* bridge, sheetset)
+        for(MBridge* bridge: sheetset)
 		{
 			bridge->ladder = ladder;
 			bridge->sheet = sheet;
@@ -1916,14 +1933,14 @@ void MProtein::CalculateBetaSheets(const std::vector<MResidue*>& inResidues)
 		++sheet;
 	}
 
-	foreach (MBridge& bridge, bridges)
+    for(MBridge& bridge: bridges)
 	{
 		// find out if any of the i and j set members already have
 		// a bridge assigned, if so, we're assigning bridge 2
 		
 		uint32 betai = 0, betaj = 0;
 		
-		foreach (uint32 l, bridge.i)
+        for(uint32 l: bridge.i)
 		{
 			if (inResidues[l]->GetBetaPartner(0).residue != nullptr)
 			{
@@ -1932,7 +1949,7 @@ void MProtein::CalculateBetaSheets(const std::vector<MResidue*>& inResidues)
 			}
 		}
 
-		foreach (uint32 l, bridge.j)
+        for(uint32 l: bridge.j)
 		{
 			if (inResidues[l]->GetBetaPartner(0).residue != nullptr)
 			{
@@ -1950,11 +1967,11 @@ void MProtein::CalculateBetaSheets(const std::vector<MResidue*>& inResidues)
 			mNrOfHBondsInParallelBridges += bridge.i.back() - bridge.i.front() + 2;
 			
 			deque<uint32>::iterator j = bridge.j.begin();
-			foreach (uint32 i, bridge.i)
+            for(uint32 i: bridge.i)
 				inResidues[i]->SetBetaPartner(betai, inResidues[*j++], bridge.ladder, true);
 
 			j = bridge.i.begin();
-			foreach (uint32 i, bridge.j)
+            for(uint32 i: bridge.j)
 				inResidues[i]->SetBetaPartner(betaj, inResidues[*j++], bridge.ladder, true);
 		}
 		else
@@ -1962,11 +1979,11 @@ void MProtein::CalculateBetaSheets(const std::vector<MResidue*>& inResidues)
 			mNrOfHBondsInAntiparallelBridges += bridge.i.back() - bridge.i.front() + 2;
 
 			deque<uint32>::reverse_iterator j = bridge.j.rbegin();
-			foreach (uint32 i, bridge.i)
+            for(uint32 i: bridge.i)
 				inResidues[i]->SetBetaPartner(betai, inResidues[*j++], bridge.ladder, false);
 
 			j = bridge.i.rbegin();
-			foreach (uint32 i, bridge.j)
+            for(uint32 i: bridge.j)
 				inResidues[i]->SetBetaPartner(betaj, inResidues[*j++], bridge.ladder, false);
 		}
 
@@ -2040,6 +2057,7 @@ void MProtein::CalculateAccessibility(MResidueQueue& inQueue,
 }
 */
 
+/*
 void MProtein::Center()
 {
 	vector<MPoint> p;
@@ -2049,6 +2067,7 @@ void MProtein::Center()
 	
 	Translate(MPoint(-t.mX, -t.mY, -t.mZ));
 }
+*/
 
 void MProtein::SetChain(char inChainID, const MChain& inChain)
 {
@@ -2061,7 +2080,7 @@ MResidue* MProtein::GetResidue(char inChainID, uint16 inSeqNumber, char inInsert
 {
 	MChain& chain = GetChain(inChainID);
 	if (chain.GetResidues().empty())
-		throw mas_exception(boost::format("Invalid chain id '%c'") % inChainID);
+        throw mas_exception(fmt::sprintf("Invalid chain id '%c'", inChainID));
 	return chain.GetResidueBySeqNumber(inSeqNumber, inInsertionCode);
 }
 
@@ -2070,7 +2089,7 @@ void MProtein::GetCAlphaLocations(char inChain, vector<MPoint>& outPoints) const
 	if (inChain == 0)
 		inChain = mChains.front()->GetChainID();
 	
-	foreach (const MResidue* r, GetChain(inChain).GetResidues())
+    for(const MResidue* r: GetChain(inChain).GetResidues())
 		outPoints.push_back(r->GetCAlpha());
 }
 
@@ -2080,7 +2099,7 @@ MPoint MProtein::GetCAlphaPosition(char inChain, int16 inPDBResSeq) const
 		inChain = mChains.front()->GetChainID();
 	
 	MPoint result;
-	foreach (const MResidue* r, GetChain(inChain).GetResidues())
+    for(const MResidue* r: GetChain(inChain).GetResidues())
 	{
 		if (r->GetSeqNumber() != inPDBResSeq)
 			continue;
@@ -2091,13 +2110,14 @@ MPoint MProtein::GetCAlphaPosition(char inChain, int16 inPDBResSeq) const
 	return result;
 }
 
+/*
 void MProtein::GetSequence(char inChain, entry& outEntry) const
 {
 	if (inChain == 0)
 		inChain = mChains.front()->GetChainID();
 	
 	string seq;
-	foreach (const MResidue* r, GetChain(inChain).GetResidues())
+    for(const MResidue* r: GetChain(inChain).GetResidues())
 	{
 		seq += kResidueInfo[r->GetType()].code;
 		outEntry.m_positions.push_back(r->GetSeqNumber());
@@ -2106,21 +2126,26 @@ void MProtein::GetSequence(char inChain, entry& outEntry) const
 	
 	outEntry.m_seq = encode(seq);
 }
+*/
 
+/*
 void MProtein::GetSequence(char inChain, sequence& outSequence) const
 {
 	if (inChain == 0)
 		inChain = mChains.front()->GetChainID();
 	
 	string seq;
-	foreach (const MResidue* r, GetChain(inChain).GetResidues())
+    for(const MResidue* r: GetChain(inChain).GetResidues())
 		seq += kResidueInfo[r->GetType()].code;
 	
 	outSequence = encode(seq);
 }
+*/
 
+/*
 void MProtein::WritePDB(ostream& os)
 {
-	foreach (MChain* chain, mChains)
+    for(MChain* chain: mChains)
 		chain->WritePDB(os);
 }
+*/

@@ -10,13 +10,9 @@
 #endif
 
 #include <time.h>
-//#include <boost/thread.hpp>
-#include <boost/lexical_cast.hpp>
-#include <boost/format.hpp>
-#include <boost/filesystem.hpp>
 
 // --------------------------------------------------------------------
-
+/*
 class arg_vector
 {
   public:
@@ -43,6 +39,7 @@ class arg_vector
 	std::vector<const char*>	m_argv;
 };
 
+
 template<class T>
 inline
 void arg_vector::push(const std::string& option, const T& value)
@@ -60,14 +57,14 @@ void arg_vector::push(const std::string& option, const std::string& value)
 }
 
 std::ostream& operator<<(std::ostream& os, const arg_vector& argv);
-
+*/
 // --------------------------------------------------------------------
 
 class mas_exception : public std::exception
 {
   public:
 					mas_exception(const std::string& msg);
-					mas_exception(const boost::format& msg);
+                    //mas_exception(const boost::format& msg);
 
 	virtual const char*
 					what() const throw()	{ return m_msg; }
@@ -99,4 +96,4 @@ struct stats
 // --------------------------------------------------------------------
 
 void WriteToFD(int inFD, const std::string& inText);
-boost::filesystem::path get_home();
+//boost::filesystem::path get_home();

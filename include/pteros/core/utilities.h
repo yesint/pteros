@@ -82,6 +82,7 @@ namespace pteros {
     int str_to_int(const std::string& str);
     float str_to_float(const std::string& str);
     void str_to_lower_in_place(std::string& str);
+    void str_to_upper_in_place(std::string& str);
     std::string str_to_lower_copy(const std::string& str);
     void str_trim_in_place(std::string &s);
 

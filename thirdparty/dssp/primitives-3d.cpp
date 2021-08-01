@@ -10,9 +10,6 @@
 #include <valarray>
 #include <cmath>
 
-#include <boost/foreach.hpp>
-#define foreach BOOST_FOREACH
-
 #include "primitives-3d.h"
 #include "matrix.h"
 
@@ -23,6 +20,7 @@ const double
 
 // --------------------------------------------------------------------
 
+/*
 MQuaternion Normalize(MQuaternion q)
 {
 	valarray<double> t(4);
@@ -43,6 +41,7 @@ MQuaternion Normalize(MQuaternion q)
 
 	return q;
 }
+*/
 
 // --------------------------------------------------------------------
 
@@ -99,7 +98,7 @@ ostream& operator<<(ostream& os, const vector<MPoint>& pts)
 	uint32 n = pts.size();
 	os << '[' << n << ']';
 	
-	foreach (const MPoint& pt, pts)
+    for(const MPoint& pt: pts)
 	{
 		os << pt;
 		if (n-- > 1)
@@ -152,7 +151,7 @@ double CosinusAngle(const MPoint& p1, const MPoint& p2, const MPoint& p3, const 
 }
 
 // --------------------------------------------------------------------
-
+/*
 tuple<double,MPoint> QuaternionToAngleAxis(MQuaternion q)
 {
 	if (q.R_component_1() > 1)
@@ -171,12 +170,13 @@ tuple<double,MPoint> QuaternionToAngleAxis(MQuaternion q)
 
 	return make_tuple(angle, axis);
 }
+*/
 
 MPoint CenterPoints(vector<MPoint>& points)
 {
 	MPoint t;
 	
-	foreach (MPoint& pt, points)
+    for(MPoint& pt: points)
 	{
 		t.mX += pt.mX;
 		t.mY += pt.mY;
@@ -187,7 +187,7 @@ MPoint CenterPoints(vector<MPoint>& points)
 	t.mY /= points.size();
 	t.mZ /= points.size();
 	
-	foreach (MPoint& pt, points)
+    for(MPoint& pt: points)
 	{
 		pt.mX -= t.mX;
 		pt.mY -= t.mY;
@@ -201,7 +201,7 @@ MPoint Centroid(vector<MPoint>& points)
 {
 	MPoint result;
 	
-	foreach (MPoint& pt, points)
+    for(MPoint& pt: points)
 		result += pt;
 	
 	result /= points.size();
@@ -267,6 +267,7 @@ double LargestDepressedQuarticSolution(double a, double b, double c)
 	return t.max();
 }
 
+/*
 MQuaternion AlignPoints(const vector<MPoint>& pa, const vector<MPoint>& pb)
 {
 	// First calculate M, a 3x3 matrix containing the sums of products of the coordinates of A and B
@@ -374,3 +375,4 @@ MQuaternion AlignPoints(const vector<MPoint>& pa, const vector<MPoint>& pb)
 	
 	return q;
 }
+*/

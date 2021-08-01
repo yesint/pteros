@@ -8,11 +8,7 @@
 #pragma once
 
 #include <vector>
-
-#include <boost/tuple/tuple.hpp>
-#include <boost/math/quaternion.hpp>
-
-typedef boost::math::quaternion<double> MQuaternion;
+#include <Eigen/Geometry>
 
 extern const double kPI;
 
@@ -37,7 +33,7 @@ struct MPoint
 	MPoint&		operator/=(double f);
 
 	double		Normalize();
-	void		Rotate(const MQuaternion& q);
+    //void		Rotate(const MQuaternion& q);
 
 	double		mX, mY, mZ;
 };
@@ -62,12 +58,12 @@ double CosinusAngle(const MPoint& p1, const MPoint& p2, const MPoint& p3, const 
 // --------------------------------------------------------------------
 // We use quaternions to do rotations in 3d space
 
-MQuaternion Normalize(MQuaternion q);
+//MQuaternion Normalize(MQuaternion q);
 
-std::tuple<double,MPoint> QuaternionToAngleAxis(MQuaternion q);
+//std::tuple<double,MPoint> QuaternionToAngleAxis(MQuaternion q);
 MPoint Centroid(std::vector<MPoint>& points);
 MPoint CenterPoints(std::vector<MPoint>& points);
-MQuaternion AlignPoints(const std::vector<MPoint>& a, const std::vector<MPoint>& b);
+//MQuaternion AlignPoints(const std::vector<MPoint>& a, const std::vector<MPoint>& b);
 double RMSd(const std::vector<MPoint>& a, const std::vector<MPoint>& b);
 
 // --------------------------------------------------------------------
@@ -167,6 +163,7 @@ MPoint& MPoint::operator/=(double f)
 	return *this;
 }
 
+/*
 inline
 void MPoint::Rotate(const MQuaternion& q)
 {
@@ -178,6 +175,7 @@ void MPoint::Rotate(const MQuaternion& q)
 	mY = p.R_component_3();
 	mZ = p.R_component_4();
 }
+*/
 
 inline double DotProduct(const MPoint& a, const MPoint& b)
 {
