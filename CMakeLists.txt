@@ -36,7 +36,7 @@ OPTION(WITH_TNG "Use TNG_IO. Required to read tng files." ON)
 
 # Options to search for pre-installed dependencies
 OPTION(WITH_SYSTEM_DEPENDENCIES "Try using system dependensies." ON)
-OPTION(WITH_SYSTEM_BOOST "Try using system boost." ON)
+#OPTION(WITH_SYSTEM_BOOST "Try using system boost." ON)
 OPTION(WITH_SYSTEM_EIGEN "Try using system Eigen." ON)
 OPTION(WITH_SYSTEM_SPDLOG "Try using system spdlog." ON)
 OPTION(WITH_SYSTEM_PYBIND11 "Try using system pybind11." ON)
