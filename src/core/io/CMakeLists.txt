@@ -66,6 +66,5 @@ target_link_libraries(pteros_io PRIVATE
     molfile_plugins
     xdrfile
     spdlog::spdlog
-    Boost::boost
     Eigen3::Eigen
 )

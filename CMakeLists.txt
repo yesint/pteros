@@ -36,7 +36,6 @@ OPTION(WITH_TNG "Use TNG_IO. Required to read tng files." ON)
 
 # Options to search for pre-installed dependencies
 OPTION(WITH_SYSTEM_DEPENDENCIES "Try using system dependensies." ON)
-#OPTION(WITH_SYSTEM_BOOST "Try using system boost." ON)
 OPTION(WITH_SYSTEM_EIGEN "Try using system Eigen." ON)
 OPTION(WITH_SYSTEM_SPDLOG "Try using system spdlog." ON)
 OPTION(WITH_SYSTEM_PYBIND11 "Try using system pybind11." ON)
@@ -49,10 +48,13 @@ OPTION(MAKE_PACKAGE "Generate package" OFF)
 OPTION(MAKE_EXAMPLES "Compile examples and plugin templates" OFF)
 OPTION(MAKE_TEST "Compile tests" OFF)
 
-OPTION(DOWNLOAD_DEPS "Automatically download and compile dependencies if they are not found in the system" ON)
-
-
 #---------------------------------------------------
+
+# Default to release build
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose Release or Debug" FORCE)
+endif()
+
 ##############################
 # Global compilation options:
 ##############################
@@ -61,8 +63,8 @@ OPTION(DOWNLOAD_DEPS "Automatically download and compile dependencies if they ar
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # C++17 and C99
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_C_STANDARD 99)
+set(CMAKE_CXX_STANDARD  17)
+set(CMAKE_C_STANDARD    99)
 
 #Sets optmization in Release build
 SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -march=native")
@@ -81,15 +83,15 @@ ENDIF()
 # Main Pteros include dir should be visible everywhere
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
-##############################
+#----------------------------
 # Manage dependencies
-##############################
+#----------------------------
 
 include(${PROJECT_SOURCE_DIR}/cmake/dependencies.cmake)
 
-#----------------------------
+#------------------------------------
 # Build bundled thirdparty libraries
-#----------------------------
+#------------------------------------
 
 # DSSP library
 add_subdirectory(thirdparty/dssp)
@@ -106,9 +108,9 @@ add_subdirectory(thirdparty/voro++)
 # SASA library from MDTraj
 add_subdirectory(thirdparty/sasa)
 
-#---------------------------------------------
+#----------------------------
 # Compiling pteros itself
-#---------------------------------------------
+#----------------------------
 
 add_subdirectory(src/core)
 add_subdirectory(src/analysis)
@@ -126,9 +128,9 @@ IF(MAKE_EXAMPLES)
     add_subdirectory(template_plugin)
 ENDIF()
 
-#---------------------------------------------
+#---------------------
 # Installing
-#---------------------------------------------
+#---------------------
 
 # Install headers
 install(DIRECTORY include DESTINATION .)

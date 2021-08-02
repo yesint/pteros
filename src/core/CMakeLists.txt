@@ -72,7 +72,6 @@ add_subdirectory(distance_search)
 add_subdirectory(selection_parser)
 
 #Add SASA code
-
 if(WITH_POWERSASA)
     # Set definition for conditional compilation
     target_compile_definitions(pteros PRIVATE USE_POWERSASA)
@@ -83,7 +82,7 @@ if(WITH_POWERSASA)
         ${PROJECT_SOURCE_DIR}/thirdparty/powersasa/power_diagram.h
         ${PROJECT_SOURCE_DIR}/thirdparty/powersasa/power_sasa.h
     )
-    message(STATUS "POWERSASA code is used! Licence restrictions are described here: src/thirdparty/sasa/LICENSE")
+    message(NOTICE "POWERSASA code is used! Licence restrictions are described here: src/thirdparty/sasa/LICENSE")
 endif()
 
 target_link_libraries(pteros
@@ -95,7 +94,6 @@ target_link_libraries(pteros
     PUBLIC
         Eigen3::Eigen
         spdlog::spdlog
-        Boost::boost Boost::system Boost::date_time Boost::filesystem
 )
 
 if(WITH_OPENMP AND OpenMP_CXX_FOUND)

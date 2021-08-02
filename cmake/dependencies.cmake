@@ -29,12 +29,11 @@ include(FetchContent)
 cmake_policy(SET CMP0077 NEW) # To silence warnings
 
 if(NOT WITH_SYSTEM_DEPENDENCIES)
-    #set(WITH_SYSTEM_BOOST OFF)
-    set(WITH_SYSTEM_EIGEN OFF)
-    set(WITH_SYSTEM_SPDLOG  OFF)
-    set(WITH_SYSTEM_PYBIND11  OFF)
-    set(WITH_SYSTEM_GROMACS  OFF)
-    set(WITH_SYSTEM_OPENBABEL OFF)
+    set(WITH_SYSTEM_EIGEN       OFF)
+    set(WITH_SYSTEM_SPDLOG      OFF)
+    set(WITH_SYSTEM_PYBIND11    OFF)
+    set(WITH_SYSTEM_GROMACS     OFF)
+    set(WITH_SYSTEM_OPENBABEL   OFF)
 endif()
 
 # To avoid updates on configure step
@@ -53,21 +52,8 @@ set(fetch_list "")
 #--------------------
 # Boost
 #--------------------
-
-set(Boost_USE_STATIC_LIBS OFF)
-find_package(Boost 1.50 REQUIRED COMPONENTS system date_time filesystem)
-
-#if(NOT Boost_FOUND)
-#    message(STATUS "Will download and compile Boost in place")
-#
-#    FetchContent_Declare(
-#            boost
-#            GIT_REPOSITORY https://github.com/boostorg/boost.git
-#            GIT_TAG        master
-#            GIT_SUBMODULES libs/multi_array
-#    )
-#    list(APPEND fetch_list boost)
-#endif()
+#set(Boost_USE_STATIC_LIBS OFF)
+#find_package(Boost 1.50 REQUIRED COMPONENTS system date_time filesystem)
 
 #--------------------
 # Eigen
@@ -78,19 +64,15 @@ endif()
 if(NOT Eigen3_FOUND)
     FetchContent_Declare(
       Eigen
-      GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
-      GIT_TAG master
-      GIT_SHALLOW TRUE
-      GIT_PROGRESS TRUE
+      GIT_REPOSITORY    https://gitlab.com/libeigen/eigen.git
+      GIT_TAG           master
+      GIT_SHALLOW       TRUE
+      GIT_PROGRESS      TRUE
     )
     set(EIGEN_BUILD_DOC OFF CACHE INTERNAL "")
     set(BUILD_TESTING OFF CACHE INTERNAL "")
     set(EIGEN_BUILD_PKGCONFIG OFF CACHE INTERNAL "")
     list(APPEND fetch_list Eigen)
-    #FetchContent_MakeAvailable(Eigen)
-    # Set Eigen location manually for openbabel.
-    # By default it points to build dir which is empty until build stage
-    #set(Eigen3_location_for_babel ${PROJECT_SOURCE_DIR}/external/eigen)
 endif()
 
 #--------------------
@@ -102,8 +84,10 @@ endif()
 if(NOT spdlog_FOUND)
     FetchContent_Declare(
             spdlog
-            GIT_REPOSITORY https://github.com/gabime/spdlog.git
-            GIT_TAG        v1.x
+            GIT_REPOSITORY  https://github.com/gabime/spdlog.git
+            GIT_TAG         v1.x
+            GIT_SHALLOW     TRUE
+            GIT_PROGRESS    TRUE
     )
     set(SPDLOG_MASTER_PROJECT ON CACHE INTERNAL "")
     set(SPDLOG_INSTALL ON CACHE INTERNAL "")
@@ -136,13 +120,12 @@ if(WITH_PYTHON)
             pybind11
             GIT_REPOSITORY https://github.com/pybind/pybind11
             GIT_TAG        v2.2.3
+            GIT_SHALLOW    TRUE
+            GIT_PROGRESS   TRUE
         )
+        # Force Python3
+        set(PYBIND11_PYTHON_VERSION 3 CACHE INTERNAL "")
         list(APPEND fetch_list pybind11)
-        #FetchContent_GetProperties(pybind11)
-        #if(NOT pybind11_POPULATED)
-        #    FetchContent_Populate(pybind11)
-        #    add_subdirectory(${pybind11_SOURCE_DIR} ${pybind11_BINARY_DIR})
-        #endif()
     endif()
 
     if(NOT MAKE_PACKAGE)
@@ -164,7 +147,7 @@ endif()
 
 # Fetch everything we need
 if(fetch_list)
-    message("Will fetch: ${fetch_list}")
+    message(STATUS "Will fetch the following: ${fetch_list}")
     FetchContent_MakeAvailable(${fetch_list})
 endif()
 
@@ -189,8 +172,10 @@ if(WITH_OPENBABEL)
     message(STATUS "Will download and compile OpenBabel in place")
     set(OPENBABEL_LIB_FILE ${CMAKE_SOURCE_DIR}/external/openbabel-install/lib/${CMAKE_STATIC_LIBRARY_PREFIX}openbabel${CMAKE_STATIC_LIBRARY_SUFFIX})
     ExternalProject_add(OpenBabel_external
-        GIT_REPOSITORY https://github.com/openbabel/openbabel.git
-        GIT_TAG openbabel-3-0-0
+        GIT_REPOSITORY  https://github.com/openbabel/openbabel.git
+        GIT_TAG         openbabel-3-0-0
+        GIT_SHALLOW     TRUE
+        GIT_PROGRESS    TRUE
         SOURCE_DIR ${CMAKE_SOURCE_DIR}/external/openbabel-src
         BINARY_DIR ${CMAKE_SOURCE_DIR}/external/openbabel-build
         CMAKE_ARGS -DBUILD_TESTING=OFF -DBUILD_MIXED=ON -DBUILD_SHARED=OFF
@@ -201,8 +186,8 @@ if(WITH_OPENBABEL)
 
     # Set openbabel variables manually    
     set(OPENBABEL3_FOUND TRUE)
-    set(OPENBABEL3_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/openbabel-install/include/openbabel3)
-    set(OPENBABEL3_LIBRARIES ${OPENBABEL_LIB_FILE})
+    set(OPENBABEL3_INCLUDE_DIR  ${CMAKE_SOURCE_DIR}/external/openbabel-install/include/openbabel3)
+    set(OPENBABEL3_LIBRARIES    ${OPENBABEL_LIB_FILE})
 endif()
 
 #--------------------
@@ -217,8 +202,10 @@ if(WITH_GROMACS)
         message(STATUS "Will download and compile Gromacs in place")
         set(GROMACS_LIB_FILE ${CMAKE_SOURCE_DIR}/external/gromacs-build/lib/${CMAKE_STATIC_LIBRARY_PREFIX}gromacs${CMAKE_STATIC_LIBRARY_SUFFIX})
         ExternalProject_add(Gromacs_external
-            GIT_REPOSITORY https://gitlab.com/gromacs/gromacs.git
-            GIT_TAG  v2020.4
+            GIT_REPOSITORY  https://gitlab.com/gromacs/gromacs.git
+            GIT_TAG         master
+            GIT_SHALLOW     TRUE
+            GIT_PROGRESS    TRUE
             SOURCE_DIR ${CMAKE_SOURCE_DIR}/external/gromacs-src
             BINARY_DIR ${CMAKE_SOURCE_DIR}/external/gromacs-build
             CMAKE_ARGS  -DGMX_MPI=OFF -DGMX_GPU=OFF -DGMX_SIMD=none
@@ -231,8 +218,8 @@ if(WITH_GROMACS)
             INSTALL_COMMAND ""
             BUILD_BYPRODUCTS ${GROMACS_LIB_FILE}
         )
-        set(GROMACS_SOURCES ${CMAKE_SOURCE_DIR}/external/gromacs-src)
-        set(GROMACS_LIBRARIES ${GROMACS_LIB_FILE})
+        set(GROMACS_SOURCES     ${CMAKE_SOURCE_DIR}/external/gromacs-src)
+        set(GROMACS_LIBRARIES   ${GROMACS_LIB_FILE})
     endif()
 
 endif()
@@ -246,6 +233,8 @@ if(WITH_TNG)
     ExternalProject_add(TNG_external
         GIT_REPOSITORY  https://gitlab.com/gromacs/tng.git
         GIT_TAG         v1.8.2
+        GIT_SHALLOW     TRUE
+        GIT_PROGRESS    TRUE
         SOURCE_DIR ${CMAKE_SOURCE_DIR}/external/tng-src
         BINARY_DIR ${CMAKE_SOURCE_DIR}/external/tng-build
         CMAKE_ARGS  -DBUILD_SHARED_LIBS=OFF
@@ -258,5 +247,5 @@ if(WITH_TNG)
         BUILD_BYPRODUCTS ${TNG_LIB_FILE}
     )
     set(TNG_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/tng-install/include)
-    set(TNG_LIBRARIES ${TNG_LIB_FILE})
+    set(TNG_LIBRARIES   ${TNG_LIB_FILE})
 endif()
