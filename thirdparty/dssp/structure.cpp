@@ -1628,8 +1628,8 @@ void MProtein::CalculateSecondaryStructure(bool inPreferPiHelices)
     for(const MChain* chain: mChains)
 		residues.insert(residues.end(), chain->GetResidues().begin(), chain->GetResidues().end());
 	
-	if (VERBOSE)
-		cerr << "using " << residues.size() << " residues" << endl;
+    //if (VERBOSE)
+    //	cerr << "using " << residues.size() << " residues" << endl;
 
     // Disabled costly area calculation
     // boost::thread t(boost::bind(&MProtein::CalculateAccessibilities, this, boost::ref(residues)));

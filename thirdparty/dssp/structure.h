@@ -334,8 +334,8 @@ class MProtein
     //std::string			GetCompound() const;
     //std::string			GetSource() const;
     //std::string			GetAuthor() const;
-	const std::vector<std::string>&
-						GetDbRef() const				{ return mDbRef; }
+    const std::vector<std::string>&
+                        GetDbRef() const				{ return mDbRef; }
 
 	void				CalculateSecondaryStructure(bool inPreferPiHelices = true);
 	
@@ -355,7 +355,7 @@ class MProtein
 
     //void				WritePDB(std::ostream& os);
 	
-	void				GetPoints(std::vector<MPoint>& outPoints) const;
+    void				GetPoints(std::vector<MPoint>& outPoints) const;
 
 	char				GetFirstChainID() const								{ return mChains.front()->GetChainID(); }
 
@@ -417,7 +417,7 @@ class MProtein
 };
 
 // inlines
-
+/*
 // GetSequences can be used to quickly get all sequences in a vector<string> e.g.
 template<class OutputIterator>
 void MProtein::GetSequences(OutputIterator outSequences) const
@@ -429,4 +429,4 @@ void MProtein::GetSequences(OutputIterator outSequences) const
 		*outSequences++ = seq;
 	}
 }
-
+*/

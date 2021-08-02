@@ -98,7 +98,6 @@ namespace pteros {
                                Vector3i_const_ref pbc_dims = fullPBC,
                                bool abs_index = false);
     private:
-        //boost::multi_array<GridCell,3> data;
         Eigen::Tensor<GridCell,3> data;
     };
 
