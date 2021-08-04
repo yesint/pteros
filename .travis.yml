@@ -1,25 +1,24 @@
 language: cpp
-sudo: required
-services:
-  - docker
+
+compiler:
+  - gcc
 
 jobs:
   include:
-    - name: "MinGW-w64_x64"
-      env: 
-      - CMAKE_BIN=x86_64-w64-mingw32-cmake
-      - DOCKER_IMG=burningdaylight/mingw-arch
-      - WITH_PYTHON=OFF
-    - name: "Ubuntu LTS x64"
-      env: 
-      - CMAKE_BIN=cmake
-      - DOCKER_IMG=burningdaylight/ubuntu-latest-devel
-      - WITH_PYTHON=ON
+  - name: "Vanilla Ubuntu 20.04, no Gromacs and Babel"
+    dist: focal
+    env:
+    - WITH_GROMACS=OFF WITH_OPENBABEL=OFF
 
-before_script:
- - docker pull ${DOCKER_IMG}
+  - name: "Ubuntu 20.04, preinstalled dependencies"
+    dist: focal
+    before_install:
+    - sudo apt-get -y install libeigen3-dev
+    env:
+    - WITH_GROMACS=OFF WITH_OPENBABEL=OFF
 
 script:
- - mkdir build
- - docker run --user $(id -u):$(id -g) --rm -v ${TRAVIS_BUILD_DIR}:/workdir:rw ${DOCKER_IMG} /bin/bash -c "cd build && ${CMAKE_BIN} -DWITH_PYTHON=${WITH_PYTHON} -DWITH_OPENBABEL=OFF -DWITH_GROMACS=OFF .. && make"
+ - mkdir build && cd build
+# - docker run --user $(id -u):$(id -g) --rm -v ${TRAVIS_BUILD_DIR}:/workdir:rw ${DOCKER_IMG} /bin/bash -c "cd build && ${CMAKE_BIN} -DWITH_PYTHON=${WITH_PYTHON} -DWITH_OPENBABEL=OFF -DWITH_GROMACS=OFF .. && make"
+ - cmake .. && make -j2
  - rm -rf build
