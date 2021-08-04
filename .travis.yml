@@ -2,19 +2,26 @@ language: cpp
 
 compiler:
   - gcc
+  
+dist: focal
 
 jobs:
   include:
+  - name: "Vanilla Ubuntu 20.04, all defaults"
+  
   - name: "Vanilla Ubuntu 20.04, no Gromacs and Babel"
-    dist: focal
     env:
     - CMAKE_D_OPTIONS="-DWITH_OPENBABEL=OFF -DWITH_GROMACS=OFF"
 
-  - name: "Ubuntu 20.04, preinstalled dependencies"
-    dist: focal    
+  - name: "Ubuntu 20.04, preinstalled dependencies, no Gromacs and Babel"
     env:
     - INSTALL_LIST="libeigen3-dev libspdlog-dev pybind11-dev" 
-      CMAKE_D_OPTIONS="-DWITH_OPENBABEL=OFF -DWITH_GROMACS=OFF"
+      CMAKE_D_OPTIONS="-DWITH_OPENBABEL=OFF -DWITH_GROMACS=OFF -DPYBIND11_PYTHON_VERSION=3.8"
+      
+  - name: "Ubuntu 20.04, preinstalled dependencies, preinstalled babel"
+    env:
+    - INSTALL_LIST="libeigen3-dev libspdlog-dev pybind11-dev libopenbabel-dev" 
+      CMAKE_D_OPTIONS="-DWITH_GROMACS=OFF -DPYBIND11_PYTHON_VERSION=3.8"
 
 before_install:
   - sudo apt-get -y install ${INSTALL_LIST} 
@@ -23,5 +30,5 @@ script:
  - mkdir build && cd build
 # - docker run --user $(id -u):$(id -g) --rm -v ${TRAVIS_BUILD_DIR}:/workdir:rw ${DOCKER_IMG} /bin/bash -c "cd build && ${CMAKE_BIN} -DWITH_PYTHON=${WITH_PYTHON} -DWITH_OPENBABEL=OFF -DWITH_GROMACS=OFF .. && make"
  - cmake .. ${CMAKE_D_OPTIONS}
- - make -j2
+ - cmake --build -j2
  - rm -rf build
