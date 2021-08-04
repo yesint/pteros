@@ -18,7 +18,7 @@ jobs:
     - INSTALL_LIST="libeigen3-dev libspdlog-dev pybind11-dev" 
       CMAKE_D_OPTIONS="-DWITH_OPENBABEL=OFF -DWITH_GROMACS=OFF -DPYBIND11_PYTHON_VERSION=3.8"
       
-  - name: "Ubuntu 20.04, preinstalled dependencies, preinstalled babel"
+  - name: "Ubuntu 20.04, system dependencies, system babel"
     env:
     - INSTALL_LIST="libeigen3-dev libspdlog-dev pybind11-dev libopenbabel-dev" 
       CMAKE_D_OPTIONS="-DWITH_GROMACS=OFF -DPYBIND11_PYTHON_VERSION=3.8"
@@ -30,5 +30,5 @@ script:
  - mkdir build && cd build
 # - docker run --user $(id -u):$(id -g) --rm -v ${TRAVIS_BUILD_DIR}:/workdir:rw ${DOCKER_IMG} /bin/bash -c "cd build && ${CMAKE_BIN} -DWITH_PYTHON=${WITH_PYTHON} -DWITH_OPENBABEL=OFF -DWITH_GROMACS=OFF .. && make"
  - cmake .. ${CMAKE_D_OPTIONS}
- - cmake --build -j2
+ - cmake --build . -j 2
  - rm -rf build
