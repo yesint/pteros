@@ -158,11 +158,11 @@ if(WITH_OPENBABEL)
     if(TRY_SYSTEM_OPENBABEL)
         message(STATUS "Searching for system OpenBabel installation...")
         # Try to find OpenBabel 3
-        find_package(OpenBabel3 3.0.0 REQUIRED)
+        find_package(OpenBabel3 3.0.0)
         if(NOT OPENBABEL3_FOUND)
             # Try to find OpenBabel 2
             message(STATUS "OpenBabel v3 not found, searching for v2...")
-            find_package(OpenBabel2 2.4.9 REQUIRED)
+            find_package(OpenBabel2 2.4.9)
             if(NOT OPENBABEL2_FOUND)
                 message(WARNING "OpenBabel was not found in the system!")
             endif()
