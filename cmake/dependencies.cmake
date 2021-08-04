@@ -28,12 +28,12 @@ include(ExternalProject)
 include(FetchContent)
 cmake_policy(SET CMP0077 NEW) # To silence warnings
 
-if(NOT WITH_SYSTEM_DEPENDENCIES)
-    set(WITH_SYSTEM_EIGEN       OFF)
-    set(WITH_SYSTEM_SPDLOG      OFF)
-    set(WITH_SYSTEM_PYBIND11    OFF)
-    set(WITH_SYSTEM_GROMACS     OFF)
-    set(WITH_SYSTEM_OPENBABEL   OFF)
+if(NOT TRY_SYSTEM_DEPENDENCIES)
+    set(TRY_SYSTEM_EIGEN       OFF)
+    set(TRY_SYSTEM_SPDLOG      OFF)
+    set(TRY_SYSTEM_PYBIND11    OFF)
+    set(TRY_SYSTEM_GROMACS     OFF)
+    set(TRY_SYSTEM_OPENBABEL   OFF)
 endif()
 
 # To avoid updates on configure step
@@ -58,10 +58,10 @@ set(fetch_list "")
 #--------------------
 # Eigen
 #--------------------
-if(WITH_SYSTEM_EIGEN)
+if(TRY_SYSTEM_EIGEN)
     find_package(Eigen3 3.3 NO_MODULE)
 endif()
-if(NOT Eigen3_FOUND)
+if(NOT Eigen3_FOUND AND DOWNLOAD_DEPENDENCIES)
     FetchContent_Declare(
       Eigen
       GIT_REPOSITORY    https://gitlab.com/libeigen/eigen.git
@@ -78,10 +78,10 @@ endif()
 #--------------------
 # spdlog
 #--------------------
-if(WITH_SYSTEM_SPDLOG)
+if(TRY_SYSTEM_SPDLOG)
     find_package(spdlog CONFIG)
 endif()
-if(NOT spdlog_FOUND)
+if(NOT spdlog_FOUND AND DOWNLOAD_DEPENDENCIES)
     FetchContent_Declare(
             spdlog
             GIT_REPOSITORY  https://github.com/gabime/spdlog.git
@@ -103,7 +103,7 @@ endif()
 
 # OpenMP
 if(WITH_OPENMP)
-    find_package(OpenMP REQUIRED COMPONENTS CXX)
+    find_package(OpenMP COMPONENTS CXX)
 endif()
 
 #--------------------
@@ -111,10 +111,10 @@ endif()
 #--------------------
 if(WITH_PYTHON)    
     # Configure pybind11
-    if(WITH_SYSTEM_PYBIND11)
+    if(TRY_SYSTEM_PYBIND11)
         find_package(pybind11 QUIET)
     endif()
-    if(NOT pybind11_FOUND)
+    if(NOT pybind11_FOUND AND DOWNLOAD_DEPENDENCIES)
         message(STATUS "Will download and compile pybind11 in place")
         FetchContent_Declare(
             pybind11
@@ -155,7 +155,7 @@ endif()
 # OpenBabel
 #--------------------
 if(WITH_OPENBABEL)
-    if(WITH_SYSTEM_OPENBABEL)
+    if(TRY_SYSTEM_OPENBABEL)
         message(STATUS "Searching for system OpenBabel installation...")
         # Try to find OpenBabel 3
         find_package(OpenBabel3 3.0.0 REQUIRED)
@@ -169,25 +169,27 @@ if(WITH_OPENBABEL)
         endif()
     endif()
 
-    message(STATUS "Will download and compile OpenBabel in place")
-    set(OPENBABEL_LIB_FILE ${CMAKE_SOURCE_DIR}/external/openbabel-install/lib/${CMAKE_STATIC_LIBRARY_PREFIX}openbabel${CMAKE_STATIC_LIBRARY_SUFFIX})
-    ExternalProject_add(OpenBabel_external
-        GIT_REPOSITORY  https://github.com/openbabel/openbabel.git
-        GIT_TAG         openbabel-3-0-0
-        GIT_SHALLOW     TRUE
-        GIT_PROGRESS    TRUE
-        SOURCE_DIR ${CMAKE_SOURCE_DIR}/external/openbabel-src
-        BINARY_DIR ${CMAKE_SOURCE_DIR}/external/openbabel-build
-        CMAKE_ARGS -DBUILD_TESTING=OFF -DBUILD_MIXED=ON -DBUILD_SHARED=OFF
-                   -DCMAKE_INSTALL_PREFIX=${CMAKE_SOURCE_DIR}/external/openbabel-install
-                   -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-        BUILD_BYPRODUCTS ${OPENBABEL_LIB_FILE}
-    )
+    if(NOT (OPENBABEL2_FOUND OR OPENBABEL3_FOUND) AND DOWNLOAD_DEPENDENCIES)
+        message(STATUS "Will download and compile OpenBabel in place")
+        set(OPENBABEL_LIB_FILE ${CMAKE_SOURCE_DIR}/external/openbabel-install/lib/${CMAKE_STATIC_LIBRARY_PREFIX}openbabel${CMAKE_STATIC_LIBRARY_SUFFIX})
+        ExternalProject_add(OpenBabel_external
+            GIT_REPOSITORY  https://github.com/openbabel/openbabel.git
+            GIT_TAG         openbabel-3-0-0
+            GIT_SHALLOW     TRUE
+            GIT_PROGRESS    TRUE
+            SOURCE_DIR ${CMAKE_SOURCE_DIR}/external/openbabel-src
+            BINARY_DIR ${CMAKE_SOURCE_DIR}/external/openbabel-build
+            CMAKE_ARGS -DBUILD_TESTING=OFF -DBUILD_MIXED=ON -DBUILD_SHARED=OFF
+                       -DCMAKE_INSTALL_PREFIX=${CMAKE_SOURCE_DIR}/external/openbabel-install
+                       -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+            BUILD_BYPRODUCTS ${OPENBABEL_LIB_FILE}
+        )
 
-    # Set openbabel variables manually    
-    set(OPENBABEL3_FOUND TRUE)
-    set(OPENBABEL3_INCLUDE_DIR  ${CMAKE_SOURCE_DIR}/external/openbabel-install/include/openbabel3)
-    set(OPENBABEL3_LIBRARIES    ${OPENBABEL_LIB_FILE})
+        # Set openbabel variables manually
+        set(OPENBABEL3_FOUND TRUE)
+        set(OPENBABEL3_INCLUDE_DIR  ${CMAKE_SOURCE_DIR}/external/openbabel-install/include/openbabel3)
+        set(OPENBABEL3_LIBRARIES    ${OPENBABEL_LIB_FILE})
+    endif()
 endif()
 
 #--------------------
@@ -195,7 +197,7 @@ endif()
 #--------------------
 if(WITH_GROMACS)
      # See if pathes are provided
-     if(WITH_SYSTEM_GROMACS AND GROMACS_SOURCES AND GROMACS_LIBRARIES)
+     if(TRY_SYSTEM_GROMACS AND GROMACS_SOURCES AND GROMACS_LIBRARIES)
          message(STATUS "Gromacs sources set manually to ${GROMACS_SOURCES}")
          message(STATUS "Gromacs libs set manually to ${GROMACS_LIBRARIES}")
      else()
@@ -219,15 +221,14 @@ if(WITH_GROMACS)
             BUILD_BYPRODUCTS ${GROMACS_LIB_FILE}
         )
         set(GROMACS_SOURCES     ${CMAKE_SOURCE_DIR}/external/gromacs-src)
-        set(GROMACS_LIBRARIES   ${GROMACS_LIB_FILE})
+        set(GROMACS_LIBRARIES   ${GROMACS_LIB_FILE})    
     endif()
-
 endif()
 
 #--------------------
 # TNG_IO
 #--------------------
-if(WITH_TNG)
+if(WITH_TNG AND DOWNLOAD_DEPENDENCIES)
     message(STATUS "Will download and compile TNG library in place")
     set(TNG_LIB_FILE ${CMAKE_SOURCE_DIR}/external/tng-install/lib/${CMAKE_STATIC_LIBRARY_PREFIX}tng_io${CMAKE_STATIC_LIBRARY_SUFFIX})
     ExternalProject_add(TNG_external
