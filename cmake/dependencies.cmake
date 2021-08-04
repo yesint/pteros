@@ -215,7 +215,7 @@ if(WITH_GROMACS)
                         -DBUILD_TESTING=OFF -DGMXAPI=OFF -DGMX_IMD=OFF
                         -DGMX_INSTALL_NBLIB_API=OFF -DGMX_OPENMP=OFF
                         -DGMX_THREAD_MPI=OFF
-                        -DBUILD_SHARED_LIBS=OFF -DGMX_USE_TNG=OFF
+                        -DBUILD_SHARED_LIBS=OFF #-DGMX_USE_TNG=OFF
                         -DCMAKE_POSITION_INDEPENDENT_CODE=ON
             INSTALL_COMMAND ""
             BUILD_BYPRODUCTS ${GROMACS_LIB_FILE}
