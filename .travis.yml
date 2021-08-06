@@ -21,7 +21,7 @@ jobs:
   - name: "Ubuntu 20.04, system dependencies, system babel, precompiled Gromacs"
     env:
     - INSTALL_LIST="libeigen3-dev libspdlog-dev pybind11-dev libopenbabel-dev" 
-      CMAKE_D_OPTIONS="-DGROMACS_SOURCES=${TRAVIS_BUILD_DIR}/../system_gromacs/gromacs_src -DGROMACS_LIBRARIES=${TRAVIS_BUILD_DIR}/../system_gromacs/gromacs_install/lib -DPYBIND11_PYTHON_VERSION=3.8"
+      CMAKE_D_OPTIONS="-DGROMACS_SOURCES=${TRAVIS_BUILD_DIR}/../system_gromacs/gromacs_src/ -DGROMACS_LIBRARIES=${TRAVIS_BUILD_DIR}/../system_gromacs/gromacs_install/lib/libgromacs.so -DPYBIND11_PYTHON_VERSION=3.8"
       COMPILE_GROMACS=1
 
 before_install:
