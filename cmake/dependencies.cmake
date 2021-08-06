@@ -227,12 +227,25 @@ if(WITH_GROMACS)
         endif()
 
         message(STATUS "Will download and compile Gromacs in place")
-        set(GROMACS_LIB_FILE ${CMAKE_SOURCE_DIR}/external/gromacs-build/lib/${CMAKE_STATIC_LIBRARY_PREFIX}gromacs${CMAKE_STATIC_LIBRARY_SUFFIX})
-        ExternalProject_add(Gromacs_external
+
+        FetchContent_Declare(Gromacs_external_fetch
             GIT_REPOSITORY  https://gitlab.com/gromacs/gromacs.git
             GIT_TAG         master #v2020.5
             GIT_SHALLOW     TRUE
             GIT_PROGRESS    TRUE
+            SOURCE_DIR ${CMAKE_SOURCE_DIR}/external/gromacs-src
+        )
+        FetchContent_GetProperties(Gromacs_external_fetch)
+        if(NOT Gromacs_external_fetch_POPULATED)
+          FetchContent_Populate(Gromacs_external_fetch)
+        endif()
+
+        set(GROMACS_LIB_FILE ${CMAKE_SOURCE_DIR}/external/gromacs-build/lib/${CMAKE_STATIC_LIBRARY_PREFIX}gromacs${CMAKE_STATIC_LIBRARY_SUFFIX})
+        ExternalProject_add(Gromacs_external
+            #GIT_REPOSITORY  https://gitlab.com/gromacs/gromacs.git
+            #GIT_TAG         master #v2020.5
+            #GIT_SHALLOW     TRUE
+            #GIT_PROGRESS    TRUE
             SOURCE_DIR ${CMAKE_SOURCE_DIR}/external/gromacs-src
             BINARY_DIR ${CMAKE_SOURCE_DIR}/external/gromacs-build
             CMAKE_ARGS  -DGMX_MPI=OFF -DGMX_GPU=OFF -DGMX_SIMD=none
