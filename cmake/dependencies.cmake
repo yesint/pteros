@@ -294,12 +294,25 @@ if(WITH_TNG)
     endif()
 
     message(STATUS "Will download and compile tng_io library in place")
-    set(TNG_LIB_FILE ${CMAKE_SOURCE_DIR}/external/tng-install/lib/${CMAKE_STATIC_LIBRARY_PREFIX}tng_io${CMAKE_STATIC_LIBRARY_SUFFIX})
-    ExternalProject_add(TNG_external
+
+    FetchContent_Declare(TNG_external_fetch
         GIT_REPOSITORY  https://gitlab.com/gromacs/tng.git
         GIT_TAG         v1.8.2
         GIT_SHALLOW     TRUE
         GIT_PROGRESS    TRUE
+        SOURCE_DIR ${CMAKE_SOURCE_DIR}/external/tng-src
+    )
+    FetchContent_GetProperties(TNG_external_fetch)
+    if(NOT Gromacs_external_fetch_POPULATED)
+      FetchContent_Populate(TNG_external_fetch)
+    endif()
+
+    set(TNG_LIB_FILE ${CMAKE_SOURCE_DIR}/external/tng-install/lib/${CMAKE_STATIC_LIBRARY_PREFIX}tng_io${CMAKE_STATIC_LIBRARY_SUFFIX})
+    ExternalProject_add(TNG_external
+        #GIT_REPOSITORY  https://gitlab.com/gromacs/tng.git
+        #GIT_TAG         v1.8.2
+        #GIT_SHALLOW     TRUE
+        #GIT_PROGRESS    TRUE
         SOURCE_DIR ${CMAKE_SOURCE_DIR}/external/tng-src
         BINARY_DIR ${CMAKE_SOURCE_DIR}/external/tng-build
         CMAKE_ARGS  -DBUILD_SHARED_LIBS=OFF
@@ -311,6 +324,6 @@ if(WITH_TNG)
                     -DCMAKE_INSTALL_PREFIX=${CMAKE_SOURCE_DIR}/external/tng-install
         BUILD_BYPRODUCTS ${TNG_LIB_FILE}
     )
-    set(TNG_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/tng-install/include)
+    set(TNG_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/tng-install/include ${CMAKE_SOURCE_DIR}/external/tng-src/include)
     set(TNG_LIBRARIES   ${TNG_LIB_FILE})
 endif()
