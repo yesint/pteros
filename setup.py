@@ -79,7 +79,7 @@ setup(
     long_description_content_type="text/markdown",
     keywords="molecular modeling, extension, molecular dyanamics",
     classifiers=["Intended Audience :: Science/Research",
-                 "Intended Audience :: Information Technology"
+                 "Intended Audience :: Information Technology",
                  "License :: OSI Approved :: Artistic License",
                  "Natural Language :: English",
                  "Programming Language :: C",

@@ -191,13 +191,25 @@ if(WITH_OPENBABEL)
             message(FATAL_ERROR "OpenBabel is not available!")
         endif()
 
-        message(STATUS "Will download and compile OpenBabel in place")
-        set(OPENBABEL_LIB_FILE ${CMAKE_SOURCE_DIR}/external/openbabel-install/lib/${CMAKE_STATIC_LIBRARY_PREFIX}openbabel${CMAKE_STATIC_LIBRARY_SUFFIX})
-        ExternalProject_add(OpenBabel_external
+        FetchContent_Declare(OpenBabel_external_fetch
             GIT_REPOSITORY  https://github.com/openbabel/openbabel.git
             GIT_TAG         openbabel-3-0-0
             GIT_SHALLOW     TRUE
             GIT_PROGRESS    TRUE
+            SOURCE_DIR ${CMAKE_SOURCE_DIR}/external/openbabel-src
+        )
+        FetchContent_GetProperties(OpenBabel_external_fetch)
+        if(NOT OpenBabel_external_fetch_POPULATED)
+          FetchContent_Populate(OpenBabel_external_fetch)
+        endif()
+
+        message(STATUS "Will download and compile OpenBabel in place")
+        set(OPENBABEL_LIB_FILE ${CMAKE_SOURCE_DIR}/external/openbabel-install/lib/${CMAKE_STATIC_LIBRARY_PREFIX}openbabel${CMAKE_STATIC_LIBRARY_SUFFIX})
+        ExternalProject_add(OpenBabel_external
+            #GIT_REPOSITORY  https://github.com/openbabel/openbabel.git
+            #GIT_TAG         openbabel-3-0-0
+            #GIT_SHALLOW     TRUE
+            #GIT_PROGRESS    TRUE
             SOURCE_DIR ${CMAKE_SOURCE_DIR}/external/openbabel-src
             BINARY_DIR ${CMAKE_SOURCE_DIR}/external/openbabel-build
             CMAKE_ARGS -DBUILD_TESTING=OFF -DBUILD_MIXED=ON -DBUILD_SHARED=OFF
@@ -208,7 +220,10 @@ if(WITH_OPENBABEL)
 
         # Set openbabel variables manually
         set(OPENBABEL3_FOUND TRUE)
-        set(OPENBABEL3_INCLUDE_DIR  ${CMAKE_SOURCE_DIR}/external/openbabel-install/include/openbabel3)
+        set(OPENBABEL3_INCLUDE_DIR
+            ${CMAKE_SOURCE_DIR}/external/openbabel-install/include/openbabel3
+            ${CMAKE_SOURCE_DIR}/external/openbabel-src/include/openbabel3
+        )
         set(OPENBABEL3_LIBRARIES    ${OPENBABEL_LIB_FILE})
     endif()
 endif()
