@@ -28,12 +28,13 @@ include(ExternalProject)
 include(FetchContent)
 cmake_policy(SET CMP0077 NEW) # To silence warnings
 
-if(NOT TRY_SYSTEM_DEPENDENCIES)
+if(NOT TRY_SYSTEM_DEPENDENCIES)    
     set(TRY_SYSTEM_EIGEN       OFF)
     set(TRY_SYSTEM_SPDLOG      OFF)
     set(TRY_SYSTEM_PYBIND11    OFF)
     set(TRY_SYSTEM_GROMACS     OFF)
     set(TRY_SYSTEM_OPENBABEL   OFF)
+    message(STATUS "Searching for system-wide dependencies disbled.")
 endif()
 
 # To avoid updates on configure step
@@ -61,7 +62,13 @@ set(fetch_list "")
 if(TRY_SYSTEM_EIGEN)
     find_package(Eigen3 3.3 NO_MODULE)
 endif()
-if(NOT Eigen3_FOUND AND DOWNLOAD_DEPENDENCIES)
+
+if(NOT Eigen3_FOUND)
+    if(NOT DOWNLOAD_DEPENDENCIES)
+        message(FATAL_ERROR "Eigen3 is not available!")
+    endif()
+
+    message(STATUS "Will download Eigen")
     FetchContent_Declare(
       Eigen
       GIT_REPOSITORY    https://gitlab.com/libeigen/eigen.git
@@ -81,7 +88,13 @@ endif()
 if(TRY_SYSTEM_SPDLOG)
     find_package(spdlog CONFIG)
 endif()
-if(NOT spdlog_FOUND AND DOWNLOAD_DEPENDENCIES)
+
+if(NOT spdlog_FOUND)
+    if(NOT DOWNLOAD_DEPENDENCIES)
+        message(FATAL_ERROR "spdlog is not available!")
+    endif()
+
+    message(STATUS "Will download and compile spdlog in place")
     FetchContent_Declare(
             spdlog
             GIT_REPOSITORY  https://github.com/gabime/spdlog.git
@@ -114,7 +127,12 @@ if(WITH_PYTHON)
     if(TRY_SYSTEM_PYBIND11)
         find_package(pybind11 QUIET)
     endif()
-    if(NOT pybind11_FOUND AND DOWNLOAD_DEPENDENCIES)
+
+    if(NOT pybind11_FOUND)
+        if(NOT DOWNLOAD_DEPENDENCIES)
+            message(FATAL_ERROR "pybind11 is not available!")
+        endif()
+
         message(STATUS "Will download and compile pybind11 in place")
         FetchContent_Declare(
             pybind11
@@ -155,8 +173,7 @@ endif()
 # OpenBabel
 #--------------------
 if(WITH_OPENBABEL)
-    if(TRY_SYSTEM_OPENBABEL)
-        message(STATUS "Searching for system OpenBabel installation...")
+    if(TRY_SYSTEM_OPENBABEL)        
         # Try to find OpenBabel 3
         find_package(OpenBabel3 3.0.0)
         if(NOT OPENBABEL3_FOUND)
@@ -164,12 +181,16 @@ if(WITH_OPENBABEL)
             message(STATUS "OpenBabel v3 not found, searching for v2...")
             find_package(OpenBabel2 2.4.9)
             if(NOT OPENBABEL2_FOUND)
-                message(WARNING "OpenBabel was not found in the system!")
+                message(WARNING "OpenBabel v2 not found.")
             endif()
         endif()
     endif()
 
-    if(NOT (OPENBABEL2_FOUND OR OPENBABEL3_FOUND) AND DOWNLOAD_DEPENDENCIES)
+    if(NOT (OPENBABEL2_FOUND OR OPENBABEL3_FOUND))
+        if(NOT DOWNLOAD_DEPENDENCIES)
+            message(FATAL_ERROR "OpenBabel is not available!")
+        endif()
+
         message(STATUS "Will download and compile OpenBabel in place")
         set(OPENBABEL_LIB_FILE ${CMAKE_SOURCE_DIR}/external/openbabel-install/lib/${CMAKE_STATIC_LIBRARY_PREFIX}openbabel${CMAKE_STATIC_LIBRARY_SUFFIX})
         ExternalProject_add(OpenBabel_external
@@ -197,15 +218,19 @@ endif()
 #--------------------
 if(WITH_GROMACS)
      # See if pathes are provided
-     if(TRY_SYSTEM_GROMACS AND GROMACS_SOURCES AND GROMACS_LIBRARIES)
-         message(STATUS "Gromacs sources set manually to ${GROMACS_SOURCES}")
-         message(STATUS "Gromacs libs set manually to ${GROMACS_LIBRARIES}")
+     if(TRY_SYSTEM_GROMACS AND GROMACS_SRC_ROOT AND GROMACS_LIBRARIES)
+         message(STATUS "Gromacs sources root set manually to ${GROMACS_SRC_ROOT}")
+         message(STATUS "Gromacs libraries set manually to ${GROMACS_LIBRARIES}")
      else()
+        if(NOT DOWNLOAD_DEPENDENCIES)
+            message(FATAL_ERROR "Gromacs is not available!")
+        endif()
+
         message(STATUS "Will download and compile Gromacs in place")
         set(GROMACS_LIB_FILE ${CMAKE_SOURCE_DIR}/external/gromacs-build/lib/${CMAKE_STATIC_LIBRARY_PREFIX}gromacs${CMAKE_STATIC_LIBRARY_SUFFIX})
         ExternalProject_add(Gromacs_external
             GIT_REPOSITORY  https://gitlab.com/gromacs/gromacs.git
-            GIT_TAG         master
+            GIT_TAG         master #v2020.5
             GIT_SHALLOW     TRUE
             GIT_PROGRESS    TRUE
             SOURCE_DIR ${CMAKE_SOURCE_DIR}/external/gromacs-src
@@ -220,16 +245,42 @@ if(WITH_GROMACS)
             INSTALL_COMMAND ""
             BUILD_BYPRODUCTS ${GROMACS_LIB_FILE}
         )
-        set(GROMACS_SOURCES     ${CMAKE_SOURCE_DIR}/external/gromacs-src)
-        set(GROMACS_LIBRARIES   ${GROMACS_LIB_FILE})    
+        set(GROMACS_SRC_ROOT    ${CMAKE_SOURCE_DIR}/external/gromacs-src)
+        set(GROMACS_LIBRARIES   ${GROMACS_LIB_FILE})
     endif()
+
+    # Get actual gromacs version
+    file(READ ${GROMACS_SRC_ROOT}/cmake/gmxVersionInfo.cmake gmxinfofile)
+    string(REGEX MATCH "set\\(GMX_VERSION_MAJOR +([0-9]+)" match ${gmxinfofile})
+    set(GROMACS_VERSION ${CMAKE_MATCH_1})
+    # Now we have GMX_VERSION_MAJOR in GROMACS_VERSION!
+
+    if(GROMACS_VERSION GREATER 2020)
+        set(GROMACS_INCLUDE_DIRECTORIS
+            ${CMAKE_SOURCE_DIR}/external/gromacs-src/src                  # Gromacs up to 2020.5
+            ${CMAKE_SOURCE_DIR}/external/gromacs-src/api/legacy/include   # Gromacs 2021.x
+            ${CMAKE_SOURCE_DIR}/external/gromacs-src/src/external         # Gromacs 2021.x
+        )
+    else()
+        set(GROMACS_INCLUDE_DIRECTORIS
+            ${CMAKE_SOURCE_DIR}/external/gromacs-src/src                  # Gromacs up to 2020.5
+        )
+    endif()
+
+    # Configure include file with Gromacs version
+    configure_file(${PROJECT_SOURCE_DIR}/src/core/gromacs_utils/gromacs_version_info.h.in
+                   ${CMAKE_CURRENT_BINARY_DIR}/src/core/gromacs_utils/gromacs_version_info.h @ONLY)
 endif()
 
 #--------------------
 # TNG_IO
 #--------------------
-if(WITH_TNG AND DOWNLOAD_DEPENDENCIES)
-    message(STATUS "Will download and compile TNG library in place")
+if(WITH_TNG)
+    if(NOT DOWNLOAD_DEPENDENCIES)
+        message(FATAL_ERROR "tng_io is not available!")
+    endif()
+
+    message(STATUS "Will download and compile tng_io library in place")
     set(TNG_LIB_FILE ${CMAKE_SOURCE_DIR}/external/tng-install/lib/${CMAKE_STATIC_LIBRARY_PREFIX}tng_io${CMAKE_STATIC_LIBRARY_SUFFIX})
     ExternalProject_add(TNG_external
         GIT_REPOSITORY  https://gitlab.com/gromacs/tng.git

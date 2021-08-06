@@ -12,9 +12,13 @@ target_link_libraries(pteros_gromacs_utils
 target_include_directories(pteros_gromacs_utils PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 if(WITH_GROMACS)
-    target_compile_definitions(pteros_gromacs_utils PRIVATE USE_GROMACS)
-    target_include_directories(pteros_gromacs_utils PUBLIC ${GROMACS_SOURCES}/src)
-    target_link_libraries(pteros_gromacs_utils PRIVATE ${GROMACS_LIBRARIES})
+    # These directories and defines are exposed as public!
+    target_compile_definitions(pteros_gromacs_utils PUBLIC USE_GROMACS)
+    target_include_directories(pteros_gromacs_utils PUBLIC
+        ${GROMACS_INCLUDE_DIRECTORIS}
+        ${CMAKE_BINARY_DIR}/src/core/gromacs_utils/  # For generated gromacs_version_info.h
+    )
+    target_link_libraries(pteros_gromacs_utils PUBLIC ${GROMACS_LIBRARIES})
 
     # In case of inner Gromacs build we need to set the dependency
     if(TARGET Gromacs_external)

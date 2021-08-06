@@ -38,14 +38,20 @@
 #include "gromacs/topology/mtop_util.h"
 #include "gromacs/topology/idef.h"
 
+// Generated version infor file
+#include "gromacs_version_info.h"
+
+#if (GROMACS_VERSION > 2020)
+#include "gromacs/mdtypes/md_enums.h"
+#endif
+
+
 using namespace std;
 using namespace pteros;
 using namespace Eigen;
 
 
-
-
-string coulomb_names[] = {"Cut-off", "Reaction-Field", "Generalized-Reaction-Field",
+string coulomb_names[] = {"Cut-off","Reaction-Field", "Generalized-Reaction-Field",
                           "PME", "Ewald", "P3M-AD", "Poisson", "Switch", "Shift", "User",
                           "Generalized-Born", "Reaction-Field-nec", "Encad-shift",
                           "PME-User", "PME-Switch", "PME-User-Switch",
@@ -77,7 +83,7 @@ bool TprFile::do_read(System *sys, Frame *frame, const FileContent &what){
     read_tpx_state(fname.c_str(), &ir, &state, &mtop);
 
     // Only works for Gromacs>=2018.x
-    top = gmx_mtop_t_to_t_topology(&mtop,true);
+    top = gmx_mtop_t_to_t_topology(&mtop,false);
 
     natoms = top.atoms.nr;
 
@@ -234,18 +240,47 @@ bool TprFile::do_read(System *sys, Frame *frame, const FileContent &what){
         }
 
         // Exclusions
+
+        // Starting from Gromacs 2021 exclusions are removed from global top
+#if (GROMACS_VERSION <= 2020)
         ff.exclusions.resize(natoms);
         int b,e;
         for(int i=0; i<top.excls.nr; ++i){
-            //cout << top.excls.index[i] << " " << top.excls.index[i+1]-1 << endl;
             b = top.excls.a[top.excls.index[i]];
             e = top.excls.a[top.excls.index[i+1]-1];
             for(int j=b; j<e; ++j){
                 //cout << i << " " << j << endl;
                 if(j!=i) ff.exclusions[i].insert(j);
             }
-            //LOG()->info("{}:{}",top.excls.a[top.excls.index[i]],top.excls.a[top.excls.index[i+1]-1]);
         }
+#else
+        // Extract exclusions from molecular blocks
+        ff.exclusions.resize(natoms);
+        // Running global index of atoms
+        size_t global_counter = 0;
+        // Cycle over molecular blocks
+        for(size_t bl=0; bl<mtop.molblock.size();++bl){
+            // Mol type
+            size_t mol_t = mtop.molblock[bl].type;
+            // Cycle over molecules in this block
+            for(size_t mol=0; mol<mtop.molblock[bl].nmol; ++mol){
+                // cycle over atoms in one molecule
+                for(size_t a=0; a<mtop.moltype[mol_t].excls.size(); ++a){
+                    // Global index corresponding to a
+                    size_t global_ind = a + global_counter;
+                    // Go over the list of excluded local indexes for this atom
+                    for(size_t ind=0; ind<mtop.moltype[mol_t].excls[a].size(); ++ind){
+                        // Global excluded indes for local atom a
+                        size_t global_excl = mtop.moltype[mol_t].excls[a][ind] + global_counter;
+                        // Add this exclusion
+                        ff.exclusions[global_ind].insert(global_excl);
+                    }
+                    // Increment global atom counter
+                    ++global_counter;
+                }
+            }
+        }
+#endif
 
         ff.fudgeQQ = top.idef.fudgeQQ;
         ff.rcoulomb = ir.rcoulomb;
@@ -254,10 +289,12 @@ bool TprFile::do_read(System *sys, Frame *frame, const FileContent &what){
         ff.rcoulomb_switch= ir.rcoulomb_switch;
         ff.rvdw_switch= ir.rvdw_switch;
         ff.rvdw= ir.rvdw;
-        ff.coulomb_type= coulomb_names[ir.coulombtype];
-        ff.coulomb_modifier= mod_names[ir.coulomb_modifier];
-        ff.vdw_type= vdw_names[ir.vdwtype];
-        ff.vdw_modifier= mod_names[ir.vdw_modifier];
+
+        // Since Gromacs 2021 interaction types are named enums, so cast to int
+        ff.coulomb_type= coulomb_names[int(ir.coulombtype)];
+        ff.coulomb_modifier= mod_names[int(ir.coulomb_modifier)];
+        ff.vdw_type= vdw_names[int(ir.vdwtype)];
+        ff.vdw_modifier= mod_names[int(ir.vdw_modifier)];
 
         ff.setup_kernels(); // Setup kernels
         ff.ready = true;

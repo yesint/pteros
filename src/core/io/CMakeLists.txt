@@ -36,7 +36,7 @@ if(WITH_TNG)
     endif()
 endif()
 
-if(WITH_OPENBABEL AND (OPENBABEL2_FOUND OR OPENBABEL3_FOUND))
+if(WITH_OPENBABEL)
     target_sources(pteros_io PRIVATE
         babel_wrapper.h
         babel_wrapper.cpp
@@ -49,12 +49,8 @@ if(WITH_OPENBABEL AND (OPENBABEL2_FOUND OR OPENBABEL3_FOUND))
     target_link_libraries(pteros_io PRIVATE pteros_babel_utils)
 endif()
 
-if(WITH_GROMACS AND GROMACS_SOURCES AND GROMACS_LIBRARIES)
-    target_compile_definitions(pteros_io PRIVATE USE_GROMACS)
-    # In case of Gromacs 2020+ we need some headers from gmx source tree
-    # since they are not installed any more, so do it also for earlier versions
-    # to keep things simpler
-    target_include_directories(pteros_io PRIVATE ${GROMACS_SOURCES}/src)
+if(WITH_GROMACS)
+    # All definitions and includes are given by pteros_gromacs_utils
     target_sources(pteros_io PRIVATE
         tpr_file.h
         tpr_file.cpp)
@@ -62,7 +58,7 @@ endif()
 
 # Unconditional libs
 target_link_libraries(pteros_io PRIVATE
-    pteros_gromacs_utils
+    pteros_gromacs_utils  # Brings all Gromacs defines and directories
     molfile_plugins
     xdrfile
     spdlog::spdlog
