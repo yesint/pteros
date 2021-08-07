@@ -263,11 +263,11 @@ if(WITH_GROMACS)
             #GIT_PROGRESS    TRUE
             SOURCE_DIR ${CMAKE_SOURCE_DIR}/external/gromacs-src
             BINARY_DIR ${CMAKE_SOURCE_DIR}/external/gromacs-build
-            CMAKE_ARGS  #-DGMX_MPI=OFF -DGMX_GPU=OFF -DGMX_SIMD=none
-                        #-DGMX_FFT_LIBRARY=fftpack
-                        #-DBUILD_TESTING=OFF -DGMXAPI=OFF -DGMX_IMD=OFF
-                        #-DGMX_INSTALL_NBLIB_API=OFF -DGMX_OPENMP=OFF
-                        -#DGMX_THREAD_MPI=OFF
+            CMAKE_ARGS  -DGMX_MPI=OFF -DGMX_GPU=OFF -DGMX_SIMD=none
+                        -DGMX_FFT_LIBRARY=fftpack
+                        -DBUILD_TESTING=OFF -DGMXAPI=OFF -DGMX_IMD=OFF
+                        -DGMX_INSTALL_NBLIB_API=OFF -DGMX_OPENMP=OFF
+                        -DGMX_THREAD_MPI=OFF
                         -DBUILD_SHARED_LIBS=OFF #-DGMX_USE_TNG=OFF
                         -DCMAKE_POSITION_INDEPENDENT_CODE=ON
             INSTALL_COMMAND ""
