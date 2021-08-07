@@ -1,0 +1,9 @@
+prune .git/
+exclude .* *jpeg manage_licence.py licence_header.txt
+recursive-include cmake *
+recursive-include include *
+recursive-include src *
+recursive-include template *
+recursive-include template_plugin *
+recursive-include thirdparty *
+include CmakeLists.txt
