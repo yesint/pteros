@@ -196,24 +196,26 @@ if(WITH_OPENBABEL)
             GIT_TAG         openbabel-3-0-0
             GIT_SHALLOW     TRUE
             GIT_PROGRESS    TRUE
-            SOURCE_DIR ${CMAKE_SOURCE_DIR}/external/openbabel-src
         )
         FetchContent_GetProperties(OpenBabel_external_fetch)
         if(NOT OpenBabel_external_fetch_POPULATED)
           FetchContent_Populate(OpenBabel_external_fetch)
         endif()
 
+        FetchContent_GetProperties(
+            OpenBabel_external_fetch
+            SOURCE_DIR OPENBABEL_SOURCE_DIR
+            BINARY_DIR OPENBABEL_BINARY_DIR
+        )
+        set(OPENBABEL_INSTALL_DIR ${CMAKE_BINARY_DIR}/external/openbabel-install)
+        set(OPENBABEL_LIB_FILE ${OPENBABEL_INSTALL_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}openbabel${CMAKE_STATIC_LIBRARY_SUFFIX})
+
         message(STATUS "Will download and compile OpenBabel in place")
-        set(OPENBABEL_LIB_FILE ${CMAKE_SOURCE_DIR}/external/openbabel-install/lib/${CMAKE_STATIC_LIBRARY_PREFIX}openbabel${CMAKE_STATIC_LIBRARY_SUFFIX})
         ExternalProject_add(OpenBabel_external
-            #GIT_REPOSITORY  https://github.com/openbabel/openbabel.git
-            #GIT_TAG         openbabel-3-0-0
-            #GIT_SHALLOW     TRUE
-            #GIT_PROGRESS    TRUE
-            SOURCE_DIR ${CMAKE_SOURCE_DIR}/external/openbabel-src
-            BINARY_DIR ${CMAKE_SOURCE_DIR}/external/openbabel-build
+            SOURCE_DIR ${OPENBABEL_SOURCE_DIR}
+            BINARY_DIR ${OPENBABEL_BINARY_DIR}
             CMAKE_ARGS -DBUILD_TESTING=OFF -DBUILD_MIXED=ON -DBUILD_SHARED=OFF
-                       -DCMAKE_INSTALL_PREFIX=${CMAKE_SOURCE_DIR}/external/openbabel-install
+                       -DCMAKE_INSTALL_PREFIX=${OPENBABEL_INSTALL_DIR}
                        -DCMAKE_POSITION_INDEPENDENT_CODE=ON
             BUILD_BYPRODUCTS ${OPENBABEL_LIB_FILE}
         )
@@ -221,10 +223,10 @@ if(WITH_OPENBABEL)
         # Set openbabel variables manually
         set(OPENBABEL3_FOUND TRUE)
         set(OPENBABEL3_INCLUDE_DIR
-            ${CMAKE_SOURCE_DIR}/external/openbabel-install/include/openbabel3
-            ${CMAKE_SOURCE_DIR}/external/openbabel-src/include/openbabel3
+            ${OPENBABEL_INSTALL_DIR}/include/openbabel3
+            ${OPENBABEL_SOURCE_DIR}/include/openbabel3
         )
-        set(OPENBABEL3_LIBRARIES    ${OPENBABEL_LIB_FILE})
+        set(OPENBABEL3_LIBRARIES ${OPENBABEL_LIB_FILE})
     endif()
 endif()
 
@@ -233,8 +235,8 @@ endif()
 #--------------------
 if(WITH_GROMACS)
      # See if pathes are provided
-     if(TRY_SYSTEM_GROMACS AND GROMACS_SRC_ROOT AND GROMACS_LIBRARIES)
-         message(STATUS "Gromacs sources root set manually to ${GROMACS_SRC_ROOT}")
+     if(TRY_SYSTEM_GROMACS AND GROMACS_SOURCE_DIR AND GROMACS_LIBRARIES)
+         message(STATUS "Gromacs sources root set manually to ${GROMACS_SOURCE_DIR}")
          message(STATUS "Gromacs libraries set manually to ${GROMACS_LIBRARIES}")
      else()
         if(NOT DOWNLOAD_DEPENDENCIES)
@@ -248,21 +250,22 @@ if(WITH_GROMACS)
             GIT_TAG         master #v2020.5
             GIT_SHALLOW     TRUE
             GIT_PROGRESS    TRUE
-            SOURCE_DIR ${CMAKE_SOURCE_DIR}/external/gromacs-src
         )
         FetchContent_GetProperties(Gromacs_external_fetch)
         if(NOT Gromacs_external_fetch_POPULATED)
           FetchContent_Populate(Gromacs_external_fetch)
         endif()
 
-        set(GROMACS_LIB_FILE ${CMAKE_SOURCE_DIR}/external/gromacs-build/lib/${CMAKE_STATIC_LIBRARY_PREFIX}gromacs${CMAKE_STATIC_LIBRARY_SUFFIX})
+        FetchContent_GetProperties(
+            Gromacs_external_fetch
+            SOURCE_DIR GROMACS_SOURCE_DIR
+            BINARY_DIR GROMACS_BINARY_DIR
+        )
+        set(GROMACS_LIB_FILE ${GROMACS_BINARY_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}gromacs${CMAKE_STATIC_LIBRARY_SUFFIX})
+
         ExternalProject_add(Gromacs_external
-            #GIT_REPOSITORY  https://gitlab.com/gromacs/gromacs.git
-            #GIT_TAG         master #v2020.5
-            #GIT_SHALLOW     TRUE
-            #GIT_PROGRESS    TRUE
-            SOURCE_DIR ${CMAKE_SOURCE_DIR}/external/gromacs-src
-            BINARY_DIR ${CMAKE_SOURCE_DIR}/external/gromacs-build
+            SOURCE_DIR ${GROMACS_SOURCE_DIR}
+            BINARY_DIR ${GROMACS_BINARY_DIR}
             CMAKE_ARGS  -DGMX_MPI=OFF -DGMX_GPU=OFF -DGMX_SIMD=none
                         -DGMX_FFT_LIBRARY=fftpack
                         -DBUILD_TESTING=OFF -DGMXAPI=OFF -DGMX_IMD=OFF
@@ -273,31 +276,30 @@ if(WITH_GROMACS)
             INSTALL_COMMAND ""
             BUILD_BYPRODUCTS ${GROMACS_LIB_FILE}
         )
-        set(GROMACS_SRC_ROOT    ${CMAKE_SOURCE_DIR}/external/gromacs-src)
-        set(GROMACS_LIBRARIES   ${GROMACS_LIB_FILE})
+        set(GROMACS_LIBRARIES ${GROMACS_LIB_FILE})
     endif()
 
     # Get actual gromacs version
-    file(READ ${GROMACS_SRC_ROOT}/cmake/gmxVersionInfo.cmake gmxinfofile)
+    file(READ ${GROMACS_SOURCE_DIR}/cmake/gmxVersionInfo.cmake gmxinfofile)
     string(REGEX MATCH "set\\(GMX_VERSION_MAJOR +([0-9]+)" match ${gmxinfofile})
     set(GROMACS_VERSION ${CMAKE_MATCH_1})
     # Now we have GMX_VERSION_MAJOR in GROMACS_VERSION!
 
     if(GROMACS_VERSION GREATER 2020)
         set(GROMACS_INCLUDE_DIRECTORIS
-            ${CMAKE_SOURCE_DIR}/external/gromacs-src/src                  # Gromacs up to 2020.5
-            ${CMAKE_SOURCE_DIR}/external/gromacs-src/api/legacy/include   # Gromacs 2021.x
-            ${CMAKE_SOURCE_DIR}/external/gromacs-src/src/external         # Gromacs 2021.x
+            ${GROMACS_SOURCE_DIR}/src                  # Gromacs up to 2020.5
+            ${GROMACS_SOURCE_DIR}/api/legacy/include   # Gromacs 2021.x
+            ${GROMACS_SOURCE_DIR}/src/external         # Gromacs 2021.x
         )
     else()
         set(GROMACS_INCLUDE_DIRECTORIS
-            ${CMAKE_SOURCE_DIR}/external/gromacs-src/src                  # Gromacs up to 2020.5
+            ${GROMACS_SOURCE_DIR}/src                  # Gromacs up to 2020.5
         )
     endif()
 
     # Configure include file with Gromacs version
     configure_file(${PROJECT_SOURCE_DIR}/src/core/gromacs_utils/gromacs_version_info.h.in
-                   ${CMAKE_CURRENT_BINARY_DIR}/src/core/gromacs_utils/gromacs_version_info.h @ONLY)
+                   ${CMAKE_BINARY_DIR}/src/core/gromacs_utils/gromacs_version_info.h @ONLY)
 endif()
 
 #--------------------
@@ -315,30 +317,32 @@ if(WITH_TNG)
         GIT_TAG         v1.8.2
         GIT_SHALLOW     TRUE
         GIT_PROGRESS    TRUE
-        SOURCE_DIR ${CMAKE_SOURCE_DIR}/external/tng-src
     )
     FetchContent_GetProperties(TNG_external_fetch)
-    if(NOT Gromacs_external_fetch_POPULATED)
+    if(NOT TNG_external_fetch_POPULATED)
       FetchContent_Populate(TNG_external_fetch)
     endif()
 
-    set(TNG_LIB_FILE ${CMAKE_SOURCE_DIR}/external/tng-install/lib/${CMAKE_STATIC_LIBRARY_PREFIX}tng_io${CMAKE_STATIC_LIBRARY_SUFFIX})
+    FetchContent_GetProperties(
+        TNG_external_fetch
+        SOURCE_DIR TNG_SOURCE_DIR
+        BINARY_DIR TNG_BINARY_DIR
+    )
+    set(TNG_INSTALL_DIR ${CMAKE_BINARY_DIR}/external/tng-install)
+    set(TNG_LIB_FILE ${TNG_INSTALL_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}tng_io${CMAKE_STATIC_LIBRARY_SUFFIX})
+
     ExternalProject_add(TNG_external
-        #GIT_REPOSITORY  https://gitlab.com/gromacs/tng.git
-        #GIT_TAG         v1.8.2
-        #GIT_SHALLOW     TRUE
-        #GIT_PROGRESS    TRUE
-        SOURCE_DIR ${CMAKE_SOURCE_DIR}/external/tng-src
-        BINARY_DIR ${CMAKE_SOURCE_DIR}/external/tng-build
+        SOURCE_DIR ${TNG_SOURCE_DIR}
+        BINARY_DIR ${TNG_BINARY_DIR}
         CMAKE_ARGS  -DBUILD_SHARED_LIBS=OFF
                     -DTNG_BUILD_EXAMPLES=OFF
                     -DTNG_BUILD_TEST=OFF
                     -DTNG_BUILD_OWN_ZLIB=ON
                     -DBUILD_TESTING=OFF
                     -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-                    -DCMAKE_INSTALL_PREFIX=${CMAKE_SOURCE_DIR}/external/tng-install
+                    -DCMAKE_INSTALL_PREFIX=${TNG_INSTALL_DIR}
         BUILD_BYPRODUCTS ${TNG_LIB_FILE}
     )
-    set(TNG_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/tng-install/include ${CMAKE_SOURCE_DIR}/external/tng-src/include)
+    set(TNG_INCLUDE_DIR ${TNG_INSTALL_DIR}/include ${TNG_SOURCE_DIR}/include)
     set(TNG_LIBRARIES   ${TNG_LIB_FILE})
 endif()
