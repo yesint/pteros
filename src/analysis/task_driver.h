@@ -26,7 +26,6 @@
 #include "message_channel.h"
 #include "pteros/core/pteros_error.h"
 #include "data_container.h"
-#include <iostream>
 
 namespace pteros {
 

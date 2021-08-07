@@ -51,12 +51,6 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules)
 set(fetch_list "")
 
 #--------------------
-# Boost
-#--------------------
-#set(Boost_USE_STATIC_LIBS OFF)
-#find_package(Boost 1.50 REQUIRED COMPONENTS system date_time filesystem)
-
-#--------------------
 # Eigen
 #--------------------
 if(TRY_SYSTEM_EIGEN)

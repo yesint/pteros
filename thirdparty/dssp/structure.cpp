@@ -11,6 +11,7 @@
 #include <numeric>
 #include <functional>
 #include <deque>
+#include <iostream>
 #include "utils.h"
 //#include "buffer.h"
 #include "structure.h"

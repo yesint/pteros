@@ -31,10 +31,10 @@
 #include "pteros/core/pteros_error.h"
 #include "pteros/core/version.h"
 #include <fstream>
-// Periodic table from VMD molfile plugins
-#include "periodic_table.h"
 #include <iostream>
 #include <string>
+// Periodic table from VMD molfile plugins
+#include "periodic_table.h"
 
 using namespace std;
 using namespace pteros;

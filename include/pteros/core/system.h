@@ -40,7 +40,6 @@
 #include "pteros/core/periodic_box.h"
 #include "pteros/core/typedefs.h"
 
-#include <iostream>
 
 namespace pteros {
 

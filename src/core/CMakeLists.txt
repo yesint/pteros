@@ -106,6 +106,18 @@ target_include_directories(pteros PUBLIC
     $<INSTALL_INTERFACE:include>
 )
 
+# Precompile some headers
+target_precompile_headers(pteros PRIVATE
+    <string>
+    <memory>
+    <map>
+    <vector>
+    <functional>
+    <Eigen/Core>
+    ${PROJECT_SOURCE_DIR}/include/pteros/core/selection.h
+    ${PROJECT_SOURCE_DIR}/include/pteros/core/system.h
+)
+
 #--------------
 # Installation
 #--------------
