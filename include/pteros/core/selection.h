@@ -36,7 +36,7 @@
 #include <functional>
 #include <Eigen/Core>
 #include <Eigen/Geometry>
-#include "pteros/core/atom_proxy.h"
+#include "pteros/core/atom_handler.h"
 #include "pteros/core/system.h"
 #include "pteros/core/typedefs.h"
 
@@ -157,7 +157,7 @@ class Selection {
 
      Otherwise it is slower than conventional syntax like sel.name(i)
      */
-    AtomProxy operator[](int ind);
+    AtomHandler operator[](int ind);
 
     /** Indexing operator which sets both index and frame.
      * Takes a pair of values.
@@ -169,7 +169,7 @@ class Selection {
       \endcode
 
     */
-    AtomProxy operator[](const std::pair<int,int>& ind_fr);
+    AtomHandler operator[](const std::pair<int,int>& ind_fr);
 
     /// Writing selection to stream.
     /// Outputs indexes as a space separated list
@@ -1014,26 +1014,27 @@ protected:
 /// Random-access forward iterator for Selection
 class Selection::iterator {
 public:
-    typedef AtomProxy value_type;
-    typedef int difference_type;
-    typedef AtomProxy* pointer;
-    typedef AtomProxy& reference;
-    typedef std::forward_iterator_tag iterator_category;
+    using value_type = AtomHandler;
+    using difference_type = size_t;
+    using pointer = AtomHandler*;
+    using reference = AtomHandler&;
+    using iterator_category = std::random_access_iterator_tag;
 
-    iterator(Selection* sel, int pos): ind(pos), sel_ptr(sel) {}
+    iterator(const Selection& sel, int i): ind(i) {
+        proxy.set(sel,ind);
+    }
     iterator operator++(int junk) { iterator tmp = *this; ++ind; return tmp; }
-    iterator& operator++() { ++ind; return *this; }
-    iterator& operator+(int i) {ind+=i; return *this;}
-    iterator& operator-(int i) {ind-=i; return *this;}
-    reference operator*() { proxy.set(sel_ptr->get_system(),sel_ptr->index(ind),sel_ptr->get_frame()); return proxy; }
-    pointer   operator->() { proxy.set(sel_ptr->get_system(),sel_ptr->index(ind),sel_ptr->get_frame()); return &proxy; }
-    bool operator==(const iterator& rhs) { return ind == rhs.ind && sel_ptr==rhs.sel_ptr; }
+    iterator& operator++() { ++ind; proxy.advance(); return *this; }
+    iterator& operator+(int i) {ind+=i; proxy.advance(i); return *this;}
+    iterator& operator-(int i) {ind-=i; proxy.advance(-i); return *this;}
+    reference operator*() { return proxy; }
+    pointer   operator->() { return &proxy; }
+    bool operator==(const iterator& rhs) { return ind == rhs.ind; }
     bool operator!=(const iterator& rhs) { return !(*this==rhs); }
 
 private:
     int ind;
-    Selection* sel_ptr;
-    AtomProxy proxy;
+    AtomHandler proxy;
 };
 
 /// Checks if several selections overlap

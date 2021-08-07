@@ -452,6 +452,23 @@ void System::frame_swap(int fr1, int fr2)
     std::swap(traj[fr1],traj[fr2]);
 }
 
+AtomHandler System::operator[](const std::pair<int, int> &ind_fr)
+{
+    return AtomHandler(*this,ind_fr.first,ind_fr.second);
+}
+
+/*
+System::atom_iterator System::begin(int fr)
+{
+    return atom_iterator(*this,0,fr);
+}
+
+System::atom_iterator System::end(int fr)
+{
+    return atom_iterator(*this,num_atoms(),fr);
+}
+*/
+
 void System::frame_append(const Frame& fr){
     traj.push_back(fr);
 }
@@ -905,7 +922,7 @@ Selection System::append(const Atom &at, Vector3f_const_ref coord)
     return Selection(*this,first_added,num_atoms()-1);
 }
 
-Selection System::append(const AtomProxy &at)
+Selection System::append(const AtomHandler &at)
 {
     return append(at.atom(),at.xyz());
 }

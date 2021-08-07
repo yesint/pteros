@@ -34,17 +34,32 @@
 
 namespace pteros {
 
+
+using AtomStateIterator = std::vector<Eigen::Vector3f>::iterator;
+using AtomStateConstIterator = std::vector<Eigen::Vector3f>::const_iterator;
+using AtomIterator = std::vector<Atom>::iterator;
+using AtomConstIterator = std::vector<Atom>::const_iterator;
+
 class System;
+class Selection;
 
 /// Auxilary type used to incapsulate the atom and its current coordinates
 /// Used internally in Selection::operator[] and in iterator access to Selection.
 /// Objects of this class should not be created by the user in normal situation.
-class AtomProxy {
+class AtomHandler {
 public:
-    AtomProxy(): atom_ptr(nullptr), coord_ptr(nullptr), ind(-1) {}
-    AtomProxy(System* s, int i, int fr);
+    AtomHandler(){}
+    AtomHandler(const Selection& sel, int i);
+    AtomHandler(const System& sys, int i, int fr);
+    void set(const Selection& sel, int i);
+    void set(const System& sys, int i, int fr);
 
-    void set(System* s, int i, int fr);
+    // Move handler by n atoms. For internal usage.
+    inline void advance(int n=1){
+        coord_ptr+=n;
+        atom_ptr+=n;
+        ind+=n;
+    }
 
     /// @name Inline accessors. Const and non-const versions.
     /// @{
@@ -98,11 +113,13 @@ public:
     inline Eigen::Vector3f& xyz(){ return *coord_ptr; }
     inline const Eigen::Vector3f& xyz() const { return *coord_ptr; }
 
+    /*
     inline Eigen::Vector3f& vel(){ return *v_ptr; }
     inline const Eigen::Vector3f& vel() const { return *v_ptr; }
 
     inline Eigen::Vector3f& force(){ return *f_ptr; }
     inline const Eigen::Vector3f& force() const { return *f_ptr; }
+    */
 
     inline Atom& atom(){ return *atom_ptr; }
     inline const Atom& atom() const { return *atom_ptr; }
@@ -113,27 +130,16 @@ public:
     std::string element_name() const;
 
     float vdw() const;
-    /// @}
+    ///@}
 
-    /// Equality operator
-    bool operator==(const AtomProxy& other) const {
-        return (coord_ptr==other.coord_ptr && atom_ptr==other.atom_ptr);
-    }
-
-    /// Inequality operator
-    bool operator!=(const AtomProxy &other) const {
-        return !(*this == other);
-    }    
-
-private:        
+private:
+    AtomIterator atom_ptr;
+    AtomStateIterator coord_ptr;
+    // Atom don't store it's own index, so store it here
     int ind;
-    Atom *atom_ptr;
-    Eigen::Vector3f* coord_ptr;
-    Eigen::Vector3f* v_ptr;
-    Eigen::Vector3f* f_ptr;
 };
 
-}
+} //namespace
 
 
 

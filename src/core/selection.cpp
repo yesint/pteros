@@ -512,12 +512,12 @@ bool Selection::operator==(const Selection &other) const {
     return (system == other.system) && (_index == other._index);
 }
 
-AtomProxy Selection::operator[](int ind) {
-    return AtomProxy(system,_index[ind],frame);
+AtomHandler Selection::operator[](int ind) {
+    return AtomHandler(*system,_index[ind],frame);
 }
 
-AtomProxy Selection::operator[](const std::pair<int, int> &ind_fr) {
-    return AtomProxy(system,_index[ind_fr.first],ind_fr.second);
+AtomHandler Selection::operator[](const std::pair<int, int> &ind_fr) {
+    return AtomHandler(*system,_index[ind_fr.first],ind_fr.second);
 }
 
 Selection Selection::operator~() const {
@@ -674,11 +674,11 @@ void Selection::set_frame(int fr){
 
 
 Selection::iterator Selection::begin(){    
-    return iterator(this,0);
+    return iterator(*this,0);
 }
 
 Selection::iterator Selection::end(){
-    return iterator(this,size());
+    return iterator(*this,size());
 }
 
 /////////////////////////

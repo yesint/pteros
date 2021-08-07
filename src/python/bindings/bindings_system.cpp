@@ -54,7 +54,7 @@ void make_bindings_System(py::module& m){
         .def("append", py::overload_cast<const System&>(&System::append))
         .def("append", py::overload_cast<const Selection&,bool>(&System::append),"sel"_a,"current_frame"_a=false)
         .def("append", py::overload_cast<const Atom&, Vector3f_const_ref>(&System::append))
-        .def("append", py::overload_cast<const AtomProxy&>(&System::append))
+        .def("append", py::overload_cast<const AtomHandler&>(&System::append))
 
         // Reaaranging
         .def("rearrange", py::overload_cast<const vector<string>&>(&System::rearrange))
@@ -149,6 +149,14 @@ void make_bindings_System(py::module& m){
         .def("force_field_ready", &System::force_field_ready)
         .def("assign_resindex", &System::assign_resindex, "start"_a=0)
         .def("sort_by_resindex", &System::sort_by_resindex)
+
+        // Indexing
+        .def("__getitem__", [](System &s, py::tuple ind_fr) {
+                int i = ind_fr[0].cast<int>();
+                int fr = ind_fr[1].cast<int>();
+                if(i >= s.num_atoms() || fr<0 || fr>=s.num_frames()) throw py::index_error();
+                return s[{i,fr}]; // Returns atom proxy object
+            }, py::keep_alive<0,1>())
 
     ;
 }

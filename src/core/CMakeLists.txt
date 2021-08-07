@@ -47,8 +47,8 @@ add_library(pteros SHARED
     ${PROJECT_SOURCE_DIR}/include/pteros/core/force_field.h
     force_field.cpp
 
-    ${PROJECT_SOURCE_DIR}/include/pteros/core/atom_proxy.h
-    atom_proxy.cpp
+    ${PROJECT_SOURCE_DIR}/include/pteros/core/atom_handler.h
+    atom_handler.cpp
 
     ${PROJECT_SOURCE_DIR}/include/pteros/core/system.h
     system.cpp

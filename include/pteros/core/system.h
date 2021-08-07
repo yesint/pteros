@@ -39,6 +39,7 @@
 #include "pteros/core/force_field.h"
 #include "pteros/core/periodic_box.h"
 #include "pteros/core/typedefs.h"
+#include "pteros/core/atom_handler.h"
 
 
 namespace pteros {
@@ -74,7 +75,7 @@ struct Frame {
 class Selection;
 class FileHandler;
 class FileContent;
-class AtomProxy;
+class AtomHandler;
 
 //====================================================================================
 
@@ -151,7 +152,7 @@ public:
      }
      \endcode
     */
-    Selection append(const AtomProxy& at);
+    Selection append(const AtomHandler& at);
 
     /// Rearranges the atoms in the order of provided selection strings.
     /// Atom, which are not selected are appended at the end in their previous order.
@@ -408,6 +409,25 @@ public:
 
     /// @}
 
+    /// Iterators and indexing
+    /// {@
+    AtomIterator atoms_begin(){ return atoms.begin(); }
+    AtomIterator atoms_end(){ return atoms.end(); }
+    std::vector<Frame>::iterator traj_begin(){ return traj.begin(); }
+    std::vector<Frame>::iterator traj_end(){ return traj.end(); }
+
+    AtomHandler operator[](const std::pair<int,int>& ind_fr);
+
+    /*
+    class atom_iterator;
+    /// Begin iterator. Takes frame number.
+    atom_iterator begin(int fr);
+    /// End iterator. Takes frame number.
+    atom_iterator end(int fr);
+    */
+
+    /// @}
+
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     /// @name Manipulating sets of atoms by indexes.
     /// These methods <b>do not</b> update resindexes automatically.
@@ -530,6 +550,36 @@ Eigen::Vector2f get_energy_for_list(const std::vector<Eigen::Vector2i>& pairs,
                                     const std::vector<float>& dist,
                                     const System& sys,
                                     std::vector<Eigen::Vector2f>* pair_en=nullptr);
+
+//====================================================================================
+
+/// Random-access forward iterator for Selection
+/*
+class System::atom_iterator {
+public:
+    using value_type = AtomHandler;
+    using difference_type = size_t;
+    using pointer = AtomHandler*;
+    using reference = AtomHandler&;
+    using iterator_category = std::random_access_iterator_tag;
+
+    atom_iterator(const System& sys, int i, int fr): ind(i) {
+        proxy.set(sys,ind,fr);
+    }
+    atom_iterator operator++(int junk) { atom_iterator tmp = *this; ++ind; return tmp; }
+    atom_iterator& operator++() { ++ind; proxy.advance(); return *this; }
+    atom_iterator& operator+(int i) {ind+=i; proxy.advance(i); return *this;}
+    atom_iterator& operator-(int i) {ind-=i; proxy.advance(-i); return *this;}
+    reference operator*() { return proxy; }
+    pointer   operator->() { return &proxy; }
+    bool operator==(const atom_iterator& rhs) { return ind == rhs.ind; }
+    bool operator!=(const atom_iterator& rhs) { return !(*this==rhs); }
+
+private:
+    int ind;
+    AtomHandler proxy;
+};
+*/
 
 } // namespace
 

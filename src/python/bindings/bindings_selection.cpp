@@ -26,10 +26,6 @@
  *
 */
 
-
-
-
-
 #include "pteros/core/selection.h"
 #include "pteros/core/pteros_error.h"
 #include "bindings_util.h"
@@ -41,13 +37,13 @@ using namespace Eigen;
 using namespace pybind11::literals;
 
 #define DEF_PROPERTY(_name,_dtype) \
-    .def_property(#_name, [](AtomProxy* obj){return obj->_name();}, [](AtomProxy* obj,const _dtype& val){obj->_name()=val;})
+    .def_property(#_name, [](AtomHandler* obj){return obj->_name();}, [](AtomHandler* obj,const _dtype& val){obj->_name()=val;})
 
 void make_bindings_Selection(py::module& m){
 
     using RowMatrixXf = Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
 
-    py::class_<AtomProxy>(m, "Atom_proxy")        
+    py::class_<AtomHandler>(m, "AtomHandler")
         DEF_PROPERTY(resid,int)
         DEF_PROPERTY(resindex,int)
         DEF_PROPERTY(resname,string)
@@ -65,12 +61,12 @@ void make_bindings_Selection(py::module& m){
         DEF_PROPERTY(x,float)
         DEF_PROPERTY(y,float)
         DEF_PROPERTY(z,float)
-        .def_property("xyz", [](AtomProxy* obj){return obj->xyz();}, [](AtomProxy* obj,Vector3f_const_ref val){obj->xyz()=val;})
-        .def_property("vel", [](AtomProxy* obj){return obj->vel();}, [](AtomProxy* obj,Vector3f_const_ref val){obj->vel()=val;})
-        .def_property("force", [](AtomProxy* obj){return obj->force();}, [](AtomProxy* obj,Vector3f_const_ref val){obj->force()=val;})
-        .def_property_readonly("element_name", [](AtomProxy* obj){return obj->element_name();})
-        .def_property_readonly("vdw", [](AtomProxy* obj){return obj->vdw();})        
-        .def_property_readonly("index", [](AtomProxy* obj){return obj->index();})
+        .def_property("xyz", [](AtomHandler* obj){return obj->xyz();}, [](AtomHandler* obj,Vector3f_const_ref val){obj->xyz()=val;})
+        //.def_property("vel", [](AtomHandler* obj){return obj->vel();}, [](AtomHandler* obj,Vector3f_const_ref val){obj->vel()=val;})
+        //.def_property("force", [](AtomHandler* obj){return obj->force();}, [](AtomHandler* obj,Vector3f_const_ref val){obj->force()=val;})
+        .def_property_readonly("element_name", [](AtomHandler* obj){return obj->element_name();})
+        .def_property_readonly("vdw", [](AtomHandler* obj){return obj->vdw();})        
+        .def_property_readonly("index", [](AtomHandler* obj){return obj->index();})
     ;
 
     py::class_<Selection>(m, "Selection")
