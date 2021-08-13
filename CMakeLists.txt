@@ -38,6 +38,7 @@ OPTION(WITH_POWERSASA "Use POWERSASA code. This implies license restrictions des
 # Options to search for pre-installed dependencies
 OPTION(TRY_SYSTEM_DEPENDENCIES "Try using system dependensies." ON)
 OPTION(TRY_SYSTEM_EIGEN "Try using system Eigen." ON)
+OPTION(TRY_SYSTEM_FMT "Try using system fmt." ON)
 OPTION(TRY_SYSTEM_SPDLOG "Try using system spdlog." ON)
 OPTION(TRY_SYSTEM_PYBIND11 "Try using system pybind11." ON)
 OPTION(TRY_SYSTEM_GROMACS "Try using system Gromacs." ON)

@@ -31,6 +31,7 @@ cmake_policy(SET CMP0077 NEW) # To silence warnings
 if(NOT TRY_SYSTEM_DEPENDENCIES)    
     set(TRY_SYSTEM_EIGEN       OFF)
     set(TRY_SYSTEM_SPDLOG      OFF)
+    set(TRY_SYSTEM_FMT         OFF)
     set(TRY_SYSTEM_PYBIND11    OFF)
     set(TRY_SYSTEM_GROMACS     OFF)
     set(TRY_SYSTEM_OPENBABEL   OFF)
@@ -76,6 +77,36 @@ if(NOT Eigen3_FOUND)
     list(APPEND fetch_list Eigen)
 endif()
 
+
+#--------------------
+# fmt
+#--------------------
+
+if(TRY_SYSTEM_FMT)
+    find_package(fmt)
+endif()
+
+if(NOT fmt_FOUND)
+    if(NOT DOWNLOAD_DEPENDENCIES)
+        message(FATAL_ERROR "fmt is not available!")
+    endif()
+
+    message(STATUS "Will download and compile fmt in place")
+    FetchContent_Declare(
+            fmt
+            GIT_REPOSITORY  https://github.com/fmtlib/fmt.git
+            GIT_TAG         8.0.1
+            GIT_SHALLOW     TRUE
+            GIT_PROGRESS    TRUE
+    )
+    #set(FMT_MASTER_PROJECT ON CACHE INTERNAL "")
+    set(FMT_INSTALL ON CACHE INTERNAL "")
+    set(FMT_DOC OFF CACHE INTERNAL "")
+    set(FMT_TEST OFF CACHE INTERNAL "")
+    list(APPEND fetch_list fmt)
+endif()
+
+
 #--------------------
 # spdlog
 #--------------------
@@ -96,12 +127,12 @@ if(NOT spdlog_FOUND)
             GIT_SHALLOW     TRUE
             GIT_PROGRESS    TRUE
     )
-    set(SPDLOG_MASTER_PROJECT ON CACHE INTERNAL "")
+    #set(SPDLOG_MASTER_PROJECT ON CACHE INTERNAL "")
     set(SPDLOG_INSTALL ON CACHE INTERNAL "")
     set(SPDLOG_BUILD_TESTS OFF CACHE INTERNAL "")
     set(SPDLOG_BUILD_EXAMPLE OFF CACHE INTERNAL "")
-    list(APPEND fetch_list spdlog)
-    #FetchContent_MakeAvailable(spdlog)
+    set(SPDLOG_FMT_EXTERNAL ON CACHE INTERNAL "")
+    list(APPEND fetch_list spdlog)    
 endif()
 
 ##############################

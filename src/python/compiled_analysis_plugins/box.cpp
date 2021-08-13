@@ -29,7 +29,7 @@
 
 #include "pteros/python/compiled_plugin.h"
 #include <fstream>
-#include "spdlog/fmt/fmt.h"
+#include "fmt/core.h"
 
 using namespace std;
 using namespace pteros;

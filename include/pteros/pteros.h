@@ -32,4 +32,4 @@
 #include "core/logging.h"
 
 #include <Eigen/Core>
-#include <spdlog/fmt/fmt.h>
+#include <fmt/core.h>

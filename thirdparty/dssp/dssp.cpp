@@ -14,7 +14,7 @@
 #include "dssp.h"
 #include "structure.h"
 
-#include <spdlog/fmt/bundled/printf.h>
+#include <fmt/printf.h>
 #include <functional>
 
 using namespace std;

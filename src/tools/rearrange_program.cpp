@@ -1,6 +1,6 @@
 #include "pteros/pteros.h"
 #include <Eigen/Core>
-#include "spdlog/fmt/ostr.h"
+#include "fmt/ostream.h"
 #include "pteros/core/utilities.h"
 
 using namespace std;

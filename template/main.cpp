@@ -10,7 +10,7 @@ int main(int argc, char** argv){
         LOG()->info("Pteros demo template program");
 	    System sys("2lao.pdb");
         LOG()->info("Number of atoms is {}", sys.num_atoms());
-	} catch(Pteros_error e) {
+        } catch(PterosError e) {
         LOG()->error(e.what());
 	}
 }

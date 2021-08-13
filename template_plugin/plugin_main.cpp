@@ -27,11 +27,11 @@ protected:
         log->info("There are {} atoms in selection", sel.size());
     }
 
-    void process_frame(const Frame_info &info) override {
+    void process_frame(const FrameInfo &info) override {
         log->info("Frame: {}, time: {}, center: {}", info.absolute_frame, info.absolute_time, sel.center(use_mass).transpose());
     }
 
-    void post_process(const Frame_info &info) override {
+    void post_process(const FrameInfo &info) override {
         log->info("Finished");
     }
 private:

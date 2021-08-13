@@ -16,5 +16,5 @@ add_library(dssp STATIC
     utils.cpp
 )
 
-target_link_libraries(dssp Eigen3::Eigen spdlog::spdlog)
+target_link_libraries(dssp PRIVATE Eigen3::Eigen spdlog::spdlog fmt::fmt)
 target_include_directories(dssp PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

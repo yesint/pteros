@@ -16,7 +16,7 @@
 //#include "buffer.h"
 #include "structure.h"
 #include "pteros/core/utilities.h"
-#include "spdlog/fmt/bundled/printf.h"
+#include "fmt/printf.h"
 
 using namespace std;
 

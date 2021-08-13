@@ -27,11 +27,10 @@
 */
 
 
-#ifndef LOGGING_H
-#define LOGGING_H
+#pragma once
 
 #include "spdlog/spdlog.h"
-#include "spdlog/fmt/ostr.h"
+#include "fmt/ostream.h"
 #include "spdlog/sinks/stdout_sinks.h"
 #include <iostream>
 
@@ -76,9 +75,6 @@ void set_log_level(const std::string& lev);
 }
 
 #define LOG() (Log::instance().logger)
-
-#endif
-
 
 
 

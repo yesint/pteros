@@ -94,6 +94,7 @@ target_link_libraries(pteros
     PUBLIC
         Eigen3::Eigen
         spdlog::spdlog
+        #fmt::fmt
 )
 
 if(WITH_OPENMP AND OpenMP_CXX_FOUND)
