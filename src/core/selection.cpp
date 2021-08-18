@@ -1458,6 +1458,14 @@ void Selection::write(const std::unique_ptr<FileHandler> &handler, FileContent w
     }
 }
 
+bool Selection::text_based() const {
+    return sel_text!="";
+}
+
+bool Selection::coord_dependent() const {
+    return (bool)parser;
+}
+
 void Selection::flatten()
 {
     parser.reset();

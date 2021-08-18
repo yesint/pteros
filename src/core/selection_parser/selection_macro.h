@@ -36,7 +36,7 @@ namespace pteros {
 
 /// Macro definitions for selections. Each macro is expanded during
 /// evaluation of selection.
-static const std::vector<std::string> selection_macro {    
+static const std::vector<std::string> selection_macro {
     "protein", "(resname ABU ACE AIB ALA ARG ARGN ASN ASN1 ASP ASP1 ASPH CYS CYS1 CYS2 CYSH DALA GLN GLU GLUH GLY HIS HIS1 HISA HISB HISH HSD HSE HSP HYP ILE LEU LYS LYSH MELEU MET MEVAL NAC NH2 PHE PHEH PHEU PHL PRO SER THR TRP TRPH TRPU TYR TYRH TYRU VAL PGLU)",
     "backbone", "(name N CA C and resname ABU ACE AIB ALA ARG ARGN ASN ASN1 ASP ASP1 ASPH CYS CYS1 CYS2 CYSH DALA GLN GLU GLUH GLY HIS HIS1 HISA HISB HISH HSD HSE HSP HYP ILE LEU LYS LYSH MELEU MET MEVAL NAC NH2 PHE PHEH PHEU PHL PRO SER THR TRP TRPH TRPU TYR TYRH TYRU VAL PGLU)",
     "acidic", "(resname ASP GLU)",

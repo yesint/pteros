@@ -30,12 +30,12 @@
 #pragma once
 
 #include <string>
-#include <memory>
+//#include <memory>
 #include <map>
 #include <vector>
 #include <functional>
 #include <Eigen/Core>
-#include <Eigen/Geometry>
+//#include <Eigen/Geometry>
 #include "pteros/core/atom_handler.h"
 #include "pteros/core/system.h"
 #include "pteros/core/typedefs.h"
@@ -742,15 +742,11 @@ class Selection {
 
     /// Returns true if selection was created from text string and false if it was
     /// constructed 'by hand' by appending indexes or other selections
-    bool text_based() const {
-        return sel_text!="";
-    }
+    bool text_based() const;
 
     /// Returns true if selection is coordinate-dependent and is able to recompute
     /// itself on the change of frame
-    bool coord_dependent() const {
-        return (bool)parser;
-    }
+    bool coord_dependent() const;
 
     /// "Flattens" selection by removing coordinate dependence and making it not text-based.
     /// Resulting selection is equivalent to plain set of indexes "index i1 i2 i3..."
@@ -816,7 +812,6 @@ class Selection {
         using namespace std;
         parts.clear();
         using Ret = decltype(callback(*this,0));
-        // Map
         map<Ret,vector<int> > m;
         for(int i=0; i<size(); ++i){
             m[callback(*this,i)].push_back(index(i));
@@ -992,7 +987,7 @@ class Selection {
     /// @}
 
 protected:
-    // Row text of selection
+    // Raw text of selection
     std::string sel_text;    
     // Indexes of atoms in selection
     std::vector<int> _index;
@@ -1045,10 +1040,10 @@ bool check_selection_overlap(const std::vector<Selection> &sel_vec);
 /// If cutoff is 0 the cutoff from topology is used.
 /// fr = -1 computes for current frame of selection 1.
 Eigen::Vector2f non_bond_energy(const Selection& sel1,
-                                       const Selection& sel2,
-                                       float cutoff = 0,
-                                       int fr = -1,
-                                       bool pbc = true);
+                                const Selection& sel2,
+                                float cutoff = 0,
+                                int fr = -1,
+                                bool pbc = true);
 
 } // namespace pteros
 

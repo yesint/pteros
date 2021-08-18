@@ -40,26 +40,21 @@ using AtomStateConstIterator = std::vector<Eigen::Vector3f>::const_iterator;
 using AtomIterator = std::vector<Atom>::iterator;
 using AtomConstIterator = std::vector<Atom>::const_iterator;
 
-class System;
 class Selection;
+class System;
 
 /// Auxilary type used to incapsulate the atom and its current coordinates
 /// Used internally in Selection::operator[] and in iterator access to Selection.
 /// Objects of this class should not be created by the user in normal situation.
 class AtomHandler {
+    friend class Selection;
+    friend class System;
 public:
     AtomHandler(){}
     AtomHandler(const Selection& sel, int i);
     AtomHandler(const System& sys, int i, int fr);
     void set(const Selection& sel, int i);
-    void set(const System& sys, int i, int fr);
-
-    // Move handler by n atoms. For internal usage.
-    inline void advance(int n=1){
-        coord_ptr+=n;
-        atom_ptr+=n;
-        ind+=n;
-    }
+    void set(const System& sys, int i, int fr);    
 
     /// @name Inline accessors. Const and non-const versions.
     /// @{
@@ -137,6 +132,13 @@ private:
     AtomStateIterator coord_ptr;
     // Atom don't store it's own index, so store it here
     int ind;
+
+    // Move handler by n atoms. For internal usage.
+    inline void advance(int n=1){
+        coord_ptr+=n;
+        atom_ptr+=n;
+        ind+=n;
+    }
 };
 
 } //namespace
