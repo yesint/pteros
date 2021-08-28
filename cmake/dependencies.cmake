@@ -148,6 +148,8 @@ endif()
 # Python
 #--------------------
 if(WITH_PYTHON)    
+    # Force Python3
+    set(PYBIND11_PYTHON_VERSION 3 CACHE INTERNAL "")
     # Configure pybind11
     if(TRY_SYSTEM_PYBIND11)
         find_package(pybind11 QUIET)
@@ -165,9 +167,7 @@ if(WITH_PYTHON)
             GIT_TAG        v2.2.3
             GIT_SHALLOW    TRUE
             GIT_PROGRESS   TRUE
-        )
-        # Force Python3
-        set(PYBIND11_PYTHON_VERSION 3 CACHE INTERNAL "")
+        )        
         list(APPEND fetch_list pybind11)
     endif()
 
