@@ -17,8 +17,8 @@ AtomHandler::AtomHandler(const System &sys, int i, int fr){
 
 void AtomHandler::set(const Selection &sel, int i)
 {
-    if(i>=sel.get_system()->num_frames())
-        throw PterosError("Can\t point ot frame {}, there are only {} frames in the system!",i,sel.get_system()->num_frames());
+    if(sel.get_frame()>=sel.get_system()->num_frames())
+        throw PterosError("Can't point at frame {}, there are only {} frames in the system!",i,sel.get_system()->num_frames());
     coord_ptr = sel.get_system()->frame(sel.get_frame()).coord.begin();
     coord_ptr += i;
     atom_ptr = sel.get_system()->atoms_begin();
@@ -28,8 +28,8 @@ void AtomHandler::set(const Selection &sel, int i)
 
 void AtomHandler::set(const System &sys, int i, int fr)
 {
-    if(i>=sys.num_frames())
-        throw PterosError("Can\t point ot frame {}, there are only {} frames in the system!",i,sys.num_frames());
+    if(fr>=sys.num_frames())
+        throw PterosError("Can't point ot frame {}, there are only {} frames in the system!",i,sys.num_frames());
     coord_ptr = const_cast<System&>(sys).frame(fr).coord.begin();
     coord_ptr += i;
     atom_ptr = const_cast<System&>(sys).atoms_begin();
