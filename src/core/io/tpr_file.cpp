@@ -254,6 +254,7 @@ bool TprFile::do_read(System *sys, Frame *frame, const FileContent &what){
             }
         }
 #else
+        /*
         // Extract exclusions from molecular blocks
         ff.exclusions.resize(natoms);
         // Running global index of atoms
@@ -280,6 +281,7 @@ bool TprFile::do_read(System *sys, Frame *frame, const FileContent &what){
                 }
             }
         }
+        */
 #endif
 
         ff.fudgeQQ = top.idef.fudgeQQ;
