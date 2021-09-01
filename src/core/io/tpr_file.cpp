@@ -254,7 +254,7 @@ bool TprFile::do_read(System *sys, Frame *frame, const FileContent &what){
             }
         }
 #else
-        /*
+
         // Extract exclusions from molecular blocks
         ff.exclusions.resize(natoms);
         // Running global index of atoms
@@ -267,21 +267,19 @@ bool TprFile::do_read(System *sys, Frame *frame, const FileContent &what){
             for(size_t mol=0; mol<mtop.molblock[bl].nmol; ++mol){
                 // cycle over atoms in one molecule
                 for(size_t a=0; a<mtop.moltype[mol_t].excls.size(); ++a){
-                    // Global index corresponding to a
-                    size_t global_ind = a + global_counter;
                     // Go over the list of excluded local indexes for this atom
                     for(size_t ind=0; ind<mtop.moltype[mol_t].excls[a].size(); ++ind){
                         // Global excluded indes for local atom a
                         size_t global_excl = mtop.moltype[mol_t].excls[a][ind] + global_counter;
                         // Add this exclusion
-                        ff.exclusions[global_ind].insert(global_excl);
+                        ff.exclusions[global_counter].insert(global_excl);
                     }
                     // Increment global atom counter
                     ++global_counter;
                 }
             }
         }
-        */
+
 #endif
 
         ff.fudgeQQ = top.idef.fudgeQQ;
