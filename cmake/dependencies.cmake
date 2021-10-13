@@ -260,9 +260,9 @@ endif()
 #--------------------
 if(WITH_GROMACS)
      # See if pathes are provided
-     if(TRY_SYSTEM_GROMACS AND GROMACS_SOURCE_DIR AND GROMACS_LIBRARIES)
+     if(TRY_SYSTEM_GROMACS AND GROMACS_SOURCE_DIR AND GROMACS_BINARY_DIR)
          message(STATUS "Gromacs sources root set manually to ${GROMACS_SOURCE_DIR}")
-         message(STATUS "Gromacs libraries set manually to ${GROMACS_LIBRARIES}")
+         message(STATUS "Gromacs binary dir set manually to ${GROMACS_BINARY_DIR}")
      else()
         if(NOT DOWNLOAD_DEPENDENCIES)
             message(FATAL_ERROR "Gromacs is not available!")
@@ -286,8 +286,7 @@ if(WITH_GROMACS)
             SOURCE_DIR GROMACS_SOURCE_DIR
             BINARY_DIR GROMACS_BINARY_DIR
         )
-        set(GROMACS_LIB_FILE ${GROMACS_BINARY_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}gromacs${CMAKE_STATIC_LIBRARY_SUFFIX}
-                             ${GROMACS_BINARY_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}muparser${CMAKE_STATIC_LIBRARY_SUFFIX})
+        set(GROMACS_LIB_FILE ${GROMACS_BINARY_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}gromacs${CMAKE_STATIC_LIBRARY_SUFFIX})
 
         ExternalProject_add(Gromacs_external
             SOURCE_DIR ${GROMACS_SOURCE_DIR}
@@ -318,9 +317,16 @@ if(WITH_GROMACS)
             ${GROMACS_SOURCE_DIR}/api/legacy/include   # Gromacs 2021.x
             ${GROMACS_SOURCE_DIR}/src/external         # Gromacs 2021.x
         )
+	set(GROMACS_LIBRARIES 
+  	   ${GROMACS_BINARY_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}gromacs${CMAKE_STATIC_LIBRARY_SUFFIX}
+	   ${GROMACS_BINARY_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}muparser${CMAKE_STATIC_LIBRARY_SUFFIX}
+        )
     else()
         set(GROMACS_INCLUDE_DIRECTORIS
             ${GROMACS_SOURCE_DIR}/src                  # Gromacs up to 2020.5
+        )
+	set(GROMACS_LIBRARIES 
+           ${GROMACS_BINARY_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}gromacs${CMAKE_STATIC_LIBRARY_SUFFIX}
         )
     endif()
 
