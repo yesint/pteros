@@ -299,6 +299,7 @@ if(WITH_GROMACS)
                         -DGMX_THREAD_MPI=OFF
                         -DBUILD_SHARED_LIBS=OFF #-DGMX_USE_TNG=OFF
                         -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+                        -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
             INSTALL_COMMAND ""
             BUILD_BYPRODUCTS ${GROMACS_LIB_FILE}
         )
