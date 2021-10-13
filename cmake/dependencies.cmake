@@ -367,6 +367,7 @@ if(WITH_TNG)
                     -DBUILD_TESTING=OFF
                     -DCMAKE_POSITION_INDEPENDENT_CODE=ON
                     -DCMAKE_INSTALL_PREFIX=${TNG_INSTALL_DIR}
+                    -DCMAKE_INSTALL_LIBDIR=lib
         BUILD_BYPRODUCTS ${TNG_LIB_FILE}
     )
     set(TNG_INCLUDE_DIR ${TNG_INSTALL_DIR}/include ${TNG_SOURCE_DIR}/include)
