@@ -1,25 +1,3 @@
-/*
-@licstart  The following is the entire license notice for the
-JavaScript code in this file.
-
-Copyright (C) 1997-2019 by Dimitri van Heesch
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of version 2 of the GNU General Public License as published by
-the Free Software Foundation
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License along
-with this program; if not, write to the Free Software Foundation, Inc.,
-51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-
-@licend  The above is the entire license notice
-for the JavaScript code in this file
-*/
 var NAVTREE =
 [
   [ "Pteros", "index.html", [
@@ -38,17 +16,29 @@ var NAVTREE =
     [ "Design thoughts", "design.html", null ],
     [ "Installation", "install.html", [
       [ "Portability", "install.html#port", null ],
-      [ "Dependencies", "install.html#depend", null ],
+      [ "Dependencies", "install.html#depend", [
+        [ "Prerequisites", "install.html#pre", null ],
+        [ "Managed dependencies", "install.html#managed", [
+          [ "dependencies", "install.html#Required", null ],
+          [ "Optional dependencies", "install.html#opt", null ]
+        ] ],
+        [ "Installing on Ubuntu", "install.html#ubuntu", null ]
+      ] ],
       [ "Building Pteros", "install.html#build", [
         [ "Getting the code", "install.html#get", null ],
-        [ "Compiling", "install.html#compile", null ],
-        [ "Building .deb package", "install.html#deb", null ],
+        [ "Compiling", "install.html#compile", [
+          [ "Choosing compiler", "install.html#alt_compiler", null ]
+        ] ],
+        [ "Controlling searching and donwloading of dependencies", "install.html#ctrl", null ],
         [ "Testing installation", "install.html#test", null ],
-        [ "SASA code", "install.html#sasa", null ],
-        [ "Enabling Gromacs support", "install.html#gmx", null ],
-        [ "Building without Python", "install.html#no_python", null ],
+        [ "Gromacs support", "install.html#gmx", null ],
+        [ "Python support", "install.html#python", [
+          [ "Compiling without python", "install.html#no_pythin", null ],
+          [ "Installing as a python module", "install.html#module", null ]
+        ] ],
         [ "Building standalone analysis plugins", "install.html#standalone", null ],
-        [ "Building Pteros without OpenMP", "install.html#no_omp", null ]
+        [ "Building without OpenMP", "install.html#no_omp", null ],
+        [ "SASA code", "install.html#sasa", null ]
       ] ],
       [ "Reporting bugs", "install.html#trouble", [
         [ "Known problems", "install.html#known_problems", null ]
@@ -84,8 +74,8 @@ var NAVTREE =
         [ "Related Functions", "functions_rela.html", null ]
       ] ]
     ] ],
-    [ "Files", "files.html", [
-      [ "File List", "files.html", "files_dup" ]
+    [ "Files", null, [
+      [ "File List", "files.html", "files" ]
     ] ]
   ] ]
 ];
@@ -93,9 +83,9 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 ".html",
-"classpteros_1_1Selection.html#a04cc3a388389fe5b3572f06bc7216d4c",
-"classpteros_1_1System.html#a943c3e9fbfc4273f52797aeb8e238eb5",
-"install.html#standalone"
+"classpteros_1_1Selection.html#a09ec3c1038cf7a60241786445013b0ba",
+"classpteros_1_1System.html#a93a45874765ca204f3e0543c179809f4",
+"install.html#managed"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

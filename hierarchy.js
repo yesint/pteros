@@ -1,7 +1,7 @@
 var hierarchy =
 [
     [ "pteros::Atom", "classpteros_1_1Atom.html", null ],
-    [ "pteros::AtomProxy", "classpteros_1_1AtomProxy.html", null ],
+    [ "pteros::AtomHandler", "classpteros_1_1AtomHandler.html", null ],
     [ "pteros::DataContainer", "structpteros_1_1DataContainer.html", null ],
     [ "pteros::DistanceSearchWithin", "classpteros_1_1DistanceSearchWithin.html", null ],
     [ "std::exception", null, [

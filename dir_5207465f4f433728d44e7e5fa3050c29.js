@@ -1,7 +1,7 @@
 var dir_5207465f4f433728d44e7e5fa3050c29 =
 [
     [ "atom.h", "atom_8h_source.html", null ],
-    [ "atom_proxy.h", "atom__proxy_8h_source.html", null ],
+    [ "atom_handler.h", "atom__handler_8h_source.html", null ],
     [ "distance_search.h", "distance__search_8h_source.html", null ],
     [ "distance_search_within.h", "distance__search__within_8h_source.html", null ],
     [ "file_handler.h", "file__handler_8h_source.html", null ],

@@ -1,8 +1,18 @@
 var NAVTREEINDEX3 =
 {
-"install.html#standalone":[2,2,7],
+"install.html#managed":[2,1,1],
+"install.html#module":[2,2,5,1],
+"install.html#no_omp":[2,2,7],
+"install.html#no_pythin":[2,2,5,0],
+"install.html#opt":[2,1,1,1],
+"install.html#port":[2,0],
+"install.html#pre":[2,1,0],
+"install.html#python":[2,2,5],
+"install.html#sasa":[2,2,8],
+"install.html#standalone":[2,2,6],
 "install.html#test":[2,2,3],
 "install.html#trouble":[2,3],
+"install.html#ubuntu":[2,1,2],
 "jump__remover_8h_source.html":[6,0,0,0,0,2],
 "logging_8h_source.html":[6,0,0,0,1,7],
 "manual.html":[3],
@@ -60,6 +70,7 @@ var NAVTREEINDEX3 =
 "utilities_8h_source.html":[6,0,0,0,1,14],
 "version_8h_source.html":[6,0,0,0,1,15],
 "vmd__molfile__plugin__wrapper_8h_source.html":[6,0,1,1,3,10],
+"voronoi__packing_8h_source.html":[6,0,0,0,2,4],
 "xtc__file_8h_source.html":[6,0,1,1,3,11],
 "xyz__file_8h_source.html":[6,0,1,1,3,12]
 };

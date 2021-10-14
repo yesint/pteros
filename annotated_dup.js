@@ -2,7 +2,7 @@ var annotated_dup =
 [
     [ "pteros", null, [
       [ "Atom", "classpteros_1_1Atom.html", "classpteros_1_1Atom" ],
-      [ "AtomProxy", "classpteros_1_1AtomProxy.html", "classpteros_1_1AtomProxy" ],
+      [ "AtomHandler", "classpteros_1_1AtomHandler.html", "classpteros_1_1AtomHandler" ],
       [ "BabelWrapper", "classpteros_1_1BabelWrapper.html", "classpteros_1_1BabelWrapper" ],
       [ "DataContainer", "structpteros_1_1DataContainer.html", "structpteros_1_1DataContainer" ],
       [ "DcdFile", "classpteros_1_1DcdFile.html", "classpteros_1_1DcdFile" ],
