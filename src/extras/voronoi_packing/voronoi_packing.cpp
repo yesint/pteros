@@ -43,7 +43,7 @@ namespace pteros {
 
 
 struct PackingGroup {
-    PackingGroup(): total_area(0.0), total_volume(0.0) {}
+    PackingGroup(): total_area(0.0), total_volume(0.0) {} 
 
     Selection sel;
     int num_residues;
