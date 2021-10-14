@@ -7,3 +7,5 @@ html
 src/core/version.cpp
 *.user
 thirdparty/tng_io/include/tng/version.h
+build
+.vscode
