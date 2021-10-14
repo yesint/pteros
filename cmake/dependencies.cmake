@@ -40,13 +40,19 @@ endif()
 
 # To avoid updates on configure step
 set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
-set(FETCHCONTENT_QUIET OFF)
+# To make it less noisy
+set(FETCHCONTENT_QUIET ON)
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules)
 
-##############################
-# Unconditional dependencies:
-##############################
+# OpenMP
+if(WITH_OPENMP)
+    find_package(OpenMP COMPONENTS CXX)
+endif()
+
+#======================================================
+# Dependencies which use normal FetchContent workflow
+#======================================================
 
 # List of modules to fetch
 set(fetch_list "")
@@ -81,7 +87,6 @@ endif()
 #--------------------
 # fmt
 #--------------------
-
 if(TRY_SYSTEM_FMT)
     find_package(fmt)
 endif()
@@ -135,14 +140,6 @@ if(NOT spdlog_FOUND)
     list(APPEND fetch_list spdlog)    
 endif()
 
-##############################
-# Conditional dependencies:
-##############################
-
-# OpenMP
-if(WITH_OPENMP)
-    find_package(OpenMP COMPONENTS CXX)
-endif()
 
 #--------------------
 # Python
@@ -171,21 +168,9 @@ if(WITH_PYTHON)
         list(APPEND fetch_list pybind11)
     endif()
 
-    if(NOT MAKE_PACKAGE)
-        # Set python install dir
-        set(PY_INST_DIR python)
-        set(PLUGINS_ABS_PATH ${CMAKE_INSTALL_PREFIX}/python/pteros_analysis_plugins)
-    else()
-        set(PY_INST_DIR ${PYTHON_SITE_PACKAGES})
-        set(PLUGINS_ABS_PATH ${PY_INST_DIR}/pteros_analysis_plugins)
-        if(DEFINED CMAKE_INSTALL_PREFIX)
-            message(WARNING " You are building the package but set an install prefix.\n"
-                            " Install prefix ${CMAKE_INSTALL_PREFIX} will be ignored.\n"
-                            " Library files would be packaged to /usr\n"
-                            " Python files would be packaged to ${PY_INST_DIR}\n"
-                            " If this is not what you want rerun with -DMAKE_PACKAGE=OFF")
-        endif()
-    endif()
+    # Set python install dir
+    set(PY_INST_DIR python)
+    set(PLUGINS_ABS_PATH ${CMAKE_INSTALL_PREFIX}/python/pteros_analysis_plugins)
 endif()
 
 # Fetch everything we need
@@ -194,189 +179,16 @@ if(fetch_list)
     FetchContent_MakeAvailable(${fetch_list})
 endif()
 
-#--------------------
+#-----------------------------------------------------------
+# Dependencies which use FetchContent for downloading only
+# and ExternalProject for compiling with needed options
+#-----------------------------------------------------------
+
 # OpenBabel
-#--------------------
-if(WITH_OPENBABEL)
-    if(TRY_SYSTEM_OPENBABEL)        
-        # Try to find OpenBabel 3
-        find_package(OpenBabel3 3.0.0)
-        if(NOT OPENBABEL3_FOUND)
-            # Try to find OpenBabel 2
-            message(STATUS "OpenBabel v3 not found, searching for v2...")
-            find_package(OpenBabel2 2.4.9)
-            if(NOT OPENBABEL2_FOUND)
-                message(WARNING "OpenBabel v2 not found.")
-            endif()
-        endif()
-    endif()
+include(${PROJECT_SOURCE_DIR}/cmake/openbabel.cmake)
 
-    if(NOT (OPENBABEL2_FOUND OR OPENBABEL3_FOUND))
-        if(NOT DOWNLOAD_DEPENDENCIES)
-            message(FATAL_ERROR "OpenBabel is not available!")
-        endif()
-
-        FetchContent_Declare(OpenBabel_external_fetch
-            GIT_REPOSITORY  https://github.com/openbabel/openbabel.git
-            GIT_TAG         openbabel-3-0-0
-            GIT_SHALLOW     TRUE
-            GIT_PROGRESS    TRUE
-        )
-        FetchContent_GetProperties(OpenBabel_external_fetch)
-        if(NOT OpenBabel_external_fetch_POPULATED)
-          FetchContent_Populate(OpenBabel_external_fetch)
-        endif()
-
-        FetchContent_GetProperties(
-            OpenBabel_external_fetch
-            SOURCE_DIR OPENBABEL_SOURCE_DIR
-            BINARY_DIR OPENBABEL_BINARY_DIR
-        )
-        set(OPENBABEL_INSTALL_DIR ${CMAKE_BINARY_DIR}/external/openbabel-install)
-        set(OPENBABEL_LIB_FILE ${OPENBABEL_INSTALL_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}openbabel${CMAKE_STATIC_LIBRARY_SUFFIX})
-
-        message(STATUS "Will download and compile OpenBabel in place")
-        ExternalProject_add(OpenBabel_external
-            SOURCE_DIR ${OPENBABEL_SOURCE_DIR}
-            BINARY_DIR ${OPENBABEL_BINARY_DIR}
-            CMAKE_ARGS -DBUILD_TESTING=OFF -DBUILD_MIXED=ON -DBUILD_SHARED=OFF
-                       -DCMAKE_INSTALL_PREFIX=${OPENBABEL_INSTALL_DIR}
-                       -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-            BUILD_BYPRODUCTS ${OPENBABEL_LIB_FILE}
-        )
-
-        # Set openbabel variables manually
-        set(OPENBABEL3_FOUND TRUE)
-        set(OPENBABEL3_INCLUDE_DIR
-            ${OPENBABEL_INSTALL_DIR}/include/openbabel3
-            ${OPENBABEL_SOURCE_DIR}/include/openbabel3
-        )
-        set(OPENBABEL3_LIBRARIES ${OPENBABEL_LIB_FILE})
-    endif()
-endif()
-
-#--------------------
 # Gromacs
-#--------------------
-if(WITH_GROMACS)
-     # See if pathes are provided
-     if(TRY_SYSTEM_GROMACS AND GROMACS_SOURCE_DIR AND GROMACS_BINARY_DIR)
-         message(STATUS "Gromacs sources root set manually to ${GROMACS_SOURCE_DIR}")
-         message(STATUS "Gromacs binary dir set manually to ${GROMACS_BINARY_DIR}")
-     else()
-        if(NOT DOWNLOAD_DEPENDENCIES)
-            message(FATAL_ERROR "Gromacs is not available!")
-        endif()
+include(${PROJECT_SOURCE_DIR}/cmake/gromacs.cmake)
 
-        message(STATUS "Will download and compile Gromacs in place")
-
-        FetchContent_Declare(Gromacs_external_fetch
-            GIT_REPOSITORY  https://gitlab.com/gromacs/gromacs.git
-            GIT_TAG         master #v2020.5
-            GIT_SHALLOW     TRUE
-            GIT_PROGRESS    TRUE
-        )
-        FetchContent_GetProperties(Gromacs_external_fetch)
-        if(NOT Gromacs_external_fetch_POPULATED)
-          FetchContent_Populate(Gromacs_external_fetch)
-        endif()
-
-        FetchContent_GetProperties(
-            Gromacs_external_fetch
-            SOURCE_DIR GROMACS_SOURCE_DIR
-            BINARY_DIR GROMACS_BINARY_DIR
-        )
-        set(GROMACS_LIB_FILE ${GROMACS_BINARY_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}gromacs${CMAKE_STATIC_LIBRARY_SUFFIX})
-
-        ExternalProject_add(Gromacs_external
-            SOURCE_DIR ${GROMACS_SOURCE_DIR}
-            BINARY_DIR ${GROMACS_BINARY_DIR}
-            CMAKE_ARGS  -DGMX_MPI=OFF -DGMX_GPU=OFF -DGMX_SIMD=none
-                        -DGMX_FFT_LIBRARY=fftpack
-                        -DBUILD_TESTING=OFF -DGMXAPI=OFF -DGMX_IMD=OFF
-                        -DGMX_INSTALL_NBLIB_API=OFF -DGMX_OPENMP=OFF
-                        -DGMX_THREAD_MPI=OFF
-                        -DBUILD_SHARED_LIBS=OFF #-DGMX_USE_TNG=OFF
-                        -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-                        -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
-            INSTALL_COMMAND ""
-            BUILD_BYPRODUCTS ${GROMACS_LIB_FILE}
-        )
-        set(GROMACS_LIBRARIES ${GROMACS_LIB_FILE})
-    endif()
-
-    # Get actual gromacs version
-    file(READ ${GROMACS_SOURCE_DIR}/cmake/gmxVersionInfo.cmake gmxinfofile)
-    string(REGEX MATCH "set\\(GMX_VERSION_MAJOR +([0-9]+)" match ${gmxinfofile})
-    set(GROMACS_VERSION ${CMAKE_MATCH_1})
-    # Now we have GMX_VERSION_MAJOR in GROMACS_VERSION!
-
-    if(GROMACS_VERSION GREATER 2020)
-        set(GROMACS_INCLUDE_DIRECTORIS
-            ${GROMACS_SOURCE_DIR}/src                  # Gromacs up to 2020.5
-            ${GROMACS_SOURCE_DIR}/api/legacy/include   # Gromacs 2021.x
-            ${GROMACS_SOURCE_DIR}/src/external         # Gromacs 2021.x
-        )
-	set(GROMACS_LIBRARIES 
-  	   ${GROMACS_BINARY_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}gromacs${CMAKE_STATIC_LIBRARY_SUFFIX}
-	   ${GROMACS_BINARY_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}muparser${CMAKE_STATIC_LIBRARY_SUFFIX}
-        )
-    else()
-        set(GROMACS_INCLUDE_DIRECTORIS
-            ${GROMACS_SOURCE_DIR}/src                  # Gromacs up to 2020.5
-        )
-	set(GROMACS_LIBRARIES 
-           ${GROMACS_BINARY_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}gromacs${CMAKE_STATIC_LIBRARY_SUFFIX}
-        )
-    endif()
-
-    # Configure include file with Gromacs version
-    configure_file(${PROJECT_SOURCE_DIR}/src/core/gromacs_utils/gromacs_version_info.h.in
-                   ${CMAKE_BINARY_DIR}/src/core/gromacs_utils/gromacs_version_info.h @ONLY)
-endif()
-
-#--------------------
 # TNG_IO
-#--------------------
-if(WITH_TNG)
-    if(NOT DOWNLOAD_DEPENDENCIES)
-        message(FATAL_ERROR "tng_io is not available!")
-    endif()
-
-    message(STATUS "Will download and compile tng_io library in place")
-
-    FetchContent_Declare(TNG_external_fetch
-        GIT_REPOSITORY  https://gitlab.com/gromacs/tng.git
-        GIT_TAG         v1.8.2
-        GIT_SHALLOW     TRUE
-        GIT_PROGRESS    TRUE
-    )
-    FetchContent_GetProperties(TNG_external_fetch)
-    if(NOT TNG_external_fetch_POPULATED)
-      FetchContent_Populate(TNG_external_fetch)
-    endif()
-
-    FetchContent_GetProperties(
-        TNG_external_fetch
-        SOURCE_DIR TNG_SOURCE_DIR
-        BINARY_DIR TNG_BINARY_DIR
-    )
-    set(TNG_INSTALL_DIR ${CMAKE_BINARY_DIR}/external/tng-install)
-    set(TNG_LIB_FILE ${TNG_INSTALL_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}tng_io${CMAKE_STATIC_LIBRARY_SUFFIX})
-
-    ExternalProject_add(TNG_external
-        SOURCE_DIR ${TNG_SOURCE_DIR}
-        BINARY_DIR ${TNG_BINARY_DIR}
-        CMAKE_ARGS  -DBUILD_SHARED_LIBS=OFF
-                    -DTNG_BUILD_EXAMPLES=OFF
-                    -DTNG_BUILD_TEST=OFF
-                    -DTNG_BUILD_OWN_ZLIB=ON
-                    -DBUILD_TESTING=OFF
-                    -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-                    -DCMAKE_INSTALL_PREFIX=${TNG_INSTALL_DIR}
-                    -DCMAKE_INSTALL_LIBDIR=lib
-        BUILD_BYPRODUCTS ${TNG_LIB_FILE}
-    )
-    set(TNG_INCLUDE_DIR ${TNG_INSTALL_DIR}/include ${TNG_SOURCE_DIR}/include)
-    set(TNG_LIBRARIES   ${TNG_LIB_FILE})
-endif()
+include(${PROJECT_SOURCE_DIR}/cmake/tngio.cmake)

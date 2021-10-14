@@ -23,7 +23,7 @@
 # http://www.opensource.org/licenses/artistic-license-2.0.php
 #
 
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.14) 
 
 project(pteros)
 
@@ -58,9 +58,9 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose Release or Debug" FORCE)
 endif()
 
-##############################
+#-----------------------------
 # Global compilation options:
-##############################
+#-----------------------------
 
 # -fPIC
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
@@ -98,16 +98,12 @@ include(${PROJECT_SOURCE_DIR}/cmake/dependencies.cmake)
 
 # DSSP library
 add_subdirectory(thirdparty/dssp)
-
 # VMD molfile plugins
 add_subdirectory(thirdparty/molfile_plugins)
-
 # xdrfile library
 add_subdirectory(thirdparty/xdrfile)
-
 # voro++ library
 add_subdirectory(thirdparty/voro++)
-
 # SASA library from MDTraj
 add_subdirectory(thirdparty/sasa)
 
@@ -139,7 +135,8 @@ ENDIF()
 install(DIRECTORY include DESTINATION .)
 
 # generate export targets file
-install(EXPORT pterosTargets
+install(
+    EXPORT pterosTargets
     FILE pterosTargets.cmake
     NAMESPACE pteros::
     DESTINATION lib/cmake/pteros
@@ -147,22 +144,27 @@ install(EXPORT pterosTargets
 
 # Generate cmake version file
 include(CMakePackageConfigHelpers)
-write_basic_package_version_file("${CMAKE_CURRENT_BINARY_DIR}/cmake/pterosConfigVersion.cmake"
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/cmake/pterosConfigVersion.cmake"
     VERSION 3.0
     COMPATIBILITY SameMajorVersion
 )
 
 # Generate cmake config file
 SET(_plugin_dir ${PLUGINS_ABS_PATH})
-configure_file(${PROJECT_SOURCE_DIR}/cmake/pterosConfig.cmake.in
-               ${CMAKE_CURRENT_BINARY_DIR}/cmake/pterosConfig.cmake @ONLY)
+configure_file(
+    ${PROJECT_SOURCE_DIR}/cmake/pterosConfig.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/cmake/pterosConfig.cmake @ONLY
+)
 
 # Install CMake target machinery
-install(FILES
+install(
+    FILES
         ${CMAKE_CURRENT_BINARY_DIR}/cmake/pterosConfig.cmake
         ${CMAKE_CURRENT_BINARY_DIR}/cmake/pterosConfigVersion.cmake
     DESTINATION
-        lib/cmake/pteros)
+        lib/cmake/pteros
+)
 
 #---------------------------------------------
 # Generate and install pterosrc file
@@ -173,8 +175,10 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     SET(_py ${CMAKE_INSTALL_PREFIX}/python)
     SET(_path ${CMAKE_INSTALL_PREFIX}/bin)
     SET(_cmake ${CMAKE_INSTALL_PREFIX}/lib/cmake)
-    configure_file(${PROJECT_SOURCE_DIR}/cmake/pterosrc.in
-                   ${CMAKE_CURRENT_BINARY_DIR}/pterosrc @ONLY)
+    configure_file(
+        ${PROJECT_SOURCE_DIR}/cmake/pterosrc.in
+        ${CMAKE_CURRENT_BINARY_DIR}/pterosrc @ONLY
+    )
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/pterosrc DESTINATION lib)
 
     message("------------------------------")
@@ -183,23 +187,4 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     message("you have to source the pterosrc file in your bash shell:")
     message("source ${CMAKE_INSTALL_PREFIX}/lib/pterosrc")
     message("------------------------------")
-ENDIF()
-
-#--------------
-# CPack config
-#--------------
-IF(MAKE_PACKAGE)
-    message("Configuring package...")
-    INCLUDE(InstallRequiredSystemLibraries)
-    SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Pteros molecular modeling library")
-    SET(CPACK_PACKAGE_VERSION_MAJOR "3")
-    SET(CPACK_PACKAGE_VERSION_MINOR "0")
-    SET(CPACK_PACKAGE_VERSION_PATCH "0")
-    SET(CPACK_PACKAGE_INSTALL_DIRECTORY "CMake ${CMake_VERSION_MAJOR}.${CMake_VERSION_MINOR}")
-    IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-        SET(CPACK_GENERATOR DEB)
-        SET(CPACK_PACKAGE_CONTACT "Semen Yesylevskyy yesint4@yahoo.com")
-        SET(CPACK_DEBIAN_PACKAGE_DEPENDS "g++ (>=9.0), libboost-all-dev (>=1.50), python3-dev (>=3.5), python3-numpy, libeigen3-dev, libspdlog-dev, pybind11-dev")
-    ENDIF()
-    INCLUDE(CPack)
 ENDIF()
