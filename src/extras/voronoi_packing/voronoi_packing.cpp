@@ -33,6 +33,7 @@
 #include <Eigen/Core>
 #include "voro++.hh"
 #include <string>
+#include <fstream>
 
 using namespace std;
 using namespace pteros;
@@ -86,11 +87,11 @@ void compute_voronoi_3d(const vector<Selection>& groups_sel){
     map<int,int> pid_to_groups;
     int pid = 0;
     for(int j=0;j<groups.size();++j){
-        auto& sp = groups[j];
-        for(int i=0;i<sp.sel.size();++i){
-            con.put(pid, sp.sel.x(i), sp.sel.y(i), sp.sel.z(i));
-            sp.pid_to_ind[pid]=i;
-            sp.ind_to_pid[i]=pid;
+        auto& gr = groups[j];
+        for(int i=0;i<gr.sel.size();++i){
+            con.put(pid, gr.sel.x(i), gr.sel.y(i), gr.sel.z(i));
+            gr.pid_to_ind[pid]=i;
+            gr.ind_to_pid[i]=pid;
             pid_to_groups[pid] = j;
             ++pid;
         }
@@ -107,10 +108,9 @@ void compute_voronoi_3d(const vector<Selection>& groups_sel){
 
         int cur_pid = clo.pid(); // Current pid
         int cur_gr_ind = pid_to_groups[cur_pid];
-
-        // Areas
+        
         vector<double> face_areas;
-        c.face_areas(face_areas);
+        c.face_areas(face_areas); // Get areas
         vector<int> neib;
         c.neighbors(neib); // Get neigbour pids
 
@@ -118,43 +118,44 @@ void compute_voronoi_3d(const vector<Selection>& groups_sel){
         for(int i=0;i<neib.size();++i){
             // Get resindex of neighbour
             int neib_pid = neib[i];
-            auto& neib_sp_ind = pid_to_groups[neib_pid];
+            auto& neib_gr_ind = pid_to_groups[neib_pid];
 
-            if(cur_gr_ind != neib_sp_ind){
+            if(cur_gr_ind != neib_gr_ind){
                 // This is a face between different species
                 area_elements.emplace_back(cur_pid,neib_pid,face_areas[i]);
                 groups[cur_gr_ind].total_area += face_areas[i];
             }
         }
-        // Add to volume of current species
+        // Add to volume of current group
         groups[cur_gr_ind].total_volume += c.volume();
 
     } while(clo.inc());
 
     fmt::print("There are {} inter-group faces\n",area_elements.size());
 
-    // Compute areas of all species-species interfaces
+    // Compute areas of all group-group interfaces
     MatrixXd interf(groups.size(),groups.size());
     MatrixXd interf_per_res(groups.size(),groups.size());
     interf.fill(0.0);
     interf_per_res.fill(0.0);
     for(const auto& el: area_elements){
-        int sp1 = pid_to_groups[el.pids[0]];
-        int sp2 = pid_to_groups[el.pids[1]];
-        interf(sp1,sp2) += el.area;
-        interf(sp2,sp1) += el.area;
+        int gr1 = pid_to_groups[el.pids[0]];
+        int gr2 = pid_to_groups[el.pids[1]];
+        interf(gr1,gr2) += el.area;
+        interf(gr2,gr1) += el.area;
     }
-    // Diagonal element are species areas
+    // Diagonal element are areas of groups
     for(int i=0;i<groups.size();++i) interf(i,i)=groups[i].total_area;
 
     for(int i=0;i<groups.size();++i){
         interf_per_res.col(i) = interf.col(i)/float(groups[i].num_residues);
     }
 
-    // Print it
-    fmt::print("Group interfaces areas:\n{}\n",interf);
-    fmt::print("Group interfaces areas per residue:\n{}\n",interf_per_res);
-
+    // Print results
+    ofstream out("voronoi_packing_results.dat");    
+    fmt::print(out,"Group interfaces areas:\n{}\n",interf);
+    fmt::print(out,"Group interfaces areas per residue:\n{}\n",interf_per_res);
+    out.close();
 }
 
 } // namespace pteros

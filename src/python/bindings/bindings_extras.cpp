@@ -1,4 +1,5 @@
 #include "bindings_util.h"
+#include "pteros/extras/voronoi_packing.h"
 
 namespace py = pybind11;
 
@@ -21,5 +22,7 @@ PYBIND11_MODULE(_pteros_extras, m) {
 #ifdef WITH_OPENBABEL
     make_bindings_substructure_search(m);
 #endif
+
+    m.def("compute_voronoi_3d", &pteros::compute_voronoi_3d);
 
 }
