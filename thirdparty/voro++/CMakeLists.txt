@@ -2,7 +2,7 @@
 # voro++ library 
 #------------------------------
 
-add_library(voro++ SHARED
+add_library(voro++ STATIC
     cell.cc
     common.cc
     container.cc
