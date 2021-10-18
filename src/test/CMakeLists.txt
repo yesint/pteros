@@ -15,7 +15,7 @@ test_selection.cpp
 #)
 
 
-target_link_libraries(pteros_test pteros_analysis pteros)
+target_link_libraries(pteros_test pteros_analysis pteros pteros_voronoi_packing)
 
 install(TARGETS
     pteros_test

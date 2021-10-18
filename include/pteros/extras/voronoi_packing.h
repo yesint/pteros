@@ -29,13 +29,46 @@
 
 #pragma once
 #include "pteros/core/selection.h"
-#include "pteros/core/logging.h"
-#include "pteros/core/utilities.h"
 #include <Eigen/Core>
+//#include "voro++.hh"
 
 namespace pteros {
 
 void compute_voronoi_3d(const std::vector<Selection>& groups_sel);
+
+struct PackingGroup {
+    PackingGroup(): total_area(0.0), total_volume(0.0) {} 
+
+    Selection sel;
+    int num_residues;
+    double total_area;
+    double total_volume;
+    // Mapping from pid to local indexes
+    std::map<int,int> pid_to_ind;
+    // Mapping from local indexes to pid
+    std::map<int,int> ind_to_pid;
+};
+
+
+struct InterGroupFace {
+    InterGroupFace(int at1, int at2, double a): pids(at1,at2),area(a) {}
+    Eigen::Vector2i pids;
+    double area;
+};
+
+
+class Voronoi3D {
+public:
+    Voronoi3D(const std::vector<Selection>& groups_sel);
+    void compute();    
+    void write_stats(const std::string& fname);
+private:
+    int num_frames;
+    std::map<int, int> pid_to_groups;
+    std::vector<PackingGroup> groups;
+    // Output matrix of areas between groups
+    Eigen::MatrixXd interface_areas;
+};
 
 } // namespace pteros
 
