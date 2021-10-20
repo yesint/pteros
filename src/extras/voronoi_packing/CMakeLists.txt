@@ -15,5 +15,3 @@ install(TARGETS pteros_voronoi_packing
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
 )
-
-

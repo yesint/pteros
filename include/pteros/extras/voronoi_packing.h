@@ -47,6 +47,8 @@ struct PackingGroup {
     std::map<int,int> pid_to_ind;
     // Mapping from local indexes to pid
     std::map<int,int> ind_to_pid;
+
+    void compute_averages(int num_frames);
 };
 
 
@@ -59,9 +61,16 @@ struct InterGroupFace {
 
 class Voronoi3D {
 public:
+    Voronoi3D(){}
     Voronoi3D(const std::vector<Selection>& groups_sel);
-    void compute();    
-    void write_stats(const std::string& fname);
+    void create(const std::vector<Selection>& groups_sel);
+    void compute();
+    void compute_averages();
+    void write_stats(const std::string& fname) const;
+    PackingGroup& get_group(int i) { return groups[i]; }
+    int num_groups() const { return groups.size(); }
+    Eigen::MatrixXd& get_interface_areas() { return interface_areas; }
+    int get_num_frames() const { return num_frames; }
 private:
     int num_frames;
     std::map<int, int> pid_to_groups;

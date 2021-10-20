@@ -10,6 +10,7 @@ SET(PLUGINS
     #example_plugin
     center
     contacts
+    voronoi_par
 )
 
 IF(MAKE_STANDALONE_PLUGINS)
