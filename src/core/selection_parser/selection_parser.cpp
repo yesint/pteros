@@ -668,10 +668,10 @@ void SelectionParser::eval_node(const std::shared_ptr<MyAst> &node, std::vector<
             pbc = process_pbc(node->nodes[1]);
             // Check next for self
             if(node->nodes[2]->tag == "SELF"_){
-                if(node->nodes[2]->token == "self") include_self = true;
+                if(node->nodes[2]->token == "noself") include_self = false;
             }
         } else if(node->nodes[1]->tag == "SELF"_) {
-            if(node->nodes[1]->token == "self") include_self = true;
+            if(node->nodes[1]->token == "noself") include_self = false;
             // Check next for pbc
             if(node->nodes[2]->tag == "PBC"_){
                 pbc = process_pbc(node->nodes[2]);
