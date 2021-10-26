@@ -34,8 +34,6 @@
 
 namespace pteros {
 
-void compute_voronoi_3d(const std::vector<Selection>& groups_sel);
-
 struct PackingGroup {
     PackingGroup(): total_area(0.0), total_volume(0.0) {} 
 

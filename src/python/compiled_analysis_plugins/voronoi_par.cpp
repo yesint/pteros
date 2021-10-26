@@ -86,6 +86,7 @@ protected:
 
     void collect_data(const std::vector<std::shared_ptr<TaskBase>>& tasks, int n_frames) override
     {
+        log->info("Collecting data from instances...");
         // Collect from instances. Put everything into the voro of the first instance
         auto h0 = dynamic_cast<voronoi_par*>(tasks[0].get())->voro;
         for(int i=1; i<tasks.size(); ++i){
@@ -105,6 +106,7 @@ protected:
         h0.get_interface_areas() /= double(n_frames);
 
         // Output
+        log->info("Wrinting output...");
         h0.write_stats(fmt::format("voronoi_{}",get_id()));
     }
 

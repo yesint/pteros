@@ -23,7 +23,7 @@ IF(MAKE_STANDALONE_PLUGINS)
         )
 
         target_compile_definitions(pteros_${plugin} PRIVATE "STANDALONE_PLUGINS")
-        target_link_libraries(pteros_${plugin} pteros pteros_analysis)
+        target_link_libraries(pteros_${plugin} pteros pteros_analysis pteros_voronoi_packing)
 
         install(TARGETS pteros_${plugin} RUNTIME DESTINATION bin/analysis)
     endforeach()
@@ -38,7 +38,7 @@ IF(WITH_PYTHON)
             ${PROJECT_SOURCE_DIR}/include/pteros/python/compiled_plugin.h
         )
 
-        target_link_libraries(${plugin} PRIVATE pteros pteros_analysis ${PYTHON_LIBRARIES})
+        target_link_libraries(${plugin} PRIVATE pteros pteros_analysis ${PYTHON_LIBRARIES} pteros_voronoi_packing)
 
         set_target_properties(${plugin} PROPERTIES
             LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/python/pteros_analysis_plugins"

@@ -94,7 +94,7 @@ void Voronoi3D::compute(){
     voro::voronoicell_neighbor c;
     vector<InterGroupFace> area_elements;
 
-    LOG()->info("Computing...");
+    //LOG()->info("Computing...");
 
     if(!clo.start()) throw PterosError("No particles!");
     do {
@@ -125,7 +125,7 @@ void Voronoi3D::compute(){
 
     } while(clo.inc());    
 
-    fmt::print("There are {} inter-group faces\n",area_elements.size());
+    //fmt::print("There are {} inter-group faces\n",area_elements.size());
     
     // Compute areas of all group-group interfaces
     for(const auto& el: area_elements){
@@ -140,7 +140,7 @@ void Voronoi3D::compute(){
     // Update number of frames consumed    
     ++num_frames;
 
-    LOG()->info("Done");
+    //LOG()->info("Done");
 }
 
 void Voronoi3D::compute_averages()
@@ -158,7 +158,8 @@ void Voronoi3D::write_stats(const std::string& fname) const {
     ofstream out(fname+"_groups.dat");
     fmt::print(out,"group\tarea\tvolume\ta_per_res\tv_per_res\n");
     for(int i=0; i<groups.size(); ++i){
-        fmt::print(out,"{i}\t{:.3f}\t{:.3f}\t{:.3f}\t{:.3f}\n",i,
+        //fmt::print(out,"{i}\t{:.3f}\t{:.3f}\t{:.3f}\t{:.3f}\n",i,
+        fmt::print(out,"{}\t{:.3f}\t{:.3f}\t{:.3f}\t{:.3f}\n",i,
                    groups[i].total_area, groups[i].total_volume,
                    groups[i].total_area/float(groups[i].num_residues),
                    groups[i].total_volume/float(groups[i].num_residues)
