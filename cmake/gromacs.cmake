@@ -75,8 +75,15 @@ if(WITH_GROMACS)
     # Get actual gromacs version
     file(READ ${GROMACS_SOURCE_DIR}/cmake/gmxVersionInfo.cmake gmxinfofile)
     string(REGEX MATCH "set\\(GMX_VERSION_MAJOR +([0-9]+)" match ${gmxinfofile})
-    set(GROMACS_VERSION ${CMAKE_MATCH_1})
-    # Now we have GMX_VERSION_MAJOR in GROMACS_VERSION!
+    if(CMAKE_MATCH_1)
+        set(GROMACS_VERSION ${CMAKE_MATCH_1})
+    else()
+        # New format of version file since Gromacs 2022.x, version stored in main CmakeLists file
+        file(READ ${GROMACS_SOURCE_DIR}/CMakeLists.txt gmxinfofile)
+        string(REGEX MATCH "Gromacs VERSION +([0-9]+)" match ${gmxinfofile})
+        set(GROMACS_VERSION ${CMAKE_MATCH_1})
+    endif()
+    message(STATUS "Gromacs version used: ${GROMACS_VERSION}")
 
     if(GROMACS_VERSION GREATER 2020)
         set(GROMACS_INCLUDE_DIRECTORIS
