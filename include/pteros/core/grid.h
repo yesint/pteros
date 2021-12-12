@@ -41,9 +41,12 @@ namespace pteros {
     public:
         void add_point(int ind, Vector3f_const_ref crd);
         void clear();
-        int get_index(int i) const {return indexes[i];}
+        int get_index(int i) const {return indexes[i];}       
+        const std::vector<int>& get_indexes() const {return indexes;}
         Eigen::Vector3f get_coord(int i) const {return coords[i];}
         size_t size() const {return indexes.size();}
+
+        Eigen::Vector3f get_average_coord();
 
     private:
         std::vector<int> indexes;

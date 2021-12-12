@@ -7,6 +7,7 @@ IF(WITH_PYTHON)
         bindings_util.h
         bindings_atom.cpp
         bindings_periodic_box.cpp
+        bindings_grid.cpp
         bindings_system.cpp
         bindings_selection.cpp
         bindings_frame.cpp

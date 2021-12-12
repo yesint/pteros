@@ -17,6 +17,7 @@ void make_bindings_Selection(py::module&);
 void make_bindings_Periodic_box(py::module&);
 void make_bindings_Frame(py::module&);
 void make_bindings_Distance_search(py::module&);
+void make_bindings_Grid(py::module&);
 void make_bindings_Options(py::module&);
 void make_bindings_Trajectory_reader(py::module&);
 
@@ -30,6 +31,7 @@ PYBIND11_MODULE(_pteros, m) {
     make_bindings_Periodic_box(m);
     make_bindings_Frame(m);
     make_bindings_Distance_search(m);
+    make_bindings_Grid(m);
     make_bindings_Options(m);
     make_bindings_Trajectory_reader(m);
 

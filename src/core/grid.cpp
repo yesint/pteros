@@ -164,4 +164,12 @@ void GridCell::clear(){
     coords.clear();
 }
 
+Vector3f GridCell::get_average_coord()
+{
+    Vector3f av(0,0,0);
+    for(int i=0;i<coords.size();++i) av+=coords[i];
+    av/=float(coords.size());
+    return av;
+}
+
 
