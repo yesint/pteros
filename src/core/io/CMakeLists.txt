@@ -63,5 +63,5 @@ target_link_libraries(pteros_io PRIVATE
     xdrfile
     spdlog::spdlog
     Eigen3::Eigen
-    #fmt::fmt
+    fmt::fmt
 )

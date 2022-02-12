@@ -92,9 +92,9 @@ target_link_libraries(pteros
         sasa
         molfile_plugins
     PUBLIC
+        fmt::fmt
         Eigen3::Eigen
         spdlog::spdlog
-        #fmt::fmt
 )
 
 if(WITH_OPENMP AND OpenMP_CXX_FOUND)
