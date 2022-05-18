@@ -77,7 +77,11 @@ void DistanceSearchContacts2sel::search_planned_pair(const PlannedPair &pair,
                                                         std::vector<float> &distances_buffer)
 {
     search_between_cells(pair,grid1,grid2,pairs_buffer,distances_buffer);
-    if(pair.c1!=pair.c2) search_between_cells(pair,grid2,grid1,pairs_buffer,distances_buffer);
+    if(pair.c1!=pair.c2){
+        //swapped flag passed to always keep sel1 first and sel2 second
+        std::swap(const_cast<PlannedPair&>(pair).c1,const_cast<PlannedPair&>(pair).c2);
+        search_between_cells(pair,grid1,grid2,pairs_buffer,distances_buffer);
+    }
 }
 
 
