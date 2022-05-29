@@ -34,6 +34,7 @@
 #include <map>
 #include <set>
 #include "pteros/core/logging.h"
+#include "pteros/core/utilities.h"
 
 using namespace std;
 using namespace pteros;
@@ -59,7 +60,6 @@ struct comparator {
 TASK_SERIAL(contacts)
 public:
 
-
     string help() override {
         return
 R"(Purpose:
@@ -79,7 +79,7 @@ Options:
     -padding, default: 0.1
         Padding added to cutoff in the case of VdW radii (cutoff=-1).
     -transient <true|false>, default: false
-        If true the contacts with last for single frame only are recorded.
+        If true the contacts which last for single frame only are also recorded.
 )";
     }
 
@@ -91,10 +91,11 @@ protected:
         all.modify(system, "all");
 
         // Check if selection overlap        
-        if(check_selection_overlap({sel1,sel2})) throw PterosError("Selections could not overlap!");
+        if(check_selection_overlap({sel1,sel2}))
+            throw PterosError("Selections could not overlap!");
 
         // Set periodicity
-        periodic = options("periodic","false").as_bool();
+        periodic = options("periodic","false").as_bool() ? fullPBC : noPBC;
 
         /*
         // Removing jumps for both selections if requested
@@ -109,9 +110,9 @@ protected:
 
         // Contacts cutoff
         cutoff = options("cutoff","0").as_float();
-        // If zero cutoff given search for maximal sum of VDW distances
+        // Search for maximal sum of VDW distances
         if(cutoff==-1){
-            log->info("Computing largest sum VDW distances...");
+            log->info("Computing largest sum of VDW radii...");
             float maxd = 0.0, vdw1, vdw2;
             int i,j;
             for(i=0; i<sel1.size(); ++i){                
@@ -121,7 +122,7 @@ protected:
                     if(vdw1+vdw2 > maxd) maxd = vdw1+vdw2;
                 }
             }
-            log->info("\tLargest sum of VDW distances is {}",maxd);
+            log->info("\tLargest sum of VDW radii is {}",maxd);
             // Get padding if given. Default is 0.1
             float pad = options("padding","0.1").as_float();
             cutoff = maxd + pad;
@@ -136,6 +137,14 @@ protected:
         keep_transient = options("transient","false").as_bool();
 
         en_f.open(options("en_file",fmt::format("energy_{}.dat",get_id())).as_string());
+
+        // Init histograms of instant contacting residues
+        int max_contact_res = options("max_contact_res","10").as_int();
+        num_contacting_res_hist.resize(2);
+        for(int i=0;i<2;++i){
+            num_contacting_res_hist[i].create(-0.5,max_contact_res-0.5,max_contact_res);
+        }
+
     }     
 
     void process_frame(const pteros::FrameInfo &info) override {
@@ -147,24 +156,26 @@ protected:
         sel1.apply();
         sel2.apply();
 
-        Vector3i pbc = periodic ? fullPBC : noPBC;
-        search_contacts(cutoff,sel1,sel2,bon,dist_vec,true,pbc); // global indexes returned!
+        search_contacts(cutoff,sel1,sel2,bon,dist_vec,true,periodic); // global indexes returned!
 
         Vector2f total_en(0,0);
-        pair_en.resize(bon.size());
 
         // Get energies if possible
         if(system.force_field_ready()){
+            pair_en.resize(bon.size());
             total_en = get_energy_for_list(bon,dist_vec,system, &pair_en);
         }
+
+        // Instanteneous set of residue contacts
+        set<Vector2i,comparator> cur_res_set;
 
         // Analyze contacts        
         for(int i=0;i<bon.size();++i){
             // Get contact
             auto& c = bon[i];
 
-            // Sort pair
-            sort(c.data(), c.data()+c.size());
+            // Now sort the pair to represent unique key
+            //sort(c.data(), c.data()+c.size());
 
             for(int n=0; n<2; ++n){
                 // ATOM MAP
@@ -244,10 +255,30 @@ protected:
                 res_contacts[r] = cur;
             }
 
+            // Add to instanteneous set of residue contacts
+            cur_res_set.insert(r);
+        } // Analyse contacts
 
-        }        
+        // Filling histograms
+        vector<map<int,int>> num_contacts_per_res(2);
+        for(const auto& el: cur_res_set){
+            for(int i=0;i<2;++i){
+                if(num_contacts_per_res[i].count(el(i))){
+                    num_contacts_per_res[i][el(i)]+=1;
+                } else {
+                    num_contacts_per_res[i][el(i)]=1;
+                }
+            }
+        }
+        for(int i=0;i<2;++i){
+            for(const auto& el: num_contacts_per_res[i]){
+                num_contacting_res_hist[i].add(el.second);
+            }
+        }
 
-        en_f << info.absolute_time << " " << total_en.sum() << " " << total_en.transpose() << endl;
+        fmt::print(en_f,"{} {} {}\n",
+                   info.absolute_time, total_en.sum(), total_en.transpose());
+        //en_f << info.absolute_time << " " << total_en.sum() << " " <<  << endl;
     }
 
     void post_process(const pteros::FrameInfo &info) override {
@@ -303,16 +334,16 @@ protected:
 
         // Output atom contacts
         ofstream f(options("oa",fmt::format("atom_contacts_stats_{}.dat",get_id())).as_string());
-        f << "# ATOMS" << endl;
-        f << "#i\tj\tn_formed\tlife_t\ten" << endl;
+        fmt::print(f,"# ATOMS\n");
+        fmt::print(f,"#i\tj\tn_formed\tlife_t\ten\n");
         for(const auto& it: atom_contacts){
             int i = it.first(0);
             int j = it.first(1);
-            f << sel1.index(i)+1 << ":" << all.name(i) << ":" << all.resname(i) << "\t"
-              << sel2.index(j)+1 << ":" << all.name(j) << ":" << all.resname(j) << "\t"
-              << it.second.num_formed << "\t"
-              << it.second.mean_life_time << "\t"
-              << it.second.energy.sum() << endl;
+            fmt::print(f,"{}:{}:{}\t{}:{}:{}\t{}\t{}\t{}\n",
+                       sel1.index(i)+1, all.name(i), all.resname(i),
+                       sel2.index(j)+1, all.name(j), all.resname(j),
+                       it.second.num_formed, it.second.mean_life_time, it.second.energy.sum()
+                       );
         }
         f.close();
 
@@ -323,10 +354,12 @@ protected:
         for(const auto& it: res_contacts){
             int i = it.first(0);
             int j = it.first(1);
-            f << i << "\t" << j << "\t"
-              << it.second.num_formed << "\t"
-              << it.second.mean_life_time << "\t"
-              << it.second.energy.sum() << endl;
+            fmt::print(f,"{}\t{}\t{}\t{}\t{}\n",
+                       i,j,
+                       it.second.num_formed,
+                       it.second.mean_life_time,
+                       it.second.energy.sum()
+                       );
         }
         f.close();
 
@@ -347,12 +380,19 @@ protected:
             all("resindex "+to_string(it.first)).set_beta( 100.0*it.second/float(info.valid_frame)/maxv );
         }
         all.write(fmt::format("res_map_{}.pdb",get_id()));
+
+
+        // Output number of contacts per residue histograms
+        for(int i=0;i<2;++i){
+            num_contacting_res_hist[i].normalize();
+            num_contacting_res_hist[i].save_to_file(fmt::format("per_residue_contacting_res_distrib_{}.dat",i));
+        }
     }
 
 private:    
     Selection sel1, sel2, all;
     float cutoff;
-    bool periodic;
+    Vector3i periodic;
     map<Vector2i,Contact,comparator> atom_contacts;
     map<Vector2i,Contact,comparator> res_contacts;
     bool keep_transient;
@@ -363,6 +403,9 @@ private:
     map<int,float> atom_map;
     // Per residue life time heat map
     map<int,float> res_map;
+
+    // Histograms for number of instant residues in contact with current residue
+    vector<Histogram> num_contacting_res_hist;
 };
 
 
