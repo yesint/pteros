@@ -39,7 +39,7 @@ if(WITH_GROMACS)
 
         FetchContent_Declare(Gromacs_external_fetch
             GIT_REPOSITORY  https://gitlab.com/gromacs/gromacs.git
-            GIT_TAG         master #v2020.5
+            GIT_TAG         main
             GIT_SHALLOW     TRUE
             GIT_PROGRESS    TRUE
         )
