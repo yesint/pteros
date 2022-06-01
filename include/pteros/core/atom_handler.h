@@ -47,7 +47,7 @@ class System;
 /// Used internally in Selection::operator[] and in iterator access to Selection.
 /// Objects of this class should not be created by the user in normal situation.
 class AtomHandler {
-    friend class Selection;
+    friend class Selection;    
     friend class System;
 public:
     AtomHandler(){}
@@ -132,13 +132,6 @@ private:
     AtomStateIterator coord_ptr;
     // Atom don't store it's own index, so store it here
     int ind;
-
-    // Move handler by n atoms. For internal usage.
-    inline void advance(int n=1){
-        coord_ptr+=n;
-        atom_ptr+=n;
-        ind+=n;
-    }
 };
 
 } //namespace

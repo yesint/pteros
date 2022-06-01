@@ -1015,21 +1015,32 @@ public:
     using reference = AtomHandler&;
     using iterator_category = std::random_access_iterator_tag;
 
-    iterator(const Selection& sel, int i): ind(i) {
-        proxy.set(sel,ind);
+    iterator(const Selection& sel, int i){
+        index_it = sel.index_begin() + i;
+        proxy.set(sel,*index_it);
     }
-    iterator operator++(int junk) { iterator tmp = *this; ++ind; return tmp; }
-    iterator& operator++() { ++ind; proxy.advance(); return *this; }
-    iterator& operator+(int i) {ind+=i; proxy.advance(i); return *this;}
-    iterator& operator-(int i) {ind-=i; proxy.advance(-i); return *this;}
+    iterator operator++(int junk) { iterator tmp = *this; advance_proxy(); return tmp; }
+    iterator& operator++() { advance_proxy(); return *this; }
+    iterator& operator+(int i) {advance_proxy(i); return *this;}
+    iterator& operator-(int i) {advance_proxy(-i); return *this;}
     reference operator*() { return proxy; }
     pointer   operator->() { return &proxy; }
-    bool operator==(const iterator& rhs) { return ind == rhs.ind; }
+    bool operator==(const iterator& rhs) { return index_it == rhs.index_it; }
     bool operator!=(const iterator& rhs) { return !(*this==rhs); }
 
 private:
-    int ind;
     AtomHandler proxy;
+    // We have to keep an iterator for index array of parent selection
+    std::vector<int>::const_iterator index_it;
+
+    void advance_proxy(int n=1){
+        int offset = *index_it; // save current index
+        index_it += n;
+        offset = *index_it-offset; // compute offset to new index
+        proxy.ind = *index_it;
+        proxy.atom_ptr += offset;
+        proxy.coord_ptr += offset;
+    }
 };
 
 /// Checks if several selections overlap
