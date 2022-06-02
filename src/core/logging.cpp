@@ -27,9 +27,6 @@
 */
 
 
-
-
-
 #include "pteros/core/logging.h"
 #include "pteros/core/pteros_error.h"
 
