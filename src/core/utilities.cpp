@@ -272,6 +272,21 @@ void Histogram::add_cylindrical(float r, float w, float sector, float cyl_h)
     }
 }
 
+void Histogram::add_sel_cylindrical(const Selection& sel, Vector3f_const_ref pivot, Array3i_const_ref dims, float sector, float cyl_h)
+{
+    if(normalized) throw PterosError("Can't add value to normalized histogram!");
+    Array3f dims_mask = dims.cast<float>();
+    for(int i=0;i<sel.size();++i){
+        float r = ((sel.xyz(i)-pivot).array()*dims_mask).matrix().norm();
+        int b = floor((r-minv)/d);
+        if(b>=0 && b<nbins){
+            float r1 = pos(b)-0.5*d;
+            float r2 = pos(b)+0.5*d;
+            val(b) += sel.mass(i)/(cyl_h*sector*(r2*r2-r1*r1));
+        }
+    }
+}
+
 void Histogram::normalize(float norm)
 {
     if(norm){

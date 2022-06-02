@@ -73,6 +73,7 @@ PYBIND11_MODULE(_pteros, m) {
             .def("add",py::overload_cast<float,float>(&Histogram::add),"value"_a,"weight"_a=1.0)
             .def("add",py::overload_cast<const vector<float>&>(&Histogram::add))
             .def("add_cylindrical",&Histogram::add_cylindrical)
+            .def("add_sel_cylindrical",&Histogram::add_sel_cylindrical,"sel"_a,"pivot"_a,"dims"_a,"sector"_a,"cyl_h"_a)
             .def("normalize",&Histogram::normalize,"norm"_a=0)
             .def("value",&Histogram::value)
             .def("position",&Histogram::position)
@@ -81,7 +82,7 @@ PYBIND11_MODULE(_pteros, m) {
             .def_property_readonly("values",&Histogram::values)
             .def_property_readonly("positions",&Histogram::positions)
             .def_property_readonly("num_bins",&Histogram::num_bins)
-            .def("save_to_file",&Histogram::save_to_file,"fname"_a,"x_shift"_a=0.0)
+            .def("save_to_file",&Histogram::save_to_file,"fname"_a,"x_shift"_a=0.0)            
     ;
 
     py::class_<Histogram2D>(m,"Histogram2D")

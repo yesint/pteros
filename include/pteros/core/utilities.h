@@ -96,6 +96,8 @@ namespace pteros {
         void add(float v, float weight=1.0);
         void add(const std::vector<float> &v);
         void add_cylindrical(float r, float w, float sector, float cyl_h);
+        /// Add whole selection to cylindrical histogram
+        void add_sel_cylindrical(const Selection &sel, Vector3f_const_ref pivot, Array3i_const_ref dims, float sector, float cyl_h);
         void normalize(float norm=0);
         float value(int i) const;
         float position(int i) const;
