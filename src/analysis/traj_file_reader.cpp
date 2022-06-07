@@ -201,8 +201,15 @@ void Traj_file_reader::reader_thread_body(const vector<string> &traj_files, cons
                     abs_time = data->frame.time;
                 }
 
-                if(log_interval>0 && abs_frame%log_interval==0)
-                    log->info("At frame {}, {} ps",abs_frame,abs_time);
+                if(log_interval>0 && abs_frame%log_interval==0){
+                    if(abs_time<1000){
+                        log->info("At frame {}, {} ps",abs_frame,abs_time);
+                    } else if(abs_time<1e6){
+                        log->info("At frame {}, {} ns",abs_frame, abs_time/1000.0);
+                    } else {
+                        log->info("At frame {}, {} us",abs_frame, abs_time/1000000.0);
+                    }
+                }
 
                 // Check if end of requested interval is reached
                 if( is_end_of_interval(abs_frame,abs_time) ){
