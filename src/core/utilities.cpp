@@ -182,7 +182,7 @@ void greeting(string tool_name)
     string s1 = "|***    Pteros molecular modeling library    ***|";
     string ver_str = fmt::format("Version: {} ({})", _version_tag, _git_revision);
     string timestamp = fmt::format("Built at: {}", _build_time);
-    string author = "(C) Semen Yesylevskyy, 2021";
+    string author = "(C) Semen Yesylevskyy, 2022";
     string cite = "Please cite: 10.1002/jcc.23943";
     string web = "Web: github.com/yesint/pteros";
     // Line
@@ -220,9 +220,26 @@ void get_element_from_atom_name(const string& name, int &anum, float &mass){
          else { mass = 1.0; anum = 0; } //default
 }
 
+
+string time_pretty_print(float t){
+    string unit;
+    float fact;
+    if(t<1000){
+        unit = "ps";
+        fact = 1.0;
+    } if(t<1e6){
+        unit = "ns";
+        fact = 1000.0;
+    } else {
+        unit = "us";
+        fact = 1000000.0;
+    }
+    return fmt::format("{} {}",t/fact,unit);
+}
+
 } // namespace pteros
 
-
+//---------------------------------------------------------------------
 
 Histogram::Histogram(float minval, float maxval, int n): normalized(false)
 {

@@ -154,12 +154,12 @@ void Traj_file_reader::reader_thread_body(const vector<string> &traj_files, cons
                 } else if(first_time>0){
                     // If beyond this trajectory try the next one
                     if(first_time>=last_t){
-                        log->info("First time is {}, while this trajectory ends at {}.",first_frame,last_fr);
+                        log->info("First time is {}, while this trajectory ends at {}.",first_time,last_t);
                         abs_frame += last_fr;
                         abs_time += last_t;
                         continue;
                     }
-                    log->info("Fast forward to time {}...",first_time);
+                    log->info("Fast forward to time {}...",time_pretty_print(first_time));
                     rand_trj->seek_time(first_time);
                 }
                 seek_status = 0; // Seeking done
@@ -202,13 +202,7 @@ void Traj_file_reader::reader_thread_body(const vector<string> &traj_files, cons
                 }
 
                 if(log_interval>0 && abs_frame%log_interval==0){
-                    if(abs_time<1000){
-                        log->info("At frame {}, {} ps",abs_frame,abs_time);
-                    } else if(abs_time<1e6){
-                        log->info("At frame {}, {} ns",abs_frame, abs_time/1000.0);
-                    } else {
-                        log->info("At frame {}, {} us",abs_frame, abs_time/1000000.0);
-                    }
+                    log->info("At frame {}, {}", abs_frame, time_pretty_print(abs_time));
                 }
 
                 // Check if end of requested interval is reached
@@ -237,7 +231,7 @@ void Traj_file_reader::reader_thread_body(const vector<string> &traj_files, cons
                     first_valid_frame = abs_frame;
                     first_valid_time = abs_time;
                     // print a message
-                    log->info("First valid frame is {}, {} ps",abs_frame,abs_time);
+                    log->info("First valid frame is {}, {}",abs_frame,time_pretty_print(abs_time));
                 }
 
                 // Fill data container, which will be sent to the queue
@@ -282,7 +276,7 @@ void Traj_file_reader::reader_thread_body(const vector<string> &traj_files, cons
         channel->send_stop();
         log->error(e.what());
     } catch(...) {
-        log->critical("Some unknown terrible crash :-(");
+        log->critical("Some unknown terrible crash :( This may eat your hamster!");
         // Send stop if exception raised
         channel->send_stop();
     }

@@ -86,6 +86,8 @@ namespace pteros {
     std::string str_to_lower_copy(const std::string& str);
     void str_trim_in_place(std::string &s);
 
+    std::string time_pretty_print(float t);
+
     /// Simple histogram class
     class Histogram {
     public:
