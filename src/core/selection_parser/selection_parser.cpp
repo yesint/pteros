@@ -121,7 +121,7 @@ Pteros_PEG_parser _parser(R"(
 
     # Allows vector as 'a b c' or '(a b c)'
     VEC3_EXPR           <-  VEC3 / '(' VEC3 ')'
-    VEC3                <-  NUM_EXPR NUM_EXPR NUM_EXPR / CENTER     {no_ast_opt}
+    VEC3                <-  (FLOAT/NUM_EXPR) (FLOAT/NUM_EXPR) (FLOAT/NUM_EXPR) / CENTER     {no_ast_opt}
 
     CENTER              <-  'center ' (WEIGHT PBC / PBC WEIGHT / PBC / WEIGHT)? 'of ' LOGICAL_OPERAND {no_ast_opt}
     WEIGHT              <-  'weight ' NUM_EXPR {no_ast_opt}
