@@ -119,9 +119,12 @@ Pteros_PEG_parser _parser(R"(
     PLANE               <-  'plane ' 'point ' VEC3_EXPR 'normal ' VEC3_EXPR /
                             'plane ' VEC3_EXPR VEC3_EXPR VEC3_EXPR
 
-    # Allows vector as 'a b c' or '(a b c)'
-    VEC3_EXPR           <-  VEC3 / '(' VEC3 ')'
-    VEC3                <-  (FLOAT/NUM_EXPR) (FLOAT/NUM_EXPR) (FLOAT/NUM_EXPR) / CENTER     {no_ast_opt}
+    # Allows vectors as [a, b, c] or [a b c] with or without brackets
+    # Compatible with Python lists or numpy arrays default formatting
+    VEC3_EXPR           <-  VEC3 / '[' VEC3 ']'
+    VEC3                <-    FLOAT FLOAT FLOAT
+                            / NUM_EXPR ',' NUM_EXPR ',' NUM_EXPR
+                            / CENTER     {no_ast_opt}
 
     CENTER              <-  'center ' (WEIGHT PBC / PBC WEIGHT / PBC / WEIGHT)? 'of ' LOGICAL_OPERAND {no_ast_opt}
     WEIGHT              <-  'weight ' NUM_EXPR {no_ast_opt}
