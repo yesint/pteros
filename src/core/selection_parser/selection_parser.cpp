@@ -714,7 +714,7 @@ void SelectionParser::eval_node(const std::shared_ptr<MyAst> &node, std::vector<
 
     //---------------------------------------------------------------------------
     default:
-        throw PterosError("Unknown node {}!",node->name);   
+        throw PterosError("Unknown node {}!",node->name);
     } // case
 }
 
@@ -1011,8 +1011,3 @@ std::function<float(int)> SelectionParser::get_numeric(const std::shared_ptr<MyA
 
     } // case
 }
-
-
-
-
-
