@@ -33,6 +33,18 @@
 #include <charconv>
 #include <sstream>
 
+/*
+#PEG grammar for options with tasks
+
+CMD <- (OPTION (SP OPTION)*)? (SP TASK (SP TASK)*)?
+OPTION <- OPTION_NAME (SP VALUE)*
+TASK <- '-task' SP NAME (SP OPTION)*
+OPTION_NAME <- '-' !('task' SP) NAME
+NAME <- [^0-9- \t][^ \t]*
+VALUE <- [^- \t"'][^ \t"']* / '"' [^"]+ '"' / "'" [^']+ "'"
+~SP <- [ \t]+
+*/
+
 using namespace std;
 using namespace pteros;
 
