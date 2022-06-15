@@ -1249,11 +1249,8 @@ inline float Coulomb_en_kernel(float q1, float q2, float r_inv){
     return ONE_4PI_EPS0*q1*q2*r_inv;
 }
 
-
-namespace pteros {
-
-Vector2f get_energy_for_list(const vector<Vector2i>& pairs, const vector<float>& dist, const System& sys, vector<Vector2f>* pair_en){
-    ForceField& ff = const_cast<System&>(sys).get_force_field();
+Vector2f System::get_energy_for_list(const vector<Vector2i>& pairs, const vector<float>& dist, vector<Vector2f>* pair_en){
+    ForceField& ff = get_force_field();
     Vector2f e_total(0,0);
 
     if(pair_en) pair_en->resize(pairs.size());
@@ -1267,8 +1264,8 @@ Vector2f get_energy_for_list(const vector<Vector2i>& pairs, const vector<float>&
             at1 = pairs[i](0);
             at2 = pairs[i](1);
             auto e = ff.pair_energy(at1, at2, dist[i],
-                                sys.atom(at1).charge, sys.atom(at2).charge,
-                                sys.atom(at1).type,   sys.atom(at2).type);
+                                atom(at1).charge, atom(at2).charge,
+                                atom(at1).type,   atom(at2).type);
             if(pair_en) (*pair_en)[i] = e;
             eloc += e;
         }
@@ -1282,6 +1279,7 @@ Vector2f get_energy_for_list(const vector<Vector2i>& pairs, const vector<float>&
 }
 
 //-------------------------------
+namespace pteros {
 
 void Frame::swap(int i, int j)
 {

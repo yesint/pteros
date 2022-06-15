@@ -27,9 +27,6 @@
 */
 
 
-
-
-
 #include "pteros/core/selection.h"
 #include "bindings_util.h"
 
@@ -157,6 +154,26 @@ void make_bindings_System(py::module& m){
                 if(i >= s.num_atoms() || fr<0 || fr>=s.num_frames()) throw py::index_error();
                 return s[{i,fr}]; // Returns atom proxy object
             }, py::keep_alive<0,1>())
+
+        // Evaluate energies from the pre-computed contacts list
+        .def("get_energy_for_list",[](System& s,
+                                      const vector<Vector2i>& pairs,
+                                      const vector<float>& dist,
+                                      bool energies_per_pair=false)
+        {
+            if(energies_per_pair){
+                vector<Vector2f>* pair_en = new vector<Vector2f>;
+                Vector2f res = s.get_energy_for_list(pairs,dist,pair_en);
+                // Interpret pair_en as an array of floats for conversion to py_array
+                py::array arr = vector_to_array<float>(reinterpret_cast<vector<float>*>(pair_en),2*pair_en->size());
+                // Reshape it back into 2D array (no reallocation)
+                arr.resize(vector<size_t>{pair_en->size(),2});
+                // Return resulting py_array
+                return py::make_tuple(res,arr);
+            } else {
+                return py::make_tuple(s.get_energy_for_list(pairs,dist),py::none());
+            }
+        },"pairs"_a,"dist"_a,"energies_per_pair"_a=false)
 
     ;
 }

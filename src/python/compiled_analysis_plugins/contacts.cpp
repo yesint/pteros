@@ -163,7 +163,7 @@ protected:
         // Get energies if possible
         if(system.force_field_ready()){
             pair_en.resize(bon.size());
-            total_en = get_energy_for_list(bon,dist_vec,system, &pair_en);
+            total_en = system.get_energy_for_list(bon,dist_vec,&pair_en);
         }
 
         // Instanteneous set of residue contacts

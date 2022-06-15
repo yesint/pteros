@@ -1164,7 +1164,7 @@ Vector2f non_bond_energy(const Selection& sel1,
     if(fr2!=fr) const_cast<Selection&>(sel2).set_frame(fr2);
 
     // Now get energy using pair list and distances
-    return get_energy_for_list(pairs,dist,*sel1.get_system());
+    return sel1.get_system()->get_energy_for_list(pairs,dist);
 }
 
 
@@ -1310,7 +1310,7 @@ Vector2f Selection::non_bond_energy(float cutoff, bool pbc) const
     search_contacts(d,*this,pairs,dist,true, pbc_dims);
 
     // Now get energy using pair list and distances
-    return get_energy_for_list(pairs,dist,*system);
+    return system->get_energy_for_list(pairs,dist);
 }
 
 // Fit all frames in trajectory

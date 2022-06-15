@@ -519,6 +519,14 @@ public:
     /// Does nothing if no forces.
     void clear_force();
 
+    /// Low level energy evaluation function
+    /// Returns total energy
+    /// Individual pair energies could be returned to pair_en if provided.
+    Eigen::Vector2f get_energy_for_list(const std::vector<Eigen::Vector2i>& pairs,
+                                        const std::vector<float>& dist,
+                                        std::vector<Eigen::Vector2f>* pair_en=nullptr);
+
+
     /// @}
 
 protected:
@@ -540,46 +548,6 @@ protected:
     void filter_atoms();
     void filter_coord(int fr);
 };
-
-//====================================================================================
-
-/// Low level energy evaluation function
-/// Returns total energy
-/// Individual pair energies could be returned to pair_en if provided.
-Eigen::Vector2f get_energy_for_list(const std::vector<Eigen::Vector2i>& pairs,
-                                    const std::vector<float>& dist,
-                                    const System& sys,
-                                    std::vector<Eigen::Vector2f>* pair_en=nullptr);
-
-//====================================================================================
-
-/// Random-access forward iterator for Selection
-/*
-class System::atom_iterator {
-public:
-    using value_type = AtomHandler;
-    using difference_type = size_t;
-    using pointer = AtomHandler*;
-    using reference = AtomHandler&;
-    using iterator_category = std::random_access_iterator_tag;
-
-    atom_iterator(const System& sys, int i, int fr): ind(i) {
-        proxy.set(sys,ind,fr);
-    }
-    atom_iterator operator++(int junk) { atom_iterator tmp = *this; ++ind; return tmp; }
-    atom_iterator& operator++() { ++ind; proxy.advance(); return *this; }
-    atom_iterator& operator+(int i) {ind+=i; proxy.advance(i); return *this;}
-    atom_iterator& operator-(int i) {ind-=i; proxy.advance(-i); return *this;}
-    reference operator*() { return proxy; }
-    pointer   operator->() { return &proxy; }
-    bool operator==(const atom_iterator& rhs) { return ind == rhs.ind; }
-    bool operator!=(const atom_iterator& rhs) { return !(*this==rhs); }
-
-private:
-    int ind;
-    AtomHandler proxy;
-};
-*/
 
 } // namespace
 
