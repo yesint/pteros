@@ -27,9 +27,6 @@
 */
 
 
-
-
-
 #include "pteros/analysis/trajectory_reader.h"
 #include "message_channel.h"
 #include "data_container.h"
@@ -392,7 +389,7 @@ void TrajectoryReader::run(){
 
     auto end = chrono::steady_clock::now();
 
-    log->info("Processing wall time: {}s", chrono::duration<double>(end-start).count() );
+    log->info("Processing wall time: {:.2f}s", chrono::duration<double>(end-start).count() );
 
     // Print statistics
     if( is_parallel ){
