@@ -275,8 +275,17 @@ void Histogram::add(float v,float  weight)
 
 void Histogram::add(const std::vector<float>& v)
 {
+    if(normalized) throw PterosError("Can't add value to normalized histogram!");
     for(auto& val: v) add(val);
 }
+
+void Histogram::add(const std::vector<float>& v, const std::vector<float>& w)
+{
+    if(v.size()!=w.size()) throw PterosError("Wrong size of histogram weights array!");
+    if(normalized) throw PterosError("Can't add value to normalized histogram!");
+    for(int i=0;i<v.size();++i) add(v[i],w[i]);
+}
+
 
 void Histogram::add_cylindrical(float r, float w, float sector, float cyl_h)
 {

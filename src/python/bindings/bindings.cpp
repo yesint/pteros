@@ -72,6 +72,7 @@ PYBIND11_MODULE(_pteros, m) {
             .def(py::init<float,float,int>())
             .def("add",py::overload_cast<float,float>(&Histogram::add),"value"_a,"weight"_a=1.0)
             .def("add",py::overload_cast<const vector<float>&>(&Histogram::add))
+            .def("add",py::overload_cast<const vector<float>&,const vector<float>&>(&Histogram::add))
             .def("add_cylindrical",&Histogram::add_cylindrical)
             .def("add_sel_cylindrical",&Histogram::add_sel_cylindrical,"sel"_a,"pivot"_a,"dims"_a,"sector"_a,"cyl_h"_a)
             .def("normalize",&Histogram::normalize,"norm"_a=0)
