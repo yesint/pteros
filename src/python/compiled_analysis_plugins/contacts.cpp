@@ -67,6 +67,8 @@ R"(Purpose:
 Output:
 
 Options:
+    -label, default: ''
+        Optional label to be added to output file names.
     -sel1, -sel2
         two selections to compute contacts between.
         Selection should not overlap. An error is thrown is they are.
@@ -332,23 +334,25 @@ protected:
             }
         }
 
+        string label = options("label","").as_string();
+
         // Output atom contacts
-        ofstream f(options("oa",fmt::format("atom_contacts_stats_{}.dat",get_id())).as_string());
+        ofstream f(options("oa",fmt::format("atom_contacts_stats_{}_{}.dat",label,get_id())).as_string());
         fmt::print(f,"# ATOMS\n");
         fmt::print(f,"#i\tj\tn_formed\tlife_t\ten\n");
         for(const auto& it: atom_contacts){
             int i = it.first(0);
             int j = it.first(1);
             fmt::print(f,"{}:{}:{}\t{}:{}:{}\t{}\t{}\t{}\n",
-                       sel1.index(i)+1, all.name(i), all.resname(i),
-                       sel2.index(j)+1, all.name(j), all.resname(j),
+                       i, all.name(i), all.resname(i),
+                       j, all.name(j), all.resname(j),
                        it.second.num_formed, it.second.mean_life_time, it.second.energy.sum()
                        );
         }
         f.close();
 
         // Output residue contacts
-        f.open(options("or",fmt::format("res_contacts_stats_{}.dat",get_id())).as_string());
+        f.open(options("or",fmt::format("res_contacts_stats_{}_{}.dat",label,get_id())).as_string());
         f << "# RESIDUES" << endl;
         f << "#i\tj\tn_formed\tlife_t\ten" << endl;
         for(const auto& it: res_contacts){
