@@ -623,6 +623,12 @@ class Selection {
     /// @param angle Rotation angle in radians
     void rotate(Vector3f_const_ref pivot, Vector3f_const_ref axis, float angle);
 
+    /// Mirror selection along one of coordinates around given point
+    void mirror(int dim, float around=0);
+
+    /// Mirror selection along arbitrary vector relative to given point
+    void mirror(Vector3f_const_ref normal, Vector3f_const_ref point=Eigen::Vector3f::Zero());
+
     /// Wraps whole selection to the periodic box
     void wrap(Array3i_const_ref pbc = fullPBC);
 

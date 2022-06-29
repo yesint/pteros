@@ -1074,6 +1074,30 @@ void Selection::rotate(Vector3f_const_ref pivot, Vector3f_const_ref axis, float 
     apply_transform( rotation_transform(pivot,axis,angle) );
 }
 
+void Selection::mirror(int dim, float around)
+{
+    if(dim<0 || dim>2) throw PterosError("Dimension index should be in the range 0..2");
+    for(int i=0;i<_index.size();++i){
+        float v = xyz(i)(dim);
+        v = -(v-around)+around;
+        xyz(i)(dim) = v;
+    }
+}
+
+void Selection::mirror(Vector3f_const_ref normal, Vector3f_const_ref point)
+{
+    Vector3f v = normal.normalized();
+    Affine3f m;
+    // Housholer reflection matrix
+    m.linear() = Matrix3f::Identity()-2.0*v*v.transpose();
+    // Translation part
+    m.translation().fill(0.0);
+    m = Translation3f(point)*m*Translation3f(-point);
+    for(int i=0;i<_index.size();++i){
+        xyz(i) = m*xyz(i);
+    }
+}
+
 ////////////////////////////////////
 // RMSD and fitting functions
 ////////////////////////////////////
@@ -1997,10 +2021,10 @@ Eigen::Affine3f Selection::principal_transform(Array3i_const_ref pbc, int pbc_at
     // Now orient
     // Step 1. Rotate around Z to move projection of col(0) to X
     m = AngleAxisf(std::atan2(axes.col(0)(0),axes.col(0)(1)), Vector3f::UnitZ());
-    // Step 2. Rotate to superimpose col(0) with X
+    // Step 2. Rotate around Y to superimpose col(2) with X
     m = m* AngleAxisf(std::asin(axes.col(0)(2)), Vector3f::UnitY());
     // Step 3. Apply obtained transform to col(1). This gives new position of col(1)
-    // And then bring col(1) to Y
+    // And then bring col(1) to Y by rotating around X
     m = m* AngleAxisf(std::acos( (m*axes.col(1))(1) ), Vector3f::UnitX());
 
     rot.linear() = m;
