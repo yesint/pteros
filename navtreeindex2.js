@@ -246,8 +246,8 @@ var NAVTREEINDEX2 =
 "index.html#third":[0,6],
 "index.html#what_is_pteros":[0,1],
 "install.html":[2],
-"install.html#Required":[2,1,1,0],
 "install.html#alt_compiler":[2,2,1,0],
 "install.html#build":[2,2],
-"install.html#compile":[2,2,1]
+"install.html#compile":[2,2,1],
+"install.html#ctrl":[2,2,2]
 };

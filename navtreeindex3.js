@@ -1,6 +1,5 @@
 var NAVTREEINDEX3 =
 {
-"install.html#ctrl":[2,2,2],
 "install.html#depend":[2,1],
 "install.html#get":[2,2,0],
 "install.html#gmx":[2,2,4],
@@ -13,6 +12,7 @@ var NAVTREEINDEX3 =
 "install.html#port":[2,0],
 "install.html#pre":[2,1,0],
 "install.html#python":[2,2,5],
+"install.html#req_dep":[2,1,1,0],
 "install.html#sasa":[2,2,8],
 "install.html#standalone":[2,2,6],
 "install.html#test":[2,2,3],

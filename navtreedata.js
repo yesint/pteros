@@ -41,7 +41,7 @@ var NAVTREE =
       [ "Dependencies", "install.html#depend", [
         [ "Prerequisites", "install.html#pre", null ],
         [ "Managed dependencies", "install.html#managed", [
-          [ "dependencies", "install.html#Required", null ],
+          [ "Required dependencies", "install.html#req_dep", null ],
           [ "Optional dependencies", "install.html#opt", null ]
         ] ],
         [ "Installing on Ubuntu", "install.html#ubuntu", null ]
@@ -107,7 +107,7 @@ var NAVTREEINDEX =
 ".html",
 "classpteros_1_1Selection.html#a0671ecf29f52dd438a5870dd44314c87",
 "classpteros_1_1System.html#a85c84a9212616a8922271ff2b69f5048",
-"install.html#ctrl"
+"install.html#depend"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';
