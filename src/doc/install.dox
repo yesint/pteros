@@ -18,8 +18,6 @@ Intel ICC compiler was tested in the past on Linux, but was giving poor performa
 
 
 
-
-
 \section depend     Dependencies
 
 Current version of Pteros is 3.x. It depends on C++17 features and requires sufficiently modern compiler. If you are still limited by old compiler use branch v2 which is outdated but requires only C++11.
@@ -37,7 +35,7 @@ These core dependencies should be installed <i>separately</i>:
 
 Pteros is able to download and compile most of its dependencies automatically, but could also used pre-installed libraries if they are found in the system. By default Pteros searches for pre-installed libraries first and if not found downloads and compiles them itself. This could be configured precisely if needed (see below).
 
-\subsubsection Required dependencies
+\subsubsection req_dep Required dependencies
 - <a href="http://eigen.tuxfamily.org/index.php?title=Main_Page">Eigen</a> linear algebra library (>=3.2).
 - <a href="https://github.com/fmtlib/fmt">fmt</a> Formatting library.
 - <a href="https://github.com/gabime/spdlog">spdlog</a> Logging library.
@@ -87,7 +85,7 @@ make
 make install
 \endcode
 
-\note Other available CMake are discussed below.
+\note Other available CMake options are discussed below.
 \warning The 'make install' command may require root access if you are installing into the system-wide location.
 
 The cmake command will print something like this:
@@ -155,13 +153,13 @@ If you see any errors then Pteros can't load plugins or something elese went wro
 
 Pteros could be linked against Gromacs. In this case it can read Gromacs TPR files and make advantage of Gromacs topologies.
 
-Unfortunately Gromacs developers are changing the public API from one version to the other, while Pteros still needs some low-level facilities which are now no nore exposed in the installed headers. There are also bugs in some Gromacs versions, which prevents it from being discovered and imported normally in CMake. Due to all these complications linking with Gromacs becomes a bit more involved than it should be.
+Unfortunately Gromacs developers are changing the public API from one version to the other, while Pteros still needs some low-level facilities which are now no longer exposed in the installed headers. There are also bugs in some Gromacs versions, which prevents it from being discovered and imported normally in CMake. Due to all these complications linking with Gromacs becomes a bit more involved than it should be.
 
 You have two options:
 - Let Pteros download latest Gromacs version from git, compile the minimal static library and link it automatically. This is the simplest and the most reliable way, but it takes significant time to compile. It is used by default.
 - Use the pre-installed version of Gromacs. In this case in addition to normal Gromacs installation you need a source code matching \i exactly the version installed. You need to use the following CMake flags:
 \code{.unparsed} 
--DWITH_GROMACS=ON -GROMACS_SOURCE_DIR=<path to gromacs source tree> -GROMACS_BINARY_DIR=<path to installed gromacs with the lib folder inside>
+-DWITH_GROMACS=ON -GROMACS_SOURCE_DIR=<path to gromacs source tree> -GROMACS_BINARY_DIR=<path to installed gromacs with the 'lib' folder inside>
 \endcode
 
 
@@ -169,9 +167,9 @@ You have two options:
 
 \subsection python 	Python support
 
-If both Python 3.x and 2.7 are installed in your system the version 3.x will be used automatically (even if 2.7 if the system-default, like in Ubuntu).
+If both Python 3.x and 2.7 are installed in your system the version 3.x will be used automatically (even if 2.7 if the system-default, like in some older Ubuntu versions).
 
-\note Make sure that you use correct python interpreter! In Ubuntu always use python3 with Pteros.
+\note Make sure that you use correct python interpreter! Always use python3 with Pteros.
 
 \subsubsection no_pythin Compiling without python
 
@@ -185,7 +183,7 @@ In this case compiled C++ plugins are not built as python extension modules and 
 
 \subsubsection module Installing as a python module
 
-It is also possible to install Pteros in "pythonic" way using pip. In this case you get Pteros as a normal python module installed correctly as any other python package, but you have no control on the compilation process (unless without editing the setup.py script).
+It is also possible to install Pteros in "pythonic" way using pip. In this case you get Pteros as a normal python module installed correctly as any other python package, but you have no control on the compilation process (unless you edit the setup.py script).
 
 Run the following command from the Pteros directory:
 \code
@@ -199,7 +197,7 @@ pip3 install .
 
 \subsection standalone Building standalone analysis plugins
 
-Compiled analysis plugins, which are written in C++, are compiled as Python extensions by default. However, it is possible to build each plugin as a separate standalone program, which does not depend on Python, by adding the following flag to CMake:
+Analysis plugins, which are written in C++, are compiled as Python extensions by default. However, it is possible to build each plugin as a separate standalone program, which does not depend on Python, by adding the following flag to CMake:
 
 \code{.unparsed} 
 -DSTANDALONE_PLUGINS=ON 
@@ -229,10 +227,9 @@ cmake <usual options> -DWITH_OPENMP=OFF
 
 \subsection sasa  SASA code
 
-Pteros performs the Solvent Accesible Surface Area (SASA) computatations using POWERSASA code developed in the <a href="http://www.kit.edu/english/">Karlsruhe Institute of Technology</a>. POWERSASA is licensed by specific and rather restrictive "Academic/Non-Profit SASA software license agreement".
-See the comment file `thirdparty/sasa/LICENSE` for details.
-This license is NOT Open Source and implies many restrictions. I contacted the authors of POWERSASA several times and asked for official permision to use their code but got no reply. It seems that the project is abandoned and nobody is concerned about the licensing of POWERSASA for many years.
-If you still don't want to use this code due to licensing concerns, you can swith it off:
+Pteros performs the Solvent Accesible Surface Area (SASA) computatations using POWERSASA code developed in the <a href="http://www.kit.edu/english/">Karlsruhe Institute of Technology</a>. POWERSASA is licensed by specific and rather restrictive "Academic/Non-Profit SASA software license agreement". See the file `thirdparty/sasa/LICENSE` for details.
+This license is NOT Open Source and implies many restrictions. I contacted the authors of POWERSASA several times and asked for official permission to use their code but got no reply. It seems that the project is abandoned for a long time and nobody is concerned about the licensing of POWERSASA for many years.
+If you still don't want to use this code due to possible licensing concerns, you can swith it off:
 \code{.unparsed}
 -DWITH_POWERSASA=OFF
 \endcode
