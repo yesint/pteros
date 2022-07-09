@@ -1,3 +1,25 @@
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this file.
+
+Copyright (C) 1997-2019 by Dimitri van Heesch
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of version 2 of the GNU General Public License as published by
+the Free Software Foundation
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along
+with this program; if not, write to the Free Software Foundation, Inc.,
+51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+@licend  The above is the entire license notice
+for the JavaScript code in this file
+*/
 var NAVTREE =
 [
   [ "Pteros", "index.html", [
@@ -74,8 +96,8 @@ var NAVTREE =
         [ "Related Functions", "functions_rela.html", null ]
       ] ]
     ] ],
-    [ "Files", null, [
-      [ "File List", "files.html", "files" ]
+    [ "Files", "files.html", [
+      [ "File List", "files.html", "files_dup" ]
     ] ]
   ] ]
 ];
@@ -83,9 +105,9 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 ".html",
-"classpteros_1_1Selection.html#a09ec3c1038cf7a60241786445013b0ba",
-"classpteros_1_1System.html#a93a45874765ca204f3e0543c179809f4",
-"install.html#managed"
+"classpteros_1_1Selection.html#a0671ecf29f52dd438a5870dd44314c87",
+"classpteros_1_1System.html#a85c84a9212616a8922271ff2b69f5048",
+"install.html#ctrl"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

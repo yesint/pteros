@@ -87,6 +87,7 @@ var classpteros_1_1System =
     [ "sort_by_resindex", "classpteros_1_1System.html#a521c0ce9af1da689a66c21d2bf23321d", null ],
     [ "clear_vel", "classpteros_1_1System.html#a0499095aefc5ad9ae86e2e07cf42c43a", null ],
     [ "clear_force", "classpteros_1_1System.html#a2dc498f6260285fea8cf11d4bac8d15a", null ],
+    [ "get_energy_for_list", "classpteros_1_1System.html#aa4b1b317e29576313ba8a95d9040389a", null ],
     [ "Selection", "classpteros_1_1System.html#a2cdc8668db7c69ccbcc3bab6a5d51d17", null ],
     [ "SelectionParser", "classpteros_1_1System.html#a76044c1b171e486b4cdf7a4808b31273", null ],
     [ "SystemBuilder", "classpteros_1_1System.html#a5c68b3a5f40d0e50ab75c6d7d89ec9d1", null ]
