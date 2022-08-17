@@ -134,7 +134,8 @@ Pteros_PEG_parser _parser(R"(
 
     LOGICAL_SEQ(A, O) <-  A (O A)* {
       precedence
-        L and or
+        L or
+        L and
     }
 
     NUM_EXPR_SEQ(A, O) <-  A (O A)* {
@@ -930,8 +931,10 @@ std::function<float(int)> SelectionParser::get_numeric(const std::shared_ptr<MyA
                 dir = (get_vector(inner->nodes[1]) - p).normalized();
             } else { // point and direction
                 p = get_vector(inner->nodes[0]);
-                dir = get_vector(inner->nodes[1]).normalized();
+                dir = get_vector(inner->nodes[1]).normalized();                
             }
+
+            if(dir.norm()==0) throw PterosError("direction vector can't be of zero length!");
 
             if((pbc.array()!=0).any()){ // periodic
                 return [this,p,dir,pbc](int at){
