@@ -34,6 +34,7 @@
 #include <Eigen/Core>
 #include "voro++.hh"
 #include <string>
+#include <algorithm>
 #include <fstream>
 #include <thread>
 
@@ -71,6 +72,7 @@ void Voronoi3D::create(const std::vector<Selection> &groups_sel)
     interface_areas.fill(0.0);
 }
 
+
 void Voronoi3D::compute(){    
     // Initialize container    
     auto m = groups[0].sel.box().get_matrix();
@@ -101,12 +103,12 @@ void Voronoi3D::compute(){
         con.compute_cell(c,clo.ijk,clo.q);
 
         int cur_pid = clo.pid(); // Current pid
-        int cur_gr_ind = pid_to_groups[cur_pid];
+        int cur_gr_ind = pid_to_groups[cur_pid];        
         
         vector<double> face_areas;
         c.face_areas(face_areas); // Get areas
         vector<int> neib;
-        c.neighbors(neib); // Get neigbour pids
+        c.neighbors(neib); // Get neigbour pids               
 
         // Neighbors and faces arrays are consistent to each other
         for(int i=0;i<neib.size();++i){
@@ -117,7 +119,7 @@ void Voronoi3D::compute(){
             if(cur_gr_ind != neib_gr_ind){
                 // This is a face between different species
                 area_elements.emplace_back(cur_pid,neib_pid,face_areas[i]);
-                groups[cur_gr_ind].total_area += face_areas[i];
+                groups[cur_gr_ind].total_area += face_areas[i];                        
             }
         }
         // Add to volume of current group
@@ -129,10 +131,25 @@ void Voronoi3D::compute(){
     
     // Compute areas of all group-group interfaces
     for(const auto& el: area_elements){
-        int gr1 = pid_to_groups[el.pids[0]];
-        int gr2 = pid_to_groups[el.pids[1]];
-        interface_areas(gr1,gr2) += el.area;
-        interface_areas(gr2,gr1) += el.area;
+        int gr1_ind = pid_to_groups[el.pids[0]];
+        int gr2_ind = pid_to_groups[el.pids[1]];
+        interface_areas(gr1_ind,gr2_ind) += el.area;
+        interface_areas(gr2_ind,gr1_ind) += el.area;
+
+        // Signatures
+        auto& gr1 = groups[gr1_ind];
+        auto& local_ind1 = gr1.pid_to_ind[el.pids[0]];
+        auto& gr2 = groups[gr2_ind];
+        auto& local_ind2 = gr2.pid_to_ind[el.pids[1]];
+
+        vector<string> sign_parts(2);
+        sign_parts[0] = fmt::format("{}:{}",gr1.sel.resname(local_ind1),gr1.sel.name(local_ind1));
+        sign_parts[1] = fmt::format("{}:{}",gr2.sel.resname(local_ind2),gr2.sel.name(local_ind2));
+        // Contact signature
+        std::sort(sign_parts.begin(),sign_parts.end());
+        string contact_sign = sign_parts[0] + "_" + sign_parts[1];
+        // Add contact
+        contacts.add(contact_sign,el.area);
     }
     // Diagonal element are total areas of groups for convenience
     for(int i=0;i<groups.size();++i) interface_areas(i,i) += groups[i].total_area;
@@ -171,6 +188,14 @@ void Voronoi3D::write_stats(const std::string& fname) const {
     out.open(fname+"_interfaces.dat");
     fmt::print(out,"{}",interface_areas);
     out.close();
+
+    // Output contacts
+    out.open(fname+"_contacts.dat");
+    for(const auto& el: contacts.area){
+        fmt::print(out,"{} {}\n", el.first, el.second/double(contacts.num.at(el.first)));
+    }
+    out.close();
+
 }
 
 

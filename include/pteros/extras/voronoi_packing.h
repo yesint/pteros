@@ -57,6 +57,22 @@ struct InterGroupFace {
 };
 
 
+struct ContactsTracker {
+    void add(const std::string& sign, double a){
+        if(num.count(sign)){
+            num[sign] += 1;
+            area[sign] += a;
+        } else {
+            num[sign] = 1;
+            area[sign] = a;
+        }
+    }
+
+    std::map<std::string,size_t> num;
+    std::map<std::string,double> area;
+};
+
+
 class Voronoi3D {
 public:
     Voronoi3D(){}
@@ -75,6 +91,8 @@ private:
     std::vector<PackingGroup> groups;
     // Output matrix of areas between groups
     Eigen::MatrixXd interface_areas;
+    // Contacts
+    ContactsTracker contacts;
 };
 
 } // namespace pteros
