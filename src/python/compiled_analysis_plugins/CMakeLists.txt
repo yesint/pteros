@@ -11,6 +11,7 @@ SET(PLUGINS
     center
     contacts
     voronoi_par
+    charge_distrib
 )
 
 IF(MAKE_STANDALONE_PLUGINS)
