@@ -89,9 +89,12 @@ if(WITH_GROMACS)
         set(GROMACS_INCLUDE_DIRECTORIS
             ${GROMACS_SOURCE_DIR}/src                  # Gromacs up to 2020.5
             ${GROMACS_SOURCE_DIR}/src/gromacs/utility/include # Gromacs 2023.x
+            ${GROMACS_SOURCE_DIR}/src/gromacs/math/include # Gromacs 2023.x
+            ${GROMACS_SOURCE_DIR}/src/gromacs/topology/include # Gromacs 2023.x
             ${GROMACS_SOURCE_DIR}/api/legacy/include   # Gromacs 2021.x
             ${GROMACS_BINARY_DIR}/api/legacy/include   # Gromacs 2023.x
             ${GROMACS_SOURCE_DIR}/src/external         # Gromacs 2021.x
+            #${GROMACS_SOURCE_DIR}/src/gromacs
         )
         set(GROMACS_LIBRARIES
            ${GROMACS_BINARY_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}gromacs${CMAKE_STATIC_LIBRARY_SUFFIX}
