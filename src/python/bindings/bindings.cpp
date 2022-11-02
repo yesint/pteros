@@ -81,7 +81,8 @@ PYBIND11_MODULE(_pteros, m) {
             .def("delta",&Histogram::delta)
             .def("get_bin",&Histogram::get_bin)
             .def_property_readonly("values",&Histogram::values)
-            .def_property_readonly("positions",&Histogram::positions)
+            .def_property("positions",[](Histogram& h){return h.positions();},
+                                      [](Histogram& h,const Eigen::Ref<const Eigen::VectorXd>& v){h.positions()=v;})
             .def_property_readonly("num_bins",&Histogram::num_bins)
             .def("save_to_file",&Histogram::save_to_file,"fname"_a,"x_shift"_a=0.0)            
     ;
