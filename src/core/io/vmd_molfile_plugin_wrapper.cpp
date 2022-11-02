@@ -99,6 +99,11 @@ VmdMolfilePluginWrapper::VmdMolfilePluginWrapper(string& fname): FileHandler(fna
 
 }
 
+VmdMolfilePluginWrapper::~VmdMolfilePluginWrapper()
+{
+    close();
+}
+
 
 void VmdMolfilePluginWrapper::open(char open_mode){
     mode = open_mode;

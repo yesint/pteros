@@ -44,8 +44,9 @@ class BabelWrapper: public FileHandler {
 public:
     // High-level API        
     BabelWrapper(std::string& fname);
-    virtual void open(char open_mode);
-    virtual void close();
+    virtual ~BabelWrapper();
+    virtual void open(char open_mode) override;
+    virtual void close() override;
 
 protected:       
     OpenBabel::OBConversion conv;

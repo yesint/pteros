@@ -52,9 +52,14 @@ void TrrFile::open(char open_mode)
     step = (open_mode=='r') ? -1 : 0;
 }
 
-TrrFile::~TrrFile()
+void TrrFile::close()
 {
     if(handle) xdrfile_close(handle);
+}
+
+TrrFile::~TrrFile()
+{
+    close();
 }
 
 

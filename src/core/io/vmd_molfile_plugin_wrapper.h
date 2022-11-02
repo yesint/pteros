@@ -41,8 +41,9 @@ class VmdMolfilePluginWrapper: public FileHandler {
 public:
     // High-level API        
     VmdMolfilePluginWrapper(std::string& fname);
-    virtual void open(char open_mode);
-    virtual void close();
+    virtual ~VmdMolfilePluginWrapper();
+    virtual void open(char open_mode) override;
+    virtual void close() override;
 
 protected:
     void* r_handle; // Handle for reading

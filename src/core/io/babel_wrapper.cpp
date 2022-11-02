@@ -46,6 +46,11 @@ using namespace Eigen;
 
 BabelWrapper::BabelWrapper(string &fname): FileHandler(fname){ }
 
+BabelWrapper::~BabelWrapper()
+{
+    close();
+}
+
 void BabelWrapper::open(char open_mode)
 {
     string ext = fname.substr(fname.find_last_of(".") + 1);

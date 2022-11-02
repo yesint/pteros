@@ -40,7 +40,8 @@ namespace pteros {
 class XtcFile: public FileHandlerRandomAccess {
 public:
     XtcFile(std::string& fname): FileHandlerRandomAccess(fname), handle(nullptr), content(FileContent().traj(true).rand(true)) {}
-    virtual void open(char open_mode);
+    virtual void open(char open_mode) override;
+    virtual void close() override;
     virtual ~XtcFile();
 
     virtual FileContent get_content_type() const {

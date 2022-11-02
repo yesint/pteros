@@ -58,7 +58,6 @@ FileHandler::FileHandler(string& file_name){
 }
 
 FileHandler::~FileHandler(){
-    close();
 }
 
 bool FileHandler::read(System *sys, Frame *frame, const FileContent &what){
@@ -128,12 +127,14 @@ unique_ptr<FileHandler> FileHandler::recognize(string fname){
     else throw PterosError("File extension '{}' is not recognized!",ext);
 }
 
+
 FileHandler_ptr FileHandler::open(string fname, char open_mode)
 {
     auto handle = recognize(fname);
     handle->open(open_mode);
     return handle;
 }
+
 
 void FileHandler::close()
 {

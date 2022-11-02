@@ -87,7 +87,7 @@ public:
 
     /// Opens a file with given access mode. Need to be defined by derived classes.
     virtual void open(char open_mode) = 0;
-    virtual void close();
+    virtual void close() = 0;
 
     virtual ~FileHandler();
 

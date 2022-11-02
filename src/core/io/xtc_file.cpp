@@ -88,9 +88,14 @@ void XtcFile::open(char open_mode)
     step = (open_mode=='r') ? -1 : 0;
 }
 
-XtcFile::~XtcFile()
+void XtcFile::close()
 {
     if(handle) xdrfile_close(handle);
+}
+
+XtcFile::~XtcFile()
+{
+    close();
 }
 
 bool XtcFile::do_read(System *sys, Frame *frame, const FileContent &what){

@@ -40,8 +40,8 @@ class GroFile: public FileHandler {
 public:
     // High-level API        
     GroFile(std::string& fname): FileHandler(fname) {}
-    virtual void open(char open_mode);
-    virtual void close();
+    virtual void open(char open_mode) override;
+    virtual void close() override;
 
     virtual FileContent get_content_type() const {        
         return FileContent()
