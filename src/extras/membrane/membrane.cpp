@@ -601,86 +601,92 @@ void LipidMembrane::compute_properties(float d, bool use_external_normal, Vector
     for(int i=0;i<bon.size();++i){
         conn[bon[i](0)].push_back(bon[i](1));
         conn[bon[i](1)].push_back(bon[i](0));
-    }    
+    }
 
-    // Process lipids
+    // Do some pre-processing
     for(int i=0;i<lipids.size();++i){
-        LipidMolecule& lip = lipids[i];
-
         // conn[i] contains local indexes in all_mid_sel
         // Sort it to have predictable order
         std::sort(conn[i].begin(),conn[i].end());
 
         // Save local selection for this lipid
-        lip.local_sel = all_mid_sel.select(conn[i]);
+        lipids[i].local_sel = all_mid_sel.select(conn[i]);
 
-        if(lip.local_sel.size()==0){
+        if(lipids[i].local_sel.size()==0){
             log->warn("Empty locality of lipid {}!",i);
             continue;
         }
+    }
 
-        // Local coordinate axes
-        Matrix3f axes;
+    // Smoothing iterations
+    int max_iter = 50;
+    for(int iter=0; iter<max_iter; ++iter){
 
-        //-----------------------------------
-        // Compute normal
-        //-----------------------------------
+        //log->info("Iter {} {}",iter,lipids[0].mid_marker.transpose());
 
-        Vector3f normal;
+        // Process lipids
+        for(int i=0;i<lipids.size();++i){
+            LipidMolecule& lip = lipids[i];
+            // Local coordinate axes
+            Matrix3f axes;
 
-        if(use_external_normal){
-            // Compute external normal as a vector from pivot to COM of mid_sel (set as marker currently)
-            // over specified dimensions
-            axes.col(2) = (lip.mid_marker-external_pivot).array()*external_dist_dim.cast<float>().array();
+            //-----------------------------------
+            // Compute normal
+            //-----------------------------------
+            Vector3f normal;
 
-            // Find two vectors perpendicular to normal
-            if( axes.col(2).dot(Vector3f(1,0,0)) != 1.0 ){
-                axes.col(0) = axes.col(2).cross(Vector3f(1,0,0));
+            if(use_external_normal){
+                // Compute external normal as a vector from pivot to COM of mid_sel (set as marker currently)
+                // over specified dimensions
+                axes.col(2) = (lip.mid_marker-external_pivot).array()*external_dist_dim.cast<float>().array();
+
+                // Find two vectors perpendicular to normal
+                if( axes.col(2).dot(Vector3f(1,0,0)) != 1.0 ){
+                    axes.col(0) = axes.col(2).cross(Vector3f(1,0,0));
+                } else {
+                    axes.col(0) = axes.col(2).cross(Vector3f(0,1,0));
+                }
+                axes.col(1) = axes.col(2).cross(axes.col(0));
             } else {
-                axes.col(0) = axes.col(2).cross(Vector3f(0,1,0));
+                // Compute normals from inertia axes
+                // Create selection for locality of this lipid including itself
+                Selection local_self(lip.local_sel);
+                local_self.append(all_mid_sel.index(i)); // Add central atom
+
+                // Get inertial axes
+                Vector3f moments;
+                local_self.inertia(moments,axes,fullPBC); // Have to use periodic variant
+                // axes.col(2) will be a normal
             }
-            axes.col(1) = axes.col(2).cross(axes.col(0));
-        } else {
-            // Compute normals from inertia axes
-            // Create selection for locality of this lipid including itself
-            Selection local_self(lip.local_sel);
-            local_self.append(all_mid_sel.index(i)); // Add central atom
 
-            // Get inertial axes
-            Vector3f moments;
-            local_self.inertia(moments,axes,fullPBC); // Have to use periodic variant
-            // axes.col(2) will be a normal
-        }
+            normal = axes.col(2);
 
-        normal = axes.col(2);
+            // transformation matrix to local basis
+            for(int j=0;j<3;++j) tr.col(j) = axes.col(j).normalized();
+            tr_inv = tr.inverse();
 
-        // transformation matrix to local basis
-        for(int j=0;j<3;++j) tr.col(j) = axes.col(j).normalized();
-        tr_inv = tr.inverse();
+            // Need to check direction of the normal
+            float ang = angle_between_vectors(normal, lip.head_marker-lip.tail_marker);
+            if(ang < M_PI_2){
+                lip.normal = normal;
+                lip.tilt = rad_to_deg(ang);
+            } else {
+                lip.normal = -normal;
+                lip.tilt = rad_to_deg(M_PI-ang);
+            }
+            lip.normal.normalized();
 
-        // Need to check direction of the normal
-        float ang = angle_between_vectors(normal, lip.head_marker-lip.tail_marker);
-        if(ang < M_PI_2){
-            lip.normal = normal;
-            lip.tilt = rad_to_deg(ang);
-        } else {
-            lip.normal = -normal;
-            lip.tilt = rad_to_deg(M_PI-ang);
-        }
-        lip.normal.normalized();
+            // Create array of local points in local basis
+            MatrixXf coord(3,lip.local_sel.size()+1);
+            Vector3f c0 = lip.mid_marker; // Real coord of central point - the marker
+            coord.col(0) = Vector3f::Zero(); // Local coord of central point is zero
+            for(int j=0; j<lip.local_sel.size(); ++j)
+                coord.col(j+1) = tr_inv * system->box(0).shortest_vector(c0,lip.local_sel.xyz(j));
 
-        // Create array of local points in local basis
-        MatrixXf coord(3,lip.local_sel.size()+1);
-        Vector3f c0 = lip.mid_marker; // Real coord of central point - the marker
-        coord.col(0) = Vector3f::Zero(); // Local coord of central point is zero
-        for(int j=0; j<lip.local_sel.size(); ++j)
-            coord.col(j+1) = tr_inv * system->box(0).shortest_vector(c0,lip.local_sel.xyz(j));
+            //-----------------------------------
+            // Smooth and find local curvatures
+            //-----------------------------------
 
-        //-----------------------------------
-        // Smooth and find local curvatures
-        //-----------------------------------
-
-        //if(do_curvature){
             // Fit a quad surface
             Matrix<float,6,1> res;
             Vector3f sm; // smoothed coords of central point
@@ -690,32 +696,38 @@ void LipidMembrane::compute_properties(float d, bool use_external_normal, Vector
 
             // Get smoothed surface point in lab coords
             lip.smoothed_mid_xyz = tr*sm + lip.mid_marker;
-        //}
 
-        //-----------------------------------
-        // Area and neighbours
-        //-----------------------------------
-        vector<int> neib;        
-        lip.area = compute_area(coord,10.0,neib);
-        if(lip.area>0){
-            // Save coordination number of the lipid
-            lip.coord_number = neib.size();
-            // Neighbours are in terms of point indexes in order of their addition
-            // this is the same as order in conn[i]. 0 is central atom, neighbors start from 1.
-            // conn[i] contains local indexes in all_mid_sel
-            lip.neib.resize(neib.size());
-            for(int j=0;j<neib.size();++j){
-                //cout << j << " " << neib[j] << " " << conn[i].size() <<  " " << conn[i][neib[j]] << endl;
-                lip.neib[j] = conn[i][neib[j]-1];
+            //-----------------------------------
+            // Area and neighbours
+            //-----------------------------------
+            if(iter == max_iter-1){
+                vector<int> neib;
+                lip.area = compute_area(coord,10.0,neib);
+                if(lip.area>0){
+                    // Save coordination number of the lipid
+                    lip.coord_number = neib.size();
+                    // Neighbours are in terms of point indexes in order of their addition
+                    // this is the same as order in conn[i]. 0 is central atom, neighbors start from 1.
+                    // conn[i] contains local indexes in all_mid_sel
+                    lip.neib.resize(neib.size());
+                    for(int j=0;j<neib.size();++j){
+                        //cout << j << " " << neib[j] << " " << conn[i].size() <<  " " << conn[i][neib[j]] << endl;
+                        lip.neib[j] = conn[i][neib[j]-1];
+                    }
+                } else {
+                    // Something is wrong
+                    lip.coord_number = -1;
+                    lip.neib.clear();
+                }
             }
-        } else {
-            // Something is wrong
-            lip.coord_number = -1;
-            lip.neib.clear();
+        } // for lipids
+
+        // Update mid markers
+        for(int i=0;i<lipids.size();++i){
+            lipids[i].mid_marker = lipids[i].smoothed_mid_xyz;
+            lipids[i].mid_marker_sel.xyz(0) = lipids[i].smoothed_mid_xyz;
         }
-
-
-    } // for lipids
+    }
 
     // Unset markers. This restores all correct atomic coordinates for analysis
     for(auto& lip: lipids) lip.unset_markers();
