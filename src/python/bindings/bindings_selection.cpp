@@ -107,12 +107,41 @@ void make_bindings_Selection(py::module& m){
         .def("clear",&Selection::clear)
 
         // Subselection
-        .def("__call__", py::overload_cast<string>(&Selection::operator()), py::keep_alive<0,1>())
-        .def("__call__", py::overload_cast<int,int>(&Selection::operator()), py::keep_alive<0,1>())
-        .def("__call__", py::overload_cast<const std::vector<int>&>(&Selection::operator()), py::keep_alive<0,1>())
-        .def("select", py::overload_cast<string>(&Selection::operator()), py::keep_alive<0,1>())
-        .def("select", py::overload_cast<int,int>(&Selection::operator()), py::keep_alive<0,1>())
-        .def("select", py::overload_cast<const std::vector<int>&>(&Selection::operator()), py::keep_alive<0,1>())
+        .def("__call__", [](Selection* sel, string s){
+            Selection* ret = new Selection(sel->select(s));
+            return ret;
+        },py::return_value_policy::take_ownership,py::keep_alive<0,1>())
+
+        .def("__call__", [](Selection* sel, int i, int j){
+            Selection* ret = new Selection(sel->select(i,j));
+            return ret;
+        },py::return_value_policy::take_ownership,py::keep_alive<0,1>())
+
+        .def("__call__", [](Selection* sel, std::vector<int>& vec){
+            Selection* ret = new Selection(sel->select(vec));
+            return ret;
+        },py::return_value_policy::take_ownership,py::keep_alive<0,1>())
+
+        .def("select", [](Selection* sel, string s){
+            Selection* ret = new Selection(sel->select(s));
+            return ret;
+        },py::return_value_policy::take_ownership,py::keep_alive<0,1>())
+
+        .def("select", [](Selection* sel, int i, int j){
+            Selection* ret = new Selection(sel->select(i,j));
+            return ret;
+        },py::return_value_policy::take_ownership,py::keep_alive<0,1>())
+
+        .def("select", [](Selection* sel, std::vector<int>& vec){
+            Selection* ret = new Selection(sel->select(vec));
+            return ret;
+        },py::return_value_policy::take_ownership,py::keep_alive<0,1>())
+
+        //.def("__call__", py::overload_cast<int,int>(&Selection::operator()), py::keep_alive<0,1>())
+        //.def("__call__", py::overload_cast<const std::vector<int>&>(&Selection::operator()), py::keep_alive<0,1>())
+        //.def("select", py::overload_cast<string>(&Selection::operator()), py::keep_alive<0,1>())
+        //.def("select", py::overload_cast<int,int>(&Selection::operator()), py::keep_alive<0,1>())
+        //.def("select", py::overload_cast<const std::vector<int>&>(&Selection::operator()), py::keep_alive<0,1>())
 
         // Get and set
         .def("get_frame",&Selection::get_frame)
@@ -233,7 +262,7 @@ void make_bindings_Selection(py::module& m){
         .def("translate_to", &Selection::translate_to, "vec"_a, "mass_weighted"_a=false, "pbc"_a=noPBC, "pbc_atom"_a=-1)
         .def("rotate",&Selection::rotate, "pivot"_a, "axis"_a, "angle"_a)
         .def("mirror", py::overload_cast<int,float>(&Selection::mirror),"dim"_a,"around"_a=0)
-        .def("mirror", py::overload_cast<const Vector3f_const_ref,const Vector3f_const_ref>(&Selection::mirror),"normal"_a,"point"_a=Vector3f::Zero())
+        .def("mirror", py::overload_cast<Vector3f_const_ref,Vector3f_const_ref>(&Selection::mirror),"normal"_a,"point"_a=Vector3f::Zero())
 
         .def("wrap", &Selection::wrap, "pbc"_a=fullPBC)
         .def("unwrap", &Selection::unwrap, "pbc"_a=fullPBC, "pbc_atom"_a=-1)

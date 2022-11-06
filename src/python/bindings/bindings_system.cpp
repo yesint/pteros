@@ -73,8 +73,13 @@ void make_bindings_System(py::module& m){
         .def("write", py::overload_cast<string,int,int>(&System::write,py::const_), "fname"_a, "b"_a=0, "e"_a=-1)
 
         // Selecting
-        .def("__call__", py::overload_cast<>(&System::operator()), py::keep_alive<0,1>())
-        .def("__call__", py::overload_cast<string,int>(&System::operator()),"str"_a,"fr"_a=0, py::keep_alive<0,1>())
+        .def("__call__", py::overload_cast<>(&System::operator()), py::return_value_policy::take_ownership)
+        //.def("__call__", py::overload_cast<string,int>(&System::operator()),"str"_a,"fr"_a=0, py::return_value_policy::reference)
+        .def("__call__", [](System* sys, string str, int fr){
+            return new Selection(*sys,str,fr);
+        }
+        ,"str"_a,"fr"_a=0, py::return_value_policy::take_ownership,py::keep_alive<0,1>())
+
         .def("__call__", py::overload_cast<int,int>(&System::operator()), py::keep_alive<0,1>())
         .def("__call__", py::overload_cast<const std::vector<int>&>(&System::operator()), py::keep_alive<0,1>())
         .def("__call__", py::overload_cast<const std::function<void(const System&,int,std::vector<int>&)>&,int>(&System::operator()),"callback"_a,"fr"_a=0, py::keep_alive<0,1>())
