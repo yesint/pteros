@@ -63,6 +63,7 @@ using namespace Eigen;
 
 
 void Selection::allocate_parser(){
+    fmt::print("allocating parser: {}\n",sel_text);
     // Parse selection here
     // Parser is heavy object, so if selection is not persistent
     // we will delete it after parsing is complete
@@ -357,11 +358,14 @@ Selection Selection::operator()(string str)
 
 Selection Selection::select(int ind1, int ind2)
 {
-    // ind1 and ind2 are LOCAL indexes, convert them to global and just
-    // use normal range constructor
-    ind1 = _index[ind1];
-    ind2 = _index[ind2];
-    return Selection(*system,ind1,ind2);
+    //Sanity check
+    if(ind1<0 || ind1>size()-1) throw PterosError("First index of subselection is out of bonds ({}:{})",0,size()-1);
+    if(ind2<0 || ind2>size()-1) throw PterosError("Second index of subselection is out of bonds ({}:{})",0,size()-1);
+    if(ind2<ind1) throw PterosError("Subselection indexes in wrong order ({}>{})",ind1,ind2);
+    // ind1 and ind2 are LOCAL indexes. Form a vector of global indexes between them and select
+    vector<int> vec(ind2-ind1+1);
+    for(int i=ind1; i<=ind2; ++i) vec[i]=_index[i];
+    return Selection(*system,vec);
 }
 
 Selection Selection::operator()(int ind1, int ind2)
@@ -500,8 +504,7 @@ Selection& Selection::operator=(const Selection& other){
     system = other.system;
 
     if(other.parser){
-        parser.reset(new SelectionParser);
-        *parser = *(other.parser);
+        update();
     };
 
     return *this;
@@ -621,6 +624,7 @@ bool check_selection_overlap(const std::vector<Selection> &sel_vec)
 
 // Copy constructor
 Selection::Selection(const Selection& other){
+    fmt::print("Selection copy CTOR. other.set_text={} other.size={}\n",other.sel_text,other.size());
     if(&other==this) return;
 
     if(other.system==nullptr){
@@ -649,6 +653,7 @@ Selection::Selection(const Selection& other){
 
 // Update selection (re-parse selection text if it exists)
 void Selection::update(){
+    fmt::print("Selection::update {}\n",sel_text);
     if(sel_text!="") modify(sel_text);
 }
 

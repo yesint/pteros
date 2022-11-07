@@ -75,6 +75,11 @@ public:
     /// enclosing System with selection indexes.
     void apply_ast(std::size_t fr, std::vector<int>& result);
 
+    /// Non-copyable!
+    SelectionParser(const SelectionParser& other) = delete;
+    /// Non-assignable
+    SelectionParser& operator=(const SelectionParser& other) = delete;
+
 private:
     /// AST structure 
     std::shared_ptr<MyAst> tree;

@@ -108,40 +108,28 @@ void make_bindings_Selection(py::module& m){
 
         // Subselection
         .def("__call__", [](Selection* sel, string s){
-            Selection* ret = new Selection(sel->select(s));
-            return ret;
+            return new Selection(sel->select(s));
         },py::return_value_policy::take_ownership,py::keep_alive<0,1>())
 
         .def("__call__", [](Selection* sel, int i, int j){
-            Selection* ret = new Selection(sel->select(i,j));
-            return ret;
+            return new Selection(sel->select(i,j));
         },py::return_value_policy::take_ownership,py::keep_alive<0,1>())
 
         .def("__call__", [](Selection* sel, std::vector<int>& vec){
-            Selection* ret = new Selection(sel->select(vec));
-            return ret;
+            return new Selection(sel->select(vec));
         },py::return_value_policy::take_ownership,py::keep_alive<0,1>())
 
         .def("select", [](Selection* sel, string s){
-            Selection* ret = new Selection(sel->select(s));
-            return ret;
+            return new Selection(sel->select(s));
         },py::return_value_policy::take_ownership,py::keep_alive<0,1>())
 
         .def("select", [](Selection* sel, int i, int j){
-            Selection* ret = new Selection(sel->select(i,j));
-            return ret;
+            return new Selection(sel->select(i,j));
         },py::return_value_policy::take_ownership,py::keep_alive<0,1>())
 
         .def("select", [](Selection* sel, std::vector<int>& vec){
-            Selection* ret = new Selection(sel->select(vec));
-            return ret;
-        },py::return_value_policy::take_ownership,py::keep_alive<0,1>())
-
-        //.def("__call__", py::overload_cast<int,int>(&Selection::operator()), py::keep_alive<0,1>())
-        //.def("__call__", py::overload_cast<const std::vector<int>&>(&Selection::operator()), py::keep_alive<0,1>())
-        //.def("select", py::overload_cast<string>(&Selection::operator()), py::keep_alive<0,1>())
-        //.def("select", py::overload_cast<int,int>(&Selection::operator()), py::keep_alive<0,1>())
-        //.def("select", py::overload_cast<const std::vector<int>&>(&Selection::operator()), py::keep_alive<0,1>())
+            return new Selection(sel->select(vec));
+        },py::return_value_policy::take_ownership,py::keep_alive<0,1>())        
 
         // Get and set
         .def("get_frame",&Selection::get_frame)
