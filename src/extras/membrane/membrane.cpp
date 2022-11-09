@@ -286,12 +286,13 @@ void LipidMolecule::set_markers()
     whole_sel.unwrap(fullPBC, mid_marker_sel.index(0)-whole_sel.index(0));
 
     // Set markers to COM
-    head_marker = head_marker_sel.center(true);
-    tail_marker = tail_marker_sel.center(true);
-    mid_marker = mid_marker_sel.center(true);
+    head_marker = head_marker_sel.center();
+    tail_marker = tail_marker_sel.center();
+    mid_marker = mid_marker_sel.center();
 
     pos_saved = mid_marker_sel.xyz(0);
     mid_marker_sel.xyz(0) = mid_marker;
+    tail_head_vector = head_marker-tail_marker;
 }
 
 void LipidMolecule::unset_markers()
@@ -599,8 +600,14 @@ void LipidMembrane::compute_properties(float d, bool use_external_normal, Vector
     // atom ==> 1 2 3...
     vector<vector<int> > conn(all_mid_sel.size());
     for(int i=0;i<bon.size();++i){
-        conn[bon[i](0)].push_back(bon[i](1));
-        conn[bon[i](1)].push_back(bon[i](0));
+        int l1 = bon[i](0);
+        int l2 = bon[i](1);
+        // Only connect lipids with the same rough normal orientation
+        // This adds protection from accidentally adding the opposite monolayer for large cutoffs
+        if(angle_between_vectors(lipids[l1].tail_head_vector,lipids[l2].tail_head_vector)<M_PI_2){
+            conn[l1].push_back(l2);
+            conn[l2].push_back(l1);
+        }
     }
 
     // Do some pre-processing
@@ -611,6 +618,8 @@ void LipidMembrane::compute_properties(float d, bool use_external_normal, Vector
 
         // Save local selection for this lipid
         lipids[i].local_sel = all_mid_sel.select(conn[i]);
+        lipids[i].local_sel_with_self = lipids[i].local_sel;
+        lipids[i].local_sel_with_self.append(all_mid_sel.index(i));
 
         if(lipids[i].local_sel.size()==0){
             log->warn("Empty locality of lipid {}!",i);
@@ -619,7 +628,7 @@ void LipidMembrane::compute_properties(float d, bool use_external_normal, Vector
     }
 
     // Smoothing iterations
-    int max_iter = 50;
+    int max_iter = 1;
     for(int iter=0; iter<max_iter; ++iter){
 
         //log->info("Iter {} {}",iter,lipids[0].mid_marker.transpose());
@@ -649,13 +658,8 @@ void LipidMembrane::compute_properties(float d, bool use_external_normal, Vector
                 axes.col(1) = axes.col(2).cross(axes.col(0));
             } else {
                 // Compute normals from inertia axes
-                // Create selection for locality of this lipid including itself
-                Selection local_self(lip.local_sel);
-                local_self.append(all_mid_sel.index(i)); // Add central atom
-
-                // Get inertial axes
                 Vector3f moments;
-                local_self.inertia(moments,axes,fullPBC); // Have to use periodic variant
+                lip.local_sel_with_self.inertia(moments,axes,fullPBC); // Have to use periodic variant
                 // axes.col(2) will be a normal
             }
 
@@ -666,7 +670,7 @@ void LipidMembrane::compute_properties(float d, bool use_external_normal, Vector
             tr_inv = tr.inverse();
 
             // Need to check direction of the normal
-            float ang = angle_between_vectors(normal, lip.head_marker-lip.tail_marker);
+            float ang = angle_between_vectors(normal, lip.tail_head_vector);
             if(ang < M_PI_2){
                 lip.normal = normal;
                 lip.tilt = rad_to_deg(ang);
@@ -679,7 +683,7 @@ void LipidMembrane::compute_properties(float d, bool use_external_normal, Vector
             // Create array of local points in local basis
             MatrixXf coord(3,lip.local_sel.size()+1);
             Vector3f c0 = lip.mid_marker; // Real coord of central point - the marker
-            coord.col(0) = Vector3f::Zero(); // Local coord of central point is zero
+            coord.col(0) = Vector3f::Zero(); // Local coord of central point is zero and it goes first
             for(int j=0; j<lip.local_sel.size(); ++j)
                 coord.col(j+1) = tr_inv * system->box(0).shortest_vector(c0,lip.local_sel.xyz(j));
 

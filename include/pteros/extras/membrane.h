@@ -68,6 +68,7 @@ public:
     Selection head_marker_sel;
     Selection tail_marker_sel;
     Selection mid_marker_sel;
+    Eigen::Vector3f tail_head_vector;
 
     // Tails
     std::vector<LipidTail> tails;
@@ -100,7 +101,7 @@ private:
     // Coordinates of markers
     Eigen::Vector3f head_marker, tail_marker, mid_marker, pos_saved;
 
-    Selection local_sel;
+    Selection local_sel, local_sel_with_self;
 };
 
 
