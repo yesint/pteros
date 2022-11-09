@@ -62,8 +62,7 @@ using namespace pteros;
 using namespace Eigen;
 
 
-void Selection::allocate_parser(){
-    fmt::print("allocating parser: {}\n",sel_text);
+void Selection::allocate_parser(){    
     // Parse selection here
     // Parser is heavy object, so if selection is not persistent
     // we will delete it after parsing is complete
@@ -624,7 +623,6 @@ bool check_selection_overlap(const std::vector<Selection> &sel_vec)
 
 // Copy constructor
 Selection::Selection(const Selection& other){
-    fmt::print("Selection copy CTOR. other.set_text={} other.size={}\n",other.sel_text,other.size());
     if(&other==this) return;
 
     if(other.system==nullptr){
@@ -652,8 +650,7 @@ Selection::Selection(const Selection& other){
 }
 
 // Update selection (re-parse selection text if it exists)
-void Selection::update(){
-    fmt::print("Selection::update {}\n",sel_text);
+void Selection::update(){ 
     if(sel_text!="") modify(sel_text);
 }
 
