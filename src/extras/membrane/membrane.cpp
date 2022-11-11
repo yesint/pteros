@@ -51,8 +51,8 @@ using namespace Eigen;
 
 
 void fit_quad_surface(const MatrixXf& coord,
-                      Matrix<float,6,1>& res,
-                      Vector3f& smoothed_first_point,
+                      Matrix<float,6,1>& res,                      
+                      vector<Vector3f>& smoothed_points,
                       float& rms){
     int N = coord.cols();
     // We fit with polynomial fit = A*x^2 + B*y^2 + C*xy + D*x + E*y + F
@@ -89,18 +89,19 @@ void fit_quad_surface(const MatrixXf& coord,
     // Now solve
     res = m.colPivHouseholderQr().solve(rhs);
 
-    // Compute RMS of fitting
+    // Compute RMS of fitting and fitted points
+    smoothed_points.resize(N);
     rms = 0.0;
     for(int j=0;j<N;++j){
-        float fit = 0.0;
-        for(int r=0;r<6;++r) fit += coef[r](j)*res[r];
-        rms += pow(coord.col(j)(2)-fit,2);
+        float fitZ = 0.0;
+        for(int r=0;r<6;++r) fitZ += coef[r](j)*res[r];
+        rms += pow(coord.col(j)(2)-fitZ,2);
+        // Save fitted point
+        smoothed_points[j](0) = coord.col(j)(0);
+        smoothed_points[j](1) = coord.col(j)(1);
+        smoothed_points[j](2) = fitZ;
     }
     rms = sqrt(rms/float(N));
-
-    // Get smoothed surface point
-    smoothed_first_point.fill(0.0);
-    for(int r=0;r<6;++r) smoothed_first_point(2) += coef[r](0)*res[r];
 }
 
 float compute_area(const Eigen::MatrixXf& coord, double dist, std::vector<int>& neib){
@@ -663,11 +664,7 @@ void LipidMembrane::compute_properties(float d, bool use_external_normal, Vector
                 // axes.col(2) will be a normal
             }
 
-            normal = axes.col(2);
-
-            // transformation matrix to local basis
-            for(int j=0;j<3;++j) tr.col(j) = axes.col(j).normalized();
-            tr_inv = tr.inverse();
+            normal = axes.col(2);            
 
             // Need to check direction of the normal
             float ang = angle_between_vectors(normal, lip.tail_head_vector);
@@ -679,6 +676,10 @@ void LipidMembrane::compute_properties(float d, bool use_external_normal, Vector
                 lip.tilt = rad_to_deg(M_PI-ang);
             }
             lip.normal.normalized();
+
+            // transformation matrix to local basis
+            for(int j=0;j<3;++j) tr.col(j) = axes.col(j).normalized();
+            tr_inv = tr.inverse();
 
             // Create array of local points in local basis
             MatrixXf coord(3,lip.local_sel.size()+1);
@@ -693,13 +694,50 @@ void LipidMembrane::compute_properties(float d, bool use_external_normal, Vector
 
             // Fit a quad surface
             Matrix<float,6,1> res;
-            Vector3f sm; // smoothed coords of central point
+            vector<Vector3f> sm; // smoothed points. First point is the central one.
             fit_quad_surface(coord,res,sm,lip.quad_fit_rms);
             // Compute curvatures using quad fit coeefs
             get_curvature(res, lip.gaussian_curvature, lip.mean_curvature);
+            // Compute new normal from fitted surface
+            // dx = 2Ax+Cy+D
+            // dy = 2By+Cx+E
+            // dz = -1
+            // Since we are evaluating in x=y=0:
+            // dx = D; dy = E; dz = -1;
+            Vector3f new_normal(res[3],res[4],-1.0);
 
-            // Get smoothed surface point in lab coords
-            lip.smoothed_mid_xyz = tr*sm + lip.mid_marker;
+            // Update local axes
+            axes.col(0) = tr*Vector3f(1,0,0);
+            axes.col(1) = tr*Vector3f(0,1,0);
+            axes.col(2) = tr*new_normal;
+
+            // Print
+            ofstream out(fmt::format("vis/patch_{}.tcl",i));
+
+            fmt::print(out,"draw color white\n");
+            for(int j=0; j<lip.local_sel.size(); ++j){
+                if(j==0) fmt::print(out,"draw color yellow\n");
+                fmt::print(out,"draw sphere \"{} {} {}\" radius 1\n",10*coord.col(j)(0),10*coord.col(j)(1),10*coord.col(j)(2));
+                if(j==0) fmt::print(out,"draw color white\n");
+            }
+            Vector3f p2 = coord.col(0)+tr_inv*lip.normal;
+            fmt::print(out,"draw cylinder \"{} {} {}\" \"{} {} {}\" radius 0.5\n",
+                       10*coord.col(0)(0),10*coord.col(0)(1),10*coord.col(0)(2),
+                       10*p2(0),10*p2(1),10*p2(2) );
+            fmt::print(out,"draw color iceblue\n");
+            for(int j=0; j<lip.local_sel.size(); ++j){
+                if(j==0) fmt::print(out,"draw color green\n");
+                fmt::print(out,"draw sphere \"{} {} {}\" radius 1\n",10*sm[j](0),10*sm[j](1),10*sm[j](2));
+                if(j==0) fmt::print(out,"draw color iceblue\n");
+            }
+            p2 = sm[0]+new_normal;
+            fmt::print(out,"draw cylinder \"{} {} {}\" \"{} {} {}\" radius 0.5\n",
+                       10*sm[0](0),10*sm[0](1),10*sm[0](2),
+                       10*p2(0),10*p2(1),10*p2(2) );
+            out.close();
+
+            // Get smoothed central surface point in lab coords
+            lip.smoothed_mid_xyz = tr*sm[0] + lip.mid_marker;
 
             //-----------------------------------
             // Area and neighbours
