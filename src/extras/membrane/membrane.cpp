@@ -704,6 +704,9 @@ void LipidMembrane::compute_properties(float d, bool use_external_normal, Vector
 
         //log->info("Iter {} {}",iter,lipids[0].mid_marker.transpose());
 
+        ofstream out_all(fmt::format("vis/areas_all.tcl"));
+        fmt::print(out_all,"draw color orange\n");
+
         // Process lipids
         for(int i=0;i<lipids.size();++i){
             LipidMolecule& lip = lipids[i];
@@ -764,7 +767,6 @@ void LipidMembrane::compute_properties(float d, bool use_external_normal, Vector
 
             QuadSurface surf;
             surf.fit_to_points(coord);
-            vector<Vector3f> in_plane_vertices;
             surf.compute_area();
             surf.compute_curvature();
 
@@ -788,6 +790,8 @@ void LipidMembrane::compute_properties(float d, bool use_external_normal, Vector
             fmt::print(out,"draw cylinder \"{} {} {}\" \"{} {} {}\" radius 0.5\n",
                        10*coord(0,0),10*coord(1,0),10*coord(2,0),
                        10*p2(0),10*p2(1),10*p2(2) );
+
+            // Smoothed
             fmt::print(out,"draw color iceblue\n");
             for(int j=0; j<lip.local_sel.size(); ++j){
                 if(j==0) fmt::print(out,"draw color green\n");
@@ -816,8 +820,17 @@ void LipidMembrane::compute_properties(float d, bool use_external_normal, Vector
             }
             out.close();
 
-
-            //exit(1);///////////////////////////////
+            // Vertices in lab coordinates
+            for(int j=0; j<surf.area_vertexes.size(); ++j){
+                int j2 = j+1;
+                if(j==surf.area_vertexes.size()-1) j2=0;
+                Vector3f p1 = tr*surf.area_vertexes[j] + lip.mid_marker;
+                Vector3f p2 = tr*surf.area_vertexes[j2] + lip.mid_marker;
+                fmt::print(out_all,"draw line \"{} {} {}\" \"{} {} {}\" width 2\n",
+                           10*p1.x(),10*p1.y(),10*p1.z(),
+                           10*p2.x(),10*p2.y(),10*p2.z()
+                           );
+            }
 
             // Get smoothed central surface point in lab coords
             lip.smoothed_mid_xyz = tr*fp.col(0) + lip.mid_marker;
@@ -827,6 +840,10 @@ void LipidMembrane::compute_properties(float d, bool use_external_normal, Vector
             //-----------------------------------
             lip.area = surf.surf_area;
         } // for lipids
+
+        out_all.close();
+        all_mid_sel.write("vis/areas_all.pdb");
+        exit(1);///////////////////////////////
 
         // Update mid markers
         for(int i=0;i<lipids.size();++i){
