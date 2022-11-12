@@ -181,9 +181,10 @@ public:
         surf_area = 0.0;
         for(Vector3f& v: area_vertexes) project_point_to_surface(v);
         // Sum up areas of triangles. Points are not dupicated.
-        for(int i=0; i<area_vertexes.size()-1; ++i){
+        for(int i=0; i<area_vertexes.size(); ++i){
+            int ii = (i<area_vertexes.size()-1) ? i+1 : 0;
             surf_area += 0.5*(area_vertexes[i]-fitted_points.col(0))
-                        .cross(area_vertexes[i+1]-fitted_points.col(0))
+                        .cross(area_vertexes[ii]-fitted_points.col(0))
                         .norm();
         }
     }
@@ -810,7 +811,7 @@ void LipidMembrane::compute_properties(float d, bool use_external_normal, Vector
                            );
                 fmt::print(out,"draw line \"{} {} {}\" \"{} {} {}\" width 2\n",
                            10*surf.area_vertexes[j].x(),10*surf.area_vertexes[j].y(),10*surf.area_vertexes[j].z(),
-                           10*coord(0,0),10*coord(1,0),10*coord(2,0)
+                           10*fp(0,0),10*fp(1,0),10*fp(2,0)
                            );
             }
             out.close();
