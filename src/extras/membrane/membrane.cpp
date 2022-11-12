@@ -52,229 +52,221 @@ using namespace Eigen;
 // Helper class representing a quadric surface for fitting
 // Surface is assumed to be centered around point {0,0,0}
 // We fit with polynomial fit = A*x^2 + B*y^2 + C*xy + D*x + E*y + F
-struct QuadSurface {
+class QuadSurface {
+public:
     // Compute fitting surface given the points in local basis
     void fit_to_points(const MatrixXf& coord){
+        int N = coord.cols();
+        // We fit with polynomial fit = A*x^2 + B*y^2 + C*xy + D*x + E*y + F
+        // Thus we need a linear system of size 6
+        Matrix<float,6,6> m;
+        Matrix<float,6,1> rhs; // Right hand side and result
+        m.fill(0.0);
+        rhs.fill(0.0);
 
+        Vector<float,6> powers;
+        powers(5) = 1.0; //free term, the same everywhere
+        for(int j=0;j<N;++j){ // over points
+            powers(0) = coord(0,j)*coord(0,j); //xx
+            powers(1) = coord(1,j)*coord(1,j); //yy
+            powers(2) = coord(0,j)*coord(1,j); //xy
+            powers(3) = coord(0,j); //x
+            powers(4) = coord(1,j); //y
+            // Fill the matrix
+            m.noalias() += powers * powers.transpose();
+            // rhs
+            rhs += powers*coord(2,j);
+        }
+
+        // Now solve
+        quad_coefs = m.ldlt().solve(rhs);
+
+        // Compute RMS of fitting and fitted points
+        fitted_points = coord; // Set to parent points initially
+        fit_rms = 0.0;
+        for(int j=0;j<N;++j){
+            float fitZ = evalZ(coord(0,j),coord(1,j));
+            fit_rms += pow(coord(2,j)-fitZ,2);
+            // Adjust Z of fitted point
+            fitted_points(2,j) = fitZ;
+        }
+        fit_rms = sqrt(fit_rms/float(N));
     }
+
 
     // Projects point from the XY plane to the surface
     // existing Z coordinate will be substituted in place by the surface Z value
-    void project_point_to_surface(Vector3f_ref p){
-        p(2) =    A()*p(0)*p(0)
-                + B()*p(1)*p(1)
-                + C()*p(0)*p(1)
-                + D()*p(0)
-                + E()*p(1)
+    inline void project_point_to_surface(Vector3f_ref p){
+        p(2) =  evalZ(p(0),p(1));
+    }
+
+
+    // Compute Z point of the surface
+    inline float evalZ(float x, float y){
+        return    A()*x*x
+                + B()*y*y
+                + C()*x*y
+                + D()*x
+                + E()*y
                 + F();
     }
 
-    float A(){ return quad_coefs[0]; }
-    float B(){ return quad_coefs[1]; }
-    float C(){ return quad_coefs[2]; }
-    float D(){ return quad_coefs[3]; }
-    float E(){ return quad_coefs[4]; }
-    float F(){ return quad_coefs[5]; }
+
+    // Computes voronoi tesselation in the local tangent plane
+    // Sets vertexes of points in plane making up the area
+    // Computes in-plane area
+    //
+    // TODO: Ability to compute area from multiple atoms for each lipid
+    // (sum of areas belonging to current lipid)
+    //
+    void compute_area(){
+        // The center of the cell is assumed to be at {0,0,0}
+        // First point is assumed to be the central one and thus not used
+        using namespace voro;
+
+        voronoicell_neighbor cell;
+        // Initialize with large volume by default in XY and size 1 in Z
+        cell.init(-10,10,-10,10,-0.5,0.5);
+        for(int i=1; i<fitted_points.cols(); ++i){ // From 1, central point is 0 and ignored
+            cell.nplane(fitted_points(0,i),fitted_points(1,i),0.0,i); // Pass i as neigbour pid
+        }
+
+        vector<int> neib_list;
+        vector<int> face_vert;
+        vector<double> vert_coords;
+
+        //cell.draw_gnuplot(0,0,0,"cell.dat");
+
+        cell.neighbors(neib_list);
+
+        cell.face_vertices(face_vert);
+        // In face_vert the first entry is a number k corresponding to the number
+        // of vertices making up a face,
+        // this is followed by k additional entries describing which vertices make up this face.
+        // For example, (3, 16, 20, 13) is a triangular face linking vertices 16, 20, and 13
+
+        cell.vertices(0,0,0,vert_coords);
+        //vert_coords this corresponds to a vector of triplets (x, y, z)
+        // describing the position of each vertex.
+
+        // Collect verteces which make up cell area in XY plane
+        int j = 0;
+        int vert_ind;
+        float x,y;
+        area_vertexes.clear();
+        area_vertexes.reserve(cell.number_of_faces()-2); // 2 faces are top and bottom walls
+
+        // We need to take only face aganst the wall, which containes all vertices
+        // which we need to area calculation
+        for(int i=0;i<neib_list.size();++i){
+            if(neib_list[i]<0){ // Only take the wall faces
+                // Cycle over vertices of this face
+                for(int ind=0; ind<face_vert[j]; ++ind){
+                    vert_ind = 3*face_vert[j+1+ind];
+                    x = vert_coords[vert_ind];
+                    y = vert_coords[vert_ind+1];
+                    // We are not interested in Z component
+                    area_vertexes.push_back(Vector3f(x,y,0.0));
+                }
+                break; // We are done
+            }
+            j += face_vert[j]+1; // Next entry in face_vert
+        }
+
+        // In plane area. Since Z size of the cell is 1 volume=area
+        in_plane_area = cell.volume();
+
+        // Compute area on surface
+        // Project all vertexes to the surface
+        surf_area = 0.0;
+        for(Vector3f& v: area_vertexes) project_point_to_surface(v);
+        // Sum up areas of triangles. Points are not dupicated.
+        for(int i=0; i<area_vertexes.size()-1; ++i){
+            surf_area += 0.5*(area_vertexes[i]-fitted_points.col(0))
+                        .cross(area_vertexes[i+1]-fitted_points.col(0))
+                        .norm();
+        }
+    }
+
+
+    void compute_curvature(){
+        /* Compute the curvatures
+
+            First fundamental form:  I = E du^2 + 2F du dv + G dv^2
+            E= r_u dot r_u, F= r_u dot r_v, G= r_v dot r_v
+
+            For us parametric variables (u,v) are just (x,y) in local space.
+            Derivatives:
+                r_u = {1, 0, 2Ax+Cy+D}
+                r_v = {0, 1, 2By+Cx+E}
+
+            In central point x=0, y=0 so:
+                r_u={1,0,D}
+                r_v={0,1,E}
+
+            Thus: E_ =1+D^2; F_ = D*E; G_ = 1+E^2;
+
+            Second fundamental form: II = L du2 + 2M du dv + N dv2
+            L = r_uu dot n, M = r_uv dot n, N = r_vv dot n
+
+            Normal is just  n = {0, 0, 1}
+            Derivatives:
+                r_uu = {0, 0, 2A}
+                r_uv = {0 ,0, C}
+                r_vv = {0, 0, 2B}
+
+            Thus: L_ = 2A; M_ = C; N_ = 2B;
+            */
+
+        float E_ = 1.0+D()*D();
+        float F_ = D()*E();
+        float G_ = 1.0+E()*E();
+
+        float L_ = 2.0*A();
+        float M_ = C();
+        float N_ = 2.0*B();
+
+        //Curvatures:
+        gaussian_curvature = (L_*N_-M_*M_)/(E_*G_-F_*F_);
+        mean_curvature = 0.5*(E_*N_-2.0*F_*M_+G_*L_)/(E_*G_-F_*F_);
+
+        // Compute normal of the fitted surface at central point
+        // dx = 2Ax+Cy+D
+        // dy = 2By+Cx+E
+        // dz = -1
+        // Since we are evaluating at x=y=0:
+        // norm = {D,E,1}
+        fitted_normal = Vector3f(D(),E(),-1.0).normalized();
+        // Orientation of the normal could be wrong!
+        // Have to be flipped according to lipid orientation later
+    }
+
+
+    inline float A(){ return quad_coefs[0]; }
+    inline float B(){ return quad_coefs[1]; }
+    inline float C(){ return quad_coefs[2]; }
+    inline float D(){ return quad_coefs[3]; }
+    inline float E(){ return quad_coefs[4]; }
+    inline float F(){ return quad_coefs[5]; }
+
+//qprivate:
     // Coefficients of the quadric surface A,B,C,D,E,F
     Vector<float,6> quad_coefs;
     // Fitted points
     MatrixXf fitted_points;
+    // Fitted normal (unoriented!)
+    Vector3f fitted_normal;
+    // Vertexes for area calculations
+    vector<Vector3f> area_vertexes;
+    // Computed properties
+    float fit_rms;
+    float in_plane_area;
+    float surf_area;
+    float gaussian_curvature;
+    float mean_curvature;
 };
 
 
-void fit_quad_surface(const MatrixXf& coord,
-                      Vector<float,6>& quad_coefs,
-                      MatrixXf& fitted_points,
-                      float& rms){
-    int N = coord.cols();
-    // We fit with polynomial fit = A*x^2 + B*y^2 + C*xy + D*x + E*y + F
-    // Thus we need a linear system of size 6
-    Matrix<float,6,6> m;
-    Matrix<float,6,1> rhs; // Right hand side and result
-    m.fill(0.0);
-    rhs.fill(0.0);
-
-    Vector<float,6> powers;
-    powers(5) = 1.0; //free term, the same everywhere
-    for(int j=0;j<N;++j){ // over points
-        powers(0) = coord(0,j)*coord(0,j); //xx
-        powers(1) = coord(1,j)*coord(1,j); //yy
-        powers(2) = coord(0,j)*coord(1,j); //xy
-        powers(3) = coord(0,j); //x
-        powers(4) = coord(1,j); //y
-        // Fill the matrix
-        m.noalias() += powers * powers.transpose();
-        // rhs
-        rhs += powers*coord(2,j);
-    }
-
-    // Now solve
-    quad_coefs = m.ldlt().solve(rhs);
-
-    // Compute RMS of fitting and fitted points
-    fitted_points = coord; // Set to parent points initially
-    rms = 0.0;
-    for(int j=0;j<N;++j){
-        float fitZ = coord(0,j)*coord(0,j)*quad_coefs(0) //Axx
-                   + coord(1,j)*coord(1,j)*quad_coefs(1) //Byy
-                   + coord(0,j)*coord(1,j)*quad_coefs(2) //Cxy
-                   + coord(0,j)*quad_coefs(3)            //Dx
-                   + coord(1,j)*quad_coefs(4)            //Ey
-                   + quad_coefs(5);                      //F
-        rms += pow(coord(2,j)-fitZ,2);
-        // Adjust Z of fitted point
-        fitted_points(2,j) = fitZ;
-    }
-    rms = sqrt(rms/float(N));
-}
-
-
-float find_neighbours_2D(VectorXf_const_ref X,VectorXf_const_ref Y, vector<Vector3f>& area_vertexes){
-    // The center of the cell is assumed to be at {0,0,0}
-    // 2D coordinates of points are passed as X and Y arrays
-    using namespace voro;
-
-    voronoicell_neighbor cell;
-    // Initialize with large volume by default in XY and size 1 in Z
-    cell.init(-20,20,-20,20,-0.5,0.5);
-    for(int i=0; i<X.size(); ++i){
-        cell.plane(X(i),Y(i),0.0,i); // Pass i as neigbour pid
-    }
-
-    vector<int> neib_list;
-    vector<int> face_vert;
-    vector<double> vert_coords;
-    cell.neighbors(neib_list);
-
-    cell.face_vertices(face_vert);
-    // the first entry is a number k corresponding to the number of vertices making up a face,
-    // this is followed by k additional entries describing which vertices make up this face.
-    // For example, (3, 16, 20, 13) is a triangular face linking vertices 16, 20, and 13
-
-    cell.vertices(0,0,0,vert_coords);
-    //this corresponds to a vector of triplets (x, y, z) describing the position of each vertex.
-
-    // Collect verteces which make up cell area in XY plane
-    int j = 0;
-    int vert_ind;
-    float x,y,z;
-    area_vertexes.clear();
-    area_vertexes.reserve(cell.number_of_faces()-2); // 2 faces are top and bottom walls
-    // Cycle over all neigbouring faces
-    for(int i=0;i<neib_list.size();++i){
-        if(neib_list[i]>0){ // Filter outer walls
-            // Cycle over vertices of this face
-            for(int ind=0; ind<face_vert[j]; ++ind){
-                vert_ind = 3*face_vert[j+1+ind];
-                x = vert_coords[vert_ind];
-                y = vert_coords[vert_ind+1];
-                z = vert_coords[vert_ind+2];
-                // We have degenerate points with z=+-0.5, so take only positive ones
-                if(z>0) area_vertexes.push_back(Vector3f(x,y,0.0));
-            }
-        }
-        j += face_vert[j]+1; // Next entry in face_vert
-    }
-
-    // Return in plane area. Since Z size of the cell is 1 volume=area
-    return cell.volume();
-}
-
-
-float compute_area(const Eigen::MatrixXf& coord, double dist, std::vector<int>& neib){
-    // Perform Voronoi computation in the tangent plane
-    using namespace voro;
-
-    voronoicell_neighbor c;
-
-    // Z dimension of cotainer is 1, so volume=area
-    container con(-dist,dist,
-                  -dist,dist,
-                  -0.5,0.5,
-                  10,10,10,false,false,false,8);
-
-
-    particle_order po;
-    // Cycle over particles, first particle is our target
-    for(int i=0;i<coord.cols();++i){
-        con.put(po, i, coord.col(i)(0), coord.col(i)(1), 0.0); // Z is zero
-    }
-    c_loop_order clo(con,po);
-    if(! clo.start()) return -1.0; // Get first point, which is our target
-    if(! con.compute_cell(c,clo) ) return -1.0;
-
-    // Check if any of vertices is on outer bounding box and skip cell if they are
-    vector<double> vert;
-    c.vertices(0,0,0,vert);
-    for(int i=0; i<vert.size(); i+=3){
-        //     X                         Y
-        if(abs(abs(vert[i])-dist)<=1.0e-5 || abs(abs(vert[i+1])-dist)<=1.0e-5){
-            //cout << "| " << vert[i] << " " << vert[i+1] << " " << vert[i+2] << " " << abs(vert[i])-dist << endl;
-            return -1.0;
-        }
-    }
-
-    // Extract neighbors of this particle
-    std::vector<int> n;
-    c.neighbors(n);
-    // Filter out negatives
-    neib.clear();
-    for(int i: n)
-        if(i>0) neib.push_back(i);
-
-/*
-    cout << "Npoints: " << coord.cols() << endl;
-    // Output the particle positions in gnuplot format
-    con.draw_particles("points.gnu");
-
-    // Output the Voronoi cells in gnuplot format
-    con.draw_cells_gnuplot("points_v.gnu");
-*/
-    return c.volume();
-}
-
-
-void get_curvature(const Matrix<float,6,1>& coeffs, float& gaussian_curvature, float& mean_curvature){
-    /* Compute the curvatures
-
-        First fundamental form:  I = E du^2 + 2F du dv + G dv^2
-        E= r_u dot r_u, F= r_u dot r_v, G= r_v dot r_v
-
-        For us parametric variables (u,v) are just (x,y) in local space.
-        Derivatives:
-            r_u = {1, 0, 2Ax+Cy+D}
-            r_v = {0, 1, 2By+Cx+E}
-
-        In central point x=0, y=0 so:
-            r_u={1,0,D}
-            r_v={0,1,E}
-
-        Thus: E_ =1+D^2; F_ = D*E; G_ = 1+E^2;
-
-        Second fundamental form: II = L du2 + 2M du dv + N dv2
-        L = r_uu dot n, M = r_uv dot n, N = r_vv dot n
-
-        Normal is just  n = {0, 0, 1}
-        Derivatives:
-            r_uu = {0, 0, 2A}
-            r_uv = {0 ,0, C}
-            r_vv = {0, 0, 2B}
-
-        Thus: L_ = 2A; M_ = C; N_ = 2B;
-        */
-
-    float E_ = 1.0+coeffs[3]*coeffs[3];
-    float F_ = coeffs[3]*coeffs[4];
-    float G_ = 1.0+coeffs[4]*coeffs[4];
-
-    float L_ = 2.0*coeffs[0];
-    float M_ = coeffs[2];
-    float N_ = 2.0*coeffs[1];
-
-    //Curvatures:
-    gaussian_curvature = (L_*N_-M_*M_)/(E_*G_-F_*F_);
-    mean_curvature = 0.5*(E_*N_-2.0*F_*M_+G_*L_)/(E_*G_-F_*F_);
-}
 
 
 string tcl_arrow(Vector3f_const_ref p1, Vector3f_const_ref p2, float r, string color){
@@ -769,42 +761,22 @@ void LipidMembrane::compute_properties(float d, bool use_external_normal, Vector
             // Smooth and find local curvatures
             //-----------------------------------
 
-            // Fit a quad surface
-            Matrix<float,6,1> quad_coefs;
-            MatrixXf fitted_points; // smoothed points. First point is the central one.
-            fit_quad_surface(coord,quad_coefs,fitted_points,lip.quad_fit_rms);
-            // Compute curvatures using quad fit coeefs
-            get_curvature(quad_coefs, lip.gaussian_curvature, lip.mean_curvature);
-            // Compute new normal from fitted surface
-            // dx = 2Ax+Cy+D
-            // dy = 2By+Cx+E
-            // dz = -1
-            // Since we are evaluating at x=y=0:
-            // norm = {D,E,1}
-            Vector3f new_normal(quad_coefs[3],quad_coefs[4],-1.0);
+            QuadSurface surf;
+            surf.fit_to_points(coord);
+            vector<Vector3f> in_plane_vertices;
+            surf.compute_area();
+            surf.compute_curvature();
 
-            // Make Voronoi tesselation in the tangent plane
-            // Also get in-plane area
-            vector<Vector3f> area_vertexes;
-            int N=lip.local_sel.size();
-            // Compute all vertices which make up Voronoi cell of the central particles
-            // in local tangent plane.
-            // Do not pass the first point, which is a center
-            float flat_area = find_neighbours_2D(fitted_points.row(0).tail(N),
-                                                 fitted_points.row(1).tail(N),
-                                                 area_vertexes);
-
-            // Project all vertices onto the quadric fitted surfac surface
-
-            // Update local axes
-            //axes.col(0) = tr*Vector3f(1,0,0);
-            //axes.col(1) = tr*Vector3f(0,1,0);
-            //axes.col(2) = tr*new_normal;
+            lip.mean_curvature = surf.mean_curvature;
+            lip.gaussian_curvature = surf.gaussian_curvature;
 
             // Print
+            const auto& fp = surf.fitted_points;
             ofstream out(fmt::format("vis/patch_{}.tcl",i));
             fmt::print(out,"# mean_curv = {}\n",lip.mean_curvature);
             fmt::print(out,"# gauss_curv = {}\n",lip.gaussian_curvature);
+            fmt::print(out,"# area_flat = {}\n",surf.in_plane_area);
+            fmt::print(out,"# area_surf = {}\n",surf.surf_area);
             fmt::print(out,"draw color white\n");
             for(int j=0; j<lip.local_sel.size(); ++j){
                 if(j==0) fmt::print(out,"draw color yellow\n");
@@ -818,41 +790,41 @@ void LipidMembrane::compute_properties(float d, bool use_external_normal, Vector
             fmt::print(out,"draw color iceblue\n");
             for(int j=0; j<lip.local_sel.size(); ++j){
                 if(j==0) fmt::print(out,"draw color green\n");
-                fmt::print(out,"draw sphere \"{} {} {}\" radius 1\n",10*fitted_points(0,j),10*fitted_points(1,j),10*fitted_points(2,j));
+                fmt::print(out,"draw sphere \"{} {} {}\" radius 1\n",10*fp(0,j),10*fp(1,j),10*fp(2,j));
                 if(j==0) fmt::print(out,"draw color iceblue\n");
             }
-            p2 = fitted_points.col(0)+new_normal;
+
+            p2 = fp.col(0)+surf.fitted_normal;
             fmt::print(out,"draw cylinder \"{} {} {}\" \"{} {} {}\" radius 0.5\n",
-                       10*fitted_points(0,0),10*fitted_points(1,0),10*fitted_points(2,0),
+                       10*fp(0,0),10*fp(1,0),10*fp(2,0),
                        10*p2(0),10*p2(1),10*p2(2) );
+
+            // Vertices
+            fmt::print(out,"draw color orange\n");
+            for(int j=0; j<surf.area_vertexes.size(); ++j){
+                int j2 = j+1;
+                if(j==surf.area_vertexes.size()-1) j2=0;
+                fmt::print(out,"draw line \"{} {} {}\" \"{} {} {}\" width 2\n",
+                           10*surf.area_vertexes[j].x(),10*surf.area_vertexes[j].y(),10*surf.area_vertexes[j].z(),
+                           10*surf.area_vertexes[j2].x(),10*surf.area_vertexes[j2].y(),10*surf.area_vertexes[j2].z()
+                           );
+                fmt::print(out,"draw line \"{} {} {}\" \"{} {} {}\" width 2\n",
+                           10*surf.area_vertexes[j].x(),10*surf.area_vertexes[j].y(),10*surf.area_vertexes[j].z(),
+                           10*coord(0,0),10*coord(1,0),10*coord(2,0)
+                           );
+            }
             out.close();
 
+
+            //exit(1);///////////////////////////////
+
             // Get smoothed central surface point in lab coords
-            lip.smoothed_mid_xyz = tr*fitted_points.col(0) + lip.mid_marker;
+            lip.smoothed_mid_xyz = tr*fp.col(0) + lip.mid_marker;
 
             //-----------------------------------
             // Area and neighbours
             //-----------------------------------
-            if(iter == max_iter-1){
-                vector<int> neib;
-                lip.area = compute_area(coord,10.0,neib);
-                if(lip.area>0){
-                    // Save coordination number of the lipid
-                    lip.coord_number = neib.size();
-                    // Neighbours are in terms of point indexes in order of their addition
-                    // this is the same as order in conn[i]. 0 is central atom, neighbors start from 1.
-                    // conn[i] contains local indexes in all_mid_sel
-                    lip.neib.resize(neib.size());
-                    for(int j=0;j<neib.size();++j){
-                        //cout << j << " " << neib[j] << " " << conn[i].size() <<  " " << conn[i][neib[j]] << endl;
-                        lip.neib[j] = conn[i][neib[j]-1];
-                    }
-                } else {
-                    // Something is wrong
-                    lip.coord_number = -1;
-                    lip.neib.clear();
-                }
-            }
+            lip.area = surf.surf_area;
         } // for lipids
 
         // Update mid markers
