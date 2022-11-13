@@ -187,6 +187,12 @@ public:
                         .cross(area_vertexes[ii]-fitted_points.col(0))
                         .norm();
         }
+
+        // Set list of neigbours
+        // Filter out negatives
+        for(int id: neib_list){
+            if(id>=0) neib_id.push_back(id);
+        }
     }
 
 
@@ -259,6 +265,8 @@ public:
     Vector3f fitted_normal;
     // Vertexes for area calculations
     vector<Vector3f> area_vertexes;
+    // List of neighbour ids
+    vector<int> neib_id;
     // Computed properties
     float fit_rms;
     float in_plane_area;
@@ -342,7 +350,7 @@ LipidMolecule::LipidMolecule(const Selection& lip_mol, const LipidSpecies& sp, i
     for(const string& t_str: sp.tail_carbons_str){
         tails.emplace_back(whole_sel, t_str);
     }
-    neib.clear();
+    //neib.clear();
 }
 
 void LipidMolecule::add_to_group(int gr){
@@ -472,10 +480,12 @@ void PerSpeciesProperties::add_data(const LipidMolecule &lip){
     }
 
     // Lipid surrounding
+    /*
     for(int i: lip.neib){
         //cout << i << " " << lip.membr_ptr->lipids.size() << endl;
         around[lip.membr_ptr->lipids[i].name] += 1;
     }
+    */
 
 }
 
@@ -654,10 +664,9 @@ void LipidMembrane::reset_groups(){
     }
 }
 
+
 void LipidMembrane::compute_properties(float d, bool use_external_normal, Vector3f_const_ref external_pivot, Vector3i_const_ref external_dist_dim)
 {
-    Eigen::Matrix3f tr, tr_inv;
-
     // Set markers for all lipids
     // This unwraps each lipid
     for(auto& l: lipids) l.set_markers();    
@@ -667,99 +676,81 @@ void LipidMembrane::compute_properties(float d, bool use_external_normal, Vector
     vector<float> dist;
     search_contacts(d,all_mid_sel,bon,dist,false,fullPBC);
 
-    // Convert the list of bonds to convenient form
-    // atom ==> 1 2 3...
-    vector<vector<int> > conn(all_mid_sel.size());
+    // Fill patches with id's and distances
     for(int i=0;i<bon.size();++i){
         int l1 = bon[i](0);
         int l2 = bon[i](1);
-        // Only connect lipids with the same rough normal orientation
-        // This adds protection from accidentally adding the opposite monolayer for large cutoffs
-        if(angle_between_vectors(lipids[l1].tail_head_vector,lipids[l2].tail_head_vector)<M_PI_2){
-            conn[l1].push_back(l2);
-            conn[l2].push_back(l1);
-        }
+        lipids[l1].patch.neib_id.push_back(l2);
+        lipids[l1].patch.neib_dist.push_back(dist[l2]);
+        lipids[l2].patch.neib_id.push_back(l1);
+        lipids[l2].patch.neib_dist.push_back(dist[l1]);
     }
 
-    // Do some pre-processing
-    for(int i=0;i<lipids.size();++i){
-        // conn[i] contains local indexes in all_mid_sel
-        // Sort it to have predictable order
-        std::sort(conn[i].begin(),conn[i].end());
-
-        // Save local selection for this lipid
-        lipids[i].local_sel = all_mid_sel.select(conn[i]);
+    // Compute local coordinates and approximate normals of patches
+    for(size_t i=0; i<lipids.size(); ++i){
+        auto& patch = lipids[i].patch;
+        // Set local selection for this lipid
+        lipids[i].local_sel = all_mid_sel.select(patch.neib_id);
         lipids[i].local_sel_with_self = lipids[i].local_sel;
         lipids[i].local_sel_with_self.append(all_mid_sel.index(i));
 
-        if(lipids[i].local_sel.size()==0){
-            log->warn("Empty locality of lipid {}!",i);
-            continue;
+        // Get inertia axes
+        Vector3f moments;
+        lipids[i].local_sel_with_self.inertia(moments, patch.axes, fullPBC);
+        // Transformation matrices
+        patch.to_lab = patch.axes.colwise().normalized();
+        patch.to_local = patch.to_lab.inverse();
+        // Approximate normal with correct orientation
+        patch.normal = patch.axes.col(2).normalized();
+        float ang = angle_between_vectors(patch.normal, lipids[i].tail_head_vector);
+        if(ang > M_PI_2) patch.normal *= -1;
+    }
+
+    // Inspect normals and try to fix them if weird orientation is found
+    for(size_t i=0; i<lipids.size(); ++i){
+        const Vector3f& normal1 = lipids[i].patch.normal;
+        int n_bad = 0;
+        Vector3f aver_closest(0,0,0);
+        for(int j=0; j<lipids[i].patch.neib_id.size(); ++j){
+            int jl = lipids[i].patch.neib_id[j];
+            float d = lipids[i].patch.neib_dist[j];
+            const Vector3f& normal2 = lipids[jl].patch.normal;
+            // We
+            if( d<1.0){
+                if(angle_between_vectors(normal1,normal2)>M_PI_4 ) ++n_bad;
+                aver_closest += normal2;
+            }
+        }
+
+        if(n_bad>2){
+            // Set to average of closest normals
+            fmt::format("Trying to fix bad normal {}", i);
+            lipids[i].patch.normal = aver_closest.normalized();
         }
     }
 
     // Smoothing iterations
     int max_iter = 1;
     for(int iter=0; iter<max_iter; ++iter){
+        log->info("Iter {}",iter);
 
-        //log->info("Iter {} {}",iter,lipids[0].mid_marker.transpose());
-
-        ofstream out_all(fmt::format("vis/areas_all.tcl"));
-        fmt::print(out_all,"draw color orange\n");
+        string out1; // Output file 1
 
         // Process lipids
-        for(int i=0;i<lipids.size();++i){
+        for(size_t i=0;i<lipids.size();++i){
             LipidMolecule& lip = lipids[i];
-            // Local coordinate axes
-            Matrix3f axes;
 
-            //-----------------------------------
-            // Compute normal
-            //-----------------------------------
-            Vector3f normal;
+            // Sort neib_id for correct index match with selection
+            sort(lip.patch.neib_id.begin(),lip.patch.neib_id.end());
 
-            if(use_external_normal){
-                // Compute external normal as a vector from pivot to COM of mid_sel (set as marker currently)
-                // over specified dimensions
-                axes.col(2) = (lip.mid_marker-external_pivot).array()*external_dist_dim.cast<float>().array();
-
-                // Find two vectors perpendicular to normal
-                if( axes.col(2).dot(Vector3f(1,0,0)) != 1.0 ){
-                    axes.col(0) = axes.col(2).cross(Vector3f(1,0,0));
-                } else {
-                    axes.col(0) = axes.col(2).cross(Vector3f(0,1,0));
-                }
-                axes.col(1) = axes.col(2).cross(axes.col(0));
-            } else {
-                // Compute normals from inertia axes
-                Vector3f moments;
-                lip.local_sel_with_self.inertia(moments,axes,fullPBC); // Have to use periodic variant
-                // axes.col(2) will be a normal
-            }
-
-            normal = axes.col(2);            
-
-            // Need to check direction of the normal
-            float ang = angle_between_vectors(normal, lip.tail_head_vector);
-            if(ang < M_PI_2){
-                lip.normal = normal;
-                lip.tilt = rad_to_deg(ang);
-            } else {
-                lip.normal = -normal;
-                lip.tilt = rad_to_deg(M_PI-ang);
-            }
-            lip.normal.normalized();
-
-            // transformation matrix to local basis
-            tr = axes.colwise().normalized();
-            tr_inv = tr.inverse();
 
             // Create array of local points in local basis
             MatrixXf coord(3,lip.local_sel.size()+1);
-            Vector3f c0 = lip.mid_marker; // Real coord of central point - the marker
             coord.col(0) = Vector3f::Zero(); // Local coord of central point is zero and it goes first
             for(int j=0; j<lip.local_sel.size(); ++j)
-                coord.col(j+1) = tr_inv * system->box(0).shortest_vector(c0,lip.local_sel.xyz(j));
+                coord.col(j+1) = lip.patch.to_local
+                        * system->box(0).shortest_vector(lip.mid_marker,
+                                                         lip.local_sel.xyz(j));
 
             //-----------------------------------
             // Smooth and find local curvatures
@@ -770,87 +761,149 @@ void LipidMembrane::compute_properties(float d, bool use_external_normal, Vector
             surf.compute_area();
             surf.compute_curvature();
 
+            // Check direction of the fitted normal
+            float norm_ang = angle_between_vectors(lip.patch.to_lab*surf.fitted_normal,lip.patch.normal);
+            if(norm_ang > M_PI_2){
+                surf.fitted_normal *= -1.0;
+                //norm_ang = M_PI-norm_ang;
+                surf.mean_curvature *= -1.0;
+                //surf.gaussian_curvature *= -1.0;
+            }
+
             lip.mean_curvature = surf.mean_curvature;
             lip.gaussian_curvature = surf.gaussian_curvature;
 
+            // Set neigbours for lipid
+            for(int i=0; i<surf.neib_id.size(); ++i){
+                // Indexes in surf.neib_id start from 1, because 0 is the central point
+                // Thus substract 1 and we get a local selection index
+                // which are in turn correspond to lipid indexes in all_mid_sel
+                int ind = surf.neib_id[i]-1;
+                lip.neib.push_back( lip.patch.neib_id[ind] );
+            }
+
+
             // Print
             const auto& fp = surf.fitted_points;
-            ofstream out(fmt::format("vis/patch_{}.tcl",i));
-            fmt::print(out,"# mean_curv = {}\n",lip.mean_curvature);
-            fmt::print(out,"# gauss_curv = {}\n",lip.gaussian_curvature);
-            fmt::print(out,"# area_flat = {}\n",surf.in_plane_area);
-            fmt::print(out,"# area_surf = {}\n",surf.surf_area);
-            fmt::print(out,"draw color white\n");
-            for(int j=0; j<lip.local_sel.size(); ++j){
-                if(j==0) fmt::print(out,"draw color yellow\n");
-                fmt::print(out,"draw sphere \"{} {} {}\" radius 1\n",10*coord(0,j),10*coord(1,j),10*coord(2,j));
-                if(j==0) fmt::print(out,"draw color white\n");
-            }
-            Vector3f p2 = coord.col(0)+tr_inv*lip.normal;
-            fmt::print(out,"draw cylinder \"{} {} {}\" \"{} {} {}\" radius 0.5\n",
-                       10*coord(0,0),10*coord(1,0),10*coord(2,0),
-                       10*p2(0),10*p2(1),10*p2(2) );
 
-            // Smoothed
-            fmt::print(out,"draw color iceblue\n");
-            for(int j=0; j<lip.local_sel.size(); ++j){
-                if(j==0) fmt::print(out,"draw color green\n");
-                fmt::print(out,"draw sphere \"{} {} {}\" radius 1\n",10*fp(0,j),10*fp(1,j),10*fp(2,j));
-                if(j==0) fmt::print(out,"draw color iceblue\n");
-            }
-
-            p2 = fp.col(0)+surf.fitted_normal;
-            fmt::print(out,"draw cylinder \"{} {} {}\" \"{} {} {}\" radius 0.5\n",
-                       10*fp(0,0),10*fp(1,0),10*fp(2,0),
-                       10*p2(0),10*p2(1),10*p2(2) );
-
-            // Vertices
-            fmt::print(out,"draw color orange\n");
+            Vector3f p1,p2,p3;
+            out1 += fmt::format("draw color orange\n");
+            // Area vertices in lab coordinates
+            out1 += fmt::format("draw color orange\n");
             for(int j=0; j<surf.area_vertexes.size(); ++j){
                 int j2 = j+1;
                 if(j==surf.area_vertexes.size()-1) j2=0;
-                fmt::print(out,"draw line \"{} {} {}\" \"{} {} {}\" width 2\n",
-                           10*surf.area_vertexes[j].x(),10*surf.area_vertexes[j].y(),10*surf.area_vertexes[j].z(),
-                           10*surf.area_vertexes[j2].x(),10*surf.area_vertexes[j2].y(),10*surf.area_vertexes[j2].z()
-                           );
-                fmt::print(out,"draw line \"{} {} {}\" \"{} {} {}\" width 2\n",
-                           10*surf.area_vertexes[j].x(),10*surf.area_vertexes[j].y(),10*surf.area_vertexes[j].z(),
-                           10*fp(0,0),10*fp(1,0),10*fp(2,0)
-                           );
-            }
-            out.close();
-
-            // Vertices in lab coordinates
-            for(int j=0; j<surf.area_vertexes.size(); ++j){
-                int j2 = j+1;
-                if(j==surf.area_vertexes.size()-1) j2=0;
-                Vector3f p1 = tr*surf.area_vertexes[j] + lip.mid_marker;
-                Vector3f p2 = tr*surf.area_vertexes[j2] + lip.mid_marker;
-                fmt::print(out_all,"draw line \"{} {} {}\" \"{} {} {}\" width 2\n",
+                p1 = lip.patch.to_lab *surf.area_vertexes[j] + lip.mid_marker;
+                p2 = lip.patch.to_lab *surf.area_vertexes[j2] + lip.mid_marker;
+                out1 += fmt::format("draw line \"{} {} {}\" \"{} {} {}\" width 2\n",
                            10*p1.x(),10*p1.y(),10*p1.z(),
                            10*p2.x(),10*p2.y(),10*p2.z()
                            );
             }
+            // Normal vectors
+            // Patch normals
+            p1 = lip.patch.to_lab*fp + lip.mid_marker;
+            p2 = p1 + lip.patch.normal*1.0;
+            p3 = p1 + lip.patch.normal*1.2;
+            out1 += fmt::format("draw color white\n");
+            out1 += fmt::format("draw cylinder \"{} {} {}\" \"{} {} {}\" radius 0.2\n",
+                       10*p1.x(),10*p1.y(),10*p1.z(),
+                       10*p2.x(),10*p2.y(),10*p2.z() );
+            out1 += fmt::format("draw cone \"{} {} {}\" \"{} {} {}\" radius 0.3\n",
+                       10*p2.x(),10*p2.y(),10*p2.z(),
+                       10*p3.x(),10*p3.y(),10*p3.z() );
+            // fitted normals
+            out1 += fmt::format("draw color iceblue\n");
+            p2 = p1 + lip.patch.to_lab*surf.fitted_normal*1.0;
+            p3 = p1 + lip.patch.to_lab*surf.fitted_normal*1.3;
+            out1 += fmt::format("draw cylinder \"{} {} {}\" \"{} {} {}\" radius 0.2\n",
+                       10*p1.x(),10*p1.y(),10*p1.z(),
+                       10*p2.x(),10*p2.y(),10*p2.z() );
+            out1 += fmt::format("draw cone \"{} {} {}\" \"{} {} {}\" radius 0.3\n",
+                       10*p2.x(),10*p2.y(),10*p2.z(),
+                       10*p3.x(),10*p3.y(),10*p3.z() );
 
-            // Get smoothed central surface point in lab coords
-            lip.smoothed_mid_xyz = tr*fp.col(0) + lip.mid_marker;
+            // Smoothed atom
+            out1 += fmt::format("draw sphere \"{} {} {}\" radius 2\n",
+                       10*p1.x(),10*p1.y(),10*p1.z() );
 
             //-----------------------------------
             // Area and neighbours
             //-----------------------------------
             lip.area = surf.surf_area;
+            lip.smoothed_mid_xyz = lip.patch.to_lab*surf.fitted_points.col(0) + lip.mid_marker;
+            lip.normal = lip.patch.to_lab*surf.fitted_normal;
+
+            // Update patch transforms and axes for next iteration
+            /*
+            lip.patch.normal = lip.normal;
+            lip.patch.axes.col(0) = lip.patch.axes.col(1).cross(lip.normal);
+            lip.patch.axes.col(1) = lip.patch.axes.col(0).cross(lip.normal);
+            lip.patch.axes.col(2) = lip.normal;
+            lip.patch.to_lab = lip.patch.axes.colwise().normalized();
+            lip.patch.to_local = lip.patch.to_lab.inverse();
+            */
         } // for lipids
 
+        // Output area and normals plots
+        ofstream out_all(fmt::format("vis/areas_all.tcl"));
+        out_all << out1;
         out_all.close();
+
+        for(int i=0; i<lipids.size(); ++i){
+            all_mid_sel.beta(i) = 10*lipids[i].mean_curvature;
+        }
         all_mid_sel.write("vis/areas_all.pdb");
-        exit(1);///////////////////////////////
+
+        /*
+        // Triangulated surface output
+        string out2;
+        Vector3f p1,p2,p3,n1,n2,n3;
+        for(int i=0; i<lipids.size(); ++i){
+            for(int j=0; j<lipids[i].neib.size(); ++j){
+                int ind2 = lipids[i].neib[j];
+                int k = (j<lipids[i].neib.size()-1) ? j+1 : 0;
+                int ind3 = lipids[i].neib[k];
+                p1 = all_mid_sel.xyz(i);
+                p2 = all_mid_sel.box().closest_image(all_mid_sel.xyz(ind2),p1);
+                p3 = all_mid_sel.box().closest_image(all_mid_sel.xyz(ind3),p1);
+                n1 = lipids[i].normal;
+                n2 = lipids[j].normal;
+                n3 = lipids[k].normal;
+
+                out2 += fmt::format("draw sphere \"{} {} {}\" radius 2\n",
+                           10*p1.x(),10*p1.y(),10*p1.z() );
+
+                out2 += fmt::format("draw tricolor "
+                                    "\"{} {} {}\" \"{} {} {}\" \"{} {} {}\" "
+                                    "\"{} {} {}\" \"{} {} {}\" \"{} {} {}\" "
+                                    "{} {} {} \n",
+                                    10*p1.x(),10*p1.y(),10*p1.z(),
+                                    10*p2.x(),10*p2.y(),10*p2.z(),
+                                    10*p3.x(),10*p3.y(),10*p3.z(),
+
+                                    n1.x(),n1.y(),n1.z(),
+                                    n2.x(),n2.y(),n2.z(),
+                                    n3.x(),n3.y(),n3.z(),
+
+                                    i, j, k
+                                    );
+            }
+        }
+        ofstream outf2(fmt::format("vis/surf.tcl"));
+        outf2 << out2;
+        outf2.close();
+        */
 
         // Update mid markers
         for(int i=0;i<lipids.size();++i){
             lipids[i].mid_marker = lipids[i].smoothed_mid_xyz;
             lipids[i].mid_marker_sel.xyz(0) = lipids[i].smoothed_mid_xyz;
         }
-    }
+
+
+    } //iter
+exit(1);///////////////////////////////
 
     // Unset markers. This restores all correct atomic coordinates for analysis
     for(auto& lip: lipids) lip.unset_markers();

@@ -65,7 +65,7 @@ void make_bindings_Membrane(py::module& m){
         .def_readonly("normal",&LipidMolecule::normal)
         .def_readonly("tilt",&LipidMolecule::tilt)
         .def_readonly("coord_number",&LipidMolecule::coord_number)
-        .def_readonly("neib",&LipidMolecule::neib)
+        //.def_readonly("neib",&LipidMolecule::neib)
 
         .def_readonly("smoothed_mid_xyz",&LipidMolecule::smoothed_mid_xyz)
         .def_readonly("quad_fit_rms",&LipidMolecule::quad_fit_rms)
