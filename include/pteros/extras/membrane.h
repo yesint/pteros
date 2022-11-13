@@ -166,10 +166,6 @@ public:
     float mean_curvature;
     std::vector<int> neib;
 
-    // Staff related to local patch computations
-    LocalPatch patch;
-    QuadSurface surf;
-
 private:
 
     int id;
@@ -182,6 +178,10 @@ private:
     Eigen::Vector3f head_marker, tail_marker, mid_marker, pos_saved;
 
     Selection local_sel, local_sel_with_self;
+
+    // Staff related to local patch computations
+    LocalPatch patch;
+    QuadSurface surf;
 };
 
 

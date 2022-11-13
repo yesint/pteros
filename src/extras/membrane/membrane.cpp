@@ -26,7 +26,6 @@
  *
 */
 
-
 #include "pteros/extras/membrane.h"
 #include "pteros/core/pteros_error.h"
 #include "pteros/core/distance_search.h"
@@ -47,10 +46,6 @@
 using namespace std;
 using namespace pteros;
 using namespace Eigen;
-
-
-
-
 
 
 string tcl_arrow(Vector3f_const_ref p1, Vector3f_const_ref p2, float r, string color){
@@ -554,7 +549,8 @@ void LipidMembrane::compute_properties(float d)
         for(int i=0; i<lip.surf.neib_id.size(); ++i){
             // Indexes in lip.surf.neib_id start from 1, because 0 is the central point
             // Thus substract 1 and we get a local selection index
-            // which are in turn correspond to lipid indexes in all_mid_sel
+            // which are in turn correspond to lipid indexes in all_mid_sel.
+            // The neighbours are NOT arranged in triangulated order!
             int ind = lip.surf.neib_id[i]-1;
             lip.neib.push_back( lip.patch.neib_id[ind] );
         }
@@ -563,6 +559,9 @@ void LipidMembrane::compute_properties(float d)
         lip.area = lip.surf.surf_area;
         lip.smoothed_mid_xyz = lip.patch.to_lab*lip.surf.fitted_points.col(0) + lip.mid_marker;
         lip.normal = lip.patch.to_lab*lip.surf.fitted_normal;
+
+        // Tilt
+        lip.tilt = rad_to_deg(angle_between_vectors(lip.normal,lip.tail_head_vector));
     } // for lipids
 
     // Unset markers. This restores all correct atomic coordinates for analysis
