@@ -79,8 +79,8 @@ void make_bindings_Membrane(py::module& m){
         .def("compute_properties",&LipidMembrane::compute_properties, "d"_a=2.0)
         .def("reset_groups",&LipidMembrane::reset_groups)
         .def("compute_averages",&LipidMembrane::compute_averages)
-        .def("write_averages",&LipidMembrane::write_averages,"path"_a="")
-        .def("write_vmd_visualization",&LipidMembrane::write_vmd_visualization,"path"_a="")
+        .def("write_averages",&LipidMembrane::write_averages,"path"_a=".")
+        .def("write_vmd_visualization",&LipidMembrane::write_vmd_visualization,"path"_a=".")
 
         .def_readonly("lipids",&LipidMembrane::lipids)
     ;
