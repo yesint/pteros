@@ -222,6 +222,7 @@ public:
     Eigen::Vector2f gaussian_curvature;
     Eigen::Vector2f mean_curvature;
     Histogram mean_curv_hist;
+    Histogram gauss_curv_hist;
     // Order parameter
     std::vector<Eigen::ArrayXf> order; //Sz order parameter identical to "gmx order -szonly"
     // Abundance of neighboring species

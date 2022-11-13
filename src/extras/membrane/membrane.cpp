@@ -172,6 +172,7 @@ PerSpeciesProperties::PerSpeciesProperties(LipidMembrane *ptr)
     gaussian_curvature.fill(0.0);
     mean_curvature.fill(0.0);
     mean_curv_hist.create(-0.6,0.3,100);
+    gauss_curv_hist.create(-0.3,0.3,100);
 
     trans_dihedrals_ratio.fill(0.0);
     order_initialized = false;
@@ -211,6 +212,7 @@ void PerSpeciesProperties::add_data(const LipidMolecule &lip){
     accumulate_statistics(lip.mean_curvature, mean_curvature);
     accumulate_statistics(lip.gaussian_curvature, gaussian_curvature);
     mean_curv_hist.add(lip.mean_curvature);
+    gauss_curv_hist.add(lip.gaussian_curvature);
 
     // Tail stats
     if(!order_initialized && lip.tails.size()){
@@ -306,6 +308,7 @@ void PerSpeciesProperties::post_process(float num_frames)
     mean_std_from_accumulated(mean_curvature,count);
     mean_std_from_accumulated(gaussian_curvature,count);
     mean_curv_hist.normalize(count);
+    gauss_curv_hist.normalize(count);
 
     // Order
     if(num_tails<order.size()){
@@ -682,8 +685,9 @@ void LipidMembrane::write_averages(string path)
                 sp.second.area_hist.save_to_file(file_prefix+"area.dat");
                 // Tilt
                 sp.second.tilt_hist.save_to_file(file_prefix+"tilt.dat");
-                // Mean curvature
+                // Curvature
                 sp.second.mean_curv_hist.save_to_file(file_prefix+"mean_curv.dat");
+                sp.second.gauss_curv_hist.save_to_file(file_prefix+"gauss_curv.dat");
                 // Order
                 sp.second.save_order_to_file(file_prefix+"order.dat");
                 // Around
