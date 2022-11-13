@@ -52,7 +52,7 @@ struct LipidSpecies {
 };
 
 
-class LipidTail;
+struct LipidTail;
 class LipidMembrane;
 
 struct LocalPatch {
@@ -66,7 +66,72 @@ struct LocalPatch {
     Eigen::Matrix3f to_lab,to_local;
     // Normal
     Eigen::Vector3f normal;
+    // Original central point
+    Eigen::Vector3f original_center;
 };
+
+
+// Helper class representing a quadric surface for fitting
+// Surface is assumed to be centered around point {0,0,0}
+// We fit with polynomial fit = A*x^2 + B*y^2 + C*xy + D*x + E*y + F
+class QuadSurface {
+public:
+    // Compute fitting surface given the points in local basis
+    void fit_to_points(const Eigen::MatrixXf& coord);
+
+    // Projects point from the XY plane to the surface
+    // existing Z coordinate will be substituted in place by the surface Z value
+    inline void project_point_to_surface(Vector3f_ref p){
+        p(2) =  evalZ(p(0),p(1));
+    }
+
+    // Compute Z point of the surface
+    inline float evalZ(float x, float y){
+        return    A()*x*x
+                + B()*y*y
+                + C()*x*y
+                + D()*x
+                + E()*y
+                + F();
+    }
+
+    // Computes voronoi tesselation in the local tangent plane
+    // Sets vertexes of points in plane making up the area
+    // Computes in-plane area
+    //
+    // TODO: Ability to compute area from multiple atoms for each lipid
+    // (sum of areas belonging to current lipid)
+    //
+    void compute_area();
+
+    void compute_curvature();
+
+    inline float A(){ return quad_coefs[0]; }
+    inline float B(){ return quad_coefs[1]; }
+    inline float C(){ return quad_coefs[2]; }
+    inline float D(){ return quad_coefs[3]; }
+    inline float E(){ return quad_coefs[4]; }
+    inline float F(){ return quad_coefs[5]; }
+
+//qprivate:
+    // Coefficients of the quadric surface A,B,C,D,E,F
+    Eigen::Vector<float,6> quad_coefs;
+    // Fitted points
+    Eigen::MatrixXf fitted_points;
+    // Fitted normal (unoriented!)
+    Eigen::Vector3f fitted_normal;
+    // Vertexes for area calculations
+    std::vector<Eigen::Vector3f> area_vertexes;
+    // List of neighbour ids
+    std::vector<int> neib_id;
+    // Computed properties
+    float fit_rms;
+    float in_plane_area;
+    float surf_area;
+    float gaussian_curvature;
+    float mean_curvature;
+};
+
 
 class LipidMolecule {
 friend class LipidMembrane;
@@ -103,6 +168,7 @@ public:
 
     // Staff related to local patch computations
     LocalPatch patch;
+    QuadSurface surf;
 
 private:
 
@@ -215,18 +281,17 @@ public:
 
     void reset_groups();
 
-    void compute_properties(float d = 2.0,
-                            bool use_external_normal = false,
-                            Vector3f_const_ref external_pivot = Eigen::Vector3f::Zero(),
-                            Vector3i_const_ref external_dist_dim = Eigen::Vector3i::Ones());
+    void compute_properties(float d = 2.0);
 
     void compute_averages();
     void write_averages(std::string path=".");
+    void write_vmd_visualization(const std::string& path=".");
 
     std::vector<LipidMolecule> lipids;
     std::vector<LipidGroup> groups;
 
     std::vector<std::string> species_names;
+
 private:
     System* system; // Parent system
     std::shared_ptr<spdlog::logger> log;

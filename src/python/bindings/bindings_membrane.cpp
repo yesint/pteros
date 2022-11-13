@@ -76,15 +76,11 @@ void make_bindings_Membrane(py::module& m){
     py::class_<LipidMembrane>(m,"LipidMembrane")
         .def(py::init<System*,const std::vector<LipidSpecies>&,int>())
 
-        .def("compute_properties",&LipidMembrane::compute_properties,
-             "d"_a=2.0,
-             "use_external_normal"_a=false,
-             "external_pivot"_a=Eigen::Vector3f::Zero(),
-             "external_dist_dim"_a=Eigen::Vector3i::Ones()
-            )
+        .def("compute_properties",&LipidMembrane::compute_properties, "d"_a=2.0)
         .def("reset_groups",&LipidMembrane::reset_groups)
         .def("compute_averages",&LipidMembrane::compute_averages)
         .def("write_averages",&LipidMembrane::write_averages,"path"_a="")
+        .def("write_vmd_visualization",&LipidMembrane::write_vmd_visualization,"path"_a="")
 
         .def_readonly("lipids",&LipidMembrane::lipids)
     ;
