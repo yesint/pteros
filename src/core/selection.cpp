@@ -310,7 +310,7 @@ void Selection::clear(){
 }
 
 
-Selection Selection::select(string str)
+Selection Selection::select(string str) const
 {
     // We create new selection taking full control of its internals
     // We use empty constructor and than repeat actions of sel_text constructor
@@ -335,7 +335,7 @@ Selection Selection::select(string str)
         throw PterosError("Can't make selection for non-existent frame {} (# of frames is {})", sub.frame, sub.system->num_frames());
 
     // Manually allocate parser with subset from parent index
-    sub.parser.reset(new SelectionParser(&_index));
+    sub.parser.reset(new SelectionParser(const_cast<vector<int>*>(&_index)));
     sub.parser->create_ast(sub.sel_text,sub.system);
     sub.parser->apply_ast(sub.frame, sub._index);
     if(!sub.parser->has_coord){
@@ -350,12 +350,12 @@ Selection Selection::select(string str)
     return sub;
 }
 
-Selection Selection::operator()(string str)
+Selection Selection::operator()(string str) const
 {
     return select(str);
 }
 
-Selection Selection::select(int ind1, int ind2)
+Selection Selection::select(int ind1, int ind2) const
 {
     //Sanity check
     if(ind1<0 || ind1>size()-1) throw PterosError("First index of subselection is out of bonds ({}:{})",0,size()-1);
@@ -367,12 +367,12 @@ Selection Selection::select(int ind1, int ind2)
     return Selection(*system,vec);
 }
 
-Selection Selection::operator()(int ind1, int ind2)
+Selection Selection::operator()(int ind1, int ind2) const
 {
     return select(ind1,ind2);
 }
 
-Selection Selection::select(const std::vector<int> &ind)
+Selection Selection::select(const std::vector<int> &ind) const
 {
     // LOCAL indexes are given, convert them to global and just
     // use normal range constructor
@@ -381,7 +381,7 @@ Selection Selection::select(const std::vector<int> &ind)
     return Selection(*system,glob_ind);
 }
 
-Selection Selection::operator()(const std::vector<int> &ind)
+Selection Selection::operator()(const std::vector<int> &ind) const
 {
     return select(ind);
 }
@@ -928,7 +928,7 @@ Vector3f Selection::center(bool mass_weighted, Array3i_const_ref pbc, int pbc_at
         // Non-periodic variant
         if(mass_weighted){
             float M = 0.0;
-            #pragma omp parallel
+            #pragma omp parallel if (n>=_OMP_MIN_SIZE)
             {                
                 Vector3f r(Vector3f::Zero());
                 #pragma omp for nowait reduction(+:M)
@@ -944,7 +944,7 @@ Vector3f Selection::center(bool mass_weighted, Array3i_const_ref pbc, int pbc_at
             if(M==0) throw PterosError("Selection has zero mass! Center of mass failed!");
             return res/M;
         } else {
-            #pragma omp parallel
+            #pragma omp parallel if (n>=_OMP_MIN_SIZE)
             {
                 Vector3f r(Vector3f::Zero()); // local to omp thread
                 #pragma omp for nowait
@@ -965,7 +965,7 @@ Vector3f Selection::center(bool mass_weighted, Array3i_const_ref pbc, int pbc_at
         PeriodicBox& b = system->box(frame);
         if(mass_weighted){
             float M = 0.0;
-            #pragma omp parallel
+            #pragma omp parallel if (n>=_OMP_MIN_SIZE)
             {                
                 Vector3f r(Vector3f::Zero());
                 #pragma omp for nowait reduction(+:M)
@@ -981,7 +981,7 @@ Vector3f Selection::center(bool mass_weighted, Array3i_const_ref pbc, int pbc_at
             if(M==0) throw PterosError("Selection has zero mass! Center of mass failed!");
             return res/M;
         } else {
-            #pragma omp parallel
+            #pragma omp parallel if (n>=_OMP_MIN_SIZE)
             {
                 Vector3f r(Vector3f::Zero()); // local to omp thread
                 #pragma omp for nowait
@@ -1016,7 +1016,7 @@ Vector3f Selection::center(const std::vector<float> &weights, Array3i_const_ref 
     if( (pbc==0).all() ){
         // Non-periodic variant
         float W = 0.0;
-        #pragma omp parallel
+        #pragma omp parallel if (n>=_OMP_MIN_SIZE)
         {
             Vector3f r(Vector3f::Zero());
             #pragma omp for nowait reduction(+:W)
@@ -1040,7 +1040,7 @@ Vector3f Selection::center(const std::vector<float> &weights, Array3i_const_ref 
         PeriodicBox& b = system->box(frame);
 
         float W = 0.0;
-        #pragma omp parallel
+        #pragma omp parallel if (n>=_OMP_MIN_SIZE)
         {
             Vector3f r(Vector3f::Zero());
             #pragma omp for nowait reduction(+:W)
@@ -1061,7 +1061,7 @@ Vector3f Selection::center(const std::vector<float> &weights, Array3i_const_ref 
 // Plain translation
 void Selection::translate(Vector3f_const_ref v){
     int i,n = _index.size();
-    #pragma omp parallel for
+    #pragma omp parallel for if (n>=_OMP_MIN_SIZE)
     for(i=0; i<n; ++i) xyz(i) += v;
 }
 
@@ -1113,7 +1113,7 @@ float Selection::rmsd(int fr1, int fr2) const{
        fr2<0 || fr2>=system->num_frames())
         throw PterosError("RMSD requested for frames {}:{} while the valid range is 0:{}", fr1,fr2,system->num_frames()-1);
 
-    #pragma omp parallel for reduction(+:res)
+    #pragma omp parallel for reduction(+:res) if (n>=_OMP_MIN_SIZE)
     for(int i=0; i<n; ++i)
         res += (xyz(i,fr1)-xyz(i,fr2)).squaredNorm();
 
@@ -1131,7 +1131,7 @@ float Selection::rmsd(int fr) const {
 // Apply transformation
 void Selection::apply_transform(const Affine3f &t){
     int n = size();    
-    #pragma omp parallel for
+    #pragma omp parallel for if (n>=_OMP_MIN_SIZE)
     for(int i=0; i<n; ++i){        
         xyz(i) = t * xyz(i);
     }
@@ -1206,7 +1206,7 @@ float rmsd(const Selection& sel1, int fr1, const Selection& sel2, int fr2){
                           fr1,fr2,sel1.system->num_frames()-1,sel2.system->num_frames()-1);
 
 
-    #pragma omp parallel for reduction(+:res)
+    #pragma omp parallel for reduction(+:res) if (n1>=_OMP_MIN_SIZE)
     for(int i=0; i<n1; ++i)
         res += (sel1.xyz(i,fr1)-sel2.xyz(i,fr2)).squaredNorm();
 
@@ -1250,7 +1250,7 @@ Affine3f fit_transform(const Selection& sel1, const Selection& sel2){
 
     //Calculate the matrix U
     u.fill(0.0);
-    #pragma omp parallel
+    #pragma omp parallel if (N>=_OMP_MIN_SIZE)
     {
         Matrix3f _u(Matrix3f::Zero());
         #pragma omp for nowait
@@ -1395,7 +1395,7 @@ void Selection::minmax(Vector3f_ref min, Vector3f_ref max) const {
     x_min = y_min = z_min = 1e10;
     x_max = y_max = z_max = -1e10;
 
-    #pragma omp parallel for reduction(min:x_min,y_min,z_min) reduction(max:x_max,y_max,z_max)
+    #pragma omp parallel for reduction(min:x_min,y_min,z_min) reduction(max:x_max,y_max,z_max) if (n>=_OMP_MIN_SIZE)
     for(i=0; i<n; ++i){
         p = xyz_ptr(i);
         if((*p)(0)<x_min) x_min = (*p)(0);
@@ -1815,7 +1815,7 @@ void Selection::inertia(Vector3f_ref moments, Matrix3f_ref axes, Array3i_const_r
     if( (pbc!=0).any() ){
         Vector3f anchor = xyz(pbc_atom);
         PeriodicBox& b = system->box(frame);
-        #pragma omp parallel
+        #pragma omp parallel if (n>=_OMP_MIN_SIZE)
         {
             Vector3f p,d;
             float m;            
@@ -1835,7 +1835,7 @@ void Selection::inertia(Vector3f_ref moments, Matrix3f_ref axes, Array3i_const_r
             }
         }
     } else {
-        #pragma omp parallel
+        #pragma omp parallel if (n>=_OMP_MIN_SIZE)
         {
             Vector3f d;
             float m;
@@ -1874,7 +1874,7 @@ float Selection::gyration(Array3i_const_ref pbc, int pbc_atom) const {
     float d, a = 0.0, b = 0.0;
     Vector3f c = center(true,pbc,pbc_atom);
 
-    #pragma omp parallel for private(d) reduction(+:a,b)
+    #pragma omp parallel for private(d) reduction(+:a,b) if (n>=_OMP_MIN_SIZE)
     for(i=0;i<n;++i){
         if( (pbc!=0).any() ){
             d = system->box(frame).distance(xyz(i),c,pbc);

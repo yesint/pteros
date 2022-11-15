@@ -41,6 +41,9 @@
     #define M_PI_2 9.86960440108935712052951
 #endif
 
+// Minimal size of data to enable OpenMP parallelization
+#define _OMP_MIN_SIZE 1000
+
 namespace pteros {
 
     float angle_between_vectors(Vector3f_const_ref vec1, Vector3f_const_ref vec2);

@@ -317,16 +317,16 @@ class Selection {
       within selections which involve seacrh over all atoms by design).
     */
     /// @{
-    Selection select(std::string str);
-    Selection operator()(std::string str);
+    Selection select(std::string str) const;
+    Selection operator()(std::string str) const;
 
     /// Local selection indexes are used!
-    Selection select(int ind1, int ind2);
-    Selection operator()(int ind1, int ind2);
+    Selection select(int ind1, int ind2) const;
+    Selection operator()(int ind1, int ind2) const;
 
     /// Local selection indexes are used!
-    Selection select(const std::vector<int>& ind);
-    Selection operator()(const std::vector<int>& ind);
+    Selection select(const std::vector<int>& ind) const;
+    Selection operator()(const std::vector<int>& ind) const;
     /// @}
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

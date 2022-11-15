@@ -34,6 +34,7 @@
 #include <Eigen/Dense>
 #include <fstream>
 #include "voro++.hh"
+#include <omp.h>
 
 #ifndef M_PI
     #define M_PI 3.14159265358979323846
@@ -442,9 +443,10 @@ void LipidMembrane::reset_groups(){
 
 
 void LipidMembrane::compute_properties(float d)
-{
+{    
     // Set markers for all lipids
     // This unwraps each lipid
+    #pragma omp parallel for if (lipids.size() >= 100)
     for(auto& l: lipids) l.set_markers();
 
     // Get connectivity
@@ -453,10 +455,12 @@ void LipidMembrane::compute_properties(float d)
     search_contacts(d,all_mid_sel,bon,dist,false,fullPBC);
 
     // Clear patches for all lipids
+    #pragma omp parallel for if (lipids.size() >= 100)
     for(auto& l: lipids) {
         l.patch.neib_id.clear();
         l.patch.neib_dist.clear();
     }
+
     // Fill patches with id's and distances
     for(int i=0;i<bon.size();++i){
         int l1 = bon[i](0);
@@ -467,6 +471,7 @@ void LipidMembrane::compute_properties(float d)
         lipids[l2].patch.neib_dist.push_back(dist[l1]);
     }
 
+    #pragma omp parallel for if (lipids.size() >= 100)
     // Compute local coordinates and approximate normals of patches
     for(size_t i=0; i<lipids.size(); ++i){
         auto& patch = lipids[i].patch;
@@ -488,6 +493,7 @@ void LipidMembrane::compute_properties(float d)
         float ang = angle_between_vectors(patch.normal, lipids[i].tail_head_vector);
         if(ang > M_PI_2) patch.normal *= -1;
     }
+
 
     // Inspect normals and try to fix them if weird orientation is found
     // This is a very important step!
@@ -516,6 +522,7 @@ void LipidMembrane::compute_properties(float d)
     //================
     // Process lipids
     //================
+    #pragma omp parallel for if (lipids.size() >= 100)
     for(size_t i=0;i<lipids.size();++i){
         LipidMolecule& lip = lipids[i];
 
