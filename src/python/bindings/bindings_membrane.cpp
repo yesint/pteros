@@ -64,13 +64,20 @@ void make_bindings_Membrane(py::module& m){
 
         .def_readonly("normal",&LipidMolecule::normal)
         .def_readonly("tilt",&LipidMolecule::tilt)
-        .def_readonly("coord_number",&LipidMolecule::coord_number)
-        //.def_readonly("neib",&LipidMolecule::neib)
-
-        .def_readonly("smoothed_mid_xyz",&LipidMolecule::smoothed_mid_xyz)
-        .def_readonly("quad_fit_rms",&LipidMolecule::quad_fit_rms)
         .def_readonly("mean_curvature",&LipidMolecule::mean_curvature)
         .def_readonly("gaussian_curvature",&LipidMolecule::gaussian_curvature)
+
+        .def_readonly("normal_aver",&LipidMolecule::normal_aver)
+        .def_readonly("tilt_aver",&LipidMolecule::tilt_aver)
+        .def_readonly("mean_curvature_aver",&LipidMolecule::mean_curvature_aver)
+        .def_readonly("gaussian_curvature_aver",&LipidMolecule::gaussian_curvature_aver)
+
+        .def_readonly("coord_number",&LipidMolecule::coord_number)
+
+        .def_readonly("neib",&LipidMolecule::neib)
+        .def_readonly("smoothed_mid_xyz",&LipidMolecule::smoothed_mid_xyz)
+        .def_readonly("quad_fit_rms",&LipidMolecule::quad_fit_rms)
+
     ;
 
     py::class_<LipidMembrane>(m,"LipidMembrane")

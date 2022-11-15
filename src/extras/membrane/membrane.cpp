@@ -33,6 +33,7 @@
 #include <Eigen/Core>
 #include <Eigen/Dense>
 #include <fstream>
+#include <unordered_set>
 #include "voro++.hh"
 #include <omp.h>
 
@@ -167,8 +168,8 @@ PerSpeciesProperties::PerSpeciesProperties(LipidMembrane *ptr)
 
     gaussian_curvature.fill(0.0);
     mean_curvature.fill(0.0);
-    mean_curv_hist.create(-0.6,0.3,100);
-    gauss_curv_hist.create(-0.3,0.3,100);
+    mean_curv_hist.create(-0.6,0.6,200);
+    gauss_curv_hist.create(-0.3,0.3,200);
 
     trans_dihedrals_ratio.fill(0.0);
     order_initialized = false;
@@ -196,10 +197,6 @@ void PerSpeciesProperties::add_data(const LipidMolecule &lip){
     // Tilt
     tilt_hist.add(lip.tilt);
     accumulate_statistics(lip.tilt,tilt);
-
-    // Dipoles
-    accumulate_statistics(lip.dipole.norm(), total_dipole);
-    accumulate_statistics(lip.dipole_proj, projected_dipole);
 
     // Coordination number
     accumulate_statistics(lip.coord_number, coord_number);
@@ -575,24 +572,49 @@ void LipidMembrane::compute_properties(float d)
 
         // Tilt
         lip.tilt = rad_to_deg(angle_between_vectors(lip.normal,lip.tail_head_vector));
+
     } // for lipids
+
+    // Compute order 2 neighbours
+    for(int i=0; i<lipids.size(); ++i){
+        unordered_set<int> s;
+        s.insert(i);
+        for(int n1: lipids[i].neib){
+            s.insert(n1);
+            for(int n2: lipids[n1].neib) s.insert(n2);
+        }
+        lipids[i].neib2.clear();
+        std::copy(s.begin(),s.end(),back_inserter(lipids[i].neib2));
+    }
+
+    // Compute averages over nearest neighbours
+    for(auto& lip: lipids){
+        lip.normal_aver = lip.normal;
+        lip.tilt_aver = lip.tilt;
+        lip.gaussian_curvature_aver = lip.gaussian_curvature;
+        lip.mean_curvature_aver = lip.mean_curvature;
+        for(int n: lip.neib2){
+            lip.normal_aver += lipids[n].normal;
+            lip.tilt_aver += lipids[n].tilt;
+            lip.gaussian_curvature_aver += lipids[n].gaussian_curvature;
+            lip.mean_curvature_aver += lipids[n].mean_curvature;
+        }
+        float N = lip.neib2.size();
+        lip.normal_aver.normalized();
+        lip.tilt_aver /= N;
+        lip.gaussian_curvature_aver /= N;
+        lip.mean_curvature_aver /= N;
+    }
 
     // Unset markers. This restores all correct atomic coordinates for analysis
     for(auto& lip: lipids) lip.unset_markers();
 
     // Analysis whith requires restored coordinates of markers
-    for(auto& lip: lipids){
-        //-------------------------------
-        // Dipole
-        //-------------------------------
-        lip.dipole = lip.whole_sel.dipole(true);
-        lip.dipole_proj = lip.dipole.dot(lip.normal); // normal is normalized, no need to devide by norm
-
-        //-----------------------------------
-        // Tail properties
-        //-----------------------------------
+    #pragma omp parallel for if (lipids.size() >= 100)
+    for(auto& lip: lipids){                
+        // Tail properties        
         for(auto& t: lip.tails) t.compute(lip);
-    } // Over lipids
+    }
 
     // Process groups
     for(auto& gr: groups){
@@ -607,8 +629,7 @@ void LipidMembrane::write_vmd_visualization(const string &path){
         // Print
         const auto& fp = lip.surf.fitted_points;
 
-        Vector3f p1,p2,p3;
-        out1 += fmt::format("draw color orange\n");
+        Vector3f p1,p2,p3;        
         // Area vertices in lab coordinates
         out1 += fmt::format("draw color orange\n");
         for(int j=0; j<lip.surf.area_vertexes.size(); ++j){

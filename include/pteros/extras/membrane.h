@@ -132,6 +132,16 @@ public:
     float mean_curvature;
 };
 
+// Properties of individual lipids
+struct LipidProperties {
+    Eigen::Vector3f normal;
+    float tilt;
+    float area;
+    int coord_number;
+    float gaussian_curvature;
+    float mean_curvature;
+};
+
 
 class LipidMolecule {
 friend class LipidMembrane;
@@ -151,20 +161,29 @@ public:
     // Tails
     std::vector<LipidTail> tails;
 
-    // General instanteneous properties
+    // Instanteneous properties of lipid
     Eigen::Vector3f normal;
     float tilt;
-    float area;
-    int coord_number;
-    Eigen::Vector3f dipole; // Dipole
-    float dipole_proj; // Dipole projected onto the normal
-
-    // Curvature-related instanteneous properties
-    Eigen::Vector3f smoothed_mid_xyz;
-    float quad_fit_rms;
     float gaussian_curvature;
     float mean_curvature;
+
+    // Properties averaged over nearest neighbors
+    Eigen::Vector3f normal_aver;
+    float tilt_aver;
+    float gaussian_curvature_aver;
+    float mean_curvature_aver;
+
+    // Properties from Voronoi tesselation
+    int coord_number;
+    float area;
     std::vector<int> neib;
+
+    // Neighbours of order 2 (two nearest shells)
+    std::vector<int> neib2;
+
+    // Fiting resutls
+    Eigen::Vector3f smoothed_mid_xyz;
+    float quad_fit_rms;
 
 private:
 
