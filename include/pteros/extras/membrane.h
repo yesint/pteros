@@ -115,7 +115,7 @@ public:
 
 //qprivate:
     // Coefficients of the quadric surface A,B,C,D,E,F
-    Eigen::Vector<float,6> quad_coefs;
+    Eigen::Matrix<float,6,1> quad_coefs;
     // Fitted points
     Eigen::MatrixXf fitted_points;
     // Fitted normal (unoriented!)

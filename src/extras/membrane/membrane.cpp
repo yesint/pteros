@@ -135,9 +135,9 @@ void LipidMolecule::set_markers()
     whole_sel.unwrap(fullPBC, mid_marker_sel.index(0)-whole_sel.index(0));
 
     // Set markers to COM
-    head_marker = head_marker_sel.center();
-    tail_marker = tail_marker_sel.center();
-    mid_marker = mid_marker_sel.center();
+    head_marker = head_marker_sel.center(true);
+    tail_marker = tail_marker_sel.center(true);
+    mid_marker = mid_marker_sel.center(true);
 
     pos_saved = mid_marker_sel.xyz(0);
     mid_marker_sel.xyz(0) = mid_marker;
@@ -445,13 +445,18 @@ void LipidMembrane::compute_properties(float d)
 {
     // Set markers for all lipids
     // This unwraps each lipid
-    for(auto& l: lipids) l.set_markers();    
+    for(auto& l: lipids) l.set_markers();
 
     // Get connectivity
     vector<Vector2i> bon;
     vector<float> dist;
     search_contacts(d,all_mid_sel,bon,dist,false,fullPBC);
 
+    // Clear patches for all lipids
+    for(auto& l: lipids) {
+        l.patch.neib_id.clear();
+        l.patch.neib_dist.clear();
+    }
     // Fill patches with id's and distances
     for(int i=0;i<bon.size();++i){
         int l1 = bon[i](0);
@@ -546,6 +551,7 @@ void LipidMembrane::compute_properties(float d)
         lip.gaussian_curvature = lip.surf.gaussian_curvature;
 
         // Set neigbours for lipid
+        lip.neib.clear();
         for(int i=0; i<lip.surf.neib_id.size(); ++i){
             // Indexes in lip.surf.neib_id start from 1, because 0 is the central point
             // Thus substract 1 and we get a local selection index
@@ -794,7 +800,7 @@ void QuadSurface::fit_to_points(const MatrixXf &coord){
     m.fill(0.0);
     rhs.fill(0.0);
 
-    Vector<float,6> powers;
+    Matrix<float,6,1> powers;
     powers(5) = 1.0; //free term, the same everywhere
     for(int j=0;j<N;++j){ // over points
         powers(0) = coord(0,j)*coord(0,j); //xx
@@ -894,6 +900,7 @@ void QuadSurface::compute_area(){
 
     // Set list of neigbours
     // Filter out negatives
+    neib_id.clear();
     for(int id: neib_list){
         if(id>=0) neib_id.push_back(id);
     }
