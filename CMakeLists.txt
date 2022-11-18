@@ -46,6 +46,7 @@ OPTION(TRY_SYSTEM_OPENBABEL "Try using system OpenBabel" ON)
 
 OPTION(DOWNLOAD_DEPENDENCIES "Download and compile dependencies if not found in the system" ON)
 
+OPTION(MAKE_TOOLS "Build pteros tools" ON)
 OPTION(MAKE_STANDALONE_PLUGINS "Compile analysis plugins as stand-alone executables" OFF)
 OPTION(MAKE_PACKAGE "Generate package" OFF)
 OPTION(MAKE_EXAMPLES "Compile examples and plugin templates" OFF)
@@ -113,10 +114,13 @@ add_subdirectory(thirdparty/sasa)
 
 add_subdirectory(src/core)
 add_subdirectory(src/analysis)
-add_subdirectory(src/tools)
 add_subdirectory(src/python)
 add_subdirectory(src/python/compiled_analysis_plugins)
 add_subdirectory(src/extras)
+
+IF(MAKE_TOOLS)
+    add_subdirectory(src/tools)
+ENDIF()
 
 IF(MAKE_TEST)
     add_subdirectory(src/test)

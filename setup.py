@@ -24,7 +24,7 @@ class build_ext(build_ext_orig):
         cwd = pathlib.Path().absolute()
 
         # these dirs will be created in build_py, so if you don't have
-        # any python sources to bundle, the dirs will be missing        
+        # any python sources to bundle, the dirs will be missing
         build_temp = pathlib.Path(self.build_temp)
         build_temp.mkdir(parents=True, exist_ok=True)
 
@@ -39,8 +39,12 @@ class build_ext(build_ext_orig):
         cmake_args = [
             '-DDOWNLOAD_DEPENDENCIES=ON',
             '-DTRY_SYSTEM_DEPENDENCIES=OFF',
-            #'-DWITH_GROMACS=OFF',
-            #'-DWITH_OPENBABEL=OFF',
+            '-DWITH_GROMACS=OFF',
+            '-DWITH_OPENBABEL=OFF',
+            '-DWITH_TNG=OFF',
+            '-DMAKE_TEST=OFF',
+            '-DMAKE_EXAMPLES=OFF',
+            '-DMAKE_TOOLS=OFF',
             '-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=' + str(extdir.parent.absolute()),
             '-DCMAKE_BUILD_TYPE=' + config,
             #'-DCMAKE_INSTALL_DIRECTORY=' + str(cwd / 'pteros')
