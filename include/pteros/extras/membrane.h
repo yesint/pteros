@@ -167,19 +167,10 @@ public:
     float gaussian_curvature;
     float mean_curvature;
 
-    // Properties averaged over nearest neighbors
-    Eigen::Vector3f normal_aver;
-    float tilt_aver;
-    float gaussian_curvature_aver;
-    float mean_curvature_aver;
-
     // Properties from Voronoi tesselation
     int coord_number;
     float area;
     std::vector<int> neib;
-
-    // Neighbours of order 2 (two nearest shells)
-    std::vector<int> neib2;
 
     // Fiting resutls
     Eigen::Vector3f smoothed_mid_xyz;
@@ -303,6 +294,11 @@ public:
     void reset_groups();
 
     void compute_properties(float d = 2.0);
+
+    /// Returns matrix (n_shells,2)
+    /// Each n-th row is averaged curvatures over neigbour shells up to n
+    /// col(0) is mean curvature, col(1) is gaussian curvature
+    Eigen::MatrixXf get_average_curvatures(int lipid, int n_shells);
 
     void compute_averages();
     void write_averages(std::string path=".");

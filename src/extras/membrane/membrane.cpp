@@ -575,37 +575,6 @@ void LipidMembrane::compute_properties(float d)
 
     } // for lipids
 
-    // Compute order 2 neighbours
-    for(int i=0; i<lipids.size(); ++i){
-        unordered_set<int> s;
-        s.insert(i);
-        for(int n1: lipids[i].neib){
-            s.insert(n1);
-            for(int n2: lipids[n1].neib) s.insert(n2);
-        }
-        lipids[i].neib2.clear();
-        std::copy(s.begin(),s.end(),back_inserter(lipids[i].neib2));
-    }
-
-    // Compute averages over nearest neighbours
-    for(auto& lip: lipids){
-        lip.normal_aver = lip.normal;
-        lip.tilt_aver = lip.tilt;
-        lip.gaussian_curvature_aver = lip.gaussian_curvature;
-        lip.mean_curvature_aver = lip.mean_curvature;
-        for(int n: lip.neib2){
-            lip.normal_aver += lipids[n].normal;
-            lip.tilt_aver += lipids[n].tilt;
-            lip.gaussian_curvature_aver += lipids[n].gaussian_curvature;
-            lip.mean_curvature_aver += lipids[n].mean_curvature;
-        }
-        float N = lip.neib2.size();
-        lip.normal_aver.normalized();
-        lip.tilt_aver /= N;
-        lip.gaussian_curvature_aver /= N;
-        lip.mean_curvature_aver /= N;
-    }
-
     // Unset markers. This restores all correct atomic coordinates for analysis
     for(auto& lip: lipids) lip.unset_markers();
 
@@ -620,6 +589,36 @@ void LipidMembrane::compute_properties(float d)
     for(auto& gr: groups){
         gr.process_frame();
     }
+}
+
+MatrixXf LipidMembrane::get_average_curvatures(int lipid, int n_shells)
+{
+    MatrixXf m(n_shells,2);
+    m.fill(0.0);
+
+    vector<int> neib_n;
+    //lipids[i].gaussian_curvature_aver.resize(4);
+    //lipids[i].mean_curvature_aver.resize(4);
+    neib_n.push_back(lipid); //self
+
+    unordered_set<int> s;
+    // Compute up to order n_shells neighbours
+    for(int n=0; n<n_shells; ++n){
+        // Compute averages
+        for(int el: neib_n){
+            m(n,0) += lipids[el].mean_curvature;
+            m(n,1) += lipids[el].gaussian_curvature;
+        }
+        m.row(n) /= float(neib_n.size());
+
+        // Update neib2
+        for(int n1: neib_n){
+            for(int n2: lipids[n1].neib) s.insert(n2);
+        }
+        std::copy(s.begin(),s.end(),back_inserter(neib_n));
+    }
+
+    return m;
 }
 
 

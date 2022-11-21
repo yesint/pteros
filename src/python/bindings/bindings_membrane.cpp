@@ -67,11 +67,6 @@ void make_bindings_Membrane(py::module& m){
         .def_readonly("mean_curvature",&LipidMolecule::mean_curvature)
         .def_readonly("gaussian_curvature",&LipidMolecule::gaussian_curvature)
 
-        .def_readonly("normal_aver",&LipidMolecule::normal_aver)
-        .def_readonly("tilt_aver",&LipidMolecule::tilt_aver)
-        .def_readonly("mean_curvature_aver",&LipidMolecule::mean_curvature_aver)
-        .def_readonly("gaussian_curvature_aver",&LipidMolecule::gaussian_curvature_aver)
-
         .def_readonly("coord_number",&LipidMolecule::coord_number)
 
         .def_readonly("neib",&LipidMolecule::neib)
@@ -86,6 +81,7 @@ void make_bindings_Membrane(py::module& m){
         .def("compute_properties",&LipidMembrane::compute_properties, "d"_a=2.0)
         .def("reset_groups",&LipidMembrane::reset_groups)
         .def("compute_averages",&LipidMembrane::compute_averages)
+        .def("get_average_curvatures",&LipidMembrane::get_average_curvatures)
         .def("write_averages",&LipidMembrane::write_averages,"path"_a=".")
         .def("write_vmd_visualization",&LipidMembrane::write_vmd_visualization,"path"_a=".")
 
