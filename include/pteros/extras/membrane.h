@@ -300,6 +300,8 @@ public:
     /// col(0) is mean curvature, col(1) is gaussian curvature
     Eigen::MatrixXf get_average_curvatures(int lipid, int n_shells);
 
+    void compute_triangulation();
+
     void compute_averages();
     void write_averages(std::string path=".");
     void write_vmd_visualization(const std::string& path=".");

@@ -519,21 +519,24 @@ void LipidMembrane::compute_properties(float d)
     //================
     // Process lipids
     //================
-    #pragma omp parallel for if (lipids.size() >= 100)
+    //#pragma omp parallel for if (lipids.size() >= 100)
     for(size_t i=0;i<lipids.size();++i){
         LipidMolecule& lip = lipids[i];
 
         // Sort neib_id for correct index match with selection
         sort(lip.patch.neib_id.begin(),lip.patch.neib_id.end());
-
+        // Remove duplicates
+        vector<int>::iterator it = unique(lip.patch.neib_id.begin(), lip.patch.neib_id.end());
+        lip.patch.neib_id.resize(it - lip.patch.neib_id.begin());
 
         // Create array of local points in local basis
         MatrixXf coord(3,lip.local_sel.size()+1);
         coord.col(0) = Vector3f::Zero(); // Local coord of central point is zero and it goes first
-        for(int j=0; j<lip.local_sel.size(); ++j)
+        for(int j=0; j<lip.local_sel.size(); ++j){
             coord.col(j+1) = lip.patch.to_local
                     * system->box(0).shortest_vector(lip.mid_marker,
                                                      lip.local_sel.xyz(j));
+        }
 
         // Fit a quadric surface and find local curvatures
         lip.surf.fit_to_points(coord);
@@ -572,7 +575,6 @@ void LipidMembrane::compute_properties(float d)
 
         // Tilt
         lip.tilt = rad_to_deg(angle_between_vectors(lip.normal,lip.tail_head_vector));
-
     } // for lipids
 
     // Unset markers. This restores all correct atomic coordinates for analysis
@@ -621,6 +623,163 @@ MatrixXf LipidMembrane::get_average_curvatures(int lipid, int n_shells)
     return m;
 }
 
+void LipidMembrane::compute_triangulation()
+{
+    // Convert neibour lists to sets for fast search
+    vector<unordered_set<int>> neib(lipids.size());
+    for(int i=0; i<lipids.size(); ++i){
+        for(auto el: lipids[i].neib) neib[i].insert(el);
+    }
+
+    vector<Vector3i> triangles;
+
+    // Now perform search
+    for(int i1=0; i1<lipids.size(); ++i1){
+        for(int i2: neib[i1]){ // Loop over neibours of i1 and get i2
+            // We only work with i1<i2 to avoid double counting
+            if(i1>i2) continue;
+            // Loop over neibours of i2 and get i3
+            for(int i3: neib[i2]){
+                // We only work with i2<i3 to avoid double counting
+                if(i2>i3) continue;
+                // Look if i3 is within neigbours of i1
+                auto it = neib[i1].find(i3);
+                if(it!=neib[i1].end()){
+                    // Found, which means that i1<i2<i3 is a triangle
+                    triangles.push_back({i1,i2,i3});
+                }
+            }
+        }
+    }
+
+    /*
+    // Output an obj file
+    string s;
+    // Vertexes
+    for(auto l: lipids){
+        s+=fmt::format("v {} {} {}\n",l.mid_marker.x(),l.mid_marker.y(),l.mid_marker.z());
+    }
+    // Normals
+    for(auto l: lipids){
+        s+=fmt::format("vn {} {} {}\n",l.normal.x(),l.normal.y(),l.normal.z());
+    }
+    // Triangular faces
+    const auto& b = lipids[0].whole_sel.box();
+    for(auto t: triangles){
+        // Only output face if vertexes are not pbc-wrapped
+        Vector3f d1 = lipids[t(0)].mid_marker-lipids[t(1)].mid_marker;
+        Vector3f d2 = lipids[t(0)].mid_marker-lipids[t(2)].mid_marker;
+        if(   d1(0)<0.5*b.extent(0) && d1(1)<0.5*b.extent(1) && d1(2)<0.5*b.extent(2)
+           && d2(0)<0.5*b.extent(0) && d2(1)<0.5*b.extent(1) && d2(2)<0.5*b.extent(2)
+          ){
+            s+=fmt::format("f {}//{} {}//{} {}//{}\n",t(0)+1,t(0)+1,t(1)+1,t(1)+1,t(2)+1,t(2)+1);
+        }
+    }
+    */
+
+    // Output VMD surface
+    // Prepare VMD indexed colors
+    // We use linear interpolation between start, mid and end.
+    Vector3f c1{0,0,1}; //Blue
+    Vector3f c2{0,1,0}; //Green
+    Vector3f c3{1,0,0}; //Red
+    int n_colors = 104;
+    MatrixXf colors(3,n_colors);
+    for(int i=0; i<n_colors/2; ++i){
+        colors.col(i) = c1 + i*(c2-c1)/float(n_colors/2-1);
+    }
+    for(int i=0; i<n_colors/2; ++i){
+        colors.col(i+n_colors/2) = c2 + i*(c3-c2)/float(n_colors/2-1);
+    }
+    // Now assign color to each lipid according to mean curvature
+    float min_c=1e6;
+    float max_c=-1e6;
+    for(const auto& lip: lipids){
+        if(lip.mean_curvature<min_c) min_c = lip.mean_curvature;
+        if(lip.mean_curvature>max_c) max_c = lip.mean_curvature;
+    }
+    // curv           x     x=103*(curv-min_c)/(max_c-min_c)
+    // max_c-min_c    104
+    VectorXi color_ind(lipids.size());
+    for(int i=0; i<lipids.size(); ++i){
+        color_ind[i] = 1057 - n_colors +
+                round((n_colors-1)*(lipids[i].mean_curvature-min_c)/(max_c-min_c));
+    }
+
+    // Update VMD color definitions
+    string s;
+    for(int i=0; i<n_colors; ++i){
+        s+= fmt::format("color change rgb {} {} {} {}\n",
+                        1057-n_colors+i,
+                        colors(0,i),
+                        colors(1,i),
+                        colors(2,i));
+    }
+
+    const auto& box = lipids[0].whole_sel.box();
+
+    // Output all neib edges
+    for(const auto lip: lipids){
+        Vector3f p1 = lip.smoothed_mid_xyz;
+        for(int nb: lip.neib){
+            Vector3f p2 = box.closest_image(lipids[nb].smoothed_mid_xyz,p1);
+            s+=fmt::format("draw line \"{} {} {}\" \"{} {} {}\" width 4\n",
+                           p1(0)*10,p1(1)*10,p1(2)*10,
+                           p2(0)*10,p2(1)*10,p2(2)*10
+                           );
+        }
+    }
+
+    // Output colored triangles
+    for(auto t: triangles){
+        Vector3f p1 = lipids[t(0)].smoothed_mid_xyz;
+        Vector3f p2 = lipids[t(1)].smoothed_mid_xyz;
+        Vector3f p3 = lipids[t(2)].smoothed_mid_xyz;
+        p2 = box.closest_image(p2,p1);
+        p3 = box.closest_image(p3,p1);
+        p1*=10.0;
+        p2*=10.0;
+        p3*=10.0;
+        Vector3f n1 = lipids[t(0)].normal.normalized();
+        Vector3f n2 = lipids[t(1)].normal.normalized();
+        Vector3f n3 = lipids[t(2)].normal.normalized();
+        int c1 = color_ind[t(0)];
+        int c2 = color_ind[t(1)];
+        int c3 = color_ind[t(2)];
+
+        s += fmt::format("draw tricolor "
+                "\"{} {} {}\" " //p1
+                "\"{} {} {}\" " //p2
+                "\"{} {} {}\" " //p3
+                "\"{} {} {}\" " //n1
+                "\"{} {} {}\" " //n2
+                "\"{} {} {}\" " //n3
+                "{} {} {}\n", //c1 c2 c3
+                p1(0),p1(1),p1(2),
+                p2(0),p2(1),p2(2),
+                p3(0),p3(1),p3(2),
+                n1(0),n1(1),n1(2),
+                n2(0),n2(1),n2(2),
+                n3(0),n3(1),n3(2),
+                c1,c2,c3);
+
+        /*
+        s += fmt::format("draw triangle "
+                "\"{} {} {}\" " //p1
+                "\"{} {} {}\" " //p2
+                "\"{} {} {}\"\n", //p3
+                 p1(0),p1(1),p1(2),
+                 p2(0),p2(1),p2(2),
+                 p3(0),p3(1),p3(2)
+                );
+                */
+    }
+
+    ofstream f("triangulated.tcl");
+    f << s;
+    f.close();
+}
+
 
 void LipidMembrane::write_vmd_visualization(const string &path){
     string out1;
@@ -655,8 +814,10 @@ void LipidMembrane::write_vmd_visualization(const string &path){
                    10*p3.x(),10*p3.y(),10*p3.z() );
         // fitted normals
         out1 += fmt::format("draw color iceblue\n");
-        p2 = p1 + lip.patch.to_lab*lip.surf.fitted_normal*1.0;
-        p3 = p1 + lip.patch.to_lab*lip.surf.fitted_normal*1.3;
+        //p2 = p1 + lip.patch.to_lab*lip.surf.fitted_normal*1.0;
+        //p3 = p1 + lip.patch.to_lab*lip.surf.fitted_normal*1.3;
+        p2 = p1 + lip.normal*1.0;
+        p3 = p1 + lip.normal*1.3;
         out1 += fmt::format("draw cylinder \"{} {} {}\" \"{} {} {}\" radius 0.2\n",
                    10*p1.x(),10*p1.y(),10*p1.z(),
                    10*p2.x(),10*p2.y(),10*p2.z() );
@@ -917,7 +1078,7 @@ void QuadSurface::compute_area(){
     // Project all vertexes to the surface
     surf_area = 0.0;
     for(Vector3f& v: area_vertexes) project_point_to_surface(v);
-    // Sum up areas of triangles. Points are not dupicated.
+    // Sum up areas of triangles. Points are not duplicated.
     for(int i=0; i<area_vertexes.size(); ++i){
         int ii = (i<area_vertexes.size()-1) ? i+1 : 0;
         surf_area += 0.5*(area_vertexes[i]-fitted_points.col(0))

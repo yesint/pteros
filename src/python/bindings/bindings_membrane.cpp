@@ -82,6 +82,7 @@ void make_bindings_Membrane(py::module& m){
         .def("reset_groups",&LipidMembrane::reset_groups)
         .def("compute_averages",&LipidMembrane::compute_averages)
         .def("get_average_curvatures",&LipidMembrane::get_average_curvatures)
+        .def("compute_triangulation",&LipidMembrane::compute_triangulation)
         .def("write_averages",&LipidMembrane::write_averages,"path"_a=".")
         .def("write_vmd_visualization",&LipidMembrane::write_vmd_visualization,"path"_a=".")
 
