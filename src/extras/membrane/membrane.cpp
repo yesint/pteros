@@ -625,6 +625,8 @@ MatrixXf LipidMembrane::get_average_curvatures(int lipid, int n_shells)
 
 void LipidMembrane::compute_triangulation()
 {
+    const auto& box = lipids[0].whole_sel.box();
+
     // Convert neibour lists to sets for fast search
     vector<unordered_set<int>> neib(lipids.size());
     for(int i=0; i<lipids.size(); ++i){
@@ -637,16 +639,24 @@ void LipidMembrane::compute_triangulation()
     for(int i1=0; i1<lipids.size(); ++i1){
         for(int i2: neib[i1]){ // Loop over neibours of i1 and get i2
             // We only work with i1<i2 to avoid double counting
-            if(i1>i2) continue;
+            //if(i1>i2) continue;
             // Loop over neibours of i2 and get i3
             for(int i3: neib[i2]){
                 // We only work with i2<i3 to avoid double counting
-                if(i2>i3) continue;
+                //if(i2>i3) continue;
                 // Look if i3 is within neigbours of i1
                 auto it = neib[i1].find(i3);
                 if(it!=neib[i1].end()){
-                    // Found, which means that i1<i2<i3 is a triangle
-                    triangles.push_back({i1,i2,i3});
+                    // Found, which means that i1-i2-i3 is a triangle
+                    // See normal orientation
+                    Vector3f v1 = box.shortest_vector(lipids[i1].smoothed_mid_xyz,lipids[i2].smoothed_mid_xyz);
+                    Vector3f v2 = box.shortest_vector(lipids[i1].smoothed_mid_xyz,lipids[i3].smoothed_mid_xyz);
+                    Vector3f n = v1.cross(v2);
+                    if(angle_between_vectors(n,lipids[i1].normal)<M_PI_2){
+                        triangles.push_back({i1,i2,i3});
+                    } else {
+                        triangles.push_back({i3,i2,i1});
+                    }
                 }
             }
         }
@@ -681,7 +691,7 @@ void LipidMembrane::compute_triangulation()
     // Prepare VMD indexed colors
     // We use linear interpolation between start, mid and end.
     Vector3f c1{0,0,1}; //Blue
-    Vector3f c2{0,1,0}; //Green
+    Vector3f c2{1,1,1}; //White
     Vector3f c3{1,0,0}; //Red
     int n_colors = 104;
     MatrixXf colors(3,n_colors);
@@ -691,93 +701,116 @@ void LipidMembrane::compute_triangulation()
     for(int i=0; i<n_colors/2; ++i){
         colors.col(i+n_colors/2) = c2 + i*(c3-c2)/float(n_colors/2-1);
     }
-    // Now assign color to each lipid according to mean curvature
-    float min_c=1e6;
-    float max_c=-1e6;
-    for(const auto& lip: lipids){
-        if(lip.mean_curvature<min_c) min_c = lip.mean_curvature;
-        if(lip.mean_curvature>max_c) max_c = lip.mean_curvature;
-    }
-    // curv           x     x=103*(curv-min_c)/(max_c-min_c)
-    // max_c-min_c    104
-    VectorXi color_ind(lipids.size());
+
+    vector<MatrixXf> curv(lipids.size());
     for(int i=0; i<lipids.size(); ++i){
-        color_ind[i] = 1057 - n_colors +
-                round((n_colors-1)*(lipids[i].mean_curvature-min_c)/(max_c-min_c));
+        curv[i] = get_average_curvatures(i,5);
     }
 
-    // Update VMD color definitions
-    string s;
-    for(int i=0; i<n_colors; ++i){
-        s+= fmt::format("color change rgb {} {} {} {}\n",
-                        1057-n_colors+i,
-                        colors(0,i),
-                        colors(1,i),
-                        colors(2,i));
-    }
-
-    const auto& box = lipids[0].whole_sel.box();
-
-    // Output all neib edges
-    for(const auto lip: lipids){
-        Vector3f p1 = lip.smoothed_mid_xyz;
-        for(int nb: lip.neib){
-            Vector3f p2 = box.closest_image(lipids[nb].smoothed_mid_xyz,p1);
-            s+=fmt::format("draw line \"{} {} {}\" \"{} {} {}\" width 4\n",
-                           p1(0)*10,p1(1)*10,p1(2)*10,
-                           p2(0)*10,p2(1)*10,p2(2)*10
-                           );
+    for(int smooth_level=0;smooth_level<5;++smooth_level){
+        // Now assign color to each lipid according to mean curvature
+        float min_c=1e6;
+        float max_c=-1e6;
+        for(int i=0; i<lipids.size(); ++i){
+            float c = curv[i](smooth_level,0);
+            if(c<min_c) min_c = c;
+            if(c>max_c) max_c = c;
         }
-    }
+        fmt::print("min_c={} max_c={}\n",min_c,max_c);
 
-    // Output colored triangles
-    for(auto t: triangles){
-        Vector3f p1 = lipids[t(0)].smoothed_mid_xyz;
-        Vector3f p2 = lipids[t(1)].smoothed_mid_xyz;
-        Vector3f p3 = lipids[t(2)].smoothed_mid_xyz;
-        p2 = box.closest_image(p2,p1);
-        p3 = box.closest_image(p3,p1);
-        p1*=10.0;
-        p2*=10.0;
-        p3*=10.0;
-        Vector3f n1 = lipids[t(0)].normal.normalized();
-        Vector3f n2 = lipids[t(1)].normal.normalized();
-        Vector3f n3 = lipids[t(2)].normal.normalized();
-        int c1 = color_ind[t(0)];
-        int c2 = color_ind[t(1)];
-        int c3 = color_ind[t(2)];
+        // curv           x     x=103*(curv-min_c)/(max_c-min_c)
+        // max_c-min_c    104
+        VectorXi color_ind(lipids.size());
+        for(int i=0; i<lipids.size(); ++i){
+            color_ind[i] = 1057 - n_colors +
+                    round((n_colors-1)*(curv[i](smooth_level,0)-min_c)/(max_c-min_c));
+        }
 
-        s += fmt::format("draw tricolor "
-                "\"{} {} {}\" " //p1
-                "\"{} {} {}\" " //p2
-                "\"{} {} {}\" " //p3
-                "\"{} {} {}\" " //n1
-                "\"{} {} {}\" " //n2
-                "\"{} {} {}\" " //n3
-                "{} {} {}\n", //c1 c2 c3
-                p1(0),p1(1),p1(2),
-                p2(0),p2(1),p2(2),
-                p3(0),p3(1),p3(2),
-                n1(0),n1(1),n1(2),
-                n2(0),n2(1),n2(2),
-                n3(0),n3(1),n3(2),
-                c1,c2,c3);
+        // Update VMD color definitions
+        string s;
+        for(int i=0; i<n_colors; ++i){
+            s+= fmt::format("color change rgb {} {} {} {}\n",
+                            1057-n_colors+i,
+                            colors(0,i),
+                            colors(1,i),
+                            colors(2,i));
+        }
 
-        /*
-        s += fmt::format("draw triangle "
-                "\"{} {} {}\" " //p1
-                "\"{} {} {}\" " //p2
-                "\"{} {} {}\"\n", //p3
-                 p1(0),p1(1),p1(2),
-                 p2(0),p2(1),p2(2),
-                 p3(0),p3(1),p3(2)
-                );
-                */
-    }
 
-    ofstream f("triangulated.tcl");
-    f << s;
-    f.close();
+        // Output all neib edges
+
+        s+="draw materials on\n";
+        s+="draw material Diffuse\n";
+
+        for(int i=0; i<lipids.size(); ++i){
+            Vector3f p1 = lipids[i].smoothed_mid_xyz;
+            s+=fmt::format("draw color {}\n",color_ind[i]);
+            s+=fmt::format("draw sphere \"{} {} {}\" radius 1.3 resolution 12\n",
+                           p1(0)*10,p1(1)*10,p1(2)*10);
+
+            s+=fmt::format("draw color black\n");
+            for(int nb: lipids[i].neib){
+                Vector3f p2 = box.closest_image(lipids[nb].smoothed_mid_xyz,p1);
+                s+=fmt::format("draw cylinder \"{} {} {}\" \"{} {} {}\" radius 0.1\n",
+                               p1(0)*10,p1(1)*10,p1(2)*10,
+                               p2(0)*10,p2(1)*10,p2(2)*10
+                              );
+            }
+
+        }
+
+
+
+        // Output colored triangles
+        for(auto t: triangles){
+            Vector3f p1 = lipids[t(0)].smoothed_mid_xyz;
+            Vector3f p2 = lipids[t(1)].smoothed_mid_xyz;
+            Vector3f p3 = lipids[t(2)].smoothed_mid_xyz;
+            p2 = box.closest_image(p2,p1);
+            p3 = box.closest_image(p3,p1);
+            p1*=10.0;
+            p2*=10.0;
+            p3*=10.0;
+            Vector3f n1 = lipids[t(0)].normal.normalized();
+            Vector3f n2 = lipids[t(1)].normal.normalized();
+            Vector3f n3 = lipids[t(2)].normal.normalized();
+            int c1 = color_ind[t(0)];
+            int c2 = color_ind[t(1)];
+            int c3 = color_ind[t(2)];
+
+            s += fmt::format("draw tricolor "
+                    "\"{} {} {}\" " //p1
+                    "\"{} {} {}\" " //p2
+                    "\"{} {} {}\" " //p3
+                    "\"{} {} {}\" " //n1
+                    "\"{} {} {}\" " //n2
+                    "\"{} {} {}\" " //n3
+                    "{} {} {}\n", //c1 c2 c3
+                    p1(0),p1(1),p1(2),
+                    p2(0),p2(1),p2(2),
+                    p3(0),p3(1),p3(2),
+                    n1(0),n1(1),n1(2),
+                    n2(0),n2(1),n2(2),
+                    n3(0),n3(1),n3(2),
+                    c1,c2,c3);
+
+            /*
+            s += fmt::format("draw triangle "
+                    "\"{} {} {}\" " //p1
+                    "\"{} {} {}\" " //p2
+                    "\"{} {} {}\"\n", //p3
+                     p1(0),p1(1),p1(2),
+                     p2(0),p2(1),p2(2),
+                     p3(0),p3(1),p3(2)
+                    );
+                    */
+        }
+
+        ofstream f(fmt::format("triangulated_smooth_level_{}.tcl",smooth_level));
+        f << s;
+        f.close();
+    } //smooth level
+    exit(1);
 }
 
 
@@ -789,13 +822,15 @@ void LipidMembrane::write_vmd_visualization(const string &path){
 
         Vector3f p1,p2,p3;        
         // Area vertices in lab coordinates
+        out1+="draw materials on\n";
+        out1+="draw material AOEdgy\n";
         out1 += fmt::format("draw color orange\n");
         for(int j=0; j<lip.surf.area_vertexes.size(); ++j){
             int j2 = j+1;
             if(j==lip.surf.area_vertexes.size()-1) j2=0;
             p1 = lip.patch.to_lab *lip.surf.area_vertexes[j] + lip.patch.original_center;
             p2 = lip.patch.to_lab *lip.surf.area_vertexes[j2] + lip.patch.original_center;
-            out1 += fmt::format("draw line \"{} {} {}\" \"{} {} {}\" width 2\n",
+            out1 += fmt::format("draw cylinder \"{} {} {}\" \"{} {} {}\" radius 0.3 resolution 12\n",
                        10*p1.x(),10*p1.y(),10*p1.z(),
                        10*p2.x(),10*p2.y(),10*p2.z()
                        );
@@ -803,30 +838,30 @@ void LipidMembrane::write_vmd_visualization(const string &path){
         // Normal vectors
         // Patch normals
         p1 = lip.patch.to_lab*fp + lip.patch.original_center;
+        /*
         p2 = p1 + lip.patch.normal*1.0;
         p3 = p1 + lip.patch.normal*1.2;
         out1 += fmt::format("draw color white\n");
-        out1 += fmt::format("draw cylinder \"{} {} {}\" \"{} {} {}\" radius 0.2\n",
+        out1 += fmt::format("draw cylinder \"{} {} {}\" \"{} {} {}\" radius 0.2 resolution 12\n",
                    10*p1.x(),10*p1.y(),10*p1.z(),
                    10*p2.x(),10*p2.y(),10*p2.z() );
-        out1 += fmt::format("draw cone \"{} {} {}\" \"{} {} {}\" radius 0.3\n",
+        out1 += fmt::format("draw cone \"{} {} {}\" \"{} {} {}\" radius 0.3 resolution 12\n",
                    10*p2.x(),10*p2.y(),10*p2.z(),
                    10*p3.x(),10*p3.y(),10*p3.z() );
+        */
         // fitted normals
-        out1 += fmt::format("draw color iceblue\n");
-        //p2 = p1 + lip.patch.to_lab*lip.surf.fitted_normal*1.0;
-        //p3 = p1 + lip.patch.to_lab*lip.surf.fitted_normal*1.3;
-        p2 = p1 + lip.normal*1.0;
-        p3 = p1 + lip.normal*1.3;
-        out1 += fmt::format("draw cylinder \"{} {} {}\" \"{} {} {}\" radius 0.2\n",
+        out1 += fmt::format("draw color cyan\n");
+        p2 = p1 + lip.normal*0.75;
+        p3 = p1 + lip.normal*1.0;
+        out1 += fmt::format("draw cylinder \"{} {} {}\" \"{} {} {}\" radius 0.5 resolution 12\n",
                    10*p1.x(),10*p1.y(),10*p1.z(),
                    10*p2.x(),10*p2.y(),10*p2.z() );
-        out1 += fmt::format("draw cone \"{} {} {}\" \"{} {} {}\" radius 0.3\n",
+        out1 += fmt::format("draw cone \"{} {} {}\" \"{} {} {}\" radius 0.7 resolution 12\n",
                    10*p2.x(),10*p2.y(),10*p2.z(),
                    10*p3.x(),10*p3.y(),10*p3.z() );
 
         // Smoothed atom
-        out1 += fmt::format("draw sphere \"{} {} {}\" radius 2\n",
+        out1 += fmt::format("draw sphere \"{} {} {}\" radius 1.5 resolution 12\n",
                    10*p1.x(),10*p1.y(),10*p1.z() );
     }
 
