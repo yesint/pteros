@@ -70,6 +70,20 @@ void DistanceSearchBase::set_grid_size(const PeriodicBox &box)
 bool DistanceSearchBase::process_neighbour_pair(PlannedPair& pair){
     pair.wrapped.fill(0);
     for(int dim=0;dim<3;++dim){
+
+        // Corner cases:
+        // Ignore all pairs except c1=c2 for dims of size 1
+        if(Ngrid(dim)==1 && pair.c1!=pair.c2) return false;
+        // For size 2 always ignore any pairs beyond size even if periodic
+        // and set forced periodicity for all valid pairs
+        if(Ngrid(dim)==2){
+            if(pair.c1(dim)==Ngrid(dim) || pair.c2(dim)==Ngrid(dim)){
+                return false;
+            }
+            pair.wrapped(dim) = 1;
+            continue;
+        }
+
         if(pair.c1(dim)==Ngrid(dim)){ // point beyond the right edge
             if(periodic_dims(dim)){
                 pair.c1(dim) = pair.c1(dim) % Ngrid(dim); // Wrap this dimension
@@ -88,9 +102,6 @@ bool DistanceSearchBase::process_neighbour_pair(PlannedPair& pair){
             }
         }
 
-        // Corner case: if cutoff>=0.5*extent then all pairs along this extent should
-        // be forced periodic.
-        if(periodic_dims(dim) && Ngrid(dim)<=2) pair.wrapped(dim) = 1;
     }
 
     return true; // use this pair
