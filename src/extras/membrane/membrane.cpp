@@ -513,6 +513,12 @@ void LipidMembrane::compute_properties(float d)
             // Set to average of closest normals
             log->debug("Trying to fix bad normal for lipid {}", i);
             lipids[i].patch.normal = aver_closest.normalized();
+            // Get new tangent axes
+            lipids[i].patch.axes.col(0) = lipids[i].patch.normal.cross(lipids[i].patch.axes.col(1));
+            lipids[i].patch.axes.col(1) = lipids[i].patch.normal.cross(lipids[i].patch.axes.col(0));
+            // Recompute transforms
+            lipids[i].patch.to_lab = lipids[i].patch.axes.colwise().normalized();
+            lipids[i].patch.to_local = lipids[i].patch.to_lab.inverse();
         }
     }
 
