@@ -525,7 +525,7 @@ void LipidMembrane::compute_properties(float d)
     //================
     // Process lipids
     //================
-    //#pragma omp parallel for if (lipids.size() >= 100)
+    #pragma omp parallel for if (lipids.size() >= 100)
     for(size_t i=0;i<lipids.size();++i){
         LipidMolecule& lip = lipids[i];
 
@@ -823,9 +823,6 @@ void LipidMembrane::compute_triangulation()
 void LipidMembrane::write_vmd_visualization(const string &path){
     string out1;
     for(const auto& lip: lipids){
-        // Print
-        const auto& fp = lip.surf.fitted_points;
-
         Vector3f p1,p2,p3;        
         // Area vertices in lab coordinates
         out1+="draw materials on\n";
@@ -835,16 +832,16 @@ void LipidMembrane::write_vmd_visualization(const string &path){
             int j2 = j+1;
             if(j==lip.surf.area_vertexes.size()-1) j2=0;
             p1 = lip.patch.to_lab *lip.surf.area_vertexes[j] + lip.patch.original_center;
-            p2 = lip.patch.to_lab *lip.surf.area_vertexes[j2] + lip.patch.original_center;
+            p2 = lip.patch.to_lab *lip.surf.area_vertexes[j2] +lip.patch.original_center;
             out1 += fmt::format("draw cylinder \"{} {} {}\" \"{} {} {}\" radius 0.3 resolution 12\n",
                        10*p1.x(),10*p1.y(),10*p1.z(),
                        10*p2.x(),10*p2.y(),10*p2.z()
                        );
         }
         // Normal vectors
-        // Patch normals
-        p1 = lip.patch.to_lab*fp + lip.patch.original_center;
+        //p1 = lip.patch.to_lab*fp + lip.patch.original_center;
         /*
+        // Patch normals
         p2 = p1 + lip.patch.normal*1.0;
         p3 = p1 + lip.patch.normal*1.2;
         out1 += fmt::format("draw color white\n");
@@ -856,6 +853,7 @@ void LipidMembrane::write_vmd_visualization(const string &path){
                    10*p3.x(),10*p3.y(),10*p3.z() );
         */
         // fitted normals
+        p1 = lip.smoothed_mid_xyz;
         out1 += fmt::format("draw color cyan\n");
         p2 = p1 + lip.normal*0.75;
         p3 = p1 + lip.normal*1.0;
