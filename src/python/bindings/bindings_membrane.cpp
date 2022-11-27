@@ -77,8 +77,11 @@ void make_bindings_Membrane(py::module& m){
 
     py::class_<LipidMembrane>(m,"LipidMembrane")
         .def(py::init<System*,const std::vector<LipidSpecies>&,int>())
+        .def(py::init<System*,const std::vector<LipidSpecies>&,int,const Selection&>())
+        .def(py::init<System*,const std::vector<LipidSpecies>&,int,const Selection&,float>())
 
-        .def("compute_properties",&LipidMembrane::compute_properties, "d"_a=2.0)
+        .def("compute_properties",&LipidMembrane::compute_properties,
+             "d"_a=2.0, "incl_d"_a=0.5)
         .def("reset_groups",&LipidMembrane::reset_groups)
         .def("compute_averages",&LipidMembrane::compute_averages)
         .def("get_average_curvatures",&LipidMembrane::get_average_curvatures)

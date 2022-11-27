@@ -102,7 +102,7 @@ public:
     // TODO: Ability to compute area from multiple atoms for each lipid
     // (sum of areas belonging to current lipid)
     //
-    void compute_area();
+    void compute_area(float inclusion_h_cutoff);
 
     void compute_curvature();
 
@@ -130,6 +130,9 @@ public:
     float surf_area;
     float gaussian_curvature;
     float mean_curvature;
+
+    // Coordinates of inclusion atoms to account for
+    Eigen::MatrixXf inclusion_coord;
 };
 
 // Properties of individual lipids
@@ -171,6 +174,9 @@ public:
     int coord_number;
     float area;
     std::vector<int> neib;
+
+    // Inclusion neibours
+    std::vector<int> inclusion_neib;
 
     // Fiting resutls
     Eigen::Vector3f smoothed_mid_xyz;
@@ -220,10 +226,6 @@ public:
     // Tilt
     Histogram tilt_hist;
     Eigen::Vector2f tilt; // (mean,std)
-    // Total dipole
-    Eigen::Vector2f total_dipole; // (mean,std)
-    // Projected dipole
-    Eigen::Vector2f projected_dipole; // (mean,std)
     // Coordination number
     Eigen::Vector2f coord_number; // (mean,std)
     // Trans dihedrals ratio
@@ -289,11 +291,15 @@ private:
 
 class LipidMembrane {
 public:
-    LipidMembrane(System *sys, const std::vector<LipidSpecies>& species, int ngroups);
+    LipidMembrane(System *sys,
+                  const std::vector<LipidSpecies>& species,
+                  int ngroups,
+                  const Selection& incl = {},
+                  float incl_h_cutoff = 0.5);
 
     void reset_groups();
 
-    void compute_properties(float d = 2.0);
+    void compute_properties(float d = 2.0, float incl_d = 0.5);
 
     /// Returns matrix (n_shells,2)
     /// Each n-th row is averaged curvatures over neigbour shells up to n
@@ -316,6 +322,9 @@ private:
     std::shared_ptr<spdlog::logger> log;
 
     Selection all_mid_sel;
+
+    Selection inclusion;
+    float inclusion_h_cutoff;
 };
 
 

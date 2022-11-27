@@ -162,8 +162,6 @@ PerSpeciesProperties::PerSpeciesProperties(LipidMembrane *ptr)
     tilt_hist.create(0,90,90);
     tilt.fill(0.0);
 
-    total_dipole.fill(0.0);
-    projected_dipole.fill(0.0);
     coord_number.fill(0.0);
 
     gaussian_curvature.fill(0.0);
@@ -290,10 +288,6 @@ void PerSpeciesProperties::post_process(float num_frames)
     // Trans dihedrals
     mean_std_from_accumulated(trans_dihedrals_ratio, count*num_tails); // Note number of tails!
 
-    // Dipoles
-    mean_std_from_accumulated(total_dipole,count);
-    mean_std_from_accumulated(projected_dipole,count);
-
     // Coordination number
     mean_std_from_accumulated(coord_number,count);
 
@@ -327,8 +321,6 @@ string PerSpeciesProperties::summary()
         s += fmt::format("\t\tCount:\t{}\n", count);
         s += fmt::format("\t\tArea:\t{} +/- {} nm2\n", area[0],area[1]);
         s += fmt::format("\t\tTilt:\t{} +/- {} deg\n", rad_to_deg(tilt[0]),rad_to_deg(tilt[1]));
-        s += fmt::format("\t\tDipole:\t{} +/- {} D\n", total_dipole[0],total_dipole[1]);
-        s += fmt::format("\t\tDip.proj.:\t{} +/- {} D\n", projected_dipole[0],projected_dipole[1]);
         s += fmt::format("\t\tCoord.N:\t{} +/- {}\n", coord_number[0],coord_number[1]);
         s += fmt::format("\t\tMean.curv.:\t{} +/- {} nm-1\n", mean_curvature[0],mean_curvature[1]);
         s += fmt::format("\t\tGaus.curv.:\t{} +/- {} nm-1\n", gaussian_curvature[0],gaussian_curvature[1]);
@@ -395,7 +387,7 @@ void PerSpeciesProperties::save_around_to_file(const string &fname)
 }
 
 
-LipidMembrane::LipidMembrane(System *sys, const std::vector<LipidSpecies> &species, int ngroups)
+LipidMembrane::LipidMembrane(System *sys, const std::vector<LipidSpecies> &species, int ngroups, const Selection &incl, float incl_h_cutoff)
 {
     log = create_logger("membrane");
     system = sys;
@@ -430,6 +422,10 @@ LipidMembrane::LipidMembrane(System *sys, const std::vector<LipidSpecies> &speci
     groups.reserve(ngroups);
     for(int i=0;i<ngroups;++i) groups.emplace_back(this,i);    
     log->info("{} groups created",ngroups);
+
+    // Make local copies of inclusions selections
+    inclusion = incl;
+    inclusion_h_cutoff = incl_h_cutoff;
 }
 
 void LipidMembrane::reset_groups(){
@@ -439,7 +435,7 @@ void LipidMembrane::reset_groups(){
 }
 
 
-void LipidMembrane::compute_properties(float d)
+void LipidMembrane::compute_properties(float d, float incl_d)
 {    
     // Set markers for all lipids
     // This unwraps each lipid
@@ -467,6 +463,22 @@ void LipidMembrane::compute_properties(float d)
         lipids[l2].patch.neib_id.push_back(l1);
         lipids[l2].patch.neib_dist.push_back(dist[l1]);
     }
+
+    // If inclusions are present compute contacts with them
+    if(inclusion.size()>0){
+        inclusion.apply(); // In case if it is coord-dependent
+        vector<Vector2i> bon;
+        vector<float> dist;
+        search_contacts(incl_d,all_mid_sel,inclusion,bon,dist,false,fullPBC);
+        // For each lipid add contacting inclusion atoms
+        for(int i=0;i<bon.size();++i){
+            int l = bon[i](0);
+            int in = bon[i](1);
+            lipids[l].inclusion_neib.push_back(in);
+        }
+    }
+
+
 
     #pragma omp parallel for if (lipids.size() >= 100)
     // Compute local coordinates and approximate normals of patches
@@ -498,13 +510,20 @@ void LipidMembrane::compute_properties(float d)
         const Vector3f& normal1 = lipids[i].patch.normal;
         int n_bad = 0;
         Vector3f aver_closest(0,0,0);
+
+        // We only include lipids which close enough
+        // The cutoff is large for lipids near inclusions
+        float dist_cutoff = lipids[i].inclusion_neib.empty() ? 1.0 : d;
+        // Angle tolerance is also smaller near inclusions
+        float ang_tol = lipids[i].inclusion_neib.empty() ? M_PI_4 : 0.5*M_PI_4;
+
         for(int j=0; j<lipids[i].patch.neib_id.size(); ++j){
             int jl = lipids[i].patch.neib_id[j];
             float d = lipids[i].patch.neib_dist[j];
             const Vector3f& normal2 = lipids[jl].patch.normal;
-            // We
-            if( d<1.0){
-                if(angle_between_vectors(normal1,normal2)>M_PI_4 ) ++n_bad;
+
+            if( d<dist_cutoff){
+                if(angle_between_vectors(normal1,normal2)>ang_tol) ++n_bad;
                 aver_closest += normal2;
             }
         }
@@ -529,6 +548,24 @@ void LipidMembrane::compute_properties(float d)
     for(size_t i=0;i<lipids.size();++i){
         LipidMolecule& lip = lipids[i];
 
+        // For lipids with inclusions add neighbors of neigbors
+        // in order to increase the patch coverage and compensate
+        // for absent partners from inclusion side
+        if(!lip.inclusion_neib.empty()){
+            auto cur_neibs = lip.patch.neib_id;
+            for(int ind: cur_neibs){
+                for(int i=0; i<lipids[ind].patch.neib_id.size(); ++i){
+                    lip.patch.neib_id.push_back(lipids[ind].patch.neib_id[i]);
+                    lip.patch.neib_dist.push_back(lipids[ind].patch.neib_dist[i]);
+                }
+            }
+            // Update sellections
+            lip.local_sel = all_mid_sel.select(lip.patch.neib_id);
+            lip.local_sel_with_self = lip.local_sel;
+            lip.local_sel_with_self.append(all_mid_sel.index(i));
+        }
+        // end inclusions
+
         // Sort neib_id for correct index match with selection
         sort(lip.patch.neib_id.begin(),lip.patch.neib_id.end());
         // Remove duplicates
@@ -546,7 +583,18 @@ void LipidMembrane::compute_properties(float d)
 
         // Fit a quadric surface and find local curvatures
         lip.surf.fit_to_points(coord);
-        lip.surf.compute_area();
+
+        // If inclusion is present bring neibouring inclusion atoms to local basis
+        if(!lip.inclusion_neib.empty()){
+            lip.surf.inclusion_coord.resize(3,lip.inclusion_neib.size());
+            for(int i=0; i<lip.inclusion_neib.size(); ++i){
+                lip.surf.inclusion_coord.col(i) = lip.patch.to_local * system->box(0)
+                        .shortest_vector(lip.mid_marker, inclusion.xyz(lip.inclusion_neib[i]));
+
+            }
+        }
+
+        lip.surf.compute_area(inclusion_h_cutoff);
         lip.surf.compute_curvature();
 
         // Check direction of the fitted normal
@@ -816,7 +864,7 @@ void LipidMembrane::compute_triangulation()
         f << s;
         f.close();
     } //smooth level
-    exit(1);
+    //exit(1);
 }
 
 
@@ -840,8 +888,9 @@ void LipidMembrane::write_vmd_visualization(const string &path){
         }
         // Normal vectors
         //p1 = lip.patch.to_lab*fp + lip.patch.original_center;
-        /*
+
         // Patch normals
+        p1 = lip.patch.original_center;
         p2 = p1 + lip.patch.normal*1.0;
         p3 = p1 + lip.patch.normal*1.2;
         out1 += fmt::format("draw color white\n");
@@ -851,7 +900,7 @@ void LipidMembrane::write_vmd_visualization(const string &path){
         out1 += fmt::format("draw cone \"{} {} {}\" \"{} {} {}\" radius 0.3 resolution 12\n",
                    10*p2.x(),10*p2.y(),10*p2.z(),
                    10*p3.x(),10*p3.y(),10*p3.z() );
-        */
+
         // fitted normals
         p1 = lip.smoothed_mid_xyz;
         out1 += fmt::format("draw color cyan\n");
@@ -867,6 +916,14 @@ void LipidMembrane::write_vmd_visualization(const string &path){
         // Smoothed atom
         out1 += fmt::format("draw sphere \"{} {} {}\" radius 1.5 resolution 12\n",
                    10*p1.x(),10*p1.y(),10*p1.z() );
+
+        // Inclusion atoms (if any)
+        out1 += fmt::format("draw color green\n");
+        for(int i=0; i<lip.inclusion_neib.size(); ++i){
+            p1 = inclusion.xyz(lip.inclusion_neib[i]);
+            out1 += fmt::format("draw sphere \"{} {} {}\" radius 0.3 resolution 12\n",
+                       10*p1.x(),10*p1.y(),10*p1.z() );
+        }
     }
 
     // Output area and normals plots
@@ -1056,7 +1113,7 @@ void QuadSurface::fit_to_points(const MatrixXf &coord){
     fit_rms = sqrt(fit_rms/float(N));
 }
 
-void QuadSurface::compute_area(){
+void QuadSurface::compute_area(float inclusion_h_cutoff){
     // The center of the cell is assumed to be at {0,0,0}
     // First point is assumed to be the central one and thus not used
     using namespace voro;
@@ -1066,6 +1123,14 @@ void QuadSurface::compute_area(){
     cell.init(-10,10,-10,10,-0.5,0.5);
     for(int i=1; i<fitted_points.cols(); ++i){ // From 1, central point is 0 and ignored
         cell.nplane(fitted_points(0,i),fitted_points(1,i),0.0,i); // Pass i as neigbour pid
+    }
+
+    // If inclusion is involved add plane from its atoms
+    for(int i=0; i<inclusion_coord.cols(); ++i){
+        if(abs(inclusion_coord(2,i))<inclusion_h_cutoff){
+            cell.nplane(inclusion_coord(0,i),inclusion_coord(1,i),0.0,i*10000);
+        }
+        // Pass large neigbour pid to differenciate
     }
 
     vector<int> neib_list;
@@ -1129,7 +1194,8 @@ void QuadSurface::compute_area(){
     // Filter out negatives
     neib_id.clear();
     for(int id: neib_list){
-        if(id>=0) neib_id.push_back(id);
+        // Ignore walls and inclusions
+        if(id>=0 && id<10000) neib_id.push_back(id);
     }
 }
 
