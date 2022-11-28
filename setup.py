@@ -47,7 +47,7 @@ class build_ext(build_ext_orig):
             '-DMAKE_TOOLS=OFF',
             '-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=' + str(extdir.parent.absolute()),
             '-DCMAKE_BUILD_TYPE=' + config,
-            #'-DCMAKE_INSTALL_DIRECTORY=' + str(cwd / 'pteros')
+            # '-DCMAKE_INSTALL_DIRECTORY=' + str(cwd / 'pteros')
         ]
 
         # example of build args

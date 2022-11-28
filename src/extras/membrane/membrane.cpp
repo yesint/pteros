@@ -512,9 +512,9 @@ void LipidMembrane::compute_properties(float d, float incl_d)
         Vector3f aver_closest(0,0,0);
 
         // We only include lipids which close enough
-        // The cutoff is large for lipids near inclusions
+        // The cutoff is larger for lipids near inclusions
         float dist_cutoff = lipids[i].inclusion_neib.empty() ? 1.0 : d;
-        // Angle tolerance is also smaller near inclusions
+        // Angle tolerance is smaller near inclusions
         float ang_tol = lipids[i].inclusion_neib.empty() ? M_PI_4 : 0.5*M_PI_4;
 
         for(int j=0; j<lipids[i].patch.neib_id.size(); ++j){
@@ -583,6 +583,8 @@ void LipidMembrane::compute_properties(float d, float incl_d)
 
         // Fit a quadric surface and find local curvatures
         lip.surf.fit_to_points(coord);
+        // Set smoothed point
+        lip.smoothed_mid_xyz = lip.patch.to_lab*lip.surf.fitted_points.col(0) + lip.mid_marker;
 
         // If inclusion is present bring neibouring inclusion atoms to local basis
         if(!lip.inclusion_neib.empty()){
@@ -594,8 +596,11 @@ void LipidMembrane::compute_properties(float d, float incl_d)
             }
         }
 
-        lip.surf.compute_area(inclusion_h_cutoff);
-        lip.surf.compute_curvature();
+        lip.surf.compute_voronoi(inclusion_h_cutoff);
+        // area
+        lip.area = lip.surf.surf_area;
+
+        lip.surf.compute_curvature_and_normal();
 
         // Check direction of the fitted normal
         float norm_ang = angle_between_vectors(lip.patch.to_lab*lip.surf.fitted_normal,
@@ -607,9 +612,13 @@ void LipidMembrane::compute_properties(float d, float incl_d)
             //Gaussian curvature is invariant to the direction of the normal
             // so it should not be flipped!
         }
-
+        // Curvatures
         lip.mean_curvature = lip.surf.mean_curvature;
         lip.gaussian_curvature = lip.surf.gaussian_curvature;
+        // Normal
+        lip.normal = lip.patch.to_lab*lip.surf.fitted_normal;
+        // Tilt
+        lip.tilt = rad_to_deg(angle_between_vectors(lip.normal,lip.tail_head_vector));
 
         // Set neigbours for lipid
         lip.neib.clear();
@@ -621,14 +630,6 @@ void LipidMembrane::compute_properties(float d, float incl_d)
             int ind = lip.surf.neib_id[i]-1;
             lip.neib.push_back( lip.patch.neib_id[ind] );
         }
-
-        // Set lipid properties
-        lip.area = lip.surf.surf_area;
-        lip.smoothed_mid_xyz = lip.patch.to_lab*lip.surf.fitted_points.col(0) + lip.mid_marker;
-        lip.normal = lip.patch.to_lab*lip.surf.fitted_normal;
-
-        // Tilt
-        lip.tilt = rad_to_deg(angle_between_vectors(lip.normal,lip.tail_head_vector));
     } // for lipids
 
     // Unset markers. This restores all correct atomic coordinates for analysis
@@ -1113,7 +1114,7 @@ void QuadSurface::fit_to_points(const MatrixXf &coord){
     fit_rms = sqrt(fit_rms/float(N));
 }
 
-void QuadSurface::compute_area(float inclusion_h_cutoff){
+void QuadSurface::compute_voronoi(float inclusion_h_cutoff){
     // The center of the cell is assumed to be at {0,0,0}
     // First point is assumed to be the central one and thus not used
     using namespace voro;
@@ -1121,6 +1122,7 @@ void QuadSurface::compute_area(float inclusion_h_cutoff){
     voronoicell_neighbor cell;
     // Initialize with large volume by default in XY and size 1 in Z
     cell.init(-10,10,-10,10,-0.5,0.5);
+    // Cut by planes for all points
     for(int i=1; i<fitted_points.cols(); ++i){ // From 1, central point is 0 and ignored
         cell.nplane(fitted_points(0,i),fitted_points(1,i),0.0,i); // Pass i as neigbour pid
     }
@@ -1129,8 +1131,8 @@ void QuadSurface::compute_area(float inclusion_h_cutoff){
     for(int i=0; i<inclusion_coord.cols(); ++i){
         if(abs(inclusion_coord(2,i))<inclusion_h_cutoff){
             cell.nplane(inclusion_coord(0,i),inclusion_coord(1,i),0.0,i*10000);
+            // Pass large neigbour pid to differenciate
         }
-        // Pass large neigbour pid to differenciate
     }
 
     vector<int> neib_list;
@@ -1199,7 +1201,7 @@ void QuadSurface::compute_area(float inclusion_h_cutoff){
     }
 }
 
-void QuadSurface::compute_curvature(){
+void QuadSurface::compute_curvature_and_normal(){
     /* Compute the curvatures
 
             First fundamental form:  I = E du^2 + 2F du dv + G dv^2
