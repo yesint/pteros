@@ -312,11 +312,11 @@ void make_bindings_Selection(py::module& m){
             }, py::keep_alive<0,1>())
 
         // Splitting
-        .def("split_by_connectivity", [](Selection* sel,float d,bool periodic){
+        .def("split_by_connectivity", [](Selection* sel,float d,bool periodic=true){
                 std::vector<Selection> res;
                 sel->split_by_connectivity(d,res,periodic);
                 return res;
-            })
+            },"d"_a,"periodic"_a=true)
 
         .def("split_by_residue", [](Selection* sel){
                 std::vector<Selection> res;
