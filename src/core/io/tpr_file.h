@@ -36,7 +36,7 @@ namespace pteros {
 
 class TprFile: public FileHandler {
 public:
-    TprFile(std::string& fname): FileHandler(fname) {}
+    TprFile(const std::string& fname): FileHandler(fname) {}
     virtual void open(char open_mode);
     virtual void close();
 

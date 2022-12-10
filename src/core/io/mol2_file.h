@@ -37,7 +37,7 @@ namespace pteros {
 /// Use VMD plugin for MOL2
 class Mol2File: public BabelWrapper {
 public:
-    Mol2File(std::string& fname);
+    Mol2File(const std::string& fname);
 
     virtual FileContent get_content_type() const {
         return FileContent()

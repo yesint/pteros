@@ -40,7 +40,7 @@ namespace pteros {
 class VmdMolfilePluginWrapper: public FileHandler {
 public:
     // High-level API        
-    VmdMolfilePluginWrapper(std::string& fname);
+    VmdMolfilePluginWrapper(const std::string &fname);
     virtual ~VmdMolfilePluginWrapper();
     virtual void open(char open_mode) override;
     virtual void close() override;

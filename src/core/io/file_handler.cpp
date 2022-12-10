@@ -53,12 +53,10 @@
 using namespace std;
 using namespace pteros;
 
-FileHandler::FileHandler(string& file_name){
+FileHandler::FileHandler(const string& file_name){
     fname = file_name;
 }
 
-FileHandler::~FileHandler(){
-}
 
 bool FileHandler::read(System *sys, Frame *frame, const FileContent &what){
     sanity_check_read(sys,frame,what);    
@@ -105,7 +103,7 @@ void FileHandler::sanity_check_write(const Selection &sel, const FileContent &wh
         throw PterosError("Can't write topology from this file type!");
 }
 
-unique_ptr<FileHandler> FileHandler::recognize(string fname){
+unique_ptr<FileHandler> FileHandler::recognize(const string& fname) {
     std::string ext = fname.substr(fname.find_last_of(".") + 1);
 
          if(ext=="xtc")     return FileHandler_ptr(new XtcFile(fname));
@@ -128,7 +126,7 @@ unique_ptr<FileHandler> FileHandler::recognize(string fname){
 }
 
 
-FileHandler_ptr FileHandler::open(string fname, char open_mode)
+FileHandler_ptr FileHandler::open(const string &fname, char open_mode)
 {
     auto handle = recognize(fname);
     handle->open(open_mode);

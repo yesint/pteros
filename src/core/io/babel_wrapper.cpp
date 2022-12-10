@@ -44,7 +44,7 @@ using namespace pteros;
 using namespace Eigen;
 
 
-BabelWrapper::BabelWrapper(string &fname): FileHandler(fname){ }
+BabelWrapper::BabelWrapper(const string &fname): FileHandler(fname){ }
 
 BabelWrapper::~BabelWrapper()
 {

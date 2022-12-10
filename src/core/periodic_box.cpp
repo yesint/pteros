@@ -27,13 +27,9 @@
 */
 
 
-#include <fstream>
-#include <sstream>
 #include <cmath>
 #include "pteros/core/periodic_box.h"
-#include "pteros/core/selection.h"
 #include "pteros/core/pteros_error.h"
-#include "pteros/core/distance_search.h"
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846264338327950288
@@ -43,7 +39,11 @@ using namespace std;
 using namespace pteros;
 using namespace Eigen;
 
-PeriodicBox::PeriodicBox():_is_periodic(false),_is_triclinic(false),_box(Eigen::Matrix3f::Zero()){}
+PeriodicBox::PeriodicBox():
+    _box(Eigen::Matrix3f::Zero()),
+    _is_triclinic(false),
+    _is_periodic(false)
+{}
 
 PeriodicBox::PeriodicBox(Matrix3f_const_ref m){
     set_matrix(m);
@@ -316,13 +316,10 @@ void PeriodicBox::to_vectors_angles(Vector3f_ref vectors, Vector3f_ref angles) c
 }
 
 std::string PeriodicBox::to_pdb_box() const {
-  float alpha,beta,gamma;
   char ch[80];
 
   Eigen::Vector3f vectors, angles;
   to_vectors_angles(vectors,angles);
-
-  //sprintf(ch,"REMARK    THIS IS A SIMULATION BOX\n");
 
   //if (ePBC != epbcSCREW) {
   sprintf(ch,"CRYST1%9.3f%9.3f%9.3f%7.2f%7.2f%7.2f %-11s%4d\n",
@@ -333,7 +330,6 @@ std::string PeriodicBox::to_pdb_box() const {
     fprintf(out,"CRYST1%9.3f%9.3f%9.3f%7.2f%7.2f%7.2f %-11s%4d\n",
         20*norm(box[XX]),10*norm(box[YY]),10*norm(box[ZZ]),
         alpha,beta,gamma,"P 21 1 1",1);
-
   }
   */
   return std::string(ch);

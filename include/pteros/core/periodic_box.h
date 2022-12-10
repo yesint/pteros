@@ -131,12 +131,13 @@ public:
 
     /// Determine if the point is inside the box
     /// Origin of the box coordinates defaults to {0,0,0}.
-    bool in_box(Vector3f_const_ref point, Vector3f_const_ref origin = Eigen::Vector3f::Zero()) const;
+    bool in_box(Vector3f_const_ref point,
+                Vector3f_const_ref origin = Eigen::Vector3f::Zero()) const;
 
     /// Finds a periodic image of point, which is closest in space to target and returns it    
     Eigen::Vector3f closest_image(Vector3f_const_ref point,
-                                      Vector3f_const_ref target,
-                                      Array3i_const_ref pbc = fullPBC) const;
+                                  Vector3f_const_ref target,
+                                  Array3i_const_ref pbc = fullPBC) const;
 
     /// Computes shortest vector from point1 to point2 between their closest images
     Eigen::Vector3f shortest_vector(Vector3f_const_ref point1,

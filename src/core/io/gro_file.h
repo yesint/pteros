@@ -39,7 +39,7 @@ namespace pteros {
 class GroFile: public FileHandler {
 public:
     // High-level API        
-    GroFile(std::string& fname): FileHandler(fname) {}
+    GroFile(const std::string& fname): FileHandler(fname) {}
     virtual void open(char open_mode) override;
     virtual void close() override;
 

@@ -93,7 +93,7 @@ void box_from_vmd_rep(float fa, float fb, float fc,
 
 
 
-VmdMolfilePluginWrapper::VmdMolfilePluginWrapper(string& fname): FileHandler(fname),
+VmdMolfilePluginWrapper::VmdMolfilePluginWrapper(const string& fname): FileHandler(fname),
     r_handle(nullptr), w_handle(nullptr)
 {
 

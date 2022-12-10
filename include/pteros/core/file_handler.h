@@ -74,7 +74,7 @@ using FileHandler_ptr = std::unique_ptr<FileHandler>;
 class FileHandler {
 public:
     /// Recognizes file extension and returns a file handler
-    static FileHandler_ptr recognize(std::string fname);
+    static FileHandler_ptr recognize(const std::string& fname);
 
     /** Recognize file extension, open file for reading or writing and return a file handler.
      This function is aquivalent to:
@@ -83,13 +83,13 @@ public:
      f.open(mode);
      \endcode
     */
-    static FileHandler_ptr open(std::string fname, char open_mode);
+    static FileHandler_ptr open(const std::string& fname, char open_mode);
 
     /// Opens a file with given access mode. Need to be defined by derived classes.
     virtual void open(char open_mode) = 0;
     virtual void close() = 0;
 
-    virtual ~FileHandler();
+    virtual ~FileHandler() {}
 
     /// Reads data, which are specified by what.
     /// Pointers to System and Frame could be nullptr if not used
@@ -103,7 +103,7 @@ public:
     virtual FileContent get_content_type() const = 0;
 
 protected:    
-    FileHandler(std::string& file_name);
+    FileHandler(const std::string &file_name);
 
     // Stores file name
     std::string fname;
@@ -125,7 +125,7 @@ protected:
 
 class FileHandlerRandomAccess: public FileHandler {
 protected:
-    FileHandlerRandomAccess(std::string& file_name): FileHandler(file_name) {}
+    FileHandlerRandomAccess(const std::string& file_name): FileHandler(file_name) {}
 
 public:
     // Seek frame

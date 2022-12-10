@@ -43,7 +43,7 @@ namespace pteros {
 class BabelWrapper: public FileHandler {
 public:
     // High-level API        
-    BabelWrapper(std::string& fname);
+    BabelWrapper(const std::string& fname);
     virtual ~BabelWrapper();
     virtual void open(char open_mode) override;
     virtual void close() override;

@@ -31,7 +31,6 @@
 
 #include <Eigen/Core>
 #include <vector>
-#include <deque>
 #include "pteros/core/selection.h"
 #include <unsupported/Eigen/CXX11/Tensor>
 

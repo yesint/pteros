@@ -33,7 +33,7 @@ using namespace std;
 using namespace pteros;
 using namespace Eigen;
 
-TngFile::TngFile(string &fname): VmdMolfilePluginWrapper(fname){
+TngFile::TngFile(const string &fname): VmdMolfilePluginWrapper(fname){
    plugin = molfile_plugins["tng"];
 }
 

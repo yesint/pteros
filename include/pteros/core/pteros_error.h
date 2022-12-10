@@ -40,7 +40,9 @@ public:
     using runtime_error::runtime_error;
 
     template <typename... Args>
-    PterosError(const char *format, const Args & ... args): runtime_error(fmt::format(format, args...)) { }
+    PterosError(const char *format, const Args & ... args):
+        runtime_error(fmt::format(format, args...))
+    { }
 };
 
 }
