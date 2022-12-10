@@ -367,7 +367,7 @@ public:
     /// @{
 
     /// Read/write access for periodic box for given frame
-    inline PeriodicBox& box(int fr=0){ return traj[fr].box; }
+    inline PeriodicBox& box(int fr=0) { return traj[fr].box; }
 
     /// Read only access for periodic box for given frame
     inline const PeriodicBox& box(int fr=0) const { return traj[fr].box; }
@@ -418,15 +418,6 @@ public:
     std::vector<Frame>::iterator traj_end(){ return traj.end(); }
 
     AtomHandler operator[](const std::pair<int,int>& ind_fr);
-
-    /*
-    class atom_iterator;
-    /// Begin iterator. Takes frame number.
-    atom_iterator begin(int fr);
-    /// End iterator. Takes frame number.
-    atom_iterator end(int fr);
-    */
-
     /// @}
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -497,12 +488,11 @@ public:
     /// Clears the system and prepares for loading completely new structure
     void clear();
 
-    bool force_field_ready(){return force_field.ready;}
+    bool force_field_ready() const {return force_field.ready;}
 
     /// Returns internal Force_field object
-    ForceField& get_force_field(){
-        return force_field;
-    }
+    ForceField& get_force_field(){ return force_field; }
+    const ForceField& get_force_field() const { return force_field; }
 
     /// Assign unique resindexes
     /// This is usually done automatically upon loading a structure from file
@@ -525,7 +515,7 @@ public:
     /// Individual pair energies could be returned to pair_en if provided.
     Eigen::Vector2f get_energy_for_list(const std::vector<Eigen::Vector2i>& pairs,
                                         const std::vector<float>& dist,
-                                        std::vector<Eigen::Vector2f>* pair_en=nullptr);
+                                        std::vector<Eigen::Vector2f>* pair_en=nullptr) const;
 
 
     /// @}

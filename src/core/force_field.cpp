@@ -180,7 +180,7 @@ void ForceField::setup_kernels(){
 }
 
 
-Vector2f ForceField::pair_energy(int at1, int at2, float r, float q1, float q2, int type1, int type2)
+Vector2f ForceField::pair_energy(int at1, int at2, float r, float q1, float q2, int type1, int type2) const
 {
     float c6,c12;
     // indexes have to be in increasing order
@@ -206,7 +206,7 @@ Vector2f ForceField::pair_energy(int at1, int at2, float r, float q1, float q2, 
     }
 }
 
-float ForceField::get_cutoff(){
+float ForceField::get_cutoff() const{
     return std::min(rcoulomb,rvdw);
 }
 

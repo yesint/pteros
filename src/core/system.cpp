@@ -1250,8 +1250,8 @@ inline float Coulomb_en_kernel(float q1, float q2, float r_inv){
     return ONE_4PI_EPS0*q1*q2*r_inv;
 }
 
-Vector2f System::get_energy_for_list(const vector<Vector2i>& pairs, const vector<float>& dist, vector<Vector2f>* pair_en){
-    ForceField& ff = get_force_field();
+Vector2f System::get_energy_for_list(const vector<Vector2i>& pairs, const vector<float>& dist, vector<Vector2f>* pair_en) const{
+    const ForceField& ff = get_force_field();
     Vector2f e_total(0,0);
 
     if(pair_en) pair_en->resize(pairs.size());

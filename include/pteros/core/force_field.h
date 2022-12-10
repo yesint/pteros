@@ -116,10 +116,11 @@ public:
 
     // Computes energy of atom pair at given distance
     // Returns {Coulomb_en,LJ_en}
-    Eigen::Vector2f pair_energy(int at1, int at2, float r, float q1, float q2, int type1, int type2);
+    Eigen::Vector2f pair_energy(int at1, int at2, float r,
+                                float q1, float q2, int type1, int type2) const;
 
     /// Returns "natural" cutoff (currenly min of rcoulomb and rvdw)
-    float get_cutoff();
+    float get_cutoff() const;
 };
 
 }
