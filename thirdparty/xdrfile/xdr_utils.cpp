@@ -15,7 +15,7 @@ int xdr_xtc_get_natoms(XDRFILE* handle, int* natoms){
     int64_t pos = xdr_tell(handle); // save pos
     ok = xdrfile_read_int(&magic,1,handle);
     if(!ok) return 0;
-    int ret = xdrfile_read_int(natoms,1,handle);
+    ok = xdrfile_read_int(natoms,1,handle);
     if(!ok) return 0;
     xdr_seek(handle,pos,SEEK_SET); // Rewind
     return 1;
