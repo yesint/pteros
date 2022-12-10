@@ -896,7 +896,7 @@ MatrixXf Selection::average_structure(int b, int e, bool make_row_major_matrix) 
 // Transformations and inquery functions
 ////////////////////////////////////////////
 
-bool Selection::is_large(){
+bool Selection::is_large() const{
     Vector3f _min,_max;
     minmax(_min,_max);
     return ( (box().lab_to_box(_max-_min) - 0.5*box().extents()).array() > 0).any();

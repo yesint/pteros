@@ -517,7 +517,7 @@ class Selection {
 
     /// Checks if selection is larger than 1/2 of the box size in
     /// any dimension. Returns true if so.
-    bool is_large();
+    bool is_large() const;
 
     /** Get the center of selection.
      @param mass_weighted Use mass-weighting
