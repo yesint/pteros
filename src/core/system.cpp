@@ -330,7 +330,7 @@ void System::write(const std::unique_ptr<FileHandler> &handler, FileContent what
     select_all().write(handler,what,b,e);
 }
 
-std::vector<std::pair<string,Selection>> System::load_gromacs_ndx(string fname)
+std::vector<std::pair<string,Selection>> System::load_gromacs_ndx(string fname) const
 {
     stringstream ss;
     string dum, grname="", line;
@@ -1104,48 +1104,49 @@ void System::distribute(const Selection sel, Vector3i_const_ref ncopies, Matrix3
 }
 
 
-Selection System::select(string str, int fr){
+Selection System::select(string str, int fr) const{
     return Selection(*this,str,fr);
 }
 
-Selection System::operator()(string str, int fr)
+Selection System::operator()(string str, int fr) const
 {
     return Selection(*this,str,fr);
 }
 
-Selection System::select(int ind1, int ind2){
+Selection System::select(int ind1, int ind2) const{
     return Selection(*this,ind1,ind2);
 }
 
-Selection System::operator()(int ind1, int ind2)
+Selection System::operator()(int ind1, int ind2) const
 {
     return Selection(*this,ind1,ind2);
 }
 
-Selection System::select(const std::vector<int> &ind){
+Selection System::select(const std::vector<int> &ind) const {
     return Selection(*this,ind);
 }
 
-Selection System::operator()(const std::vector<int> &ind)
+Selection System::operator()(const std::vector<int> &ind) const
 {
     return Selection(*this,ind);
 }
 
-Selection System::select(std::vector<int>::iterator it1, std::vector<int>::iterator it2){
-    return Selection(*this,it1,it2);
-}
-
-Selection System::operator()(vector<int>::iterator it1, vector<int>::iterator it2)
+Selection System::select(std::vector<int>::iterator it1, std::vector<int>::iterator it2) const
 {
     return Selection(*this,it1,it2);
 }
 
-Selection System::select(const std::function<void (const System &, int, std::vector<int> &)> &callback, int fr)
+Selection System::operator()(vector<int>::iterator it1, vector<int>::iterator it2) const
+{
+    return Selection(*this,it1,it2);
+}
+
+Selection System::select(const std::function<void (const System &, int, std::vector<int> &)> &callback, int fr) const
 {
     return Selection(*this,callback,fr);
 }
 
-Selection System::operator()(const std::function<void (const System &, int, std::vector<int> &)> &callback, int fr)
+Selection System::operator()(const std::function<void (const System &, int, std::vector<int> &)> &callback, int fr) const
 {
     return Selection(*this,callback,fr);
 }
@@ -1154,7 +1155,7 @@ Selection System::select_all() const{
     return Selection(*this,0,num_atoms()-1);
 }
 
-Selection System::operator()()
+Selection System::operator()() const
 {
     return select_all();
 }

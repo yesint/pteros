@@ -238,28 +238,28 @@ public:
     **/
     /// @{
 
-    Selection select(std::string str, int fr = 0);
-    Selection operator()(std::string str, int fr = 0);
+    Selection select(std::string str, int fr = 0) const;
+    Selection operator()(std::string str, int fr = 0) const;
 
-    Selection select(int ind1, int ind2);
-    Selection operator()(int ind1, int ind2);
+    Selection select(int ind1, int ind2) const;
+    Selection operator()(int ind1, int ind2) const;
 
-    Selection select(const std::vector<int>& ind);
-    Selection operator()(const std::vector<int>& ind);
+    Selection select(const std::vector<int>& ind) const;
+    Selection operator()(const std::vector<int>& ind) const;
 
     Selection select(std::vector<int>::iterator it1,
-                     std::vector<int>::iterator it2);
+                     std::vector<int>::iterator it2) const;
     Selection operator()(std::vector<int>::iterator it1,
-                         std::vector<int>::iterator it2);
+                         std::vector<int>::iterator it2) const;
 
-    Selection select(const std::function<void(const System&,int,std::vector<int>&)>& callback, int fr = 0);
-    Selection operator()(const std::function<void(const System&,int,std::vector<int>&)>& callback, int fr = 0);
+    Selection select(const std::function<void(const System&,int,std::vector<int>&)>& callback, int fr = 0) const;
+    Selection operator()(const std::function<void(const System&,int,std::vector<int>&)>& callback, int fr = 0) const;
     /// @}
 
     /// Convenience functions to select all
     /// @{
     Selection select_all() const;
-    Selection operator()();
+    Selection operator()() const;
     /// @}
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -293,12 +293,13 @@ public:
 
     void write(std::string fname, int b=-1,int e=-1) const;
 
-    void write(const std::unique_ptr<FileHandler>& handler, FileContent what,int b=-1,int e=-1) const;
+    void write(const std::unique_ptr<FileHandler>& handler,
+               FileContent what,int b=-1,int e=-1) const;
 
 
     /// Load Gromacs .ndx file and crease selections acording to it from existing system
     /// Returns a vector of pairs {name,Selection}
-    std::vector<std::pair<std::string, Selection> > load_gromacs_ndx(std::string fname);
+    std::vector<std::pair<std::string, Selection> > load_gromacs_ndx(std::string fname) const;
 
     /// @name Input filtering
     /** Filters narrow set of atoms and coordinates which are loaded from data files. Only atoms

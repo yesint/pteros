@@ -40,7 +40,6 @@ class SystemBuilder {
 public:
     SystemBuilder(System& s): sys(&s) {}
     SystemBuilder(System* s): sys(s) {}
-    // When destroyed builer calls assign_resindex() and duing other preparations
     ~SystemBuilder();
 
     void allocate_atoms(int n);
