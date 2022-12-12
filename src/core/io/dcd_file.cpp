@@ -27,9 +27,6 @@
 */
 
 
-
-
-
 #include "dcd_file.h"
 #include "molfile_plugin.h"
 
