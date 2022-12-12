@@ -31,15 +31,11 @@
 
 #include "pteros/core/file_handler.h"
 
-#include "xdrfile.h"
-#include "xdrfile_xtc.h"
-
 namespace pteros {
 
-
 class XtcFile: public FileHandlerRandomAccess {
-public:
-    XtcFile(const std::string& fname): FileHandlerRandomAccess(fname), handle(nullptr), content(FileContent().traj(true).rand(true)) {}
+public:    
+    XtcFile(std::string& fname): FileHandlerRandomAccess(fname), content(FileContent().traj(true).rand(true)) {}
     virtual void open(char open_mode) override;
     virtual void close() override;
     virtual ~XtcFile();
@@ -59,14 +55,10 @@ protected:
     virtual void tell_last_frame_and_time(int& step, float& t) override;
 
 private:
-    // for xdrfile
-    XDRFILE* handle;
-    matrix box;
-    int step;
-    int steps_per_frame;
-    int64_t num_frames;
-    float dt, max_t;
     FileContent content;
+
+    struct XTC_internals;
+    XTC_internals* xtc;
 };
 
 }

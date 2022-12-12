@@ -33,7 +33,6 @@
 
 namespace pteros {
 
-
 class TprFile: public FileHandler {
 public:
     TprFile(const std::string& fname): FileHandler(fname) {}
@@ -48,9 +47,7 @@ public:
     }
 
 protected:        
-
     virtual void do_write(const Selection &sel, const FileContent& what) {}
-
     virtual bool do_read(System *sys, Frame *frame, const FileContent& what);
 };
 
