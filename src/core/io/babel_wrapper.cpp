@@ -53,7 +53,7 @@ struct BabelWrapper::OB_internals {
 };
 
 
-BabelWrapper::BabelWrapper(string &fname): FileHandler(fname){
+BabelWrapper::BabelWrapper(const string &fname): FileHandler(fname){
     ob = new OB_internals;
 }
 
