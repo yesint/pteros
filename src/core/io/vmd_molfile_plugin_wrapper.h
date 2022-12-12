@@ -48,7 +48,6 @@ public:
 protected:
     void* r_handle; // Handle for reading
     void* w_handle; // Handle for writing
-
     char mode;
 
     virtual bool do_read(System *sys, Frame *frame, const FileContent& what);
