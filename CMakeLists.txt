@@ -33,7 +33,6 @@ OPTION(WITH_OPENMP "Use OpenMP parallelization" ON)
 OPTION(WITH_OPENBABEL "Use OpenBabel. Required to read pdbqt files and for substructure search." ON)
 OPTION(WITH_GROMACS "Use Gromacs. Required to read tpr files." ON)
 OPTION(WITH_TNG "Use TNG_IO. Required to read tng files." ON)
-OPTION(WITH_POWERSASA "Use POWERSASA code. This implies license restrictions described here: thirdparty/powersasa/LICENSE" ON)
 
 # Options to search for pre-installed dependencies
 OPTION(TRY_SYSTEM_DEPENDENCIES "Try using system dependensies." ON)

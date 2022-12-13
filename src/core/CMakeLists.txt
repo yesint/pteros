@@ -71,19 +71,9 @@ add_library(pteros SHARED
 add_subdirectory(distance_search)
 add_subdirectory(selection_parser)
 
-#Add SASA code
-if(WITH_POWERSASA)
-    # Set definition for conditional compilation
-    target_compile_definitions(pteros PRIVATE USE_POWERSASA)
-    # Add includes
-    target_include_directories(pteros PRIVATE ${PROJECT_SOURCE_DIR}/thirdparty/powersasa)
-    # sources
-    target_sources(pteros PRIVATE
-        ${PROJECT_SOURCE_DIR}/thirdparty/powersasa/power_diagram.h
-        ${PROJECT_SOURCE_DIR}/thirdparty/powersasa/power_sasa.h
-    )
-    message(NOTICE "POWERSASA code is used! Licence restrictions are described here: src/thirdparty/sasa/LICENSE")
-endif()
+#Add POWERSASA oncludes
+# Add includes
+target_include_directories(pteros PRIVATE ${PROJECT_SOURCE_DIR}/thirdparty/powersasa)
 
 target_link_libraries(pteros
     PRIVATE
@@ -105,18 +95,6 @@ endif()
 target_include_directories(pteros PUBLIC
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
-)
-
-# Precompile some headers
-target_precompile_headers(pteros PRIVATE
-    <string>
-    <memory>
-    <map>
-    <vector>
-    <functional>
-    <Eigen/Core>
-    ${PROJECT_SOURCE_DIR}/include/pteros/core/selection.h
-    ${PROJECT_SOURCE_DIR}/include/pteros/core/system.h
 )
 
 #--------------

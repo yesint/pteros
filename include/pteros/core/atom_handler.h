@@ -34,7 +34,6 @@
 
 namespace pteros {
 
-
 using AtomStateIterator = std::vector<Eigen::Vector3f>::iterator;
 using AtomStateConstIterator = std::vector<Eigen::Vector3f>::const_iterator;
 using AtomIterator = std::vector<Atom>::iterator;

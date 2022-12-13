@@ -40,12 +40,10 @@
 #include "selection_parser.h"
 #include "pteros/core/file_handler.h"
 #include "pteros/core/utilities.h"
-
-#ifdef USE_POWERSASA
+// POWERSASA from thirdparty
 #include "power_sasa.h"
-#endif
-
-#include "sasa.h" // From MDTraj
+// SASA rom MDTraj
+#include "sasa.h"
 
 #include <Eigen/Geometry>
 #include <Eigen/Dense>
@@ -2062,23 +2060,23 @@ int Selection::num_residues() const
     return count;
 }
 
-#ifdef USE_POWERSASA
 
 //=====================================================================================
 // aux classes which allows to use Selection as container for coordinates with iterator
+//=====================================================================================
 
 template<class ValueType>
 class Selection_container_it_t {
 public:
-    typedef ValueType value_type;
-    typedef int difference_type;
-    typedef ValueType* pointer;
-    typedef ValueType& reference;
-    typedef std::forward_iterator_tag iterator_category;
+    using value_type = ValueType ;
+    using difference_type = int ;
+    using pointer = ValueType*;
+    using reference = ValueType& ;
+    using iterator_category = std::forward_iterator_tag;
 
     Selection_container_it_t(Selection* sel, int n) {parent = sel; pos = n;}
 
-    Selection_container_it_t operator++(int junk) { Selection_container_it_t tmp = *this; ++pos; return tmp; }
+    Selection_container_it_t operator++(int junk) {auto tmp = *this; ++pos; return tmp;}
     Selection_container_it_t& operator++() { ++pos; return *this; }
     reference operator*() const { return parent->xyz(pos); }
     pointer operator->() { return parent->xyz_ptr(pos); }
@@ -2096,8 +2094,8 @@ class Selection_coord_container {
 public:
     Selection_coord_container(Selection& sel): parent(&sel){}
 
-    typedef Selection_container_it_t<Eigen::Vector3f> iterator;
-    typedef Selection_container_it_t<const Eigen::Vector3f> const_iterator;
+    using iterator = Selection_container_it_t<Eigen::Vector3f>;
+    using const_iterator = Selection_container_it_t<const Eigen::Vector3f>;
 
     iterator begin(){ return iterator(parent,0); }
     const_iterator begin() const{ return const_iterator(parent,0); }
@@ -2111,8 +2109,9 @@ private:
     Selection* parent;
 };
 
-//==============================================================================
-
+//===========
+// POWERSASA
+//===========
 
 float Selection::powersasa(float probe_r, vector<float> *area_per_atom,
                            float *total_volume, vector<float> *volume_per_atom) const
@@ -2153,15 +2152,6 @@ float Selection::powersasa(float probe_r, vector<float> *area_per_atom,
 
     return surf;
 }
-
-#else
-float Selection::powersasa(float probe_r, vector<float> *area_per_atom,
-                           float *total_volume, vector<float> *volume_per_atom) const
-{
-    throw PterosError("Pteros is compiled without powersasa support!");
-}
-
-#endif
 
 
 // sasa implementation from MDTraj
