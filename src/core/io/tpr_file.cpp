@@ -177,7 +177,6 @@ bool TprFile::do_read(System *sys, Frame *frame, const FileContent &what){
         }
 
         int type,a1,a2,a3;
-        float r0,k;
         for(int it=0; it<F_NRE; ++it){ // Over all interaction terms
             if(top.idef.il[it].nr>0){
 
@@ -203,7 +202,7 @@ bool TprFile::do_read(System *sys, Frame *frame, const FileContent &what){
                 }
 
                 else if(is_lj14_type[top.idef.il[it].iatoms[0]]){
-                    int Nlj14 = ff.LJ14_interactions.size();
+                    //int Nlj14 = ff.LJ14_interactions.size();
                     for (int i=0; i<top.idef.il[it].nr; ){
                         type = top.idef.il[it].iatoms[i++];
                         a1 = top.idef.il[it].iatoms[i++];

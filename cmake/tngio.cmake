@@ -24,7 +24,6 @@
 #
 #---------------------------------------------------
 
-
 if(WITH_TNG)
     if(NOT DOWNLOAD_DEPENDENCIES)
         message(FATAL_ERROR "tng_io is not available!")

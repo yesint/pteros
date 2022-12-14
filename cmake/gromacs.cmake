@@ -24,7 +24,6 @@
 #
 #---------------------------------------------------
 
-
 if(WITH_GROMACS)
      # See if pathes are provided
      if(TRY_SYSTEM_GROMACS AND GROMACS_SOURCE_DIR AND GROMACS_BINARY_DIR)
@@ -58,14 +57,20 @@ if(WITH_GROMACS)
         ExternalProject_add(Gromacs_external
             SOURCE_DIR ${GROMACS_SOURCE_DIR}
             BINARY_DIR ${GROMACS_BINARY_DIR}
-            CMAKE_ARGS  -DGMX_MPI=OFF -DGMX_GPU=OFF -DGMX_SIMD=none
+            CMAKE_ARGS  -DGMX_MPI=OFF
+                        -DGMX_GPU=OFF
+                        -DGMX_SIMD=none
                         -DGMX_FFT_LIBRARY=fftpack
-                        -DBUILD_TESTING=OFF -DGMXAPI=OFF -DGMX_IMD=OFF
-                        -DGMX_INSTALL_NBLIB_API=OFF -DGMX_OPENMP=OFF
+                        -DBUILD_TESTING=OFF
+                        -DGMXAPI=OFF
+                        -DGMX_IMD=OFF
+                        -DGMX_INSTALL_NBLIB_API=OFF
+                        -DGMX_OPENMP=OFF
                         -DGMX_THREAD_MPI=OFF
                         -DBUILD_SHARED_LIBS=OFF #-DGMX_USE_TNG=OFF
                         -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-                        -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
+                        -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+                        -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
             INSTALL_COMMAND ""
             BUILD_BYPRODUCTS ${GROMACS_LIB_FILE}
         )

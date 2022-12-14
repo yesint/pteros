@@ -84,12 +84,11 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 ENDIF()
 
 #-------------------------------------------------------------------------------
-# service interface library to provide includes for other targets at build time
+# Interface library to provide basic includes for other targets at build time
 #-------------------------------------------------------------------------------
 
 add_library(pteros_interface INTERFACE)
 target_include_directories(pteros_interface INTERFACE ${PROJECT_SOURCE_DIR}/include/)
-
 
 #----------------------------
 # Manage dependencies

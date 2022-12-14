@@ -24,8 +24,6 @@
 #
 #---------------------------------------------------
 
-include(ExternalProject)
-include(FetchContent)
 cmake_policy(SET CMP0077 NEW) # To silence warnings
 
 if(NOT TRY_SYSTEM_DEPENDENCIES)    
@@ -38,11 +36,6 @@ if(NOT TRY_SYSTEM_DEPENDENCIES)
     message(STATUS "Searching for system-wide dependencies disbled.")
 endif()
 
-# To avoid updates on configure step
-set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
-# To make it less noisy
-set(FETCHCONTENT_QUIET ON)
-
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules)
 
 # OpenMP
@@ -51,15 +44,16 @@ if(WITH_OPENMP)
     if(OpenMP_CXX_FOUND)
         # Link OpenMP globally to all pteros targets
         link_libraries(OpenMP::OpenMP_CXX)
+    else()
+        message(WARNING "OpenMP is not available.")
     endif()
 endif()
 
 #======================================================
-# Dependencies which use normal FetchContent workflow
+# Dependencies which can use CPM for installing
 #======================================================
 
-# List of modules to fetch
-set(fetch_list "")
+include(${PROJECT_SOURCE_DIR}/cmake/CPM.cmake)
 
 #--------------------
 # Eigen
@@ -74,18 +68,16 @@ if(NOT Eigen3_FOUND)
     endif()
 
     message(STATUS "Will download Eigen")
-    FetchContent_Declare(
-      Eigen
-      GIT_REPOSITORY    https://gitlab.com/libeigen/eigen.git
-      GIT_TAG           master
-      GIT_SHALLOW       TRUE
-      GIT_PROGRESS      TRUE
+    CPMAddPackage(
+        NAME              Eigen
+        GIT_REPOSITORY    https://gitlab.com/libeigen/eigen.git
+        GIT_TAG           master
+        OPTIONS
+            "EIGEN_BUILD_DOC OFF"
+            "BUILD_TESTING OFF"
+            "EIGEN_BUILD_TESTING OFF"
+            "EIGEN_BUILD_PKGCONFIG OFF"
     )
-    set(EIGEN_BUILD_DOC OFF CACHE INTERNAL "")
-    set(BUILD_TESTING OFF CACHE INTERNAL "")
-    set(EIGEN_BUILD_TESTING OFF CACHE INTERNAL "")
-    set(EIGEN_BUILD_PKGCONFIG OFF CACHE INTERNAL "")
-    list(APPEND fetch_list Eigen)
 endif()
 
 
@@ -102,18 +94,15 @@ if(NOT fmt_FOUND)
     endif()
 
     message(STATUS "Will download and compile fmt in place")
-    FetchContent_Declare(
-            fmt
-            GIT_REPOSITORY  https://github.com/fmtlib/fmt.git
-            GIT_TAG         8.1.1
-            GIT_SHALLOW     TRUE
-            GIT_PROGRESS    TRUE
+    CPMAddPackage(
+        NAME                fmt
+        GITHUB_REPOSITORY   fmtlib/fmt
+        GIT_TAG             8.1.1
+        OPTIONS
+            "FMT_INSTALL ON"
+            "FMT_DOC OFF"
+            "FMT_TEST OFF"
     )
-    #set(FMT_MASTER_PROJECT ON CACHE INTERNAL "")
-    set(FMT_INSTALL ON CACHE INTERNAL "")
-    set(FMT_DOC OFF CACHE INTERNAL "")
-    set(FMT_TEST OFF CACHE INTERNAL "")
-    list(APPEND fetch_list fmt)
 endif()
 
 
@@ -130,24 +119,21 @@ if(NOT spdlog_FOUND)
     endif()
 
     message(STATUS "Will download and compile spdlog in place")
-    FetchContent_Declare(
-            spdlog
-            GIT_REPOSITORY  https://github.com/gabime/spdlog.git
-            GIT_TAG         v1.x
-            GIT_SHALLOW     TRUE
-            GIT_PROGRESS    TRUE
+    CPMAddPackage(
+        NAME                spdlog
+        GITHUB_REPOSITORY   gabime/spdlog
+        GIT_TAG             v1.x
+        OPTIONS
+            "SPDLOG_INSTALL ON"
+            "SPDLOG_BUILD_TESTS OFF"
+            "SPDLOG_BUILD_EXAMPLE OFF"
+            "SPDLOG_FMT_EXTERNAL ON"
     )
-    #set(SPDLOG_MASTER_PROJECT ON CACHE INTERNAL "")
-    set(SPDLOG_INSTALL ON CACHE INTERNAL "")
-    set(SPDLOG_BUILD_TESTS OFF CACHE INTERNAL "")
-    set(SPDLOG_BUILD_EXAMPLE OFF CACHE INTERNAL "")
-    set(SPDLOG_FMT_EXTERNAL ON CACHE INTERNAL "")
-    list(APPEND fetch_list spdlog)    
 endif()
 
 
 #--------------------
-# Python
+# Pybind11
 #--------------------
 if(WITH_PYTHON)    
     # Force Python3
@@ -162,15 +148,11 @@ if(WITH_PYTHON)
             message(FATAL_ERROR "pybind11 is not available!")
         endif()
 
-        message(STATUS "Will download and compile pybind11 in place")
-        FetchContent_Declare(
-            pybind11
-            GIT_REPOSITORY https://github.com/pybind/pybind11
-            GIT_TAG        master #v2.2.3
-            GIT_SHALLOW    TRUE
-            GIT_PROGRESS   TRUE
-        )        
-        list(APPEND fetch_list pybind11)
+        CPMAddPackage(
+            NAME                pybind11
+            GITHUB_REPOSITORY   pybind/pybind11
+            GIT_TAG             master
+        )
     endif()
 
     # Set python install dir
@@ -178,16 +160,23 @@ if(WITH_PYTHON)
     set(PLUGINS_ABS_PATH ${CMAKE_INSTALL_PREFIX}/python/pteros_analysis_plugins)
 endif()
 
-# Fetch everything we need
-if(fetch_list)
-    message(STATUS "Will fetch the following: ${fetch_list}")
-    FetchContent_MakeAvailable(${fetch_list})
-endif()
 
-#-----------------------------------------------------------
-# Dependencies which use FetchContent for downloading only
+#-----------------------------------------------------------------
+# Dependencies which use FetchContent for downloading
 # and ExternalProject for compiling with needed options
-#-----------------------------------------------------------
+#-----------------------------------------------------------------
+# CPM can't be used for downloading because it triggers
+# configure step and multiple UNISTALL targets collide
+#
+# With FetchContent and ExternalProject configure step of
+# dependency is deferred to build stage and there are no conflicts
+#-----------------------------------------------------------------
+include(ExternalProject)
+include(FetchContent)
+# To avoid updates on configure step
+set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
+# To make it less noisy
+set(FETCHCONTENT_QUIET ON)
 
 # OpenBabel
 include(${PROJECT_SOURCE_DIR}/cmake/openbabel.cmake)
