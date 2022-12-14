@@ -28,8 +28,8 @@
 
 #include "babel_wrapper.h"
 #include "pteros/core/pteros_error.h"
-#include "babel_utils.h"
 #include "system_builder.h"
+#include "selection_to_obmol.h"
 
 #include "openbabel/obconversion.h"
 #include "openbabel/mol.h"
@@ -37,6 +37,9 @@
 #include "openbabel/residue.h"
 #include "openbabel/bondtyper.h"
 #include "openbabel/generic.h"
+#include "openbabel/obfunctions.h"
+#include "openbabel/obiter.h"
+
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846264338327950288
@@ -45,6 +48,7 @@
 using namespace std;
 using namespace pteros;
 using namespace Eigen;
+
 
 // Babel internals
 struct BabelWrapper::OB_internals {

@@ -94,7 +94,6 @@ if(WITH_GROMACS)
             ${GROMACS_SOURCE_DIR}/api/legacy/include   # Gromacs 2021.x
             ${GROMACS_BINARY_DIR}/api/legacy/include   # Gromacs 2023.x
             ${GROMACS_SOURCE_DIR}/src/external         # Gromacs 2021.x
-            #${GROMACS_SOURCE_DIR}/src/gromacs
         )
         set(GROMACS_LIBRARIES
            ${GROMACS_BINARY_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}gromacs${CMAKE_STATIC_LIBRARY_SUFFIX}
@@ -120,6 +119,20 @@ if(WITH_GROMACS)
     endif()
 
     # Configure include file with Gromacs version
-    configure_file(${PROJECT_SOURCE_DIR}/src/core/gromacs_utils/gromacs_version_info.h.in
-                   ${CMAKE_BINARY_DIR}/src/core/gromacs_utils/gromacs_version_info.h @ONLY)
+    configure_file(${PROJECT_SOURCE_DIR}/src/core/gromacs_version_info.h.in
+                   ${CMAKE_BINARY_DIR}/src/core/gromacs_version_info.h @ONLY)
+
+    #--------------------------------------------------------------------------------
+    # Create a Gromacs interface library to provide headers and libs to other targets
+    #--------------------------------------------------------------------------------
+    add_library(gromacs_interface INTERFACE)
+    target_include_directories(gromacs_interface INTERFACE
+        ${GROMACS_INCLUDE_DIRECTORIS}
+        ${CMAKE_BINARY_DIR}/src/core/  # For generated gromacs_version_info.h
+        )
+    target_link_libraries(gromacs_interface INTERFACE ${GROMACS_LIBRARIES})
+    target_compile_definitions(gromacs_interface INTERFACE USE_GROMACS)
+    if(TARGET Gromacs_external)
+        add_dependencies(gromacs_interface Gromacs_external)
+    endif()
 endif()

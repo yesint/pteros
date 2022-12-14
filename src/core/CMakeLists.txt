@@ -15,15 +15,7 @@ add_custom_command(OUTPUT "${PROJECT_SOURCE_DIR}/src/core/version.cpp"
 )
 
 add_subdirectory(babel_utils)
-add_subdirectory(gromacs_utils)
 add_subdirectory(io)
-
-#-------------------------------------------------------------------------------
-# service interface library to provide includes for other targets at build time
-#-------------------------------------------------------------------------------
-
-add_library(pteros_interface INTERFACE)
-target_include_directories(pteros_interface INTERFACE ${PROJECT_SOURCE_DIR}/include/)
 
 #---------------------
 # pteros core library
@@ -77,6 +69,7 @@ target_include_directories(pteros PRIVATE ${PROJECT_SOURCE_DIR}/thirdparty/power
 
 target_link_libraries(pteros
     PRIVATE
+        pteros_interface
         pteros_io
         dssp
         sasa

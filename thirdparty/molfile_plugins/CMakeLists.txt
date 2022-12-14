@@ -33,6 +33,9 @@ add_library(molfile_plugins STATIC
 )
 
 target_include_directories(molfile_plugins PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
 if(WITH_TNG)
-    target_include_directories(molfile_plugins PUBLIC ${TNG_INCLUDE_DIR})
+    target_link_directories(molfile_plugins PUBLIC tng_interface)
+    # For some reason includes from tng_interface are not used...
+    target_include_directories(molfile_plugins PRIVATE ${TNG_INCLUDE_DIR})
 endif()

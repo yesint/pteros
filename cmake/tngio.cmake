@@ -66,4 +66,13 @@ if(WITH_TNG)
     )
     set(TNG_INCLUDE_DIR ${TNG_INSTALL_DIR}/include ${TNG_SOURCE_DIR}/include)
     set(TNG_LIBRARIES   ${TNG_LIB_FILE})
+
+    #--------------------------------------------------------------------------------
+    # Create a TNG interface library to provide headers and libs to other targets
+    #--------------------------------------------------------------------------------
+    add_library(tng_interface INTERFACE)
+    target_include_directories(tng_interface INTERFACE ${TNG_INCLUDE_DIR})
+    target_link_libraries(tng_interface INTERFACE ${TNG_LIBRARIES})
+    target_compile_definitions(tng_interface INTERFACE USE_TNG)
+    add_dependencies(tng_interface TNG_external)
 endif()

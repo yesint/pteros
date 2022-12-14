@@ -29,7 +29,7 @@
 #include "xtc_file.h"
 #include "pteros/core/pteros_error.h"
 #include "pteros/core/logging.h"
-#include "gromacs_utils.h"
+#include "gmx_box_utils.h"
 
 #include "xdr_utils.h"
 #include "xdrfile.h"

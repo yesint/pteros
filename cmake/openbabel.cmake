@@ -24,22 +24,12 @@
 #
 #---------------------------------------------------
 
-
 if(WITH_OPENBABEL)
-    if(TRY_SYSTEM_OPENBABEL)        
-        # Try to find OpenBabel 3
+    if(TRY_SYSTEM_OPENBABEL)
         find_package(OpenBabel3 3.0.0)
-        if(NOT OPENBABEL3_FOUND)
-            # Try to find OpenBabel 2
-            message(STATUS "OpenBabel v3 not found, searching for v2...")
-            find_package(OpenBabel2 2.4.9)
-            if(NOT OPENBABEL2_FOUND)
-                message(STATUS "OpenBabel v2 not found.")
-            endif()
-        endif()
-    endif()
+     endif()
 
-    if(NOT (OPENBABEL2_FOUND OR OPENBABEL3_FOUND))
+    if(NOT OPENBABEL3_FOUND)
         if(NOT DOWNLOAD_DEPENDENCIES)
             message(FATAL_ERROR "OpenBabel is not available!")
         endif()
@@ -67,7 +57,9 @@ if(WITH_OPENBABEL)
         ExternalProject_add(OpenBabel_external
             SOURCE_DIR ${OPENBABEL_SOURCE_DIR}
             BINARY_DIR ${OPENBABEL_BINARY_DIR}
-            CMAKE_ARGS -DBUILD_TESTING=OFF -DBUILD_MIXED=ON -DBUILD_SHARED=OFF
+            CMAKE_ARGS -DBUILD_TESTING=OFF
+                       -DBUILD_MIXED=ON
+                       -DBUILD_SHARED=OFF
                        -DCMAKE_INSTALL_PREFIX=${OPENBABEL_INSTALL_DIR}
                        -DCMAKE_POSITION_INDEPENDENT_CODE=ON
             BUILD_BYPRODUCTS ${OPENBABEL_LIB_FILE}
@@ -80,5 +72,16 @@ if(WITH_OPENBABEL)
             ${OPENBABEL_SOURCE_DIR}/include/openbabel3
         )
         set(OPENBABEL3_LIBRARIES ${OPENBABEL_LIB_FILE})
+    endif()
+
+    #--------------------------------------------------------------------------------
+    # Create a Babel interface library to provide headers and libs to other targets
+    #--------------------------------------------------------------------------------
+    add_library(openbabel_interface INTERFACE)
+    target_include_directories(openbabel_interface INTERFACE ${OPENBABEL3_INCLUDE_DIR})
+    target_link_libraries(openbabel_interface INTERFACE ${OPENBABEL3_LIBRARIES})
+    target_compile_definitions(openbabel_interface INTERFACE USE_OPENBABEL)
+    if(TARGET OpenBabel_external)
+        add_dependencies(openbabel_interface OpenBabel_external)
     endif()
 endif()

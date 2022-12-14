@@ -6,7 +6,7 @@
  *                    ******************
  *                 molecular modeling library
  *
- * Copyright (c) 2009-2021, Semen Yesylevskyy
+ * Copyright (c) 2009-2017, Semen Yesylevskyy
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of Artistic License:
@@ -21,36 +21,15 @@
 */
 
 
-#include "gromacs_utils.h"
+#pragma once
 
-using namespace pteros;
-using namespace std;
+#include "pteros/core/periodic_box.h"
+#include "xdrfile.h"
 
 namespace pteros {
 
-void init_gmx_box(matrix box)
-{
-    box[0][0] = 0.0; box[0][1] = 0.0; box[0][2] = 0.0;
-    box[1][0] = 0.0; box[1][1] = 0.0; box[1][2] = 0.0;
-    box[2][0] = 0.0; box[2][1] = 0.0; box[2][2] = 0.0;
-}
-
-
-void gmx_box_to_pteros(const matrix m, PeriodicBox &b)
-{
-    Eigen::Matrix3f matr;
-    for(int i=0;i<3;++i)
-        for(int j=0;j<3;++j)
-            matr(i,j) = m[j][i];
-    b.set_matrix(matr);
-}
-
-void pteros_box_to_gmx(const PeriodicBox &box, matrix m)
-{
-    Eigen::Matrix3f matr = box.get_matrix();
-    for(int i=0;i<3;++i)
-        for(int j=0;j<3;++j)
-            m[i][j] = matr(j,i);
-}
+void init_gmx_box(matrix box);
+void gmx_box_to_pteros(const matrix m, PeriodicBox& b);
+void pteros_box_to_gmx(const PeriodicBox& b, matrix m);
 
 }

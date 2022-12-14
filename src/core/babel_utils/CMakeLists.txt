@@ -1,26 +1,17 @@
-if(WITH_OPENBABEL AND (OPENBABEL2_FOUND OR OPENBABEL3_FOUND))
+if(TARGET openbabel_interface)
 
-    add_library(pteros_babel_utils STATIC
-        babel_utils.cpp
-        babel_utils.h
-    )
+    add_library(babel_utils STATIC
+        selection_to_obmol.h
+        selection_to_obmol.cpp
+        )
 
-    target_link_libraries(pteros_babel_utils
+    target_link_libraries(babel_utils
         PUBLIC
-            ${OPENBABEL2_LIBRARIES} ${OPENBABEL3_LIBRARIES}
-            Eigen3::Eigen
             pteros_interface
+            openbabel_interface
+            Eigen3::Eigen
     )
 
-    target_include_directories(pteros_babel_utils
-        PUBLIC
-            ${OPENBABEL2_INCLUDE_DIR} ${OPENBABEL3_INCLUDE_DIR}
-            ${CMAKE_CURRENT_SOURCE_DIR}
-    )
-
-    # In case of inner OpenBabel build we need to set the dependency
-    if(TARGET OpenBabel_external)
-        add_dependencies(pteros_babel_utils OpenBabel_external)
-    endif()
+    target_include_directories(babel_utils PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 endif()

@@ -1,4 +1,4 @@
-if(WITH_OPENBABEL AND OPENBABEL2_FOUND)
+if(TARGET openbabel_interface)
 
     add_library(pteros_substructure_search SHARED
         substructure_search.cpp
@@ -8,7 +8,8 @@ if(WITH_OPENBABEL AND OPENBABEL2_FOUND)
     target_link_libraries(pteros_substructure_search
         PRIVATE
             pteros
-            pteros_babel_utils
+            babel_utils
+            openbabel_interface
     )
 
     install(TARGETS pteros_substructure_search
