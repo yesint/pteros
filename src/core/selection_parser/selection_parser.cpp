@@ -51,9 +51,10 @@ public:
     Pteros_PEG_parser(const char* s): peg::parser(s) {
         enable_ast<MyAst>();
         enable_packrat_parsing();
-        log = [&](size_t ln, size_t col, const string& msg) {
+
+        set_logger( [&](size_t ln, size_t col, const string& msg) {
             error_message = fmt::format("{}:{}",col,msg);
-        };        
+        });
     }
 
     virtual ~Pteros_PEG_parser(){}
@@ -147,6 +148,7 @@ Pteros_PEG_parser _parser(R"(
 
     REGEX               <-  '"' <(!'"' .)*> '"' / "'" <(!"'" .)*> "'"
 )");
+
 
 
 //===============================================
