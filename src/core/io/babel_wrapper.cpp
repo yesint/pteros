@@ -28,18 +28,14 @@
 
 #include "babel_wrapper.h"
 #include "pteros/core/pteros_error.h"
-#include "system_builder.h"
-#include "selection_to_obmol.h"
-
-#include "openbabel/obconversion.h"
-#include "openbabel/mol.h"
 #include "openbabel/atom.h"
 #include "openbabel/residue.h"
 #include "openbabel/bondtyper.h"
 #include "openbabel/generic.h"
-#include "openbabel/obfunctions.h"
 #include "openbabel/obiter.h"
 
+#include "selection_to_obmol.h"
+#include "system_builder.h"
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846264338327950288
@@ -50,20 +46,11 @@ using namespace pteros;
 using namespace Eigen;
 
 
-// Babel internals
-struct BabelWrapper::OB_internals {
-    OpenBabel::OBConversion conv;
-    OpenBabel::OBMol mol;
-};
-
-
-BabelWrapper::BabelWrapper(const string &fname): FileHandler(fname){
-    ob = new OB_internals;
-}
+BabelWrapper::BabelWrapper(const string &fname): FileHandler(fname){ }
 
 BabelWrapper::~BabelWrapper()
 {
-    close();    
+    close();
 }
 
 void BabelWrapper::open(char open_mode)
@@ -72,27 +59,27 @@ void BabelWrapper::open(char open_mode)
     bool ok;
 
     if(open_mode=='r'){
-        ok = ob->conv.SetInFormat(ext.c_str());
+        ok = conv.SetInFormat(ext.c_str());
         if(!ok) throw PterosError("OpenBabel can't read format '{}'!",ext);
     } else {
-        ok = ob->conv.SetOutFormat(ext.c_str());
+        ok = conv.SetOutFormat(ext.c_str());
         if(!ok) throw PterosError("OpenBabel can't write format '{}'!",ext);
     }
 }
 
 void BabelWrapper::close()
 {
-    if(ob) delete ob;
+
 }
 
 
 bool BabelWrapper::do_read(System *sys, Frame *frame, const FileContent &what)
 {
     bool ok;
-    ok = ob->conv.ReadFile(&ob->mol,fname);
+    ok = conv.ReadFile(&mol,fname);
     if(!ok) throw PterosError("Babel can't read file {}",fname);
 
-    int natoms = ob->mol.NumAtoms();
+    int natoms = mol.NumAtoms();
 
     SystemBuilder builder(sys);
 
@@ -103,7 +90,7 @@ bool BabelWrapper::do_read(System *sys, Frame *frame, const FileContent &what)
         Atom at;
         // Cycle over atoms
         int i = 0;
-        FOR_ATOMS_OF_MOL(ba, ob->mol)
+        FOR_ATOMS_OF_MOL(ba, mol)
         {
             auto res = ba->GetResidue();
 
@@ -126,7 +113,7 @@ bool BabelWrapper::do_read(System *sys, Frame *frame, const FileContent &what)
     if(what.coord()){
         frame->coord.resize(natoms);
         int i=0;
-        FOR_ATOMS_OF_MOL(ba, ob->mol)
+        FOR_ATOMS_OF_MOL(ba, mol)
         {
             frame->coord[i](0) = ba->GetX() * 0.1;
             frame->coord[i](1) = ba->GetY() * 0.1;
@@ -141,10 +128,10 @@ bool BabelWrapper::do_read(System *sys, Frame *frame, const FileContent &what)
 void BabelWrapper::do_write(const Selection &sel, const FileContent &what)
 {
     if(what.atoms() && what.coord()){
-        selection_to_obmol(sel,ob->mol);
+        selection_to_obmol(sel,mol);
     }
 
-    ob->conv.WriteFile(&ob->mol,fname);
+    conv.WriteFile(&mol,fname);
 }
 
 

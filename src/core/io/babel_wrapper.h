@@ -26,12 +26,16 @@
  *
 */
 
+
 #pragma once
 
 #include <string>
 #include "pteros/core/system.h"
 #include "pteros/core/selection.h"
 #include "pteros/core/file_handler.h"
+
+#include <openbabel/obconversion.h>
+#include <openbabel/mol.h>
 
 namespace pteros {
 
@@ -44,16 +48,15 @@ public:
     virtual void open(char open_mode) override;
     virtual void close() override;
 
-protected:           
+protected:       
+    OpenBabel::OBConversion conv;
+    OpenBabel::OBMol mol;
+
     // Tells if the format need bonds to be present
     virtual bool need_bonds() = 0;
 
     virtual bool do_read(System *sys, Frame *frame, const FileContent& what);
     virtual void do_write(const Selection &sel, const FileContent& what);
-
-private:
-    struct OB_internals;
-    OB_internals* ob;
 };
 
 }
