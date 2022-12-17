@@ -55,8 +55,8 @@ protected:
     // Tells if the format need bonds to be present
     virtual bool need_bonds() = 0;
 
-    virtual bool do_read(System *sys, Frame *frame, const FileContent& what);
-    virtual void do_write(const Selection &sel, const FileContent& what);
+    virtual bool do_read(System *sys, Frame *frame, const FileContent& what) override;
+    virtual void do_write(const Selection &sel, const FileContent& what) override;
 };
 
 }

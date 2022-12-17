@@ -43,15 +43,15 @@ public:
     virtual void open(char open_mode) override;
     virtual void close() override;
 
-    virtual FileContent get_content_type() const {
+    virtual FileContent get_content_type() const override {
         return FileContent()
                 .traj(true);
     }
 
 protected:
 
-    virtual void do_write(const Selection &sel, const FileContent& what);
-    virtual bool do_read(System *sys, Frame *frame, const FileContent& what);
+    virtual void do_write(const Selection &sel, const FileContent& what) override;
+    virtual bool do_read(System *sys, Frame *frame, const FileContent& what) override;
 
 private:
     // for xdrfile

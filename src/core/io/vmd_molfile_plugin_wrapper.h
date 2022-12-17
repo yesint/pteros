@@ -50,8 +50,8 @@ protected:
     void* w_handle; // Handle for writing
     char mode;
 
-    virtual bool do_read(System *sys, Frame *frame, const FileContent& what);
-    virtual void do_write(const Selection &sel, const FileContent& what);
+    virtual bool do_read(System *sys, Frame *frame, const FileContent& what) override;
+    virtual void do_write(const Selection &sel, const FileContent& what) override;
 
     // molfile plugin instance (set in derived class)
     molfile_plugin_t* plugin;

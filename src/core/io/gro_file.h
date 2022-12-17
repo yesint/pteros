@@ -43,7 +43,7 @@ public:
     virtual void open(char open_mode) override;
     virtual void close() override;
 
-    virtual FileContent get_content_type() const {        
+    virtual FileContent get_content_type() const override {        
         return FileContent()
                 .atoms(true)
                 .coord(true);
@@ -53,8 +53,8 @@ protected:
 
     std::fstream f;
 
-    virtual bool do_read(System *sys, Frame *frame, const FileContent& what);
-    virtual void do_write(const Selection &sel, const FileContent& what);
+    virtual bool do_read(System *sys, Frame *frame, const FileContent& what) override;
+    virtual void do_write(const Selection &sel, const FileContent& what) override;
 };
 
 }

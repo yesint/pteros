@@ -44,7 +44,7 @@ public:
     virtual void close() override;
     virtual ~XtcFile();
 
-    virtual FileContent get_content_type() const {
+    virtual FileContent get_content_type() const override {
         return content;
     }
 
