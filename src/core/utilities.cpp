@@ -64,12 +64,12 @@ Vector3f project_vector(Vector3f_const_ref vec1, Vector3f_const_ref vec2)
 
 float deg_to_rad(float ang)
 {
-    return ang*3.141592/180.0;
+    return ang*M_PI/180.0;
 }
 
 float rad_to_deg(float ang)
 {
-    return ang*180.0/3.141592;
+    return ang*180.0/M_PI;
 }
 
 Affine3f rotation_transform(Vector3f_const_ref pivot, Vector3f_const_ref axis, float angle)

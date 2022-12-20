@@ -26,18 +26,14 @@
  *
 */
 
-
-
-
-
 #include "xyz_file.h"
+#include "get_plugins.h"
 
 using namespace std;
 using namespace pteros;
-using namespace Eigen;
 
 XyzFile::XyzFile(string fname): VmdMolfilePluginWrapper(fname){
-    plugin = molfile_plugins["xyz"];
+    plugin = xyz_get_plugin_ptr();
 }
 
 

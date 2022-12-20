@@ -30,11 +30,9 @@
 #include "pteros/core/pteros_error.h"
 #include "pteros/core/logging.h"
 #include "pteros/core/utilities.h"
-#include "../molfile_plugins/periodic_table.h"
+#include "periodic_table.h"
 #include <Eigen/Core>
 #include <cmath>
-// General molfile_plugin includes
-#include "molfile_plugin.h"
 #include "system_builder.h"
 
 #ifndef M_PI
@@ -47,11 +45,9 @@ using namespace Eigen;
 
 void box_from_vmd_rep(float fa, float fb, float fc,
                               float alpha, float beta, float gamma, Eigen::Matrix3f& box){
-#define XX 0
-#define YY 1
-#define ZZ 2
-#define DEG2RAD (M_PI/180.0)
-#define RAD2DEG (180.0/M_PI)
+    const int XX = 0;
+    const int YY = 1;
+    const int ZZ = 2;
 
     double cosa,cosb,cosg,sing;
     box.fill(0.0);
@@ -59,18 +55,18 @@ void box_from_vmd_rep(float fa, float fb, float fc,
 
     if ((alpha!=90.0) || (beta!=90.0) || (gamma!=90.0)) {
       if (alpha != 90.0) {
-    cosa = cos(alpha*DEG2RAD);
+    cosa = cos(deg_to_rad(alpha));
       } else {
     cosa = 0;
       }
       if (beta != 90.0) {
-    cosb = cos(beta*DEG2RAD);
+    cosb = cos(deg_to_rad(beta));
       } else {
     cosb = 0;
       }
       if (gamma != 90.0) {
-    cosg = cos(gamma*DEG2RAD);
-    sing = sin(gamma*DEG2RAD);
+    cosg = cos(deg_to_rad(gamma));
+    sing = sin(deg_to_rad(gamma));
       } else {
     cosg = 0;
     sing = 1;
@@ -292,61 +288,3 @@ void VmdMolfilePluginWrapper::do_write(const Selection &sel, const FileContent &
         plugin->write_timestep(w_handle, &ts);
     }
 }
-
-//--------------------------------------------------------
-// molfile plugins registration bootstrap
-//--------------------------------------------------------
-
-#define IMPORT_PLUGIN(name) \
-    VMDPLUGIN_EXTERN int name##plugin_init(); \
-    VMDPLUGIN_EXTERN int name##plugin_register(void *v, vmdplugin_register_cb cb); \
-    VMDPLUGIN_EXTERN int name##plugin_fini();
-
-#define REGISTER_PLUGIN(name,ret) \
-    name##plugin_init(); \
-    name##plugin_register(nullptr, &register_cb); \
-    ret[cur_name] = cur_plugin;
-
-IMPORT_PLUGIN(pdb)
-IMPORT_PLUGIN(dcd)
-IMPORT_PLUGIN(xyz)
-
-#ifdef USE_TNGIO
-IMPORT_PLUGIN(tng)
-#endif
-
-molfile_plugin_t *cur_plugin;
-string cur_name;
-
-static int register_cb(void *v, vmdplugin_t *p) {
-  cur_name = string(p->name);
-  cur_plugin = (molfile_plugin_t *)p;
-  return VMDPLUGIN_SUCCESS;
-}
-
-
-std::map<string,molfile_plugin_t*> register_all_plugins(){    
-    std::map<string,molfile_plugin_t*> ret;
-
-    REGISTER_PLUGIN(pdb,ret)
-    REGISTER_PLUGIN(dcd,ret)
-    REGISTER_PLUGIN(xyz,ret)    
-
-#ifdef USE_TNGIO
-    REGISTER_PLUGIN(tng,ret)
-#endif
-
-    // Debug output on loaded plugins
-    LOG()->debug("Registered VMD molfile plugins:");
-    for(auto& item: ret){
-         LOG()->debug("{}", item.first);
-    }
-
-    return ret;
-}
-
-std::map<string,molfile_plugin_t*> VmdMolfilePluginWrapper::molfile_plugins = register_all_plugins();
-
-
-
-

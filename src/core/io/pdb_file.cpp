@@ -28,17 +28,14 @@
 
 
 #include "pdb_file.h"
-#include "molfile_plugin.h"
-#include "pteros/core/pteros_error.h"
-#include <iomanip>
+#include "get_plugins.h"
 
 using namespace std;
 using namespace pteros;
-using namespace Eigen;
 
 PdbFile::PdbFile(const string &fname): VmdMolfilePluginWrapper(fname)
 {
-   plugin = molfile_plugins["pdb"];
+   plugin = pdb_get_plugin_ptr();
 }
 
 

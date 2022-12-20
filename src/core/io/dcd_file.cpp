@@ -28,14 +28,13 @@
 
 
 #include "dcd_file.h"
-#include "molfile_plugin.h"
+#include "get_plugins.h"
 
 using namespace std;
 using namespace pteros;
-using namespace Eigen;
 
 DcdFile::DcdFile(string fname): VmdMolfilePluginWrapper(fname){
-    plugin = molfile_plugins["dcd"];
+    plugin = dcd_get_plugin_ptr();
 }
 
 
