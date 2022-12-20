@@ -42,14 +42,13 @@ void XtcFile::open(char open_mode)
 {
     bool bOk;
     handle = xdrfile_open(fname.c_str(),&open_mode);
-
     if(!handle) throw PterosError("Unable to open XTC file {}", fname);
 
-    // Extract number of atoms
-    int ok = xdr_xtc_get_natoms(handle,&natoms);
-    if(!ok) throw PterosError("Can't read XTC number of atoms");
-
     if(open_mode=='r'){
+        // Extract number of atoms
+        int ok = xdr_xtc_get_natoms(handle,&natoms);
+        if(!ok) throw PterosError("Can't read XTC number of atoms");
+
         // XTC file contains step number in terms of simulation steps, not saved frames
         // So we have to extract conversion factor
         int next = xtc_get_next_frame_number(handle,natoms);
@@ -92,15 +91,10 @@ void XtcFile::open(char open_mode)
                      num_frames,
                      max_t ? fmt::format("{}",max_t) : "N/A",
                      dt ? fmt::format("{}",dt) : "N/A");
+    } else { // Read / Write
+        // Initialize step to 0 for writing
+        step = 0;
     }
-
-    if(!handle) throw PterosError("Unable to open XTC file {}", fname);
-
-    // Prepare the box just in case
-    init_gmx_box(box);
-
-    // -1 for reading means initialization step
-    step = (open_mode=='r') ? -1 : 0;
 }
 
 void XtcFile::close()
@@ -118,13 +112,14 @@ bool XtcFile::do_read(System *sys, Frame *frame, const FileContent &what){
     int ret;
 
     frame->coord.resize(natoms);
-    ret = read_xtc(handle,natoms,&step,&frame->time,box, (rvec*)frame->coord.data(), &prec);
+    ret = read_xtc(handle,natoms,&step,&frame->time, box, (rvec*)frame->coord.data(), &prec);
     if(ret == exdrENDOFFILE) return false; // End of file
     if(ret != exdrOK){
         LOG()->warn("XTC frame {} is corrupted!",step);
         return false;
     }
 
+    // some debug info on the first frame
     if(step==0){
         LOG()->debug("Number of atoms: {}",natoms);
         LOG()->debug("XTC precision: {}",prec);

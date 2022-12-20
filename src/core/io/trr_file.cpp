@@ -44,9 +44,6 @@ void TrrFile::open(char open_mode)
 
     if(!handle) throw PterosError("Unable to open TRR file {}", fname);
 
-    // Prepare the box just in case
-    init_gmx_box(box);
-
     // -1 for reading means initialization step
     step = (open_mode=='r') ? -1 : 0;
 }
@@ -134,6 +131,3 @@ void TrrFile::do_write(const Selection &sel, const FileContent &what)
 
     ++step;
 }
-
-
-

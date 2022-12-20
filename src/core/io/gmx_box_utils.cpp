@@ -29,14 +29,6 @@ using namespace std;
 
 namespace pteros {
 
-void init_gmx_box(matrix box)
-{
-    box[0][0] = 0.0; box[0][1] = 0.0; box[0][2] = 0.0;
-    box[1][0] = 0.0; box[1][1] = 0.0; box[1][2] = 0.0;
-    box[2][0] = 0.0; box[2][1] = 0.0; box[2][2] = 0.0;
-}
-
-
 void gmx_box_to_pteros(const matrix m, PeriodicBox &b)
 {
     Eigen::Matrix3f matr;
