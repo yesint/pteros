@@ -27,8 +27,7 @@
 */
 
 
-#ifndef DCD_FILE_H
-#define DCD_FILE_H
+#pragma once
 
 #include <string>
 #include "vmd_molfile_plugin_wrapper.h"
@@ -48,8 +47,5 @@ public:
 };
 
 }
-#endif /* MOL_FILE_H */
-
-
 
 

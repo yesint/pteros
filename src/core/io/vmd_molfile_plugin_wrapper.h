@@ -55,10 +55,6 @@ protected:
 
     // molfile plugin instance (set in derived class)
     molfile_plugin_t* plugin;
-
-    // Static map of all registered plagins.
-    // Filled on first load of the library
-    static std::map<std::string,molfile_plugin_t*> molfile_plugins;
 };
 
 }

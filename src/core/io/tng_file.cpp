@@ -26,15 +26,14 @@
  *
 */
 
-
 #include "tng_file.h"
+#include "get_plugins.h"
 
 using namespace std;
 using namespace pteros;
-using namespace Eigen;
 
 TngFile::TngFile(const string &fname): VmdMolfilePluginWrapper(fname){
-   plugin = molfile_plugins["tng"];
+   plugin = tng_get_plugin_ptr();
 }
 
 

@@ -42,20 +42,24 @@ void XtcFile::open(char open_mode)
 {
     bool bOk;
     handle = xdrfile_open(fname.c_str(),&open_mode);
-
     if(!handle) throw PterosError("Unable to open XTC file {}", fname);
 
-    // Extract number of atoms
-    int ok = xdr_xtc_get_natoms(handle,&natoms);
-    if(!ok) throw PterosError("Can't read XTC number of atoms");
-
     if(open_mode=='r'){
+        // Extract number of atoms
+        int ok = xdr_xtc_get_natoms(handle,&natoms);
+        if(!ok) throw PterosError("Can't read XTC number of atoms");
+
         // XTC file contains step number in terms of simulation steps, not saved frames
         // So we have to extract conversion factor
         int next = xtc_get_next_frame_number(handle,natoms);
-        int cur = xtc_get_current_frame_number(handle,natoms,&bOk);
+        int cur = xtc_get_current_frame_number(handle,natoms,&bOk);        
         if(cur<0 || next<0 || !bOk) throw PterosError("Can't detect number of steps per frame");
-        steps_per_frame = next-cur;
+        if(cur==next){
+            LOG()->warn("It seems that there is only one frame in this trajectory");
+            steps_per_frame = 1;
+        } else {
+            steps_per_frame = next-cur;
+        }
 
         // Get total number of frames in the trajectory
         num_frames = xdr_xtc_get_last_frame_number(handle,natoms,&bOk);
@@ -63,28 +67,34 @@ void XtcFile::open(char open_mode)
         if(!bOk) throw PterosError("Can't get number of frames");
         if(num_frames<0){
             LOG()->warn("Weird XTC file: negative number of frames returned ({})!",num_frames);
-            LOG()->warn("Random access operations disabled on this trajectory.");
+            // Disable random access
             content.rand(false);
         }
         num_frames /= steps_per_frame;
 
         // Get time step
         dt = xdr_xtc_estimate_dt(handle,natoms,&bOk);
-        if(!bOk) throw PterosError("Can't get time step");
+        if(!bOk){
+            LOG()->warn("Can't get time step");
+            dt = -1.0;
+        }
 
         max_t = xdr_xtc_get_last_frame_time(handle,natoms,&bOk);
-        if(!bOk || max_t<0) throw PterosError("Can't get last frame time");
+        if(!bOk || max_t<0){
+            LOG()->warn("Can't get last frame time");
+            max_t = -1.0;
+        }
 
-        LOG()->debug("There are {} frames, max_t= {}, dt={}",num_frames,max_t,dt);
+        if(!content.rand()) LOG()->warn("Random access operations disabled for this trajectory");
+
+        LOG()->debug("There are {} frames, max_t={}, dt={}",
+                     num_frames,
+                     max_t ? fmt::format("{}",max_t) : "N/A",
+                     dt ? fmt::format("{}",dt) : "N/A");
+    } else { // Read / Write
+        // Initialize step to 0 for writing
+        step = 0;
     }
-
-    if(!handle) throw PterosError("Unable to open XTC file {}", fname);
-
-    // Prepare the box just in case
-    init_gmx_box(box);
-
-    // -1 for reading means initialization step
-    step = (open_mode=='r') ? -1 : 0;
 }
 
 void XtcFile::close()
@@ -102,13 +112,14 @@ bool XtcFile::do_read(System *sys, Frame *frame, const FileContent &what){
     int ret;
 
     frame->coord.resize(natoms);
-    ret = read_xtc(handle,natoms,&step,&frame->time,box, (rvec*)frame->coord.data(), &prec);
+    ret = read_xtc(handle,natoms,&step,&frame->time, box, (rvec*)frame->coord.data(), &prec);
     if(ret == exdrENDOFFILE) return false; // End of file
     if(ret != exdrOK){
         LOG()->warn("XTC frame {} is corrupted!",step);
         return false;
     }
 
+    // some debug info on the first frame
     if(step==0){
         LOG()->debug("Number of atoms: {}",natoms);
         LOG()->debug("XTC precision: {}",prec);

@@ -8,7 +8,8 @@
 
 SET(MOLFILE_PLUGINS pdbplugin dcdplugin xyzplugin)
 if(WITH_TNG)
-    list(APPEND MOLFILE_PLUGINS tngplugin)   
+    list(APPEND MOLFILE_PLUGINS tngplugin)
+    set_source_files_properties(register_plugins.c PROPERTIES COMPILE_DEFINITIONS USE_TNG)
 endif()
 
 SET(MOLFILE_PLUGINS_FILE_LIST "")
@@ -20,15 +21,7 @@ foreach(PLUGIN ${MOLFILE_PLUGINS})
 endforeach(PLUGIN)
 
 add_library(molfile_plugins STATIC
-    # required headers
-    molfile_plugin.h
-    periodic_table.h
-    vmdplugin.h
-    largefiles.h
-    endianswap.h
-    readpdb.h
-    fastio.h
-    # plugins themselves
+    register_plugins.c
     ${MOLFILE_PLUGINS_FILE_LIST}
 )
 
