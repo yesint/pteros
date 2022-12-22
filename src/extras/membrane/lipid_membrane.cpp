@@ -26,12 +26,11 @@
  *
 */
 
-#include "pteros/extras/membrane.h"
+#include "pteros/extras/membrane/lipid_membrane.h"
 #include "pteros/core/pteros_error.h"
 #include "pteros/core/distance_search.h"
 #include "pteros/core/utilities.h"
 #include <Eigen/Core>
-#include <Eigen/Dense>
 #include <fstream>
 #include <unordered_set>
 #include "voro++.hh"
@@ -64,369 +63,62 @@ string tcl_arrow(Vector3f_const_ref p1, Vector3f_const_ref p2, float r, string c
     return ss.str();
 }
 
-
 //--------------------------------------------
 
-
-LipidTail::LipidTail(const Selection& lipid_sel, const string &tail_sel_str)
-{
-    Selection tail_sel = const_cast<Selection&>(lipid_sel)(tail_sel_str);
-    int N = tail_sel.size();
-
-    // Set offsets
-    carbon_offsets.resize(N);
-    for(int i=0;i<N;++i) carbon_offsets[i] = tail_sel.index(i) - lipid_sel.index(0);
-
-    // Initialize order
-    order.resize(N-2);
-    order.fill(0.0);
-
-    // Initialize dihedrals
-    dihedrals.resize(N-3);
-    dihedrals.fill(0.0);
-}
-
-void LipidTail::compute(const LipidMolecule& lipid)
-{
-    int N = carbon_offsets.size();
-    // Compute order
-    for(int at=1; at<N-1; ++at){
-        // Vector from at+1 to at-1
-        auto coord1 = lipid.whole_sel.xyz(carbon_offsets[at+1]);
-        auto coord2 = lipid.whole_sel.xyz(carbon_offsets[at-1]);
-        float ang = angle_between_vectors(coord1-coord2,lipid.normal);
-        order[at-1] = 1.5*pow(cos(ang),2)-0.5;
-    }
-
-    // Compute dihedrals
-    for(int at=0; at<N-3; ++at){
-        dihedrals[at] = lipid.whole_sel.dihedral(carbon_offsets[at],
-                                                 carbon_offsets[at+1],
-                                                 carbon_offsets[at+2],
-                                                 carbon_offsets[at+3],
-                                                 noPBC);
-    }
-}
-
-LipidMolecule::LipidMolecule(const Selection& lip_mol, const LipidSpecies& sp, int ind, LipidMembrane* parent)
-{
-    id = ind;
-    membr_ptr = parent;
-    name = sp.name;
-    whole_sel = lip_mol;
-    head_marker_sel = whole_sel(sp.head_marker_str);
-    tail_marker_sel = whole_sel(sp.tail_marker_str);
-    mid_marker_sel = whole_sel(sp.mid_marker_str);
-    // Create tails
-    tails.reserve(sp.tail_carbons_str.size());
-    for(const string& t_str: sp.tail_carbons_str){
-        tails.emplace_back(whole_sel, t_str);
-    }
-    //neib.clear();
-}
-
-void LipidMolecule::add_to_group(int gr){
-    if(gr<0 || gr>=membr_ptr->groups.size()) throw PterosError("The group should be in the range (0:{}), not {}!",
-                                                               membr_ptr->groups.size(),gr);
-    membr_ptr->groups[gr].add_lipid_id(id);
-}
-
-void LipidMolecule::set_markers()
-{
-    // Unwrap this lipid with leading index of mid marker
-    whole_sel.unwrap(fullPBC, mid_marker_sel.index(0)-whole_sel.index(0));
-
-    // Set markers to COM
-    head_marker = head_marker_sel.center(true);
-    tail_marker = tail_marker_sel.center(true);
-    mid_marker = mid_marker_sel.center(true);
-
-    pos_saved = mid_marker_sel.xyz(0);
-    mid_marker_sel.xyz(0) = mid_marker;
-    tail_head_vector = head_marker-tail_marker;
-}
-
-void LipidMolecule::unset_markers()
-{
-    mid_marker_sel.xyz(0) = pos_saved;
-}
-
-PerSpeciesProperties::PerSpeciesProperties(LipidMembrane *ptr)
-{
-    membr_ptr = ptr;
-    count = 0;
-
-    area_hist.create(0,1.8,100);
-    area.fill(0.0);
-
-    tilt_hist.create(0,90,90);
-    tilt.fill(0.0);
-
-    coord_number.fill(0.0);
-
-    gaussian_curvature.fill(0.0);
-    mean_curvature.fill(0.0);
-    mean_curv_hist.create(-0.6,0.6,200);
-    gauss_curv_hist.create(-0.3,0.3,200);
-
-    trans_dihedrals_ratio.fill(0.0);
-    order_initialized = false;
-
-    // Initialize around
-    for(const auto& sp_name: ptr->species_names){
-        around[sp_name] = 0;
-    }
-
-    num_tails = 0;
-}
-
-
-void accumulate_statistics(float val, Eigen::Vector2f& storage){
-    storage[0] += val; // mean
-    storage[1] += val*val; // std
-}
-
-void PerSpeciesProperties::add_data(const LipidMolecule &lip){
-    ++count;
-    // Area
-    area_hist.add(lip.area);
-    accumulate_statistics(lip.area,area);
-
-    // Tilt
-    tilt_hist.add(lip.tilt);
-    accumulate_statistics(lip.tilt,tilt);
-
-    // Coordination number
-    accumulate_statistics(lip.coord_number, coord_number);
-
-    // Curvatures
-    accumulate_statistics(lip.mean_curvature, mean_curvature);
-    accumulate_statistics(lip.gaussian_curvature, gaussian_curvature);
-    mean_curv_hist.add(lip.mean_curvature);
-    gauss_curv_hist.add(lip.gaussian_curvature);
-
-    // Tail stats
-    if(!order_initialized && lip.tails.size()){
-        num_tails = lip.tails.size();
-
-        // This is very first invocation, so resize order arrays properly
-        // See if the tails are of the same length
-        int sz = lip.tails[0].size();
-        bool same = true;
-        for(int i=1;i<lip.tails.size();++i){
-            if(lip.tails[i].size()!=sz){
-                same = false;
-                break;
-            }
-        }
-
-        if(!same){
-            order.resize(lip.tails.size());
-            for(int i=0;i<order.size();++i){
-                order[i].resize(lip.tails[i].order.size());
-                order[i].fill(0.0); // Init to zeros
-            }
-        } else {
-            // tails are the same add extra slot for average
-            order.resize(lip.tails.size()+1);
-            for(int i=0;i<order.size();++i){
-                order[i].resize(lip.tails[0].order.size()); // Resize also average correctly
-                order[i].fill(0.0); // Init to zeros
-            }
-        }        
-
-        order_initialized = true;
-    } // Initialization
-
-
-    // Order
-    for(int i=0;i<lip.tails.size();++i){
-        order[i] += lip.tails[i].order;
-    }
-    // Trans dihedrals
-    for(const auto& t: lip.tails){
-        float ratio = (t.dihedrals > M_PI_2).count()/float(t.dihedrals.size());
-        accumulate_statistics(ratio,trans_dihedrals_ratio);
-    }
-
-    // Lipid surrounding
-    /*
-    for(int i: lip.neib){
-        //cout << i << " " << lip.membr_ptr->lipids.size() << endl;
-        around[lip.membr_ptr->lipids[i].name] += 1;
-    }
-    */
-
-}
-
-void mean_std_from_accumulated(Vector2f& storage, float N){
-    if(N>0){
-        float s1 = storage[0];
-        float s2 = storage[1];
-        storage[0] = s1/N;
-        storage[1] = sqrt(s2/N - s1*s1/N/N);
-    } else {
-        storage.fill(0.0);
-    }
-}
-
-void PerSpeciesProperties::post_process(float num_frames)
-{
-    // Skip if no data
-    if(count==0 || num_frames==0) return;
-
-    // Compute averages
-
-    // Area
-    mean_std_from_accumulated(area,count);
-    area_hist.normalize(count);
-
-    // Tilt
-    mean_std_from_accumulated(tilt,count);
-    tilt_hist.normalize(count);
-
-    // Trans dihedrals
-    mean_std_from_accumulated(trans_dihedrals_ratio, count*num_tails); // Note number of tails!
-
-    // Coordination number
-    mean_std_from_accumulated(coord_number,count);
-
-    // Curvatures
-    mean_std_from_accumulated(mean_curvature,count);
-    mean_std_from_accumulated(gaussian_curvature,count);
-    mean_curv_hist.normalize(count);
-    gauss_curv_hist.normalize(count);
-
-    // Order
-    if(num_tails<order.size()){
-        // we have an extra slot - this is for average of the same size tails
-        for(int i=0;i<num_tails;++i) order[num_tails] += order[i]/float(num_tails);
-    }
-    // Average orders for all tails (including the average if present)
-    for(int i=0;i<order.size();++i) order[i] /= count;
-
-    // At the end set average number of lipids of this kind per frame
-    count /= num_frames;
-
-    // Around
-    float N = 0;
-    for(auto& el: around) N += el.second;
-    for(auto& el: around) el.second /= N;
-}
-
-string PerSpeciesProperties::summary()
-{
-    string s;
-    if(count>0){
-        s += fmt::format("\t\tCount:\t{}\n", count);
-        s += fmt::format("\t\tArea:\t{} +/- {} nm2\n", area[0],area[1]);
-        s += fmt::format("\t\tTilt:\t{} +/- {} deg\n", rad_to_deg(tilt[0]),rad_to_deg(tilt[1]));
-        s += fmt::format("\t\tCoord.N:\t{} +/- {}\n", coord_number[0],coord_number[1]);
-        s += fmt::format("\t\tMean.curv.:\t{} +/- {} nm-1\n", mean_curvature[0],mean_curvature[1]);
-        s += fmt::format("\t\tGaus.curv.:\t{} +/- {} nm-1\n", gaussian_curvature[0],gaussian_curvature[1]);
-        s += fmt::format("\t\tTr.Dih.:\t{} +/- {}\n", trans_dihedrals_ratio[0],trans_dihedrals_ratio[1]);
-    } else {
-        s += "\t\tNo data\n";
-    }
-    return s;
-}
-
-void PerSpeciesProperties::save_order_to_file(const string &fname)
-{
-    // Do nothing if no data
-    if(count==0 || num_tails==0) return;
-
-    ofstream out(fname);
-    if(num_tails<order.size()){
-        // we have an extra slot - this is for average of the same size tails
-        // Header
-        fmt::print(out,"#c_num\t");
-        for(int t=0;t<num_tails;++t) fmt::print(out,"t{}\t",t);
-        fmt::print(out,"t_aver\n");
-
-        for(int c=0;c<order[0].size();++c){            
-            fmt::print(out,"{}\t",c+2);
-            for(int t=0;t<order.size();++t) fmt::print(out,"{: .4f}\t",order[t][c]);
-            fmt::print(out,"\n");
-        }
-    } else {
-        // Tails are of different length
-        // Find the longest tail
-        int max_len = 0;
-        for(int t=0;t<num_tails;++t)
-            if(order[t].size()>max_len) max_len = order[t].size();
-        // Header
-        fmt::print(out,"#c_num\t");
-        for(int t=0;t<num_tails;++t) fmt::print(out,"t{}\t",t);
-        fmt::print(out,"\n");
-        // Body
-        for(int c=0;c<max_len;++c){
-            fmt::print(out,"{}\t",c+2);
-            for(int t=0;t<num_tails;++t){
-                if(c<order[t].size())
-                    fmt::print(out,"{: .4f}\t",order[t][c]);
-                else
-                    fmt::print(out,"--\t");
-            }
-            fmt::print(out,"\n");
-        }
-    }
-    out.close();
-}
-
-void PerSpeciesProperties::save_around_to_file(const string &fname)
-{
-    // Do nothing if no data
-    if(count==0) return;
-
-    ofstream out(fname);
-    for(const auto& sp_name: membr_ptr->species_names){
-        fmt::print(out,"{}\t{:.4f}\n",sp_name,around[sp_name]);
-    }
-    out.close();
-}
-
-
-LipidMembrane::LipidMembrane(System *sys, const std::vector<LipidSpecies> &species, int ngroups, const Selection &incl, float incl_h_cutoff)
+LipidMembrane::LipidMembrane(const System *sys,
+                             int ngroups,
+                             const vector<LipidSpecies>& sp_list,
+                             const Selection &incl,
+                             float incl_h_cutoff)
 {
     log = create_logger("membrane");
-    system = sys;
+    system_ptr = sys;
 
-    log->info("There are {} lipid species",species.size());
-    log->info("Processing lipids...");
-    int id = 0;
-    for(auto& sp: species){
-        vector<Selection> res;
-        system->select(sp.whole_str).split_by_residue(res);
-        log->info("Lipid {}: {}", sp.name,res.size());
+    // Add all lipid species provided
+    for(auto& sp: sp_list) register_lipid_species(sp);
 
-        for(auto& lip: res){
-            lipids.emplace_back(lip,sp,id,this);
-            ++id;
-        }
+    // Create groups (they see all registered species)
+    groups.reserve(ngroups);
+    for(int i=0;i<ngroups;++i) groups.emplace_back(this,i);
+    log->info("{} groups created",ngroups);
 
-        species_names.push_back(sp.name);
-    }
+    // Make local copies of inclusion selection
+    inclusion = incl;
+    inclusion_h_cutoff = incl_h_cutoff;
 
     // Print statictics
     log->info("Total number of lipids: {}",lipids.size());
 
-    // Create selection for all mid atoms
-    all_mid_sel.set_system(*system);
+    // Create selection for all surf markesr
+    all_surf_sel.set_system(*system_ptr);
     vector<int> ind;
     ind.reserve(lipids.size());
     for(auto& lip: lipids) ind.push_back(lip.mid_marker_sel.index(0));
-    all_mid_sel.modify(ind);
-
-    // Create groups
-    groups.reserve(ngroups);
-    for(int i=0;i<ngroups;++i) groups.emplace_back(this,i);    
-    log->info("{} groups created",ngroups);
-
-    // Make local copies of inclusions selections
-    inclusion = incl;
-    inclusion_h_cutoff = incl_h_cutoff;
+    all_surf_sel.modify(ind);
 }
+
+
+void LipidMembrane::register_lipid_species(const LipidSpecies &sp)
+{
+    log->info("Adding lipid species {}",sp.name);
+    species.push_back(sp);
+
+    vector<Selection> res;
+    system_ptr->select(sp.whole_sel_str).split_by_residue(res);
+    log->info("There are {} {} lipids in the system", res.size(),sp.name);
+    // Add lipids
+    int id = lipids.size();
+    for(int i=0; i<res.size(); ++i){
+        // For the first lipid of this kind initialize
+        // structure-dependent data in LipidSpecies
+        if(i==0) species.back().init(res[i]);
+
+        // Add lipid
+        lipids.emplace_back(res[i],&species.back(),id,this);
+        ++id;
+    }
+}
+
 
 void LipidMembrane::reset_groups(){
     for(auto& gr: groups){
@@ -435,7 +127,7 @@ void LipidMembrane::reset_groups(){
 }
 
 
-void LipidMembrane::compute_properties(float d, float incl_d)
+void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_type)
 {    
     // Set markers for all lipids
     // This unwraps each lipid
@@ -445,7 +137,7 @@ void LipidMembrane::compute_properties(float d, float incl_d)
     // Get connectivity
     vector<Vector2i> bon;
     vector<float> dist;
-    search_contacts(d,all_mid_sel,bon,dist,false,fullPBC);
+    search_contacts(d,all_surf_sel,bon,dist,false,fullPBC);
 
     // Clear patches for all lipids
     #pragma omp parallel for if (lipids.size() >= 100)
@@ -469,7 +161,7 @@ void LipidMembrane::compute_properties(float d, float incl_d)
         inclusion.apply(); // In case if it is coord-dependent
         vector<Vector2i> bon;
         vector<float> dist;
-        search_contacts(incl_d,all_mid_sel,inclusion,bon,dist,false,fullPBC);
+        search_contacts(incl_d,all_surf_sel,inclusion,bon,dist,false,fullPBC);
         // For each lipid add contacting inclusion atoms
         for(int i=0;i<bon.size();++i){
             int l = bon[i](0);
@@ -478,8 +170,6 @@ void LipidMembrane::compute_properties(float d, float incl_d)
         }
     }
 
-
-
     #pragma omp parallel for if (lipids.size() >= 100)
     // Compute local coordinates and approximate normals of patches
     for(size_t i=0; i<lipids.size(); ++i){
@@ -487,9 +177,9 @@ void LipidMembrane::compute_properties(float d, float incl_d)
         // Save central point
         patch.original_center = lipids[i].mid_marker;
         // Set local selection for this lipid
-        lipids[i].local_sel = all_mid_sel.select(patch.neib_id);
+        lipids[i].local_sel = all_surf_sel.select(patch.neib_id);
         lipids[i].local_sel_with_self = lipids[i].local_sel;
-        lipids[i].local_sel_with_self.append(all_mid_sel.index(i));
+        lipids[i].local_sel_with_self.append(all_surf_sel.index(i));
 
         // Get inertia axes
         Vector3f moments;
@@ -560,9 +250,9 @@ void LipidMembrane::compute_properties(float d, float incl_d)
                 }
             }
             // Update sellections
-            lip.local_sel = all_mid_sel.select(lip.patch.neib_id);
+            lip.local_sel = all_surf_sel.select(lip.patch.neib_id);
             lip.local_sel_with_self = lip.local_sel;
-            lip.local_sel_with_self.append(all_mid_sel.index(i));
+            lip.local_sel_with_self.append(all_surf_sel.index(i));
         }
         // end inclusions
 
@@ -577,7 +267,7 @@ void LipidMembrane::compute_properties(float d, float incl_d)
         coord.col(0) = Vector3f::Zero(); // Local coord of central point is zero and it goes first
         for(int j=0; j<lip.local_sel.size(); ++j){
             coord.col(j+1) = lip.patch.to_local
-                    * system->box(0).shortest_vector(lip.mid_marker,
+                    * system_ptr->box(0).shortest_vector(lip.mid_marker,
                                                      lip.local_sel.xyz(j));
         }
 
@@ -590,7 +280,7 @@ void LipidMembrane::compute_properties(float d, float incl_d)
         if(!lip.inclusion_neib.empty()){
             lip.surf.inclusion_coord.resize(3,lip.inclusion_neib.size());
             for(int i=0; i<lip.inclusion_neib.size(); ++i){
-                lip.surf.inclusion_coord.col(i) = lip.patch.to_local * system->box(0)
+                lip.surf.inclusion_coord.col(i) = lip.patch.to_local * system_ptr->box(0)
                         .shortest_vector(lip.mid_marker, inclusion.xyz(lip.inclusion_neib[i]));
 
             }
@@ -636,10 +326,15 @@ void LipidMembrane::compute_properties(float d, float incl_d)
     for(auto& lip: lipids) lip.unset_markers();
 
     // Analysis whith requires restored coordinates of markers
+
     #pragma omp parallel for if (lipids.size() >= 100)
-    for(auto& lip: lipids){                
+    for(auto& lip: lipids){
         // Tail properties        
-        for(auto& t: lip.tails) t.compute(lip);
+        for(auto& t: lip.tails){
+            t.compute_order_and_dihedrals(lip.whole_sel,
+                                          lip.normal,
+                                          order_type);
+        }
     }
 
     // Process groups
@@ -933,9 +628,9 @@ void LipidMembrane::write_vmd_visualization(const string &path){
     out_all.close();
 
     for(int i=0; i<lipids.size(); ++i){
-        all_mid_sel.beta(i) = 10*lipids[i].mean_curvature;
+        all_surf_sel.beta(i) = 10*lipids[i].mean_curvature;
     }
-    all_mid_sel.write(fmt::format("{}/areas_all.pdb",path));
+    all_surf_sel.write(fmt::format("{}/areas_all.pdb",path));
 }
 
 
@@ -951,7 +646,7 @@ void LipidMembrane::write_averages(string path)
 {
     string s;
     s += "Run summary:\n";
-    s += fmt::format("Lipid species ({}): {}\n",species_names.size(),fmt::join(species_names," "));
+    s += fmt::format("Lipid species ({}): \n",species.size());
     for(auto& gr: groups){
         s += gr.summary();
     }
@@ -987,271 +682,8 @@ void LipidMembrane::write_averages(string path)
     }
 }
 
-LipidGroup::LipidGroup(LipidMembrane *ptr, int id){
-    gr_id = id;
-    membr_ptr = ptr;
-    num_lipids = 0;
-    num_frames = 0;
-    trans_dihedrals_ratio.fill(0.0);
-    // Initialize species_properties
-    for(const auto& sp_name: membr_ptr->species_names){
-        species_properties.emplace(sp_name,PerSpeciesProperties(membr_ptr));
-    }
-}
-
-void LipidGroup::process_frame()
-{
-    // Cycle over lipids in this group
-    for(int id: lip_ids){
-        auto name = membr_ptr->lipids[id].name;
-        // Add data to particular scpecies        
-        species_properties.at(name).add_data(membr_ptr->lipids[id]);
-    }
-
-    ++num_frames;
-}
-
-void LipidGroup::post_process()
-{
-    // Collect bulk statistics for the group
-    int num_dihedrals = 0.0;
-    for(auto& it: species_properties){
-        num_lipids += it.second.count;
-        num_dihedrals += it.second.count*it.second.num_tails;
-        trans_dihedrals_ratio += it.second.trans_dihedrals_ratio;
-    }
-
-    // Compute correct averages for bulk properties
-    mean_std_from_accumulated(trans_dihedrals_ratio, num_dihedrals);
-    num_lipids = (num_frames) ? num_lipids/num_frames : 0;
-
-    // Compute averages per lipid species
-    for(auto& it: species_properties){
-        it.second.post_process(num_frames);
-    }
-}
-
-string LipidGroup::summary()
-{
-    string s;
-    s += fmt::format("Group #{}:\n",gr_id);
-    s += fmt::format("\tNum.lip.:\t{}\n",num_lipids);
-
-    if(num_lipids>0){
-        s += fmt::format("\tTr.Dih.:\t{} +/- {}\n", trans_dihedrals_ratio[0],trans_dihedrals_ratio[1]);
-        s += "\tLipid species:\n";
-        for(auto& sp: membr_ptr->species_names){
-            s += fmt::format("\t{}:\n", sp);
-            s += species_properties.at(sp).summary();
-        }
-
-        // Write table summary
-        s += "\n\tProperties table:\n";
-        s += properties_table();
-    } else {
-        s += "\tNo data\n";
-    }
-    return s;
-}
-
-string LipidGroup::properties_table()
-{
-    string s;
-    s += "Species\tabund%\tTrDih\tTrDihErr\n";
-    for(auto& sp: membr_ptr->species_names){
-        s += fmt::format("{}", sp);
-        const auto& prop = species_properties.at(sp);
-        s += fmt::format("\t{: .4f}", 100.0*prop.count/float(num_lipids));
-        s += fmt::format("\t{: .4f}\t{: .4f}", prop.trans_dihedrals_ratio[0],prop.trans_dihedrals_ratio[1]);
-        s += "\n";
-    }
-    return s;
-}
-
-void LipidGroup::save_properties_table_to_file(const string &fname)
-{
-    ofstream out(fname);
-    out << properties_table();
-    out.close();
-}
 
 
-void QuadSurface::fit_to_points(const MatrixXf &coord){
-    int N = coord.cols();
-    // We fit with polynomial fit = A*x^2 + B*y^2 + C*xy + D*x + E*y + F
-    // Thus we need a linear system of size 6
-    Matrix<float,6,6> m;
-    Matrix<float,6,1> rhs; // Right hand side and result
-    m.fill(0.0);
-    rhs.fill(0.0);
-
-    Matrix<float,6,1> powers;
-    powers(5) = 1.0; //free term, the same everywhere
-    for(int j=0;j<N;++j){ // over points
-        powers(0) = coord(0,j)*coord(0,j); //xx
-        powers(1) = coord(1,j)*coord(1,j); //yy
-        powers(2) = coord(0,j)*coord(1,j); //xy
-        powers(3) = coord(0,j); //x
-        powers(4) = coord(1,j); //y
-        // Fill the matrix
-        m.noalias() += powers * powers.transpose();
-        // rhs
-        rhs += powers*coord(2,j);
-    }
-
-    // Now solve
-    quad_coefs = m.ldlt().solve(rhs);
-
-    // Compute RMS of fitting and fitted points
-    fitted_points = coord; // Set to parent points initially
-    fit_rms = 0.0;
-    for(int j=0;j<N;++j){
-        float fitZ = evalZ(coord(0,j),coord(1,j));
-        fit_rms += pow(coord(2,j)-fitZ,2);
-        // Adjust Z of fitted point
-        fitted_points(2,j) = fitZ;
-    }
-    fit_rms = sqrt(fit_rms/float(N));
-}
-
-void QuadSurface::compute_voronoi(float inclusion_h_cutoff){
-    // The center of the cell is assumed to be at {0,0,0}
-    // First point is assumed to be the central one and thus not used
-    using namespace voro;
-
-    voronoicell_neighbor cell;
-    // Initialize with large volume by default in XY and size 1 in Z
-    cell.init(-10,10,-10,10,-0.5,0.5);
-    // Cut by planes for all points
-    for(int i=1; i<fitted_points.cols(); ++i){ // From 1, central point is 0 and ignored
-        cell.nplane(fitted_points(0,i),fitted_points(1,i),0.0,i); // Pass i as neigbour pid
-    }
-
-    // If inclusion is involved add plane from its atoms
-    for(int i=0; i<inclusion_coord.cols(); ++i){
-        if(abs(inclusion_coord(2,i))<inclusion_h_cutoff){
-            cell.nplane(inclusion_coord(0,i),inclusion_coord(1,i),0.0,i*10000);
-            // Pass large neigbour pid to differenciate
-        }
-    }
-
-    vector<int> neib_list;
-    vector<int> face_vert;
-    vector<double> vert_coords;
-
-    //cell.draw_gnuplot(0,0,0,"cell.dat");
-
-    cell.neighbors(neib_list);
-
-    cell.face_vertices(face_vert);
-    // In face_vert the first entry is a number k corresponding to the number
-    // of vertices making up a face,
-    // this is followed by k additional entries describing which vertices make up this face.
-    // For example, (3, 16, 20, 13) is a triangular face linking vertices 16, 20, and 13
-
-    cell.vertices(0,0,0,vert_coords);
-    //vert_coords this corresponds to a vector of triplets (x, y, z)
-    // describing the position of each vertex.
-
-    // Collect verteces which make up cell area in XY plane
-    int j = 0;
-    int vert_ind;
-    float x,y;
-    area_vertexes.clear();
-    area_vertexes.reserve(cell.number_of_faces()-2); // 2 faces are top and bottom walls
-
-    // We need to take only face aganst the wall, which containes all vertices
-    // which we need to area calculation
-    for(int i=0;i<neib_list.size();++i){
-        if(neib_list[i]<0){ // Only take the wall faces
-            // Cycle over vertices of this face
-            for(int ind=0; ind<face_vert[j]; ++ind){
-                vert_ind = 3*face_vert[j+1+ind];
-                x = vert_coords[vert_ind];
-                y = vert_coords[vert_ind+1];
-                // We are not interested in Z component
-                area_vertexes.push_back(Vector3f(x,y,0.0));
-            }
-            break; // We are done
-        }
-        j += face_vert[j]+1; // Next entry in face_vert
-    }
-
-    // In plane area. Since Z size of the cell is 1 volume=area
-    in_plane_area = cell.volume();
-
-    // Compute area on surface
-    // Project all vertexes to the surface
-    surf_area = 0.0;
-    for(Vector3f& v: area_vertexes) project_point_to_surface(v);
-    // Sum up areas of triangles. Points are not duplicated.
-    for(int i=0; i<area_vertexes.size(); ++i){
-        int ii = (i<area_vertexes.size()-1) ? i+1 : 0;
-        surf_area += 0.5*(area_vertexes[i]-fitted_points.col(0))
-                .cross(area_vertexes[ii]-fitted_points.col(0))
-                .norm();
-    }
-
-    // Set list of neigbours
-    // Filter out negatives
-    neib_id.clear();
-    for(int id: neib_list){
-        // Ignore walls and inclusions
-        if(id>=0 && id<10000) neib_id.push_back(id);
-    }
-}
-
-void QuadSurface::compute_curvature_and_normal(){
-    /* Compute the curvatures
-
-            First fundamental form:  I = E du^2 + 2F du dv + G dv^2
-            E= r_u dot r_u, F= r_u dot r_v, G= r_v dot r_v
-
-            For us parametric variables (u,v) are just (x,y) in local space.
-            Derivatives:
-                r_u = {1, 0, 2Ax+Cy+D}
-                r_v = {0, 1, 2By+Cx+E}
-
-            In central point x=0, y=0 so:
-                r_u={1,0,D}
-                r_v={0,1,E}
-
-            Thus: E_ =1+D^2; F_ = D*E; G_ = 1+E^2;
-
-            Second fundamental form: II = L du2 + 2M du dv + N dv2
-            L = r_uu dot n, M = r_uv dot n, N = r_vv dot n
-
-            Normal is just  n = {0, 0, 1}
-            Derivatives:
-                r_uu = {0, 0, 2A}
-                r_uv = {0 ,0, C}
-                r_vv = {0, 0, 2B}
-
-            Thus: L_ = 2A; M_ = C; N_ = 2B;
-            */
-
-    float E_ = 1.0+D()*D();
-    float F_ = D()*E();
-    float G_ = 1.0+E()*E();
-
-    float L_ = 2.0*A();
-    float M_ = C();
-    float N_ = 2.0*B();
-
-    //Curvatures:
-    gaussian_curvature = (L_*N_-M_*M_)/(E_*G_-F_*F_);
-    mean_curvature = 0.5*(E_*N_-2.0*F_*M_+G_*L_)/(E_*G_-F_*F_);
-
-    // Compute normal of the fitted surface at central point
-    // dx = 2Ax+Cy+D
-    // dy = 2By+Cx+E
-    // dz = -1
-    // Since we are evaluating at x=y=0:
-    // norm = {D,E,1}
-    fitted_normal = Vector3f(D(),E(),-1.0).normalized();
-    // Orientation of the normal could be wrong!
-    // Have to be flipped according to lipid orientation later
-}
 
 /*
 // Triangulated surface output
@@ -1292,3 +724,15 @@ ofstream outf2(fmt::format("vis/surf.tcl"));
 outf2 << out2;
 outf2.close();
 */
+
+
+void pteros::mean_std_from_accumulated(Vector2f &storage, float N){
+    if(N>0){
+        float s1 = storage[0];
+        float s2 = storage[1];
+        storage[0] = s1/N;
+        storage[1] = sqrt(s2/N - s1*s1/N/N);
+    } else {
+        storage.fill(0.0);
+    }
+}

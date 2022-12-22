@@ -1,6 +1,12 @@
 add_library(pteros_membrane SHARED
-    membrane.cpp
-    ${PROJECT_SOURCE_DIR}/include/pteros/extras/membrane.h
+    lipid_membrane.cpp
+    lipid_tail_descr.cpp
+    lipid_tail.cpp
+    lipid_molecule.cpp
+    lipid_species.cpp
+    quad_surface.cpp
+    per_species_properties.cpp
+    lipid_group.cpp
     )
 
 if(MINGW)
@@ -8,6 +14,7 @@ if(MINGW)
     target_link_libraries(pteros_membrane PRIVATE spdlog::spdlog)
 endif()
 
+target_include_directories(pteros_membrane PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(pteros_membrane PRIVATE pteros voro++)
 
 install(TARGETS pteros_membrane
