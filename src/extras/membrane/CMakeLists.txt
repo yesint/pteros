@@ -14,7 +14,6 @@ if(MINGW)
     target_link_libraries(pteros_membrane PRIVATE spdlog::spdlog)
 endif()
 
-target_include_directories(pteros_membrane PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(pteros_membrane PRIVATE pteros voro++)
 
 install(TARGETS pteros_membrane

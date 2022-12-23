@@ -660,7 +660,7 @@ void LipidMembrane::write_averages(string path)
     out.close();
 
     // Write files for species properties
-    for(int g=0;g<groups.size();++g){
+    for(size_t g=0;g<groups.size();++g){
         groups[g].save_properties_table_to_file(fmt::format("{}/gr{}_properties.dat",path,g));
 
         for(auto& sp: groups[g].species_properties){

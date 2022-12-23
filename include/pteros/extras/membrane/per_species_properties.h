@@ -10,9 +10,9 @@ class LipidMembrane;
 
 class PerSpeciesProperties {
 public:
-    PerSpeciesProperties(LipidMembrane* ptr);
+    PerSpeciesProperties(const LipidSpecies *s_ptr, const LipidMembrane *m_ptr);
 
-    float count; // number of lipids of this species. float to avoid overflow.
+    double count; // number of lipids of this species. float to avoid overflow.
     // Area
     Histogram area_hist;
     Eigen::Vector2f area; // (mean,std)
@@ -31,14 +31,20 @@ public:
 
     // Order parameters for each tails
     std::vector<Eigen::ArrayXf> order;
+    // Histogram of order parameter in normal direction
+    // Zero is position of the surf marker for each lipid,
+    // Positive values go towards water phase,
+    // negative - towards membrane center
+    Histogram order_hist;
 
     // Abundance of neighboring species
     std::map<std::string,float> around;
 
     // Called at each lipid on each frame
     void add_data(const LipidMolecule& lip);
+
     // Called at the end
-    void post_process(float num_frames);
+    void post_process(double num_frames);
 
     // Returns summary as a string
     std::string summary();
@@ -48,9 +54,9 @@ public:
     void save_around_to_file(const std::string& fname);
 
     int num_tails;
-private:
-    bool order_initialized;
-    LipidMembrane* membr_ptr;
+private:    
+    const LipidMembrane* membr_ptr;
+    const LipidSpecies* sp_ptr;
 };
 
 }

@@ -1,5 +1,6 @@
 #include "pteros/extras/membrane/lipid_tail.h"
 #include "pteros/core/utilities.h"
+#include "pteros/core/logging.h"
 
 using namespace std;
 using namespace pteros;
@@ -31,7 +32,7 @@ void LipidTail::compute_order_and_dihedrals(const Selection &whole_lipid_sel,
     const auto& bo = descr_ptr->bond_orders;
     const auto& off = descr_ptr->c_offsets;
 
-    if(order_type == OrderType::Sz){
+    if(order_type == OrderType::SZ){
         // Compute Sz order
         for(int at=1; at<N-1; ++at){
             // Vector from at+1 to at-1
@@ -116,7 +117,7 @@ void LipidTail::compute_order_and_dihedrals(const Selection &whole_lipid_sel,
                 float Syy = 0.5*(3.0*pow(cos(ang_y),2)-1.0);
                 float Syz = 1.5*cos(ang_y)*cos(ang_z);
                 // Index in order array is c_atom-1: i-1
-                if(order_type == OrderType::Scd_corr){
+                if(order_type == OrderType::SCD_CORR){
                     order[i-1] = -(pow(cos(a1),2)*Syy
                                  + pow(sin(a1),2)*Szz
                                  - 2.0*cos(a1)*sin(a1)*Syz);
@@ -135,7 +136,7 @@ void LipidTail::compute_order_and_dihedrals(const Selection &whole_lipid_sel,
                 Syy = 0.5*(3.0*pow(cos(ang_y),2)-1.0);
                 Syz = 1.5*cos(ang_y)*cos(ang_z);
                 // Index in order array is c_atom-1: (i+1)-1=i
-                if(order_type == OrderType::Scd_corr){
+                if(order_type == OrderType::SCD_CORR){
                     order[i] = -(pow(cos(a2),2)*Syy
                                + pow(sin(a2),2)*Szz
                                + 2.0*cos(a2)*sin(a2)*Syz);

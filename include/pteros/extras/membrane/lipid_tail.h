@@ -4,15 +4,17 @@
 
 namespace pteros {
 
-enum OrderType {
+// Types of order parameter to compute
+enum struct OrderType {
     // Sz order parameter identical to gromacs -szonly option
-    Sz,
+    SZ,
     // Deuterium order parameter computed for ideal H positions for double bonds
-    Scd,
+    SCD,
     // Deuterium order parameter computed for corrected H positions for double bonds
     // https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3882000/
-    Scd_corr
+    SCD_CORR
 };
+
 
 class LipidTail {
 public:
@@ -25,7 +27,7 @@ public:
 
     void compute_order_and_dihedrals(const Selection& whole_lipid_sel,
                                      Vector3f_const_ref normal,
-                                     OrderType order_type = OrderType::Scd_corr);
+                                     OrderType order_type = OrderType::SCD_CORR);
 private:
     LipidTailDescr* descr_ptr;
 };

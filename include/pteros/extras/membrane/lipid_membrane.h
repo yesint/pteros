@@ -34,10 +34,10 @@
 #include "pteros/core/utilities.h"
 #include <Eigen/Core>
 
-#include "lipid_molecule.h"
-#include "lipid_group.h"
-#include "lipid_species.h"
-#include "lipid_tail.h"
+#include "pteros/extras/membrane/lipid_molecule.h"
+#include "pteros/extras/membrane/lipid_group.h"
+#include "pteros/extras/membrane/lipid_species.h"
+#include "pteros/extras/membrane/lipid_tail.h"
 
 namespace pteros {
 
@@ -56,7 +56,7 @@ public:
 
     void compute_properties(float d = 2.0,
                             float incl_d = 0.5,
-                            OrderType order_type = OrderType::Scd_corr);
+                            OrderType order_type = OrderType::SCD_CORR);
 
     /// Returns matrix (n_shells,2)
     /// Each n-th row is averaged curvatures over neigbour shells up to n

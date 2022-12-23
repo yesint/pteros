@@ -14,7 +14,7 @@ LipidGroup::LipidGroup(LipidMembrane *ptr, int id){
     trans_dihedrals_ratio.fill(0.0);
     // Initialize species_properties
     for(const auto& sp: membr_ptr->species){
-        species_properties.emplace(sp.name,PerSpeciesProperties(membr_ptr));
+        species_properties.emplace(sp.name,PerSpeciesProperties(&sp,membr_ptr));
     }
 }
 

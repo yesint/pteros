@@ -14,9 +14,9 @@ LipidMolecule::LipidMolecule(const Selection& lip_mol, LipidSpecies* sp, int ind
     species_ptr = sp;
 
     whole_sel = lip_mol;
-    head_marker_sel = whole_sel(sp->head_sel_str);
-    tail_marker_sel = whole_sel(sp->tail_sel_str);
-    mid_marker_sel = whole_sel(sp->surf_marker_str);
+    head_marker_sel = whole_sel(sp->head_subsel_str);
+    tail_marker_sel = whole_sel(sp->tail_subsel_str);
+    mid_marker_sel = whole_sel(sp->surf_subsel_str);
 
     // Initialize tails
     for(int i=0; i<sp->tails_descr.size(); ++i){

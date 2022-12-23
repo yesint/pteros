@@ -8,9 +8,10 @@ using namespace pteros;
 using namespace std;
 using namespace Eigen;
 
-PerSpeciesProperties::PerSpeciesProperties(LipidMembrane *ptr)
+PerSpeciesProperties::PerSpeciesProperties(const LipidSpecies *s_ptr, const LipidMembrane *m_ptr)
 {
-    membr_ptr = ptr;
+    membr_ptr = m_ptr;
+    sp_ptr = s_ptr;
     count = 0;
 
     area_hist.create(0,1.8,100);
@@ -27,14 +28,21 @@ PerSpeciesProperties::PerSpeciesProperties(LipidMembrane *ptr)
     gauss_curv_hist.create(-0.3,0.3,200);
 
     trans_dihedrals_ratio.fill(0.0);
-    order_initialized = false;
+
+    order_hist.create(-2.5,0.5,100);
+    // Resize order arrays properly
+
+    num_tails = sp_ptr->tails_descr.size();
+    order.resize(num_tails);
+    for(size_t i=0;i<order.size();++i){
+        order[i].resize(sp_ptr->tails_descr[i].size()-2);
+        order[i].fill(0.0); // Init to zeros
+    }
 
     // Initialize around
     for(const auto& sp: membr_ptr->species){
         around[sp.name] = 0;
     }
-
-    num_tails = 0;
 }
 
 
@@ -63,23 +71,8 @@ void PerSpeciesProperties::add_data(const LipidMolecule &lip){
     mean_curv_hist.add(lip.mean_curvature);
     gauss_curv_hist.add(lip.gaussian_curvature);
 
-    // Tail stats
-    if(!order_initialized && lip.tails.size()){
-        num_tails = lip.tails.size();
-
-        // This is very first invocation, so resize order arrays properly
-        order.resize(lip.tails.size());
-        for(int i=0;i<order.size();++i){
-            order[i].resize(lip.tails[i].order.size());
-            order[i].fill(0.0); // Init to zeros
-        }
-
-        order_initialized = true;
-    } // Initialization
-
-
     // Order
-    for(int i=0;i<lip.tails.size();++i){
+    for(size_t i=0;i<lip.tails.size();++i){
         order[i] += lip.tails[i].order;
     }
     // Trans dihedrals
@@ -96,7 +89,7 @@ void PerSpeciesProperties::add_data(const LipidMolecule &lip){
 
 }
 
-void PerSpeciesProperties::post_process(float num_frames)
+void PerSpeciesProperties::post_process(double num_frames)
 {
     // Skip if no data
     if(count==0 || num_frames==0) return;
@@ -125,7 +118,7 @@ void PerSpeciesProperties::post_process(float num_frames)
 
     // Order
     // Average orders for all tails
-    for(int i=0;i<order.size();++i) order[i] /= count;
+    for(size_t i=0;i<order.size();++i) order[i] /= count;
 
     // At the end set average number of lipids of this kind per frame
     count /= num_frames;
@@ -155,6 +148,7 @@ string PerSpeciesProperties::summary()
 
 void PerSpeciesProperties::save_order_to_file(const string &fname)
 {
+    num_tails = order.size();
     // Do nothing if no data
     if(count==0 || num_tails==0) return;
 

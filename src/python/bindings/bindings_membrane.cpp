@@ -41,11 +41,13 @@ void make_bindings_Membrane(py::module& m){
              const std::string&,
              const std::string&,
              const std::string&,
+             const std::string&,
              const std::vector<std::string>&>())
         .def_readonly("name",&LipidSpecies::name)
         .def_readonly("whole_sel_str",&LipidSpecies::whole_sel_str)
-        .def_readonly("head_sel_str",&LipidSpecies::head_sel_str)
-        .def_readonly("surf_marker_str",&LipidSpecies::surf_marker_str)
+        .def_readonly("head_sel_str",&LipidSpecies::head_subsel_str)
+        .def_readonly("tail_sel_str",&LipidSpecies::tail_subsel_str)
+        .def_readonly("surf_marker_str",&LipidSpecies::surf_subsel_str)
 
         //.def_readonly("tail_carbons_str",&LipidSpecies::tails_descr)
     ;
@@ -74,13 +76,19 @@ void make_bindings_Membrane(py::module& m){
 
     ;
 
+    py::enum_<OrderType>(m,"OrderType")
+            .value("SZ",OrderType::SZ)
+            .value("SCD",OrderType::SCD)
+            .value("SCD_CORR",OrderType::SCD_CORR)
+    ;
+
     py::class_<LipidMembrane>(m,"LipidMembrane")
         .def(py::init<System*,int,const std::vector<LipidSpecies>&>())
         .def(py::init<System*,int,const std::vector<LipidSpecies>&,const Selection&>())
         .def(py::init<System*,int,const std::vector<LipidSpecies>&,const Selection&,float>())
 
         .def("compute_properties",&LipidMembrane::compute_properties,
-             "d"_a=2.0, "incl_d"_a=0.5, "order_type"_a=OrderType::Scd_corr)
+             "d"_a=2.0, "incl_d"_a=0.5, "order_type"_a=OrderType::SCD_CORR)
         .def("reset_groups",&LipidMembrane::reset_groups)
         .def("compute_averages",&LipidMembrane::compute_averages)
         .def("get_average_curvatures",&LipidMembrane::get_average_curvatures)
