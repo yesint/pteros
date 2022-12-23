@@ -29,7 +29,7 @@ PerSpeciesProperties::PerSpeciesProperties(const LipidSpecies *s_ptr, const Lipi
 
     trans_dihedrals_ratio.fill(0.0);
 
-    order_hist.create(-2.5,0.5,100);
+    //order_hist.create(-2.5,0.5,100);
     // Resize order arrays properly
 
     num_tails = sp_ptr->tails_descr.size();
@@ -72,9 +72,24 @@ void PerSpeciesProperties::add_data(const LipidMolecule &lip){
     gauss_curv_hist.add(lip.gaussian_curvature);
 
     // Order
-    for(size_t i=0;i<lip.tails.size();++i){
-        order[i] += lip.tails[i].order;
-    }
+    for(size_t t=0;t<lip.tails.size();++t){
+        order[t] += lip.tails[t].order;
+        /*
+        // Add to order z-hist
+        for(long a=0; a<order[t].size(); ++a){
+            // Find coordinate of tail atom a and compute vector from this atom to surf marker
+            // Project this vector to the normal and compute it length
+            int loc_ind = sp_ptr->tails_descr[t].c_offsets[a];
+            Vector3f v = lip.whole_sel.xyz(loc_ind) - lip.patch.original_center;
+            float zd = v.dot(lip.normal)/lip.normal.dot(lip.normal);
+            // Compute approx. volume of the slice taking into account local curvature
+            //
+            order_hist.add(zd,order[t](a)/vol);
+        }
+        */
+    }    
+
+
     // Trans dihedrals
     for(const auto& t: lip.tails){
         float ratio = (t.dihedrals > M_PI_2).count()/float(t.dihedrals.size());
@@ -119,6 +134,7 @@ void PerSpeciesProperties::post_process(double num_frames)
     // Order
     // Average orders for all tails
     for(size_t i=0;i<order.size();++i) order[i] /= count;
+    //order_hist.normalize(count);
 
     // At the end set average number of lipids of this kind per frame
     count /= num_frames;
@@ -133,13 +149,13 @@ string PerSpeciesProperties::summary()
 {
     string s;
     if(count>0){
-        s += fmt::format("\t\tCount:\t{}\n", count);
-        s += fmt::format("\t\tArea:\t{} +/- {} nm2\n", area[0],area[1]);
-        s += fmt::format("\t\tTilt:\t{} +/- {} deg\n", rad_to_deg(tilt[0]),rad_to_deg(tilt[1]));
-        s += fmt::format("\t\tCoord.N:\t{} +/- {}\n", coord_number[0],coord_number[1]);
-        s += fmt::format("\t\tMean.curv.:\t{} +/- {} nm-1\n", mean_curvature[0],mean_curvature[1]);
-        s += fmt::format("\t\tGaus.curv.:\t{} +/- {} nm-1\n", gaussian_curvature[0],gaussian_curvature[1]);
-        s += fmt::format("\t\tTr.Dih.:\t{} +/- {}\n", trans_dihedrals_ratio[0],trans_dihedrals_ratio[1]);
+        s += fmt::format("\t\tCount:\t\t{:>8g}\n", count);
+        s += fmt::format("\t\tArea:\t\t{:>8.3g} ± {:<8.3g} nm²\n", area[0],area[1]);
+        s += fmt::format("\t\tTilt:\t\t{:>8.3g} ± {:<8.3g} deg\n", tilt[0],tilt[1]);
+        s += fmt::format("\t\tCoord.N:\t{:>8.3g} ± {:<8.3g}\n", coord_number[0],coord_number[1]);
+        s += fmt::format("\t\tMean.curv.:\t{:>8.3g} ± {:<8.3g} nm⁻¹\n", mean_curvature[0],mean_curvature[1]);
+        s += fmt::format("\t\tGaus.curv.:\t{:>8.3g} ± {:<8.3g} nm⁻¹\n", gaussian_curvature[0],gaussian_curvature[1]);
+        s += fmt::format("\t\tTrans.Dih.:\t{:>8.3g} ± {:<8.3g}\n", trans_dihedrals_ratio[0],trans_dihedrals_ratio[1]);
     } else {
         s += "\t\tNo data\n";
     }
@@ -174,7 +190,7 @@ void PerSpeciesProperties::save_order_to_file(const string &fname)
         fmt::print(out,"\n");
     }
 
-    out.close();
+    out.close();    
 }
 
 void PerSpeciesProperties::save_around_to_file(const string &fname)

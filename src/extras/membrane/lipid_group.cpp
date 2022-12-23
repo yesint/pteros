@@ -59,7 +59,7 @@ string LipidGroup::summary()
     s += fmt::format("\tNum.lip.:\t{}\n",num_lipids);
 
     if(num_lipids>0){
-        s += fmt::format("\tTr.Dih.:\t{} +/- {}\n", trans_dihedrals_ratio[0],trans_dihedrals_ratio[1]);
+        s += fmt::format("\tTrans.Dih.:\t{:>8.3g} ± {:<8.3g}\n", trans_dihedrals_ratio[0],trans_dihedrals_ratio[1]);
         s += "\tLipid species:\n";
         for(auto& sp: membr_ptr->species){
             s += fmt::format("\t{}:\n", sp.name);

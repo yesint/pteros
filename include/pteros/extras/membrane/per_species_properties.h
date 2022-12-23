@@ -31,11 +31,12 @@ public:
 
     // Order parameters for each tails
     std::vector<Eigen::ArrayXf> order;
+
     // Histogram of order parameter in normal direction
     // Zero is position of the surf marker for each lipid,
     // Positive values go towards water phase,
     // negative - towards membrane center
-    Histogram order_hist;
+    //Histogram order_hist;
 
     // Abundance of neighboring species
     std::map<std::string,float> around;

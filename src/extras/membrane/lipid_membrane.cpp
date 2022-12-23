@@ -93,7 +93,7 @@ LipidMembrane::LipidMembrane(const System *sys,
     all_surf_sel.set_system(*system_ptr);
     vector<int> ind;
     ind.reserve(lipids.size());
-    for(auto& lip: lipids) ind.push_back(lip.mid_marker_sel.index(0));
+    for(auto& lip: lipids) ind.push_back(lip.surf_marker_sel.index(0));
     all_surf_sel.modify(ind);
 }
 
@@ -147,7 +147,7 @@ void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_ty
     }
 
     // Fill patches with id's and distances
-    for(int i=0;i<bon.size();++i){
+    for(size_t i=0;i<bon.size();++i){
         int l1 = bon[i](0);
         int l2 = bon[i](1);
         lipids[l1].patch.neib_id.push_back(l2);
@@ -163,7 +163,7 @@ void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_ty
         vector<float> dist;
         search_contacts(incl_d,all_surf_sel,inclusion,bon,dist,false,fullPBC);
         // For each lipid add contacting inclusion atoms
-        for(int i=0;i<bon.size();++i){
+        for(size_t i=0;i<bon.size();++i){
             int l = bon[i](0);
             int in = bon[i](1);
             lipids[l].inclusion_neib.push_back(in);
@@ -175,7 +175,7 @@ void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_ty
     for(size_t i=0; i<lipids.size(); ++i){
         auto& patch = lipids[i].patch;
         // Save central point
-        patch.original_center = lipids[i].mid_marker;
+        patch.original_center = lipids[i].surf_marker;
         // Set local selection for this lipid
         lipids[i].local_sel = all_surf_sel.select(patch.neib_id);
         lipids[i].local_sel_with_self = lipids[i].local_sel;
@@ -207,7 +207,7 @@ void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_ty
         // Angle tolerance is smaller near inclusions
         float ang_tol = lipids[i].inclusion_neib.empty() ? M_PI_4 : 0.5*M_PI_4;
 
-        for(int j=0; j<lipids[i].patch.neib_id.size(); ++j){
+        for(size_t j=0; j<lipids[i].patch.neib_id.size(); ++j){
             int jl = lipids[i].patch.neib_id[j];
             float d = lipids[i].patch.neib_dist[j];
             const Vector3f& normal2 = lipids[jl].patch.normal;
@@ -244,7 +244,7 @@ void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_ty
         if(!lip.inclusion_neib.empty()){
             auto cur_neibs = lip.patch.neib_id;
             for(int ind: cur_neibs){
-                for(int i=0; i<lipids[ind].patch.neib_id.size(); ++i){
+                for(size_t i=0; i<lipids[ind].patch.neib_id.size(); ++i){
                     lip.patch.neib_id.push_back(lipids[ind].patch.neib_id[i]);
                     lip.patch.neib_dist.push_back(lipids[ind].patch.neib_dist[i]);
                 }
@@ -267,21 +267,21 @@ void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_ty
         coord.col(0) = Vector3f::Zero(); // Local coord of central point is zero and it goes first
         for(int j=0; j<lip.local_sel.size(); ++j){
             coord.col(j+1) = lip.patch.to_local
-                    * system_ptr->box(0).shortest_vector(lip.mid_marker,
+                    * system_ptr->box(0).shortest_vector(lip.surf_marker,
                                                      lip.local_sel.xyz(j));
         }
 
         // Fit a quadric surface and find local curvatures
         lip.surf.fit_to_points(coord);
         // Set smoothed point
-        lip.smoothed_mid_xyz = lip.patch.to_lab*lip.surf.fitted_points.col(0) + lip.mid_marker;
+        lip.smoothed_surf_marker_xyz = lip.patch.to_lab*lip.surf.fitted_points.col(0) + lip.surf_marker;
 
         // If inclusion is present bring neibouring inclusion atoms to local basis
         if(!lip.inclusion_neib.empty()){
             lip.surf.inclusion_coord.resize(3,lip.inclusion_neib.size());
-            for(int i=0; i<lip.inclusion_neib.size(); ++i){
+            for(size_t i=0; i<lip.inclusion_neib.size(); ++i){
                 lip.surf.inclusion_coord.col(i) = lip.patch.to_local * system_ptr->box(0)
-                        .shortest_vector(lip.mid_marker, inclusion.xyz(lip.inclusion_neib[i]));
+                        .shortest_vector(lip.surf_marker, inclusion.xyz(lip.inclusion_neib[i]));
 
             }
         }
@@ -308,18 +308,22 @@ void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_ty
         // Normal
         lip.normal = lip.patch.to_lab*lip.surf.fitted_normal;
         // Tilt
-        lip.tilt = rad_to_deg(angle_between_vectors(lip.normal,lip.tail_head_vector));
+        lip.tilt = rad_to_deg(angle_between_vectors(lip.normal,lip.tail_head_vector));        
 
         // Set neigbours for lipid
         lip.neib.clear();
-        for(int i=0; i<lip.surf.neib_id.size(); ++i){
+        for(size_t i=0; i<lip.surf.neib_id.size(); ++i){
             // Indexes in lip.surf.neib_id start from 1, because 0 is the central point
             // Thus substract 1 and we get a local selection index
-            // which are in turn correspond to lipid indexes in all_mid_sel.
+            // which are in turn correspond to lipid indexes in all_surf_sel.
             // The neighbours are NOT arranged in triangulated order!
             int ind = lip.surf.neib_id[i]-1;
             lip.neib.push_back( lip.patch.neib_id[ind] );
         }
+
+        // Coordination number
+        lip.coord_number = lip.neib.size();
+
     } // for lipids
 
     // Unset markers. This restores all correct atomic coordinates for analysis
@@ -379,14 +383,14 @@ void LipidMembrane::compute_triangulation()
 
     // Convert neibour lists to sets for fast search
     vector<unordered_set<int>> neib(lipids.size());
-    for(int i=0; i<lipids.size(); ++i){
+    for(size_t i=0; i<lipids.size(); ++i){
         for(auto el: lipids[i].neib) neib[i].insert(el);
     }
 
     vector<Vector3i> triangles;
 
     // Now perform search
-    for(int i1=0; i1<lipids.size(); ++i1){
+    for(size_t i1=0; i1<lipids.size(); ++i1){
         for(int i2: neib[i1]){ // Loop over neibours of i1 and get i2
             // We only work with i1<i2 to avoid double counting
             //if(i1>i2) continue;
@@ -399,8 +403,8 @@ void LipidMembrane::compute_triangulation()
                 if(it!=neib[i1].end()){
                     // Found, which means that i1-i2-i3 is a triangle
                     // See normal orientation
-                    Vector3f v1 = box.shortest_vector(lipids[i1].smoothed_mid_xyz,lipids[i2].smoothed_mid_xyz);
-                    Vector3f v2 = box.shortest_vector(lipids[i1].smoothed_mid_xyz,lipids[i3].smoothed_mid_xyz);
+                    Vector3f v1 = box.shortest_vector(lipids[i1].smoothed_surf_marker_xyz,lipids[i2].smoothed_surf_marker_xyz);
+                    Vector3f v2 = box.shortest_vector(lipids[i1].smoothed_surf_marker_xyz,lipids[i3].smoothed_surf_marker_xyz);
                     Vector3f n = v1.cross(v2);
                     if(angle_between_vectors(n,lipids[i1].normal)<M_PI_2){
                         triangles.push_back({i1,i2,i3});
@@ -453,7 +457,7 @@ void LipidMembrane::compute_triangulation()
     }
 
     vector<MatrixXf> curv(lipids.size());
-    for(int i=0; i<lipids.size(); ++i){
+    for(size_t i=0; i<lipids.size(); ++i){
         curv[i] = get_average_curvatures(i,5);
     }
 
@@ -461,7 +465,7 @@ void LipidMembrane::compute_triangulation()
         // Now assign color to each lipid according to mean curvature
         float min_c=1e6;
         float max_c=-1e6;
-        for(int i=0; i<lipids.size(); ++i){
+        for(size_t i=0; i<lipids.size(); ++i){
             float c = curv[i](smooth_level,0);
             if(c<min_c) min_c = c;
             if(c>max_c) max_c = c;
@@ -471,7 +475,7 @@ void LipidMembrane::compute_triangulation()
         // curv           x     x=103*(curv-min_c)/(max_c-min_c)
         // max_c-min_c    104
         VectorXi color_ind(lipids.size());
-        for(int i=0; i<lipids.size(); ++i){
+        for(size_t i=0; i<lipids.size(); ++i){
             color_ind[i] = 1057 - n_colors +
                     round((n_colors-1)*(curv[i](smooth_level,0)-min_c)/(max_c-min_c));
         }
@@ -492,15 +496,15 @@ void LipidMembrane::compute_triangulation()
         s+="draw materials on\n";
         s+="draw material Diffuse\n";
 
-        for(int i=0; i<lipids.size(); ++i){
-            Vector3f p1 = lipids[i].smoothed_mid_xyz;
+        for(size_t i=0; i<lipids.size(); ++i){
+            Vector3f p1 = lipids[i].smoothed_surf_marker_xyz;
             s+=fmt::format("draw color {}\n",color_ind[i]);
             s+=fmt::format("draw sphere \"{} {} {}\" radius 1.3 resolution 12\n",
                            p1(0)*10,p1(1)*10,p1(2)*10);
 
             s+=fmt::format("draw color black\n");
             for(int nb: lipids[i].neib){
-                Vector3f p2 = box.closest_image(lipids[nb].smoothed_mid_xyz,p1);
+                Vector3f p2 = box.closest_image(lipids[nb].smoothed_surf_marker_xyz,p1);
                 s+=fmt::format("draw cylinder \"{} {} {}\" \"{} {} {}\" radius 0.1\n",
                                p1(0)*10,p1(1)*10,p1(2)*10,
                                p2(0)*10,p2(1)*10,p2(2)*10
@@ -513,9 +517,9 @@ void LipidMembrane::compute_triangulation()
 
         // Output colored triangles
         for(auto t: triangles){
-            Vector3f p1 = lipids[t(0)].smoothed_mid_xyz;
-            Vector3f p2 = lipids[t(1)].smoothed_mid_xyz;
-            Vector3f p3 = lipids[t(2)].smoothed_mid_xyz;
+            Vector3f p1 = lipids[t(0)].smoothed_surf_marker_xyz;
+            Vector3f p2 = lipids[t(1)].smoothed_surf_marker_xyz;
+            Vector3f p3 = lipids[t(2)].smoothed_surf_marker_xyz;
             p2 = box.closest_image(p2,p1);
             p3 = box.closest_image(p3,p1);
             p1*=10.0;
@@ -572,7 +576,7 @@ void LipidMembrane::write_vmd_visualization(const string &path){
         out1+="draw materials on\n";
         out1+="draw material AOEdgy\n";
         out1 += fmt::format("draw color orange\n");
-        for(int j=0; j<lip.surf.area_vertexes.size(); ++j){
+        for(size_t j=0; j<lip.surf.area_vertexes.size(); ++j){
             int j2 = j+1;
             if(j==lip.surf.area_vertexes.size()-1) j2=0;
             p1 = lip.patch.to_lab *lip.surf.area_vertexes[j] + lip.patch.original_center;
@@ -598,7 +602,7 @@ void LipidMembrane::write_vmd_visualization(const string &path){
                    10*p3.x(),10*p3.y(),10*p3.z() );
 
         // fitted normals
-        p1 = lip.smoothed_mid_xyz;
+        p1 = lip.smoothed_surf_marker_xyz;
         out1 += fmt::format("draw color cyan\n");
         p2 = p1 + lip.normal*0.75;
         p3 = p1 + lip.normal*1.0;
@@ -615,7 +619,7 @@ void LipidMembrane::write_vmd_visualization(const string &path){
 
         // Inclusion atoms (if any)
         out1 += fmt::format("draw color green\n");
-        for(int i=0; i<lip.inclusion_neib.size(); ++i){
+        for(size_t i=0; i<lip.inclusion_neib.size(); ++i){
             p1 = inclusion.xyz(lip.inclusion_neib[i]);
             out1 += fmt::format("draw sphere \"{} {} {}\" radius 0.3 resolution 12\n",
                        10*p1.x(),10*p1.y(),10*p1.z() );
@@ -627,7 +631,7 @@ void LipidMembrane::write_vmd_visualization(const string &path){
     out_all << out1;
     out_all.close();
 
-    for(int i=0; i<lipids.size(); ++i){
+    for(size_t i=0; i<lipids.size(); ++i){
         all_surf_sel.beta(i) = 10*lipids[i].mean_curvature;
     }
     all_surf_sel.write(fmt::format("{}/areas_all.pdb",path));
@@ -675,6 +679,8 @@ void LipidMembrane::write_averages(string path)
                 sp.second.gauss_curv_hist.save_to_file(file_prefix+"gauss_curv.dat");
                 // Order
                 sp.second.save_order_to_file(file_prefix+"order.dat");
+                // Output order histogram
+                //sp.second.order_hist.save_to_file(file_prefix+"order_hist.dat");
                 // Around
                 sp.second.save_around_to_file(file_prefix+"around.dat");
             }

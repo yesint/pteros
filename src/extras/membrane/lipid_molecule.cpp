@@ -16,7 +16,7 @@ LipidMolecule::LipidMolecule(const Selection& lip_mol, LipidSpecies* sp, int ind
     whole_sel = lip_mol;
     head_marker_sel = whole_sel(sp->head_subsel_str);
     tail_marker_sel = whole_sel(sp->tail_subsel_str);
-    mid_marker_sel = whole_sel(sp->surf_subsel_str);
+    surf_marker_sel = whole_sel(sp->surf_subsel_str);
 
     // Initialize tails
     for(int i=0; i<sp->tails_descr.size(); ++i){
@@ -33,19 +33,19 @@ void LipidMolecule::add_to_group(int gr){
 void LipidMolecule::set_markers()
 {
     // Unwrap this lipid with leading index of mid marker
-    whole_sel.unwrap(fullPBC, mid_marker_sel.index(0)-whole_sel.index(0));
+    whole_sel.unwrap(fullPBC, surf_marker_sel.index(0)-whole_sel.index(0));
 
     // Set markers to COM
     head_marker = head_marker_sel.center(true);
     tail_marker = tail_marker_sel.center(true);
-    mid_marker = mid_marker_sel.center(true);
+    surf_marker = surf_marker_sel.center(true);
 
-    pos_saved = mid_marker_sel.xyz(0);
-    mid_marker_sel.xyz(0) = mid_marker;
+    pos_saved = surf_marker_sel.xyz(0);
+    surf_marker_sel.xyz(0) = surf_marker;
     tail_head_vector = head_marker-tail_marker;
 }
 
 void LipidMolecule::unset_markers()
 {
-    mid_marker_sel.xyz(0) = pos_saved;
+    surf_marker_sel.xyz(0) = pos_saved;
 }

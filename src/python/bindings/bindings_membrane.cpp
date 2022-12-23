@@ -56,7 +56,7 @@ void make_bindings_Membrane(py::module& m){
     py::class_<LipidMolecule>(m,"LipidMolecule")
         //.def(py::init<const Selection&,const LipidSpecies&,int,LipidMembrane*>())
         //.def_readonly("name",&LipidMolecule::name)
-        .def_readwrite("mid_marker_sel",&LipidMolecule::mid_marker_sel)
+        .def_readwrite("mid_marker_sel",&LipidMolecule::surf_marker_sel)
         .def_readwrite("head_marker_sel",&LipidMolecule::head_marker_sel)
         .def_readwrite("tail_marker_sel",&LipidMolecule::tail_marker_sel)
         .def_readwrite("whole_sel",&LipidMolecule::whole_sel)
@@ -71,7 +71,7 @@ void make_bindings_Membrane(py::module& m){
         .def_readonly("coord_number",&LipidMolecule::coord_number)
 
         .def_readonly("neib",&LipidMolecule::neib)
-        .def_readonly("smoothed_mid_xyz",&LipidMolecule::smoothed_mid_xyz)
+        .def_readonly("smoothed_mid_xyz",&LipidMolecule::smoothed_surf_marker_xyz)
         .def_readonly("quad_fit_rms",&LipidMolecule::quad_fit_rms)
 
     ;

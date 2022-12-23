@@ -24,7 +24,7 @@ public:
     Selection whole_sel;
     Selection head_marker_sel;
     Selection tail_marker_sel;
-    Selection mid_marker_sel;
+    Selection surf_marker_sel;
     Eigen::Vector3f tail_head_vector;
 
     // Tails
@@ -45,7 +45,7 @@ public:
     std::vector<int> inclusion_neib;
 
     // Fiting resutls
-    Eigen::Vector3f smoothed_mid_xyz;
+    Eigen::Vector3f smoothed_surf_marker_xyz;
     float quad_fit_rms;
 
 private:
@@ -59,7 +59,7 @@ private:
     void unset_markers();
 
     // Coordinates of markers
-    Eigen::Vector3f head_marker, tail_marker, mid_marker, pos_saved;
+    Eigen::Vector3f head_marker, tail_marker, surf_marker, pos_saved;
 
     Selection local_sel, local_sel_with_self;
 
