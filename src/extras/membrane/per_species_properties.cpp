@@ -15,19 +15,19 @@ PerSpeciesProperties::PerSpeciesProperties(const LipidSpecies *s_ptr, const Lipi
     count = 0;
 
     area_hist.create(0,1.8,100);
-    area.fill(0.0);
+    area.reset();
 
     tilt_hist.create(0,90,90);
-    tilt.fill(0.0);
+    tilt.reset();
 
-    coord_number.fill(0.0);
+    coord_number.reset();
 
-    gaussian_curvature.fill(0.0);
-    mean_curvature.fill(0.0);
+    gaussian_curvature.reset();
+    mean_curvature.reset();
     mean_curv_hist.create(-0.6,0.6,200);
     gauss_curv_hist.create(-0.3,0.3,200);
 
-    trans_dihedrals_ratio.fill(0.0);
+    trans_dihedrals_ratio.reset();
 
     //order_hist.create(-2.5,0.5,100);
     // Resize order arrays properly
@@ -56,20 +56,21 @@ void PerSpeciesProperties::add_data(const LipidMolecule &lip){
     ++count;
     // Area
     area_hist.add(lip.area);
-    accumulate_statistics(lip.area,area);
+    area.add_value(lip.area);
 
     // Tilt
     tilt_hist.add(lip.tilt);
-    accumulate_statistics(lip.tilt,tilt);
+    tilt.add_value(lip.tilt);
 
     // Coordination number
-    accumulate_statistics(lip.coord_number, coord_number);
+    coord_number.add_value(lip.coord_number);
 
-    // Curvatures
-    accumulate_statistics(lip.mean_curvature, mean_curvature);
-    accumulate_statistics(lip.gaussian_curvature, gaussian_curvature);
+    // Curvatures    
     mean_curv_hist.add(lip.mean_curvature);
     gauss_curv_hist.add(lip.gaussian_curvature);
+
+    mean_curvature.add_value(lip.mean_curvature);
+    gaussian_curvature.add_value(lip.gaussian_curvature);
 
     // Order
     for(size_t t=0;t<lip.tails.size();++t){
@@ -93,7 +94,7 @@ void PerSpeciesProperties::add_data(const LipidMolecule &lip){
     // Trans dihedrals
     for(const auto& t: lip.tails){
         float ratio = (t.dihedrals > M_PI_2).count()/float(t.dihedrals.size());
-        accumulate_statistics(ratio,trans_dihedrals_ratio);
+        trans_dihedrals_ratio.add_value(ratio);
     }
 
     // Lipid surrounding
@@ -112,22 +113,12 @@ void PerSpeciesProperties::post_process(double num_frames)
     // Compute averages
 
     // Area
-    mean_std_from_accumulated(area,count);
     area_hist.normalize(count);
 
     // Tilt
-    mean_std_from_accumulated(tilt,count);
     tilt_hist.normalize(count);
 
-    // Trans dihedrals
-    mean_std_from_accumulated(trans_dihedrals_ratio, count*num_tails); // Note number of tails!
-
-    // Coordination number
-    mean_std_from_accumulated(coord_number,count);
-
     // Curvatures
-    mean_std_from_accumulated(mean_curvature,count);
-    mean_std_from_accumulated(gaussian_curvature,count);
     mean_curv_hist.normalize(count);
     gauss_curv_hist.normalize(count);
 
@@ -148,14 +139,21 @@ void PerSpeciesProperties::post_process(double num_frames)
 string PerSpeciesProperties::summary()
 {
     string s;
+    Vector2d v;
     if(count>0){
         s += fmt::format("\t\tCount:\t\t{:>8g}\n", count);
-        s += fmt::format("\t\tArea:\t\t{:>8.3g} ± {:<8.3g} nm²\n", area[0],area[1]);
-        s += fmt::format("\t\tTilt:\t\t{:>8.3g} ± {:<8.3g} deg\n", tilt[0],tilt[1]);
-        s += fmt::format("\t\tCoord.N:\t{:>8.3g} ± {:<8.3g}\n", coord_number[0],coord_number[1]);
-        s += fmt::format("\t\tMean.curv.:\t{:>8.3g} ± {:<8.3g} nm⁻¹\n", mean_curvature[0],mean_curvature[1]);
-        s += fmt::format("\t\tGaus.curv.:\t{:>8.3g} ± {:<8.3g} nm⁻¹\n", gaussian_curvature[0],gaussian_curvature[1]);
-        s += fmt::format("\t\tTrans.Dih.:\t{:>8.3g} ± {:<8.3g}\n", trans_dihedrals_ratio[0],trans_dihedrals_ratio[1]);
+        v = area.get_mean_std();
+        s += fmt::format("\t\tArea:\t\t{:>8.3g} ± {:<8.3g} nm²\n", v(0),v(1));
+        v = tilt.get_mean_std();
+        s += fmt::format("\t\tTilt:\t\t{:>8.3g} ± {:<8.3g} deg\n", v(0),v(1));
+        v = coord_number.get_mean_std();
+        s += fmt::format("\t\tCoord.N:\t{:>8.3g} ± {:<8.3g}\n", v(0),v(1));
+        v = mean_curvature.get_mean_std();
+        s += fmt::format("\t\tMean.curv.:\t{:>8.3g} ± {:<8.3g} nm⁻¹\n", v(0),v(1));
+        v = gaussian_curvature.get_mean_std();
+        s += fmt::format("\t\tGaus.curv.:\t{:>8.3g} ± {:<8.3g} nm⁻¹\n", v(0),v(1));
+        v = trans_dihedrals_ratio.get_mean_std();
+        s += fmt::format("\t\tTrans.Dih.:\t{:>8.3g} ± {:<8.3g}\n", v(0),v(1));
     } else {
         s += "\t\tNo data\n";
     }

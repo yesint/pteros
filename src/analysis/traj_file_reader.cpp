@@ -159,7 +159,7 @@ void Traj_file_reader::reader_thread_body(const vector<string> &traj_files, cons
                         abs_time += last_t;
                         continue;
                     }
-                    log->info("Fast forward to time {}...",time_pretty_print(first_time));
+                    log->info("Fast forward to time {}...",md_time_pretty_print(first_time));
                     rand_trj->seek_time(first_time);
                 }
                 seek_status = 0; // Seeking done
@@ -202,7 +202,7 @@ void Traj_file_reader::reader_thread_body(const vector<string> &traj_files, cons
                 }
 
                 if(log_interval>0 && abs_frame%log_interval==0){
-                    log->info("At frame {}, {}", abs_frame, time_pretty_print(abs_time));
+                    log->info("At frame {}, {}", abs_frame, md_time_pretty_print(abs_time));
                 }
 
                 // Check if end of requested interval is reached
@@ -231,7 +231,7 @@ void Traj_file_reader::reader_thread_body(const vector<string> &traj_files, cons
                     first_valid_frame = abs_frame;
                     first_valid_time = abs_time;
                     // print a message
-                    log->info("First valid frame is {}, {}",abs_frame,time_pretty_print(abs_time));
+                    log->info("First valid frame is {}, {}",abs_frame,md_time_pretty_print(abs_time));
                 }
 
                 // Fill data container, which will be sent to the queue

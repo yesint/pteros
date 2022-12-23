@@ -15,17 +15,17 @@ public:
     double count; // number of lipids of this species. float to avoid overflow.
     // Area
     Histogram area_hist;
-    Eigen::Vector2f area; // (mean,std)
+    MeanStdAccumulator area;
     // Tilt
     Histogram tilt_hist;
-    Eigen::Vector2f tilt; // (mean,std)
+    MeanStdAccumulator tilt;
     // Coordination number
-    Eigen::Vector2f coord_number; // (mean,std)
+    MeanStdAccumulator coord_number;
     // Trans dihedrals ratio
-    Eigen::Vector2f trans_dihedrals_ratio; // (mean,std)
+    MeanStdAccumulator trans_dihedrals_ratio;
     // Curvature
-    Eigen::Vector2f gaussian_curvature;
-    Eigen::Vector2f mean_curvature;
+    MeanStdAccumulator gaussian_curvature;
+    MeanStdAccumulator mean_curvature;
     Histogram mean_curv_hist;
     Histogram gauss_curv_hist;
 

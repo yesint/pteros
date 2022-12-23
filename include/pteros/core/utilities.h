@@ -46,6 +46,8 @@
 
 namespace pteros {
 
+    void greeting(std::string tool_name="");
+
     float angle_between_vectors(Vector3f_const_ref vec1, Vector3f_const_ref vec2);
 
     Eigen::Vector3f project_vector(Vector3f_const_ref vec1, Vector3f_const_ref vec2);
@@ -89,7 +91,7 @@ namespace pteros {
     std::string str_to_lower_copy(const std::string& str);
     void str_trim_in_place(std::string &s);
 
-    std::string time_pretty_print(float t);
+    std::string md_time_pretty_print(float t);
 
     /// Simple histogram class
     class Histogram {
@@ -140,7 +142,18 @@ namespace pteros {
         bool normalized;
     };
 
-    void greeting(std::string tool_name="");
+    /// Class to accumulate data for mean/std calculation
+    class MeanStdAccumulator {
+    public:
+        MeanStdAccumulator();
+        void reset();
+        void add_value(float val);
+        Eigen::Vector2d get_mean_std(double custom_n = 0) const;
+        void append(const MeanStdAccumulator& other);
+    private:
+        Eigen::Vector2d data;
+        double count;
+    };
 
 } // namespace
 

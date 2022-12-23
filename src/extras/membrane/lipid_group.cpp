@@ -11,7 +11,7 @@ LipidGroup::LipidGroup(LipidMembrane *ptr, int id){
     membr_ptr = ptr;
     num_lipids = 0;
     num_frames = 0;
-    trans_dihedrals_ratio.fill(0.0);
+    trans_dihedrals_ratio.reset();
     // Initialize species_properties
     for(const auto& sp: membr_ptr->species){
         species_properties.emplace(sp.name,PerSpeciesProperties(&sp,membr_ptr));
@@ -34,16 +34,12 @@ void LipidGroup::process_frame()
 
 void LipidGroup::post_process()
 {
-    // Collect bulk statistics for the group
-    int num_dihedrals = 0.0;
+    // Collect bulk statistics for the group    
     for(auto& it: species_properties){
-        num_lipids += it.second.count;
-        num_dihedrals += it.second.count*it.second.num_tails;
-        trans_dihedrals_ratio += it.second.trans_dihedrals_ratio;
+        num_lipids += it.second.count;        
+        trans_dihedrals_ratio.append(it.second.trans_dihedrals_ratio);
     }
 
-    // Compute correct averages for bulk properties
-    mean_std_from_accumulated(trans_dihedrals_ratio, num_dihedrals);
     num_lipids = (num_frames) ? num_lipids/num_frames : 0;
 
     // Compute averages per lipid species
@@ -59,7 +55,8 @@ string LipidGroup::summary()
     s += fmt::format("\tNum.lip.:\t{}\n",num_lipids);
 
     if(num_lipids>0){
-        s += fmt::format("\tTrans.Dih.:\t{:>8.3g} ± {:<8.3g}\n", trans_dihedrals_ratio[0],trans_dihedrals_ratio[1]);
+        auto v = trans_dihedrals_ratio.get_mean_std();
+        s += fmt::format("\tTrans.Dih.:\t{:>8.3g} ± {:<8.3g}\n", v(0),v(1));
         s += "\tLipid species:\n";
         for(auto& sp: membr_ptr->species){
             s += fmt::format("\t{}:\n", sp.name);
@@ -83,7 +80,8 @@ string LipidGroup::properties_table()
         s += fmt::format("{}", sp.name);
         const auto& prop = species_properties.at(sp.name);
         s += fmt::format("\t{: .4f}", 100.0*prop.count/float(num_lipids));
-        s += fmt::format("\t{: .4f}\t{: .4f}", prop.trans_dihedrals_ratio[0],prop.trans_dihedrals_ratio[1]);
+        auto v = prop.trans_dihedrals_ratio.get_mean_std();
+        s += fmt::format("\t{: .4f}\t{: .4f}", v(0),v(1));
         s += "\n";
     }
     return s;

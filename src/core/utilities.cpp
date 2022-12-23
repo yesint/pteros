@@ -31,6 +31,7 @@
 #include "pteros/core/pteros_error.h"
 #include "pteros/core/version.h"
 #include <fstream>
+#include <charconv>
 #include <iostream>
 #include <string>
 // Periodic table from VMD molfile plugins
@@ -221,7 +222,7 @@ void get_element_from_atom_name(const string& name, int &anum, float &mass){
 }
 
 
-string time_pretty_print(float t){
+string md_time_pretty_print(float t){
     string unit;
     float fact;
     if(t<1000){
@@ -235,6 +236,38 @@ string time_pretty_print(float t){
         fact = 1000000.0;
     }
     return fmt::format("{} {}",t/fact,unit);
+}
+
+MeanStdAccumulator::MeanStdAccumulator(){
+    reset();
+}
+
+void MeanStdAccumulator::reset(){
+    data.fill(0.0);
+    count = 0.0;
+}
+
+void MeanStdAccumulator::add_value(float val){
+    data(0) += val;
+    data(1) += val*val;
+    count+=1; // count
+}
+
+Eigen::Vector2d MeanStdAccumulator::get_mean_std(double custom_n) const{
+    double N = (custom_n>0) ? custom_n : count;
+    if(N>0){
+        const float& s1 = data(0);
+        const float& s2 = data(1);
+        return {s1/N, sqrt(s2/N - s1*s1/N/N)};
+    } else {
+        return {0,0};
+    }
+}
+
+void MeanStdAccumulator::append(const MeanStdAccumulator &other)
+{
+    data += other.data;
+    count += other.count;
 }
 
 } // namespace pteros
@@ -413,32 +446,34 @@ void Histogram2D::save_to_file(const string &fname)
 
 namespace pteros {
 
-int str_to_int(const string& str){
-    /*
+int str_to_int(const string& str){    
     int val;
     const auto res = std::from_chars(str.data(), str.data()+str.size(),val);
     if (res.ec == std::errc::invalid_argument) throw PterosError("Value '{}' is not INT!",str);
     return val;
-    */
+
+    /*
     //from_chars is not implemented for floats in gcc...
     stringstream ss(str);
     int val;
     ss >> val;
     return val;
+    */
 }
 
-float str_to_float(const string& str){
-    /*
+float str_to_float(const string& str){    
     float val;
     const auto res = std::from_chars(str.data(), str.data()+str.size(),val);
     if (res.ec == std::errc::invalid_argument) throw PterosError("Value '{}' is not FLOAT!",str);
     return val;
-    */
+
+    /*
     //from_chars is not implemented for floats in gcc...
     stringstream ss(str);
     float val;
     ss >> val;
     return val;
+    */
 }
 
 void str_to_lower_in_place(string& str){

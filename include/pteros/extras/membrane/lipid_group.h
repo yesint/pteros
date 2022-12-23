@@ -26,7 +26,7 @@ public:
 
     // Per group averages (mean,std)
     float num_lipids, num_frames;
-    Eigen::Vector2f trans_dihedrals_ratio;
+    MeanStdAccumulator trans_dihedrals_ratio;
     // Per species averages
     std::map<std::string,PerSpeciesProperties> species_properties;
 
