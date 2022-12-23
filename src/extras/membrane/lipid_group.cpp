@@ -1,6 +1,6 @@
 #include "pteros/extras/membrane/lipid_group.h"
 #include "pteros/extras/membrane/lipid_membrane.h"
-#include <fstream>
+#include "fmt/os.h"
 
 using namespace std;
 using namespace pteros;
@@ -89,7 +89,7 @@ string LipidGroup::properties_table()
 
 void LipidGroup::save_properties_table_to_file(const string &fname)
 {
-    ofstream out(fname);
-    out << properties_table();
+    auto out = fmt::output_file(fname);
+    out.print(properties_table());
     out.close();
 }

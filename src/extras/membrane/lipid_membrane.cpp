@@ -31,11 +31,11 @@
 #include "pteros/core/distance_search.h"
 #include "pteros/core/utilities.h"
 #include <Eigen/Core>
-#include <fstream>
 #include <unordered_set>
 #include "voro++.hh"
 #include <omp.h>
 #include <filesystem>
+#include "fmt/os.h"
 
 #ifndef M_PI
     #define M_PI 3.14159265358979323846
@@ -113,7 +113,6 @@ void LipidMembrane::register_lipid_species(const LipidSpecies &sp)
         // For the first lipid of this kind initialize
         // structure-dependent data in LipidSpecies
         if(i==0) species.back().init(res[i]);
-
         // Add lipid
         lipids.emplace_back(res[i],&species.back(),id,this);
         ++id;
@@ -391,7 +390,7 @@ void LipidMembrane::compute_triangulation()
     vector<Vector3i> triangles;
 
     // Now perform search
-    for(size_t i1=0; i1<lipids.size(); ++i1){
+    for(int i1=0; i1<lipids.size(); ++i1){
         for(int i2: neib[i1]){ // Loop over neibours of i1 and get i2
             // We only work with i1<i2 to avoid double counting
             //if(i1>i2) continue;
@@ -561,8 +560,8 @@ void LipidMembrane::compute_triangulation()
                     */
         }
 
-        ofstream f(fmt::format("triangulated_smooth_level_{}.tcl",smooth_level));
-        f << s;
+        auto f = fmt::output_file(fmt::format("triangulated_smooth_level_{}.tcl",smooth_level));
+        f.print(s);
         f.close();
     } //smooth level
     //exit(1);
@@ -628,8 +627,8 @@ void LipidMembrane::write_vmd_visualization(const string &path){
     }
 
     // Output area and normals plots
-    ofstream out_all(fmt::format("{}/areas_all.tcl",path));
-    out_all << out1;
+    auto out_all = fmt::output_file(fmt::format("{}/areas_all.tcl",path));
+    out_all.print(out1);
     out_all.close();
 
     for(size_t i=0; i<lipids.size(); ++i){
@@ -670,8 +669,8 @@ void LipidMembrane::write_averages(string path)
     }
 
     // Save summary to file
-    ofstream out(path+"/summary.dat");
-    out << s;
+    auto out = fmt::output_file(path+"/summary.dat");
+    out.print(s);
     out.close();
 
     // Write files for species properties

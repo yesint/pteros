@@ -1,5 +1,4 @@
 #include "pteros/extras/membrane/per_species_properties.h"
-#include <fstream>
 #include "fmt/format.h"
 #include "fmt/os.h"
 #include "pteros/extras/membrane/lipid_membrane.h"
@@ -166,26 +165,26 @@ void PerSpeciesProperties::save_order_to_file(const string &fname)
     // Do nothing if no data
     if(count==0 || num_tails==0) return;
 
-    ofstream out(fname);
+    auto out = fmt::output_file(fname);
 
     // Find the longest tail
     int max_len = 0;
     for(int t=0;t<num_tails;++t)
         if(order[t].size()>max_len) max_len = order[t].size();
     // Header
-    fmt::print(out,"#c_num\t");
-    for(int t=0;t<num_tails;++t) fmt::print(out,"t{}\t",t);
-    fmt::print(out,"\n");
+    out.print("#c_num\t");
+    for(int t=0;t<num_tails;++t) out.print("t{}\t",t);
+    out.print("\n");
     // Body
     for(int c=0;c<max_len;++c){
-        fmt::print(out,"{}\t",c+2);
+        out.print("{}\t",c+2);
         for(int t=0;t<num_tails;++t){
             if(c<order[t].size())
-                fmt::print(out,"{: .4f}\t",order[t][c]);
+                out.print("{: .4f}\t",order[t][c]);
             else
-                fmt::print(out,"--\t");
+                out.print("--\t");
         }
-        fmt::print(out,"\n");
+        out.print("\n");
     }
 
     out.close();    
@@ -196,9 +195,9 @@ void PerSpeciesProperties::save_around_to_file(const string &fname)
     // Do nothing if no data
     if(count==0) return;
 
-    ofstream out(fname);
+    auto out = fmt::output_file(fname);
     for(const auto& sp: membr_ptr->species){
-        fmt::print(out,"{}\t{:.4f}\n",sp.name,around[sp.name]);
+        out.print("{}\t{:.4f}\n",sp.name,around[sp.name]);
     }
     out.close();
 }

@@ -21,7 +21,9 @@ public:
 
     // Returns summary as a string
     std::string summary();
+    // Return properties table as a string
     std::string properties_table();
+    // Saves properties to file
     void save_properties_table_to_file(const std::string& fname);
 
     // Per group averages (mean,std)

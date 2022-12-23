@@ -71,7 +71,6 @@ public:
 
     std::vector<LipidMolecule> lipids;
     std::vector<LipidGroup> groups;
-
     std::vector<LipidSpecies> species;
 
 private:
