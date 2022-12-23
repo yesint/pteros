@@ -35,6 +35,7 @@
 #include <unordered_set>
 #include "voro++.hh"
 #include <omp.h>
+#include <filesystem>
 
 #ifndef M_PI
     #define M_PI 3.14159265358979323846
@@ -647,7 +648,7 @@ void LipidMembrane::compute_averages()
 }
 
 void LipidMembrane::write_averages(string path)
-{
+{        
     string s;
     s += "Run summary:\n";
     s += fmt::format("Lipid species ({}): \n",species.size());
@@ -657,6 +658,16 @@ void LipidMembrane::write_averages(string path)
 
     // Print summary
     cout << s << endl;
+
+    // Create output path if needed
+    if(!std::filesystem::exists(path)){
+        log->info("Creating output path {}",path);
+        std::error_code ec;
+        bool ok = std::filesystem::create_directories(path,ec);
+        if(!ok){
+            throw PterosError("Unable to create directory {}: {}",path,ec.message());
+        }
+    }
 
     // Save summary to file
     ofstream out(path+"/summary.dat");
@@ -668,7 +679,7 @@ void LipidMembrane::write_averages(string path)
         groups[g].save_properties_table_to_file(fmt::format("{}/gr{}_properties.dat",path,g));
 
         for(auto& sp: groups[g].species_properties){
-            if(sp.second.count>0){
+            if(sp.second.count>0){                
                 string file_prefix(fmt::format("{}/gr{}_{}_",path,g,sp.first));
                 // Area
                 sp.second.area_hist.save_to_file(file_prefix+"area.dat");
