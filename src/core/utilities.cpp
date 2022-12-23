@@ -30,10 +30,10 @@
 #include "pteros/core/utilities.h"
 #include "pteros/core/pteros_error.h"
 #include "pteros/core/version.h"
-#include <fstream>
 #include <charconv>
 #include <iostream>
 #include <string>
+#include "fmt/os.h"
 // Periodic table from VMD molfile plugins
 #include "periodic_table.h"
 
@@ -383,8 +383,8 @@ int Histogram::num_bins() const
 
 void Histogram::save_to_file(const string &fname, float x_shift)
 {
-    ofstream f(fname);
-    for(int i=0;i<nbins;++i) f << pos(i)+x_shift << " " << val(i) << endl;
+    auto f = fmt::output_file(fname);
+    for(int i=0;i<nbins;++i) f.print("{} {}",pos(i)+x_shift,val(i));
     f.close();
 }
 
@@ -435,11 +435,11 @@ float Histogram2D::value(int i, int j) const
 
 void Histogram2D::save_to_file(const string &fname)
 {
-    ofstream f(fname);
+    auto f = fmt::output_file(fname);
     for(int i=0;i<nbins(0);++i){
         for(int j=0;j<nbins(1);++j)
-            f << val(i,j) << " ";
-        f << endl;
+            f.print("{} ",val(i,j));
+        f.print("\n");
     }
     f.close();
 }
