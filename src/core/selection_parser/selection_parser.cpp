@@ -173,11 +173,9 @@ bool is_node_coordinate_dependent(const std::shared_ptr<MyAst>& node){
 
 SelectionParser::SelectionParser(std::vector<int> *subset):
     has_coord(false),
-    starting_subset(subset),
-    sys(nullptr)
-{
-
-}
+    sys(nullptr),
+    starting_subset(subset)
+{}
 
 SelectionParser::~SelectionParser(){}
 
@@ -203,7 +201,12 @@ void SelectionParser::optimize_numeric(std::shared_ptr<MyAst>& node){
         // If not-coord dependent just optimize
         if(!node->is_coord_dependent){
             // Replace with float node
-            node = std::make_shared<MyAst>("",0,0,"FLOAT", fmt::format("{}", get_numeric(node)(0)));
+            node = std::make_shared<MyAst>("", // path (unused)
+                                           0, // line (unused)
+                                           0, // column (unused)
+                                           "FLOAT", // name
+                                           fmt::format("{}",get_numeric(node)(0)) // token
+                                           );
             node->is_coord_dependent = false; // Keep correct flag just in case
         }
         break;
@@ -294,6 +297,9 @@ void SelectionParser::eval_node(const std::shared_ptr<MyAst> &node, std::vector<
 
     result.clear();
 
+    // References for lambda captures
+    auto const& atoms = sys->atoms;
+
     //==========================
     // Here evaluation starts
     //==========================
@@ -378,22 +384,22 @@ void SelectionParser::eval_node(const std::shared_ptr<MyAst> &node, std::vector<
         const auto& keyword = node->nodes[0]->token;
 
         if(keyword == "name"){
-            comp_func_str = [this](int at, const string& str){ return sys->atoms[at].name == str; };
-            comp_func_regex = [this](int at, const std::regex& reg){ return std::regex_match(sys->atoms[at].name.c_str(),reg); };
+            comp_func_str = [atoms](int at, const string& str){ return atoms[at].name == str; };
+            comp_func_regex = [atoms](int at, const std::regex& reg){ return std::regex_match(atoms[at].name.c_str(),reg); };
         } else if(keyword == "type"){
-            comp_func_str = [this](int at, const string& str){ return sys->atoms[at].type_name == str; };
-            comp_func_regex = [this](int at, const std::regex& reg){ return std::regex_match(sys->atoms[at].type_name.c_str(),reg); };
+            comp_func_str = [atoms](int at, const string& str){ return atoms[at].type_name == str; };
+            comp_func_regex = [atoms](int at, const std::regex& reg){ return std::regex_match(atoms[at].type_name.c_str(),reg); };
         } else if(keyword == "resname"){
-            comp_func_str = [this](int at, const string& str){ return sys->atoms[at].resname == str; };
-            comp_func_regex = [this](int at, const std::regex& reg){ return std::regex_match(sys->atoms[at].resname.c_str(),reg); };
+            comp_func_str = [atoms](int at, const string& str){ return atoms[at].resname == str; };
+            comp_func_regex = [atoms](int at, const std::regex& reg){ return std::regex_match(atoms[at].resname.c_str(),reg); };
         } else if(keyword == "tag"){
-            comp_func_str = [this](int at, const string& str){ return sys->atoms[at].tag== str; };
-            comp_func_regex = [this](int at, const std::regex& reg){ return std::regex_match(sys->atoms[at].tag.c_str(),reg); };
+            comp_func_str = [atoms](int at, const string& str){ return atoms[at].tag== str; };
+            comp_func_regex = [atoms](int at, const std::regex& reg){ return std::regex_match(atoms[at].tag.c_str(),reg); };
         } else if(keyword == "chain"){
-            comp_func_str = [this](int at, const string& str){ return sys->atoms[at].chain == str[0]; };
-            comp_func_regex = [this](int at, const std::regex& reg){
+            comp_func_str = [atoms](int at, const string& str){ return atoms[at].chain == str[0]; };
+            comp_func_regex = [atoms](int at, const std::regex& reg){
                 string s(" ");
-                s[0] = sys->atoms[at].chain;
+                s[0] = atoms[at].chain;
                 return std::regex_match(s.c_str(),reg);
             };
         }
@@ -496,9 +502,9 @@ void SelectionParser::eval_node(const std::shared_ptr<MyAst> &node, std::vector<
             // Comparison function
             std::function<bool(int,int)> comp_func;
             if(keyword == "resid"){
-                comp_func = [this](int at, int k){ return sys->atoms[at].resid == k; };
+                comp_func = [atoms](int at, int k){ return atoms[at].resid == k; };
             } else if(keyword == "resindex"){
-                comp_func = [this](int at, int k){ return sys->atoms[at].resindex == k; };
+                comp_func = [atoms](int at, int k){ return atoms[at].resindex == k; };
             }
 
             // Loop body
@@ -536,7 +542,9 @@ void SelectionParser::eval_node(const std::shared_ptr<MyAst> &node, std::vector<
             vector<int> res1,res2;
             eval_node(node->nodes[0],res1);
             eval_node(node->nodes[2],res2);
-            std::set_union(res1.begin(),res1.end(),res2.begin(),res2.end(),back_inserter(result));
+            std::set_union(res1.begin(),res1.end(),
+                           res2.begin(),res2.end(),
+                           back_inserter(result));
 
         } else if(node->nodes[1]->token == "and") {
             // Optimize to put pure node first
@@ -550,7 +558,9 @@ void SelectionParser::eval_node(const std::shared_ptr<MyAst> &node, std::vector<
             current_subset = &res1; // Set subset for second
             eval_node(node->nodes[2],res2); // Is using filled current subset
 
-            std::set_intersection(res1.begin(),res1.end(),res2.begin(),res2.end(),back_inserter(result));
+            std::set_intersection(res1.begin(),res1.end(),
+                                  res2.begin(),res2.end(),
+                                  back_inserter(result));
 
             // Reset subset
             if(starting_subset){
@@ -572,10 +582,14 @@ void SelectionParser::eval_node(const std::shared_ptr<MyAst> &node, std::vector<
         if(!current_subset){
             vector<int> v(Natoms);
             for(int i=0;i<Natoms;++i) v[i]=i;
-            std::set_difference(v.begin(),v.end(), res.begin(),res.end(), back_inserter(result));
+            std::set_difference(v.begin(),v.end(),
+                                res.begin(),res.end(),
+                                back_inserter(result));
         } else {
             // For subset
-            std::set_difference(current_subset->begin(),current_subset->end(), res.begin(),res.end(), back_inserter(result));
+            std::set_difference(current_subset->begin(),current_subset->end(),
+                                res.begin(),res.end(),
+                                back_inserter(result));
         }
         break;
     }
@@ -800,6 +814,10 @@ Eigen::Vector3f SelectionParser::get_vector(const std::shared_ptr<MyAst> &node)
 std::function<float(int)> SelectionParser::get_numeric(const std::shared_ptr<MyAst> &node){
     using namespace peg::udl;
 
+    // References for lambda captures
+    auto const& coord = sys->traj[frame].coord;
+    auto const& atoms = sys->atoms;
+
     switch(node->tag){
     //---------------------------------------------------------------------------
     case "INTEGER"_:
@@ -816,8 +834,7 @@ std::function<float(int)> SelectionParser::get_numeric(const std::shared_ptr<MyA
     //---------------------------------------------------------------------------
     case "X"_:
         if(node->nodes.empty()){
-            auto const& p = sys->traj[frame].coord;
-            return [p](int at){ return p[at](0); };
+            return [coord](int at){ return coord[at](0); };
         } else { // x of ...
             float x = get_vector(node->nodes[0])[0];
             return [x](int at){ return x; };
@@ -825,8 +842,7 @@ std::function<float(int)> SelectionParser::get_numeric(const std::shared_ptr<MyA
     //---------------------------------------------------------------------------
     case "Y"_:
         if(node->nodes.empty()){
-            auto const& p = sys->traj[frame].coord;
-            return [p](int at){ return p[at](1); };
+            return [coord](int at){ return coord[at](1); };
         } else {
             float y = get_vector(node->nodes[0])[1];
             return [y](int at){ return y; };
@@ -834,8 +850,7 @@ std::function<float(int)> SelectionParser::get_numeric(const std::shared_ptr<MyA
     //---------------------------------------------------------------------------
     case "Z"_:
         if(node->nodes.empty()){
-            auto const& p = sys->traj[frame].coord;
-            return [p](int at){ return p[at](2); };
+            return [coord](int at){ return coord[at](2); };
         } else {
             float z = get_vector(node->nodes[0])[2];
             return [z](int at){ return z; };
@@ -847,31 +862,26 @@ std::function<float(int)> SelectionParser::get_numeric(const std::shared_ptr<MyA
     }
     //---------------------------------------------------------------------------
     case "OCC"_: {
-        auto const& p = sys->atoms;
-        return [p](int at){ return p[at].occupancy; };
+        return [atoms](int at){ return atoms[at].occupancy; };
     }
     //---------------------------------------------------------------------------
     case "INDEX"_:
         return [](int at){ return at; };
     //---------------------------------------------------------------------------
     case "RESINDEX"_: {
-        auto const& p = sys->atoms;
-        return [p](int at){ return p[at].resindex; };
+        return [atoms](int at){ return atoms[at].resindex; };
     }
     //---------------------------------------------------------------------------
     case "RESID"_: {
-        auto const& p = sys->atoms;
-        return [p](int at){ return p[at].resid; };
+        return [atoms](int at){ return atoms[at].resid; };
     }
     //---------------------------------------------------------------------------
     case "MASS"_: {
-        auto const& p = sys->atoms;
-        return [p](int at){ return p[at].mass; };
+        return [atoms](int at){ return atoms[at].mass; };
     }
     //---------------------------------------------------------------------------
     case "CHARGE"_: {
-        auto const& p = sys->atoms;
-        return [p](int at){ return p[at].charge; };
+        return [atoms](int at){ return atoms[at].charge; };
     }
     //---------------------------------------------------------------------------
     // Compounds
