@@ -50,7 +50,7 @@ typedef std::function<void(std::vector<int>&)> result_func_t;
 
 /**
 *   Selection parser class.
-*   It parses selection text by means of custom recursive-descendent parser
+*   It parses selection text by means of PEG parser
 *   The result of parsing in the abstract syntax tree (AST)
 *   stored internally in the parser class. The tree is evaluated against the system,
 *   which holds the parser.

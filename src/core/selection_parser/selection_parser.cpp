@@ -277,9 +277,9 @@ Eigen::Vector3i process_pbc(const std::shared_ptr<MyAst> &node){
 
     Vector3i ret;
     if(node->choice == 2){ // nopbc
-        ret << 0,0,0;
+        ret.fill(0);
     } else if(node->choice == 1) { // pbc
-        ret << 1,1,1;
+        ret.fill(1);
     } else { // pbc dims
         for(int dim=0;dim<3;++dim){
             char c = node->nodes[0]->token[dim];
@@ -804,60 +804,75 @@ std::function<float(int)> SelectionParser::get_numeric(const std::shared_ptr<MyA
     //---------------------------------------------------------------------------
     case "INTEGER"_:
     {
-        float val = stol(string(node->token));
+        float val = node->token_to_number<int>();
         return [val](int at){ return val; };
     }
     //---------------------------------------------------------------------------
     case "FLOAT"_:
     {
-        float val = stof(string(node->token));
+        float val = node->token_to_number<float>();
         return [val](int at){ return val; };
     }
     //---------------------------------------------------------------------------
     case "X"_:
-        if(node->nodes.empty())
-            return [this](int at){ return sys->traj[frame].coord[at](0); };
-        else {
+        if(node->nodes.empty()){
+            auto const& p = sys->traj[frame].coord;
+            return [p](int at){ return p[at](0); };
+        } else { // x of ...
             float x = get_vector(node->nodes[0])[0];
             return [x](int at){ return x; };
         }
     //---------------------------------------------------------------------------
     case "Y"_:
-        if(node->nodes.empty())
-            return [this](int at){ return sys->traj[frame].coord[at](1); };
-        else {
+        if(node->nodes.empty()){
+            auto const& p = sys->traj[frame].coord;
+            return [p](int at){ return p[at](1); };
+        } else {
             float y = get_vector(node->nodes[0])[1];
             return [y](int at){ return y; };
         }
     //---------------------------------------------------------------------------
     case "Z"_:
-        if(node->nodes.empty())
-            return [this](int at){ return sys->traj[frame].coord[at](2); };
-        else {
+        if(node->nodes.empty()){
+            auto const& p = sys->traj[frame].coord;
+            return [p](int at){ return p[at](2); };
+        } else {
             float z = get_vector(node->nodes[0])[2];
             return [z](int at){ return z; };
         }
     //---------------------------------------------------------------------------
-    case "BETA"_:
-        return [this](int at){ return sys->atoms[at].beta; };
+    case "BETA"_: {
+        auto const& p = sys->atoms;
+        return [p](int at){ return p[at].beta; };
+    }
     //---------------------------------------------------------------------------
-    case "OCC"_:
-        return [this](int at){ return sys->atoms[at].occupancy; };
+    case "OCC"_: {
+        auto const& p = sys->atoms;
+        return [p](int at){ return p[at].occupancy; };
+    }
     //---------------------------------------------------------------------------
     case "INDEX"_:
         return [](int at){ return at; };
     //---------------------------------------------------------------------------
-    case "RESINDEX"_:
-        return [this](int at){ return sys->atoms[at].resindex; };
+    case "RESINDEX"_: {
+        auto const& p = sys->atoms;
+        return [p](int at){ return p[at].resindex; };
+    }
     //---------------------------------------------------------------------------
-    case "RESID"_:
-        return [this](int at){ return sys->atoms[at].resid; };
+    case "RESID"_: {
+        auto const& p = sys->atoms;
+        return [p](int at){ return p[at].resid; };
+    }
     //---------------------------------------------------------------------------
-    case "MASS"_:
-        return [this](int at){ return sys->atoms[at].mass; };
+    case "MASS"_: {
+        auto const& p = sys->atoms;
+        return [p](int at){ return p[at].mass; };
+    }
     //---------------------------------------------------------------------------
-    case "CHARGE"_:
-        return [this](int at){ return sys->atoms[at].charge; };
+    case "CHARGE"_: {
+        auto const& p = sys->atoms;
+        return [p](int at){ return p[at].charge; };
+    }
     //---------------------------------------------------------------------------
     // Compounds
     case "UNARY_MINUS"_:
