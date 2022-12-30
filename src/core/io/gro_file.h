@@ -30,7 +30,7 @@
 #pragma once
 
 #include <string>
-#include <fstream>
+#include <cstdio>
 #include "pteros/core/file_handler.h"
 
 namespace pteros {
@@ -51,7 +51,7 @@ public:
 
 protected:
 
-    std::fstream f;
+    std::FILE* file_handle;
 
     virtual bool do_read(System *sys, Frame *frame, const FileContent& what) override;
     virtual void do_write(const Selection &sel, const FileContent& what) override;

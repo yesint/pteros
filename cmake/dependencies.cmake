@@ -105,6 +105,17 @@ if(NOT fmt_FOUND)
     )
 endif()
 
+CPMAddPackage(
+    NAME                scn
+    GITHUB_REPOSITORY   eliaskosunen/scnlib
+    GIT_TAG             v1.1.2
+    OPTIONS
+        "SCN_INSTALL ON"
+        "SCN_DOCS OFF"
+        "SCN_TESTS OFF"
+        "SCN_EXAMPLES OFF"
+        "SCN_BENCHMARKS OFF"
+)
 
 #--------------------
 # spdlog
