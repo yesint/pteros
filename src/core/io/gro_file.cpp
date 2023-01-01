@@ -7,7 +7,7 @@
  *
  * https://github.com/yesint/pteros
  *
- * (C) 2009-2021, Semen Yesylevskyy
+ * (C) 2009-2023, Semen Yesylevskyy
  *
  * All works, which use Pteros, should cite the following papers:
  *
@@ -40,10 +40,10 @@ using namespace Eigen;
 void GroFile::open(char open_mode)
 {
     if(open_mode=='r'){
-        file_handle = fopen(fname.c_str(),"r");
+        file_handle = std::fopen(fname.c_str(),"r");
         if(!file_handle) throw PterosError("Can't open GRO file '{}' for reading",fname);
     } else {
-        file_handle = fopen(fname.c_str(),"w");
+        file_handle = std::fopen(fname.c_str(),"w");
         if(!file_handle) throw PterosError("Can't open GRO file '{}' for writing",fname);
     }
 }
@@ -55,11 +55,6 @@ void GroFile::close(){
 }
 
 bool GroFile::do_read(System *sys, Frame *frame, const FileContent &what){
-    int N,i;
-    // tmp atom
-    Atom tmp_atom;
-    if(what.coord()) frame->coord.resize(N);
-
     scn::file f(file_handle);
     auto res = scn::make_result(f);
 
@@ -69,17 +64,18 @@ bool GroFile::do_read(System *sys, Frame *frame, const FileContent &what){
                                res.error().msg());
 
     // Read number of atoms
-    res = scn::scan_default(res.range(),N);
+    res = scn::scan_default(res.range(),natoms);
     if(!res) throw PterosError("Can't read number of atoms from GRO file! {}",
                                res.error().msg());
 
+    if(what.coord()) frame->coord.resize(natoms);
+
     SystemBuilder builder(sys);
+    Atom tmp_atom;
 
     // Read atoms and coordinates
-    string dum;
-    for(i=0;i<N;++i){
+    for(size_t i=0;i<natoms;++i){
         if(what.atoms()){
-            //fmt::print("1i={}\n",i);
             res = scn::scan(res.range(),"{:5i}{:5s}{:5s}",
                             tmp_atom.resid,
                             tmp_atom.resname,
@@ -103,6 +99,7 @@ bool GroFile::do_read(System *sys, Frame *frame, const FileContent &what){
             // Add new atom to the system
             builder.add_atom(tmp_atom);
         } else {
+            // Skip until coordinates
             res = scn::ignore_until_n(res.range(),20,'\n');
         }        
 
@@ -118,37 +115,38 @@ bool GroFile::do_read(System *sys, Frame *frame, const FileContent &what){
 
         // Ignore until the end of line (in case of velocities)
         res = scn::ignore_until(res.range(),'\n');
-
-        //fmt::print("2i={} {} {}\n",tmp_atom.name, tmp_atom.resname, frame->coord[i](0));
     }
 
     if(what.atoms()) sys->assign_resindex();
 
-    /*
+    /* Read the box
+      Format: (https://manual.gromacs.org/archive/5.0.3/online/gro.html)
+      v1(x) v2(y) v3(z) v1(y) v1(z) v2(x) v2(z) v3(x) v3(y)
+
+      Our arrangement:
+      v1(x) v2(x) v3(x)
+      v1(y) v2(y) v3(y)
+      v1(z) v2(z) v3(z)
+
+      So, the sequence of reads is:
+      (0,0) (1,1) (2,2) (1,0) (2,0) (0,1) (2,1) (0,2) (1,2)
+    */
     if(what.coord()){
-        // Read box. Adapted form VMD.
-        stringstream ss;
-        getline(file_handle,line);
-        ss.clear();
-        ss.str(line);
-        //ss >> &x[0], &y[1], &z[2], &x[1], &x[2], &y[0], &y[2], &z[0], &z[1])
         Matrix3f box;
         box.fill(0.0);
-        ss >> box(0,0) >> box(1,1) >> box(2,2);
-        // Try to read nex val. If failed we have rectangular box.
-        ss >> v;
-        if(ss.good()){
-            box(0,1) = v;
-            ss >> box(0,2) >> box(1,0) >> box(1,2)
-               >> box(2,0) >> box(2,1);
-        }
-        // Transpose the box because we want column-vectors (the code above uses row-vectors)
-        box.transposeInPlace();
+        // Read diagonal
+        res = scn::scan_default(res.range(),box(0,0),box(1,1),box(2,2));
+        if(!res) throw PterosError("Corrupted box in GRO file! {}",
+                                   res.error().msg());
 
+        // Try to read non-diagonal elements. If failed we have rectangular box.
+        res = scn::scan_default(res.range(),
+                                box(1,0),box(2,0),box(0,1),
+                                box(2,1),box(0,2),box(1,2));
+        //  If this read fails the box is not modified, so no need to take actions
         frame->box.set_matrix(box);
     }
-    */
-
+    // Report success
     return true;
 }
 
@@ -165,41 +163,36 @@ void GroFile::do_write(const Selection &sel, const FileContent &what){
     for(int i=0;i<n;i++){
         int ind = (i%99999)+1; // Prevents overflow of index field. It's not used anyway.
         int resid = (sel.resid(i)%99999); // Prevents overflow of resid field.
-        fmt::print(file_handle,"{:>5d}{:<5s}{:>5s}{:>5d}{:>8.3f}{:>8.3f}{:>8.3f}\n",
+        fmt::print(file_handle,
+                   "{:>5d}{:<5s}{:>5s}{:>5d}{:>8.3f}{:>8.3f}{:>8.3f}\n",
                    resid, sel.resname(i).c_str(), sel.name(i).c_str(), ind,
                    sel.x(i), sel.y(i), sel.z(i));
     }
 
     // Write periodic box
-    Eigen::Matrix3f b;
     if(sel.box().is_periodic()){
+        auto const& b = sel.box();
         // We store box as column-vectors, while the code below hacked from VMD use row vectors,
         // so, transpose
-        b = sel.box().get_matrix().transpose();
+
+        // Diagonal elements
+        // Use same format as Gromacs for consistency, but this is free format
+        fmt::print(file_handle,
+                   "{:>10.4f} {:>10.4f} {:>10.4f}",
+                   b.get_element(0,0), b.get_element(1,1), b.get_element(2,2));
+
+        // Write off-diagonal only for triclinic boxes
+        if(sel.box().is_triclinic()){
+            // note leading space added after diagonal
+            fmt::print(file_handle,
+                       " {:>10.4f} {:>10.4f} {:>10.4f} {:>10.4f} {:>10.4f} {:>10.4f}",
+                       b.get_element(1,0), b.get_element(2,0), b.get_element(0,1),
+                       b.get_element(2,1), b.get_element(0,2), b.get_element(1,2));
+        }
+        // Add training newline
+        fmt::print(file_handle,"\n");
     } else {
-        b.fill(0.0);
+        // No box, write zero diagonal
+        fmt::print(file_handle,"0.0 0.0 0.0\n");
     }
-    /*
-    // We are writing dimensions in nm to be compatible with Gromacs
-    // Write diagonal anyway
-    file_handle << b(0,0) << " "
-      << b(1,1) << " "
-      << b(2,2);
-    // Write off-diagonal only for triclinic boxes
-    if(sel.box().is_triclinic()){
-        file_handle << " "
-          << b(0,1) << " "
-          << b(0,2) << " "
-          << b(1,0) << " "
-          << b(1,2) << " "
-          << b(2,0) << " "
-          << b(2,1);
-    }
-    */
-    // Mandatory endline at the end of file!
-    //file_handle << endl;
 }
-
-
-
-

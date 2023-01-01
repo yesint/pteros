@@ -5,7 +5,7 @@
 #      Pteros molecular modeling library
 # ============================================
 #
-# (C) 2009-2021, Semen Yesylevskyy
+# (C) 2009-2023, Semen Yesylevskyy
 #
 # All works, which use Pteros, should cite the following papers:
 #
@@ -30,6 +30,7 @@ if(NOT TRY_SYSTEM_DEPENDENCIES)
     set(TRY_SYSTEM_EIGEN       OFF)
     set(TRY_SYSTEM_SPDLOG      OFF)
     set(TRY_SYSTEM_FMT         OFF)
+    set(TRY_SYSTEM_SCN         OFF)
     set(TRY_SYSTEM_PYBIND11    OFF)
     set(TRY_SYSTEM_GROMACS     OFF)
     set(TRY_SYSTEM_OPENBABEL   OFF)
@@ -105,17 +106,31 @@ if(NOT fmt_FOUND)
     )
 endif()
 
-CPMAddPackage(
-    NAME                scn
-    GITHUB_REPOSITORY   eliaskosunen/scnlib
-    GIT_TAG             v1.1.2
-    OPTIONS
-        "SCN_INSTALL ON"
-        "SCN_DOCS OFF"
-        "SCN_TESTS OFF"
-        "SCN_EXAMPLES OFF"
-        "SCN_BENCHMARKS OFF"
-)
+#--------------------
+# scn
+#--------------------
+if(TRY_SYSTEM_SCN)
+    find_package(scn QUIET)
+endif()
+
+if(NOT scn_FOUND)
+    if(NOT DOWNLOAD_DEPENDENCIES)
+        message(FATAL_ERROR "scn is not available!")
+    endif()
+
+    message(STATUS "Will download and compile scn in place")
+    CPMAddPackage(
+        NAME                scn
+        GITHUB_REPOSITORY   eliaskosunen/scnlib
+        GIT_TAG             v1.1.2
+        OPTIONS
+            "SCN_INSTALL ON"
+            "SCN_DOCS OFF"
+            "SCN_TESTS OFF"
+            "SCN_EXAMPLES OFF"
+            "SCN_BENCHMARKS OFF"
+    )
+endif()
 
 #--------------------
 # spdlog

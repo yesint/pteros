@@ -7,7 +7,7 @@
  *
  * https://github.com/yesint/pteros
  *
- * (C) 2009-2021, Semen Yesylevskyy
+ * (C) 2009-2023, Semen Yesylevskyy
  *
  * All works, which use Pteros, should cite the following papers:
  *

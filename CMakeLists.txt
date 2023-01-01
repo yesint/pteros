@@ -5,7 +5,7 @@
 #      Pteros molecular modeling library
 # ============================================
 #
-# (C) 2009-2021, Semen Yesylevskyy
+# (C) 2009-2023, Semen Yesylevskyy
 #
 # All works, which use Pteros, should cite the following papers:
 #
@@ -38,6 +38,7 @@ OPTION(WITH_TNG "Use TNG_IO. Required to read tng files." ON)
 OPTION(TRY_SYSTEM_DEPENDENCIES "Try using system dependensies." ON)
 OPTION(TRY_SYSTEM_EIGEN "Try using system Eigen." ON)
 OPTION(TRY_SYSTEM_FMT "Try using system fmt." ON)
+OPTION(TRY_SYSTEM_SCN "Try using system scn." ON)
 OPTION(TRY_SYSTEM_SPDLOG "Try using system spdlog." ON)
 OPTION(TRY_SYSTEM_PYBIND11 "Try using system pybind11." ON)
 OPTION(TRY_SYSTEM_GROMACS "Try using system Gromacs." ON)
