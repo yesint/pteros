@@ -2131,7 +2131,7 @@ float Selection::powersasa(float probe_r, vector<float> *area_per_atom,
     POWERSASA::PowerSasa<float,Eigen::Vector3f> ps(cont, radii, 1, 0, do_v || do_v_per_atom, 0);
     ps.calc_sasa_all();
 
-    float v,surf;
+    float v,surf=0.0;
 
     if(do_v || do_v_per_atom){
         if(volume_per_atom) volume_per_atom->resize(size());

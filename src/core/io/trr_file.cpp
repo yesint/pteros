@@ -60,7 +60,7 @@ TrrFile::~TrrFile()
 
 
 bool TrrFile::do_read(System *sys, Frame *frame, const FileContent &what){
-    bool has_x, has_v, has_f, ok;
+    bool has_x=true, has_v=false, has_f=false, ok;
 
     if(step<0){
         // Read header only once on first step
@@ -70,9 +70,8 @@ bool TrrFile::do_read(System *sys, Frame *frame, const FileContent &what){
         has_v = (vsz>0);
         has_f = (fsz>0);
         if(!has_x) throw PterosError("Pteros can't read TRR files without coordinates!");
+        LOG()->debug("TRR file has: x({}), v({}), f({})",has_x,has_v,has_f);
     }
-
-    if(step<0) LOG()->debug("TRR file has: x({}), v({}), f({})",has_x,has_v,has_f);
 
     rvec* x = nullptr;
     rvec* v = nullptr;

@@ -209,19 +209,14 @@ const Option& Options::operator()(std::string key, std::string default_val) {
 
 bool pteros::Options::has(string key)
 {
-    int ind = -1;
     int found = 0;
     for(int i=0;i<data.size();++i){
         if(data[i].name==key){
-            ind = i;
             ++found;
         }
     }
     if(found>1) throw PterosError("More than one key '{}' found!",key);
-    if(found==0)
-        return false;
-    else
-        return true;
+    return found!=0;
 }
 
 
