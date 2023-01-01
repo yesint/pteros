@@ -38,7 +38,7 @@ using namespace pteros;
 using namespace Eigen;
 
 
-void XtcFile::open(char open_mode)
+void XtcFile::do_open(char open_mode)
 {
     bool bOk;
     handle = xdrfile_open(fname.c_str(),&open_mode);
@@ -97,14 +97,14 @@ void XtcFile::open(char open_mode)
     }
 }
 
-void XtcFile::close()
+void XtcFile::do_close()
 {
     if(handle) xdrfile_close(handle);
 }
 
 XtcFile::~XtcFile()
 {
-    close();
+    do_close();
 }
 
 bool XtcFile::do_read(System *sys, Frame *frame, const FileContent &what){

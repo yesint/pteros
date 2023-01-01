@@ -93,6 +93,11 @@ namespace pteros {
 
     std::string md_time_pretty_print(float t);
 
+    // Takes a file name with any relative path
+    // Creates all needed directories for writing this file
+    // Also accepts path without filename
+    void make_dir_if_needed(const std::string& file_path);
+
     /// Simple histogram class
     class Histogram {
     public:

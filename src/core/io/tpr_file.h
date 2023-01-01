@@ -36,8 +36,6 @@ namespace pteros {
 class TprFile: public FileHandler {
 public:
     TprFile(const std::string& fname): FileHandler(fname) {}
-    virtual void open(char open_mode);
-    virtual void close();
 
     virtual FileContent get_content_type() const {        
         return FileContent()
@@ -47,6 +45,9 @@ public:
     }
 
 protected:        
+    virtual void do_open(char open_mode);
+    virtual void do_close();
+
     virtual void do_write(const Selection &sel, const FileContent& what) {}
     virtual bool do_read(System *sys, Frame *frame, const FileContent& what);
 };

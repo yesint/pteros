@@ -38,7 +38,7 @@ using namespace pteros;
 using namespace Eigen;
 
 
-void TrrFile::open(char open_mode)
+void TrrFile::do_open(char open_mode)
 {    
     handle = xdrfile_open(fname.c_str(),&open_mode);
 
@@ -48,14 +48,14 @@ void TrrFile::open(char open_mode)
     step = (open_mode=='r') ? -1 : 0;
 }
 
-void TrrFile::close()
+void TrrFile::do_close()
 {
     if(handle) xdrfile_close(handle);
 }
 
 TrrFile::~TrrFile()
 {
-    close();
+    do_close();
 }
 
 

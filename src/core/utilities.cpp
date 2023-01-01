@@ -30,8 +30,10 @@
 #include "pteros/core/utilities.h"
 #include "pteros/core/pteros_error.h"
 #include "pteros/core/version.h"
+#include "pteros/core/logging.h"
 #include <charconv>
 #include <iostream>
+#include <filesystem>
 #include <string>
 #include "fmt/os.h"
 // Periodic table from VMD molfile plugins
@@ -513,5 +515,21 @@ void str_trim_in_place(std::string &s) {
     ltrim(s);
     rtrim(s);
 }
+
+
+void make_dir_if_needed(const std::string& file_path){
+    auto path = std::filesystem::path(file_path);
+    path.remove_filename(); // Remove file name if it is present
+    // Create dir if needed
+    if(!path.empty() && !std::filesystem::exists(path)){
+        LOG()->debug("Creating directory {}",path);
+        std::error_code ec;
+        bool ok = std::filesystem::create_directories(path,ec);
+        if(!ok){
+            throw PterosError("Unable to create directory {}: {}",path,ec.message());
+        }
+    }
+}
+
 
 } // namespace pteros

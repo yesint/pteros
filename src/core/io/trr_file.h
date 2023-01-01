@@ -40,8 +40,6 @@ class TrrFile: public FileHandler {
 public:
     TrrFile(const std::string& fname): FileHandler(fname), handle(nullptr) {}
     virtual ~TrrFile();
-    virtual void open(char open_mode) override;
-    virtual void close() override;
 
     virtual FileContent get_content_type() const override {
         return FileContent()
@@ -49,6 +47,8 @@ public:
     }
 
 protected:
+    virtual void do_open(char open_mode) override;
+    virtual void do_close() override;
 
     virtual void do_write(const Selection &sel, const FileContent& what) override;
     virtual bool do_read(System *sys, Frame *frame, const FileContent& what) override;

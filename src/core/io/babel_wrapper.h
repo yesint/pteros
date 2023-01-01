@@ -45,8 +45,6 @@ public:
     // High-level API        
     BabelWrapper(const std::string& fname);
     virtual ~BabelWrapper();
-    virtual void open(char open_mode) override;
-    virtual void close() override;
 
 protected:       
     OpenBabel::OBConversion conv;
@@ -54,6 +52,9 @@ protected:
 
     // Tells if the format need bonds to be present
     virtual bool need_bonds() = 0;
+
+    virtual void do_open(char open_mode) override;
+    virtual void do_close() override;
 
     virtual bool do_read(System *sys, Frame *frame, const FileContent& what) override;
     virtual void do_write(const Selection &sel, const FileContent& what) override;

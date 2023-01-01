@@ -97,11 +97,11 @@ VmdMolfilePluginWrapper::VmdMolfilePluginWrapper(const string& fname): FileHandl
 
 VmdMolfilePluginWrapper::~VmdMolfilePluginWrapper()
 {
-    close();
+    do_close();
 }
 
 
-void VmdMolfilePluginWrapper::open(char open_mode){
+void VmdMolfilePluginWrapper::do_open(char open_mode){
     mode = open_mode;
 
     if(mode=='r'){
@@ -112,11 +112,12 @@ void VmdMolfilePluginWrapper::open(char open_mode){
     } else {
         if(w_handle) throw PterosError("Can't open file for writing twice - handle busy!");        
         w_handle = NULL;
+        // Actual opening defered to the call of do_write
     }
 
 }
 
-void VmdMolfilePluginWrapper::close()
+void VmdMolfilePluginWrapper::do_close()
 {
     if(mode=='r'){
         if(r_handle){
@@ -148,7 +149,6 @@ bool VmdMolfilePluginWrapper::do_read(System *sys, Frame *frame, const FileConte
         builder.allocate_atoms(natoms);
         // Copy atoms to the system
         Atom at;
-        int pos,idx;
         for(int i=0; i<natoms; ++i){
             at.name = atoms[i].name;
             at.resname = atoms[i].resname;
@@ -217,11 +217,13 @@ bool VmdMolfilePluginWrapper::do_read(System *sys, Frame *frame, const FileConte
 }
 
 void VmdMolfilePluginWrapper::do_write(const Selection &sel, const FileContent &what) {
+    // Open file
+    if(!w_handle){
+        w_handle = plugin->open_file_write(fname.c_str(), plugin->name, sel.size());
+    }
 
     if(what.atoms()){
-        // WRITE STRUCTURE:        
-        if(!w_handle)
-            w_handle = plugin->open_file_write(fname.c_str(), plugin->name, sel.size());
+        // WRITE STRUCTURE:
 
         vector<molfile_atom_t> atoms(sel.size());        
         for(int i=0; i<sel.size(); ++i){
@@ -249,8 +251,6 @@ void VmdMolfilePluginWrapper::do_write(const Selection &sel, const FileContent &
 
     if(what.coord() || what.traj()){
         // WRITE COORDINATES:
-        if(!w_handle)
-            w_handle = plugin->open_file_write(fname.c_str(), plugin->name, sel.size());
 
         molfile_timestep_t ts;
         int n = sel.size();

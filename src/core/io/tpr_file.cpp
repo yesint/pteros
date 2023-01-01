@@ -63,13 +63,13 @@ string mod_names[] = {"Potential-shift-Verlet", "Potential-shift", "None", "Pote
                       "Exact-cutoff", "Force-switch"};
 
 
-void TprFile::open(char open_mode)
+void TprFile::do_open(char open_mode)
 {
     if(open_mode=='w')
         throw PterosError("TPR files could not be written!");
 }
 
-void TprFile::close()
+void TprFile::do_close()
 {
 
 }

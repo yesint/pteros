@@ -37,7 +37,7 @@ using namespace std;
 using namespace pteros;
 using namespace Eigen;
 
-void GroFile::open(char open_mode)
+void GroFile::do_open(char open_mode)
 {
     if(open_mode=='r'){
         file_handle = std::fopen(fname.c_str(),"r");
@@ -48,7 +48,7 @@ void GroFile::open(char open_mode)
     }
 }
 
-void GroFile::close(){
+void GroFile::do_close(){
     if(file_handle){
         fclose(file_handle);
     }

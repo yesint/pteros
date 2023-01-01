@@ -42,13 +42,14 @@ public:
     // High-level API        
     VmdMolfilePluginWrapper(const std::string &fname);
     virtual ~VmdMolfilePluginWrapper();
-    virtual void open(char open_mode) override;
-    virtual void close() override;
 
 protected:
     void* r_handle; // Handle for reading
     void* w_handle; // Handle for writing
     char mode;
+
+    virtual void do_open(char open_mode) override;
+    virtual void do_close() override;
 
     virtual bool do_read(System *sys, Frame *frame, const FileContent& what) override;
     virtual void do_write(const Selection &sel, const FileContent& what) override;

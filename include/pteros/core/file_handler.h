@@ -85,10 +85,6 @@ public:
     */
     static FileHandler_ptr open(const std::string& fname, char open_mode);
 
-    /// Opens a file with given access mode. Need to be defined by derived classes.
-    virtual void open(char open_mode) = 0;
-    virtual void close() = 0;
-
     virtual ~FileHandler() {}
 
     /// Reads data, which are specified by what.
@@ -119,6 +115,10 @@ protected:
 
     /// User-overriden method for writing
     virtual void do_write(const Selection& sel, const FileContent& what) = 0;
+
+    /// Opens a file with given access mode. Need to be defined by derived classes.
+    virtual void do_open(char open_mode) = 0;
+    virtual void do_close() = 0;
 };
 
 //------------------------------------------------------------------------------

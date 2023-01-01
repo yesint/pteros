@@ -29,6 +29,7 @@
 
 #include "pteros/core/file_handler.h"
 #include "pteros/core/pteros_error.h"
+#include "pteros/core/utilities.h"
 
 #include "pdb_file.h"
 #include "dcd_file.h"
@@ -91,16 +92,18 @@ void FileHandler::sanity_check_read(System *sys, Frame *frame, const FileContent
 }
 
 void FileHandler::sanity_check_write(const Selection &sel, const FileContent &what) const{
+    if(sel.size()==0)
+        throw PterosError("Can't write empty selection to file!");
     if(!what.atoms() && !what.coord() && !what.traj() && !what.top())
         throw PterosError("Nothing to write!");
     if( !get_content_type().atoms() && what.atoms() )
-        throw PterosError("Can't write structure from this file type!");
+        throw PterosError("Can't write structure to this file type!");
     if( !get_content_type().coord() && what.coord() )
-        throw PterosError("Can't write coordinates from this file type!");
+        throw PterosError("Can't write coordinates to this file type!");
     if( !get_content_type().traj() && what.traj() )
-        throw PterosError("Can't write coordinates from this file type!");
+        throw PterosError("Can't write coordinates to this file type!");
     if( !get_content_type().top() && what.top() )
-        throw PterosError("Can't write topology from this file type!");
+        throw PterosError("Can't write topology to this file type!");
 }
 
 unique_ptr<FileHandler> FileHandler::recognize(const string& fname) {
@@ -129,12 +132,8 @@ unique_ptr<FileHandler> FileHandler::recognize(const string& fname) {
 FileHandler_ptr FileHandler::open(const string &fname, char open_mode)
 {
     auto handle = recognize(fname);
-    handle->open(open_mode);
+    // Create directory for output file if needed
+    if(open_mode=='w') make_dir_if_needed(fname);
+    handle->do_open(open_mode);
     return handle;
-}
-
-
-void FileHandler::close()
-{
-
 }

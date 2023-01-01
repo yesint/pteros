@@ -50,10 +50,10 @@ BabelWrapper::BabelWrapper(const string &fname): FileHandler(fname){ }
 
 BabelWrapper::~BabelWrapper()
 {
-    close();
+    do_close();
 }
 
-void BabelWrapper::open(char open_mode)
+void BabelWrapper::do_open(char open_mode)
 {
     string ext = fname.substr(fname.find_last_of(".") + 1);
     bool ok;
@@ -67,7 +67,7 @@ void BabelWrapper::open(char open_mode)
     }
 }
 
-void BabelWrapper::close()
+void BabelWrapper::do_close()
 {
 
 }
@@ -130,7 +130,6 @@ void BabelWrapper::do_write(const Selection &sel, const FileContent &what)
     if(what.atoms() && what.coord()){
         selection_to_obmol(sel,mol);
     }
-
     conv.WriteFile(&mol,fname);
 }
 

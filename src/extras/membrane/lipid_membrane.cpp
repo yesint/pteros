@@ -658,15 +658,8 @@ void LipidMembrane::write_averages(string path)
     // Print summary
     cout << s << endl;
 
-    // Create output path if needed
-    if(!std::filesystem::exists(path)){
-        log->info("Creating output path {}",path);
-        std::error_code ec;
-        bool ok = std::filesystem::create_directories(path,ec);
-        if(!ok){
-            throw PterosError("Unable to create directory {}: {}",path,ec.message());
-        }
-    }
+    // Create output dirs if needed
+    make_dir_if_needed(path);
 
     // Save summary to file
     auto out = fmt::output_file(path+"/summary.dat");

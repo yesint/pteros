@@ -203,13 +203,12 @@ void TrajectoryReader::run(){
         // No topology and no structure!
         // try using first TNG traj file as structure
         for(auto& s: traj_files){            
-            auto trj = FileHandler::recognize(s);
+            auto trj = FileHandler::open(s,'r');
             auto c = trj->get_content_type();
             if(c.atoms() && c.traj()){                
                 structure_file = s;
-                // We only need to load only atoms from TNG here
+                // We only need to load atoms from TNG here
                 log->debug("Using trajectory file '{}' to read structure...", s);
-                trj->open('r');
                 Frame fr;
                 trj->read(&system, &fr, FileContent().atoms(true));
                 system.frame_append(fr);
