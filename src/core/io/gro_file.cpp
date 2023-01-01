@@ -37,9 +37,9 @@ using namespace std;
 using namespace pteros;
 using namespace Eigen;
 
-void GroFile::do_open(char open_mode)
+void GroFile::do_open()
 {
-    if(open_mode=='r'){
+    if(mode=='r'){
         file_handle = std::fopen(fname.c_str(),"r");
         if(!file_handle) throw PterosError("Can't open GRO file '{}' for reading",fname);
     } else {

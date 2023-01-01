@@ -43,21 +43,21 @@ namespace pteros {
 class BabelWrapper: public FileHandler {
 public:
     // High-level API        
-    BabelWrapper(const std::string& fname);
+    BabelWrapper(const std::string& fname, char open_mode);
     virtual ~BabelWrapper();
 
 protected:       
-    OpenBabel::OBConversion conv;
-    OpenBabel::OBMol mol;
-
     // Tells if the format need bonds to be present
     virtual bool need_bonds() = 0;
 
-    virtual void do_open(char open_mode) override;
+    virtual void do_open() override;
     virtual void do_close() override;
 
     virtual bool do_read(System *sys, Frame *frame, const FileContent& what) override;
     virtual void do_write(const Selection &sel, const FileContent& what) override;
+
+    OpenBabel::OBConversion conv;
+    OpenBabel::OBMol mol;
 };
 
 }

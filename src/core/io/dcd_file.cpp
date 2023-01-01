@@ -33,7 +33,7 @@
 using namespace std;
 using namespace pteros;
 
-DcdFile::DcdFile(string fname): VmdMolfilePluginWrapper(fname){
+DcdFile::DcdFile(string fname, char open_mode): VmdMolfilePluginWrapper(fname,open_mode){
     plugin = dcd_get_plugin_ptr();
 }
 

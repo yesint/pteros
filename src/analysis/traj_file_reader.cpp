@@ -131,7 +131,8 @@ void Traj_file_reader::reader_thread_body(const vector<string> &traj_files, cons
         for(const string& fname: traj_files){
             log->info("Reading trajectory {}...", fname);
 
-            auto trj = FileHandler::open(fname,'r');
+            auto trj = FileHandler::create(fname,'r');
+            trj->open();
 
             // If we need to seek do it now if trajectory supports it
             if(seek_status==1 && trj->get_content_type().rand()){

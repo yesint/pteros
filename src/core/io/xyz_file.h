@@ -36,7 +36,7 @@ namespace pteros {
 /// Generic API for reading and writing any molecule file formats
 class XyzFile: public VmdMolfilePluginWrapper {
 public:
-    XyzFile(std::string fname);
+    XyzFile(std::string fname, char open_mode);
 
     virtual FileContent get_content_type() const {                
         return FileContent()

@@ -46,19 +46,21 @@ using namespace pteros;
 using namespace Eigen;
 
 
-BabelWrapper::BabelWrapper(const string &fname): FileHandler(fname){ }
+BabelWrapper::BabelWrapper(const string &fname, char open_mode):
+    FileHandler(fname,open_mode)
+{ }
 
 BabelWrapper::~BabelWrapper()
 {
     do_close();
 }
 
-void BabelWrapper::do_open(char open_mode)
+void BabelWrapper::do_open()
 {
     string ext = fname.substr(fname.find_last_of(".") + 1);
     bool ok;
 
-    if(open_mode=='r'){
+    if(mode=='r'){
         ok = conv.SetInFormat(ext.c_str());
         if(!ok) throw PterosError("OpenBabel can't read format '{}'!",ext);
     } else {
@@ -68,9 +70,7 @@ void BabelWrapper::do_open(char open_mode)
 }
 
 void BabelWrapper::do_close()
-{
-
-}
+{ }
 
 
 bool BabelWrapper::do_read(System *sys, Frame *frame, const FileContent &what)

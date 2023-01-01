@@ -36,7 +36,7 @@ namespace pteros {
 class PdbFile: public VmdMolfilePluginWrapper {
 public:    
 
-    PdbFile(const std::string& fname);
+    PdbFile(const std::string& fname, char open_mode);
 
     virtual FileContent get_content_type() const {        
         return FileContent()

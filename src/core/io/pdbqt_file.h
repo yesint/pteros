@@ -36,7 +36,7 @@ namespace pteros {
 
 class PdbqtFile: public BabelWrapper {
 public:
-    PdbqtFile(const std::string& fname);
+    PdbqtFile(const std::string& fname, char open_mode);
 
     virtual FileContent get_content_type() const {
         return FileContent()

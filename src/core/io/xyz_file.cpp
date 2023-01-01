@@ -32,7 +32,7 @@
 using namespace std;
 using namespace pteros;
 
-XyzFile::XyzFile(string fname): VmdMolfilePluginWrapper(fname){
+XyzFile::XyzFile(string fname, char open_mode): VmdMolfilePluginWrapper(fname,open_mode){
     plugin = xyz_get_plugin_ptr();
 }
 

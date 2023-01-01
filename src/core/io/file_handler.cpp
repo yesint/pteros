@@ -54,9 +54,9 @@
 using namespace std;
 using namespace pteros;
 
-FileHandler::FileHandler(const string& file_name){
-    fname = file_name;
-}
+FileHandler::FileHandler(const string& file_name, char open_mode):
+    fname(file_name), mode(open_mode)
+{ }
 
 
 bool FileHandler::read(System *sys, Frame *frame, const FileContent &what){
@@ -106,34 +106,33 @@ void FileHandler::sanity_check_write(const Selection &sel, const FileContent &wh
         throw PterosError("Can't write topology to this file type!");
 }
 
-unique_ptr<FileHandler> FileHandler::recognize(const string& fname) {
+unique_ptr<FileHandler> FileHandler::create(const string& fname, char open_mode) {
     std::string ext = fname.substr(fname.find_last_of(".") + 1);
 
-         if(ext=="xtc")     return FileHandler_ptr(new XtcFile(fname));
-    else if(ext=="trr")     return FileHandler_ptr(new TrrFile(fname));
-    else if(ext=="pdb")     return FileHandler_ptr(new PdbFile(fname));
-    else if(ext=="gro")     return FileHandler_ptr(new GroFile(fname));
-    else if(ext=="dcd")     return FileHandler_ptr(new DcdFile(fname));
-    else if(ext=="xyz")     return FileHandler_ptr(new XyzFile(fname));
+         if(ext=="xtc")     return FileHandler_ptr(new XtcFile(fname,open_mode));
+    else if(ext=="trr")     return FileHandler_ptr(new TrrFile(fname,open_mode));
+    else if(ext=="pdb")     return FileHandler_ptr(new PdbFile(fname,open_mode));
+    else if(ext=="gro")     return FileHandler_ptr(new GroFile(fname,open_mode));
+    else if(ext=="dcd")     return FileHandler_ptr(new DcdFile(fname,open_mode));
+    else if(ext=="xyz")     return FileHandler_ptr(new XyzFile(fname,open_mode));
 #ifdef USE_TNGIO
-    else if(ext=="tng")     return FileHandler_ptr(new TngFile(fname));
+    else if(ext=="tng")     return FileHandler_ptr(new TngFile(fname,open_mode));
 #endif
 #ifdef USE_GROMACS
-    else if(ext=="tpr")     return FileHandler_ptr(new TprFile(fname));
+    else if(ext=="tpr")     return FileHandler_ptr(new TprFile(fname,open_mode));
 #endif
 #ifdef USE_OPENBABEL
-    else if(ext=="mol2")    return FileHandler_ptr(new Mol2File(fname));
-    else if(ext=="pdbqt")   return FileHandler_ptr(new PdbqtFile(fname));
+    else if(ext=="mol2")    return FileHandler_ptr(new Mol2File(fname,open_mode));
+    else if(ext=="pdbqt")   return FileHandler_ptr(new PdbqtFile(fname,open_mode));
 #endif
     else throw PterosError("File extension '{}' is not recognized!",ext);
 }
 
 
-FileHandler_ptr FileHandler::open(const string &fname, char open_mode)
+void FileHandler::open()
 {
-    auto handle = recognize(fname);
     // Create directory for output file if needed
-    if(open_mode=='w') make_dir_if_needed(fname);
-    handle->do_open(open_mode);
-    return handle;
+    if(mode=='w') make_dir_if_needed(fname);
+    // Call actual opening method of derived class
+    do_open();
 }

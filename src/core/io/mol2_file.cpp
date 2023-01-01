@@ -33,6 +33,6 @@
 using namespace pteros;
 using namespace std;
 
-Mol2File::Mol2File(const string &fname): BabelWrapper(fname){ }
+Mol2File::Mol2File(const string &fname, char open_mode): BabelWrapper(fname,open_mode){ }
 
 

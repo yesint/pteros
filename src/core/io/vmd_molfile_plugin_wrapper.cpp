@@ -89,11 +89,10 @@ void box_from_vmd_rep(float fa, float fb, float fc,
 
 
 
-VmdMolfilePluginWrapper::VmdMolfilePluginWrapper(const string& fname): FileHandler(fname),
+VmdMolfilePluginWrapper::VmdMolfilePluginWrapper(const string& fname, char open_mode):
+    FileHandler(fname,open_mode),
     r_handle(nullptr), w_handle(nullptr)
-{
-
-}
+{ }
 
 VmdMolfilePluginWrapper::~VmdMolfilePluginWrapper()
 {
@@ -101,13 +100,11 @@ VmdMolfilePluginWrapper::~VmdMolfilePluginWrapper()
 }
 
 
-void VmdMolfilePluginWrapper::do_open(char open_mode){
-    mode = open_mode;
-
+void VmdMolfilePluginWrapper::do_open(){
     if(mode=='r'){
         if(r_handle) throw PterosError("Can't open file for reading twice - handle busy!");
         r_handle = NULL;
-        r_handle = plugin->open_file_read(fname.c_str(), &open_mode, &natoms);
+        r_handle = plugin->open_file_read(fname.c_str(), &mode, &natoms);
         if(!r_handle) throw PterosError("Can't open file '{}'!",fname);
     } else {
         if(w_handle) throw PterosError("Can't open file for writing twice - handle busy!");        

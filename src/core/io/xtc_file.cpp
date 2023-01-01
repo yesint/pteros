@@ -38,13 +38,13 @@ using namespace pteros;
 using namespace Eigen;
 
 
-void XtcFile::do_open(char open_mode)
+void XtcFile::do_open()
 {
     bool bOk;
-    handle = xdrfile_open(fname.c_str(),&open_mode);
+    handle = xdrfile_open(fname.c_str(),&mode);
     if(!handle) throw PterosError("Unable to open XTC file {}", fname);
 
-    if(open_mode=='r'){
+    if(mode=='r'){
         // Extract number of atoms
         int ok = xdr_xtc_get_natoms(handle,&natoms);
         if(!ok) throw PterosError("Can't read XTC number of atoms");
@@ -101,6 +101,12 @@ void XtcFile::do_close()
 {
     if(handle) xdrfile_close(handle);
 }
+
+XtcFile::XtcFile(const string &fname, char open_mode):
+    FileHandlerRandomAccess(fname,open_mode),
+    handle(nullptr),
+    content(FileContent().traj(true).rand(true))
+{}
 
 XtcFile::~XtcFile()
 {

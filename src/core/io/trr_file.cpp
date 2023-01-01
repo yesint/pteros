@@ -38,14 +38,14 @@ using namespace pteros;
 using namespace Eigen;
 
 
-void TrrFile::do_open(char open_mode)
+void TrrFile::do_open()
 {    
-    handle = xdrfile_open(fname.c_str(),&open_mode);
+    handle = xdrfile_open(fname.c_str(),&mode);
 
     if(!handle) throw PterosError("Unable to open TRR file {}", fname);
 
     // -1 for reading means initialization step
-    step = (open_mode=='r') ? -1 : 0;
+    step = (mode=='r') ? -1 : 0;
 }
 
 void TrrFile::do_close()

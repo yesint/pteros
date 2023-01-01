@@ -38,7 +38,8 @@ namespace pteros {
 
 class TrrFile: public FileHandler {
 public:
-    TrrFile(const std::string& fname): FileHandler(fname), handle(nullptr) {}
+    TrrFile(const std::string& fname, char open_mode):
+        FileHandler(fname,open_mode), handle(nullptr) {}
     virtual ~TrrFile();
 
     virtual FileContent get_content_type() const override {
@@ -47,7 +48,7 @@ public:
     }
 
 protected:
-    virtual void do_open(char open_mode) override;
+    virtual void do_open() override;
     virtual void do_close() override;
 
     virtual void do_write(const Selection &sel, const FileContent& what) override;

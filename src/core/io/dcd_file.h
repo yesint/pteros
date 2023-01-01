@@ -37,7 +37,7 @@ namespace pteros {
 /// Generic API for reading and writing any molecule file formats
 class DcdFile: public VmdMolfilePluginWrapper {
 public:
-    DcdFile(std::string fname);
+    DcdFile(std::string fname, char open_mode);
 
     virtual FileContent get_content_type() const {
         return FileContent()

@@ -74,16 +74,10 @@ using FileHandler_ptr = std::unique_ptr<FileHandler>;
 class FileHandler {
 public:
     /// Recognizes file extension and returns a file handler
-    static FileHandler_ptr recognize(const std::string& fname);
+    static FileHandler_ptr create(const std::string& fname, char open_mode);
 
-    /** Recognize file extension, open file for reading or writing and return a file handler.
-     This function is aquivalent to:
-     \code
-     auto f = Mol_file::recognize(fname);
-     f.open(mode);
-     \endcode
-    */
-    static FileHandler_ptr open(const std::string& fname, char open_mode);
+    /// Open the file
+    void open();
 
     virtual ~FileHandler() {}
 
@@ -99,10 +93,12 @@ public:
     virtual FileContent get_content_type() const = 0;
 
 protected:    
-    FileHandler(const std::string &file_name);
+    FileHandler(const std::string &file_name, char open_mode);
 
     // Stores file name
     std::string fname;
+    // Opening mode
+    char mode;
     // Number of atoms
     int natoms;    
 
@@ -117,7 +113,7 @@ protected:
     virtual void do_write(const Selection& sel, const FileContent& what) = 0;
 
     /// Opens a file with given access mode. Need to be defined by derived classes.
-    virtual void do_open(char open_mode) = 0;
+    virtual void do_open() = 0;
     virtual void do_close() = 0;
 };
 
@@ -125,7 +121,8 @@ protected:
 
 class FileHandlerRandomAccess: public FileHandler {
 protected:
-    FileHandlerRandomAccess(const std::string& file_name): FileHandler(file_name) {}
+    FileHandlerRandomAccess(const std::string& file_name, char open_mode):
+        FileHandler(file_name,open_mode) {}
 
 public:
     // Seek frame

@@ -33,7 +33,7 @@
 using namespace std;
 using namespace pteros;
 
-PdbFile::PdbFile(const string &fname): VmdMolfilePluginWrapper(fname)
+PdbFile::PdbFile(const string &fname, char open_mode): VmdMolfilePluginWrapper(fname,open_mode)
 {
    plugin = pdb_get_plugin_ptr();
 }

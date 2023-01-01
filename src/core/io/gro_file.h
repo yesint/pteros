@@ -38,8 +38,7 @@ namespace pteros {
 /// Reader for GRO files. It doesn't use VMD plugins because it doesn't support writing
 class GroFile: public FileHandler {
 public:
-    // High-level API        
-    GroFile(const std::string& fname): FileHandler(fname) {}
+    GroFile(const std::string& fname, char open_mode): FileHandler(fname,open_mode) {}
 
     virtual FileContent get_content_type() const override {        
         return FileContent()
@@ -51,7 +50,7 @@ protected:
 
     std::FILE* file_handle;
 
-    virtual void do_open(char open_mode) override;
+    virtual void do_open() override;
     virtual void do_close() override;
 
     virtual bool do_read(System *sys, Frame *frame, const FileContent& what) override;

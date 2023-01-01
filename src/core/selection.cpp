@@ -1384,7 +1384,7 @@ void Selection::fit(int fr1, int fr2){
 }
 
 void Selection::minmax(Vector3f_ref min, Vector3f_ref max) const {
-    int i,n,j;
+    int i,n;
     Vector3f* p;
     n = _index.size();
 
@@ -1428,7 +1428,8 @@ void Selection::write(string fname, int b, int e) const {
     if(e<-1 || e>=last) throw PterosError("Last frame {} for writing is out of range [{}:{}]",e,0,last);
     if(e<b) throw PterosError("Last frame {} before first one {} for writing!",e,b);
 
-    auto f = FileHandler::open(fname,'w');
+    auto f = FileHandler::create(fname,'w');
+    f->open();
 
     if(!(f->get_content_type().traj()) && e!=b){
         throw PterosError("Can't write the range of frames to structure file!");

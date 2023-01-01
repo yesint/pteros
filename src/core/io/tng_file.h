@@ -38,7 +38,7 @@ namespace pteros {
 /// Use VMD plugin for TNG
 class TngFile: public VmdMolfilePluginWrapper {
 public:
-    TngFile(const std::string& fname);
+    TngFile(const std::string& fname, char open_mode);
 
     virtual FileContent get_content_type() const {                
         return FileContent()

@@ -134,8 +134,8 @@ void System::filter_coord(int fr)
 // Load structure or trajectory
 void System::load(string fname, int b, int e, int skip, std::function<bool(System*,int)> on_frame){
     // Create an IO handler
-    auto f = FileHandler::open(fname,'r');
-
+    auto f = FileHandler::create(fname,'r');
+    f->open();
     int num_stored = 0;    
 
     if(num_atoms()==0){
@@ -1068,7 +1068,6 @@ void System::distribute(const Selection sel, Vector3i_const_ref ncopies, Matrix3
     if(sel.get_system()!=this) throw PterosError("distribute needs selection from the same system!");
 
     Vector3f v;
-    int last = num_atoms();
     int nc = 0;
 
     // How many atoms we are going to add

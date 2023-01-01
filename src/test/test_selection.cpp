@@ -11,23 +11,5 @@ using namespace Eigen;
 
 
 int main(int argc, char* argv[]){
-#pragma omp parallel
-{
-    #pragma omp single
-    fmt::print("num_threads = {}\n", omp_get_num_threads());
-}
-
-    /*
-    System s("/home/semen/work/CLCK/CLCKa/r1.gro");
-    vector<Selection> sels;
-    sels.emplace_back(s("protein"));
-    sels.emplace_back(s("resname POPC"));
-    sels.emplace_back(s("resname CHL1"));
-    sels.emplace_back(s("resname TIP3"));
-    sels.emplace_back(s("resname SOD"));
-    sels.emplace_back(s("resname CLA"));
-    
-    Voronoi3D voro(sels);
-    voro.compute();
-    */
+    System s("/home/semen/work/siRNA/CG_Martini/SQ/CG_build/cgbuilder.gro");
 }

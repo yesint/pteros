@@ -33,7 +33,7 @@
 using namespace pteros;
 using namespace std;
 
-PdbqtFile::PdbqtFile(const string &fname): BabelWrapper(fname){ }
+PdbqtFile::PdbqtFile(const string &fname, char open_mode): BabelWrapper(fname,open_mode){ }
 
 
 

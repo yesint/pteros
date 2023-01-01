@@ -32,7 +32,9 @@
 using namespace std;
 using namespace pteros;
 
-TngFile::TngFile(const string &fname): VmdMolfilePluginWrapper(fname){
+TngFile::TngFile(const string &fname, char open_mode):
+    VmdMolfilePluginWrapper(fname,open_mode)
+{
    plugin = tng_get_plugin_ptr();
 }
 
