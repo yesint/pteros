@@ -45,8 +45,7 @@ public:
 
 protected:
     void* r_handle; // Handle for reading
-    void* w_handle; // Handle for writing
-    char mode;
+    void* w_handle; // Handle for writing    
 
     virtual void do_open() override;
     virtual void do_close() override;
