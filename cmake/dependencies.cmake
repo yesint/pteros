@@ -30,7 +30,7 @@ if(NOT TRY_SYSTEM_DEPENDENCIES)
     set(TRY_SYSTEM_EIGEN       OFF)
     set(TRY_SYSTEM_SPDLOG      OFF)
     set(TRY_SYSTEM_FMT         OFF)
-    set(TRY_SYSTEM_SCN         OFF)
+    #set(TRY_SYSTEM_SCN         OFF)
     set(TRY_SYSTEM_PYBIND11    OFF)
     set(TRY_SYSTEM_GROMACS     OFF)
     set(TRY_SYSTEM_OPENBABEL   OFF)
@@ -109,28 +109,28 @@ endif()
 #--------------------
 # scn
 #--------------------
-if(TRY_SYSTEM_SCN)
-    find_package(scn QUIET)
-endif()
-
-if(NOT scn_FOUND)
-    if(NOT DOWNLOAD_DEPENDENCIES)
-        message(FATAL_ERROR "scn is not available!")
-    endif()
-
-    message(STATUS "Will download and compile scn in place")
-    CPMAddPackage(
-        NAME                scn
-        GITHUB_REPOSITORY   eliaskosunen/scnlib
-        GIT_TAG             v1.1.2
-        OPTIONS
-            "SCN_INSTALL ON"
-            "SCN_DOCS OFF"
-            "SCN_TESTS OFF"
-            "SCN_EXAMPLES OFF"
-            "SCN_BENCHMARKS OFF"
-    )
-endif()
+#if(TRY_SYSTEM_SCN)
+#    find_package(scn QUIET)
+#endif()
+#
+#if(NOT scn_FOUND)
+#    if(NOT DOWNLOAD_DEPENDENCIES)
+#        message(FATAL_ERROR "scn is not available!")
+#    endif()
+#
+#    message(STATUS "Will download and compile scn in place")
+#    CPMAddPackage(
+#        NAME                scn
+#        GITHUB_REPOSITORY   eliaskosunen/scnlib
+#        GIT_TAG             v1.1.2
+#        OPTIONS
+#            "SCN_INSTALL ON"
+#            "SCN_DOCS OFF"
+#            "SCN_TESTS OFF"
+#            "SCN_EXAMPLES OFF"
+#            "SCN_BENCHMARKS OFF"
+#    )
+#endif()
 
 #--------------------
 # spdlog

@@ -60,5 +60,5 @@ target_link_libraries(pteros_io PRIVATE
     spdlog::spdlog
     Eigen3::Eigen
     fmt::fmt
-    scn::scn
+    #scn::scn
 )
