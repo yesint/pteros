@@ -31,7 +31,21 @@
 #include "pteros/core/pteros_error.h"
 #include "pteros/core/utilities.h"
 #include "system_builder.h"
-#include "scn/scn.h"
+#include "fmt/ostream.h"
+#include <cstdlib>
+
+/*
+tmp_atom.resid = atoi(line.substr(0,5).c_str());
+tmp_atom.resname = line.substr(5,5);
+tmp_atom.name = line.substr(10,5);
+// dum - 5 chars
+tmp_coor(0) = atof(line.substr(20,8).c_str());
+tmp_coor(1) = atof(line.substr(28,8).c_str());
+tmp_coor(2) = atof(line.substr(36,8).c_str());
+
+str_trim_in_place(tmp_atom.resname);
+str_trim_in_place(tmp_atom.name);
+*/
 
 using namespace std;
 using namespace pteros;
@@ -40,33 +54,26 @@ using namespace Eigen;
 void GroFile::do_open()
 {
     if(mode=='r'){
-        file_handle = std::fopen(fname.c_str(),"r");
+        file_handle.open(fname,std::ios::in);
         if(!file_handle) throw PterosError("Can't open GRO file '{}' for reading",fname);
     } else {
-        file_handle = std::fopen(fname.c_str(),"w");
+        file_handle.open(fname,std::ios::out);
         if(!file_handle) throw PterosError("Can't open GRO file '{}' for writing",fname);
     }
 }
 
 void GroFile::do_close(){
-    if(file_handle){
-        fclose(file_handle);
-    }
+    file_handle.close();
 }
 
 bool GroFile::do_read(System *sys, Frame *frame, const FileContent &what){
-    scn::file f(file_handle);
-    auto res = scn::make_result(f);
-
+    string line;
     // Skip title line
-    res = scn::ignore_until(res.range(),'\n');;
-    if(!res) throw PterosError("Can't read title from GRO file! {}",
-                               res.error().msg());
+    getline(file_handle,line);
 
     // Read number of atoms
-    res = scn::scan_default(res.range(),natoms);
-    if(!res) throw PterosError("Can't read number of atoms from GRO file! {}",
-                               res.error().msg());
+    getline(file_handle,line);
+    natoms = str_to_int(line);
 
     if(what.coord()) frame->coord.resize(natoms);
 
@@ -75,15 +82,16 @@ bool GroFile::do_read(System *sys, Frame *frame, const FileContent &what){
 
     // Read atoms and coordinates
     for(size_t i=0;i<natoms;++i){
+        getline(file_handle,line);
         if(what.atoms()){
-            res = scn::scan(res.range(),"{:5i}{:5s}{:5s}",
-                            tmp_atom.resid,
-                            tmp_atom.resname,
-                            tmp_atom.name);
-            if(!res) throw PterosError("Corrupted atom in GRO file! Line {}: {}",
-                                       i,res.error().msg());
-            // Skip index field
-            res = scn::ignore_until_n(res.range(),5,'\n');
+            tmp_atom.resid = atoi(line.substr(0,5).c_str());
+            tmp_atom.resname = line.substr(5,5);
+            tmp_atom.name = line.substr(10,5);
+            str_trim_in_place(tmp_atom.resname);
+            str_trim_in_place(tmp_atom.name);
+
+
+            // Skip index field (15,5)
 
             // Assign masses
             get_element_from_atom_name(tmp_atom.name,
@@ -98,26 +106,16 @@ bool GroFile::do_read(System *sys, Frame *frame, const FileContent &what){
             tmp_atom.atomic_number = get_element_number(tmp_atom.name);
             // Add new atom to the system
             builder.add_atom(tmp_atom);
-        } else {
-            // Skip until coordinates
-            res = scn::ignore_until_n(res.range(),20,'\n');
-        }        
-
-        if(what.coord()){
-            res = scn::scan(res.range(),"{:8f}{:8f}{:8f}",
-                            frame->coord[i](0),
-                            frame->coord[i](1),
-                            frame->coord[i](2));
-            if(!res) throw PterosError("Corrupted ccordinates in GRO file! Line {}: {}",
-                                       i,res.error().msg());
-
         }
 
-        // Ignore until the end of line (in case of velocities)
-        res = scn::ignore_until(res.range(),'\n');
+        if(what.coord()){
+            frame->coord[i](0) = atof(line.substr(20,8).c_str());
+            frame->coord[i](1) = atof(line.substr(28,8).c_str());
+            frame->coord[i](2) = atof(line.substr(36,8).c_str());
+        }
     }
 
-    if(what.atoms()) sys->assign_resindex();
+    //if(what.atoms()) sys->assign_resindex();
 
     /* Read the box
       Format: (https://manual.gromacs.org/archive/5.0.3/online/gro.html)
@@ -132,17 +130,19 @@ bool GroFile::do_read(System *sys, Frame *frame, const FileContent &what){
       (0,0) (1,1) (2,2) (1,0) (2,0) (0,1) (2,1) (0,2) (1,2)
     */
     if(what.coord()){
+        getline(file_handle,line);
+
+        stringstream ss(line);
+
         Matrix3f box;
         box.fill(0.0);
         // Read diagonal
-        res = scn::scan_default(res.range(),box(0,0),box(1,1),box(2,2));
-        if(!res) throw PterosError("Corrupted box in GRO file! {}",
-                                   res.error().msg());
+        ss >> box(0,0),box(1,1),box(2,2);
 
         // Try to read non-diagonal elements. If failed we have rectangular box.
-        res = scn::scan_default(res.range(),
-                                box(1,0),box(2,0),box(0,1),
-                                box(2,1),box(0,2),box(1,2));
+        ss >> box(1,0) >> box(2,0) >> box(0,1)
+           >> box(2,1) >> box(0,2) >> box(1,2);
+
         //  If this read fails the box is not modified, so no need to take actions
         frame->box.set_matrix(box);
     }
