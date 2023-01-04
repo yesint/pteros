@@ -650,8 +650,8 @@ void System::atoms_delete(const std::vector<int> &ind){
 void System::atom_move(int i, int j)
 {
     // Sanity check
-    if(i<0 || i>=num_atoms()) throw PterosError(format("Index of atom to move ({}}) is out of range ({}:{})!", i,0,num_atoms()));
-    if(j<0 || j>=num_atoms()) throw PterosError(format("Target index to move ({}}) is out of range ({}:{}})!", j,0,num_atoms()));
+    if(i<0 || i>=num_atoms()) throw PterosError("Index of atom to move ({}}) is out of range ({}:{})!", i,0,num_atoms());
+    if(j<0 || j>=num_atoms()) throw PterosError("Target index to move ({}}) is out of range ({}:{}})!", j,0,num_atoms());
     if(i==j) return; // Nothing to do
 
     // Move atom
@@ -711,8 +711,8 @@ Selection System::atom_clone(int source)
 
 void System::atom_swap(int i, int j)
 {
-    if(i<0 || i>=num_atoms()) throw PterosError(format("Index of atom 1 to swap ({}}) is out of range ({}:{})!", i,0,num_atoms()));
-    if(j<0 || j>=num_atoms()) throw PterosError(format("Index of atom 2 to swap ({}}) is out of range ({}:{}})!", j,0,num_atoms()));
+    if(i<0 || i>=num_atoms()) throw PterosError("Index of atom 1 to swap ({}}) is out of range ({}:{})!", i,0,num_atoms());
+    if(j<0 || j>=num_atoms()) throw PterosError("Index of atom 2 to swap ({}}) is out of range ({}:{}})!", j,0,num_atoms());
 
     std::swap(atoms[i],atoms[j]);
     for(int fr=0; fr<num_frames(); ++fr){

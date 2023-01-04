@@ -561,7 +561,7 @@ void LipidMembrane::compute_triangulation()
         }
 
         auto f = fmt::output_file(fmt::format("triangulated_smooth_level_{}.tcl",smooth_level));
-        f.print(s);
+        f.print("{}",s);
         f.close();
     } //smooth level
     //exit(1);
@@ -628,7 +628,7 @@ void LipidMembrane::write_vmd_visualization(const string &path){
 
     // Output area and normals plots
     auto out_all = fmt::output_file(fmt::format("{}/areas_all.tcl",path));
-    out_all.print(out1);
+    out_all.print("{}",out1);
     out_all.close();
 
     for(size_t i=0; i<lipids.size(); ++i){
@@ -663,7 +663,7 @@ void LipidMembrane::write_averages(string path)
 
     // Save summary to file
     auto out = fmt::output_file(path+"/summary.dat");
-    out.print(s);
+    out.print("{}",s);
     out.close();
 
     // Write files for species properties

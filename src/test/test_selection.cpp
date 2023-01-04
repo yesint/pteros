@@ -3,7 +3,7 @@
 
 #include <pteros/pteros.h>
 #include "pteros/extras/voronoi_packing.h"
-#include <omp.h>
+#include <ranges>
 
 using namespace pteros;
 using namespace std;
