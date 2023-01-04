@@ -35,6 +35,7 @@ public:
     float tilt;
     float gaussian_curvature;
     float mean_curvature;
+    float mono_thickness;
 
     // Properties from Voronoi tesselation
     int coord_number;

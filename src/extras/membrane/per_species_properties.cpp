@@ -19,6 +19,9 @@ PerSpeciesProperties::PerSpeciesProperties(const LipidSpecies *s_ptr, const Lipi
     tilt_hist.create(0,90,90);
     tilt.reset();
 
+    mono_thickness_hist.create(0.0,3.0,100);
+    mono_thickness.reset();
+
     coord_number.reset();
 
     gaussian_curvature.reset();
@@ -60,6 +63,10 @@ void PerSpeciesProperties::add_data(const LipidMolecule &lip){
     // Tilt
     tilt_hist.add(lip.tilt);
     tilt.add_value(lip.tilt);
+
+    // Monolayer thickness
+    mono_thickness_hist.add(lip.mono_thickness);
+    mono_thickness.add_value(lip.mono_thickness);
 
     // Coordination number
     coord_number.add_value(lip.coord_number);
@@ -117,6 +124,9 @@ void PerSpeciesProperties::post_process(double num_frames)
     // Tilt
     tilt_hist.normalize(count);
 
+    // Thickness
+    mono_thickness_hist.normalize(count);
+
     // Curvatures
     mean_curv_hist.normalize(count);
     gauss_curv_hist.normalize(count);
@@ -141,16 +151,25 @@ string PerSpeciesProperties::summary()
     Vector2d v;
     if(count>0){
         s += fmt::format("\t\tCount:\t\t{:>8g}\n", count);
+
         v = area.get_mean_std();
         s += fmt::format("\t\tArea:\t\t{:>8.3g} ± {:<8.3g} nm²\n", v(0),v(1));
+
         v = tilt.get_mean_std();
         s += fmt::format("\t\tTilt:\t\t{:>8.3g} ± {:<8.3g} deg\n", v(0),v(1));
+
         v = coord_number.get_mean_std();
         s += fmt::format("\t\tCoord.N:\t{:>8.3g} ± {:<8.3g}\n", v(0),v(1));
+
+        v = mono_thickness.get_mean_std();
+        s += fmt::format("\t\tMono.thick.:\t{:>8.3g} ± {:<8.3g} nm\n", v(0),v(1));
+
         v = mean_curvature.get_mean_std();
         s += fmt::format("\t\tMean.curv.:\t{:>8.3g} ± {:<8.3g} nm⁻¹\n", v(0),v(1));
+
         v = gaussian_curvature.get_mean_std();
         s += fmt::format("\t\tGaus.curv.:\t{:>8.3g} ± {:<8.3g} nm⁻¹\n", v(0),v(1));
+
         v = trans_dihedrals_ratio.get_mean_std();
         s += fmt::format("\t\tTrans.Dih.:\t{:>8.3g} ± {:<8.3g}\n", v(0),v(1));
     } else {

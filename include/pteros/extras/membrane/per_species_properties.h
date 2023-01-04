@@ -19,6 +19,9 @@ public:
     // Tilt
     Histogram tilt_hist;
     MeanStdAccumulator tilt;
+    // Monolayer thickness
+    Histogram mono_thickness_hist;
+    MeanStdAccumulator mono_thickness;
     // Coordination number
     MeanStdAccumulator coord_number;
     // Trans dihedrals ratio

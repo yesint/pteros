@@ -71,7 +71,7 @@ void QuadSurface::compute_voronoi(float inclusion_h_cutoff){
         cell.nplane(fitted_points(0,i),fitted_points(1,i),0.0,i); // Pass i as neigbour pid
     }
 
-    // If inclusion is involved add plane from its atoms
+    // If inclusion is involved add planes from its atoms
     for(int i=0; i<inclusion_coord.cols(); ++i){
         if(abs(inclusion_coord(2,i))<inclusion_h_cutoff){
             cell.nplane(inclusion_coord(0,i),inclusion_coord(1,i),0.0,i*10000);

@@ -129,6 +129,7 @@ void LipidMembrane::reset_groups(){
 
 void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_type)
 {    
+
     // Set markers for all lipids
     // This unwraps each lipid
     #pragma omp parallel for if (lipids.size() >= 100)
@@ -308,7 +309,10 @@ void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_ty
         // Normal
         lip.normal = lip.patch.to_lab*lip.surf.fitted_normal;
         // Tilt
-        lip.tilt = rad_to_deg(angle_between_vectors(lip.normal,lip.tail_head_vector));        
+        float a = angle_between_vectors(lip.normal,lip.tail_head_vector);
+        lip.tilt = rad_to_deg(a);
+        // Monolayer thickness
+        lip.mono_thickness = lip.tail_head_vector.norm()*cos(a);
 
         // Set neigbours for lipid
         lip.neib.clear();
@@ -617,6 +621,13 @@ void LipidMembrane::write_vmd_visualization(const string &path){
         out1 += fmt::format("draw sphere \"{} {} {}\" radius 1.5 resolution 12\n",
                    10*p1.x(),10*p1.y(),10*p1.z() );
 
+        // Tails marker
+        Vector3f pt = lip.tail_marker;
+        out1 += fmt::format("draw color red\n");
+        out1 += fmt::format("draw sphere \"{} {} {}\" radius 1.0 resolution 12\n",
+                   10*pt.x(),10*pt.y(),10*pt.z() );
+
+
         // Inclusion atoms (if any)
         out1 += fmt::format("draw color green\n");
         for(size_t i=0; i<lip.inclusion_neib.size(); ++i){
@@ -677,6 +688,8 @@ void LipidMembrane::write_averages(string path)
                 sp.second.area_hist.save_to_file(file_prefix+"area.dat");
                 // Tilt
                 sp.second.tilt_hist.save_to_file(file_prefix+"tilt.dat");
+                // Monolayer thickness
+                sp.second.mono_thickness_hist.save_to_file(file_prefix+"mono_thickness.dat");
                 // Curvature
                 sp.second.mean_curv_hist.save_to_file(file_prefix+"mean_curv.dat");
                 sp.second.gauss_curv_hist.save_to_file(file_prefix+"gauss_curv.dat");
