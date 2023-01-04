@@ -91,7 +91,7 @@ void box_from_vmd_rep(float fa, float fb, float fc,
 
 VmdMolfilePluginWrapper::VmdMolfilePluginWrapper(const string& fname, char open_mode):
     FileHandler(fname,open_mode),
-    r_handle(nullptr), w_handle(nullptr)
+    handle(nullptr)
 { }
 
 VmdMolfilePluginWrapper::~VmdMolfilePluginWrapper()
@@ -102,31 +102,22 @@ VmdMolfilePluginWrapper::~VmdMolfilePluginWrapper()
 
 void VmdMolfilePluginWrapper::do_open(){
     if(mode=='r'){
-        if(r_handle) throw PterosError("Can't open file for reading twice - handle busy!");
-        r_handle = NULL;
-        r_handle = plugin->open_file_read(fname.c_str(), &mode, &natoms);
-        if(!r_handle) throw PterosError("Can't open file '{}'!",fname);
+        if(handle) throw PterosError("Can't open file for reading - handle busy!");
+        handle = plugin->open_file_read(fname.c_str(), &mode, &natoms);
+        if(!handle) throw PterosError("Can't open file '{}'!",fname);
     } else {
-        if(w_handle) throw PterosError("Can't open file for writing twice - handle busy!");        
-        w_handle = NULL;
+        if(handle) throw PterosError("Can't open file for writing - handle busy!");
         // Actual opening defered to the call of do_write
+        // because we don't know size of seletion yet
     }
-
 }
 
 void VmdMolfilePluginWrapper::do_close()
 {
     if(mode=='r'){
-        if(r_handle){
-            plugin->close_file_read(r_handle);
-            r_handle = NULL;
-        }
-
+        if(handle) plugin->close_file_read(handle);
     } else {
-        if(w_handle){
-            plugin->close_file_write(w_handle);
-            w_handle = NULL;
-        }
+        if(handle) plugin->close_file_write(handle);
     }
 }
 
@@ -141,7 +132,7 @@ bool VmdMolfilePluginWrapper::do_read(System *sys, Frame *frame, const FileConte
 
         int flags;
         vector<molfile_atom_t> atoms(natoms);
-        plugin->read_structure(r_handle,&flags,(molfile_atom_t*)&atoms.front());
+        plugin->read_structure(handle,&flags,(molfile_atom_t*)&atoms.front());
         // Allocate atoms in the system
         builder.allocate_atoms(natoms);
         // Copy atoms to the system
@@ -187,7 +178,7 @@ bool VmdMolfilePluginWrapper::do_read(System *sys, Frame *frame, const FileConte
         frame->coord.resize(natoms);
         ts.coords = (float*)&frame->coord.front();
 
-        int ret = plugin->read_next_timestep(r_handle,natoms,&ts);
+        int ret = plugin->read_next_timestep(handle,natoms,&ts);
 
         if(ret!=MOLFILE_SUCCESS){
             return false;
@@ -214,9 +205,9 @@ bool VmdMolfilePluginWrapper::do_read(System *sys, Frame *frame, const FileConte
 }
 
 void VmdMolfilePluginWrapper::do_write(const Selection &sel, const FileContent &what) {
-    // Open file
-    if(!w_handle){
-        w_handle = plugin->open_file_write(fname.c_str(), plugin->name, sel.size());
+    // Open file if it is not yet open
+    if(!handle){
+        handle = plugin->open_file_write(fname.c_str(), plugin->name, sel.size());
     }
 
     if(what.atoms()){
@@ -243,7 +234,7 @@ void VmdMolfilePluginWrapper::do_write(const Selection &sel, const FileContent &
         }
         int flags = MOLFILE_OCCUPANCY | MOLFILE_BFACTOR | MOLFILE_ATOMICNUMBER
                     | MOLFILE_CHARGE | MOLFILE_MASS;
-        plugin->write_structure(w_handle,flags,&atoms.front());        
+        plugin->write_structure(handle,flags,&atoms.front());
     }
 
     if(what.coord() || what.traj()){
@@ -282,6 +273,6 @@ void VmdMolfilePluginWrapper::do_write(const Selection &sel, const FileContent &
 
         ts.physical_time = sel.get_system()->time(sel.get_frame());
 
-        plugin->write_timestep(w_handle, &ts);
+        plugin->write_timestep(handle, &ts);
     }
 }

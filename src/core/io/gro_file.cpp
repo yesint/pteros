@@ -34,19 +34,6 @@
 #include "fmt/ostream.h"
 #include <cstdlib>
 
-/*
-tmp_atom.resid = atoi(line.substr(0,5).c_str());
-tmp_atom.resname = line.substr(5,5);
-tmp_atom.name = line.substr(10,5);
-// dum - 5 chars
-tmp_coor(0) = atof(line.substr(20,8).c_str());
-tmp_coor(1) = atof(line.substr(28,8).c_str());
-tmp_coor(2) = atof(line.substr(36,8).c_str());
-
-str_trim_in_place(tmp_atom.resname);
-str_trim_in_place(tmp_atom.name);
-*/
-
 using namespace std;
 using namespace pteros;
 using namespace Eigen;
@@ -89,8 +76,6 @@ bool GroFile::do_read(System *sys, Frame *frame, const FileContent &what){
             tmp_atom.name = line.substr(10,5);
             str_trim_in_place(tmp_atom.resname);
             str_trim_in_place(tmp_atom.name);
-
-
             // Skip index field (15,5)
 
             // Assign masses
@@ -140,15 +125,16 @@ bool GroFile::do_read(System *sys, Frame *frame, const FileContent &what){
         ss >> box(0,0),box(1,1),box(2,2);
 
         // Try to read non-diagonal elements. If failed we have rectangular box.
+        //  If this read fails the box is not modified, so no need to take actions
         ss >> box(1,0) >> box(2,0) >> box(0,1)
            >> box(2,1) >> box(0,2) >> box(1,2);
 
-        //  If this read fails the box is not modified, so no need to take actions
         frame->box.set_matrix(box);
     }
     // Report success
     return true;
 }
+
 
 void GroFile::do_write(const Selection &sel, const FileContent &what){
     int n = sel.size();

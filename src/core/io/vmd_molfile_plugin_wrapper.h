@@ -44,9 +44,6 @@ public:
     virtual ~VmdMolfilePluginWrapper();
 
 protected:
-    void* r_handle; // Handle for reading
-    void* w_handle; // Handle for writing    
-
     virtual void do_open() override;
     virtual void do_close() override;
 
@@ -55,6 +52,8 @@ protected:
 
     // molfile plugin instance (set in derived class)
     molfile_plugin_t* plugin;
+    // VMD file handle
+    void* handle;
 };
 
 }

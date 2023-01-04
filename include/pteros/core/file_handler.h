@@ -43,23 +43,23 @@ public:
 
     // The list of atoms and their properties
     bool atoms() const { return flags[0]; }
-    FileContent atoms(bool val){ flags[0] = val; return *this;}
+    FileContent& atoms(bool val){ flags[0] = val; return *this;}
 
     // Single set of coordinates
     bool coord() const { return flags[1]; }
-    FileContent coord(bool val){ flags[1] = val; return *this;}
+    FileContent& coord(bool val){ flags[1] = val; return *this;}
 
     // Many frames
     bool traj() const { return flags[2]; }
-    FileContent traj(bool val){ flags[2] = val; return *this;}
+    FileContent& traj(bool val){ flags[2] = val; return *this;}
 
     // Molecular topology
     bool top() const { return flags[3]; }
-    FileContent top(bool val){ flags[3] = val; return *this;}
+    FileContent& top(bool val){ flags[3] = val; return *this;}
 
     // Random access trajectory
     bool rand() const { return flags[4]; }
-    FileContent rand(bool val){ flags[4] = val; return *this;}
+    FileContent& rand(bool val){ flags[4] = val; return *this;}
 
 private:
     std::bitset<5> flags;
@@ -100,11 +100,7 @@ protected:
     // Opening mode
     char mode;
     // Number of atoms
-    int natoms;    
-
-    // Method to sanity check parameters send to read and write
-    void sanity_check_read(System* sys, Frame* frame, const FileContent &what) const;
-    void sanity_check_write(const Selection& sel, const FileContent& what) const;
+    int natoms;
 
     /// User-overriden method for reading
     virtual bool do_read(System* sys, Frame* frame, const FileContent& what) = 0;
@@ -115,6 +111,11 @@ protected:
     /// Opens a file with given access mode. Need to be defined by derived classes.
     virtual void do_open() = 0;
     virtual void do_close() = 0;
+
+private:
+    // Methods to sanity check parameters send to read and write
+    void sanity_check_read(System* sys, Frame* frame, const FileContent &what) const;
+    void sanity_check_write(const Selection& sel, const FileContent& what) const;
 };
 
 //------------------------------------------------------------------------------
@@ -127,13 +128,10 @@ protected:
 public:
     // Seek frame
     virtual void seek_frame(int fr) = 0;
-
     // Seek time
     virtual void seek_time(float t) = 0;
-
     // Report current position in trajectory
     virtual void tell_current_frame_and_time(int& step, float& t) = 0;
-
     // Report last position in trajectory
     virtual void tell_last_frame_and_time(int& step, float& t) = 0;
 };
