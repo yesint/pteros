@@ -30,16 +30,12 @@
 #pragma once
 
 #include "pteros/core/file_handler.h"
-#include "xdrfile.h"
-#include "xdrfile_trr.h"
 
 namespace pteros {
 
-
 class TrrFile: public FileHandler {
 public:
-    TrrFile(const std::string& fname, char open_mode):
-        FileHandler(fname,open_mode), handle(nullptr) {}
+    TrrFile(const std::string& fname, char open_mode);
     virtual ~TrrFile();
 
     virtual FileContent get_content_type() const override {
@@ -55,10 +51,8 @@ protected:
     virtual bool do_read(System *sys, Frame *frame, const FileContent& what) override;
 
 private:
-    // for xdrfile
-    XDRFILE* handle;
-    matrix box;
-    int step;
+    struct TrrData;
+    std::unique_ptr<TrrData> trr;
 };
 
 }

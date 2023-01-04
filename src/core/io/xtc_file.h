@@ -30,43 +30,36 @@
 #pragma once
 
 #include "pteros/core/file_handler.h"
-
-#include "xdrfile.h"
-#include "xdrfile_xtc.h"
+#include <memory>
 
 namespace pteros {
-
 
 class XtcFile: public FileHandlerRandomAccess {
 public:
     XtcFile(const std::string& fname, char open_mode);
     virtual ~XtcFile();
 
-    virtual FileContent get_content_type() const override {
+    virtual FileContent get_content_type() const override final {
         return content;
     }
 
 protected:
 
-    virtual void do_open() override;
-    virtual void do_close() override;
+    virtual void do_open() override final;
+    virtual void do_close() override final;
 
-    virtual void do_write(const Selection &sel, const FileContent& what) override;
-    virtual bool do_read(System *sys, Frame *frame, const FileContent& what) override ;
+    virtual void do_write(const Selection &sel, const FileContent& what) override final;
+    virtual bool do_read(System *sys, Frame *frame, const FileContent& what) override final;
 
-    virtual void seek_frame(int fr) override;
-    virtual void seek_time(float t) override;
-    virtual void tell_current_frame_and_time(int& step, float& t) override;
-    virtual void tell_last_frame_and_time(int& step, float& t) override;
+    virtual void seek_frame(int fr) override final;
+    virtual void seek_time(float t) override final;
+    virtual void tell_current_frame_and_time(int& step, float& t) override final;
+    virtual void tell_last_frame_and_time(int& step, float& t) override final;
 
 private:
-    // for xdrfile
-    XDRFILE* handle;
-    matrix box;
-    int step;
-    int steps_per_frame;
-    int64_t num_frames;
-    float dt, max_t;
+    struct XtcData;
+    std::unique_ptr<XtcData> xtc;
+
     FileContent content;
 };
 

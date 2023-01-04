@@ -31,41 +31,51 @@
 #include "pteros/core/pteros_error.h"
 #include "pteros/core/logging.h"
 #include "xdr_utils.h"
+#include "xdrfile_trr.h"
 #include "gmx_box_utils.h"
 
 using namespace std;
 using namespace pteros;
 using namespace Eigen;
 
+// Internal TRR data
+struct TrrFile::TrrData {
+    TrrData(): handle(nullptr) {}
+    ~TrrData(){
+        if(handle) xdrfile_close(handle);
+    }
+
+    XDRFILE* handle;
+    matrix box;
+    int step;
+};
+
+TrrFile::TrrFile(const string &fname, char open_mode):
+    FileHandler(fname,open_mode),
+    trr(new TrrData)
+{}
+
+TrrFile::~TrrFile()
+{}
 
 void TrrFile::do_open()
 {    
-    handle = xdrfile_open(fname.c_str(),&mode);
-
-    if(!handle) throw PterosError("Unable to open TRR file {}", fname);
-
+    trr->handle = xdrfile_open(fname.c_str(),&mode);
+    if(!trr->handle) throw PterosError("Unable to open TRR file {}", fname);
     // -1 for reading means initialization step
-    step = (mode=='r') ? -1 : 0;
+    trr->step = (mode=='r') ? -1 : 0;
 }
 
 void TrrFile::do_close()
-{
-    if(handle) xdrfile_close(handle);
-}
-
-TrrFile::~TrrFile()
-{
-    do_close();
-}
-
+{}
 
 bool TrrFile::do_read(System *sys, Frame *frame, const FileContent &what){
     bool has_x=true, has_v=false, has_f=false, ok;
 
-    if(step<0){
+    if(trr->step<0){
         // Read header only once on first step
         int xsz,vsz,fsz;
-        check_trr_content(handle,&natoms,&xsz,&vsz,&fsz);
+        check_trr_content(trr->handle,&natoms,&xsz,&vsz,&fsz);
         has_x = (xsz>0);
         has_v = (vsz>0);
         has_f = (fsz>0);
@@ -93,17 +103,17 @@ bool TrrFile::do_read(System *sys, Frame *frame, const FileContent &what){
     }
 
     float lambda;
-    ok = read_trr(handle,natoms,&step,&frame->time,&lambda,box,x,v,f);
+    ok = read_trr(trr->handle,natoms,&trr->step,&frame->time,&lambda,trr->box,x,v,f);
 
     // Get box
-    if(ok) gmx_box_to_pteros(box,frame->box);
+    if(ok) gmx_box_to_pteros(trr->box,frame->box);
     return ok;
 }
 
 void TrrFile::do_write(const Selection &sel, const FileContent &what)
 {
     // Set box    
-    pteros_box_to_gmx(sel.box(),box);
+    pteros_box_to_gmx(sel.box(),trr->box);
 
     const Frame& fr = sel.get_system()->frame(sel.get_frame());
 
@@ -125,8 +135,8 @@ void TrrFile::do_write(const Selection &sel, const FileContent &what)
         f = (rvec*)matr_f.data();
     }
 
-    int ret = write_trr(handle,sel.size(),step,fr.time,0,box,x,v,f);
+    int ret = write_trr(trr->handle,sel.size(),trr->step,fr.time,0,trr->box,x,v,f);
     if(ret!=exdrOK) throw PterosError("Unable to write TRR frame");
 
-    ++step;
+    ++trr->step;
 }
