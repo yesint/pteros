@@ -386,7 +386,7 @@ int Histogram::num_bins() const
 void Histogram::save_to_file(const string &fname, float x_shift)
 {
     auto f = fmt::output_file(fname);
-    for(int i=0;i<nbins;++i) f.print("{} {}",pos(i)+x_shift,val(i));
+    for(int i=0;i<nbins;++i) f.print("{} {}\n",pos(i)+x_shift,val(i));
     f.close();
 }
 
