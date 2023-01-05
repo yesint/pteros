@@ -56,8 +56,7 @@ private:
     LipidSpecies* species_ptr;
 
     // Set markers to current COM coordinates of marker seletions
-    void set_markers();
-    void unset_markers();
+    void set_markers();    
 
     // Coordinates of markers
     Eigen::Vector3f head_marker, tail_marker, surf_marker, pos_saved;

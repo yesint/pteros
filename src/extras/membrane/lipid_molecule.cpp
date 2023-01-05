@@ -39,13 +39,5 @@ void LipidMolecule::set_markers()
     head_marker = head_marker_sel.center(true);
     tail_marker = tail_marker_sel.center(true);
     surf_marker = surf_marker_sel.center(true);
-
-    pos_saved = surf_marker_sel.xyz(0);
-    surf_marker_sel.xyz(0) = surf_marker;
     tail_head_vector = head_marker-tail_marker;
-}
-
-void LipidMolecule::unset_markers()
-{
-    surf_marker_sel.xyz(0) = pos_saved;
 }

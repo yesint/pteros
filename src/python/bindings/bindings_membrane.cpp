@@ -77,9 +77,16 @@ void make_bindings_Membrane(py::module& m){
     ;
 
     py::enum_<OrderType>(m,"OrderType")
-            .value("SZ",OrderType::SZ)
-            .value("SCD",OrderType::SCD)
-            .value("SCD_CORR",OrderType::SCD_CORR)
+        .value("SZ",OrderType::SZ)
+        .value("SCD",OrderType::SCD)
+        .value("SCD_CORR",OrderType::SCD_CORR)
+    ;
+
+    py::class_<InterpolatedPoint>(m,"InterpolatedPoint")
+        .def_readonly("normal",&InterpolatedPoint::normal)
+        .def_readonly("neib_lipids",&InterpolatedPoint::neib_lipids)
+        .def_readonly("weights",&InterpolatedPoint::weights)
+        .def_readonly("mean_curvature",&InterpolatedPoint::mean_curvature)
     ;
 
     py::class_<LipidMembrane>(m,"LipidMembrane")
@@ -95,6 +102,11 @@ void make_bindings_Membrane(py::module& m){
         .def("compute_triangulation",&LipidMembrane::compute_triangulation)
         .def("write_averages",&LipidMembrane::write_averages,"path"_a=".")
         .def("write_vmd_visualization",&LipidMembrane::write_vmd_visualization,"path"_a=".")
+        .def("get_interpolation",[](LipidMembrane* lm, const Selection& points){
+            std::vector<InterpolatedPoint> res;
+            lm->get_interpolation(points,res);
+            return res;
+        })
 
         .def_readonly("lipids",&LipidMembrane::lipids)
     ;

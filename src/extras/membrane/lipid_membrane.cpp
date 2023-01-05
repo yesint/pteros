@@ -90,12 +90,22 @@ LipidMembrane::LipidMembrane(const System *sys,
     // Print statictics
     log->info("Total number of lipids: {}",lipids.size());
 
-    // Create selection for all surf markesr
+    // Create internal system for surf markers
+    for(size_t i=0; i<lipids.size(); ++i){
+        Atom at;
+        at.mass = 1.0; // Needed for inertia to work correctly
+        surf_sys.append(at,Vector3f::Zero());
+    }
+
+    // Create selection for all surf marker
+    all_surf_sel = surf_sys.select_all();
+    /*
     all_surf_sel.set_system(*system_ptr);
     vector<int> ind;
     ind.reserve(lipids.size());
     for(auto& lip: lipids) ind.push_back(lip.surf_marker_sel.index(0));
     all_surf_sel.modify(ind);
+    */
 }
 
 
@@ -129,11 +139,16 @@ void LipidMembrane::reset_groups(){
 
 void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_type)
 {    
+    // Update box in surf_sys
+    surf_sys.box() = system_ptr->box();
 
     // Set markers for all lipids
     // This unwraps each lipid
     #pragma omp parallel for if (lipids.size() >= 100)
-    for(auto& l: lipids) l.set_markers();
+    for(size_t i=0; i<lipids.size(); ++i){
+        lipids[i].set_markers();
+        all_surf_sel.xyz(i) = lipids[i].surf_marker;
+    }
 
     // Get connectivity
     vector<Vector2i> bon;
@@ -173,7 +188,7 @@ void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_ty
 
     #pragma omp parallel for if (lipids.size() >= 100)
     // Compute local coordinates and approximate normals of patches
-    for(size_t i=0; i<lipids.size(); ++i){
+    for(size_t i=0; i<lipids.size(); ++i){        
         auto& patch = lipids[i].patch;
         // Save central point
         patch.original_center = lipids[i].surf_marker;
@@ -193,7 +208,6 @@ void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_ty
         float ang = angle_between_vectors(patch.normal, lipids[i].tail_head_vector);
         if(ang > M_PI_2) patch.normal *= -1;
     }
-
 
     // Inspect normals and try to fix them if weird orientation is found
     // This is a very important step!
@@ -277,7 +291,7 @@ void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_ty
         // Set smoothed point
         lip.smoothed_surf_marker_xyz = lip.patch.to_lab*lip.surf.fitted_points.col(0) + lip.surf_marker;
 
-        // If inclusion is present bring neibouring inclusion atoms to local basis
+        // If inclusion is present bring neibouring inclusion atoms to local basis as well
         if(!lip.inclusion_neib.empty()){
             lip.surf.inclusion_coord.resize(3,lip.inclusion_neib.size());
             for(size_t i=0; i<lip.inclusion_neib.size(); ++i){
@@ -328,26 +342,72 @@ void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_ty
         // Coordination number
         lip.coord_number = lip.neib.size();
 
-    } // for lipids
-
-    // Unset markers. This restores all correct atomic coordinates for analysis
-    for(auto& lip: lipids) lip.unset_markers();
-
-    // Analysis whith requires restored coordinates of markers
-
-    #pragma omp parallel for if (lipids.size() >= 100)
-    for(auto& lip: lipids){
-        // Tail properties        
+        // Tail properties
         for(auto& t: lip.tails){
             t.compute_order_and_dihedrals(lip.whole_sel,
                                           lip.normal,
                                           order_type);
         }
-    }
+
+    } // for lipids
 
     // Process groups
     for(auto& gr: groups){
         gr.process_frame();
+    }
+}
+
+void LipidMembrane::get_interpolation(const Selection &points, vector<InterpolatedPoint>& res)
+{
+    // Resize coeffs correctly
+    res.resize(points.size());
+
+    // Find distances between provided points and lipid markers
+    vector<Vector2i> bon;
+    vector<float> dist;
+    search_contacts(5,points,all_surf_sel,bon,dist,false,fullPBC);
+
+    vector<vector<pair<int,float>>> con(points.size());
+    for(size_t i=0;i<bon.size();++i){
+        con[bon[i](0)].push_back({bon[i](1),dist[i]});
+    }
+
+    for(int p=0; p<points.size(); ++p){
+        // Sort according to distance
+        std::sort(con[p].begin(),con[p].end(),[](auto const& a, auto const& b){return a.second<b.second;});
+
+        float d_min = con[p][0].second;
+        float d_max = con[p][con[p].size()-1].second;
+        float sumw = 0.0;
+
+        res[p].neib_lipids.reserve(con[p].size());
+        res[p].weights.reserve(con[p].size());
+
+        if(con[p].size()==1){
+            fmt::print("{} {}\n",points.index(p),lipids[con[p][0].first].whole_sel("name P").index(0));
+        }
+
+        // Cycle over neigbouring lipids of point p
+        for(size_t i=0; i<con[p].size(); ++i){
+
+            float w = (d_max-con[p][i].second)/(d_max-d_min);
+            // Determine sign of w. Negative means opposite monolayer
+            // Closest lipid #0 is a reference
+            float ang = angle_between_vectors(lipids[con[p][i].first].normal,
+                                              lipids[con[p][0].first].normal);
+
+            //if(ang>M_PI_2) w *= -1.0;
+            sumw += w;
+
+            res[p].neib_lipids.push_back(con[p][i].first);
+            res[p].weights.push_back(w);
+            res[p].normal += lipids[con[p][i].first].normal * w;
+            res[p].mean_curvature += lipids[con[p][i].first].mean_curvature * w;
+        }
+        // Normalize
+        for(size_t i=0; i<con[p].size(); ++i) res[p].weights[i] /= sumw;
+        res[p].normal /= sumw;
+        res[p].mean_curvature /= sumw;
     }
 }
 

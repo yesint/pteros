@@ -43,6 +43,15 @@ namespace pteros {
 
 void mean_std_from_accumulated(Eigen::Vector2f& storage, float N);
 
+struct InterpolatedPoint {
+    InterpolatedPoint(): normal(Eigen::Vector3f::Zero()) {}
+
+    Eigen::Vector3f normal;
+    float mean_curvature;
+    std::vector<int> neib_lipids;
+    std::vector<float> weights;
+};
+
 class LipidMembrane {
 public:
     LipidMembrane(const System* sys,
@@ -57,6 +66,10 @@ public:
     void compute_properties(float d = 2.0,
                             float incl_d = 0.5,
                             OrderType order_type = OrderType::SCD_CORR);
+
+    // Get waighting coefficients of lipids for interpolating properties
+    // in given points.
+    void get_interpolation(const Selection& points, std::vector<InterpolatedPoint>& res);
 
     /// Returns matrix (n_shells,2)
     /// Each n-th row is averaged curvatures over neigbour shells up to n
@@ -78,6 +91,7 @@ private:
     std::shared_ptr<spdlog::logger> log;
 
     Selection all_surf_sel;
+    System surf_sys;
 
     Selection inclusion;
     float inclusion_h_cutoff;
