@@ -72,15 +72,23 @@ bool DistanceSearchBase::process_neighbour_pair(PlannedPair& pair){
     for(int dim=0;dim<3;++dim){
 
         // Corner cases:
-        // Ignore all pairs except c1=c2 for dims of size 1
-        if(Ngrid(dim)==1 && pair.c1!=pair.c2) return false;
+        // Size 1
+        if(Ngrid(dim)==1){
+            // Don't use if not inside regardless of periodicity
+            if(pair.c1(dim)!=0 || pair.c2(dim)!=0) return false;
+
+            // For valid pair (c1==c2) set periodicity
+            if(periodic_dims(dim)) pair.wrapped(dim) = 1;
+            continue;
+        }
+
         // For size 2 always ignore any pairs beyond size even if periodic
         // and set forced periodicity for all valid pairs
         if(Ngrid(dim)==2){
             if(pair.c1(dim)==Ngrid(dim) || pair.c2(dim)==Ngrid(dim)){
                 return false;
             }
-            pair.wrapped(dim) = 1;
+            if(periodic_dims(dim)) pair.wrapped(dim) = 1;
             continue;
         }
 

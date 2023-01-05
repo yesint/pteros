@@ -52,8 +52,8 @@ DistanceSearchContacts2sel::DistanceSearchContacts2sel(float d,
     is_periodic = (pbc.array()!=0).any();
     abs_index = absolute_index;
 
-    if(sel1.get_system() != sel2.get_system())
-        throw PterosError("Selections for distance search should be from the same system!");
+    //if(sel1.get_system() != sel2.get_system())
+    //    throw PterosError("Selections for distance search should be from the same system!");
 
     box = sel1.box();
     pairs = &res_pairs;
