@@ -102,11 +102,11 @@ void make_bindings_Membrane(py::module& m){
         .def("compute_triangulation",&LipidMembrane::compute_triangulation)
         .def("write_averages",&LipidMembrane::write_averages,"path"_a=".")
         .def("write_vmd_visualization",&LipidMembrane::write_vmd_visualization,"path"_a=".")
-        .def("get_interpolation",[](LipidMembrane* lm, const Selection& points){
+        .def("get_interpolation",[](LipidMembrane* lm, const Selection& points, float d){
             std::vector<InterpolatedPoint> res;
-            lm->get_interpolation(points,res);
+            lm->get_interpolation(points,res,d);
             return res;
-        })
+        }, "points"_a, "d"_a=3.0)
 
         .def_readonly("lipids",&LipidMembrane::lipids)
     ;

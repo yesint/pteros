@@ -44,7 +44,9 @@ namespace pteros {
 void mean_std_from_accumulated(Eigen::Vector2f& storage, float N);
 
 struct InterpolatedPoint {
-    InterpolatedPoint(): normal(Eigen::Vector3f::Zero()) {}
+    InterpolatedPoint():
+        normal(Eigen::Vector3f::Zero()),
+        mean_curvature(0.0) {}
 
     Eigen::Vector3f normal;
     float mean_curvature;
@@ -69,7 +71,7 @@ public:
 
     // Get waighting coefficients of lipids for interpolating properties
     // in given points.
-    void get_interpolation(const Selection& points, std::vector<InterpolatedPoint>& res);
+    void get_interpolation(const Selection& points, std::vector<InterpolatedPoint>& res, float d=3.0);
 
     /// Returns matrix (n_shells,2)
     /// Each n-th row is averaged curvatures over neigbour shells up to n
