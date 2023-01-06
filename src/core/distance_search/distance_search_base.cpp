@@ -74,24 +74,29 @@ bool DistanceSearchBase::process_neighbour_pair(PlannedPair& pair){
         // Corner cases:
         // Size 1
         if(Ngrid(dim)==1){
-            // Don't use if not inside regardless of periodicity
+            // Always ignore any pairs beyond size
             if(pair.c1(dim)!=0 || pair.c2(dim)!=0) return false;
-
-            // For valid pair (c1==c2) set periodicity
+            // For valid pair 0:0 set periodicity
             if(periodic_dims(dim)) pair.wrapped(dim) = 1;
             continue;
         }
 
-        // For size 2 always ignore any pairs beyond size even if periodic
-        // and set forced periodicity for all valid pairs
+        // Size 2
         if(Ngrid(dim)==2){
+            // Always ignore any pairs beyond size
             if(pair.c1(dim)==Ngrid(dim) || pair.c2(dim)==Ngrid(dim)){
                 return false;
             }
-            if(periodic_dims(dim)) pair.wrapped(dim) = 1;
+            // Set periodicity for 0:1 and 1:0 valid pairs
+            // For 0:0 and 1:1 pairs no periodicity is needed
+            if(periodic_dims(dim) && pair.c1(dim)!=pair.c2(dim)){
+                pair.wrapped(dim) = 1;
+            }
             continue;
         }
 
+
+        // Usual case
         if(pair.c1(dim)==Ngrid(dim)){ // point beyond the right edge
             if(periodic_dims(dim)){
                 pair.c1(dim) = pair.c1(dim) % Ngrid(dim); // Wrap this dimension
