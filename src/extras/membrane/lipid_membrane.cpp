@@ -70,10 +70,11 @@ LipidMembrane::LipidMembrane(const System *sys,
                              int ngroups,
                              const vector<LipidSpecies>& sp_list,
                              const Selection &incl,
-                             float incl_h_cutoff)
+                             float incl_h_cutoff, bool per_carb_normals)
 {
     log = create_logger("membrane");
     system_ptr = sys;
+    per_carbon_normals = per_carb_normals;
 
     // Add all lipid species provided
     for(auto& sp: sp_list) register_lipid_species(sp);
@@ -99,13 +100,25 @@ LipidMembrane::LipidMembrane(const System *sys,
 
     // Create selection for all surf marker
     all_surf_sel = surf_sys.select_all();
-    /*
-    all_surf_sel.set_system(*system_ptr);
-    vector<int> ind;
-    ind.reserve(lipids.size());
-    for(auto& lip: lipids) ind.push_back(lip.surf_marker_sel.index(0));
-    all_surf_sel.modify(ind);
-    */
+
+    // If asked for per-carbon normals make a selection of all tail carbons
+    if(per_carbon_normals){
+        vector<int> carbons;
+        for(auto& lip: lipids){
+            for(auto& t: lip.tails){
+                // Resize index array for this tail
+                t.c_indexes.reserve(t.get_descr().size());
+                // Add indexes to global vector and local tail indexes
+                for(int offset: t.get_descr().c_offsets){
+                    carbons.push_back(lip.whole_sel.index(offset));
+                    t.c_indexes.push_back(carbons.size()-1);
+                }
+            }
+        }
+        // Make selection
+        all_tails_sel.modify(*system_ptr,carbons);
+        log->info("Per-atom normals requested for {} tail carbons",all_tails_sel.size());
+    }
 }
 
 
@@ -119,7 +132,7 @@ void LipidMembrane::register_lipid_species(const LipidSpecies &sp)
     log->info("There are {} {} lipids in the system", res.size(),sp.name);
     // Add lipids
     int id = lipids.size();
-    for(int i=0; i<res.size(); ++i){
+    for(size_t i=0; i<res.size(); ++i){
         // For the first lipid of this kind initialize
         // structure-dependent data in LipidSpecies
         if(i==0) species.back().init(res[i]);
@@ -350,6 +363,8 @@ void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_ty
         }
 
     } // for lipids
+
+    // If asked make normal interpolation for all tail atoms used for order calculation
 
     // Process groups
     for(auto& gr: groups){

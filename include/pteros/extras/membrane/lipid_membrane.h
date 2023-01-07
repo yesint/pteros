@@ -63,7 +63,8 @@ public:
                   int ngroups,
                   const std::vector<LipidSpecies> &sp_list,
                   const Selection& incl = {},
-                  float incl_h_cutoff = 0.5
+                  float incl_h_cutoff = 0.5,
+                  bool per_carb_normals=false
                   );
 
     void reset_groups();
@@ -100,6 +101,9 @@ private:
 
     Selection inclusion;
     float inclusion_h_cutoff;
+
+    bool per_carbon_normals;
+    Selection all_tails_sel;
 
     void register_lipid_species(const LipidSpecies &sp);
 };

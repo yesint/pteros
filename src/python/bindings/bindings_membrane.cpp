@@ -91,9 +91,11 @@ void make_bindings_Membrane(py::module& m){
     ;
 
     py::class_<LipidMembrane>(m,"LipidMembrane")
-        .def(py::init<System*,int,const std::vector<LipidSpecies>&>())
-        .def(py::init<System*,int,const std::vector<LipidSpecies>&,const Selection&>())
-        .def(py::init<System*,int,const std::vector<LipidSpecies>&,const Selection&,float>())
+        //.def(py::init<System*,int,const std::vector<LipidSpecies>&>())
+        //.def(py::init<System*,int,const std::vector<LipidSpecies>&,const Selection&>())
+        //.def(py::init<System*,int,const std::vector<LipidSpecies>&,const Selection&,float>())
+        .def(py::init<System*,int,const std::vector<LipidSpecies>&,const Selection&,float,bool>(),
+             "sys"_a,"ngroups"_a,"sp_list"_a,"incl"_a=Selection(),"incl_h_cutoff"_a=0.5,"per_carb_normals"_a=false)
 
         .def("compute_properties",&LipidMembrane::compute_properties,
              "d"_a=2.0, "incl_d"_a=0.5, "order_type"_a=OrderType::SCD_CORR)

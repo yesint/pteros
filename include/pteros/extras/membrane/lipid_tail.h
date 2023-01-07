@@ -25,9 +25,18 @@ public:
     // Dihedral angles. Size N-3
     Eigen::ArrayXf dihedrals;
 
+    // Indexes of carbons in selection of all tail atoms
+    std::vector<int> c_indexes;
+
+    // normals could be used to pass either one vector (one column)
+    // or an interpolated normal for each tail carbon atom.
+    // In the later case each column corresponds to one carbon
     void compute_order_and_dihedrals(const Selection& whole_lipid_sel,
-                                     Vector3f_const_ref normal,
+                                     MatrixXf_const_ref normals,
                                      OrderType order_type = OrderType::SCD_CORR);
+
+    const LipidTailDescr& get_descr(){return *descr_ptr;}
+
 private:
     LipidTailDescr* descr_ptr;
 };
