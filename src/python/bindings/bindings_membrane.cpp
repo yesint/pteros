@@ -87,6 +87,7 @@ void make_bindings_Membrane(py::module& m){
         .def_readonly("neib_lipids",&InterpolatedPoint::neib_lipids)
         .def_readonly("weights",&InterpolatedPoint::weights)
         .def_readonly("mean_curvature",&InterpolatedPoint::mean_curvature)
+        .def_readonly("mean_depth",&InterpolatedPoint::mean_depth)
     ;
 
     py::class_<LipidMembrane>(m,"LipidMembrane")

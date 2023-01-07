@@ -359,9 +359,17 @@ void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_ty
 
 struct InterpData {
     int lip_ind; // Lipid index
-    float dist; // Distance from lipid
+    float surf_dist; // Distance from lipid surf marker
+    float norm_dist; // Distance from lipid normal
     float depth; // Depth along the normal
 };
+
+float gaussian(float x, float m, float s)
+{
+    static const float inv_sqrt_2pi = 0.3989422804014327;
+    float a = (x - m) / s;
+    return inv_sqrt_2pi / s * std::exp(-0.5f * a * a);
+}
 
 void LipidMembrane::get_interpolation(const Selection &points, vector<InterpolatedPoint>& res, float d)
 {
@@ -380,7 +388,7 @@ void LipidMembrane::get_interpolation(const Selection &points, vector<Interpolat
     vector<vector<InterpData>> con(points.size());
     for(size_t i=0;i<bon.size();++i){
         //                        lipid      dist     not used yet
-        con[bon[i](0)].push_back({bon[i](1), dist[i], 0.0});
+        con[bon[i](0)].push_back({bon[i](1), dist[i], 0.0, 0.0});
     }
 
     for(int p=0; p<points.size(); ++p){
@@ -388,29 +396,111 @@ void LipidMembrane::get_interpolation(const Selection &points, vector<Interpolat
         if(con[p].size()<1) throw PterosError("Can't interpolate, d={} is too small",d);
 
         // Sort neigporing lipids by the distance to current point p
-        std::sort(con[p].begin(),con[p].end(),[](auto const& a, auto const& b){return a.dist<b.dist;});
+        std::sort(con[p].begin(),con[p].end(),[](auto const& a, auto const& b){return a.surf_dist<b.surf_dist;});
 
-        // For the first lipid compute distance from normal and depth
-        auto& el = con[p][0];
-        auto const& x1 = all_surf_sel.xyz(el.lip_ind);
-        auto const& x2 = x1+lipids[el.lip_ind].normal;
-        auto const& x0 = points.xyz(p);
-        // Formula for distance from: https://mathworld.wolfram.com/Point-LineDistance3-Dimensional.html
-        // no need to divide by /(x2-x1).norm() because lipid normal is already normalized
-        el.dist = (system_ptr->box().shortest_vector(x1,x0).cross(system_ptr->box().shortest_vector(x2,x0))).norm();
-        // Formula for scalar projection from: https://en.wikipedia.org/wiki/Dot_product#Scalar_projection_and_first_properties
-        el.depth = system_ptr->box().shortest_vector(x1,x0).dot(lipids[el.lip_ind].normal);
+        // Keep only those lipids which have the same normal orientation as the closest one
+        // (filter the accidental inclusion of the opposite monolayer)
+        auto const& n0 = lipids[con[p][0].lip_ind].normal;
+        for(auto& el: con[p]){
+            if(angle_between_vectors(lipids[el.lip_ind].normal,n0)>M_PI_2){
+                el.lip_ind = -1; // Indicates that this lipid is not valid
+            }
+        }
 
-        float c = lipids[el.lip_ind].mean_curvature;
-        // Negative curvature
-        // c_new = -1/( 1/(-c) + d ) = c/(1-cd)
-        // Positive curvature
-        // c_new = 1/( 1/c -d ) = c/(1-cd)
-        // Zero curvature is covered as well
-        //res[p].mean_curvature = c / (1.0-c*el.depth);
-        res[p].mean_curvature = c;
-        //res[p].mean_curvature += el.depth;
+        // For all valid lipids compute distance from normal and depth
+        // Also compute min and max distances
+        //float min_dist = 1e6;
+        //float max_dist = -1e6;
+        auto const& box = system_ptr->box();
+        for(auto& el: con[p]){
+            if(el.lip_ind>=0){
+                auto const& x1 = all_surf_sel.xyz(el.lip_ind);
+                auto const& x2 = x1+lipids[el.lip_ind].normal;
+                auto const& x0 = points.xyz(p);
+                // Formula for distance from: https://mathworld.wolfram.com/Point-LineDistance3-Dimensional.html
+                // no need to divide by /(x2-x1).norm() because lipid normal is already normalized
+                el.norm_dist = (box.shortest_vector(x1,x0).cross(box.shortest_vector(x2,x0))).norm();
+                // Formula for scalar projection from: https://en.wikipedia.org/wiki/Dot_product#Scalar_projection_and_first_properties
+                el.depth = box.shortest_vector(x1,x0).dot(lipids[el.lip_ind].normal);
+                //if(el.depth>d)
+                //    fmt::print("{} {} p={} lip={}\n", el.dist, el.depth, points.index(p), lipids[el.lip_ind].surf_marker_sel.index(0));
+                //if(el.norm_dist<min_dist) min_dist = el.dist;
+                //if(el.dist>max_dist) max_dist = el.dist;
+            }
+        }
+
+        int l = con[p][0].lip_ind;
+        float sumw = 0.0;
+        float sumw1 = 0.0;
+        float mean_c = 0.0;
+        for(auto& el: con[p]){
+            if(el.lip_ind>=0){
+                //float w = (max_dist-el.dist)/(max_dist-min_dist);
+                float w = gaussian(el.norm_dist,0.0,0.5);
+                float w1 = gaussian(el.surf_dist,0.0,0.5);
+                sumw += w;
+                sumw1 += w1;
+                res[p].neib_lipids.push_back(el.lip_ind);
+                res[p].weights.push_back(w);
+                res[p].normal += lipids[el.lip_ind].normal * w;
+
+                float c = lipids[el.lip_ind].mean_curvature;
+                // Negative curvature
+                // c_new = -1/( 1/(-c) + d ) = c/(1-cd)
+                // Positive curvature
+                // c_new = 1/( 1/c -d ) = c/(1-cd)
+                // Zero curvature is covered as well
+                //res[p].mean_curvature += w * c / (1.0-c*el.depth);
+
+                mean_c += w1 * lipids[el.lip_ind].mean_curvature;
+                res[p].mean_depth += w * el.depth;
+
+                //res[p].mean_curvature += w*lipids[l].mean_curvature / (1.0-lipids[l].mean_curvature*el.depth);
+            }
+        }
+
+        // Normalize
+        for(auto& v: res[p].weights) v /= sumw;
+        res[p].normal /= sumw;
+        res[p].mean_depth /= sumw;
+        mean_c /= sumw1;
+
+
+        if(mean_c>0)
+            res[p].mean_curvature = mean_c/ (1.0-mean_c * res[p].mean_depth);
+        else
+            res[p].mean_curvature = mean_c/ (1.0+mean_c * res[p].mean_depth);
+
+
+        /*
+        if(res[p].mean_curvature>0){
+            res[p].mean_curvature = res[p].mean_curvature / (1.0+res[p].mean_curvature*res[p].mean_depth);
+        } else {
+            res[p].mean_curvature = res[p].mean_curvature / (1.0-abs(res[p].mean_curvature)*res[p].mean_depth);
+        }
+        */
     } // over points
+
+    //Print normals
+    string s = "";
+    s+="draw materials on\n";
+    s+="draw material Diffuse\n";
+    // Patch normals
+    for(int p=0; p<points.size(); ++p){
+        Vector3f p1 = points.xyz(p);
+        Vector3f p2 = p1 + res[p].normal*0.3;
+        Vector3f p3 = p1 + res[p].normal*0.4;
+        s += fmt::format("draw color {}\n",points.resid(p)%32);
+        s += fmt::format("draw cylinder \"{} {} {}\" \"{} {} {}\" radius 0.1 resolution 12\n",
+                            10*p1.x(),10*p1.y(),10*p1.z(),
+                            10*p2.x(),10*p2.y(),10*p2.z() );
+        s += fmt::format("draw cone \"{} {} {}\" \"{} {} {}\" radius 0.2 resolution 12\n",
+                            10*p2.x(),10*p2.y(),10*p2.z(),
+                            10*p3.x(),10*p3.y(),10*p3.z() );
+    }
+    auto f = fmt::output_file("interpolated.tcl");
+    f.print("{}",s);
+    f.close();
 }
 
 MatrixXf LipidMembrane::get_average_curvatures(int lipid, int n_shells)

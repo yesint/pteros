@@ -46,10 +46,13 @@ void mean_std_from_accumulated(Eigen::Vector2f& storage, float N);
 struct InterpolatedPoint {
     InterpolatedPoint():
         normal(Eigen::Vector3f::Zero()),
-        mean_curvature(0.0) {}
+        mean_curvature(0.0),
+        mean_depth(0.0)
+    {}
 
     Eigen::Vector3f normal;
     float mean_curvature;
+    float mean_depth;
     std::vector<int> neib_lipids;
     std::vector<float> weights;
 };
