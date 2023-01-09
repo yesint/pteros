@@ -25,9 +25,6 @@ public:
     // Dihedral angles. Size N-3
     Eigen::ArrayXf dihedrals;
 
-    // Indexes of carbons in selection of all tail atoms
-    std::vector<int> c_indexes;
-
     // normals could be used to pass either one vector (one column)
     // or an interpolated normal for each tail carbon atom.
     // In the later case each column corresponds to one carbon

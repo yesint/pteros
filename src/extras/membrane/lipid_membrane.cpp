@@ -49,6 +49,13 @@ using namespace std;
 using namespace pteros;
 using namespace Eigen;
 
+struct InterpData {
+    int lip_ind; // Lipid index
+    float surf_dist; // Distance from lipid surf marker
+    float norm_dist; // Distance from lipid normal
+    float depth; // Depth along the normal
+};
+
 
 string tcl_arrow(Vector3f_const_ref p1, Vector3f_const_ref p2, float r, string color){
     stringstream ss;
@@ -70,11 +77,13 @@ LipidMembrane::LipidMembrane(const System *sys,
                              int ngroups,
                              const vector<LipidSpecies>& sp_list,
                              const Selection &incl,
-                             float incl_h_cutoff, bool per_carb_normals)
+                             float incl_h_cutoff, bool per_carb_normals):
+    system_ptr(sys),
+    inclusion(incl),
+    inclusion_h_cutoff(incl_h_cutoff),
+    per_carbon_normals(per_carb_normals)
 {
     log = create_logger("membrane");
-    system_ptr = sys;
-    per_carbon_normals = per_carb_normals;
 
     // Add all lipid species provided
     for(auto& sp: sp_list) register_lipid_species(sp);
@@ -83,10 +92,6 @@ LipidMembrane::LipidMembrane(const System *sys,
     groups.reserve(ngroups);
     for(int i=0;i<ngroups;++i) groups.emplace_back(this,i);
     log->info("{} groups created",ngroups);
-
-    // Make local copies of inclusion selection
-    inclusion = incl;
-    inclusion_h_cutoff = incl_h_cutoff;
 
     // Print statictics
     log->info("Total number of lipids: {}",lipids.size());
@@ -106,17 +111,31 @@ LipidMembrane::LipidMembrane(const System *sys,
         vector<int> carbons;
         for(auto& lip: lipids){
             for(auto& t: lip.tails){
-                // Resize index array for this tail
-                t.c_indexes.reserve(t.get_descr().size());
-                // Add indexes to global vector and local tail indexes
+                // Add indexes to global vector
                 for(int offset: t.get_descr().c_offsets){
                     carbons.push_back(lip.whole_sel.index(offset));
-                    t.c_indexes.push_back(carbons.size()-1);
                 }
             }
         }
+
+
         // Make selection
         all_tails_sel.modify(*system_ptr,carbons);
+        // Lipids may appear in all_tails_sel in any order
+        // (depending how they appear in species)
+        // so we need a mapping
+        // This is slow, but done only once on initialization
+        /*
+        for(auto& lip: lipids){
+            for(auto& t: lip.tails){
+                t.c_mapping.reserve(t.get_descr().c_offsets.size());
+                for(int offset: t.get_descr().c_offsets){
+                    int ind = all_tails_sel.find_index(lip.whole_sel.index(0)+offset);
+                    t.c_mapping.push_back(ind);
+                }
+            }
+        }
+        */
         log->info("Per-atom normals requested for {} tail carbons",all_tails_sel.size());
     }
 }
@@ -365,19 +384,16 @@ void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_ty
     } // for lipids
 
     // If asked make normal interpolation for all tail atoms used for order calculation
+    if(per_carbon_normals){
+        vector<InterpolatedPoint> interp;
+        get_interpolation(all_tails_sel,interp);
+    }
 
     // Process groups
     for(auto& gr: groups){
         gr.process_frame();
     }
 }
-
-struct InterpData {
-    int lip_ind; // Lipid index
-    float surf_dist; // Distance from lipid surf marker
-    float norm_dist; // Distance from lipid normal
-    float depth; // Depth along the normal
-};
 
 float gaussian(float x, float m, float s)
 {
@@ -410,12 +426,19 @@ void LipidMembrane::get_interpolation(const Selection &points, vector<Interpolat
         // Sanity check
         if(con[p].size()<1) throw PterosError("Can't interpolate, d={} is too small",d);
 
-        // Sort neigporing lipids by the distance to current point p
-        std::sort(con[p].begin(),con[p].end(),[](auto const& a, auto const& b){return a.surf_dist<b.surf_dist;});
+        // Find the closest lipid
+        int closest_ind = -1;
+        float min_dist = 1e6;
+        for(int i=0;i<con[p].size();++i){
+            if(con[p][i].surf_dist<min_dist){
+                min_dist = con[p][i].surf_dist;
+                closest_ind = i;
+            }
+        }
 
         // Keep only those lipids which have the same normal orientation as the closest one
         // (filter the accidental inclusion of the opposite monolayer)
-        auto const& n0 = lipids[con[p][0].lip_ind].normal;
+        auto const& n0 = lipids[con[p][closest_ind].lip_ind].normal;
         for(auto& el: con[p]){
             if(angle_between_vectors(lipids[el.lip_ind].normal,n0)>M_PI_2){
                 el.lip_ind = -1; // Indicates that this lipid is not valid
@@ -423,9 +446,6 @@ void LipidMembrane::get_interpolation(const Selection &points, vector<Interpolat
         }
 
         // For all valid lipids compute distance from normal and depth
-        // Also compute min and max distances
-        //float min_dist = 1e6;
-        //float max_dist = -1e6;
         auto const& box = system_ptr->box();
         for(auto& el: con[p]){
             if(el.lip_ind>=0){
@@ -437,40 +457,25 @@ void LipidMembrane::get_interpolation(const Selection &points, vector<Interpolat
                 el.norm_dist = (box.shortest_vector(x1,x0).cross(box.shortest_vector(x2,x0))).norm();
                 // Formula for scalar projection from: https://en.wikipedia.org/wiki/Dot_product#Scalar_projection_and_first_properties
                 el.depth = box.shortest_vector(x1,x0).dot(lipids[el.lip_ind].normal);
-                //if(el.depth>d)
-                //    fmt::print("{} {} p={} lip={}\n", el.dist, el.depth, points.index(p), lipids[el.lip_ind].surf_marker_sel.index(0));
-                //if(el.norm_dist<min_dist) min_dist = el.dist;
-                //if(el.dist>max_dist) max_dist = el.dist;
             }
         }
 
-        int l = con[p][0].lip_ind;
         float sumw = 0.0;
-        float sumw1 = 0.0;
+        float sumw_c = 0.0;
         float mean_c = 0.0;
         for(auto& el: con[p]){
             if(el.lip_ind>=0){
-                //float w = (max_dist-el.dist)/(max_dist-min_dist);
+                // Small gaussian width to include only very close normals
                 float w = gaussian(el.norm_dist,0.0,0.5);
-                float w1 = gaussian(el.surf_dist,0.0,0.5);
+                // For curvature use broader gaussian for better averaging
+                float w1 = gaussian(el.surf_dist,0.0,2.5);
                 sumw += w;
-                sumw1 += w1;
+                sumw_c += w1;
                 res[p].neib_lipids.push_back(el.lip_ind);
                 res[p].weights.push_back(w);
                 res[p].normal += lipids[el.lip_ind].normal * w;
-
-                float c = lipids[el.lip_ind].mean_curvature;
-                // Negative curvature
-                // c_new = -1/( 1/(-c) + d ) = c/(1-cd)
-                // Positive curvature
-                // c_new = 1/( 1/c -d ) = c/(1-cd)
-                // Zero curvature is covered as well
-                //res[p].mean_curvature += w * c / (1.0-c*el.depth);
-
-                mean_c += w1 * lipids[el.lip_ind].mean_curvature;
                 res[p].mean_depth += w * el.depth;
-
-                //res[p].mean_curvature += w*lipids[l].mean_curvature / (1.0-lipids[l].mean_curvature*el.depth);
+                mean_c += w1 * lipids[el.lip_ind].mean_curvature;
             }
         }
 
@@ -478,24 +483,15 @@ void LipidMembrane::get_interpolation(const Selection &points, vector<Interpolat
         for(auto& v: res[p].weights) v /= sumw;
         res[p].normal /= sumw;
         res[p].mean_depth /= sumw;
-        mean_c /= sumw1;
-
+        mean_c /= sumw_c;
 
         if(mean_c>0)
             res[p].mean_curvature = mean_c/ (1.0-mean_c * res[p].mean_depth);
         else
             res[p].mean_curvature = mean_c/ (1.0+mean_c * res[p].mean_depth);
-
-
-        /*
-        if(res[p].mean_curvature>0){
-            res[p].mean_curvature = res[p].mean_curvature / (1.0+res[p].mean_curvature*res[p].mean_depth);
-        } else {
-            res[p].mean_curvature = res[p].mean_curvature / (1.0-abs(res[p].mean_curvature)*res[p].mean_depth);
-        }
-        */
     } // over points
 
+    /*
     //Print normals
     string s = "";
     s+="draw materials on\n";
@@ -516,6 +512,7 @@ void LipidMembrane::get_interpolation(const Selection &points, vector<Interpolat
     auto f = fmt::output_file("interpolated.tcl");
     f.print("{}",s);
     f.close();
+    */
 }
 
 MatrixXf LipidMembrane::get_average_curvatures(int lipid, int n_shells)
