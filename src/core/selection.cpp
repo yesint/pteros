@@ -229,6 +229,11 @@ void Selection::append(int ind){
     parser.reset();
 }
 
+void Selection::append_unchecked(int ind)
+{
+    _index.push_back(ind);
+}
+
 void Selection::append(const std::vector<Selection> &sel_vec)
 {
     if(!system) throw PterosError("Can't append to selection with undefined system!");

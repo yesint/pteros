@@ -107,8 +107,9 @@ void make_bindings_Membrane(py::module& m){
         .def("write_vmd_visualization",&LipidMembrane::write_vmd_visualization,"path"_a=".")
         .def("get_interpolation",[](LipidMembrane* lm, const Selection& points, float d){
             std::vector<InterpolatedPoint> res;
-            lm->get_interpolation(points,res,d);
-            return res;
+            Eigen::MatrixXf m;
+            lm->get_interpolation(points,res,m,d);
+            return py::make_tuple(res,m);
         }, "points"_a, "d"_a=3.0)
 
         .def_readonly("lipids",&LipidMembrane::lipids)

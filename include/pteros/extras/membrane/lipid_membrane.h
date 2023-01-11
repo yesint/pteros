@@ -75,7 +75,7 @@ public:
 
     // Get waighting coefficients of lipids for interpolating properties
     // in given points.
-    void get_interpolation(const Selection& points, std::vector<InterpolatedPoint>& res, float d=3.0);
+    void get_interpolation(const Selection& points, std::vector<InterpolatedPoint>& res, Eigen::MatrixXf& normals, float d=3.0);
 
     /// Returns matrix (n_shells,2)
     /// Each n-th row is averaged curvatures over neigbour shells up to n
@@ -92,6 +92,8 @@ public:
     std::vector<LipidGroup> groups;
     std::vector<LipidSpecies> species;
 
+    bool per_carbon_normals;
+
 private:
     const System* system_ptr; // Parent system
     std::shared_ptr<spdlog::logger> log;
@@ -102,7 +104,6 @@ private:
     Selection inclusion;
     float inclusion_h_cutoff;
 
-    bool per_carbon_normals;
     Selection all_tails_sel;
 
     void register_lipid_species(const LipidSpecies &sp);

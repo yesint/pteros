@@ -202,6 +202,7 @@ class Selection {
 
     /// Append absolute index to selection
     void append(int ind);
+    void append_unchecked(int ind);
 
     /// Append several selections to this one
     void append(const std::vector<Selection>& sel_vec);

@@ -18,24 +18,26 @@ enum struct OrderType {
 
 class LipidTail {
 public:
-    LipidTail(LipidTailDescr* descr);
+    LipidTail(LipidTailDescr* descr, bool per_atom_norms);
     // Order parameters. Size N-2
     Eigen::ArrayXf order;
 
     // Dihedral angles. Size N-3
     Eigen::ArrayXf dihedrals;
 
-    // normals could be used to pass either one vector (one column)
-    // or an interpolated normal for each tail carbon atom.
-    // In the later case each column corresponds to one carbon
+    // normals could be used to pass either one vector (one column)    
+    // or global array for all tails atoms
     void compute_order_and_dihedrals(const Selection& whole_lipid_sel,
                                      MatrixXf_const_ref normals,
                                      OrderType order_type = OrderType::SCD_CORR);
 
     const LipidTailDescr& get_descr(){return *descr_ptr;}
 
+    size_t first_global_index;
+
 private:
     LipidTailDescr* descr_ptr;
+    bool per_atom_normals;
 };
 
 }

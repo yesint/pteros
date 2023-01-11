@@ -8,12 +8,14 @@ using namespace pteros;
 using namespace Eigen;
 
 
-LipidTail::LipidTail(LipidTailDescr *descr)
+LipidTail::LipidTail(LipidTailDescr *descr, bool per_atom_norms):
+    descr_ptr(descr),
+    per_atom_normals(per_atom_norms)
 {
-    descr_ptr = descr;
     order.resize(descr_ptr->size()-2);
     dihedrals.resize(descr_ptr->size()-3);
 }
+
 
 /**
  * Formulas are taken from:
@@ -30,10 +32,8 @@ void LipidTail::compute_order_and_dihedrals(const Selection &whole_lipid_sel,
     bool per_atom_normals;
     if(normals.cols()==1){
         per_atom_normals = false;
-    } else if(normals.cols()==N) {
-        per_atom_normals = true;
     } else {
-        throw PterosError("Invalid number of per-carbon normals: {} expected 1 or {}",normals.cols(),N);
+        per_atom_normals = true;
     }
 
     // Compute order
@@ -50,8 +50,8 @@ void LipidTail::compute_order_and_dihedrals(const Selection &whole_lipid_sel,
             // Vector from at+1 to at-1
             auto coord1 = whole_lipid_sel.xyz(descr_ptr->c_offsets[at+1]);
             auto coord2 = whole_lipid_sel.xyz(descr_ptr->c_offsets[at-1]);
-            float ang = per_atom_normals ? angle_between_vectors(coord1-coord2,normals.col(at))
-                                         : angle_between_vectors(coord1-coord2,normals.col(0));
+            auto const& n = per_atom_normals ? normals.col(first_global_index+at) : normals.col(0);
+            float ang = angle_between_vectors(coord1-coord2,n);
             order[at-1] = 1.5*pow(cos(ang),2)-0.5;
         }
     } else {
@@ -79,7 +79,7 @@ void LipidTail::compute_order_and_dihedrals(const Selection &whole_lipid_sel,
                     Vector3f local_x = ((p1-p2).cross(p3-p2)).normalized();
                     Vector3f local_y = local_x.cross(local_z);
 
-                    auto const& n = per_atom_normals ? normals.col(i+1) : normals.col(0);
+                    auto const& n = per_atom_normals ? normals.col(first_global_index+i+1) : normals.col(0);
                     float ang_x = angle_between_vectors(local_x,n);
                     float ang_y = angle_between_vectors(local_y,n);
                     float Sxx = 0.5*(3.0*pow(cos(ang_x),2)-1.0);
@@ -125,7 +125,7 @@ void LipidTail::compute_order_and_dihedrals(const Selection &whole_lipid_sel,
                 Vector3f local_x = ((p1-p2).cross(local_z)).normalized();
                 Vector3f local_y = local_x.cross(local_z);
                 //float ang_x = angle_between_vectors(local_x,normal);
-                const auto& n1 = per_atom_normals ? normals.col(i) : normals.col(0);
+                const auto& n1 = per_atom_normals ? normals.col(first_global_index+i) : normals.col(0);
                 float ang_y = angle_between_vectors(local_y,n1);
                 float ang_z = angle_between_vectors(local_z,n1);
                 float Szz = 0.5*(3.0*pow(cos(ang_z),2)-1.0);
@@ -145,7 +145,7 @@ void LipidTail::compute_order_and_dihedrals(const Selection &whole_lipid_sel,
                 local_x = ((p3-p4).cross(local_z)).normalized();
                 local_y = local_x.cross(local_z);
                 //ang_x = angle_between_vectors(local_x,normal);
-                const auto& n2 = per_atom_normals ? normals.col(i+1) : normals.col(0);
+                const auto& n2 = per_atom_normals ? normals.col(first_global_index+i+1) : normals.col(0);
                 ang_y = angle_between_vectors(local_y,n2);
                 ang_z = angle_between_vectors(local_z,n2);
                 Szz = 0.5*(3.0*pow(cos(ang_z),2)-1.0);

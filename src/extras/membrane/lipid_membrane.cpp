@@ -108,34 +108,17 @@ LipidMembrane::LipidMembrane(const System *sys,
 
     // If asked for per-carbon normals make a selection of all tail carbons
     if(per_carbon_normals){
-        vector<int> carbons;
+        all_tails_sel.set_system(*system_ptr);
         for(auto& lip: lipids){
             for(auto& t: lip.tails){
-                // Add indexes to global vector
+                t.first_global_index = all_tails_sel.size();
+                // Add indexes of this tail to global vector
                 for(int offset: t.get_descr().c_offsets){
-                    carbons.push_back(lip.whole_sel.index(offset));
+                    all_tails_sel.append_unchecked(lip.whole_sel.index(offset));
                 }
             }
         }
 
-
-        // Make selection
-        all_tails_sel.modify(*system_ptr,carbons);
-        // Lipids may appear in all_tails_sel in any order
-        // (depending how they appear in species)
-        // so we need a mapping
-        // This is slow, but done only once on initialization
-        /*
-        for(auto& lip: lipids){
-            for(auto& t: lip.tails){
-                t.c_mapping.reserve(t.get_descr().c_offsets.size());
-                for(int offset: t.get_descr().c_offsets){
-                    int ind = all_tails_sel.find_index(lip.whole_sel.index(0)+offset);
-                    t.c_mapping.push_back(ind);
-                }
-            }
-        }
-        */
         log->info("Per-atom normals requested for {} tail carbons",all_tails_sel.size());
     }
 }
@@ -374,19 +357,28 @@ void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_ty
         // Coordination number
         lip.coord_number = lip.neib.size();
 
-        // Tail properties
-        for(auto& t: lip.tails){
-            t.compute_order_and_dihedrals(lip.whole_sel,
-                                          lip.normal,
-                                          order_type);
-        }
-
     } // for lipids
 
     // If asked make normal interpolation for all tail atoms used for order calculation
+    MatrixXf c_normals;
     if(per_carbon_normals){
-        vector<InterpolatedPoint> interp;
-        get_interpolation(all_tails_sel,interp);
+        vector<InterpolatedPoint> interp;        
+        get_interpolation(all_tails_sel,interp,c_normals);
+    }
+
+    for(auto& lip: lipids){
+        // Tail properties
+        for(auto& t: lip.tails){
+            if(per_carbon_normals){
+                t.compute_order_and_dihedrals(lip.whole_sel,
+                                              c_normals,
+                                              order_type);
+            } else {
+                t.compute_order_and_dihedrals(lip.whole_sel,
+                                              lip.normal,
+                                              order_type);
+            }
+        }
     }
 
     // Process groups
@@ -402,16 +394,20 @@ float gaussian(float x, float m, float s)
     return inv_sqrt_2pi / s * std::exp(-0.5f * a * a);
 }
 
-void LipidMembrane::get_interpolation(const Selection &points, vector<InterpolatedPoint>& res, float d)
+void LipidMembrane::get_interpolation(const Selection &points,
+                                      vector<InterpolatedPoint>& res,
+                                      MatrixXf& normals, float d)
 {
     // Resize coeffs correctly
     res.resize(points.size());
+    normals.resize(3,points.size());
 
     // Find distances between provided points and lipid markers
     // get local indexes
     vector<Vector2i> bon;
     vector<float> dist;
-    search_contacts(d,points,all_surf_sel,bon,dist,false,fullPBC);
+    search_contacts(d, points, all_surf_sel,
+                    bon,dist,false,fullPBC);
 
     // Convert to i->(j,k,l..) keeping distances as well
     // Indexed by point, contains lipid indexes
@@ -484,6 +480,8 @@ void LipidMembrane::get_interpolation(const Selection &points, vector<Interpolat
         res[p].normal /= sumw;
         res[p].mean_depth /= sumw;
         mean_c /= sumw_c;
+
+        normals.col(p) = res[p].normal;
 
         if(mean_c>0)
             res[p].mean_curvature = mean_c/ (1.0-mean_c * res[p].mean_depth);
