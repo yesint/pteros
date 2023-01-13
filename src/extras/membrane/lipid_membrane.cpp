@@ -78,10 +78,11 @@ LipidMembrane::LipidMembrane(const System *sys,
                              const vector<LipidSpecies>& sp_list,
                              const Selection &incl,
                              float incl_h_cutoff, bool per_carb_normals):
+
+    per_carbon_normals(per_carb_normals),
     system_ptr(sys),
     inclusion(incl),
-    inclusion_h_cutoff(incl_h_cutoff),
-    per_carbon_normals(per_carb_normals)
+    inclusion_h_cutoff(incl_h_cutoff)
 {
     log = create_logger("membrane");
 
@@ -114,6 +115,8 @@ LipidMembrane::LipidMembrane(const System *sys,
                 t.first_global_index = all_tails_sel.size();
                 // Add indexes of this tail to global vector
                 for(int offset: t.get_descr().c_offsets){
+                    // We use unchecked variant to create selection index without sorting
+                    // exactly in the order of addition
                     all_tails_sel.append_unchecked(lip.whole_sel.index(offset));
                 }
             }
@@ -858,7 +861,7 @@ void LipidMembrane::write_averages(string path)
                 // Order
                 sp.second.save_order_to_file(file_prefix+"order.dat");
                 // Output order histogram
-                //sp.second.order_hist.save_to_file(file_prefix+"order_hist.dat");
+                sp.second.order_hist.save_to_file(file_prefix+"order_hist.dat");
                 // Around
                 sp.second.save_around_to_file(file_prefix+"around.dat");
             }
