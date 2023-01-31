@@ -26,8 +26,8 @@ public:
     // Return properties table as a string
     std::string properties_table() const;
     // Saves properties to file
-    void save_properties_table_to_file(const std::filesystem::path &path) const;
-    void save_per_species_properties(const std::filesystem::path& path) const;
+    void save_properties_table(const std::filesystem::path &out_dir) const;
+    void save_per_species_properties(const std::filesystem::path& out_dir) const;
 
     // Per group averages (mean,std)
     float num_lipids, num_frames;

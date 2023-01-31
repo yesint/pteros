@@ -154,7 +154,8 @@ namespace pteros {
         MeanStdAccumulator();
         void reset();
         void add_value(float val);
-        Eigen::Vector2d get_mean_std(double custom_n = 0) const;
+        std::pair<double,double> get_mean_std(double custom_n=0) const;
+        std::string to_string(double custom_n=0) const;
         void append(const MeanStdAccumulator& other);
     private:
         Eigen::Vector2d data;

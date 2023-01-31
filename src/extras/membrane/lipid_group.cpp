@@ -55,8 +55,8 @@ string LipidGroup::summary() const
     s += fmt::format("\tNum.lip.:\t{}\n",num_lipids);
 
     if(num_lipids>0){
-        auto v = trans_dihedrals_ratio.get_mean_std();
-        s += fmt::format("\tTrans.Dih.:\t{:>8.3g} ± {:<8.3g}\n", v(0),v(1));
+        auto [mean,std] = trans_dihedrals_ratio.get_mean_std();
+        s += fmt::format("\tTrans.Dih.:\t{:>8.3g} ± {:<8.3g}\n", mean,std);
         s += "\tLipid species:\n";
         for(auto& sp: membr_ptr->species){
             s += fmt::format("\t{}:\n", sp.name);
@@ -80,25 +80,25 @@ string LipidGroup::properties_table() const
         s += fmt::format("{}", sp.name);
         const auto& prop = species_properties.at(sp.name);
         s += fmt::format("\t{: .4f}", 100.0*prop.count/float(num_lipids));
-        auto v = prop.trans_dihedrals_ratio.get_mean_std();
-        s += fmt::format("\t{: .4f}\t{: .4f}", v(0),v(1));
+        auto [mean,std] = prop.trans_dihedrals_ratio.get_mean_std();
+        s += fmt::format("\t{: .4f}\t{: .4f}", mean,std);
         s += "\n";
     }
     return s;
 }
 
-void LipidGroup::save_properties_table_to_file(const std::filesystem::path &path) const
+void LipidGroup::save_properties_table(const std::filesystem::path &out_dir) const
 {
-    auto out = fmt::output_file((path / fmt::format("gr{}_properties.dat",get_id())).native());
+    auto out = fmt::output_file((out_dir / fmt::format("gr{}_properties.dat",get_id())).native());
     out.print(properties_table());
     out.close();
 }
 
-void LipidGroup::save_per_species_properties(const filesystem::path &path) const
+void LipidGroup::save_per_species_properties(const filesystem::path &out_dir) const
 {
     for(auto& [sp_name,sp]: species_properties){
         if(sp.count>0){
-            string file_prefix = path / fmt::format("gr{}_{}_",gr_id,sp_name);
+            string file_prefix = out_dir / fmt::format("gr{}_{}_",gr_id,sp_name);
             // Area
             sp.area_hist.save_to_file(file_prefix + "area.dat");
             // Tilt

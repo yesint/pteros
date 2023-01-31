@@ -422,25 +422,42 @@ void LipidMembrane::get_interpolation(const Selection &points,
     }
 
     for(int p=0; p<points.size(); ++p){
-        // Sanity check
-        if(con[p].size()<1) throw PterosError("Can't interpolate, d={} is too small",d);
 
-        // Find the closest lipid
-        int closest_ind = -1;
-        float min_dist = 1e6;
-        for(int i=0;i<con[p].size();++i){
-            if(con[p][i].surf_dist<min_dist){
-                min_dist = con[p][i].surf_dist;
-                closest_ind = i;
+        if(con[p].size()<1){
+            // This point is too far from the markers
+            // Perform an exhaustive search and take only one nearest lipid
+            float mind = std::numeric_limits<float>::max();
+            int mini = -1;
+            auto const& box = all_surf_sel.box();
+            for(int i=0; i<all_surf_sel.size(); ++i){
+                float d = box.distance(points.xyz(p),all_surf_sel.xyz(i));
+                if(d<mind){
+                    mini = i;
+                    mind = d;
+                }
             }
+            con[p].push_back({mini, mind, 0.0, 0.0});
         }
 
-        // Keep only those lipids which have the same normal orientation as the closest one
-        // (filter the accidental inclusion of the opposite monolayer)
-        auto const& n0 = lipids[con[p][closest_ind].lip_ind].normal;
-        for(auto& el: con[p]){
-            if(angle_between_vectors(lipids[el.lip_ind].normal,n0)>M_PI_2){
-                el.lip_ind = -1; // Indicates that this lipid is not valid
+        // Do normal filtering if more than one neighbour
+        if(con[p].size()>1){
+            // Find the closest lipid
+            int closest_ind = -1;
+            float min_dist = std::numeric_limits<float>::max();
+            for(int i=0;i<con[p].size();++i){
+                if(con[p][i].surf_dist<min_dist){
+                    min_dist = con[p][i].surf_dist;
+                    closest_ind = i;
+                }
+            }
+
+            // Keep only those lipids which have the same normal orientation as the closest one
+            // (filter the accidental inclusion of the opposite monolayer)
+            auto const& n0 = lipids[con[p][closest_ind].lip_ind].normal;
+            for(auto& el: con[p]){
+                if(angle_between_vectors(lipids[el.lip_ind].normal,n0)>M_PI_2){
+                    el.lip_ind = -1; // Indicates that this lipid is not valid
+                }
             }
         }
 
@@ -845,7 +862,7 @@ void LipidMembrane::write_averages(const string& out_dir)
 
     // Write files for species properties
     for(auto const& g: groups){
-        g.save_properties_table_to_file(path);
+        g.save_properties_table(path);
         g.save_per_species_properties(path);
     }
 }

@@ -73,8 +73,7 @@ public:
                             float incl_d = 0.5,
                             OrderType order_type = OrderType::SCD_CORR);
 
-    // Get waighting coefficients of lipids for interpolating properties
-    // in given points.
+    // Interpolating properties in given points.
     void get_interpolation(const Selection& points, std::vector<InterpolatedPoint>& res, Eigen::MatrixXf& normals, float d=3.0);
 
     /// Returns matrix (n_shells,2)

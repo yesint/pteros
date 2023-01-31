@@ -254,7 +254,7 @@ void MeanStdAccumulator::add_value(float val){
     count+=1; // count
 }
 
-Eigen::Vector2d MeanStdAccumulator::get_mean_std(double custom_n) const{
+std::pair<double, double> MeanStdAccumulator::get_mean_std(double custom_n) const{
     double N = (custom_n>0) ? custom_n : count;
     if(N>0){
         const float& s1 = data(0);
@@ -263,6 +263,12 @@ Eigen::Vector2d MeanStdAccumulator::get_mean_std(double custom_n) const{
     } else {
         return {0,0};
     }
+}
+
+string MeanStdAccumulator::to_string(double custom_n) const
+{
+    auto [mean,std] = get_mean_std(custom_n);
+    return fmt::format("{:>8.3g} ± {:<8.3g}", mean,std);
 }
 
 void MeanStdAccumulator::append(const MeanStdAccumulator &other)

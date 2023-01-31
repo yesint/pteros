@@ -147,31 +147,16 @@ void PerSpeciesProperties::post_process(double num_frames)
 
 string PerSpeciesProperties::summary() const
 {
-    string s;
-    Vector2d v;
+    string s;    
     if(count>0){
-        s += fmt::format("\t\tCount:\t\t{:>8g}\n", count);
-
-        v = area.get_mean_std();
-        s += fmt::format("\t\tArea:\t\t{:>8.3g} ± {:<8.3g} nm²\n", v(0),v(1));
-
-        v = tilt.get_mean_std();
-        s += fmt::format("\t\tTilt:\t\t{:>8.3g} ± {:<8.3g} deg\n", v(0),v(1));
-
-        v = coord_number.get_mean_std();
-        s += fmt::format("\t\tCoord.N:\t{:>8.3g} ± {:<8.3g}\n", v(0),v(1));
-
-        v = mono_thickness.get_mean_std();
-        s += fmt::format("\t\tMono.thick.:\t{:>8.3g} ± {:<8.3g} nm\n", v(0),v(1));
-
-        v = mean_curvature.get_mean_std();
-        s += fmt::format("\t\tMean.curv.:\t{:>8.3g} ± {:<8.3g} nm⁻¹\n", v(0),v(1));
-
-        v = gaussian_curvature.get_mean_std();
-        s += fmt::format("\t\tGaus.curv.:\t{:>8.3g} ± {:<8.3g} nm⁻¹\n", v(0),v(1));
-
-        v = trans_dihedrals_ratio.get_mean_std();
-        s += fmt::format("\t\tTrans.Dih.:\t{:>8.3g} ± {:<8.3g}\n", v(0),v(1));
+        s += fmt::format("\t\tCount:\t\t{:>8g}\n", count);        
+        s += fmt::format("\t\tArea:\t\t{} nm²\n", area.to_string());
+        s += fmt::format("\t\tTilt:\t\t{} deg\n", tilt.to_string());
+        s += fmt::format("\t\tCoord.N:\t{}\n", coord_number.to_string());
+        s += fmt::format("\t\tMono.thick.:\t{} nm\n", mono_thickness.to_string());
+        s += fmt::format("\t\tMean.curv.:\t{} nm⁻¹\n", mean_curvature.to_string());
+        s += fmt::format("\t\tGaus.curv.:\t{} nm⁻¹\n", gaussian_curvature.to_string());
+        s += fmt::format("\t\tTrans.Dih.:\t{}\n", trans_dihedrals_ratio.to_string());
     } else {
         s += "\t\tNo data\n";
     }
