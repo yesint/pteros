@@ -51,11 +51,11 @@ public:
     void post_process(double num_frames);
 
     // Returns summary as a string
-    std::string summary();
+    std::string summary() const;
 
     // Save order to file
-    void save_order_to_file(const std::string& fname);
-    void save_around_to_file(const std::string& fname);
+    void save_order_to_file(const std::string& fname) const;
+    void save_around_to_file(const std::string& fname) const;
 
     int num_tails;
 private:    

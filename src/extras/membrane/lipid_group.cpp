@@ -48,7 +48,7 @@ void LipidGroup::post_process()
     }
 }
 
-string LipidGroup::summary()
+string LipidGroup::summary() const
 {
     string s;
     s += fmt::format("Group #{}:\n",gr_id);
@@ -72,7 +72,7 @@ string LipidGroup::summary()
     return s;
 }
 
-string LipidGroup::properties_table()
+string LipidGroup::properties_table() const
 {
     string s;
     s += "Species\tabund%\tTrDih\tTrDihErr\n";
@@ -87,9 +87,33 @@ string LipidGroup::properties_table()
     return s;
 }
 
-void LipidGroup::save_properties_table_to_file(const string &fname)
+void LipidGroup::save_properties_table_to_file(const std::filesystem::path &path) const
 {
-    auto out = fmt::output_file(fname);
+    auto out = fmt::output_file((path / fmt::format("gr{}_properties.dat",get_id())).native());
     out.print(properties_table());
     out.close();
+}
+
+void LipidGroup::save_per_species_properties(const filesystem::path &path) const
+{
+    for(auto& [sp_name,sp]: species_properties){
+        if(sp.count>0){
+            string file_prefix = path / fmt::format("gr{}_{}_",gr_id,sp_name);
+            // Area
+            sp.area_hist.save_to_file(file_prefix + "area.dat");
+            // Tilt
+            sp.tilt_hist.save_to_file(file_prefix + "tilt.dat");
+            // Monolayer thickness
+            sp.mono_thickness_hist.save_to_file(file_prefix + "mono_thickness.dat");
+            // Curvature
+            sp.mean_curv_hist.save_to_file(file_prefix + "mean_curv.dat");
+            sp.gauss_curv_hist.save_to_file(file_prefix + "gauss_curv.dat");
+            // Order
+            sp.save_order_to_file(file_prefix + "order.dat");
+            // Output order histogram
+            //sp.second.order_hist.save_to_file(file_prefix+"order_hist.dat");
+            // Around
+            sp.save_around_to_file(file_prefix + "around.dat");
+        }
+    }
 }

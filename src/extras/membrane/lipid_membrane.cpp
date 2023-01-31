@@ -822,7 +822,7 @@ void LipidMembrane::compute_averages()
     }
 }
 
-void LipidMembrane::write_averages(string path)
+void LipidMembrane::write_averages(const string& out_dir)
 {        
     string s;
     s += "Run summary:\n";
@@ -832,40 +832,21 @@ void LipidMembrane::write_averages(string path)
     }
 
     // Print summary
-    cout << s << endl;
+    fmt::print("{}",s);
 
-    // Create output dirs if needed
-    make_dir_if_needed(path);
+    // Get output dir path and create output dirs if needed
+    auto path = make_dir_if_needed(out_dir);
+    log->debug("Output path: {}",path);
 
     // Save summary to file
-    auto out = fmt::output_file(path+"/summary.dat");
+    auto out = fmt::output_file((path / "summary.dat").native());
     out.print("{}",s);
     out.close();
 
     // Write files for species properties
-    for(size_t g=0;g<groups.size();++g){
-        groups[g].save_properties_table_to_file(fmt::format("{}/gr{}_properties.dat",path,g));
-
-        for(auto& sp: groups[g].species_properties){
-            if(sp.second.count>0){                
-                string file_prefix(fmt::format("{}/gr{}_{}_",path,g,sp.first));
-                // Area
-                sp.second.area_hist.save_to_file(file_prefix+"area.dat");
-                // Tilt
-                sp.second.tilt_hist.save_to_file(file_prefix+"tilt.dat");
-                // Monolayer thickness
-                sp.second.mono_thickness_hist.save_to_file(file_prefix+"mono_thickness.dat");
-                // Curvature
-                sp.second.mean_curv_hist.save_to_file(file_prefix+"mean_curv.dat");
-                sp.second.gauss_curv_hist.save_to_file(file_prefix+"gauss_curv.dat");
-                // Order
-                sp.second.save_order_to_file(file_prefix+"order.dat");
-                // Output order histogram
-                sp.second.order_hist.save_to_file(file_prefix+"order_hist.dat");
-                // Around
-                sp.second.save_around_to_file(file_prefix+"around.dat");
-            }
-        }
+    for(auto const& g: groups){
+        g.save_properties_table_to_file(path);
+        g.save_per_species_properties(path);
     }
 }
 

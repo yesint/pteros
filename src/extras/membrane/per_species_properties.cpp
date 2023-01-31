@@ -145,7 +145,7 @@ void PerSpeciesProperties::post_process(double num_frames)
     for(auto& el: around) el.second /= N;
 }
 
-string PerSpeciesProperties::summary()
+string PerSpeciesProperties::summary() const
 {
     string s;
     Vector2d v;
@@ -178,9 +178,8 @@ string PerSpeciesProperties::summary()
     return s;
 }
 
-void PerSpeciesProperties::save_order_to_file(const string &fname)
-{
-    num_tails = order.size();
+void PerSpeciesProperties::save_order_to_file(const string &fname) const
+{    
     // Do nothing if no data
     if(count==0 || num_tails==0) return;
 
@@ -209,14 +208,14 @@ void PerSpeciesProperties::save_order_to_file(const string &fname)
     out.close();    
 }
 
-void PerSpeciesProperties::save_around_to_file(const string &fname)
+void PerSpeciesProperties::save_around_to_file(const string &fname) const
 {
     // Do nothing if no data
     if(count==0) return;
 
     auto out = fmt::output_file(fname);
     for(const auto& sp: membr_ptr->species){
-        out.print("{}\t{:.4f}\n",sp.name,around[sp.name]);
+        out.print("{}\t{:.4f}\n",sp.name,around.at(sp.name));
     }
     out.close();
 }

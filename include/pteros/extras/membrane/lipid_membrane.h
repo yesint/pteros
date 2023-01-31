@@ -85,7 +85,7 @@ public:
     void compute_triangulation();
 
     void compute_averages();
-    void write_averages(std::string path=".");
+    void write_averages(const std::string &out_dir=".");
     void write_vmd_visualization(const std::string& path=".");
 
     std::vector<LipidMolecule> lipids;

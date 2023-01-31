@@ -33,7 +33,6 @@
 #include "pteros/core/logging.h"
 #include <charconv>
 #include <iostream>
-#include <filesystem>
 #include <string>
 #include "fmt/os.h"
 // Periodic table from VMD molfile plugins
@@ -383,7 +382,7 @@ int Histogram::num_bins() const
     return nbins;
 }
 
-void Histogram::save_to_file(const string &fname, float x_shift)
+void Histogram::save_to_file(const string &fname, float x_shift) const
 {
     auto f = fmt::output_file(fname);
     for(int i=0;i<nbins;++i) f.print("{} {}\n",pos(i)+x_shift,val(i));
@@ -517,9 +516,9 @@ void str_trim_in_place(std::string &s) {
 }
 
 
-void make_dir_if_needed(const std::string& file_path){
+std::filesystem::path make_dir_if_needed(const std::string& file_path){
     auto path = std::filesystem::path(file_path);
-    path.remove_filename(); // Remove file name if it is present
+    //path.remove_filename(); // Remove file name if it is present
     // Create dir if needed
     if(!path.empty() && !std::filesystem::exists(path)){
         LOG()->debug("Creating directory {}",path);
@@ -529,6 +528,7 @@ void make_dir_if_needed(const std::string& file_path){
             throw PterosError("Unable to create directory {}: {}",path,ec.message());
         }
     }
+    return path;
 }
 
 

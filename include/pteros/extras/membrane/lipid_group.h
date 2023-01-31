@@ -19,12 +19,15 @@ public:
     void process_frame();
     void post_process();
 
+    int get_id() const {return gr_id;}
+
     // Returns summary as a string
-    std::string summary();
+    std::string summary() const;
     // Return properties table as a string
-    std::string properties_table();
+    std::string properties_table() const;
     // Saves properties to file
-    void save_properties_table_to_file(const std::string& fname);
+    void save_properties_table_to_file(const std::filesystem::path &path) const;
+    void save_per_species_properties(const std::filesystem::path& path) const;
 
     // Per group averages (mean,std)
     float num_lipids, num_frames;

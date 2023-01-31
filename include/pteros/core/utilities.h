@@ -32,6 +32,7 @@
 #include "pteros/core/typedefs.h"
 #include "pteros/core/selection.h"
 #include <vector>
+#include <filesystem>
 
 #ifndef M_PI
     #define M_PI 3.14159265358979323846
@@ -96,7 +97,7 @@ namespace pteros {
     // Takes a file name with any relative path
     // Creates all needed directories for writing this file
     // Also accepts path without filename
-    void make_dir_if_needed(const std::string& file_path);
+    std::filesystem::path make_dir_if_needed(const std::string& file_path);
 
     /// Simple histogram class
     class Histogram {
@@ -118,7 +119,7 @@ namespace pteros {
         Eigen::VectorXd &values();
         Eigen::VectorXd& positions();
         int num_bins() const;
-        void save_to_file(const std::string& fname, float x_shift=0);
+        void save_to_file(const std::string& fname, float x_shift=0) const;
     private:
         int nbins;
         float minv,maxv,d;
