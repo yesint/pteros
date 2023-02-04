@@ -31,7 +31,6 @@ public:
 
     // Per group averages (mean,std)
     float num_lipids, num_frames;
-    MeanStdAccumulator trans_dihedrals_ratio;
     // Per species averages
     std::map<std::string,PerSpeciesProperties> species_properties;
 

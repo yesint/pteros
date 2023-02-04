@@ -244,37 +244,32 @@ MeanStdAccumulator::MeanStdAccumulator(){
 }
 
 void MeanStdAccumulator::reset(){
-    data.fill(0.0);
-    count = 0.0;
+    sum1=sum2=0.0;
+    count = 0;
+    K = 0.0;
 }
 
-void MeanStdAccumulator::add_value(float val){
-    data(0) += val;
-    data(1) += val*val;
+void MeanStdAccumulator::add_value(double val){
+    if(count==0) K = val; // Initialize shift
+    double d = val-K;
+    sum1 += d;
+    sum2 += d*d;
     count+=1; // count
 }
 
-std::pair<double, double> MeanStdAccumulator::get_mean_std(double custom_n) const{
-    double N = (custom_n>0) ? custom_n : count;
+std::pair<double, double> MeanStdAccumulator::get_mean_std(unsigned long long custom_n) const{
+    unsigned long long N = (custom_n>0) ? custom_n : count;
     if(N>0){
-        const float& s1 = data(0);
-        const float& s2 = data(1);
-        return {s1/N, sqrt(s2/N - s1*s1/N/N)};
+        return {sum1/N, sqrt((sum2 - sum1*sum1/N)/N)};
     } else {
         return {0,0};
     }
 }
 
-string MeanStdAccumulator::to_string(double custom_n) const
+string MeanStdAccumulator::to_string(unsigned long long custom_n) const
 {
     auto [mean,std] = get_mean_std(custom_n);
     return fmt::format("{:>8.3g} ± {:<8.3g}", mean,std);
-}
-
-void MeanStdAccumulator::append(const MeanStdAccumulator &other)
-{
-    data += other.data;
-    count += other.count;
 }
 
 } // namespace pteros

@@ -153,13 +153,13 @@ namespace pteros {
     public:
         MeanStdAccumulator();
         void reset();
-        void add_value(float val);
-        std::pair<double,double> get_mean_std(double custom_n=0) const;
-        std::string to_string(double custom_n=0) const;
-        void append(const MeanStdAccumulator& other);
+        void add_value(double val);
+        std::pair<double,double> get_mean_std(unsigned long long custom_n=0) const;
+        std::string to_string(unsigned long long custom_n=0) const;
     private:
-        Eigen::Vector2d data;
-        double count;
+        double sum1, sum2;
+        unsigned long long count;
+        double K; //Shift value for numerical stability
     };
 
 } // namespace

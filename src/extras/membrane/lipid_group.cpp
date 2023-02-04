@@ -11,7 +11,6 @@ LipidGroup::LipidGroup(LipidMembrane *ptr, int id){
     membr_ptr = ptr;
     num_lipids = 0;
     num_frames = 0;
-    trans_dihedrals_ratio.reset();
     // Initialize species_properties
     for(const auto& sp: membr_ptr->species){
         species_properties.emplace(sp.name,PerSpeciesProperties(&sp,membr_ptr));
@@ -36,8 +35,7 @@ void LipidGroup::post_process()
 {
     // Collect bulk statistics for the group    
     for(auto& it: species_properties){
-        num_lipids += it.second.count;        
-        trans_dihedrals_ratio.append(it.second.trans_dihedrals_ratio);
+        num_lipids += it.second.count;
     }
 
     num_lipids = (num_frames) ? num_lipids/num_frames : 0;
@@ -55,8 +53,6 @@ string LipidGroup::summary() const
     s += fmt::format("\tNum.lip.:\t{}\n",num_lipids);
 
     if(num_lipids>0){
-        auto [mean,std] = trans_dihedrals_ratio.get_mean_std();
-        s += fmt::format("\tTrans.Dih.:\t{:>8.3g} ± {:<8.3g}\n", mean,std);
         s += "\tLipid species:\n";
         for(auto& sp: membr_ptr->species){
             s += fmt::format("\t{}:\n", sp.name);
