@@ -20,7 +20,7 @@ LipidMolecule::LipidMolecule(const Selection& lip_mol, LipidSpecies* sp, int ind
 
     // Initialize tails
     for(int i=0; i<sp->tails_descr.size(); ++i){
-        tails.emplace_back(&sp->tails_descr[i], parent->per_carbon_normals);
+        tails.emplace_back(&sp->tails_descr[i]);
     }
 }
 

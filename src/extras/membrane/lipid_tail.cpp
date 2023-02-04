@@ -8,9 +8,8 @@ using namespace pteros;
 using namespace Eigen;
 
 
-LipidTail::LipidTail(LipidTailDescr *descr, bool per_atom_norms):
-    descr_ptr(descr),
-    per_atom_normals(per_atom_norms)
+LipidTail::LipidTail(LipidTailDescr *descr):
+    descr_ptr(descr)
 {
     order.resize(descr_ptr->size()-2);
     dihedrals.resize(descr_ptr->size()-3);
@@ -28,16 +27,9 @@ void LipidTail::compute_order_and_dihedrals(const Selection &whole_lipid_sel,
 {
 
     int N = descr_ptr->c_offsets.size();
-
-    bool per_atom_normals;
-    if(normals.cols()==1){
-        per_atom_normals = false;
-    } else {
-        per_atom_normals = true;
-    }
+    bool per_atom_normals = (normals.cols()==1) ? false : true;
 
     // Compute order
-
     //atoms:  0 - 1 - 2 - 3 = 4 - 5 - 6
     //bonds:    0   1   2   3   4   5
 
@@ -136,7 +128,7 @@ void LipidTail::compute_order_and_dihedrals(const Selection &whole_lipid_sel,
                     order[i-1] = -(pow(cos(a1),2)*Syy
                                  + pow(sin(a1),2)*Szz
                                  - 2.0*cos(a1)*sin(a1)*Syz);
-                } else {
+                } else { // SCD
                     order[i-1] = -(Szz/4.0 + 3.0*Syy/4.0 - sqrt(3.0)*Syz/2.0);
                 }
 
@@ -156,7 +148,7 @@ void LipidTail::compute_order_and_dihedrals(const Selection &whole_lipid_sel,
                     order[i] = -(pow(cos(a2),2)*Syy
                                + pow(sin(a2),2)*Szz
                                + 2.0*cos(a2)*sin(a2)*Syz);
-                } else {
+                } else { // SCD
                     order[i] = -(Szz/4.0 + 3.0*Syy/4.0 + sqrt(3.0)*Syz/2.0);
                 }
             } // if single/double
