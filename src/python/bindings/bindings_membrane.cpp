@@ -45,9 +45,9 @@ void make_bindings_Membrane(py::module& m){
              const std::vector<std::string>&>())
         .def_readonly("name",&LipidSpecies::name)
         .def_readonly("whole_sel_str",&LipidSpecies::whole_sel_str)
-        .def_readonly("head_sel_str",&LipidSpecies::head_subsel_str)
-        .def_readonly("tail_sel_str",&LipidSpecies::tail_subsel_str)
-        .def_readonly("surf_marker_str",&LipidSpecies::surf_subsel_str)
+        .def_readonly("head_sel_names",&LipidSpecies::head_subsel_names)
+        .def_readonly("tail_sel_names",&LipidSpecies::tail_subsel_names)
+        .def_readonly("surf_marker_names",&LipidSpecies::surf_subsel_names)
 
         //.def_readonly("tail_carbons_str",&LipidSpecies::tails_descr)
     ;

@@ -30,7 +30,6 @@ void LipidTailDescr::init(const Selection& lipid_sel, const string &tail_descr_s
         }
     }
 
-
     //LOG()->debug("{}",c_names.join());
 
     // Set offsets of carbon atoms to use as local selection indexes

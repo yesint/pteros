@@ -4,15 +4,15 @@ using namespace pteros;
 
 LipidSpecies::LipidSpecies(const std::string &_name,
                            const std::string &_whole_sel_str,
-                           const std::string &_head_sel_str,
-                           const std::string &_tail_sel_str,
-                           const std::string &_surf_marker_str,
+                           const std::string &_head_subsel_names,
+                           const std::string &_tail_subsel_names,
+                           const std::string &_surf_subsel_names,
                            const std::vector<std::string> &_tails_descr_strings):
     name(_name),
     whole_sel_str(_whole_sel_str),
-    head_subsel_str(_head_sel_str),
-    tail_subsel_str(_tail_sel_str),
-    surf_subsel_str(_surf_marker_str),
+    head_subsel_names(_head_subsel_names),
+    tail_subsel_names(_tail_subsel_names),
+    surf_subsel_names(_surf_subsel_names),
     tails_descr_strings(_tails_descr_strings)
 {}
 
