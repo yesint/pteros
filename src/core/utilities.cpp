@@ -260,7 +260,7 @@ void MeanStdAccumulator::add_value(double val){
 std::pair<double, double> MeanStdAccumulator::get_mean_std(unsigned long long custom_n) const{
     unsigned long long N = (custom_n>0) ? custom_n : count;
     if(N>0){
-        return {sum1/N, sqrt((sum2 - sum1*sum1/N)/N)};
+        return {sum1/N+K, sqrt((sum2 - sum1*sum1/N)/N)};
     } else {
         return {0,0};
     }
