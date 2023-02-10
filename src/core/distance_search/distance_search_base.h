@@ -73,28 +73,7 @@ namespace pteros {
         void create_grids(const Selection &sel1, const Selection &sel2);
 
         // Neighbours stencil
-        const std::vector<Eigen::Vector3i> stencil = {
-            // Center
-            {0,0,0},{0,0,0},
-            // Edges
-            {0,0,0},{1,0,0}, //X
-            {0,0,0},{0,1,0}, //Y
-            {0,0,0},{0,0,1}, //Z
-            // Face angles
-            {0,0,0},{1,1,0}, //XY
-            {0,0,0},{1,0,1}, //XZ
-            {0,0,0},{0,1,1}, //YZ
-            // Far angle
-            {0,0,0},{1,1,1}, //XYZ
-            // Face-diagonals
-            {1,0,0},{0,1,0}, // XY
-            {1,0,0},{0,0,1}, // XZ
-            {0,1,0},{0,0,1}, // YZ
-            // Cross-diagonals
-            {1,1,0},{0,0,1}, // XY-Z
-            {1,0,1},{0,1,0}, // XZ-Y
-            {0,1,1},{1,0,0}, // YZ-X
-        };
+        const static std::vector<Eigen::Vector3i> stencil;
 
         Eigen::Vector3i index_to_pos(int i);
         bool process_neighbour_pair(PlannedPair &pair);
