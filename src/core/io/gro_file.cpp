@@ -122,7 +122,7 @@ bool GroFile::do_read(System *sys, Frame *frame, const FileContent &what){
         Matrix3f box;
         box.fill(0.0);
         // Read diagonal
-        ss >> box(0,0),box(1,1),box(2,2);
+        ss >> box(0,0) >> box(1,1) >> box(2,2);
 
         // Try to read non-diagonal elements. If failed we have rectangular box.
         //  If this read fails the box is not modified, so no need to take actions
