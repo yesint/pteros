@@ -42,10 +42,10 @@ void GroFile::do_open()
 {
     if(mode=='r'){
         file_handle.open(fname,std::ios::in);
-        if(!file_handle) throw PterosError("Can't open GRO file '{}' for reading",fname);
+        if(!file_handle) throw PterosError("Can't open GRO file '{}' for reading. Reason: {}",fname,strerror(errno));
     } else {
         file_handle.open(fname,std::ios::out);
-        if(!file_handle) throw PterosError("Can't open GRO file '{}' for writing",fname);
+        if(!file_handle) throw PterosError("Can't open GRO file '{}' for writing. Reason: {}",fname,strerror(errno));
     }
 }
 
