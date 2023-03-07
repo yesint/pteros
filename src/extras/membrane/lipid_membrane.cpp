@@ -87,6 +87,7 @@ LipidMembrane::LipidMembrane(const System *sys,
     log = create_logger("membrane");
 
     // Add all lipid species provided
+    species.reserve(sp_list.size()); // Reserve space to avoid reallocation and ensure correct pointers!
     for(auto& sp: sp_list) register_lipid_species(sp);
 
     // Create groups (they see all registered species)
@@ -133,8 +134,13 @@ void LipidMembrane::register_lipid_species(const LipidSpecies &sp)
     species.push_back(sp);
 
     vector<Selection> res;
-    system_ptr->select(sp.whole_sel_str).split_by_residue(res);
+    system_ptr->select(sp.whole_sel_str).split_by_residue(res);    
+    if(res.size()==0){
+        log->warn("Skipping {} - there are no such lipids in the system!",sp.name);
+        return;
+    }
     log->info("There are {} {} lipids in the system", res.size(),sp.name);
+
     // Add lipids
     int id = lipids.size();
     for(size_t i=0; i<res.size(); ++i){
@@ -820,6 +826,7 @@ void LipidMembrane::write_vmd_visualization(const string &path){
     }
 
     // Output area and normals plots
+    make_dir_if_needed(path);
     auto out_all = fmt::output_file(fmt::format("{}/areas_all.tcl",path));
     out_all.print("{}",out1);
     out_all.close();

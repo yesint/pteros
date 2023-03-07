@@ -518,8 +518,8 @@ void str_trim_in_place(std::string &s) {
 
 
 std::filesystem::path make_dir_if_needed(const std::string& file_path){
-    auto path = std::filesystem::path(file_path);
-    path.remove_filename(); // Remove file name if it is present
+    auto path = std::filesystem::path(file_path);    
+    path.remove_filename(); // Remove file name if it is present    
     // Create dir if needed
     if(!path.empty() && !std::filesystem::exists(path)){
         LOG()->debug("Creating directory {}",path);

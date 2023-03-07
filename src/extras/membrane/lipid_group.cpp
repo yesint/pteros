@@ -22,7 +22,7 @@ void LipidGroup::process_frame()
     // Cycle over lipids in this group
     for(int id: lip_ids){
         auto name = membr_ptr->lipids[id].species_ptr->name;
-        // Add data to particular scpecies
+        // Add data to particular scpecies        
         species_properties.at(name).add_data(membr_ptr->lipids[id]);
     }
 

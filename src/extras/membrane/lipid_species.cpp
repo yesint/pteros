@@ -1,4 +1,5 @@
 #include "pteros/extras/membrane/lipid_species.h"
+#include "pteros/core/pteros_error.h"
 
 using namespace pteros;
 
@@ -17,7 +18,7 @@ LipidSpecies::LipidSpecies(const std::string &_name,
 {}
 
 void LipidSpecies::init(const Selection& lip_sel)
-{
+{       
     tails_descr.resize(tails_descr_strings.size());
     for(size_t i=0; i<tails_descr.size(); ++i){
         tails_descr[i].init(lip_sel,tails_descr_strings[i]);
