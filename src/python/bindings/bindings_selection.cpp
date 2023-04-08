@@ -278,6 +278,8 @@ void make_bindings_Selection(py::module& m){
                 sel->apply_transform(t);
             })
 
+        .def("rmsd_matrix", &Selection::rmsd_matrix)
+
         // Energy
         .def("non_bond_energy", &Selection::non_bond_energy, "cutoff"_a=0.0, "pbc"_a=true)
 
