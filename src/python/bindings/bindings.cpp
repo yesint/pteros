@@ -98,6 +98,7 @@ PYBIND11_MODULE(_pteros, m) {
 
     m.def("get_last_trajectory_frame_and_time",[](const std::string& fname){
         auto h = FileHandler::create(fname,'r');
+        h->open();
         if(h->get_content_type().rand()){
             // Cast to random-access handler
             auto rand_trj = dynamic_cast<FileHandlerRandomAccess*>(h.get());
