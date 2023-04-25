@@ -4,6 +4,7 @@
 #include "pteros/core/pteros_error.h"
 #include "bindings_util.h"
 #include "pteros/core/version.h"
+#include "pteros/core/file_handler.h"
 
 namespace py = pybind11;
 using namespace std;
@@ -94,4 +95,16 @@ PYBIND11_MODULE(_pteros, m) {
             .def("save_to_file",&Histogram2D::save_to_file)
             .def("value",&Histogram2D::value)
     ;
+
+    m.def("get_last_trajectory_frame_and_time",[](const std::string& fname){
+        auto h = FileHandler::create(fname,'r');
+        if(h->get_content_type().rand()){
+            // Cast to random-access handler
+            auto rand_trj = dynamic_cast<FileHandlerRandomAccess*>(h.get());
+            int last_fr;
+            float last_t;
+            rand_trj->tell_last_frame_and_time(last_fr,last_t);
+            return py::make_tuple(last_fr,last_t);
+        } else throw PterosError("File {} is not a random-access trajectory!");
+    });
 }
