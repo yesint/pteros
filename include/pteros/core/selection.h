@@ -710,6 +710,9 @@ class Selection {
 
     /// Apply transformation
     void apply_transform(const Eigen::Affine3f& t);
+
+    /// Computes RMSD matrix for all trajectory frames
+    Eigen::MatrixXf rmsd_matrix();
     /// @}
 
 

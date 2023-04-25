@@ -1139,6 +1139,30 @@ void Selection::apply_transform(const Affine3f &t){
     }
 }
 
+MatrixXf Selection::rmsd_matrix()
+{
+    size_t N = get_system()->num_frames();
+    MatrixXf res(N,N);
+    res.diagonal().fill(0.0);
+
+    // Save coordinates
+    auto old_coord = get_xyz();
+
+    for(int cur=0; cur<N-1; ++cur){
+        if(N>100 && cur%(N/100)==0) LOG()->info("RMSD: {}\n",100*cur/N);
+        for(int i=cur+1; i<N; ++i){
+            fit(i,cur);
+            res(i,cur) = res(cur,i) = rmsd(i,cur);
+            //LOG()->info("{} {} {}",cur,i,res(i,cur));
+        }
+    }
+
+    // Restore coordinates
+    set_xyz(old_coord);
+
+    return res;
+}
+
 namespace pteros {
 
 void copy_coord(const Selection &from, int from_fr, Selection &to, int to_fr)
