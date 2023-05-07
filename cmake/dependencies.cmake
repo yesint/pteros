@@ -72,7 +72,7 @@ if(NOT Eigen3_FOUND)
     CPMAddPackage(
         NAME              Eigen
         GIT_REPOSITORY    https://gitlab.com/libeigen/eigen.git
-        GIT_TAG           master
+        GIT_TAG           3.3 #master
         OPTIONS
             "EIGEN_BUILD_DOC OFF"
             "BUILD_TESTING OFF"
