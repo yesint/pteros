@@ -6,6 +6,8 @@
 #pragma once
 
 #include <string>
+#include <cstdint>
+#include <cassert>
 
 typedef int8_t		int8;
 typedef uint8_t		uint8;
