@@ -81,7 +81,7 @@ setup(
     description='Pteros molecular modeling library',
     long_description=open("./README.md", 'r').read(),
     long_description_content_type="text/markdown",
-    keywords="molecular modeling, extension, molecular dyanamics",
+    keywords="molecular modeling, extension, molecular dynamics",
     classifiers=["Intended Audience :: Science/Research",
                  "Intended Audience :: Information Technology",
                  "License :: OSI Approved :: Artistic License",
