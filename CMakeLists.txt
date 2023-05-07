@@ -27,9 +27,12 @@ cmake_minimum_required(VERSION 3.14)
 
 project(pteros)
 
+OPTION(MINIMAL_BUILD "Minimal build without heavy dependencies" OFF)
+
 # Optional dependencies
 OPTION(WITH_PYTHON "Build python bindings and compile analysis plugins as Python modules" ON)
 OPTION(WITH_OPENMP "Use OpenMP parallelization" ON)
+
 OPTION(WITH_OPENBABEL "Use OpenBabel. Required to read pdbqt files and for substructure search." ON)
 OPTION(WITH_GROMACS "Use Gromacs. Required to read tpr files." ON)
 OPTION(WITH_TNG "Use TNG_IO. Required to read tng files." ON)
@@ -51,6 +54,13 @@ OPTION(MAKE_STANDALONE_PLUGINS "Compile analysis plugins as stand-alone executab
 OPTION(MAKE_PACKAGE "Generate package" OFF)
 OPTION(MAKE_EXAMPLES "Compile examples and plugin templates" OFF)
 OPTION(MAKE_TEST "Compile tests" OFF)
+
+if(MINIMAL_BUILD)
+    message(STATUS "This is a minimal build without Gromacs, OpenBabel and TNG")
+    set(WITH_GROMACS OFF CACHE BOOL "" FORCE)
+    set(WITH_OPENBABEL OFF CACHE BOOL "" FORCE)
+    set(WITH_TNG OFF CACHE BOOL "" FORCE)
+endif()
 
 #---------------------------------------------------
 
