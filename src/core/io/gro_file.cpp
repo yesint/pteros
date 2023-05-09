@@ -60,7 +60,7 @@ bool GroFile::do_read(System *sys, Frame *frame, const FileContent &what){
 
     // Read number of atoms
     getline(file_handle,line);
-    natoms = str_to_int(line);
+    natoms = stoi(line);
 
     if(what.coord()) frame->coord.resize(natoms);
 
