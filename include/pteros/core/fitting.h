@@ -9,4 +9,3 @@ Eigen::Affine3f fit_transform(const Selection& sel1, const Selection& sel2, bool
 Eigen::MatrixXf rmsd_matrix(Selection& sel);
 
 }
-
