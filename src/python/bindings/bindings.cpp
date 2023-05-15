@@ -5,6 +5,7 @@
 #include "bindings_util.h"
 #include "pteros/core/version.h"
 #include "pteros/core/file_handler.h"
+#include "pteros/core/fitting.h"
 
 namespace py = pybind11;
 using namespace std;
@@ -108,4 +109,6 @@ PYBIND11_MODULE(_pteros, m) {
             return py::make_tuple(last_fr,last_t);
         } else throw PterosError("File {} is not a random-access trajectory!");
     });
+
+    m.def("rmsd_matrix", &pteros::rmsd_matrix);
 }

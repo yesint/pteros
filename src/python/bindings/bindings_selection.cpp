@@ -28,6 +28,7 @@
 
 #include "pteros/core/selection.h"
 #include "pteros/core/pteros_error.h"
+#include "pteros/core/fitting.h"
 #include "bindings_util.h"
 
 namespace py = pybind11;
@@ -276,9 +277,7 @@ void make_bindings_Selection(py::module& m){
         .def("apply_transform", [](Selection* sel, const Eigen::Ref<const Eigen::Matrix4f>& m){
                 Affine3f t(m.transpose());
                 sel->apply_transform(t);
-            })
-
-        .def("rmsd_matrix", &Selection::rmsd_matrix)
+            })        
 
         // Energy
         .def("non_bond_energy", &Selection::non_bond_energy, "cutoff"_a=0.0, "pbc"_a=true)
@@ -387,7 +386,4 @@ void make_bindings_Selection(py::module& m){
     m.def("copy_coord",[](const Selection& sel1, int fr1, Selection& sel2, int fr2){ return copy_coord(sel1,fr1,sel2,fr2); });
     m.def("copy_coord",[](const Selection& sel1, Selection& sel2){ return copy_coord(sel1,sel2); });
 }
-
-
-
 

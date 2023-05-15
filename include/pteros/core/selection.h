@@ -699,9 +699,6 @@ class Selection {
     /// Fit specified frames in the trajectory to reference frame
     void fit_trajectory(int ref_frame=0, int b=0, int e=-1);
 
-    /// Returns fitting transformation for two given selections of the same size
-    friend Eigen::Affine3f fit_transform(const Selection& sel1, const Selection& sel2);
-
     /// Returns fit transformation between frames fr1 and fr2
     Eigen::Affine3f fit_transform(int fr1, int fr2) const;
 
@@ -709,10 +706,7 @@ class Selection {
     void fit(int fr1, int fr2);
 
     /// Apply transformation
-    void apply_transform(const Eigen::Affine3f& t);
-
-    /// Computes RMSD matrix for all trajectory frames
-    Eigen::MatrixXf rmsd_matrix();
+    void apply_transform(const Eigen::Affine3f& t);    
     /// @}
 
 

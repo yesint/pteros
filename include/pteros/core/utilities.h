@@ -43,7 +43,7 @@
 #endif
 
 // Minimal size of data to enable OpenMP parallelization
-#define _OMP_MIN_SIZE 1000
+static int _OMP_MIN_SIZE = 1000;
 
 namespace pteros {
 

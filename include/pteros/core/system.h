@@ -516,8 +516,6 @@ public:
     Eigen::Vector2f get_energy_for_list(const std::vector<Eigen::Vector2i>& pairs,
                                         const std::vector<float>& dist,
                                         std::vector<Eigen::Vector2f>* pair_en=nullptr) const;
-
-
     /// @}
 
 protected:

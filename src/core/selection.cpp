@@ -52,6 +52,8 @@
 
 // DSSP
 #include "pteros_dssp_wrapper.h"
+// fitting
+#include "pteros/core/fitting.h"
 
 
 using namespace std;
@@ -919,44 +921,22 @@ Vector3f Selection::center(bool mass_weighted, Array3i_const_ref pbc, int pbc_at
     // in case of just one atom nothing to compute
     if(n==1) return xyz(0);
 
-    Vector3f res;
+    Vector3f res(Vector3f::Zero());
     int i;
-
     process_pbc_atom(pbc_atom);
-
-    res.fill(0.0);
 
     if( (pbc==0).all() ){
         // Non-periodic variant
         if(mass_weighted){
             float M = 0.0;
-            #pragma omp parallel if (n>=_OMP_MIN_SIZE)
-            {                
-                Vector3f r(Vector3f::Zero());
-                #pragma omp for nowait reduction(+:M)
-                for(i=0; i<n; ++i){
-                    r += xyz(i)*mass(i);
-                    M += mass(i);
-                }
-                #pragma omp critical
-                {
-                    res += r;
-                }
+            for(i=0; i<n; ++i){
+                res += xyz(i)*mass(i);
+                M += mass(i);
             }
             if(M==0) throw PterosError("Selection has zero mass! Center of mass failed!");
             return res/M;
         } else {
-            #pragma omp parallel if (n>=_OMP_MIN_SIZE)
-            {
-                Vector3f r(Vector3f::Zero()); // local to omp thread
-                #pragma omp for nowait
-                for(i=0; i<n; ++i) r += xyz(i);
-                #pragma omp critical
-                {
-                    res += r;
-                }
-            }
-
+            for(i=0; i<n; ++i) res += xyz(i);
             return res/n;
         }
     } else {
@@ -967,32 +947,15 @@ Vector3f Selection::center(bool mass_weighted, Array3i_const_ref pbc, int pbc_at
         PeriodicBox& b = system->box(frame);
         if(mass_weighted){
             float M = 0.0;
-            #pragma omp parallel if (n>=_OMP_MIN_SIZE)
-            {                
-                Vector3f r(Vector3f::Zero());
-                #pragma omp for nowait reduction(+:M)
-                for(i=0; i<n; ++i){
-                    r += b.closest_image(xyz(i),ref_point,pbc) * mass(i);
-                    M += mass(i);
-                }
-                #pragma omp critical
-                {
-                    res += r;                    
-                }
+            for(i=0; i<n; ++i){
+                res += b.closest_image(xyz(i),ref_point,pbc) * mass(i);
+                M += mass(i);
             }
             if(M==0) throw PterosError("Selection has zero mass! Center of mass failed!");
             return res/M;
         } else {
-            #pragma omp parallel if (n>=_OMP_MIN_SIZE)
-            {
-                Vector3f r(Vector3f::Zero()); // local to omp thread
-                #pragma omp for nowait
-                for(i=0; i<n; ++i)
-                    r += b.closest_image(xyz(i),ref_point,pbc);
-                #pragma omp critical
-                {
-                    res += r;
-                }
+            for(i=0; i<n; ++i){
+                res += b.closest_image(xyz(i),ref_point,pbc);
             }
             return res/n;
         }
@@ -1008,28 +971,16 @@ Vector3f Selection::center(const std::vector<float> &weights, Array3i_const_ref 
     // in case of just one atom nothing to compute
     if(n==1) return xyz(0);
 
-    Vector3f res;
+    Vector3f res(Vector3f::Zero());
     int i;
-
     process_pbc_atom(pbc_atom);
-
-    res.fill(0.0);
 
     if( (pbc==0).all() ){
         // Non-periodic variant
         float W = 0.0;
-        #pragma omp parallel if (n>=_OMP_MIN_SIZE)
-        {
-            Vector3f r(Vector3f::Zero());
-            #pragma omp for nowait reduction(+:W)
-            for(i=0; i<n; ++i){
-                r += xyz(i)*weights[i];
-                W += weights[i];
-            }
-            #pragma omp critical
-            {
-                res += r;
-            }
+        for(i=0; i<n; ++i){
+            res += xyz(i)*weights[i];
+            W += weights[i];
         }
         if(W==0) throw PterosError("Sum of weights is zero mass! Center failed!");
         return res/W;
@@ -1042,18 +993,9 @@ Vector3f Selection::center(const std::vector<float> &weights, Array3i_const_ref 
         PeriodicBox& b = system->box(frame);
 
         float W = 0.0;
-        #pragma omp parallel if (n>=_OMP_MIN_SIZE)
-        {
-            Vector3f r(Vector3f::Zero());
-            #pragma omp for nowait reduction(+:W)
-            for(i=0; i<n; ++i){
-                r += b.closest_image(xyz(i),ref_point,pbc) * weights[i];
-                W += weights[i];
-            }
-            #pragma omp critical
-            {
-                res += r;
-            }
+        for(i=0; i<n; ++i){
+            res += b.closest_image(xyz(i),ref_point,pbc) * weights[i];
+            W += weights[i];
         }
         if(W==0) throw PterosError("Sum of weights is zero mass! Center failed!");
         return res/W;
@@ -1063,7 +1005,6 @@ Vector3f Selection::center(const std::vector<float> &weights, Array3i_const_ref 
 // Plain translation
 void Selection::translate(Vector3f_const_ref v){
     int i,n = _index.size();
-    #pragma omp parallel for if (n>=_OMP_MIN_SIZE)
     for(i=0; i<n; ++i) xyz(i) += v;
 }
 
@@ -1115,9 +1056,9 @@ float Selection::rmsd(int fr1, int fr2) const{
        fr2<0 || fr2>=system->num_frames())
         throw PterosError("RMSD requested for frames {}:{} while the valid range is 0:{}", fr1,fr2,system->num_frames()-1);
 
-    #pragma omp parallel for reduction(+:res) if (n>=_OMP_MIN_SIZE)
-    for(int i=0; i<n; ++i)
+    for(int i=0; i<n; ++i){
         res += (xyz(i,fr1)-xyz(i,fr2)).squaredNorm();
+    }
 
     return sqrt(res/n);
 }
@@ -1133,34 +1074,10 @@ float Selection::rmsd(int fr) const {
 // Apply transformation
 void Selection::apply_transform(const Affine3f &t){
     int n = size();    
-    #pragma omp parallel for if (n>=_OMP_MIN_SIZE)
+
     for(int i=0; i<n; ++i){        
         xyz(i) = t * xyz(i);
     }
-}
-
-MatrixXf Selection::rmsd_matrix()
-{
-    size_t N = get_system()->num_frames();
-    MatrixXf res(N,N);
-    res.diagonal().fill(0.0);
-
-    // Save coordinates
-    auto old_coord = get_xyz();
-
-    for(int cur=0; cur<N-1; ++cur){
-        if(N>100 && cur%(N/100)==0) LOG()->info("RMSD: {}\n",100*cur/N);
-        for(int i=cur+1; i<N; ++i){
-            fit(i,cur);
-            res(i,cur) = res(cur,i) = rmsd(i,cur);
-            //LOG()->info("{} {} {}",cur,i,res(i,cur));
-        }
-    }
-
-    // Restore coordinates
-    set_xyz(old_coord);
-
-    return res;
 }
 
 namespace pteros {
@@ -1231,10 +1148,9 @@ float rmsd(const Selection& sel1, int fr1, const Selection& sel2, int fr2){
         throw PterosError("RMSD requested for frames {}:{} while the valid range is {}:{}",
                           fr1,fr2,sel1.system->num_frames()-1,sel2.system->num_frames()-1);
 
-
-    #pragma omp parallel for reduction(+:res) if (n1>=_OMP_MIN_SIZE)
-    for(int i=0; i<n1; ++i)
+    for(int i=0; i<n1; ++i){
         res += (sel1.xyz(i,fr1)-sel2.xyz(i,fr2)).squaredNorm();
+    }
 
     return sqrt(res/n1);
 }
@@ -1242,99 +1158,6 @@ float rmsd(const Selection& sel1, int fr1, const Selection& sel2, int fr2){
 // RMSD between two selections (current frames)
 float rmsd(const Selection& sel1, const Selection& sel2){
     return rmsd(sel1,sel1.get_frame(),sel2,sel2.get_frame());
-}
-
-// Fitting transformation
-Affine3f fit_transform(const Selection& sel1, const Selection& sel2){
-    int n1 = sel1.size();
-    int n2 = sel2.size();
-
-    if(n1!=n2) throw PterosError("Incompatible selections for fitting of sizes {} and {}", n1, n2);
-
-    Affine3f rot;
-    Vector3f cm1, cm2;
-
-    // Bring centers to zero
-    cm1 = sel1.center(true);
-    cm2 = sel2.center(true);
-
-    const_cast<Selection&>(sel1).translate(-cm1);
-    const_cast<Selection&>(sel2).translate(-cm2);
-
-    // The code below is hacked from GROMACS 3.3.3
-    // Used to compute the rotation matrix
-    // It computes the rot matrix for two selections, which
-    // are centerd at zero.
-
-    int i,j,N,r,c;
-    Matrix<float,6,6> omega,om;
-    Matrix3f u,vh,vk;
-
-    omega.fill(0.0);
-    om.fill(0.0);
-    N = sel1.size();
-
-    //Calculate the matrix U
-    u.fill(0.0);
-    #pragma omp parallel if (N>=_OMP_MIN_SIZE)
-    {
-        Matrix3f _u(Matrix3f::Zero());
-        #pragma omp for nowait
-        for(i=0;i<N;++i) // Over atoms in selection
-            _u += sel1.xyz(i)*sel2.xyz(i).transpose()*sel1.mass(i);
-        #pragma omp critical
-        {
-            u += _u;
-        }
-    }
-
-    //Construct omega
-    for(r=0; r<6; r++){
-        for(c=0; c<=r; c++){
-            if (r>=3 && c<3) {
-                omega(r,c)=u(r-3,c);
-                omega(c,r)=u(r-3,c);
-            } else {
-                omega(r,c)=0;
-                omega(c,r)=0;
-            }
-        }
-    }
-
-    //Finding eigenvalues of omega
-    Eigen::SelfAdjointEigenSolver<Matrix<float,6,6> > solver(omega);
-    om = solver.eigenvectors();
-
-    /*  Copy only the first two eigenvectors
-        The eigenvectors are already sorted ascending by their eigenvalues!
-    */
-    for(j=0; j<2; j++){
-        for(i=0; i<3; i++) {
-            vh(j,i)=sqrt(2.0)*om(i,5-j);
-            vk(j,i)=sqrt(2.0)*om(i+3,5-j);
-        }
-    }
-
-    // Calculate the last eigenvector as the cross-product of the first two.
-    // This insures that the conformation is not mirrored and
-    // prevents problems with completely flat reference structures.
-
-    vh.row(2) = vh.row(0).cross(vh.row(1)) ;
-    vk.row(2) = vk.row(0).cross(vk.row(1)) ;
-
-    /* Determine rotational part */
-    for(r=0; r<3; r++)
-        for(c=0; c<3; c++)
-            rot.linear()(c,r) = vk(0,r)*vh(0,c) + vk(1,r)*vh(1,c) + vk(2,r)*vh(2,c);
-
-    // Bring centers back
-    const_cast<Selection&>(sel1).translate(cm1);
-    const_cast<Selection&>(sel2).translate(cm2);
-
-    //Clear translation part. This is important!
-    rot.translation().fill(0.0);
-    // Add translation part to transform. Note reverse order of translations! This is important.
-    return Translation3f(cm2) * rot * Translation3f(-cm1);
 }
 
 // Fit two selection directly
@@ -1421,7 +1244,6 @@ void Selection::minmax(Vector3f_ref min, Vector3f_ref max) const {
     x_min = y_min = z_min = 1e10;
     x_max = y_max = z_max = -1e10;
 
-    #pragma omp parallel for reduction(min:x_min,y_min,z_min) reduction(max:x_max,y_max,z_max) if (n>=_OMP_MIN_SIZE)
     for(i=0; i<n; ++i){
         p = xyz_ptr(i);
         if((*p)(0)<x_min) x_min = (*p)(0);
@@ -1439,7 +1261,6 @@ void Selection::minmax(Vector3f_ref min, Vector3f_ref max) const {
     max(0) = x_max;
     max(1) = y_max;
     max(2) = z_max;
-
 }
 
 //###############################################
@@ -1841,42 +1662,35 @@ void Selection::inertia(Vector3f_ref moments, Matrix3f_ref axes, Array3i_const_r
 
     if( (pbc!=0).any() ){
         Vector3f anchor = xyz(pbc_atom);
-        PeriodicBox& b = system->box(frame);
-        #pragma omp parallel if (n>=_OMP_MIN_SIZE)
-        {
-            Vector3f p,d;
-            float m;            
-            #pragma omp for reduction(+:axes00,axes11,axes22,axes01,axes02,axes12)
-            for(i=0;i<n;++i){
-                // 0 point was used as an anchor in periodic center calculation,
-                // so we have to use it as an anchor here as well!
-                p = b.closest_image(xyz(i),anchor,pbc);
-                d = p-c;
-                m = mass(i);
-                axes00 += m*( d(1)*d(1) + d(2)*d(2) );
-                axes11 += m*( d(0)*d(0) + d(2)*d(2) );
-                axes22 += m*( d(0)*d(0) + d(1)*d(1) );
-                axes01 += m*d(0)*d(1);
-                axes02 += m*d(0)*d(2);
-                axes12 += m*d(1)*d(2);
-            }
+        PeriodicBox& b = system->box(frame);        
+        Vector3f p,d;
+        float m;
+        for(i=0;i<n;++i){
+            // 0 point was used as an anchor in periodic center calculation,
+            // so we have to use it as an anchor here as well!
+            p = b.closest_image(xyz(i),anchor,pbc);
+            d = p-c;
+            m = mass(i);
+            axes00 += m*( d(1)*d(1) + d(2)*d(2) );
+            axes11 += m*( d(0)*d(0) + d(2)*d(2) );
+            axes22 += m*( d(0)*d(0) + d(1)*d(1) );
+            axes01 += m*d(0)*d(1);
+            axes02 += m*d(0)*d(2);
+            axes12 += m*d(1)*d(2);
         }
+
     } else {
-        #pragma omp parallel if (n>=_OMP_MIN_SIZE)
-        {
-            Vector3f d;
-            float m;
-            #pragma omp for reduction(+:axes00,axes11,axes22,axes01,axes02,axes12)
-            for(i=0;i<n;++i){
-                d = xyz(i)-c;
-                m = mass(i);
-                axes00 += m*( d(1)*d(1) + d(2)*d(2) );
-                axes11 += m*( d(0)*d(0) + d(2)*d(2) );
-                axes22 += m*( d(0)*d(0) + d(1)*d(1) );
-                axes01 += m*d(0)*d(1);
-                axes02 += m*d(0)*d(2);
-                axes12 += m*d(1)*d(2);
-            }
+        Vector3f d;
+        float m;
+        for(i=0;i<n;++i){
+            d = xyz(i)-c;
+            m = mass(i);
+            axes00 += m*( d(1)*d(1) + d(2)*d(2) );
+            axes11 += m*( d(0)*d(0) + d(2)*d(2) );
+            axes22 += m*( d(0)*d(0) + d(1)*d(1) );
+            axes01 += m*d(0)*d(1);
+            axes02 += m*d(0)*d(2);
+            axes12 += m*d(1)*d(2);
         }
     }
     axes(0,0) = axes00;
@@ -1901,7 +1715,6 @@ float Selection::gyration(Array3i_const_ref pbc, int pbc_atom) const {
     float d, a = 0.0, b = 0.0;
     Vector3f c = center(true,pbc,pbc_atom);
 
-    #pragma omp parallel for private(d) reduction(+:a,b) if (n>=_OMP_MIN_SIZE)
     for(i=0;i<n;++i){
         if( (pbc!=0).any() ){
             d = system->box(frame).distance(xyz(i),c,pbc);

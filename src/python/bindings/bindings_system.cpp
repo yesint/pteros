@@ -204,8 +204,7 @@ void make_bindings_System(py::module& m){
             } else {
                 return py::make_tuple(s.get_energy_for_list(pairs,dist),py::none());
             }
-        },"pairs"_a,"dist"_a,"energies_per_pair"_a=false)
-
+        },"pairs"_a,"dist"_a,"energies_per_pair"_a=false)        
     ;
 }
 

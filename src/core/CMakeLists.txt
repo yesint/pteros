@@ -57,6 +57,10 @@ add_library(pteros SHARED
     #DSSP wrapper
     pteros_dssp_wrapper.cpp
     pteros_dssp_wrapper.h
+
+    # fitting
+    fitting.cpp
+    ${PROJECT_SOURCE_DIR}/include/pteros/core/fitting.h
 )
 
 # Include sources in subdirectories into pteros target
