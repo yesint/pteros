@@ -39,6 +39,7 @@ class build_ext(build_ext_orig):
         cmake_args = [
             '-DDOWNLOAD_DEPENDENCIES=ON',
             '-DTRY_SYSTEM_DEPENDENCIES=OFF',
+            '-DCPM_SOURCE_CACHE=' + str(package_root / 'CPM_CACHE'), # Use local CPM cache
             '-DWITH_GROMACS=OFF',
             '-DWITH_OPENBABEL=OFF',
             '-DWITH_TNG=OFF',
@@ -53,7 +54,7 @@ class build_ext(build_ext_orig):
         # example of build args
         build_args = [
             '--config', config,
-            '--', '-j8'
+            '--', f'-j{os.cpu_count()}'
         ]
 
         os.chdir(str(build_temp))

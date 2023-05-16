@@ -60,7 +60,7 @@ include(${PROJECT_SOURCE_DIR}/cmake/CPM.cmake)
 # Eigen
 #--------------------
 if(TRY_SYSTEM_EIGEN)
-    find_package(Eigen3 3.3 NO_MODULE)
+    find_package(Eigen3 3.4 NO_MODULE)
 endif()
 
 if(NOT Eigen3_FOUND)
@@ -72,7 +72,7 @@ if(NOT Eigen3_FOUND)
     CPMAddPackage(
         NAME              Eigen
         GIT_REPOSITORY    https://gitlab.com/libeigen/eigen.git
-        GIT_TAG           3.3 #master
+        GIT_TAG           3.4 #master
         OPTIONS
             "EIGEN_BUILD_DOC OFF"
             "BUILD_TESTING OFF"
@@ -188,27 +188,13 @@ endif()
 
 
 #-----------------------------------------------------------------
-# Dependencies which use FetchContent for downloading
-# and ExternalProject for compiling with needed options
-#-----------------------------------------------------------------
-# CPM can't be used for downloading because it triggers
-# configure step and multiple UNISTALL targets collide
-#
-# With FetchContent and ExternalProject configure step of
-# dependency is deferred to build stage and there are no conflicts
+# Dependencies which use ExternalProject for compiling
 #-----------------------------------------------------------------
 include(ExternalProject)
-include(FetchContent)
-# To avoid updates on configure step
-set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
-# To make it less noisy
-set(FETCHCONTENT_QUIET ON)
 
 # OpenBabel
 include(${PROJECT_SOURCE_DIR}/cmake/openbabel.cmake)
-
 # Gromacs
 include(${PROJECT_SOURCE_DIR}/cmake/gromacs.cmake)
-
 # TNG_IO
 include(${PROJECT_SOURCE_DIR}/cmake/tngio.cmake)

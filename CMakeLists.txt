@@ -38,7 +38,7 @@ OPTION(WITH_GROMACS "Use Gromacs. Required to read tpr files." ON)
 OPTION(WITH_TNG "Use TNG_IO. Required to read tng files." ON)
 
 # Options to search for pre-installed dependencies
-OPTION(TRY_SYSTEM_DEPENDENCIES "Try using system dependensies." ON)
+OPTION(TRY_SYSTEM_DEPENDENCIES "Try using system dependensies." OFF)
 OPTION(TRY_SYSTEM_EIGEN "Try using system Eigen." ON)
 OPTION(TRY_SYSTEM_FMT "Try using system fmt." ON)
 #OPTION(TRY_SYSTEM_SCN "Try using system scn." ON)
@@ -67,6 +67,11 @@ endif()
 # Default to release build
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose Release or Debug" FORCE)
+endif()
+
+
+if(NOT CMAKE_INSTALL_PREFIX)
+    set(CMAKE_INSTALL_PREFIX "~/.local/pteros" CACHE STRING "Choose install location" FORCE)
 endif()
 
 #-----------------------------
@@ -104,6 +109,11 @@ target_include_directories(pteros_interface INTERFACE ${PROJECT_SOURCE_DIR}/incl
 #----------------------------
 # Manage dependencies
 #----------------------------
+
+if(NOT CPM_SOURCE_CACHE)
+    set(CPM_SOURCE_CACHE "~/.local/CPM_CACHE" CACHE STRING "Location of dependencies cache" FORCE)
+endif()
+
 
 include(${PROJECT_SOURCE_DIR}/cmake/dependencies.cmake)
 

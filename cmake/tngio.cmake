@@ -31,23 +31,15 @@ if(WITH_TNG)
 
     message(STATUS "Will download and compile tng_io library in place")
 
-    FetchContent_Declare(TNG_external_fetch
+    CPMAddPackage(
+        NAME            TNG
         GIT_REPOSITORY  https://gitlab.com/gromacs/tng.git
         GIT_TAG         v1.8.2
-        GIT_SHALLOW     TRUE
-        GIT_PROGRESS    TRUE
+        DOWNLOAD_ONLY   ON
     )
-    FetchContent_GetProperties(TNG_external_fetch)
-    if(NOT TNG_external_fetch_POPULATED)
-      FetchContent_Populate(TNG_external_fetch)
-    endif()
+    # Variable TNG_SOURCE_DIR and TNG_BINARY_DIR are set by CMP at this point
 
-    FetchContent_GetProperties(
-        TNG_external_fetch
-        SOURCE_DIR TNG_SOURCE_DIR
-        BINARY_DIR TNG_BINARY_DIR
-    )
-    set(TNG_INSTALL_DIR ${CMAKE_BINARY_DIR}/external/tng-install)
+    set(TNG_INSTALL_DIR ${CMAKE_BINARY_DIR}/tng-install)
     set(TNG_LIB_FILE ${TNG_INSTALL_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}tng_io${CMAKE_STATIC_LIBRARY_SUFFIX})
 
     ExternalProject_add(TNG_external

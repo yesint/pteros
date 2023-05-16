@@ -34,23 +34,15 @@ if(WITH_OPENBABEL)
             message(FATAL_ERROR "OpenBabel is not available!")
         endif()
 
-        FetchContent_Declare(OpenBabel_external_fetch
+        CPMAddPackage(
+            NAME            OPENBABEL
             GIT_REPOSITORY  https://github.com/openbabel/openbabel.git
             GIT_TAG         openbabel-3-0-0
-            GIT_SHALLOW     TRUE
-            GIT_PROGRESS    TRUE
+            DOWNLOAD_ONLY   ON
         )
-        FetchContent_GetProperties(OpenBabel_external_fetch)
-        if(NOT OpenBabel_external_fetch_POPULATED)
-          FetchContent_Populate(OpenBabel_external_fetch)
-        endif()
+        # Variable OPENBABEL_SOURCE_DIR and OPENBABEL_BINARY_DIR are set by CMP at this point
 
-        FetchContent_GetProperties(
-            OpenBabel_external_fetch
-            SOURCE_DIR OPENBABEL_SOURCE_DIR
-            BINARY_DIR OPENBABEL_BINARY_DIR
-        )
-        set(OPENBABEL_INSTALL_DIR ${CMAKE_BINARY_DIR}/external/openbabel-install)
+        set(OPENBABEL_INSTALL_DIR ${CMAKE_BINARY_DIR}/openbabel-install)
         set(OPENBABEL_LIB_FILE ${OPENBABEL_INSTALL_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}openbabel${CMAKE_STATIC_LIBRARY_SUFFIX})
 
         message(STATUS "Will download and compile OpenBabel in place")

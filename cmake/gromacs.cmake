@@ -36,22 +36,15 @@ if(WITH_GROMACS)
 
         message(STATUS "Will download and compile Gromacs in place")
 
-        FetchContent_Declare(Gromacs_external_fetch
+        CPMAddPackage(
+            NAME            GROMACS
             GIT_REPOSITORY  https://gitlab.com/gromacs/gromacs.git
             GIT_TAG         main
-            GIT_SHALLOW     TRUE
-            GIT_PROGRESS    TRUE
+            DOWNLOAD_ONLY   ON
         )
-        FetchContent_GetProperties(Gromacs_external_fetch)
-        if(NOT Gromacs_external_fetch_POPULATED)
-          FetchContent_Populate(Gromacs_external_fetch)
-        endif()
+        # Variable GROMACS_SOURCE_DIR and GROMACS_BINARY_DIR are set by CMP at this point
 
-        FetchContent_GetProperties(
-            Gromacs_external_fetch
-            SOURCE_DIR GROMACS_SOURCE_DIR
-            BINARY_DIR GROMACS_BINARY_DIR
-        )
+        # File to be set as a byproduct to trigger bulding correctly
         set(GROMACS_LIB_FILE ${GROMACS_BINARY_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}gromacs${CMAKE_STATIC_LIBRARY_SUFFIX})
 
         ExternalProject_add(Gromacs_external
