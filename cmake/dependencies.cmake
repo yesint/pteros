@@ -165,15 +165,28 @@ if(WITH_PYTHON)
     # Force Python3
     set(PYBIND11_PYTHON_VERSION 3 CACHE INTERNAL "")
     # Configure pybind11
+
+    # By default we will download it.
+    # We have to call CPM each time when configuring without system pybind11
+    # Even if pybind11_FOUND was already set previously!
+    # Without this pybind11 command are not recognized
+    # Only if found in system, this will be disabled
+    set(DOWNLOAD_PYBIND ON)
+
     if(TRY_SYSTEM_PYBIND11)
         find_package(pybind11 QUIET)
+        if(NOT pybind11_FOUND)
+            if(NOT DOWNLOAD_DEPENDENCIES)
+                message(FATAL_ERROR "pybind11 is not available!")
+            endif()
+        else()
+            # We found system pybind, disable download
+            set(DOWNLOAD_PYBIND OFF)
+        endif()
     endif()
 
-    if(NOT pybind11_FOUND)
-        if(NOT DOWNLOAD_DEPENDENCIES)
-            message(FATAL_ERROR "pybind11 is not available!")
-        endif()
-
+    # Always call CPM unless explicitly disabled
+    if(DOWNLOAD_PYBIND)
         CPMAddPackage(
             NAME                pybind11
             GITHUB_REPOSITORY   pybind/pybind11
