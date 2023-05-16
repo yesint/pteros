@@ -8,5 +8,4 @@ if(WITH_PYTHON)
     install(DIRECTORY pteros DESTINATION ${PY_INST_DIR})
 
     add_subdirectory(bindings)
-
 endif()

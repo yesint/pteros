@@ -1,4 +1,5 @@
 IF(WITH_PYTHON)
+
     #############################
     # Main pteros python module
     #############################
