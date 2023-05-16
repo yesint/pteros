@@ -110,10 +110,10 @@ target_include_directories(pteros_interface INTERFACE ${PROJECT_SOURCE_DIR}/incl
 # Manage dependencies
 #----------------------------
 
+# Set CPM cache location if not provide in command line
 if(NOT CPM_SOURCE_CACHE)
     set(CPM_SOURCE_CACHE "~/.local/CPM_CACHE" CACHE STRING "Location of dependencies cache" FORCE)
 endif()
-
 
 include(${PROJECT_SOURCE_DIR}/cmake/dependencies.cmake)
 
