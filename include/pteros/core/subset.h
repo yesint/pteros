@@ -8,21 +8,26 @@ namespace pteros {
 
 using namespace Eigen;
 
+/// Thin wrapper, which encapsulates the set of coordinates
+/// (or velocities, or forces)
+/// and the index of selected positions in this set
 class Subset {
 public:
 
-    Subset(Selection& sel){
+    /// fr=-1 means current frame
+    Subset(Selection& sel, int fr=-1) {
         index = sel.get_index_ptr();
-        buffer = &sel.get_system()->frame(sel.get_frame()).coord;
+        size_t wf = fr<0 ? sel.get_frame() : fr;
+        buffer = &sel.get_system()->frame(wf).coord;
     }
 
     template <typename D>
-    DenseBase<D>& data() {
-        return Map<MatrixXf>((float*) buffer->data(),3,index->size())(indexing::all,*index);
+    DenseBase<D>& data() const {
+        return Map<MatrixXf>((float*)buffer->data(),3,index->size())(indexing::all,*index);
     }
 
-    Vector3f& pos(size_t i) {
-        return (*buffer)[i];
+    Vector3f& pos(size_t i) const {
+        return (*buffer)[(*index)[i]];
     }
 
     size_t size() const {return index->size();}
