@@ -376,6 +376,7 @@ class Selection {
 
     /// Get vector of all indexes in selection
     std::vector<int> get_index() const { return _index; }
+    std::vector<int>* get_index_ptr() { return &_index; }
 
     /// Get vector of all chains in selection
     std::vector<char> get_chain(bool unique=false) const;

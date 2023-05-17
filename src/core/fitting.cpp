@@ -1,6 +1,7 @@
 #include "pteros/core/fitting.h"
 #include "pteros/core/pteros_error.h"
 #include "pteros/core/logging.h"
+#include "pteros/core/subset.h"
 
 using namespace std;
 using namespace Eigen;
