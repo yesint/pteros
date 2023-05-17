@@ -14,51 +14,82 @@ namespace pteros {
 /// It computes the rot matrix for two selections, which
 /// are centerd at zero.
 Matrix3f rot_transform_matrix(const Selection& sel1, const Selection& sel2){
-    Matrix<float,6,6> omega,om;
-    Matrix3f u,vh,vk;
-
-    omega.fill(0.0);
-    om.fill(0.0);
     int N = sel1.size();
 
     //Calculate the matrix U
-    u.fill(0.0);
+    Matrix3f u(Matrix3f::Zero());
     for(int i=0;i<N;++i){ // Over atoms in selection
         u += sel1.xyz(i)*sel2.xyz(i).transpose()*sel1.mass(i);
     }
 
     //Construct omega
-    for(int r=0; r<6; r++){
-        for(int c=0; c<=r; c++){
-            if (r>=3 && c<3) {
-                omega(r,c)=u(r-3,c);
-                omega(c,r)=u(r-3,c);
-            } else {
-                omega(r,c)=0;
-                omega(c,r)=0;
-            }
-        }
-    }
+    /*
+     u= 1 4 7
+        2 5 8
+        3 6 9
+    omega =
+    0 0 0 1 2 3
+    0 0 0 4 5 6
+    0 0 0 7 8 9
+    1 4 7 0 0 0
+    2 5 8 0 0 0
+    3 6 9 0 0 0
+    */
+    Matrix<float,6,6> omega;
+    omega.block<3,3>(0,3) = u.transpose();
+    omega.block<3,3>(3,0) = u;
+    omega.block<3,3>(0,0) = Matrix3f::Zero();
+    omega.block<3,3>(3,3) = Matrix3f::Zero();
 
     //Finding eigenvalues of omega
     Eigen::SelfAdjointEigenSolver<Matrix<float,6,6>> solver(omega);
-    om = solver.eigenvectors();
+    Matrix<float,6,6> const& om = solver.eigenvectors();
 
     /*  Copy only the first two eigenvectors
         The eigenvectors are already sorted ascending by their eigenvalues!
     */
+
+    /*
     for(int j=0; j<2; j++){
         for(int i=0; i<3; i++) {
-            vh(j,i)=sqrt(2.0)*om(i,5-j);
-            vk(j,i)=sqrt(2.0)*om(i+3,5-j);
+            vh(j,i)=M_SQRT2f*om(i,5-j);
+            vk(j,i)=M_SQRT2f*om(i+3,5-j);
         }
     }
+    */
+
+    /*
+     i0 1 2 3 4 5
+    j*-----------
+    0|0 0 0 0 1 7
+    1|0 0 0 0 2 8
+    2|0 0 0 0 3 9
+    3|0 0 0 0 4 10
+    4|0 0 0 0 5 11
+    5|0 0 0 0 6 12
+
+    vh:
+    7 8 9
+    1 2 3
+    ? ? ?
+
+    vk:
+    10 11 12
+     4  5  6
+     ?  ?  ?
+    */
+    Matrix3f vh,vk;
+    vh.row(0) = M_SQRT2f * om.block<3,1>(0,5);
+    vh.row(1) = M_SQRT2f * om.block<3,1>(0,4);
+
+    vk.row(0) = M_SQRT2f * om.block<3,1>(3,5);
+    vk.row(1) = M_SQRT2f * om.block<3,1>(3,4);
 
     // Calculate the last eigenvector as the cross-product of the first two.
     // This insures that the conformation is not mirrored and
     // prevents problems with completely flat reference structures.
-    vh.row(2) = vh.row(0).cross(vh.row(1)) ;
-    vk.row(2) = vk.row(0).cross(vk.row(1)) ;
+    vh.row(2) = vh.row(0).cross(vh.row(1));
+    vk.row(2) = vk.row(0).cross(vk.row(1));
 
     /* Determine rotational part */
     Matrix3f rot;
@@ -213,14 +244,6 @@ Affine3f fit_transform(const Selection& sel1,
     // Determine rotational part of transform
     tr.linear() = rot_transform_matrix(sel1,sel2);
 
-    /*
-    Subset s1(const_cast<Selection&>(sel1));
-    Subset s2(const_cast<Selection&>(sel2));
-    auto masses = sel1.get_mass();
-    tr.linear() = rot_transform_matrix_new(s1.data(),s2.data(),
-                    Map<VectorXf>(masses.data(),masses.size()));
-    */
-
     //Clear translation part.
     tr.translation().fill(0.0);
 
@@ -232,6 +255,26 @@ Affine3f fit_transform(const Selection& sel1,
         tr = Translation3f(cm2) * tr * Translation3f(-cm1);
     }
 
+    return tr;
+}
+
+
+Affine3f fit_transform_simple(const Subset& s1,
+                              const Subset& s2,
+                              vector<float>& masses){
+    Affine3f tr; // result
+
+    int n1 = s1.size();
+    int n2 = s2.size();
+
+    if(n1!=n2) throw PterosError("Incompatible selections for fitting of sizes {} and {}", n1, n2);
+
+    // Determine rotational part of transform
+    tr.linear() = rot_transform_matrix_new(s1.data(),s2.data(),
+                    Map<VectorXf>(masses.data(),masses.size()));
+
+    //Clear translation part.
+    tr.translation().fill(0.0);
     return tr;
 }
 
@@ -272,9 +315,11 @@ MatrixXf rmsd_matrix(Selection& sel)
     // Do fitting and rmsd
     for(size_t i=0; i<N-1; ++i){
         sel.set_frame(i);
+        //Subset s1(sel); /////////
         for(size_t j=i+1; j<N; ++j){
             sel2.set_frame(j);
             auto tr = fit_transform(sel2,sel,false); // Already brought to zero
+
             // Store coordinates
             auto crd = sel2.get_xyz();
             //sel2.apply_transform(tr);
