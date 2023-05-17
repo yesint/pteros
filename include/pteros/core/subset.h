@@ -21,9 +21,8 @@ public:
         buffer = &sel.get_system()->frame(wf).coord;
     }
 
-    template <typename D>
-    DenseBase<D>& data() const {
-        return Map<MatrixXf>((float*)buffer->data(),3,index->size())(indexing::all,*index);
+    auto data() const {
+        return Map<Matrix<float,3,Dynamic>>((float*)buffer->data(),3,index->size())(indexing::all,*index);
     }
 
     Vector3f& pos(size_t i) const {
