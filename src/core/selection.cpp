@@ -1391,7 +1391,7 @@ std::vector<std::vector<int>> Selection::get_internal_bonds(float d, bool period
 
         // Form a connectivity structure in the form con[i]->1,2,5...
         con.resize(size());
-        for(int i=0; i<pairs.size(); ++i){
+        for(size_t i=0; i<pairs.size(); ++i){
             con[pairs[i](0)].push_back(pairs[i](1));
             con[pairs[i](1)].push_back(pairs[i](0));
         }
@@ -1768,7 +1768,7 @@ void Selection::wrap(Array3i_const_ref pbc){
 void Selection::unwrap(Array3i_const_ref pbc, int pbc_atom){
     process_pbc_atom(pbc_atom);
     Vector3f c;
-    if( (pbc==0).all() && pbc_atom>=0){
+    if( (pbc==0).all()){
         c = xyz(pbc_atom);
     } else {
         c = center(true,pbc,pbc_atom);
@@ -1808,7 +1808,7 @@ int Selection::unwrap_bonds(float d, Array3i_const_ref pbc, int pbc_atom){
             leading = xyz(cur);
 
             // Find all atoms connected to this one
-            for(int i=0; i<con[cur].size(); ++i){
+            for(size_t i=0; i<con[cur].size(); ++i){
                 // We only add atoms, which were not yet used as centers
                 if(used(con[cur][i])==0){
                     // Unwrap atom
@@ -2044,7 +2044,7 @@ void Selection::get_local_bonds_from_topology(vector<vector<int>>& con) const {
     auto bit = std::begin(_index);    
     auto eit = std::end(_index);
 
-    for(int i=0;i<system->force_field.bonds.size();++i){
+    for(size_t i=0;i<system->force_field.bonds.size();++i){
         a1 = system->force_field.bonds[i](0);
         a2 = system->force_field.bonds[i](1);
         if(a1>=bind && a1<=eind && a2>=bind && a2<=eind){
