@@ -263,7 +263,7 @@ bool TprFile::do_read(System *sys, Frame *frame, const FileContent &what){
             // Mol type
             size_t mol_t = mtop.molblock[bl].type;
             // Cycle over molecules in this block
-            for(size_t mol=0; mol<mtop.molblock[bl].nmol; ++mol){
+            for(int mol=0; mol<mtop.molblock[bl].nmol; ++mol){
                 // cycle over atoms in one molecule
                 for(size_t a=0; a<mtop.moltype[mol_t].excls.size(); ++a){
                     // Go over the list of excluded local indexes for this atom
