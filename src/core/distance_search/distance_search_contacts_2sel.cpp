@@ -27,9 +27,6 @@
 */
 
 
-
-
-
 #include "distance_search_contacts_2sel.h"
 #include "pteros/core/pteros_error.h"
 #include <thread>
