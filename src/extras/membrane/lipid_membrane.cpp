@@ -84,7 +84,8 @@ LipidMembrane::LipidMembrane(const System *sys,
     inclusion(incl),
     inclusion_h_cutoff(incl_h_cutoff)
 {
-    log = create_logger("membrane");
+    log = spdlog::get("membrane");
+    if(!log) log = create_logger("membrane");
 
     // Add all lipid species provided
     species.reserve(sp_list.size()); // Reserve space to avoid reallocation and ensure correct pointers!
@@ -168,7 +169,7 @@ void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_ty
 
     // Set markers for all lipids
     // This unwraps each lipid
-    #pragma omp parallel for if (lipids.size() >= 100)
+    //#pragma omp parallel for if (lipids.size() >= 100)
     for(size_t i=0; i<lipids.size(); ++i){
         lipids[i].set_markers();
         all_surf_sel.xyz(i) = lipids[i].surf_marker;
@@ -180,7 +181,7 @@ void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_ty
     search_contacts(d,all_surf_sel,bon,dist,false,fullPBC);
 
     // Clear patches for all lipids
-    #pragma omp parallel for if (lipids.size() >= 100)
+    //#pragma omp parallel for if (lipids.size() >= 100)
     for(auto& l: lipids) {
         l.patch.neib_id.clear();
         l.patch.neib_dist.clear();
@@ -326,8 +327,12 @@ void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_ty
         }
 
         lip.surf.compute_voronoi(inclusion_h_cutoff);
+
         // area
         lip.area = lip.surf.surf_area;
+
+        // If area is zero than the lipid is invalid, so stop here
+        if(lip.area==0) continue;
 
         lip.surf.compute_curvature_and_normal();
 
@@ -763,6 +768,9 @@ void LipidMembrane::compute_triangulation()
 void LipidMembrane::write_vmd_visualization(const string &path){
     string out1;
     for(const auto& lip: lipids){
+        // Skip invalid lipids
+        if(lip.area==0) continue;
+
         Vector3f p1,p2,p3;        
         // Area vertices in lab coordinates
         out1+="draw materials on\n";

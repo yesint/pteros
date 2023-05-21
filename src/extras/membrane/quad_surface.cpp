@@ -3,6 +3,8 @@
 #include "voro++.hh"
 #include <vector>
 
+#include <fmt/ranges.h>
+
 using namespace pteros;
 using namespace std;
 using namespace Eigen;
@@ -65,7 +67,8 @@ void QuadSurface::compute_voronoi(float inclusion_h_cutoff){
 
     voronoicell_neighbor cell;
     // Initialize with large volume by default in XY and size 1 in Z
-    cell.init(-10,10,-10,10,-0.5,0.5);
+    const float side_wall = 100;
+    cell.init(-side_wall,side_wall,-side_wall,side_wall,-0.5,0.5);
     // Cut by planes for all points
     for(int i=1; i<fitted_points.cols(); ++i){ // From 1, central point is 0 and ignored
         cell.nplane(fitted_points(0,i),fitted_points(1,i),0.0,i); // Pass i as neigbour pid
@@ -86,6 +89,10 @@ void QuadSurface::compute_voronoi(float inclusion_h_cutoff){
     //cell.draw_gnuplot(0,0,0,"cell.dat");
 
     cell.neighbors(neib_list);
+    //fmt::print("{}\n",fmt::join(neib_list, ", "));
+
+    // The top and bottom walls have indexes -5 and -6
+    // Side walls has indexes -1..-4
 
     cell.face_vertices(face_vert);
     // In face_vert the first entry is a number k corresponding to the number
@@ -98,27 +105,43 @@ void QuadSurface::compute_voronoi(float inclusion_h_cutoff){
     // describing the position of each vertex.
 
     // Collect verteces which make up cell area in XY plane
-    int j = 0;
     int vert_ind;
     float x,y;
     area_vertexes.clear();
     area_vertexes.reserve(cell.number_of_faces()-2); // 2 faces are top and bottom walls
 
-    // We need to take only face aganst the wall, which containes all vertices
-    // which we need to area calculation
+    // We need to take only face at the upped wall
+    bool invalid_lipid = false;
+    int j = 0;
     for(int i=0;i<neib_list.size();++i){
-        if(neib_list[i]<0){ // Only take the wall faces
+        if(neib_list[i]==-5){ // Only take the face at upper wall (-5)
             // Cycle over vertices of this face
             for(int ind=0; ind<face_vert[j]; ++ind){
                 vert_ind = 3*face_vert[j+1+ind];
                 x = vert_coords[vert_ind];
                 y = vert_coords[vert_ind+1];
                 // We are not interested in Z component
-                area_vertexes.push_back(Vector3f(x,y,0.0));
+                if(abs(x)<0.9*side_wall && abs(y)<0.9*side_wall){
+                    // Add vertex
+                    area_vertexes.push_back(Vector3f(x,y,0.0));
+                } else {
+                    // This is invalid lipid
+                    invalid_lipid = true;
+                    break; // Bail out
+                }
             }
-            break; // We are done
+            // We are done
+            break;
         }
-        j += face_vert[j]+1; // Next entry in face_vert
+        j += face_vert[j]+1; // Next entry in face_vert array
+    }
+
+    // In case of invalid lipid give up and return early
+    if(invalid_lipid){
+        in_plane_area = 0;
+        surf_area = 0;
+        neib_id.clear();
+        return;
     }
 
     // In plane area. Since Z size of the cell is 1 volume=area
@@ -144,6 +167,7 @@ void QuadSurface::compute_voronoi(float inclusion_h_cutoff){
         if(id>=0 && id<10000) neib_id.push_back(id);
     }
 }
+
 
 void QuadSurface::compute_curvature_and_normal(){
     /* Compute the curvatures
