@@ -129,6 +129,51 @@ LipidMembrane::LipidMembrane(const System *sys,
 }
 
 
+std::vector<Selection> LipidMembrane::get_domains(float d)
+{
+    std::string domain_names_str;
+    Selection domains_sel;
+    std::vector<Selection> domains;
+
+    for(auto const& sp: species){
+        // Extract tail carbon names and add them to domain_names_str
+        string tnames = "";
+        for(auto const& tstr: sp.tails_descr_strings){
+            size_t tok_start = 0;
+            size_t cur = 0;
+            while(cur<tstr.size()){
+                if(tstr[cur]=='-' || tstr[cur]=='='){
+                    tnames += tstr.substr(tok_start,cur-tok_start)+" ";
+                    tok_start=cur+1;
+                }
+                ++cur;
+            }
+            tnames += tstr.substr(tok_start);
+        }
+        if(domain_names_str!="") domain_names_str += " or ";
+        domain_names_str += fmt::format("({} and name {})",sp.whole_sel_str,tnames);
+    }
+
+    // Find domains
+    // Create domains selection
+    //log->info("{}",domain_names_str);
+    domains_sel = system_ptr->select(domain_names_str);
+    log->info("Will find domains using {} tail atoms",domains_sel.size());
+    domains_sel.split_by_connectivity(d,domains,true);
+    log->info("There are {} domains",domains.size());
+
+    vector<Selection> out;
+    out.reserve(domains.size());
+    for(auto const& d: domains){
+        string s="";
+        for(auto const& r: d.get_resindex(true)) s+=fmt::format("{} ",r);
+        out.emplace_back(*system_ptr,fmt::format("by residue (resindex {})",s));
+    }
+
+    return out;
+}
+
+
 void LipidMembrane::register_lipid_species(const LipidSpecies &sp)
 {
     log->info("Adding lipid species {}",sp.name);
@@ -163,7 +208,7 @@ void LipidMembrane::reset_groups(){
 
 
 void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_type)
-{    
+{
     // Update box in surf_sys
     surf_sys.box() = system_ptr->box();
 

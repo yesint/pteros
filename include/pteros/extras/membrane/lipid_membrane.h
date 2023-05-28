@@ -67,6 +67,8 @@ public:
                   bool per_carb_normals=false
                   );
 
+    std::vector<Selection> get_domains(float d=0.4);
+
     void reset_groups();
 
     void compute_properties(float d = 2.0,
