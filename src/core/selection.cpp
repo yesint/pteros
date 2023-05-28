@@ -1488,7 +1488,7 @@ MatrixXf Selection::atom_traj(int ind, int b, int e, bool make_row_major_matrix)
     return ret;
 }
 
-void Selection::split_by_connectivity(float d, std::vector<Selection> &res, bool periodic) {
+void Selection::split_by_connectivity(float d, std::vector<Selection> &res, bool periodic) const {
     res.clear();
 
     vector<vector<int>> con = get_internal_bonds(d,periodic);
@@ -1566,7 +1566,7 @@ void Selection::split_by_connectivity(float d, std::vector<Selection> &res, bool
 }
 
 
-void Selection::split_by_residue(std::vector<Selection> &res)
+void Selection::split_by_residue(std::vector<Selection> &res) const
 {
     // We split selection into several by resindex
     res.clear();
@@ -1582,7 +1582,7 @@ void Selection::split_by_residue(std::vector<Selection> &res)
     }
 }
 
-void Selection::split_by_molecule(std::vector<Selection> &res)
+void Selection::split_by_molecule(std::vector<Selection> &res) const
 {
     if(!system->force_field.ready) throw PterosError("Can't split by molecule: no topology!");
 
@@ -1605,7 +1605,7 @@ void Selection::split_by_molecule(std::vector<Selection> &res)
     }
 }
 
-void Selection::split_by_chain(std::vector<Selection> &chains)
+void Selection::split_by_chain(std::vector<Selection> &chains) const
 {
     // We split selection into several by chain
     chains.clear();
@@ -1621,7 +1621,7 @@ void Selection::split_by_chain(std::vector<Selection> &chains)
     }
 }
 
-void Selection::split_by_contiguous_index(std::vector<Selection> &parts)
+void Selection::split_by_contiguous_index(std::vector<Selection> &parts) const
 {
     parts.clear();
     // Start first contiguous part
@@ -1635,7 +1635,7 @@ void Selection::split_by_contiguous_index(std::vector<Selection> &parts)
     }
 }
 
-void Selection::split_by_contiguous_residue(std::vector<Selection> &parts)
+void Selection::split_by_contiguous_residue(std::vector<Selection> &parts) const
 {
     parts.clear();
     // Start first contiguous part

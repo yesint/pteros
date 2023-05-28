@@ -788,22 +788,22 @@ class Selection {
     /// the interatomic distances. Each resulting selection is a group
     /// of atoms connected by distances less than d.
     /// if d==0 the bonds from topology are used instead and periodic argument is ignored
-    void split_by_connectivity(float d, std::vector<Selection>& res, bool periodic=true);    
+    void split_by_connectivity(float d, std::vector<Selection>& res, bool periodic=true) const;
 
     /// Split selection by residue index
-    void split_by_residue(std::vector<Selection>& res);
+    void split_by_residue(std::vector<Selection>& res) const;
 
     /// Split selection by molecule definition from topology
-    void split_by_molecule(std::vector<Selection>& res);
+    void split_by_molecule(std::vector<Selection>& res) const;
 
     /// Split selection by chain
-    void split_by_chain(std::vector<Selection>& chains);
+    void split_by_chain(std::vector<Selection>& chains) const;
 
     /// Split selection into contiguous ranges of indexes
-    void split_by_contiguous_index(std::vector<Selection>& parts);
+    void split_by_contiguous_index(std::vector<Selection>& parts) const;
 
     /// Split selection into contiguous ranges of resindexes
-    void split_by_contiguous_residue(std::vector<Selection>& parts);
+    void split_by_contiguous_residue(std::vector<Selection>& parts) const;
 
     /// Split selection by the values returned by custom callback function.
     /// Signature of callback is:
