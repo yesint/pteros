@@ -210,6 +210,7 @@ void LipidMembrane::reset_groups(){
     }
 }
 
+//---------------------------------------------------------------------------------
 
 void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_type)
 {
