@@ -86,7 +86,7 @@ string LipidGroup::properties_table() const
 void LipidGroup::save_properties_table(const std::filesystem::path &out_dir) const
 {
     auto out = fmt::output_file((out_dir / fmt::format("gr{}_properties.dat",get_id())).native());
-    out.print(properties_table());
+    out.print("{}",properties_table());
     out.close();
 }
 
