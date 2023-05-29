@@ -94,10 +94,10 @@ void make_bindings_Membrane(py::module& m){
         //.def(py::init<System*,int,const std::vector<LipidSpecies>&>())
         //.def(py::init<System*,int,const std::vector<LipidSpecies>&,const Selection&>())
         //.def(py::init<System*,int,const std::vector<LipidSpecies>&,const Selection&,float>())
-        .def(py::init<System*,int,const std::vector<LipidSpecies>&,const Selection&,float,bool>(),
-             "sys"_a,"ngroups"_a,"sp_list"_a,"incl"_a=Selection(),"incl_h_cutoff"_a=0.5,"per_carb_normals"_a=false)
+        .def(py::init<const Selection&,int,const std::vector<LipidSpecies>&,const Selection&,float,bool>(),
+             "input_sel"_a,"ngroups"_a,"sp_list"_a,"incl"_a=Selection(),"incl_h_cutoff"_a=0.5,"per_carb_normals"_a=false)
 
-        .def("get_domains",&LipidMembrane::get_domains,"d"_a=0.4)
+        .def_static("get_domains",&LipidMembrane::get_domains,"sys"_a,"sp_list"_a,"d"_a=0.4)
         .def("compute_properties",&LipidMembrane::compute_properties,
              "d"_a=2.0, "incl_d"_a=0.5, "order_type"_a=OrderType::SCD_CORR)
         .def("reset_groups",&LipidMembrane::reset_groups)

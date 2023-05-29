@@ -59,7 +59,7 @@ struct InterpolatedPoint {
 
 class LipidMembrane {
 public:
-    LipidMembrane(const System* sys,
+    LipidMembrane(const Selection& input_sel,
                   int ngroups,
                   const std::vector<LipidSpecies> &sp_list,
                   const Selection& incl = {},
@@ -67,7 +67,7 @@ public:
                   bool per_carb_normals=false
                   );
 
-    std::vector<Selection> get_domains(float d=0.4);
+    static std::vector<Selection> get_domains(System const& sys, const std::vector<LipidSpecies> &sp_list, float d=0.4);
 
     void reset_groups();
 
@@ -96,7 +96,7 @@ public:
     bool per_carbon_normals;
 
 private:
-    const System* system_ptr; // Parent system
+    const Selection* input_sel_ptr;
     std::shared_ptr<spdlog::logger> log;
 
     Selection all_surf_sel;

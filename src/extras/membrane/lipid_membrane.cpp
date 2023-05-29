@@ -73,14 +73,14 @@ string tcl_arrow(Vector3f_const_ref p1, Vector3f_const_ref p2, float r, string c
 
 //--------------------------------------------
 
-LipidMembrane::LipidMembrane(const System *sys,
+LipidMembrane::LipidMembrane(const Selection &input_sel,
                              int ngroups,
                              const vector<LipidSpecies>& sp_list,
                              const Selection &incl,
                              float incl_h_cutoff, bool per_carb_normals):
 
     per_carbon_normals(per_carb_normals),
-    system_ptr(sys),
+    input_sel_ptr(&input_sel),
     inclusion(incl),
     inclusion_h_cutoff(incl_h_cutoff)
 {
@@ -111,7 +111,7 @@ LipidMembrane::LipidMembrane(const System *sys,
 
     // If asked for per-carbon normals make a selection of all tail carbons
     if(per_carbon_normals){
-        all_tails_sel.set_system(*system_ptr);
+        all_tails_sel.set_system(*(input_sel_ptr->get_system()));
         for(auto& lip: lipids){
             for(auto& t: lip.tails){
                 t.first_global_index = all_tails_sel.size();
@@ -129,13 +129,15 @@ LipidMembrane::LipidMembrane(const System *sys,
 }
 
 
-std::vector<Selection> LipidMembrane::get_domains(float d)
+std::vector<Selection> LipidMembrane::get_domains(const System &sys, const std::vector<LipidSpecies> &sp_list, float d)
 {
     std::string domain_names_str;
     Selection domains_sel;
     std::vector<Selection> domains;
 
-    for(auto const& sp: species){
+    auto dom_log = create_logger("get_domains");
+
+    for(auto const& sp: sp_list){
         // Extract tail carbon names and add them to domain_names_str
         string tnames = "";
         for(auto const& tstr: sp.tails_descr_strings){
@@ -157,17 +159,18 @@ std::vector<Selection> LipidMembrane::get_domains(float d)
     // Find domains
     // Create domains selection
     //log->info("{}",domain_names_str);
-    domains_sel = system_ptr->select(domain_names_str);
-    log->info("Will find domains using {} tail atoms",domains_sel.size());
+
+    domains_sel = sys.select(domain_names_str);
+    dom_log->info("Will find domains using {} tail atoms",domains_sel.size());
     domains_sel.split_by_connectivity(d,domains,true);
-    log->info("There are {} domains",domains.size());
+    dom_log->info("There are {} domains",domains.size());
 
     vector<Selection> out;
     out.reserve(domains.size());
     for(auto const& d: domains){
         string s="";
         for(auto const& r: d.get_resindex(true)) s+=fmt::format("{} ",r);
-        out.emplace_back(*system_ptr,fmt::format("by residue (resindex {})",s));
+        out.emplace_back(sys,fmt::format("by residue (resindex {})",s));
     }
 
     return out;
@@ -180,7 +183,7 @@ void LipidMembrane::register_lipid_species(const LipidSpecies &sp)
     species.push_back(sp);
 
     vector<Selection> res;
-    system_ptr->select(sp.whole_sel_str).split_by_residue(res);    
+    input_sel_ptr->select(sp.whole_sel_str).split_by_residue(res);
     if(res.size()==0){
         log->warn("Skipping {} - there are no such lipids in the system!",sp.name);
         return;
@@ -210,7 +213,7 @@ void LipidMembrane::reset_groups(){
 void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_type)
 {
     // Update box in surf_sys
-    surf_sys.box() = system_ptr->box();
+    surf_sys.box() = input_sel_ptr->box();
 
     // Set markers for all lipids
     // This unwraps each lipid
@@ -352,7 +355,7 @@ void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_ty
         coord.col(0) = Vector3f::Zero(); // Local coord of central point is zero and it goes first
         for(int j=0; j<lip.local_sel.size(); ++j){
             coord.col(j+1) = lip.patch.to_local
-                    * system_ptr->box(0).shortest_vector(lip.surf_marker,
+                    * input_sel_ptr->box().shortest_vector(lip.surf_marker,
                                                      lip.local_sel.xyz(j));
         }
 
@@ -365,7 +368,7 @@ void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_ty
         if(!lip.inclusion_neib.empty()){
             lip.surf.inclusion_coord.resize(3,lip.inclusion_neib.size());
             for(size_t i=0; i<lip.inclusion_neib.size(); ++i){
-                lip.surf.inclusion_coord.col(i) = lip.patch.to_local * system_ptr->box(0)
+                lip.surf.inclusion_coord.col(i) = lip.patch.to_local * input_sel_ptr->box()
                         .shortest_vector(lip.surf_marker, inclusion.xyz(lip.inclusion_neib[i]));
 
             }
@@ -518,7 +521,7 @@ void LipidMembrane::get_interpolation(const Selection &points,
         }
 
         // For all valid lipids compute distance from normal and depth
-        auto const& box = system_ptr->box();
+        auto const& box = input_sel_ptr->box();
         for(auto& el: con[p]){
             if(el.lip_ind>=0){
                 auto const& x1 = all_surf_sel.xyz(el.lip_ind);
