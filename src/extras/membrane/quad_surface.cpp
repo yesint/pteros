@@ -9,7 +9,7 @@ using namespace pteros;
 using namespace std;
 using namespace Eigen;
 
-void QuadSurface::fit_to_points(const MatrixXf &coord){
+void QuadSurface::fit_to_points(MatrixXf_const_ref coord){
     int N = coord.cols();
     // We fit with polynomial fit = A*x^2 + B*y^2 + C*xy + D*x + E*y + F
     // Thus we need a linear system of size 6
@@ -144,7 +144,7 @@ void QuadSurface::compute_voronoi(float inclusion_h_cutoff){
         return;
     }
 
-    // In plane area. Since Z size of the cell is 1 volume=area
+    // In-plane area. Since Z size of the cell is 1 volume=area
     in_plane_area = cell.volume();
 
     // Compute area on surface

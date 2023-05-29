@@ -10,7 +10,7 @@ namespace pteros {
 class QuadSurface {
 public:
     // Compute fitting surface given the points in local basis
-    void fit_to_points(const Eigen::MatrixXf& coord);
+    void fit_to_points(MatrixXf_const_ref coord);
 
     // Projects point from the XY plane to the surface
     // existing Z coordinate will be substituted in place by the surface Z value

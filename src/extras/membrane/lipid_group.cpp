@@ -54,7 +54,7 @@ string LipidGroup::summary() const
 
     if(num_lipids>0){
         s += "\tLipid species:\n";
-        for(auto& sp: membr_ptr->species){
+        for(auto const& sp: membr_ptr->species){
             s += fmt::format("\t{}:\n", sp.name);
             s += species_properties.at(sp.name).summary();
         }
@@ -72,11 +72,11 @@ string LipidGroup::properties_table() const
 {
     string s;
     s += "Species\tabund%\tTrDih\tTrDihErr\n";
-    for(auto& sp: membr_ptr->species){
+    for(auto const& sp: membr_ptr->species){
         s += fmt::format("{}", sp.name);
-        const auto& prop = species_properties.at(sp.name);
+        auto const& prop = species_properties.at(sp.name);
         s += fmt::format("\t{: .4f}", 100.0*prop.count/float(num_lipids));
-        auto [mean,std] = prop.trans_dihedrals_ratio.get_mean_std();
+        auto const& [mean,std] = prop.trans_dihedrals_ratio.get_mean_std();
         s += fmt::format("\t{: .4f}\t{: .4f}", mean,std);
         s += "\n";
     }
@@ -92,7 +92,7 @@ void LipidGroup::save_properties_table(const std::filesystem::path &out_dir) con
 
 void LipidGroup::save_per_species_properties(const filesystem::path &out_dir) const
 {
-    for(auto& [sp_name,sp]: species_properties){
+    for(auto const& [sp_name,sp]: species_properties){
         if(sp.count>0){
             string file_prefix = out_dir / fmt::format("gr{}_{}_",gr_id,sp_name);
             // Area
