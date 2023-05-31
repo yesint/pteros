@@ -58,6 +58,14 @@ struct InterpData {
 };
 
 
+float gaussian(float x, float m, float s)
+{
+    static const float inv_sqrt_2pi = 0.3989422804014327;
+    float a = (x - m) / s;
+    return inv_sqrt_2pi / s * std::exp(-0.5f * a * a);
+}
+
+
 string tcl_arrow(Vector3f_const_ref p1, Vector3f_const_ref p2, float r, string color){
     stringstream ss;
     Vector3f p = (p2-p1)*0.8+p1;
@@ -226,14 +234,34 @@ void LipidMembrane::get_initial_normals(){
         auto& lip = lipids[i];
         auto& patch = lip.patch;
 
+        /*
         // Get inertia axes
         Vector3f moments;
         lip.local_sel_with_self.inertia(moments, patch.axes, fullPBC);
         // Transformation matrices
         patch.to_lab = patch.axes.colwise().normalized();
         patch.to_local = patch.to_lab.inverse();
-        // Approximate normal with correct orientation
         patch.normal = patch.axes.col(2).normalized();
+        */
+
+        // Average of patch normals and lipid normal
+        patch.normal = lip.tail_head_vector;
+        for(size_t i=0; i<patch.neib_id.size(); ++i){
+            size_t ind = patch.neib_id[i];
+            patch.normal += lipids[ind].tail_head_vector * gaussian(patch.neib_dist[i],0,1.0);
+        }
+        patch.normal.normalize();
+
+        // Set axes as two perpendicular vectors
+        patch.axes.col(2) = patch.normal;
+        patch.axes.col(0) = patch.axes.col(2).cross(Vector3f{1,0,0});
+        patch.axes.col(1) = patch.axes.col(2).cross(patch.axes.col(0));
+
+        // Transforms
+        patch.to_lab = patch.axes.colwise().normalized();
+        patch.to_local = patch.to_lab.inverse();
+
+        // Correct orientation
         float ang = angle_between_vectors(patch.normal, lip.tail_head_vector);
         if(ang > M_PI_2) patch.normal *= -1;
     }
@@ -261,72 +289,18 @@ void LipidMembrane::create_lipid_patches(vector<Vector2i> const& bon, vector<flo
 }
 
 
-void LipidMembrane::fix_initial_normals(float d){
-    for(size_t i=0; i<lipids.size(); ++i){
-        auto& lip = lipids[i];
-        Vector3f const& normal1 = lip.patch.normal;
-        int n_bad = 0;
-        Vector3f aver_closest(0,0,0);
-
-        // We only include lipids which close enough
-        // The cutoff is larger for lipids near inclusions
-        float dist_cutoff = lip.inclusion_neib.empty() ? 1.0 : d;
-        // Angle tolerance is smaller near inclusions
-        float ang_tol = lip.inclusion_neib.empty() ? M_PI_4 : 0.5*M_PI_4;
-
-        for(size_t j=0; j<lip.patch.neib_id.size(); ++j){
-            int jl = lip.patch.neib_id[j];
-            float d = lip.patch.neib_dist[j];
-            const Vector3f& normal2 = lipids[jl].patch.normal;
-
-            if( d<dist_cutoff){
-                if(angle_between_vectors(normal1,normal2)>ang_tol) ++n_bad;
-                aver_closest += normal2;
-            }
-        }
-
-        if(n_bad>2){
-            // Set to average of closest normals
-            log->debug("Trying to fix bad normal for lipid {}", i);
-            lip.patch.normal = aver_closest.normalized();
-            // Get new tangent axes
-            lip.patch.axes.col(0) = lip.patch.normal.cross(lip.patch.axes.col(1));
-            lip.patch.axes.col(1) = lip.patch.normal.cross(lip.patch.axes.col(0));
-            // Recompute transforms
-            lip.patch.to_lab = lip.patch.axes.colwise().normalized();
-            lip.patch.to_local = lip.patch.to_lab.inverse();
-        }
-    }
-}
-
 void LipidMembrane::add_inclusions(float incl_d){
+    //fmt::print("Adding inclusion {}\n",inclusion.size());
     inclusion.apply(); // In case if it is coord-dependent
     vector<Vector2i> bon;
     vector<float> dist;
     search_contacts(incl_d,all_surf_sel,inclusion,bon,dist,false,fullPBC);
+
     // For each lipid add contacting inclusion atoms
     for(size_t i=0;i<bon.size();++i){
         int l = bon[i](0);
         int in = bon[i](1);
         lipids[l].inclusion_neib.push_back(in);
-    }
-
-    // For lipids with inclusions add neighbors of neigbors
-    // in order to increase the patch coverage and compensate
-    // for absent partners from inclusion side
-    for(size_t i=0;i<bon.size();++i){
-        auto& lip = lipids[i];
-        if(!lip.inclusion_neib.empty()){
-            auto cur_neibs = lip.patch.neib_id;
-            for(int ind: cur_neibs){
-                for(size_t i=0; i<lipids[ind].patch.neib_id.size(); ++i){
-                    lip.patch.neib_id.push_back(lipids[ind].patch.neib_id[i]);
-                    lip.patch.neib_dist.push_back(lipids[ind].patch.neib_dist[i]);
-                }
-            }
-            // Update local sellection for this lipid
-            update_local_selection(i);
-        }
     }
 }
 
@@ -361,7 +335,6 @@ void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_ty
     }
 
     // If inclusions are present compute contacts with them
-    // This updates neib_id of patches!
     if(inclusion.size()>0){
         add_inclusions(incl_d);
     }
@@ -376,7 +349,7 @@ void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_ty
 
     // Inspect normals and try to fix them if weird orientation is found
     // This is a very important step!
-    fix_initial_normals(d);
+    //fix_initial_normals(d);
 
     //================
     // Process lipids
@@ -414,7 +387,7 @@ void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_ty
         // area
         lip.area = lip.surf.surf_area;
 
-        // If area is zero than the lipid is invalid, so stop here
+        // If area is zero then the lipid is invalid, so stop here
         if(lip.area==0) continue;
 
         lip.surf.compute_curvature_and_normal();
@@ -484,12 +457,6 @@ void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_ty
     }
 }
 
-float gaussian(float x, float m, float s)
-{
-    static const float inv_sqrt_2pi = 0.3989422804014327;
-    float a = (x - m) / s;
-    return inv_sqrt_2pi / s * std::exp(-0.5f * a * a);
-}
 
 void LipidMembrane::get_interpolation(const Selection &points,
                                       vector<InterpolatedPoint>& res,

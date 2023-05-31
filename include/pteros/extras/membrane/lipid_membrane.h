@@ -110,7 +110,6 @@ private:
     void register_lipid_species(const LipidSpecies &sp);
     void get_initial_normals();
     void create_lipid_patches(const std::vector<Eigen::Vector2i> &bon, const std::vector<float> &dist);
-    void fix_initial_normals(float d);
     void add_inclusions(float incl_d);
     void update_local_selection(int i);
 };
