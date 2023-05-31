@@ -6,7 +6,6 @@
 namespace pteros {
 
 struct LocalPatch {
-    int lip_id;
     // Id's and distances correspond to each other
     std::vector<int> neib_id;
     std::vector<float> neib_dist;
