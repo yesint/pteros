@@ -5,6 +5,7 @@ add_library(pteros_membrane SHARED
     lipid_molecule.cpp
     lipid_species.cpp
     quad_surface.cpp
+    local_patch.cpp
     per_species_properties.cpp
     lipid_group.cpp
     )

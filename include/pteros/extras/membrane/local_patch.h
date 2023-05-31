@@ -18,6 +18,9 @@ struct LocalPatch {
     Eigen::Vector3f normal;
     // Original central point
     Eigen::Vector3f original_center;
+
+    // Deduplicate neib_id
+    void sort_and_remove_duplicates();
 };
 
 

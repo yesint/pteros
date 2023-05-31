@@ -36,7 +36,6 @@
 #include <omp.h>
 #include <filesystem>
 #include "fmt/os.h"
-#include <ranges>
 
 #ifndef M_PI
     #define M_PI 3.14159265358979323846
@@ -210,70 +209,21 @@ void LipidMembrane::reset_groups(){
     }
 }
 
-//---------------------------------------------------------------------------------
 
-void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_type)
-{
-    auto const& box = input_sel_ptr->box();
+void LipidMembrane::update_local_selection(int i){
+    auto& lip = lipids[i];
+    lip.local_sel = all_surf_sel.select(lip.patch.neib_id);
+    lip.local_sel_with_self = lip.local_sel;
+    lip.local_sel_with_self.append(all_surf_sel.index(i));
+}
 
-    // Update box in surf_sys
-    surf_sys.box() = box;
 
-    // Set markers for all lipids
-    // This unwraps each lipid
-    //#pragma omp parallel for if (lipids.size() >= 100)
-    for(size_t i=0; i<lipids.size(); ++i){
-        lipids[i].set_markers();
-        all_surf_sel.xyz(i) = lipids[i].surf_marker;
-    }
-
-    // Get connectivity
-    vector<Vector2i> bon;
-    vector<float> dist;
-    search_contacts(d,all_surf_sel,bon,dist,false,fullPBC);
-
-    // Clear patches for all lipids
-    //#pragma omp parallel for if (lipids.size() >= 100)
-    for(auto& l: lipids) {
-        l.patch.neib_id.clear();
-        l.patch.neib_dist.clear();
-    }
-
-    // Fill patches with id's and distances
-    for(auto const& b: bon){
-        int l1 = b(0);
-        int l2 = b(1);
-        lipids[l1].patch.neib_id.push_back(l2);
-        lipids[l1].patch.neib_dist.push_back(dist[l2]);
-        lipids[l2].patch.neib_id.push_back(l1);
-        lipids[l2].patch.neib_dist.push_back(dist[l1]);
-    }
-
-    // If inclusions are present compute contacts with them
-    if(inclusion.size()>0){
-        inclusion.apply(); // In case if it is coord-dependent
-        vector<Vector2i> bon;
-        vector<float> dist;
-        search_contacts(incl_d,all_surf_sel,inclusion,bon,dist,false,fullPBC);
-        // For each lipid add contacting inclusion atoms
-        for(size_t i=0;i<bon.size();++i){
-            int l = bon[i](0);
-            int in = bon[i](1);
-            lipids[l].inclusion_neib.push_back(in);
-        }
-    }
-
+void LipidMembrane::get_initial_normals(){
     #pragma omp parallel for if (lipids.size() >= 100)
     // Compute local coordinates and approximate normals of patches
     for(size_t i=0; i<lipids.size(); ++i){
         auto& lip = lipids[i];
         auto& patch = lip.patch;
-        // Save central point
-        patch.original_center = lip.surf_marker;
-        // Set local selection for this lipid
-        lip.local_sel = all_surf_sel.select(patch.neib_id);
-        lip.local_sel_with_self = lip.local_sel;
-        lip.local_sel_with_self.append(all_surf_sel.index(i));
 
         // Get inertia axes
         Vector3f moments;
@@ -286,9 +236,31 @@ void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_ty
         float ang = angle_between_vectors(patch.normal, lip.tail_head_vector);
         if(ang > M_PI_2) patch.normal *= -1;
     }
+}
 
-    // Inspect normals and try to fix them if weird orientation is found
-    // This is a very important step!
+void LipidMembrane::create_lipid_patches(vector<Vector2i> const& bon, vector<float> const& dist){
+    // Clear patches for all lipids
+    //#pragma omp parallel for if (lipids.size() >= 100)
+    for(auto& lip: lipids) {
+        lip.patch.neib_id.clear();
+        lip.patch.neib_dist.clear();
+        // Save central point
+        lip.patch.original_center = lip.surf_marker;
+    }
+
+    // Fill patches with id's and distances
+    for(auto const& b: bon){
+        int l1 = b(0);
+        int l2 = b(1);
+        lipids[l1].patch.neib_id.push_back(l2);
+        lipids[l1].patch.neib_dist.push_back(dist[l2]);
+        lipids[l2].patch.neib_id.push_back(l1);
+        lipids[l2].patch.neib_dist.push_back(dist[l1]);
+    }
+}
+
+
+void LipidMembrane::fix_initial_normals(float d){
     for(size_t i=0; i<lipids.size(); ++i){
         auto& lip = lipids[i];
         Vector3f const& normal1 = lip.patch.normal;
@@ -324,17 +296,25 @@ void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_ty
             lip.patch.to_local = lip.patch.to_lab.inverse();
         }
     }
+}
 
-    //================
-    // Process lipids
-    //================
-    #pragma omp parallel for if (lipids.size() >= 100)
-    for(size_t i=0;i<lipids.size();++i){
+void LipidMembrane::add_inclusions(float incl_d){
+    inclusion.apply(); // In case if it is coord-dependent
+    vector<Vector2i> bon;
+    vector<float> dist;
+    search_contacts(incl_d,all_surf_sel,inclusion,bon,dist,false,fullPBC);
+    // For each lipid add contacting inclusion atoms
+    for(size_t i=0;i<bon.size();++i){
+        int l = bon[i](0);
+        int in = bon[i](1);
+        lipids[l].inclusion_neib.push_back(in);
+    }
+
+    // For lipids with inclusions add neighbors of neigbors
+    // in order to increase the patch coverage and compensate
+    // for absent partners from inclusion side
+    for(size_t i=0;i<bon.size();++i){
         auto& lip = lipids[i];
-
-        // For lipids with inclusions add neighbors of neigbors
-        // in order to increase the patch coverage and compensate
-        // for absent partners from inclusion side
         if(!lip.inclusion_neib.empty()){
             auto cur_neibs = lip.patch.neib_id;
             for(int ind: cur_neibs){
@@ -343,18 +323,66 @@ void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_ty
                     lip.patch.neib_dist.push_back(lipids[ind].patch.neib_dist[i]);
                 }
             }
-            // Update sellections
-            lip.local_sel = all_surf_sel.select(lip.patch.neib_id);
-            lip.local_sel_with_self = lip.local_sel;
-            lip.local_sel_with_self.append(all_surf_sel.index(i));
+            // Update local sellection for this lipid
+            update_local_selection(i);
         }
-        // end inclusions
+    }
+}
 
-        // Sort neib_id for correct index match with selection
-        ranges::sort(lip.patch.neib_id);
-        // Remove duplicates
-        auto const [del1,del2] = ranges::unique(lip.patch.neib_id);
-        lip.patch.neib_id.erase(del1,del2);
+
+//---------------------------------------------------------------------------------
+
+void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_type)
+{
+    auto const& box = input_sel_ptr->box();
+
+    // Update box in surf_sys
+    surf_sys.box() = box;
+
+    // Set markers for all lipids
+    // This unwraps each lipid    
+    for(size_t i=0; i<lipids.size(); ++i){
+        lipids[i].set_markers();
+        all_surf_sel.xyz(i) = lipids[i].surf_marker;
+    }
+
+    // Get connectivity
+    vector<Vector2i> bon;
+    vector<float> dist;
+    search_contacts(d,all_surf_sel,bon,dist,false,fullPBC);
+
+    // Populate lipid patches
+    create_lipid_patches(bon,dist);
+
+    // Create local selections around lipids
+    for(size_t i=0;i<lipids.size();++i){
+        update_local_selection(i);
+    }
+
+    // If inclusions are present compute contacts with them
+    // This updates neib_id of patches!
+    if(inclusion.size()>0){
+        add_inclusions(incl_d);
+    }
+
+    // Sort neib_id of patches and remove duplicates for correct index match with all_surf_sel selection
+    for(auto& lip: lipids) {
+        lip.patch.sort_and_remove_duplicates();
+    }
+
+    // Guess initial normals
+    get_initial_normals();
+
+    // Inspect normals and try to fix them if weird orientation is found
+    // This is a very important step!
+    fix_initial_normals(d);
+
+    //================
+    // Process lipids
+    //================
+    #pragma omp parallel for if (lipids.size() >= 100)
+    for(size_t i=0;i<lipids.size();++i){
+        auto& lip = lipids[i];
 
         // Create array of local points in local basis
         MatrixXf coord(3,lip.local_sel.size()+1);
