@@ -37,6 +37,8 @@
 #include <filesystem>
 #include "fmt/os.h"
 #include <ranges>
+#include <set>
+#include "voro++.hh"
 
 #ifndef M_PI
     #define M_PI 3.14159265358979323846
@@ -244,11 +246,13 @@ void LipidMembrane::get_initial_normals(){
         patch.normal = patch.axes.col(2).normalized();
         */
 
-        // Average of patch normals and lipid normal
+        // Average of patch normals and central lipid normal
         patch.normal = lip.tail_head_vector;
         for(size_t i=0; i<patch.neib_id.size(); ++i){
             size_t ind = patch.neib_id[i];
-            patch.normal += lipids[ind].tail_head_vector * gaussian(patch.neib_dist[i],0,1.0);
+            //float w = lip.inclusion_neib.empty() ? gaussian(patch.neib_dist[i],0,2.0) : 1.0;
+            patch.normal += lipids[ind].tail_head_vector; // * w;
+
         }
         patch.normal.normalize();
 
@@ -267,10 +271,10 @@ void LipidMembrane::get_initial_normals(){
     }
 }
 
-void LipidMembrane::create_lipid_patches(vector<Vector2i> const& bon, vector<float> const& dist){
-    // Clear patches for all lipids
-    //#pragma omp parallel for if (lipids.size() >= 100)
+void LipidMembrane::create_lipid_patches(vector<Vector2i> const& bon,
+                                         vector<float> const& dist){
     for(auto& lip: lipids) {
+        // Clear patches for all lipids
         lip.patch.neib_id.clear();
         lip.patch.neib_dist.clear();
         // Save central point
@@ -286,6 +290,68 @@ void LipidMembrane::create_lipid_patches(vector<Vector2i> const& bon, vector<flo
         lipids[l2].patch.neib_id.push_back(l1);
         lipids[l2].patch.neib_dist.push_back(dist[l1]);
     }
+
+    /*
+    // Filter lipid patches to exclude lipids with wrong orientation
+    for(auto& lip: lipids) {
+        vector<int> neib_id;
+        neib_id.reserve(lip.patch.neib_id.size());
+        vector<float> neib_dist;
+        neib_dist.reserve(lip.patch.neib_id.size());
+        for(int i=0; i<lip.patch.neib_id.size(); ++i){
+            int ind = lip.patch.neib_id[i];
+            float ang = angle_between_vectors(lip.tail_head_vector,lipids[ind].tail_head_vector);
+            if(ang<M_PI_2){
+                neib_id.push_back(ind);
+                neib_dist.push_back(lip.patch.neib_dist[i]);
+            }
+        }
+        lip.patch.neib_id = neib_id;
+        lip.patch.neib_dist = neib_dist;
+    }
+    */
+
+    /*
+    auto const& box = input_sel_ptr->box();
+
+    for(auto& lip: lipids) {
+        Vector3f c = lip.surf_marker;
+        voro::voronoicell_neighbor cell;
+        // Initialize with large volume by default in XY and size 1 in Z
+        const float side_wall = 10;
+        cell.init(-side_wall,+side_wall,
+                  -side_wall,+side_wall,
+                  -side_wall,+side_wall);
+
+        vector<int> neib_id;
+        neib_id.reserve(lip.patch.neib_id.size());
+        vector<float> neib_dist;
+        neib_dist.reserve(lip.patch.neib_id.size());
+
+        // Cut by planes for all points
+        for(int i=1; i<lip.patch.neib_id.size(); ++i) {
+            int ind = lip.patch.neib_id[i];
+            Vector3f p = box.shortest_vector(c,lipids[ind].surf_marker);
+            bool ret = cell.nplane(p(0),p(1),p(2),ind); // Pass ind as neigbour pid
+            if(!ret) return;
+        }
+
+        cell.neighbors(neib_id);
+        // Filter the walls
+        auto const [it1,it2] = ranges::remove_if(neib_id,[](auto const& a){return a<0;});
+        neib_id.erase(it1,it2);
+
+        fmt::print("{}\n",fmt::join(lip.patch.neib_id," "));
+        fmt::print("{}\n",fmt::join(neib_id," "));
+
+        if(neib_id.size()>12){
+            cell.draw_gnuplot(0,0,0,"cell.gnu");
+        }
+
+        lip.patch.neib_id = neib_id;
+    }
+    */
+
 }
 
 
@@ -347,9 +413,47 @@ void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_ty
     // Guess initial normals
     get_initial_normals();
 
-    // Inspect normals and try to fix them if weird orientation is found
-    // This is a very important step!
-    //fix_initial_normals(d);
+    /*
+    //===================
+    // Surface smoothing
+    //===================
+    MatrixXf smoothed(3,lipids.size());
+    VectorXf n_counted(lipids.size());
+    smoothed.fill(0.0);
+    n_counted.fill(0.0);
+
+    for(size_t i=0;i<lipids.size();++i){
+        auto& lip = lipids[i];
+
+        // Create array of local points in local basis
+        MatrixXf coord(3,lip.local_sel.size()+1);
+        coord.col(0) = Vector3f::Zero(); // Local coord of central point is zero and it goes first
+        for(int j=0; j<lip.local_sel.size(); ++j){
+            coord.col(j+1) = lip.patch.to_local
+                               * box.shortest_vector(lip.surf_marker, lip.local_sel.xyz(j));
+        }
+
+        // Fit a quadric surface
+        lip.surf.fit_to_points(coord);
+
+        smoothed.col(i) += lip.patch.to_lab*lip.surf.fitted_points.col(0)
+                          + lip.surf_marker;
+        n_counted(i)+=1;
+
+
+        for(int j=0; j<lip.local_sel.size(); ++j){
+            int ind = lip.patch.neib_id[j];
+            smoothed.col(ind) += lip.patch.to_lab*lip.surf.fitted_points.col(j+1)
+                                + lip.local_sel.xyz(j);
+            n_counted(ind)+=1;
+        }
+
+    }
+    // Update markers
+    for(size_t i=0;i<lipids.size();++i){
+        lipids[i].surf_marker = smoothed.col(i)/n_counted(i);
+    }
+    */
 
     //================
     // Process lipids
@@ -366,7 +470,7 @@ void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_ty
                     * box.shortest_vector(lip.surf_marker, lip.local_sel.xyz(j));
         }
 
-        // Fit a quadric surface and find local curvatures
+        // Fit a quadric surface
         lip.surf.fit_to_points(coord);
         // Set smoothed point
         lip.smoothed_surf_marker_xyz = lip.patch.to_lab*lip.surf.fitted_points.col(0) + lip.surf_marker;
