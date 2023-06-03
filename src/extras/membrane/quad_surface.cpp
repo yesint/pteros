@@ -1,6 +1,7 @@
 #include "pteros/extras/membrane/quad_surface.h"
 #include <Eigen/Dense>
-#include "voro++.hh"
+//#include "voro++.hh"
+#include "voro++_2d.hh"
 #include <vector>
 
 #include <fmt/ranges.h>
@@ -63,15 +64,15 @@ float QuadSurface::evalZ(float x, float y){
 void QuadSurface::compute_voronoi(float inclusion_h_cutoff){
     // The center of the cell is assumed to be at {0,0,0}
     // First point is assumed to be the central one and thus not used
-    using namespace voro;
+    using namespace voro2d;
 
-    voronoicell_neighbor cell;
+    voronoicell_neighbor_2d cell;
     // Initialize with large volume by default in XY and size 1 in Z
     const float side_wall = 100;
-    cell.init(-side_wall,side_wall,-side_wall,side_wall,-0.5,0.5);
+    cell.init(-side_wall,side_wall,-side_wall,side_wall);
     // Cut by planes for all points
     for(int i=1; i<fitted_points.cols(); ++i){ // From 1, central point is 0 and ignored
-        bool ret = cell.nplane(fitted_points(0,i),fitted_points(1,i),0.0,i); // Pass i as neigbour pid
+        bool ret = cell.nplane(fitted_points(0,i),fitted_points(1,i),i); // Pass i as neigbour pid
         if(!ret){ // Fail if the cell is invalid
             in_plane_area = 0;
             surf_area = 0;
@@ -83,8 +84,8 @@ void QuadSurface::compute_voronoi(float inclusion_h_cutoff){
     // If inclusion is involved add planes from its atoms
     for(int i=0; i<inclusion_coord.cols(); ++i){
         if(abs(inclusion_coord(2,i))<inclusion_h_cutoff){
-            cell.nplane(inclusion_coord(0,i),inclusion_coord(1,i),0.0,i*10000);
-            // Pass large neigbour pid to differenciate
+            cell.nplane(inclusion_coord(0,i),inclusion_coord(1,i),i*10000);
+            // Pass large neigbour pid to differentiate
         }
     }
 
@@ -92,66 +93,30 @@ void QuadSurface::compute_voronoi(float inclusion_h_cutoff){
     vector<int> face_vert;
     vector<double> vert_coords;
 
-    //cell.draw_gnuplot(0,0,0,"cell.dat");
-
     cell.neighbors(neib_list);
-    //fmt::print("{}\n",fmt::join(neib_list, ", "));
+    cell.vertices_ordered(vert_coords);
 
-    // The top and bottom walls have indexes -5 and -6
-    // Side walls has indexes -1..-4
-
-    cell.face_vertices(face_vert);
-    // In face_vert the first entry is a number k corresponding to the number
-    // of vertices making up a face,
-    // this is followed by k additional entries describing which vertices make up this face.
-    // For example, (3, 16, 20, 13) is a triangular face linking vertices 16, 20, and 13
-
-    cell.vertices(0,0,0,vert_coords);
-    //vert_coords this corresponds to a vector of triplets (x, y, z)
-    // describing the position of each vertex.
-
-    // Collect verteces which make up cell area in XY plane
-    int vert_ind;
-    float x,y;
     area_vertexes.clear();
-    area_vertexes.reserve(cell.number_of_faces()-2); // 2 faces are top and bottom walls
+    area_vertexes.reserve(neib_list.size());
 
-    // We need to take only face at the upped wall
-    bool invalid_lipid = false;
-    int j = 0;
+    // Check if all vertices are inside the box
     for(int i=0;i<neib_list.size();++i){
-        if(neib_list[i]==-5){ // Only take the face at upper wall (-5)
-            // Cycle over vertices of this face
-            for(int ind=0; ind<face_vert[j]; ++ind){
-                vert_ind = 3*face_vert[j+1+ind];
-                x = vert_coords[vert_ind];
-                y = vert_coords[vert_ind+1];
-                // We are not interested in Z component
-                if(abs(x)<0.9*side_wall && abs(y)<0.9*side_wall){
-                    // Add vertex
-                    area_vertexes.push_back(Vector3f(x,y,0.0));
-                } else {
-                    // This is invalid lipid
-                    invalid_lipid = true;
-                    break; // Bail out
-                }
-            }
-            // We are done
-            break;
+        if(neib_list[i]<0){
+            // This is invalid lipid
+            in_plane_area = 0;
+            surf_area = 0;
+            neib_id.clear();
+            return;
         }
-        j += face_vert[j]+1; // Next entry in face_vert array
+
+        // Add vertex
+        auto const& x = vert_coords[2*i];
+        auto const& y = vert_coords[2*i+1];
+        area_vertexes.push_back(Vector3f(x,y,0.0));
     }
 
-    // In case of invalid lipid give up and return early
-    if(invalid_lipid){
-        in_plane_area = 0;
-        surf_area = 0;
-        neib_id.clear();
-        return;
-    }
-
-    // In-plane area. Since Z size of the cell is 1 volume=area
-    in_plane_area = cell.volume();
+    // In-plane area.
+    in_plane_area = cell.area();
 
     // Compute area on surface
     // Project all vertexes to the surface
@@ -166,11 +131,10 @@ void QuadSurface::compute_voronoi(float inclusion_h_cutoff){
     }
 
     // Set list of neigbours
-    // Filter out negatives
     neib_id.clear();
     for(int id: neib_list){
-        // Ignore walls and inclusions
-        if(id>=0 && id<10000) neib_id.push_back(id);
+        // Ignore inclusions
+        if(id<10000) neib_id.push_back(id);
     }
 }
 

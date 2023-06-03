@@ -112,6 +112,7 @@ private:
     void create_lipid_patches(const std::vector<Eigen::Vector2i> &bon, const std::vector<float> &dist);
     void add_inclusions(float incl_d);
     void update_local_selection(int i);
+    void incremental_triangulation();
 };
 
 

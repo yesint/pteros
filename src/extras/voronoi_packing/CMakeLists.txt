@@ -8,7 +8,7 @@ if(MINGW)
     target_link_libraries(pteros_voronoi_packing PRIVATE spdlog::spdlog)
 endif()
 
-target_link_libraries(pteros_voronoi_packing PRIVATE pteros voro++)
+target_link_libraries(pteros_voronoi_packing PRIVATE pteros voro3d)
 
 install(TARGETS pteros_voronoi_packing
     RUNTIME DESTINATION bin

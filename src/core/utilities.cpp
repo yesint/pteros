@@ -272,6 +272,11 @@ string MeanStdAccumulator::to_string(unsigned long long custom_n) const
     return fmt::format("{:>8.3g} ± {:<8.3g}", mean,std);
 }
 
+float signed_projection_to_vector(Vector3f_const_ref vec1, Vector3f_const_ref vec2)
+{
+    return vec1.dot(vec2)/vec2.dot(vec2);
+}
+
 } // namespace pteros
 
 //---------------------------------------------------------------------

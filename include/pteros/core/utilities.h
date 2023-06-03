@@ -52,6 +52,7 @@ namespace pteros {
     float angle_between_vectors(Vector3f_const_ref vec1, Vector3f_const_ref vec2);
 
     Eigen::Vector3f project_vector(Vector3f_const_ref vec1, Vector3f_const_ref vec2);
+    float signed_projection_to_vector(Vector3f_const_ref vec1, Vector3f_const_ref vec2);
 
     float rad_to_deg(float ang);
     float deg_to_rad(float ang);

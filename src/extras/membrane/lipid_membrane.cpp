@@ -371,6 +371,62 @@ void LipidMembrane::add_inclusions(float incl_d){
 }
 
 
+void LipidMembrane::incremental_triangulation(){
+    VectorXi used(lipids.size());
+    used.fill(0);
+
+    set<int> todo;
+    todo.insert(0); // Start from the first lipid
+
+    float lim = 100;
+    auto const& box = input_sel_ptr->box();
+    Vector3f p;
+
+    while(!todo.empty()){
+        voro::voronoicell_neighbor cell;
+        cell.init(-lim,lim,-lim,lim,-lim,lim);
+        int cur = *todo.begin();
+        used(cur) = 1;
+        todo.erase(todo.begin());
+        float maxh = -1e6, minh = 1e6;
+        for(int ind: lipids[cur].patch.neib_id){
+            p = box.shortest_vector(lipids[cur].surf_marker,
+                                    lipids[ind].surf_marker);
+            cell.nplane(p(0),p(1),p(2),ind);
+            // Find the height over the tangent plane
+            float h = signed_projection_to_vector(p,lipids[cur].patch.normal);
+            if(h<minh) minh = h;
+            if(h>maxh) maxh = h;
+        }
+        // Add two walls perpendicular to initial normal
+        p = lipids[cur].patch.normal * 2.01*maxh;
+        cell.nplane(p(0),p(1),p(2),-7);
+        p = lipids[cur].patch.normal * 2.01*minh;
+        cell.nplane(p(0),p(1),p(2),-8);
+
+        if(cur==0) cell.draw_gnuplot(0,0,0,"cell.gnu");
+
+        vector<int> neib;
+        cell.neighbors(neib);
+
+        vector<int> face_order;
+        cell.face_orders(face_order);
+        // Add all non-wall unused neighbours to todo
+
+        fmt::print("before: {}\n",fmt::join(lipids[cur].patch.neib_id," "));
+
+        lipids[cur].patch.neib_id.clear();
+        for(int i=0; i< neib.size(); ++i){
+            int n = neib[i];
+            if(n>=0 && face_order[i]==4){
+                lipids[cur].patch.neib_id.push_back(n);
+                if(!used[n]) todo.insert(n);
+            }
+        }
+        fmt::print("after: {}\n",fmt::join(lipids[cur].patch.neib_id," "));
+    } // todo
+}
+
 //---------------------------------------------------------------------------------
 
 void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_type)
@@ -412,6 +468,8 @@ void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_ty
 
     // Guess initial normals
     get_initial_normals();
+
+    //incremental_triangulation();
 
     /*
     //===================
@@ -812,7 +870,7 @@ void LipidMembrane::compute_triangulation()
         curv[i] = get_average_curvatures(i,5);
     }
 
-    for(int smooth_level=0;smooth_level<5;++smooth_level){
+    for(int smooth_level=0;smooth_level<1;++smooth_level){
         // Now assign color to each lipid according to mean curvature
         float min_c=1e6;
         float max_c=-1e6;
@@ -853,10 +911,10 @@ void LipidMembrane::compute_triangulation()
             s+=fmt::format("draw sphere \"{} {} {}\" radius 1.3 resolution 12\n",
                            p1(0)*10,p1(1)*10,p1(2)*10);
 
-            s+=fmt::format("draw color black\n");
+            s+=fmt::format("draw color violet\n");
             for(int nb: lipids[i].neib){
                 Vector3f p2 = box.closest_image(lipids[nb].smoothed_surf_marker_xyz,p1);
-                s+=fmt::format("draw cylinder \"{} {} {}\" \"{} {} {}\" radius 0.1\n",
+                s+=fmt::format("draw cylinder \"{} {} {}\" \"{} {} {}\" radius 0.2\n",
                                p1(0)*10,p1(1)*10,p1(2)*10,
                                p2(0)*10,p2(1)*10,p2(2)*10
                               );

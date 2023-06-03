@@ -22,10 +22,6 @@ public:
     // Computes voronoi tesselation in the local tangent plane
     // Sets vertexes of points in plane making up the area
     // Computes in-plane area
-    //
-    // TODO: Ability to compute area from multiple atoms for each lipid
-    // (sum of areas belonging to current lipid)
-    //
     void compute_voronoi(float inclusion_h_cutoff);
 
     void compute_curvature_and_normal();

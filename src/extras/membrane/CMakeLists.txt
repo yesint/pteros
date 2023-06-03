@@ -15,7 +15,7 @@ if(MINGW)
     target_link_libraries(pteros_membrane PRIVATE spdlog::spdlog)
 endif()
 
-target_link_libraries(pteros_membrane PRIVATE pteros voro++)
+target_link_libraries(pteros_membrane PRIVATE pteros voro2d voro3d)
 
 install(TARGETS pteros_membrane
     RUNTIME DESTINATION bin
