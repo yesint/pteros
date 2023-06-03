@@ -471,48 +471,6 @@ void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_ty
 
     //incremental_triangulation();
 
-    /*
-    //===================
-    // Surface smoothing
-    //===================
-    MatrixXf smoothed(3,lipids.size());
-    VectorXf n_counted(lipids.size());
-    smoothed.fill(0.0);
-    n_counted.fill(0.0);
-
-    for(size_t i=0;i<lipids.size();++i){
-        auto& lip = lipids[i];
-
-        // Create array of local points in local basis
-        MatrixXf coord(3,lip.local_sel.size()+1);
-        coord.col(0) = Vector3f::Zero(); // Local coord of central point is zero and it goes first
-        for(int j=0; j<lip.local_sel.size(); ++j){
-            coord.col(j+1) = lip.patch.to_local
-                               * box.shortest_vector(lip.surf_marker, lip.local_sel.xyz(j));
-        }
-
-        // Fit a quadric surface
-        lip.surf.fit_to_points(coord);
-
-        smoothed.col(i) += lip.patch.to_lab*lip.surf.fitted_points.col(0)
-                          + lip.surf_marker;
-        n_counted(i)+=1;
-
-
-        for(int j=0; j<lip.local_sel.size(); ++j){
-            int ind = lip.patch.neib_id[j];
-            smoothed.col(ind) += lip.patch.to_lab*lip.surf.fitted_points.col(j+1)
-                                + lip.local_sel.xyz(j);
-            n_counted(ind)+=1;
-        }
-
-    }
-    // Update markers
-    for(size_t i=0;i<lipids.size();++i){
-        lipids[i].surf_marker = smoothed.col(i)/n_counted(i);
-    }
-    */
-
     //================
     // Process lipids
     //================
