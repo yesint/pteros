@@ -498,9 +498,6 @@ void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_ty
     // Guess initial normals
     get_initial_normals();
 
-    //incremental_triangulation();
-
-
     //#pragma omp parallel for if (lipids.size() >= 100)
 
     //=====================
@@ -514,7 +511,7 @@ void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_ty
     }
 
     // Iterations
-    float tol = 0.01;
+    float tol = 0.001;
     size_t iter = 0;
     float rmsd, prev_rmsd=1e6;
     MatrixXf prev_markers(3,lipids.size());
@@ -530,7 +527,8 @@ void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_ty
                 // Initially use patch normal
                 update_transforms(i,lip.patch.normal);
             } else {
-                // Use surf normal to redefine the local basis
+                // For subsequent iterations use surf normal
+                // to redefine the local basis
                 update_transforms(i,lip.to_lab*lip.surf.fitted_normal);
             }
             // Create array of local points in local basis
@@ -541,7 +539,6 @@ void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_ty
             lip.smoothed_surf_marker += lip.to_lab*lip.surf.fitted_central_point;
 
             rmsd += (lip.smoothed_surf_marker-prev_markers.col(i)).squaredNorm();
-            //log->info("rmsd {}",lip.surf.fitted_central_point);
         }
         ++iter;
         rmsd = sqrt(rmsd/lipids.size());
@@ -549,7 +546,7 @@ void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_ty
         log->debug("Iter={} rmsd={}",iter,rmsd);
 
         if(rmsd>prev_rmsd){
-            // Oversmoothing starts, revert to saved markers and exit
+            // Oversmoothing starts, revert to saved markers and exit the loop
             for(size_t i=0;i<lipids.size();++i){
                 lipids[i].smoothed_surf_marker = prev_markers.col(i);
             }
@@ -1139,48 +1136,6 @@ void LipidMembrane::write_averages(const string& out_dir)
     }
 }
 
-
-
-
-/*
-// Triangulated surface output
-string out2;
-Vector3f p1,p2,p3,n1,n2,n3;
-for(int i=0; i<lipids.size(); ++i){
-    for(int j=0; j<lipids[i].neib.size(); ++j){
-        int ind2 = lipids[i].neib[j];
-        int k = (j<lipids[i].neib.size()-1) ? j+1 : 0;
-        int ind3 = lipids[i].neib[k];
-        p1 = all_mid_sel.xyz(i);
-        p2 = all_mid_sel.box().closest_image(all_mid_sel.xyz(ind2),p1);
-        p3 = all_mid_sel.box().closest_image(all_mid_sel.xyz(ind3),p1);
-        n1 = lipids[i].normal;
-        n2 = lipids[j].normal;
-        n3 = lipids[k].normal;
-
-        out2 += fmt::format("draw sphere \"{} {} {}\" radius 2\n",
-                   10*p1.x(),10*p1.y(),10*p1.z() );
-
-        out2 += fmt::format("draw tricolor "
-                            "\"{} {} {}\" \"{} {} {}\" \"{} {} {}\" "
-                            "\"{} {} {}\" \"{} {} {}\" \"{} {} {}\" "
-                            "{} {} {} \n",
-                            10*p1.x(),10*p1.y(),10*p1.z(),
-                            10*p2.x(),10*p2.y(),10*p2.z(),
-                            10*p3.x(),10*p3.y(),10*p3.z(),
-
-                            n1.x(),n1.y(),n1.z(),
-                            n2.x(),n2.y(),n2.z(),
-                            n3.x(),n3.y(),n3.z(),
-
-                            i, j, k
-                            );
-    }
-}
-ofstream outf2(fmt::format("vis/surf.tcl"));
-outf2 << out2;
-outf2.close();
-*/
 
 
 void pteros::mean_std_from_accumulated(Vector2f &storage, float N){
