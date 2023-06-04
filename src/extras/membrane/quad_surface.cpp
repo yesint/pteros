@@ -10,8 +10,8 @@ using namespace pteros;
 using namespace std;
 using namespace Eigen;
 
-void QuadSurface::fit_to_points(MatrixXf_const_ref coord){
-    int N = coord.cols();
+void QuadSurface::fit_quad(){
+    int N = lip_coord.cols();
     // We fit with polynomial fit = A*x^2 + B*y^2 + C*xy + D*x + E*y + F
     // Thus we need a linear system of size 6
     Matrix<float,6,6> m;
@@ -22,30 +22,29 @@ void QuadSurface::fit_to_points(MatrixXf_const_ref coord){
     Matrix<float,6,1> powers;
     powers(5) = 1.0; //free term, the same everywhere
     for(int j=0;j<N;++j){ // over points
-        powers(0) = coord(0,j)*coord(0,j); //xx
-        powers(1) = coord(1,j)*coord(1,j); //yy
-        powers(2) = coord(0,j)*coord(1,j); //xy
-        powers(3) = coord(0,j); //x
-        powers(4) = coord(1,j); //y
+        powers(0) = lip_coord(0,j)*lip_coord(0,j); //xx
+        powers(1) = lip_coord(1,j)*lip_coord(1,j); //yy
+        powers(2) = lip_coord(0,j)*lip_coord(1,j); //xy
+        powers(3) = lip_coord(0,j); //x
+        powers(4) = lip_coord(1,j); //y
         // Fill the matrix
         m.noalias() += powers * powers.transpose();
         // rhs
-        rhs += powers*coord(2,j);
+        rhs += powers*lip_coord(2,j);
     }
 
     // Now solve
     quad_coefs = m.ldlt().solve(rhs);
 
-    // Compute RMS of fitting and fitted points
-    fitted_points = coord; // Set to parent points initially
-    fit_rms = 0.0;
-    for(int j=0;j<N;++j){
-        float fitZ = evalZ(coord(0,j),coord(1,j));
-        fit_rms += pow(coord(2,j)-fitZ,2);
-        // Adjust Z of fitted point
-        fitted_points(2,j) = fitZ;
-    }
-    fit_rms = sqrt(fit_rms/float(N));
+    // Set curvatures and normal
+    compute_curvature_and_normal();
+
+    // Fit central point
+    fitted_central_point(0) = lip_coord(0,0);
+    fitted_central_point(1) = lip_coord(1,0);
+    fitted_central_point(2) = evalZ(lip_coord(0,0),lip_coord(1,0));
+
+    //fmt::print(">>{} {}\n",fitted_central_point(2),quad_coefs.transpose());
 }
 
 void QuadSurface::project_point_to_surface(Vector3f_ref p){
@@ -71,14 +70,16 @@ void QuadSurface::compute_voronoi(float inclusion_h_cutoff){
     const float side_wall = 100;
     cell.init(-side_wall,side_wall,-side_wall,side_wall);
     // Cut by planes for all points
-    for(int i=1; i<fitted_points.cols(); ++i){ // From 1, central point is 0 and ignored
-        bool ret = cell.nplane(fitted_points(0,i),fitted_points(1,i),i); // Pass i as neigbour pid
+    for(int i=1; i<lip_coord.cols(); ++i){ // From 1, central point is 0 and ignored
+        bool ret = cell.nplane(lip_coord(0,i),lip_coord(1,i),i); // Pass i as neigbour pid
+        /*
         if(!ret){ // Fail if the cell is invalid
             in_plane_area = 0;
             surf_area = 0;
             neib_id.clear();
             return;
         }
+        */
     }
 
     // If inclusion is involved add planes from its atoms
@@ -125,8 +126,8 @@ void QuadSurface::compute_voronoi(float inclusion_h_cutoff){
     // Sum up areas of triangles. Points are not duplicated.
     for(int i=0; i<area_vertexes.size(); ++i){
         int ii = (i<area_vertexes.size()-1) ? i+1 : 0;
-        surf_area += 0.5*(area_vertexes[i]-fitted_points.col(0))
-                .cross(area_vertexes[ii]-fitted_points.col(0))
+        surf_area += 0.5*(area_vertexes[i]-fitted_central_point)
+                .cross(area_vertexes[ii]-fitted_central_point)
                 .norm();
     }
 

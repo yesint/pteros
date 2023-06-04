@@ -11,8 +11,6 @@ struct LocalPatch {
     std::vector<float> neib_dist;
     // Local coordinate axes in lab space
     Eigen::Matrix3f axes;
-    // Transformations to and from local cordinates
-    Eigen::Matrix3f to_lab,to_local;
     // Normal
     Eigen::Vector3f normal;
     // Original central point

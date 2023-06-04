@@ -10,7 +10,7 @@ namespace pteros {
 class QuadSurface {
 public:
     // Compute fitting surface given the points in local basis
-    void fit_to_points(MatrixXf_const_ref coord);
+    void fit_quad();
 
     // Projects point from the XY plane to the surface
     // existing Z coordinate will be substituted in place by the surface Z value
@@ -36,8 +36,6 @@ public:
 //private:
     // Coefficients of the quadric surface A,B,C,D,E,F
     Eigen::Matrix<float,6,1> quad_coefs;
-    // Fitted points
-    Eigen::MatrixXf fitted_points;
     // Fitted normal (unoriented!)
     Eigen::Vector3f fitted_normal;
     // Vertexes for area calculations
@@ -51,8 +49,12 @@ public:
     float gaussian_curvature;
     float mean_curvature;
 
-    // Coordinates of inclusion atoms to account for
+    // Local coordinates of lipid markers to account for
+    Eigen::MatrixXf lip_coord;
+    // Local coordinates of inclusion atoms to account for
     Eigen::MatrixXf inclusion_coord;
+
+    Eigen::Vector3f fitted_central_point;
 };
 
 }

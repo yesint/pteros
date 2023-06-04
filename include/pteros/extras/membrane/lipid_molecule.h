@@ -46,7 +46,7 @@ public:
     std::vector<int> inclusion_neib;
 
     // Fiting resutls
-    Eigen::Vector3f smoothed_surf_marker_xyz;
+    Eigen::Vector3f smoothed_surf_marker;
     float quad_fit_rms;
 
 private:
@@ -65,7 +65,10 @@ private:
 
     // Staff related to local patch computations
     LocalPatch patch;
+    // Quadric surface
     QuadSurface surf;
+    // Transformations to and from local cordinates
+    Eigen::Matrix3f to_lab,to_local;
 };
 
 }
