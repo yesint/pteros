@@ -1016,12 +1016,14 @@ void LipidMembrane::write_vmd_visualization(const string &path){
                        10*p1.x(),10*p1.y(),10*p1.z(),
                        10*p2.x(),10*p2.y(),10*p2.z()
                        );
+            /*
             // Draw thin line from central atom to vertexes
             p2 = lip.smoothed_surf_marker;
             out1 += fmt::format("draw cylinder \"{} {} {}\" \"{} {} {}\" radius 0.1 resolution 12\n",
                                 10*p1.x(),10*p1.y(),10*p1.z(),
                                 10*p2.x(),10*p2.y(),10*p2.z()
                                 );
+            */
         }
 
         // Patch normals
@@ -1035,6 +1037,9 @@ void LipidMembrane::write_vmd_visualization(const string &path){
         out1 += fmt::format("draw cone \"{} {} {}\" \"{} {} {}\" radius 0.3 resolution 12\n",
                    10*p2.x(),10*p2.y(),10*p2.z(),
                    10*p3.x(),10*p3.y(),10*p3.z() );
+        // Actual atom
+        out1 += fmt::format("draw sphere \"{} {} {}\" radius 0.8 resolution 12\n",
+                            10*p1.x(),10*p1.y(),10*p1.z() );
 
         // fitted normals
         p1 = lip.smoothed_surf_marker;
@@ -1052,11 +1057,14 @@ void LipidMembrane::write_vmd_visualization(const string &path){
         out1 += fmt::format("draw sphere \"{} {} {}\" radius 1.3 resolution 12\n",
                    10*p1.x(),10*p1.y(),10*p1.z() );
 
+
+        /*
         // Tails marker
         Vector3f pt = lip.tail_marker;
         out1 += fmt::format("draw color red\n");
         out1 += fmt::format("draw sphere \"{} {} {}\" radius 1.0 resolution 12\n",
                    10*pt.x(),10*pt.y(),10*pt.z() );
+        */
 
 
         // Inclusion atoms (if any)
