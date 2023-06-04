@@ -454,7 +454,7 @@ void LipidMembrane::inclusion_coord_to_surf_coord(int ind){
     for(size_t i=0; i<lip.inclusion_neib.size(); ++i){
         lip.surf.inclusion_coord.col(i) = lip.to_local
             * box.shortest_vector(
-                lip.surf_marker,
+                lip.smoothed_surf_marker,
                 inclusion.xyz(lip.inclusion_neib[i])
               );
 
@@ -490,11 +490,6 @@ void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_ty
         update_local_selection(i);
     }
 
-    // If inclusions are present compute contacts with them
-    if(inclusion.size()>0){
-        add_inclusions(incl_d);
-    }
-
     // Sort neib_id of patches and remove duplicates for correct index match with all_surf_sel selection
     for(auto& lip: lipids) {
         lip.patch.sort_and_remove_duplicates();
@@ -519,7 +514,7 @@ void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_ty
     }
 
     // Iterations
-    float tol = 1e-3;
+    float tol = 0.01;
     size_t iter = 0;
     float rmsd, prev_rmsd=1e6;
     do{
@@ -562,8 +557,16 @@ void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_ty
             prev_rmsd = rmsd;
         }
 
-    } while(rmsd>tol && iter<100);
+    } while(rmsd>tol && iter<10);
 
+    //=====================
+    // Lipid properties
+    //=====================
+
+    // If inclusions are present compute contacts with them
+    if(inclusion.size()>0){
+        add_inclusions(incl_d);
+    }
 
     for(size_t i=0;i<lipids.size();++i){
         auto& lip = lipids[i];

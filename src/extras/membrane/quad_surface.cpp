@@ -72,14 +72,12 @@ void QuadSurface::compute_voronoi(float inclusion_h_cutoff){
     // Cut by planes for all points
     for(int i=1; i<lip_coord.cols(); ++i){ // From 1, central point is 0 and ignored
         bool ret = cell.nplane(lip_coord(0,i),lip_coord(1,i),i); // Pass i as neigbour pid
-        /*
         if(!ret){ // Fail if the cell is invalid
             in_plane_area = 0;
             surf_area = 0;
             neib_id.clear();
             return;
         }
-        */
     }
 
     // If inclusion is involved add planes from its atoms
