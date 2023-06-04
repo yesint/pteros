@@ -54,6 +54,8 @@ public:
     // Local coordinates of inclusion atoms to account for
     Eigen::MatrixXf inclusion_coord;
 
+    std::vector<int> active_inclusion_indexes;
+
     Eigen::Vector3f fitted_central_point;
 };
 

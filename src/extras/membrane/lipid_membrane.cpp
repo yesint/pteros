@@ -517,9 +517,10 @@ void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_ty
     float tol = 0.01;
     size_t iter = 0;
     float rmsd, prev_rmsd=1e6;
+    MatrixXf prev_markers(3,lipids.size());
+
     do{
         rmsd = 0.0;
-        MatrixXf prev_markers(3,lipids.size());
 
         for(size_t i=0;i<lipids.size();++i){
             auto& lip = lipids[i];
@@ -763,29 +764,6 @@ void LipidMembrane::get_interpolation(const Selection &points,
         else
             res[p].mean_curvature = mean_c/ (1.0+mean_c * res[p].mean_depth);
     } // over points
-
-    /*
-    //Print normals
-    string s = "";
-    s+="draw materials on\n";
-    s+="draw material Diffuse\n";
-    // Patch normals
-    for(int p=0; p<points.size(); ++p){
-        Vector3f p1 = points.xyz(p);
-        Vector3f p2 = p1 + res[p].normal*0.3;
-        Vector3f p3 = p1 + res[p].normal*0.4;
-        s += fmt::format("draw color {}\n",points.resid(p)%32);
-        s += fmt::format("draw cylinder \"{} {} {}\" \"{} {} {}\" radius 0.1 resolution 12\n",
-                            10*p1.x(),10*p1.y(),10*p1.z(),
-                            10*p2.x(),10*p2.y(),10*p2.z() );
-        s += fmt::format("draw cone \"{} {} {}\" \"{} {} {}\" radius 0.2 resolution 12\n",
-                            10*p2.x(),10*p2.y(),10*p2.z(),
-                            10*p3.x(),10*p3.y(),10*p3.z() );
-    }
-    auto f = fmt::output_file("interpolated.tcl");
-    f.print("{}",s);
-    f.close();
-    */
 }
 
 MatrixXf LipidMembrane::get_average_curvatures(int lipid, int n_shells)
@@ -794,8 +772,6 @@ MatrixXf LipidMembrane::get_average_curvatures(int lipid, int n_shells)
     m.fill(0.0);
 
     vector<int> neib_n;
-    //lipids[i].gaussian_curvature_aver.resize(4);
-    //lipids[i].mean_curvature_aver.resize(4);
     neib_n.push_back(lipid); //self
 
     unordered_set<int> s;
@@ -1014,36 +990,44 @@ void LipidMembrane::compute_triangulation()
 
 void LipidMembrane::write_vmd_visualization(const string &path){
     string out1;
-    for(int i=0;i<lipids.size();++i){
-    //for(const auto& lip: lipids){
-        auto& lip = lipids[i];
-        //if(i!=40) continue;
 
+    for(const auto& lip: lipids){
         // Skip invalid lipids
         if(lip.area==0) continue;
 
-        Vector3f p1,p2,p3;        
-        // Area vertices in lab coordinates
+        Vector3f p1,p2,p3;
+
+        // Voronoi vertices in lab coordinates
+
         out1+="draw materials on\n";
         out1+="draw material AOEdgy\n";
         out1 += fmt::format("draw color orange\n");
         for(size_t j=0; j<lip.surf.area_vertexes.size(); ++j){
             int j2 = j+1;
             if(j==lip.surf.area_vertexes.size()-1) j2=0;
-            p1 = lip.to_lab *lip.surf.area_vertexes[j] + lip.smoothed_surf_marker;
-            p2 = lip.to_lab *lip.surf.area_vertexes[j2] + lip.smoothed_surf_marker;
+            p1 = lip.to_lab * lip.surf.area_vertexes[j]  + lip.smoothed_surf_marker;
+            p2 = lip.to_lab * lip.surf.area_vertexes[j2] + lip.smoothed_surf_marker;
+            // Draw small sphere at cylinders intersection
+            out1 += fmt::format("draw sphere \"{} {} {}\" radius 0.35 resolution 12\n",
+                                10*p1.x(),10*p1.y(),10*p1.z()
+                                );
+            // Draw edge cylinder
             out1 += fmt::format("draw cylinder \"{} {} {}\" \"{} {} {}\" radius 0.3 resolution 12\n",
                        10*p1.x(),10*p1.y(),10*p1.z(),
                        10*p2.x(),10*p2.y(),10*p2.z()
                        );
+            // Draw thin line from central atom to vertexes
+            p2 = lip.smoothed_surf_marker;
+            out1 += fmt::format("draw cylinder \"{} {} {}\" \"{} {} {}\" radius 0.1 resolution 12\n",
+                                10*p1.x(),10*p1.y(),10*p1.z(),
+                                10*p2.x(),10*p2.y(),10*p2.z()
+                                );
         }
-        // Normal vectors
-        //p1 = lip.patch.to_lab*fp + lip.patch.original_center;
 
         // Patch normals
         p1 = lip.patch.original_center;
-        p2 = p1 + lip.patch.normal*1.0;
-        p3 = p1 + lip.patch.normal*1.2;
+        p2 = p1 + lip.patch.normal*0.5;
+        p3 = p1 + lip.patch.normal*0.7;
         out1 += fmt::format("draw color white\n");
         out1 += fmt::format("draw cylinder \"{} {} {}\" \"{} {} {}\" radius 0.2 resolution 12\n",
                    10*p1.x(),10*p1.y(),10*p1.z(),
@@ -1055,8 +1039,8 @@ void LipidMembrane::write_vmd_visualization(const string &path){
         // fitted normals
         p1 = lip.smoothed_surf_marker;
         out1 += fmt::format("draw color cyan\n");
-        p2 = p1 + lip.normal*0.75;
-        p3 = p1 + lip.normal*1.0;
+        p2 = p1 + lip.normal*0.5;
+        p3 = p1 + lip.normal*0.7;
         out1 += fmt::format("draw cylinder \"{} {} {}\" \"{} {} {}\" radius 0.5 resolution 12\n",
                    10*p1.x(),10*p1.y(),10*p1.z(),
                    10*p2.x(),10*p2.y(),10*p2.z() );
@@ -1065,7 +1049,7 @@ void LipidMembrane::write_vmd_visualization(const string &path){
                    10*p3.x(),10*p3.y(),10*p3.z() );
 
         // Smoothed atom
-        out1 += fmt::format("draw sphere \"{} {} {}\" radius 1.5 resolution 12\n",
+        out1 += fmt::format("draw sphere \"{} {} {}\" radius 1.3 resolution 12\n",
                    10*p1.x(),10*p1.y(),10*p1.z() );
 
         // Tails marker
@@ -1076,11 +1060,25 @@ void LipidMembrane::write_vmd_visualization(const string &path){
 
 
         // Inclusion atoms (if any)
-        out1 += fmt::format("draw color green\n");
-        for(size_t i=0; i<lip.inclusion_neib.size(); ++i){
-            p1 = inclusion.xyz(lip.inclusion_neib[i]);
-            out1 += fmt::format("draw sphere \"{} {} {}\" radius 0.3 resolution 12\n",
+        auto const& box = input_sel_ptr->box();
+        for(size_t i=0; i<lip.surf.active_inclusion_indexes.size(); ++i){
+            int ind = lip.surf.active_inclusion_indexes[i];
+            // Actual position
+            p1 = inclusion.xyz(lip.inclusion_neib[ind]);
+            out1 += fmt::format("draw color green\n");
+            out1 += fmt::format("draw sphere \"{} {} {}\" radius 1.2 resolution 12\n",
                        10*p1.x(),10*p1.y(),10*p1.z() );
+            // Fitted position
+            p2 = lip.to_lab*lip.surf.inclusion_coord.col(ind) + lip.smoothed_surf_marker;
+            //p2 = box.closest_image(p2,p1);
+            out1 += fmt::format("draw color iceblue\n");
+            out1 += fmt::format("draw sphere \"{} {} {}\" radius 1.0 resolution 12\n",
+                                10*p2.x(),10*p2.y(),10*p2.z() );
+            // Connection line to involved lipid
+            p3 = lip.smoothed_surf_marker;
+            out1 += fmt::format("draw cylinder \"{} {} {}\" \"{} {} {}\" radius 0.2 resolution 12\n",
+                                10*p3.x(),10*p3.y(),10*p3.z(),
+                                10*p2.x(),10*p2.y(),10*p2.z() );
         }
     }
 

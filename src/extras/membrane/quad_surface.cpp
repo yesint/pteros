@@ -81,10 +81,11 @@ void QuadSurface::compute_voronoi(float inclusion_h_cutoff){
     }
 
     // If inclusion is involved add planes from its atoms
+    active_inclusion_indexes.clear();
     for(int i=0; i<inclusion_coord.cols(); ++i){
         if(abs(inclusion_coord(2,i))<inclusion_h_cutoff){
-            cell.nplane(inclusion_coord(0,i),inclusion_coord(1,i),i*10000);
             // Pass large neigbour pid to differentiate
+            cell.nplane(inclusion_coord(0,i),inclusion_coord(1,i),i+10000);
         }
     }
 
@@ -133,7 +134,16 @@ void QuadSurface::compute_voronoi(float inclusion_h_cutoff){
     neib_id.clear();
     for(int id: neib_list){
         // Ignore inclusions
-        if(id<10000) neib_id.push_back(id);
+        if(id<10000){
+            neib_id.push_back(id);
+        } else {
+            // This is an inclusion
+            // Save index of this inclusion atom and project to surface
+            int ind = id-10000;
+            active_inclusion_indexes.push_back(ind);
+            project_point_to_surface(inclusion_coord.col(ind));
+        }
+
     }
 }
 
