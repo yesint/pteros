@@ -59,14 +59,14 @@ private:
     void set_markers();    
 
     // Coordinates of markers
-    Eigen::Vector3f head_marker, tail_marker, surf_marker, pos_saved;
+    Eigen::Vector3f head_marker, tail_marker, surf_marker;
 
     Selection local_sel, local_sel_with_self;
 
     // Staff related to local patch computations
     LocalPatch patch;
     // Quadric surface
-    QuadSurface surf;    
+    QuadSurface surf;
 };
 
 }
