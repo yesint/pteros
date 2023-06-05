@@ -199,3 +199,16 @@ void QuadSurface::compute_curvature_and_normal(){
     // Orientation of the normal could be wrong!
     // Have to be flipped according to lipid orientation later
 }
+
+void QuadSurface::create_transforms_from_normal(Vector3f_const_ref normal)
+{
+    Matrix3f axes;
+    // Set axes as two perpendicular vectors
+    axes.col(2) = normal;
+    axes.col(0) = axes.col(2).cross(Vector3f{1,0,0});
+    axes.col(1) = axes.col(2).cross(axes.col(0));
+
+    // Transforms
+    to_lab = axes.colwise().normalized();
+    to_local = to_lab.inverse();
+}

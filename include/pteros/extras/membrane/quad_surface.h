@@ -57,6 +57,11 @@ public:
     std::vector<int> active_inclusion_indexes;
 
     Eigen::Vector3f fitted_central_point;
+
+    // Transform matrices
+    Eigen::Matrix3f to_lab,to_local;
+
+    void create_transforms_from_normal(Vector3f_const_ref normal);
 };
 
 }

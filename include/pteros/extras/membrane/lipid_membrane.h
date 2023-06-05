@@ -113,7 +113,7 @@ private:
     void add_inclusions(float incl_d);
     void update_local_selection(int i);
     void incremental_triangulation();
-    void update_transforms(int i, Vector3f_const_ref normal);
+
     void inclusion_coord_to_surf_coord(int ind);
     void smoothed_markers_to_local_coord(int ind);
 };

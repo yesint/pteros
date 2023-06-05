@@ -66,9 +66,7 @@ private:
     // Staff related to local patch computations
     LocalPatch patch;
     // Quadric surface
-    QuadSurface surf;
-    // Transformations to and from local cordinates
-    Eigen::Matrix3f to_lab,to_local;
+    QuadSurface surf;    
 };
 
 }
