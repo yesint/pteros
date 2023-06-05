@@ -385,6 +385,18 @@ void LipidMembrane::inclusion_coord_to_surf_coord(int ind){
     }
 }
 
+void LipidMembrane::do_smoothing(int i, Vector3f_const_ref normal){
+    // Initially use patch normal
+    lipids[i].surf.create_transforms_from_normal(normal);
+    // Create array of local points in local basis
+    smoothed_markers_to_local_coord(i);
+    // Compute fitting polynomial and update fitted normal and central point
+    lipids[i].surf.fit_quad();
+    // Set smoothed point in lab coordinates
+    lipids[i].smoothed_surf_marker += lipids[i].surf.to_lab
+                                       * lipids[i].surf.fitted_central_point;
+}
+
 //---------------------------------------------------------------------------------
 
 void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_type)
@@ -434,43 +446,26 @@ void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_ty
         lip.smoothed_surf_marker = lip.surf_marker;
     }
 
+    // Do initial smoothing with patch normal
     for(size_t i=0;i<lipids.size();++i){
-        auto& lip = lipids[i];
-
-        // Initially use patch normal
-        lip.surf.create_transforms_from_normal(lip.patch.normal);
-
-        // Create array of local points in local basis
-        smoothed_markers_to_local_coord(i);
-        // Compute fitting polynomial and update fitted normal and central point
-        lip.surf.fit_quad();
-        // Set smoothed point in lab coordinates
-        lip.smoothed_surf_marker += lip.surf.to_lab*lip.surf.fitted_central_point;
+        do_smoothing(i,lipids[i].patch.normal);
     }
 
     // Iterations
     float tol = 0.001;
     size_t iter = 0;
     float rmsd, prev_rmsd=1e6;
-    MatrixXf prev_markers(3,lipids.size());
+    vector<QuadSurface> prev_state(lipids.size());
 
     do{
         rmsd = 0.0;
-
         for(size_t i=0;i<lipids.size();++i){
             auto& lip = lipids[i];
-            prev_markers.col(i) = lip.smoothed_surf_marker;
-            // For subsequent iterations use surf normal
-            // to redefine the local basis
-            lip.surf.create_transforms_from_normal(lip.surf.to_lab*lip.surf.fitted_normal);
-            // Create array of local points in local basis
-            smoothed_markers_to_local_coord(i);
-            // Compute fitting polynomial and update fitted normal and central point
-            lip.surf.fit_quad();
-            // Set smoothed point in lab coordinates
-            lip.smoothed_surf_marker += lip.surf.to_lab*lip.surf.fitted_central_point;
-
-            rmsd += (lip.smoothed_surf_marker-prev_markers.col(i)).squaredNorm();
+            prev_state[i] = lip.surf;
+            Vector3f prev_marker = lip.smoothed_surf_marker;
+            // Use existing fitted normal
+            do_smoothing(i,lip.surf.to_lab*lip.surf.fitted_normal);
+            rmsd += (lip.smoothed_surf_marker-prev_marker).squaredNorm();
         }
         ++iter;
         rmsd = sqrt(rmsd/lipids.size());
@@ -480,7 +475,9 @@ void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_ty
         if(rmsd>prev_rmsd){
             // Oversmoothing starts, revert to saved markers and exit the loop
             for(size_t i=0;i<lipids.size();++i){
-                lipids[i].smoothed_surf_marker = prev_markers.col(i);
+                lipids[i].surf = prev_state[i];
+                lipids[i].smoothed_surf_marker = lipids[i].surf.to_lab
+                                                 * lipids[i].surf.fitted_central_point;
             }
             break;
         } else {

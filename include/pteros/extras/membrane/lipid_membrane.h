@@ -116,6 +116,7 @@ private:
 
     void inclusion_coord_to_surf_coord(int ind);
     void smoothed_markers_to_local_coord(int ind);
+    void do_smoothing(int i, Vector3f_const_ref normal);
 };
 
 
