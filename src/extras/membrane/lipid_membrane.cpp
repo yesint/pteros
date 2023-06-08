@@ -265,7 +265,7 @@ void LipidMembrane::create_lipid_patches(vector<Vector2i> const& bon,
     for(auto& lip: lipids) {
         // Clear patches for all lipids
         lip.patch.neib_id.clear();
-        lip.patch.neib_dist.clear();
+        //lip.patch.neib_dist.clear();
         // Save central point
         lip.patch.original_center = lip.surf_marker;
     }
@@ -275,9 +275,9 @@ void LipidMembrane::create_lipid_patches(vector<Vector2i> const& bon,
         int l1 = b(0);
         int l2 = b(1);
         lipids[l1].patch.neib_id.push_back(l2);
-        lipids[l1].patch.neib_dist.push_back(dist[l2]);
+        //lipids[l1].patch.neib_dist.push_back(dist[l2]);
         lipids[l2].patch.neib_id.push_back(l1);
-        lipids[l2].patch.neib_dist.push_back(dist[l1]);
+        //lipids[l2].patch.neib_dist.push_back(dist[l1]);
     }
 }
 
@@ -397,6 +397,19 @@ void LipidMembrane::do_smoothing(int i, Vector3f_const_ref normal){
                                        * lipids[i].surf.fitted_central_point;
 }
 
+void LipidMembrane::lip_neib_from_voronoi(int l){
+    auto& lip = lipids[l];
+    lip.neib.clear();
+    for(size_t i=0; i<lip.surf.neib_id.size(); ++i){
+        // Indexes in lip.surf.neib_id start from 1, because 0 is the central point
+        // Thus substract 1 and we get a local selection index
+        // which are in turn correspond to lipid indexes in all_surf_sel.
+        // The neighbours are NOT arranged in triangulated order!
+        int ind = lip.surf.neib_id[i]-1;
+        lip.neib.push_back( lip.patch.neib_id[ind] );
+    }
+}
+
 //---------------------------------------------------------------------------------
 
 void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_type)
@@ -446,7 +459,7 @@ void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_ty
         lip.smoothed_surf_marker = lip.surf_marker;
     }
 
-    // Do initial smoothing with patch normal
+    // Do initial smoothing with patch normals
     for(size_t i=0;i<lipids.size();++i){
         do_smoothing(i,lipids[i].patch.normal);
     }
@@ -536,15 +549,7 @@ void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_ty
         lip.mono_thickness = lip.tail_head_vector.norm()*cos(a);
 
         // Set neigbours for lipid
-        lip.neib.clear();
-        for(size_t i=0; i<lip.surf.neib_id.size(); ++i){
-            // Indexes in lip.surf.neib_id start from 1, because 0 is the central point
-            // Thus substract 1 and we get a local selection index
-            // which are in turn correspond to lipid indexes in all_surf_sel.
-            // The neighbours are NOT arranged in triangulated order!
-            int ind = lip.surf.neib_id[i]-1;
-            lip.neib.push_back( lip.patch.neib_id[ind] );
-        }
+        lip_neib_from_voronoi(i);
 
         // Coordination number
         lip.coord_number = lip.neib.size();

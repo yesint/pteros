@@ -8,7 +8,7 @@ namespace pteros {
 struct LocalPatch {
     // Id's and distances correspond to each other
     std::vector<int> neib_id;
-    std::vector<float> neib_dist;    
+    //std::vector<float> neib_dist;
     // Normal
     Eigen::Vector3f normal;
     // Original central point
