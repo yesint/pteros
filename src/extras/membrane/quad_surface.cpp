@@ -212,6 +212,7 @@ void QuadSurface::compute_curvature_and_normal(){
     W(0,0) = E_*L_ - F_*M_;  W(0,1) = E_*M_ - F_*N_;
     W(1,0) = G_*M_ - F_*L_;  W(1,1) = G_*N_ - F_*M_;
     W *= 1.0/(E_*G_-F_*F_);
+    // W is symmetric despite the equations seems to be not!
     Eigen::SelfAdjointEigenSolver<Matrix2f> solver(W);
     principal_directions = solver.eigenvectors();
     principal_curvatures = solver.eigenvalues();
