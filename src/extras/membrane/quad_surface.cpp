@@ -1,5 +1,6 @@
 #include "pteros/extras/membrane/quad_surface.h"
 #include <Eigen/Dense>
+#include <Eigen/Geometry>
 //#include "voro++.hh"
 #include "voro++_2d.hh"
 #include <vector>
@@ -198,6 +199,23 @@ void QuadSurface::compute_curvature_and_normal(){
     fitted_normal = Vector3f(D(),E(),-1.0).normalized();
     // Orientation of the normal could be wrong!
     // Have to be flipped according to lipid orientation later
+
+    /* Principal curvatures
+        The principal curvatures k1 and k2 are the eigenvalues
+        and the principal directions are eigenvectors
+        of the shape operator W:
+        W = [I]^-1 * [II]
+        W = 1/(EG - F^2) * [E L - F M, E M - F N]
+                            [G M - F L, G N - F M]
+    */
+    Matrix2f W;
+    W(0,0) = E_*L_ - F_*M_;  W(0,1) = E_*M_ - F_*N_;
+    W(1,0) = G_*M_ - F_*L_;  W(1,1) = G_*N_ - F_*M_;
+    W *= 1.0/(E_*G_-F_*F_);
+    Eigen::SelfAdjointEigenSolver<Matrix2f> solver(W);
+    principal_directions = solver.eigenvectors();
+    principal_curvatures = solver.eigenvalues();
+
 }
 
 void QuadSurface::create_transforms_from_normal(Vector3f_const_ref normal)

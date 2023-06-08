@@ -48,6 +48,8 @@ public:
     float surf_area;
     float gaussian_curvature;
     float mean_curvature;
+    Eigen::Matrix2f principal_directions;
+    Eigen::Vector2f principal_curvatures;
 
     // Local coordinates of lipid markers to account for
     Eigen::MatrixXf lip_coord;

@@ -1019,6 +1019,31 @@ void LipidMembrane::write_vmd_visualization(const string &path){
                                 10*p3.x(),10*p3.y(),10*p3.z(),
                                 10*p2.x(),10*p2.y(),10*p2.z() );
         }
+
+        // Principal directions
+        // fitted normals
+        p1 = lip.smoothed_surf_marker;
+        Vector3f dir = lip.surf.to_lab*Vector3f{lip.surf.principal_directions(0,0),lip.surf.principal_directions(1,0),0.0};
+        p2 = p1 + dir * 0.3; //lip.surf.principal_curvatures(0);
+        p3 = p2 + dir * 0.2;
+        out1 += fmt::format("draw color blue\n");
+        out1 += fmt::format("draw cylinder \"{} {} {}\" \"{} {} {}\" radius 0.3 resolution 12\n",
+                            10*p1.x(),10*p1.y(),10*p1.z(),
+                            10*p2.x(),10*p2.y(),10*p2.z() );
+        out1 += fmt::format("draw cone \"{} {} {}\" \"{} {} {}\" radius 0.4 resolution 12\n",
+                            10*p2.x(),10*p2.y(),10*p2.z(),
+                            10*p3.x(),10*p3.y(),10*p3.z() );
+
+        dir = lip.surf.to_lab*Vector3f{lip.surf.principal_directions(0,1),lip.surf.principal_directions(1,1),0.0};
+        p2 = p1 + dir * 0.3; //lip.surf.principal_curvatures(1);
+        p3 = p2 + dir * 0.2;
+        out1 += fmt::format("draw color red\n");
+        out1 += fmt::format("draw cylinder \"{} {} {}\" \"{} {} {}\" radius 0.3 resolution 12\n",
+                            10*p1.x(),10*p1.y(),10*p1.z(),
+                            10*p2.x(),10*p2.y(),10*p2.z() );
+        out1 += fmt::format("draw cone \"{} {} {}\" \"{} {} {}\" radius 0.4 resolution 12\n",
+                            10*p2.x(),10*p2.y(),10*p2.z(),
+                            10*p3.x(),10*p3.y(),10*p3.z() );
     }
 
     // Output area and normals plots
