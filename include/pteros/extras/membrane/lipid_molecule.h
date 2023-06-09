@@ -59,9 +59,7 @@ private:
     void set_markers();    
 
     // Coordinates of markers
-    Eigen::Vector3f head_marker, tail_marker, surf_marker;
-
-    Selection local_sel, local_sel_with_self;
+    Eigen::Vector3f head_marker, tail_marker, surf_marker;    
 
     // Staff related to local patch computations
     LocalPatch patch;

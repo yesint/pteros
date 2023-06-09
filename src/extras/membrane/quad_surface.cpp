@@ -7,10 +7,13 @@
 
 #include <fmt/ranges.h>
 
+#include "pteros/extras/membrane/lipid_membrane.h"
+
 using namespace pteros;
 using namespace std;
 using namespace Eigen;
 
+/*
 void QuadSurface::fit_quad(){
     int N = lip_coord.cols();
     // We fit with polynomial fit = A*x^2 + B*y^2 + C*xy + D*x + E*y + F
@@ -47,6 +50,46 @@ void QuadSurface::fit_quad(){
 
     //fmt::print(">>{} {}\n",fitted_central_point(2),quad_coefs.transpose());
 }
+*/
+
+void QuadSurface::fit_quad(Vector3f_const_ref normal){
+    // Compute transforms
+    create_transforms_from_normal(normal);
+
+    // We fit with polynomial fit = A*x^2 + B*y^2 + C*xy + D*x + E*y + F
+    // Thus we need a linear system of size 6
+    Matrix<float,6,6> m;
+    Matrix<float,6,1> rhs; // Right hand side and result
+    m.fill(0.0);
+    rhs.fill(0.0);
+
+    Matrix<float,6,1> powers;
+    powers(5) = 1.0; //free term, the same everywhere
+    for(int j=0;j<lip_coord.cols();++j){ // over points
+        // Bring point to local basis
+        Vector3f loc = to_local*lip_coord.col(j);
+        // Compute powers
+        powers(0) = loc(0)*loc(0); //xx
+        powers(1) = loc(1)*loc(1); //yy
+        powers(2) = loc(0)*loc(1); //xy
+        powers(3) = loc(0); //x
+        powers(4) = loc(1); //y
+        // Fill the matrix
+        m.noalias() += powers * powers.transpose();
+        // rhs
+        rhs += powers*loc(2);
+    }
+
+    // Now solve
+    quad_coefs = m.ldlt().solve(rhs);
+
+    // Set curvatures and normal
+    compute_curvature_and_normal();
+
+    // Fit central point
+    fitted_central_point = to_lab*Vector3f{0.0,0.0,evalZ(0.0,0.0)};
+}
+
 
 void QuadSurface::project_point_to_surface(Vector3f_ref p){
     p(2) =  evalZ(p(0),p(1));
@@ -72,7 +115,9 @@ void QuadSurface::compute_voronoi(float inclusion_h_cutoff){
     cell.init(-side_wall,side_wall,-side_wall,side_wall);
     // Cut by planes for all points
     for(int i=1; i<lip_coord.cols(); ++i){ // From 1, central point is 0 and ignored
-        bool ret = cell.nplane(lip_coord(0,i),lip_coord(1,i),i); // Pass i as neigbour pid
+        // Bring point to local basis
+        Vector3f loc = to_local*lip_coord.col(i);
+        bool ret = cell.nplane(loc(0),loc(1),i); // Pass i as neigbour pid
         if(!ret){ // Fail if the cell is invalid
             in_plane_area = 0;
             surf_area = 0;
@@ -84,9 +129,10 @@ void QuadSurface::compute_voronoi(float inclusion_h_cutoff){
     // If inclusion is involved add planes from its atoms
     active_inclusion_indexes.clear();
     for(int i=0; i<inclusion_coord.cols(); ++i){
+        Vector3f loc = to_local*inclusion_coord.col(i);
         if(abs(inclusion_coord(2,i))<inclusion_h_cutoff){
             // Pass large neigbour pid to differentiate
-            cell.nplane(inclusion_coord(0,i),inclusion_coord(1,i),i+10000);
+            cell.nplane(loc(0),loc(1),i+10000);
         }
     }
 
@@ -101,7 +147,7 @@ void QuadSurface::compute_voronoi(float inclusion_h_cutoff){
     area_vertexes.reserve(neib_list.size());
 
     // Check if all vertices are inside the box
-    for(int i=0;i<neib_list.size();++i){
+    for(size_t i=0;i<neib_list.size();++i){
         if(neib_list[i]<0){
             // This is invalid lipid
             in_plane_area = 0;
@@ -120,9 +166,10 @@ void QuadSurface::compute_voronoi(float inclusion_h_cutoff){
     in_plane_area = cell.area();
 
     // Compute area on surface
-    // Project all vertexes to the surface
+    // Project all vertexes to the surface and bring it to lab coordinates
     surf_area = 0.0;
-    for(Vector3f& v: area_vertexes) project_point_to_surface(v);
+    for(Vector3f& v: area_vertexes) v = to_lab*Vector3f{v(0),v(1),evalZ(v(0),v(1))};
+
     // Sum up areas of triangles. Points are not duplicated.
     for(int i=0; i<area_vertexes.size(); ++i){
         int ii = (i<area_vertexes.size()-1) ? i+1 : 0;
@@ -144,7 +191,6 @@ void QuadSurface::compute_voronoi(float inclusion_h_cutoff){
             active_inclusion_indexes.push_back(ind);
             project_point_to_surface(inclusion_coord.col(ind));
         }
-
     }
 }
 
@@ -196,7 +242,7 @@ void QuadSurface::compute_curvature_and_normal(){
     // dz = -1
     // Since we are evaluating at x=y=0:
     // norm = {D,E,1}
-    fitted_normal = Vector3f(D(),E(),-1.0).normalized();
+    fitted_normal = to_lab*Vector3f(D(),E(),-1.0).normalized();
     // Orientation of the normal could be wrong!
     // Have to be flipped according to lipid orientation later
 
@@ -214,9 +260,9 @@ void QuadSurface::compute_curvature_and_normal(){
     W *= 1.0/(E_*G_-F_*F_);
     // W is symmetric despite the equations seems to be not!
     Eigen::SelfAdjointEigenSolver<Matrix2f> solver(W);
-    principal_directions = solver.eigenvectors();
+    principal_directions.col(0) = to_lab*Vector3f{solver.eigenvectors()(0,0),solver.eigenvectors()(1,0),0.0};
+    principal_directions.col(1) = to_lab*Vector3f{solver.eigenvectors()(0,1),solver.eigenvectors()(1,1),0.0};
     principal_curvatures = solver.eigenvalues();
-
 }
 
 void QuadSurface::create_transforms_from_normal(Vector3f_const_ref normal)

@@ -109,13 +109,11 @@ private:
 
     void register_lipid_species(const LipidSpecies &sp);
     void get_initial_normals();
-    void create_lipid_patches(const std::vector<Eigen::Vector2i> &bon, const std::vector<float> &dist);
+    void create_lipid_patches(float d);
     void add_inclusions(float incl_d);
-    void update_local_selection(int i);
-    void incremental_triangulation();
 
     void inclusion_coord_to_surf_coord(int ind);
-    void smoothed_markers_to_local_coord(int ind);
+    void smoothed_markers_to_surf_coord(int ind);
     void do_smoothing(int i, Vector3f_const_ref normal);
     void lip_neib_from_voronoi(int l);
 };

@@ -221,14 +221,6 @@ void LipidMembrane::reset_groups(){
 }
 
 
-void LipidMembrane::update_local_selection(int i){
-    auto& lip = lipids[i];
-    lip.local_sel = all_surf_sel.select(lip.patch.neib_id);
-    lip.local_sel_with_self = lip.local_sel;
-    lip.local_sel_with_self.append(all_surf_sel.index(i));
-}
-
-
 void LipidMembrane::get_initial_normals(){
     // First pass: average of head-tail vector over a patch (including self)
     for(size_t i=0; i<lipids.size(); ++i){
@@ -260,24 +252,27 @@ void LipidMembrane::get_initial_normals(){
     }
 }
 
-void LipidMembrane::create_lipid_patches(vector<Vector2i> const& bon,
-                                         vector<float> const& dist){
+void LipidMembrane::create_lipid_patches(float d){
+    vector<Vector2i> bon;
+    vector<float> dist;
+    search_contacts(d,all_surf_sel,bon,dist,false,fullPBC);
+
     for(auto& lip: lipids) {
         // Clear patches for all lipids
         lip.patch.neib_id.clear();
-        //lip.patch.neib_dist.clear();
-        // Save central point
-        lip.patch.original_center = lip.surf_marker;
     }
 
-    // Fill patches with id's and distances
+    // Fill patches with id's
     for(auto const& b: bon){
         int l1 = b(0);
         int l2 = b(1);
         lipids[l1].patch.neib_id.push_back(l2);
-        //lipids[l1].patch.neib_dist.push_back(dist[l2]);
         lipids[l2].patch.neib_id.push_back(l1);
-        //lipids[l2].patch.neib_dist.push_back(dist[l1]);
+    }
+
+    // Sort neib_id of patches and remove duplicates for correct index match with all_surf_sel selection
+    for(auto& lip: lipids) {
+        lip.patch.sort_and_remove_duplicates();
     }
 }
 
@@ -297,76 +292,18 @@ void LipidMembrane::add_inclusions(float incl_d){
     }
 }
 
-
-void LipidMembrane::incremental_triangulation(){
-    VectorXi used(lipids.size());
-    used.fill(0);
-
-    set<int> todo;
-    todo.insert(0); // Start from the first lipid
-
-    float lim = 100;
-    auto const& box = input_sel_ptr->box();
-    Vector3f p;
-
-    while(!todo.empty()){
-        voro::voronoicell_neighbor cell;
-        cell.init(-lim,lim,-lim,lim,-lim,lim);
-        int cur = *todo.begin();
-        used(cur) = 1;
-        todo.erase(todo.begin());
-        float maxh = -1e6, minh = 1e6;
-        for(int ind: lipids[cur].patch.neib_id){
-            p = box.shortest_vector(lipids[cur].surf_marker,
-                                    lipids[ind].surf_marker);
-            cell.nplane(p(0),p(1),p(2),ind);
-            // Find the height over the tangent plane
-            float h = signed_projection_to_vector(p,lipids[cur].patch.normal);
-            if(h<minh) minh = h;
-            if(h>maxh) maxh = h;
-        }
-        // Add two walls perpendicular to initial normal
-        p = lipids[cur].patch.normal * 2.01*maxh;
-        cell.nplane(p(0),p(1),p(2),-7);
-        p = lipids[cur].patch.normal * 2.01*minh;
-        cell.nplane(p(0),p(1),p(2),-8);
-
-        //if(cur==0) cell.draw_gnuplot(0,0,0,"cell.gnu");
-
-        vector<int> neib;
-        cell.neighbors(neib);
-
-        vector<int> face_order;
-        cell.face_orders(face_order);
-        // Add all non-wall unused neighbours to todo
-
-        fmt::print("before: {}\n",fmt::join(lipids[cur].patch.neib_id," "));
-
-        lipids[cur].patch.neib_id.clear();
-        for(int i=0; i< neib.size(); ++i){
-            int n = neib[i];
-            if(n>=0 && face_order[i]==4){
-                lipids[cur].patch.neib_id.push_back(n);
-                if(!used[n]) todo.insert(n);
-            }
-        }
-        fmt::print("after: {}\n",fmt::join(lipids[cur].patch.neib_id," "));
-    } // todo
-}
-
-void LipidMembrane::smoothed_markers_to_local_coord(int ind){
+void LipidMembrane::smoothed_markers_to_surf_coord(int ind){
     auto const& box = input_sel_ptr->box();
     auto& lip = lipids[ind];
     size_t n = lip.patch.neib_id.size();
     // Allocate array of local points in local basis
     lip.surf.lip_coord.resize(3,n+1);
-    // Local coord of central point is zero and it goes first
+    // Central point is zero and it goes first
     lip.surf.lip_coord.col(0) = Vector3f::Zero();
     for(size_t j=0; j<n; ++j){
         int id = lip.patch.neib_id[j];
-        lip.surf.lip_coord.col(j+1) = lip.surf.to_local
-            * box.shortest_vector(lip.smoothed_surf_marker,
-                                  lipids[id].smoothed_surf_marker);
+        lip.surf.lip_coord.col(j+1) = box.shortest_vector(lip.smoothed_surf_marker,
+                                                          lipids[id].smoothed_surf_marker);
     }
 }
 
@@ -376,8 +313,7 @@ void LipidMembrane::inclusion_coord_to_surf_coord(int ind){
     auto& lip = lipids[ind];
     lip.surf.inclusion_coord.resize(3,lip.inclusion_neib.size());
     for(size_t i=0; i<lip.inclusion_neib.size(); ++i){
-        lip.surf.inclusion_coord.col(i) = lip.surf.to_local
-            * box.shortest_vector(
+        lip.surf.inclusion_coord.col(i) = box.shortest_vector(
                 lip.smoothed_surf_marker,
                 inclusion.xyz(lip.inclusion_neib[i])
               );
@@ -386,15 +322,12 @@ void LipidMembrane::inclusion_coord_to_surf_coord(int ind){
 }
 
 void LipidMembrane::do_smoothing(int i, Vector3f_const_ref normal){
-    // Initially use patch normal
-    lipids[i].surf.create_transforms_from_normal(normal);
-    // Create array of local points in local basis
-    smoothed_markers_to_local_coord(i);
+    // Create array of local points
+    smoothed_markers_to_surf_coord(i);
     // Compute fitting polynomial and update fitted normal and central point
-    lipids[i].surf.fit_quad();
+    lipids[i].surf.fit_quad(normal);
     // Set smoothed point in lab coordinates
-    lipids[i].smoothed_surf_marker += lipids[i].surf.to_lab
-                                       * lipids[i].surf.fitted_central_point;
+    lipids[i].smoothed_surf_marker += lipids[i].surf.fitted_central_point;
 }
 
 void LipidMembrane::lip_neib_from_voronoi(int l){
@@ -426,23 +359,8 @@ void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_ty
         all_surf_sel.xyz(i) = lipids[i].surf_marker;
     }
 
-    // Get connectivity
-    vector<Vector2i> bon;
-    vector<float> dist;
-    search_contacts(d,all_surf_sel,bon,dist,false,fullPBC);
-
     // Populate lipid patches
-    create_lipid_patches(bon,dist);
-
-    // Create local selections around lipids
-    for(size_t i=0;i<lipids.size();++i){
-        update_local_selection(i);
-    }
-
-    // Sort neib_id of patches and remove duplicates for correct index match with all_surf_sel selection
-    for(auto& lip: lipids) {
-        lip.patch.sort_and_remove_duplicates();
-    }
+    create_lipid_patches(d);
 
     // Guess initial normals
     get_initial_normals();
@@ -467,7 +385,7 @@ void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_ty
     // Iterations
     float tol = 0.001;
     size_t iter = 0;
-    float rmsd, prev_rmsd=1e6;
+    float rmsd, prev_rmsd=1e6;    
     vector<QuadSurface> prev_state(lipids.size());
 
     do{
@@ -477,7 +395,7 @@ void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_ty
             prev_state[i] = lip.surf;
             Vector3f prev_marker = lip.smoothed_surf_marker;
             // Use existing fitted normal
-            do_smoothing(i,lip.surf.to_lab*lip.surf.fitted_normal);
+            do_smoothing(i,lip.surf.fitted_normal);
             rmsd += (lip.smoothed_surf_marker-prev_marker).squaredNorm();
         }
         ++iter;
@@ -489,8 +407,7 @@ void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_ty
             // Oversmoothing starts, revert to saved markers and exit the loop
             for(size_t i=0;i<lipids.size();++i){
                 lipids[i].surf = prev_state[i];
-                lipids[i].smoothed_surf_marker = lipids[i].surf.to_lab
-                                                 * lipids[i].surf.fitted_central_point;
+                lipids[i].smoothed_surf_marker = lipids[i].surf.fitted_central_point;
             }
             break;
         } else {
@@ -528,8 +445,7 @@ void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_ty
         //lip.surf.compute_curvature_and_normal();
 
         // Check direction of the fitted normal
-        float norm_ang = angle_between_vectors(lip.surf.to_lab*lip.surf.fitted_normal,
-                                               lip.patch.normal);
+        float norm_ang = angle_between_vectors(lip.surf.fitted_normal,lip.patch.normal);
         if(norm_ang > M_PI_2){
             lip.surf.fitted_normal *= -1.0;
             // Mean curvature have to be inverted as well
@@ -541,7 +457,7 @@ void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_ty
         lip.mean_curvature = lip.surf.mean_curvature;
         lip.gaussian_curvature = lip.surf.gaussian_curvature;
         // Normal
-        lip.normal = lip.surf.to_lab*lip.surf.fitted_normal;
+        lip.normal = lip.surf.fitted_normal;
         // Tilt
         float a = angle_between_vectors(lip.normal,lip.tail_head_vector);
         lip.tilt = rad_to_deg(a);
@@ -864,8 +780,6 @@ void LipidMembrane::compute_triangulation()
 
         }
 
-
-
         // Output colored triangles
         for(auto t: triangles){
             Vector3f p1 = lipids[t(0)].smoothed_surf_marker;
@@ -936,8 +850,8 @@ void LipidMembrane::write_vmd_visualization(const string &path){
         for(size_t j=0; j<lip.surf.area_vertexes.size(); ++j){
             int j2 = j+1;
             if(j==lip.surf.area_vertexes.size()-1) j2=0;
-            p1 = lip.surf.to_lab * lip.surf.area_vertexes[j]  + lip.smoothed_surf_marker;
-            p2 = lip.surf.to_lab * lip.surf.area_vertexes[j2] + lip.smoothed_surf_marker;
+            p1 = lip.surf.area_vertexes[j]  + lip.smoothed_surf_marker;
+            p2 = lip.surf.area_vertexes[j2] + lip.smoothed_surf_marker;
             // Draw small sphere at cylinders intersection
             out1 += fmt::format("draw sphere \"{} {} {}\" radius 0.35 resolution 12\n",
                                 10*p1.x(),10*p1.y(),10*p1.z()
@@ -958,7 +872,7 @@ void LipidMembrane::write_vmd_visualization(const string &path){
         }
 
         // Patch normals
-        p1 = lip.patch.original_center;
+        p1 = lip.surf_marker;
         p2 = p1 + lip.patch.normal*0.5;
         p3 = p1 + lip.patch.normal*0.7;
         out1 += fmt::format("draw color white\n");
@@ -1008,7 +922,7 @@ void LipidMembrane::write_vmd_visualization(const string &path){
             out1 += fmt::format("draw sphere \"{} {} {}\" radius 1.2 resolution 12\n",
                        10*p1.x(),10*p1.y(),10*p1.z() );
             // Fitted position
-            p2 = lip.surf.to_lab*lip.surf.inclusion_coord.col(ind) + lip.smoothed_surf_marker;
+            p2 = lip.surf.inclusion_coord.col(ind) + lip.smoothed_surf_marker;
             //p2 = box.closest_image(p2,p1);
             out1 += fmt::format("draw color iceblue\n");
             out1 += fmt::format("draw sphere \"{} {} {}\" radius 1.0 resolution 12\n",
@@ -1023,7 +937,7 @@ void LipidMembrane::write_vmd_visualization(const string &path){
         // Principal directions
         // fitted normals
         p1 = lip.smoothed_surf_marker;
-        Vector3f dir = lip.surf.to_lab*Vector3f{lip.surf.principal_directions(0,0),lip.surf.principal_directions(1,0),0.0};
+        Vector3f dir = lip.surf.principal_directions.col(0);
         p2 = p1 + dir * 0.3; //lip.surf.principal_curvatures(0);
         p3 = p2 + dir * 0.2;
         out1 += fmt::format("draw color blue\n");
@@ -1034,7 +948,7 @@ void LipidMembrane::write_vmd_visualization(const string &path){
                             10*p2.x(),10*p2.y(),10*p2.z(),
                             10*p3.x(),10*p3.y(),10*p3.z() );
 
-        dir = lip.surf.to_lab*Vector3f{lip.surf.principal_directions(0,1),lip.surf.principal_directions(1,1),0.0};
+        dir = lip.surf.principal_directions.col(1);
         p2 = p1 + dir * 0.3; //lip.surf.principal_curvatures(1);
         p3 = p2 + dir * 0.2;
         out1 += fmt::format("draw color red\n");

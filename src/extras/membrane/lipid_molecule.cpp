@@ -7,19 +7,18 @@ using namespace pteros;
 using namespace Eigen;
 using namespace std;
 
-LipidMolecule::LipidMolecule(const Selection& lip_mol, LipidSpecies* sp, int ind, LipidMembrane* parent)
+LipidMolecule::LipidMolecule(const Selection& lip_mol, LipidSpecies* sp, int ind, LipidMembrane* parent):
+    whole_sel(lip_mol),
+    id(ind),
+    membr_ptr(parent),
+    species_ptr(sp)
 {
-    id = ind;
-    membr_ptr = parent;
-    species_ptr = sp;
-
-    whole_sel = lip_mol;
     head_marker_sel = whole_sel("name "+sp->head_subsel_names);
     tail_marker_sel = whole_sel("name "+sp->tail_subsel_names);
     surf_marker_sel = whole_sel("name "+sp->surf_subsel_names);
 
     // Initialize tails
-    for(int i=0; i<sp->tails_descr.size(); ++i){
+    for(size_t i=0; i<sp->tails_descr.size(); ++i){
         tails.emplace_back(&sp->tails_descr[i]);
     }
 }
