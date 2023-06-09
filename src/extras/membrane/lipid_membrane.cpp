@@ -913,7 +913,6 @@ void LipidMembrane::write_vmd_visualization(const string &path){
 
 
         // Inclusion atoms (if any)
-        auto const& box = input_sel_ptr->box();
         for(size_t i=0; i<lip.surf.active_inclusion_indexes.size(); ++i){
             int ind = lip.surf.active_inclusion_indexes[i];
             // Actual position
