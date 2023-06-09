@@ -130,7 +130,7 @@ void QuadSurface::compute_voronoi(float inclusion_h_cutoff){
     active_inclusion_indexes.clear();
     for(int i=0; i<inclusion_coord.cols(); ++i){
         Vector3f loc = to_local*inclusion_coord.col(i);
-        if(abs(inclusion_coord(2,i))<inclusion_h_cutoff){
+        if(abs(loc(2))<inclusion_h_cutoff){
             // Pass large neigbour pid to differentiate
             cell.nplane(loc(0),loc(1),i+10000);
         }
