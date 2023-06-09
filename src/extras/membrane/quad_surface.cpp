@@ -189,7 +189,8 @@ void QuadSurface::compute_voronoi(float inclusion_h_cutoff){
             // Save index of this inclusion atom and project to surface
             int ind = id-10000;
             active_inclusion_indexes.push_back(ind);
-            project_point_to_surface(inclusion_coord.col(ind));
+            Vector3f v = to_local*inclusion_coord.col(ind);
+            inclusion_coord.col(ind) = to_lab*Vector3f{v(0),v(1),evalZ(v(0),v(1))};
         }
     }
 }
