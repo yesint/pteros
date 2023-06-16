@@ -70,9 +70,9 @@ class build_ext(build_ext_orig):
 # Before running setup we need to form a correct file structure for setup.py
 # We create a pteros directory and copy necessary *py files there
 cwd = pathlib.Path().absolute()
-package_root = cwd / 'pteros'
-copytree(cwd / 'src' / 'python' / 'pteros', cwd / 'pteros', dirs_exist_ok=True)
-copyfile(cwd / 'src' / 'python' / 'scripts' / 'pteros_analysis.py', cwd / 'pteros')
+package_root = cwd/'_pteros'
+copytree(cwd/'src'/'python'/'pteros', package_root, dirs_exist_ok=True)
+copyfile(cwd/'src'/'python'/'scripts'/'pteros_analysis.py', package_root)
 
 setup(
     name='pteros',
@@ -93,6 +93,7 @@ setup(
                 ],
     license='Artistic License',
     packages=['pteros','pteros.extras'],
+    package_dir={'pteros':'_pteros', 'pteros.extras':'_pteros/extras'},
     ext_modules=[CMakeExtension('pteros')],
     cmdclass={
         'build_ext': build_ext,
