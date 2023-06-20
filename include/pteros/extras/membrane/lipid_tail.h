@@ -28,6 +28,7 @@ public:
     // normals could be used to pass either one vector (one column)    
     // or global array for all tails atoms in the system
     void compute_order_and_dihedrals(const Selection& whole_lipid_sel,
+                                     Vector3f_const_ref lip_normal,
                                      MatrixXf_const_ref normals,
                                      OrderType order_type = OrderType::SCD_CORR);
 

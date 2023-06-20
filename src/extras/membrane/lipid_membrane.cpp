@@ -482,11 +482,16 @@ void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_ty
         // Tail properties
         for(auto& t: lip.tails){
             if(per_carbon_normals){
+                // We need to check the normal orientation because the ends of the
+                // tails may have flipped normals due to the influence of the opposite monolayer
+                // For this we need to pass the lipid normal as a reference
                 t.compute_order_and_dihedrals(lip.whole_sel,
                                               c_normals,
+                                              lip.normal,
                                               order_type);
             } else {
                 t.compute_order_and_dihedrals(lip.whole_sel,
+                                              lip.normal,
                                               lip.normal,
                                               order_type);
             }
