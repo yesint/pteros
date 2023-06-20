@@ -552,7 +552,7 @@ void LipidMembrane::get_interpolation(const Selection &points,
             // Find the closest lipid
             int closest_ind = -1;
             float min_dist = std::numeric_limits<float>::max();
-            for(int i=0;i<con[p].size();++i){
+            for(size_t i=0;i<con[p].size();++i){
                 if(con[p][i].surf_dist<min_dist){
                     min_dist = con[p][i].surf_dist;
                     closest_ind = i;
