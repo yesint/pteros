@@ -115,7 +115,8 @@ LipidMembrane::LipidMembrane(const Selection &input_sel,
         Atom at;
         at.name = "SRF";
         at.resname = "SRF";
-        at.mass = 1.0; // Needed for inertia to work correctly
+        at.resid = lipids[i].whole_sel.resid(0);
+        at.mass = 1.0;
         surf_sys.append(at,Vector3f::Zero());
     }
 
