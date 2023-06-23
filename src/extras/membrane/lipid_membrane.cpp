@@ -113,6 +113,8 @@ LipidMembrane::LipidMembrane(const Selection &input_sel,
     // Create internal system for surf markers
     for(size_t i=0; i<lipids.size(); ++i){
         Atom at;
+        at.name = "SRF";
+        at.resname = "SRF";
         at.mass = 1.0; // Needed for inertia to work correctly
         surf_sys.append(at,Vector3f::Zero());
     }
