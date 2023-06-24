@@ -57,14 +57,30 @@ struct InterpolatedPoint {
     std::vector<float> weights;
 };
 
+
+struct LipidMembraneOptions {
+    float smoothing_tol;
+    size_t smoothing_maxiter;
+
+    bool per_carbon_normals;
+
+    float inclusion_h_cutoff;
+
+    LipidMembraneOptions():
+        smoothing_tol(0.001),
+        smoothing_maxiter(10),
+        per_carbon_normals(false),
+        inclusion_h_cutoff(0.5)
+    {}
+};
+
+
 class LipidMembrane {
 public:
     LipidMembrane(const Selection& input_sel,
                   int ngroups,
                   const std::vector<LipidSpecies> &sp_list,
-                  const Selection& incl = {},
-                  float incl_h_cutoff = 0.5,
-                  bool per_carb_normals=false
+                  const Selection& incl = {}
                   );
 
     static std::vector<Selection> get_domains(System const& sys, const std::vector<LipidSpecies> &sp_list, float d=0.4);
@@ -93,7 +109,7 @@ public:
     std::vector<LipidGroup> groups;
     std::vector<LipidSpecies> species;
 
-    bool per_carbon_normals;
+    LipidMembraneOptions options;
 
 private:
     const Selection* input_sel_ptr;
@@ -102,8 +118,7 @@ private:
     Selection all_surf_sel;
     System surf_sys;
 
-    Selection inclusion;
-    float inclusion_h_cutoff;
+    Selection inclusion;    
 
     Selection all_tails_sel;
 
@@ -115,7 +130,7 @@ private:
     void inclusion_coord_to_surf_coord(int ind);
     void smoothed_markers_to_surf_coord(int ind);
     void do_smoothing(int i, Vector3f_const_ref normal);
-    void lip_neib_from_voronoi(int l);
+    void lip_neib_from_voronoi(int l);    
 };
 
 

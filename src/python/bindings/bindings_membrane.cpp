@@ -90,12 +90,21 @@ void make_bindings_Membrane(py::module& m){
         .def_readonly("mean_depth",&InterpolatedPoint::mean_depth)
     ;
 
+    py::class_<LipidMembraneOptions>(m,"LipidMembraneOptions")
+        .def_readwrite("smoothing_tol",&LipidMembraneOptions::smoothing_tol)
+        .def_readwrite("smoothing_maxiter",&LipidMembraneOptions::smoothing_maxiter)
+        .def_readwrite("per_carbon_normals",&LipidMembraneOptions::per_carbon_normals)
+        .def_readwrite("inclusion_h_cutoff",&LipidMembraneOptions::inclusion_h_cutoff)
+        .def("__enter__",[](LipidMembraneOptions* self)->LipidMembraneOptions* {return self;})
+        .def("__exit__",[](LipidMembraneOptions* self,
+             const py::object &type,
+             const py::object &value,
+             const py::object &traceback){})
+    ;
+
     py::class_<LipidMembrane>(m,"LipidMembrane")
-        //.def(py::init<System*,int,const std::vector<LipidSpecies>&>())
-        //.def(py::init<System*,int,const std::vector<LipidSpecies>&,const Selection&>())
-        //.def(py::init<System*,int,const std::vector<LipidSpecies>&,const Selection&,float>())
-        .def(py::init<const Selection&,int,const std::vector<LipidSpecies>&,const Selection&,float,bool>(),
-             "input_sel"_a,"ngroups"_a,"sp_list"_a,"incl"_a=Selection(),"incl_h_cutoff"_a=0.5,"per_carb_normals"_a=false)
+        .def(py::init<const Selection&,int,const std::vector<LipidSpecies>&,const Selection&>(),
+             "input_sel"_a,"ngroups"_a,"sp_list"_a,"incl"_a=Selection())
 
         .def_static("get_domains",&LipidMembrane::get_domains,"sys"_a,"sp_list"_a,"d"_a=0.4)
         .def("compute_properties",&LipidMembrane::compute_properties,
@@ -114,6 +123,7 @@ void make_bindings_Membrane(py::module& m){
         }, "points"_a, "d"_a=3.0)
 
         .def_readonly("lipids",&LipidMembrane::lipids)
+        .def_readwrite("options",&LipidMembrane::options)
     ;
 }
 

@@ -87,13 +87,9 @@ string tcl_arrow(Vector3f_const_ref p1, Vector3f_const_ref p2, float r, string c
 LipidMembrane::LipidMembrane(const Selection &input_sel,
                              int ngroups,
                              const vector<LipidSpecies>& sp_list,
-                             const Selection &incl,
-                             float incl_h_cutoff, bool per_carb_normals):
-
-    per_carbon_normals(per_carb_normals),
+                             const Selection &incl):
     input_sel_ptr(&input_sel),
-    inclusion(incl),
-    inclusion_h_cutoff(incl_h_cutoff)
+    inclusion(incl)
 {
     log = spdlog::get("membrane");
     if(!log) log = create_logger("membrane");
@@ -124,7 +120,7 @@ LipidMembrane::LipidMembrane(const Selection &input_sel,
     all_surf_sel = surf_sys.select_all();
 
     // If asked for per-carbon normals make a selection of all tail carbons
-    if(per_carbon_normals){
+    if(options.per_carbon_normals){
         all_tails_sel.set_system(*(input_sel_ptr->get_system()));
         for(auto& lip: lipids){
             for(auto& t: lip.tails){
@@ -385,8 +381,7 @@ void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_ty
         do_smoothing(i,lipids[i].patch.normal);
     }
 
-    // Iterations
-    float tol = 0.001;
+    // Iterations    
     size_t iter = 0;
     float rmsd, prev_rmsd=1e6;    
     vector<QuadSurface> prev_state(lipids.size());
@@ -417,7 +412,7 @@ void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_ty
             prev_rmsd = rmsd;
         }
 
-    } while(rmsd>tol && iter<10);
+    } while(rmsd>options.smoothing_tol && iter<options.smoothing_maxiter);
 
     //=====================
     // Lipid properties
@@ -437,7 +432,7 @@ void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_ty
             inclusion_coord_to_surf_coord(i);
         }
 
-        lip.surf.compute_voronoi(inclusion_h_cutoff);
+        lip.surf.compute_voronoi(options.inclusion_h_cutoff);
 
         // area
         lip.area = lip.surf.surf_area;
@@ -476,7 +471,7 @@ void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_ty
 
     // If asked make normal interpolation for all tail atoms used for order calculation
     MatrixXf c_normals;
-    if(per_carbon_normals){
+    if(options.per_carbon_normals){
         vector<InterpolatedPoint> interp;        
         get_interpolation(all_tails_sel,interp,c_normals);
     }
@@ -484,7 +479,7 @@ void LipidMembrane::compute_properties(float d, float incl_d, OrderType order_ty
     for(auto& lip: lipids){
         // Tail properties
         for(auto& t: lip.tails){
-            if(per_carbon_normals){
+            if(options.per_carbon_normals){
                 // We need to check the normal orientation because the ends of the
                 // tails may have flipped normals due to the influence of the opposite monolayer
                 // For this we need to pass the lipid normal as a reference
