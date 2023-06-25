@@ -79,11 +79,11 @@ Matrix3f rot_transform_matrix(const Selection& sel1, const Selection& sel2){
      ?  ?  ?
     */
     Matrix3f vh,vk;
-    vh.row(0) = M_SQRT2f * om.block<3,1>(0,5);
-    vh.row(1) = M_SQRT2f * om.block<3,1>(0,4);
+    vh.row(0) = M_SQRT2 * om.block<3,1>(0,5);
+    vh.row(1) = M_SQRT2 * om.block<3,1>(0,4);
 
-    vk.row(0) = M_SQRT2f * om.block<3,1>(3,5);
-    vk.row(1) = M_SQRT2f * om.block<3,1>(3,4);
+    vk.row(0) = M_SQRT2 * om.block<3,1>(3,5);
+    vk.row(1) = M_SQRT2 * om.block<3,1>(3,4);
 
     // Calculate the last eigenvector as the cross-product of the first two.
     // This insures that the conformation is not mirrored and
