@@ -45,7 +45,10 @@ if(WITH_GROMACS)
         # Variable GROMACS_SOURCE_DIR and GROMACS_BINARY_DIR are set by CMP at this point
 
         # File to be set as a byproduct to trigger bulding correctly
-        set(GROMACS_LIB_FILE ${GROMACS_BINARY_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}gromacs${CMAKE_STATIC_LIBRARY_SUFFIX})
+        set(GROMACS_LIB_FILES
+            ${GROMACS_BINARY_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}gromacs${CMAKE_STATIC_LIBRARY_SUFFIX}
+            ${GROMACS_BINARY_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}muparser${CMAKE_STATIC_LIBRARY_SUFFIX}
+        )
 
         ExternalProject_add(Gromacs_external
             SOURCE_DIR ${GROMACS_SOURCE_DIR}
@@ -65,9 +68,9 @@ if(WITH_GROMACS)
                         -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
                         -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
             INSTALL_COMMAND ""
-            BUILD_BYPRODUCTS ${GROMACS_LIB_FILE}
+            BUILD_BYPRODUCTS ${GROMACS_LIB_FILES}
         )
-        set(GROMACS_LIBRARIES ${GROMACS_LIB_FILE})
+        set(GROMACS_LIBRARIES ${GROMACS_LIB_FILES})
     endif()
 
     # Get actual gromacs version

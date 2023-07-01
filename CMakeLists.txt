@@ -23,7 +23,7 @@
 # http://www.opensource.org/licenses/artistic-license-2.0.php
 #
 
-cmake_minimum_required(VERSION 3.14) 
+cmake_minimum_required(VERSION 3.18)
 
 project(pteros)
 
@@ -70,7 +70,7 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 
-if(NOT CMAKE_INSTALL_PREFIX)
+if((NOT CMAKE_INSTALL_PREFIX) AND (UNIX AND NOT APPLE))
     set(CMAKE_INSTALL_PREFIX "~/.local/pteros" CACHE STRING "Choose install location" FORCE)
 endif()
 
