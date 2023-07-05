@@ -15,7 +15,7 @@ protected:
         sel.modify(system,std::string("all"));
     }
 
-    virtual void process_frame(const Frame_info& info) override {
+    virtual void process_frame(const FrameInfo& info) override {
         if(info.valid_frame==0){
             system.frame_dup(0);
         }
@@ -25,7 +25,7 @@ protected:
         cout << "RMSD of frame " << info.valid_frame << " " << sel.rmsd(0,1) << endl;        
     }
 
-    virtual void post_process(const Frame_info& info) override {}
+    virtual void post_process(const FrameInfo& info) override {}
 
     Selection sel;
 };
@@ -38,7 +38,7 @@ protected:
         sel2.modify(system,std::string("resid 102 to 200"));
     }
 
-    virtual void process_frame(const Frame_info& info) override {
+    virtual void process_frame(const FrameInfo& info) override {
         vector<Eigen::Vector2i> bon;
         vector<float> dist;
         bon.clear();
@@ -47,7 +47,7 @@ protected:
         cout << "frame " << info.valid_frame << " bonds: " << bon.size() << endl;        
     }
 
-    virtual void post_process(const Frame_info& info) override {}
+    virtual void post_process(const FrameInfo& info) override {}
 
 
     Selection sel1, sel2;
@@ -61,7 +61,7 @@ protected:
 
     }
 
-    virtual void process_frame(const Frame_info& info) override {
+    virtual void process_frame(const FrameInfo& info) override {
         vector<Selection> sel;
         Selection all(system,std::string("all"));
         all.each_residue(sel);
@@ -69,7 +69,7 @@ protected:
         cout << "frame " << info.valid_frame << endl;        
     }
 
-    virtual void post_process(const Frame_info& info) override {}
+    virtual void post_process(const FrameInfo& info) override {}
 };
 
 
@@ -117,11 +117,7 @@ int main(int argc, char** argv){
         return 1;
     }
 
-    Trajectory_reader engine(options);
-
-
-
-
+    TrajectoryReader engine(options);
 
     switch(num){
     case 1: {
@@ -146,7 +142,7 @@ int main(int argc, char** argv){
 
     engine.run();
 
-    } catch(const Pteros_error& e){
+    } catch(const PterosError& e){
         cout << e.what() << endl;
     }
 

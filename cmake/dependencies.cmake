@@ -42,10 +42,7 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules)
 # OpenMP
 if(WITH_OPENMP)
     find_package(OpenMP COMPONENTS CXX)
-    if(OpenMP_CXX_FOUND)
-        # Link OpenMP globally to all pteros targets
-        link_libraries(OpenMP::OpenMP_CXX)
-    else()
+    if(NOT OpenMP_CXX_FOUND)
         message(WARNING "OpenMP is not available.")
     endif()
 endif()

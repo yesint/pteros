@@ -11,9 +11,8 @@ endif()
 target_link_libraries(pteros_gnm PRIVATE pteros)
 
 install(TARGETS pteros_gnm
-    RUNTIME DESTINATION bin
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
+    LIBRARY DESTINATION lib/pteros
+    ARCHIVE DESTINATION lib/pteros
 )
 
 

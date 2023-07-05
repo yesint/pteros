@@ -32,8 +32,5 @@ set_target_properties(pteros_rearrange_program PROPERTIES OUTPUT_NAME pteros_rea
 install(TARGETS
     pteros_solvate_program
     pteros_rearrange_program
-
     RUNTIME DESTINATION bin
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
 )

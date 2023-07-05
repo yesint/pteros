@@ -41,7 +41,7 @@ protected:
         bi.create(bilayer,marker_sel_text,2.0);        
     }
 
-    virtual void process_frame(const Frame_info& info) override {
+    virtual void process_frame(const FrameInfo& info) override {
         bilayer.set_frame(0);
 
         Chol_data dum;
@@ -128,7 +128,7 @@ protected:
         cout << "Frame " << info.absolute_frame << " " << trace.back().print() << endl;
     }
 
-    virtual void post_process(const Frame_info& info) override {
+    virtual void post_process(const FrameInfo& info) override {
 
         // Write trace
         ofstream ff(options("output_file","trace.dat").as_string().c_str());
@@ -168,10 +168,10 @@ int main(int argc, char** argv){
     try {
         Options options;
         parse_command_line(argc,argv,options);
-        Trajectory_reader proc(options);
+        TrajectoryReader proc(options);
         proc.add_task(new Chol_counter(options));
         proc.run();
-    } catch(const Pteros_error& e){
+    } catch(const PterosError& e){
         cout << e.what() << endl;
     }
 }

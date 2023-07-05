@@ -71,7 +71,7 @@ endif()
 
 
 if((NOT CMAKE_INSTALL_PREFIX) AND (UNIX AND NOT APPLE))
-    set(CMAKE_INSTALL_PREFIX "~/.local/pteros" CACHE STRING "Choose install location" FORCE)
+    set(CMAKE_INSTALL_PREFIX "~/.local" CACHE STRING "Choose install location" FORCE)
 endif()
 
 #-----------------------------
@@ -185,10 +185,12 @@ write_basic_package_version_file(
 )
 
 # Generate cmake config file
-SET(_plugin_dir ${PLUGINS_ABS_PATH})
-configure_file(
+set(CPM_DIR lib/cmake/pteros)
+configure_package_config_file(
     ${PROJECT_SOURCE_DIR}/cmake/pterosConfig.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/cmake/pterosConfig.cmake @ONLY
+    ${CMAKE_CURRENT_BINARY_DIR}/cmake/pterosConfig.cmake
+    INSTALL_DESTINATION lib/cmake/pteros
+    PATH_VARS PLUGINS_ABS_PATH CPM_DIR
 )
 
 # Install CMake target machinery
@@ -196,6 +198,7 @@ install(
     FILES
         ${CMAKE_CURRENT_BINARY_DIR}/cmake/pterosConfig.cmake
         ${CMAKE_CURRENT_BINARY_DIR}/cmake/pterosConfigVersion.cmake
+        ${PROJECT_SOURCE_DIR}/cmake/CPM.cmake
     DESTINATION
         lib/cmake/pteros
 )
@@ -205,7 +208,7 @@ install(
 #---------------------------------------------
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    SET(_ld "${CMAKE_INSTALL_PREFIX}/lib:${CMAKE_INSTALL_PREFIX}/lib64")
+    SET(_ld "${CMAKE_INSTALL_PREFIX}/lib/pteros:${CMAKE_INSTALL_PREFIX}/lib64")
     SET(_py ${CMAKE_INSTALL_PREFIX}/python)
     SET(_path ${CMAKE_INSTALL_PREFIX}/bin)
     SET(_cmake ${CMAKE_INSTALL_PREFIX}/lib/cmake)
@@ -213,12 +216,12 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
         ${PROJECT_SOURCE_DIR}/cmake/pterosrc.in
         ${CMAKE_CURRENT_BINARY_DIR}/pterosrc @ONLY
     )
-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/pterosrc DESTINATION lib)
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/pterosrc DESTINATION lib/pteros)
 
     message("------------------------------")
     message("IMPORTANT!")
     message("In order to be able to link with` Pteros and to use Pteros Python modules")
     message("you have to source the pterosrc file in your bash shell:")
-    message("source ${CMAKE_INSTALL_PREFIX}/lib/pterosrc")
+    message("source ${CMAKE_INSTALL_PREFIX}/lib/pteros/pterosrc")
     message("------------------------------")
 ENDIF()

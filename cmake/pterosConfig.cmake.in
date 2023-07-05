@@ -1,14 +1,19 @@
 # - Config file for pteros
+@PACKAGE_INIT@
 
 include(CMakeFindDependencyMacro)
-find_dependency(Eigen3 3.3 REQUIRED NO_MODULE)
-find_dependency(spdlog CONFIG REQUIRED)
+find_dependency(Eigen3)
+find_dependency(spdlog)
+find_dependency(fmt)
 
 include(${CMAKE_CURRENT_LIST_DIR}/pterosTargets.cmake)
 
-set(pteros_PLUGINS_DIR @_plugin_dir@)
+set_and_check(pteros_PLUGINS_DIR @PACKAGE_PLUGINS_ABS_PATH@)
+set_and_check(pteros_CPM_DIR @PACKAGE_CPM_DIR@)
 
 # Provide information in variables as well for backwards compatibility
 set(pteros_LIBRARIES pteros::pteros)
 get_target_property(pteros_INCLUDE_DIRS pteros::pteros INTERFACE_INCLUDE_DIRECTORIES)
 get_target_property(pteros_DEFINITIONS pteros::pteros INTERFACE_COMPILE_DEFINITIONS)
+
+check_required_components(pteros)

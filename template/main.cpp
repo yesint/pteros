@@ -1,6 +1,7 @@
 #include "pteros/pteros.h"
 #include "pteros/core/pteros_error.h"
 #include <iostream>
+#include <Eigen/Core>
 
 using namespace std;
 using namespace pteros;

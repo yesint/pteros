@@ -27,10 +27,7 @@
 */
 
 
-
-
-
-
+#include <iostream>
 #include "bilayer.h"
 #include "pteros/core/pteros_error.h"
 
@@ -46,7 +43,7 @@ void Bilayer::create(Selection &sel, std::string head_marker_atom, float d){
     bilayer_ptr = &sel;    
     Selection(*sel.get_system(),"("+sel.get_text()+") and "+head_marker_atom)
             .split_by_connectivity(d,surf);
-    if(surf.size()!=2) throw Pteros_error("Passed selection is not a bilayer!");
+    if(surf.size()!=2) throw PterosError("Passed selection is not a bilayer!");
 
     // Select monolayers
     vector<int> ind;

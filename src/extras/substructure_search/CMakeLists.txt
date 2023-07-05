@@ -13,9 +13,8 @@ if(TARGET openbabel_interface)
     )
 
     install(TARGETS pteros_substructure_search
-        RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
+        LIBRARY DESTINATION lib/pteros
+        ARCHIVE DESTINATION lib/pteros
     )
 
 endif()

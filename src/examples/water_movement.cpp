@@ -47,7 +47,7 @@ protected:
     }
 
 
-    void process_frame(const Frame_info& info) override {
+    void process_frame(const FrameInfo& info) override {
         int i,j,k,n,w,ind;
 
         if(info.valid_frame==0){
@@ -75,7 +75,7 @@ protected:
     }
 
 
-    void post_process(const Frame_info& info) override {
+    void post_process(const FrameInfo& info) override {
         int i,j,k;
         for(i=0;i<NgridX;++i)
             for(j=0;j<NgridY;++j)

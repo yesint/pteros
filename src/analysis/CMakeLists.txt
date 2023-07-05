@@ -34,7 +34,6 @@ target_link_libraries(pteros_analysis PUBLIC pteros)
 #--------------
 
 install(TARGETS pteros_analysis EXPORT pterosTargets
-    RUNTIME DESTINATION bin
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
+    LIBRARY DESTINATION lib/pteros
+    ARCHIVE DESTINATION lib/pteros
 )

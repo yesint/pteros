@@ -77,7 +77,7 @@ int main(int argc, char** argv){
     }
     f.close();
 
-    } catch(const Pteros_error& e){
+    } catch(const PterosError& e){
         cout << e.what() << endl;
     }
 }

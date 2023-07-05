@@ -99,7 +99,6 @@ target_include_directories(pteros PUBLIC
 #--------------
 
 install(TARGETS pteros EXPORT pterosTargets
-    RUNTIME DESTINATION bin
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
+    LIBRARY DESTINATION lib/pteros
+    ARCHIVE DESTINATION lib/pteros
 )
