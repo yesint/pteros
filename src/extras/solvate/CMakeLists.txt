@@ -8,7 +8,4 @@ if(MINGW)
 endif()
 target_link_libraries(pteros_solvate PRIVATE pteros)
 
-install(TARGETS pteros_solvate
-    LIBRARY DESTINATION lib/pteros
-    ARCHIVE DESTINATION lib/pteros
-)
+set_target_properties(pteros_solvate PROPERTIES TO_INSTALL ON)

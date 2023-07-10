@@ -25,7 +25,11 @@
 
 cmake_minimum_required(VERSION 3.18)
 
-project(pteros)
+project(pteros VERSION 3.3 LANGUAGES CXX C)
+
+if(PROJECT_SOURCE_DIR STREQUAL PROJECT_BINARY_DIR)
+  message(FATAL_ERROR "In-source builds not allowed. Please make a build directory and run CMake from there.")
+endif()
 
 OPTION(MINIMAL_BUILD "Minimal build without heavy dependencies" OFF)
 
@@ -41,7 +45,6 @@ OPTION(WITH_TNG "Use TNG_IO. Required to read tng files." ON)
 OPTION(TRY_SYSTEM_DEPENDENCIES "Try using system dependensies." OFF)
 OPTION(TRY_SYSTEM_EIGEN "Try using system Eigen." ON)
 OPTION(TRY_SYSTEM_FMT "Try using system fmt." ON)
-#OPTION(TRY_SYSTEM_SCN "Try using system scn." ON)
 OPTION(TRY_SYSTEM_SPDLOG "Try using system spdlog." ON)
 OPTION(TRY_SYSTEM_PYBIND11 "Try using system pybind11." ON)
 OPTION(TRY_SYSTEM_GROMACS "Try using system Gromacs." ON)
@@ -69,9 +72,17 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose Release or Debug" FORCE)
 endif()
 
-
-if((NOT CMAKE_INSTALL_PREFIX) AND (UNIX AND NOT APPLE))
-    set(CMAKE_INSTALL_PREFIX "~/.local" CACHE STRING "Choose install location" FORCE)
+# Manage installation location
+IF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    # No custom install prefix is given
+    # Check if we are inside the venv, if so install to this env
+    if(DEFINED ENV{VIRTUAL_ENV})
+        set(CMAKE_INSTALL_PREFIX $ENV{VIRTUAL_ENV} CACHE PATH "Choose install location" FORCE)
+    else()
+        if(UNIX AND NOT APPLE)
+            set(CMAKE_INSTALL_PREFIX "~/.local" CACHE PATH "Choose install location" FORCE)
+        endif()
+    endif()
 endif()
 
 #-----------------------------
@@ -116,11 +127,23 @@ target_include_directories(pteros_interface INTERFACE ${PROJECT_SOURCE_DIR}/incl
 # Manage dependencies
 #----------------------------
 
-# Set CPM cache location if not provide in command line
+# Set CPM cache location if not provide in the command line
 if(NOT CPM_SOURCE_CACHE)
-    set(CPM_SOURCE_CACHE "~/.local/CPM_CACHE" CACHE STRING "Location of dependencies cache" FORCE)
+    set(CPM_SOURCE_CACHE "~/.local/CPM_CACHE" CACHE STRING "Location of CPM cache" FORCE)
 endif()
 
+# include CPM
+include(${PROJECT_SOURCE_DIR}/cmake/CPM.cmake)
+
+# Get modified PackageProject.cmake
+CPMAddPackage("gh:yesint/PackageProject.cmake#master")
+
+# Set versions of dependencies
+set(EIGEN_VERSION 3.4)
+set(FMT_VERSION 8.1.1)
+set(SPDLOG_VERSION 1.12.0)
+
+# Manage dependencies
 include(${PROJECT_SOURCE_DIR}/cmake/dependencies.cmake)
 
 #------------------------------------
@@ -141,7 +164,6 @@ add_subdirectory(thirdparty/sasa)
 #----------------------------
 # Compiling pteros itself
 #----------------------------
-
 add_subdirectory(src/core)
 add_subdirectory(src/analysis)
 add_subdirectory(src/python)
@@ -164,43 +186,36 @@ ENDIF()
 #---------------------
 # Installing
 #---------------------
+message(STATUS "Install prefix: ${CMAKE_INSTALL_PREFIX}")
+if(WITH_PYTHON)
+    message(STATUS "Python install dir: ${PY_INST_DIR}")
+endif()
 
-# Install headers
-install(DIRECTORY include DESTINATION .)
-
-# generate export targets file
-install(
-    EXPORT pterosTargets
-    FILE pterosTargets.cmake
-    NAMESPACE pteros::
-    DESTINATION lib/cmake/pteros
-)
-
-# Generate cmake version file
-include(CMakePackageConfigHelpers)
-write_basic_package_version_file(
-    "${CMAKE_CURRENT_BINARY_DIR}/cmake/pterosConfigVersion.cmake"
-    VERSION 3.0
-    COMPATIBILITY SameMajorVersion
-)
-
-# Generate cmake config file
-set(CPM_DIR lib/cmake/pteros)
-configure_package_config_file(
-    ${PROJECT_SOURCE_DIR}/cmake/pterosConfig.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/cmake/pterosConfig.cmake
-    INSTALL_DESTINATION lib/cmake/pteros
-    PATH_VARS PLUGINS_ABS_PATH CPM_DIR
-)
-
-# Install CMake target machinery
-install(
-    FILES
-        ${CMAKE_CURRENT_BINARY_DIR}/cmake/pterosConfig.cmake
-        ${CMAKE_CURRENT_BINARY_DIR}/cmake/pterosConfigVersion.cmake
-        ${PROJECT_SOURCE_DIR}/cmake/CPM.cmake
-    DESTINATION
-        lib/cmake/pteros
+packageProject(
+  # the name of the target to export
+  NAME ${PROJECT_NAME}
+  # the version of the target to export
+  VERSION ${PROJECT_VERSION}
+  # a temporary directory to create the config files
+  BINARY_DIR ${PROJECT_BINARY_DIR}
+  # location of the target's public headers
+  INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}
+  # should match the target's INSTALL_INTERFACE include directory
+  INCLUDE_DESTINATION include/${PROJECT_NAME}
+  # semicolon separated list of the project's dependencies
+  DEPENDENCIES "Eigen3 ${EIGEN_VERSION};fmt ${FMT_VERSION};spdlog ${SPDLOG_VERSION}"
+  # (optional) create a header containing the version info
+  # Note: that the path to headers should be lowercase
+  VERSION_HEADER "${PROJECT_NAME}/version.h"
+  # (optional) install your library with a namespace (Note: do NOT add extra '::')
+  NAMESPACE pteros
+  # (optional) define the project's version compatibility, defaults to `AnyNewerVersion`
+  # supported values: `AnyNewerVersion|SameMajorVersion|SameMinorVersion|ExactVersion`
+  COMPATIBILITY AnyNewerVersion
+  # (optional) option to disable the versioning of install destinations
+  DISABLE_VERSION_SUFFIX YES
+  # Automatically install all targets with TO_INSTALL property set to YES
+  AUTO_FIND_TARGETS_TO_INSTALL YES
 )
 
 #---------------------------------------------
@@ -209,8 +224,8 @@ install(
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     SET(_ld "${CMAKE_INSTALL_PREFIX}/lib/pteros:${CMAKE_INSTALL_PREFIX}/lib64")
-    SET(_py ${CMAKE_INSTALL_PREFIX}/python)
-    SET(_path ${CMAKE_INSTALL_PREFIX}/bin)
+    SET(_py ${PY_INST_DIR})
+    SET(_path ${CMAKE_INSTALL_PREFIX}/bin/pteros)
     SET(_cmake ${CMAKE_INSTALL_PREFIX}/lib/cmake)
     configure_file(
         ${PROJECT_SOURCE_DIR}/cmake/pterosrc.in

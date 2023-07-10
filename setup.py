@@ -46,9 +46,10 @@ class build_ext(build_ext_orig):
             '-DMAKE_TEST=OFF',
             '-DMAKE_EXAMPLES=OFF',
             '-DMAKE_TOOLS=OFF',
-            '-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=' + str(extdir.parent.absolute()),
+            #'-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=' + str(extdir.parent.absolute() / 'pteros'),
             '-DCMAKE_BUILD_TYPE=' + config,
-            # '-DCMAKE_INSTALL_DIRECTORY=' + str(cwd / 'pteros')
+            '-DPY_INST_DIR=' + str(extdir.parent.absolute()),
+            #'-DCMAKE_INSTALL_PREFIX=' + str(build_temp / 'tmp_install'),
         ]
 
         # example of build args
@@ -60,8 +61,8 @@ class build_ext(build_ext_orig):
         os.chdir(str(build_temp))
         self.spawn(['cmake', str(cwd)] + cmake_args)
         if not self.dry_run:
-            #self.spawn(['cmake', '--build', '.', '--target', 'install'] + build_args)
-            self.spawn(['cmake', '--build', '.'] + build_args)
+            self.spawn(['cmake', '--build', '.', '--target', 'install'] + build_args)
+            #self.spawn(['cmake', '--build', '.'] + build_args)
         # Troubleshooting: if fail on line above then delete all possible
         # temporary CMake files including "CMakeCache.txt" in top level dir.
         os.chdir(str(cwd))
@@ -72,7 +73,6 @@ class build_ext(build_ext_orig):
 cwd = pathlib.Path().absolute()
 package_root = cwd/'_pteros'
 copytree(cwd/'src'/'python'/'pteros', package_root, dirs_exist_ok=True)
-copyfile(cwd/'src'/'python'/'scripts'/'pteros_analysis.py', package_root)
 
 setup(
     name='pteros',

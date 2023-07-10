@@ -94,11 +94,5 @@ target_include_directories(pteros PUBLIC
     $<INSTALL_INTERFACE:include>
 )
 
-#--------------
-# Installation
-#--------------
+set_target_properties(pteros PROPERTIES TO_INSTALL ON)
 
-install(TARGETS pteros EXPORT pterosTargets
-    LIBRARY DESTINATION lib/pteros
-    ARCHIVE DESTINATION lib/pteros
-)

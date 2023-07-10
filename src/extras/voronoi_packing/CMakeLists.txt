@@ -10,7 +10,4 @@ endif()
 
 target_link_libraries(pteros_voronoi_packing PRIVATE pteros voro3d)
 
-install(TARGETS pteros_voronoi_packing
-    LIBRARY DESTINATION lib/pteros
-    ARCHIVE DESTINATION lib/pteros
-)
+set_target_properties(pteros_voronoi_packing PROPERTIES TO_INSTALL ON)

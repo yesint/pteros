@@ -41,7 +41,7 @@ IF(WITH_PYTHON)
         pteros_voronoi_packing
     )
 
-    if(WITH_OPENBABEL AND OPENBABEL2_FOUND)
+    if(WITH_OPENBABEL AND OPENBABEL3_FOUND)
         target_sources(_pteros_extras PRIVATE bindings_substructure_search.cpp)
         target_compile_definitions(_pteros_extras PRIVATE WITH_OPENBABEL)
         target_link_libraries(_pteros_extras PRIVATE pteros_substructure_search)

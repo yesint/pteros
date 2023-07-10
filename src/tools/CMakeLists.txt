@@ -12,6 +12,9 @@ target_link_libraries(pteros_solvate_program PRIVATE pteros pteros_analysis pter
 target_include_directories(pteros_solvate_program PRIVATE pteros_solvate)
 set_target_properties(pteros_solvate_program PROPERTIES OUTPUT_NAME pteros_solvate)
 
+# install
+set_target_properties(pteros_solvate_program PROPERTIES TO_INSTALL ON)
+
 #------------------------
 # pteros_rearrange
 #------------------------
@@ -25,12 +28,5 @@ endif()
 target_link_libraries(pteros_rearrange_program PRIVATE pteros pteros_analysis)
 set_target_properties(pteros_rearrange_program PROPERTIES OUTPUT_NAME pteros_rearrange)
 
-#--------------
-# Installation
-#--------------
-
-install(TARGETS
-    pteros_solvate_program
-    pteros_rearrange_program
-    RUNTIME DESTINATION bin
-)
+# Install
+set_target_properties(pteros_rearrange_program PROPERTIES TO_INSTALL ON)

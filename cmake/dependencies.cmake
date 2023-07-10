@@ -51,13 +51,11 @@ endif()
 # Dependencies which can use CPM for installing
 #======================================================
 
-include(${PROJECT_SOURCE_DIR}/cmake/CPM.cmake)
-
 #--------------------
 # Eigen
 #--------------------
 if(TRY_SYSTEM_EIGEN)
-    find_package(Eigen3 3.4 NO_MODULE)
+    find_package(Eigen3 ${EIGEN_VERSION} NO_MODULE QUIET)
 endif()
 
 if(NOT Eigen3_FOUND)
@@ -69,7 +67,7 @@ if(NOT Eigen3_FOUND)
     CPMAddPackage(
         NAME              Eigen
         GIT_REPOSITORY    https://gitlab.com/libeigen/eigen.git
-        GIT_TAG           3.4 #master
+        GIT_TAG           ${EIGEN_VERSION}
         OPTIONS
             "EIGEN_BUILD_DOC OFF"
             "BUILD_TESTING OFF"
@@ -83,7 +81,7 @@ endif()
 # fmt
 #--------------------
 if(TRY_SYSTEM_FMT)
-    find_package(fmt QUIET)
+    find_package(fmt ${FMT_VERSION} QUIET)
 endif()
 
 if(NOT fmt_FOUND)
@@ -95,7 +93,7 @@ if(NOT fmt_FOUND)
     CPMAddPackage(
         NAME                fmt
         GITHUB_REPOSITORY   fmtlib/fmt
-        GIT_TAG             8.1.1
+        GIT_TAG             ${FMT_VERSION}
         OPTIONS
             "FMT_INSTALL ON"
             "FMT_DOC OFF"
@@ -133,7 +131,7 @@ endif()
 # spdlog
 #--------------------
 if(TRY_SYSTEM_SPDLOG)
-    find_package(spdlog CONFIG)
+    find_package(spdlog ${SPDLOG_VERSION} CONFIG QUIET)
 endif()
 
 if(NOT spdlog_FOUND)
@@ -145,7 +143,7 @@ if(NOT spdlog_FOUND)
     CPMAddPackage(
         NAME                spdlog
         GITHUB_REPOSITORY   gabime/spdlog
-        GIT_TAG             v1.x
+        GIT_TAG             v${SPDLOG_VERSION}
         OPTIONS
             "SPDLOG_INSTALL ON"
             "SPDLOG_BUILD_TESTS OFF"
@@ -160,7 +158,7 @@ endif()
 #--------------------
 if(WITH_PYTHON)    
     # Force Python3
-    set(PYBIND11_PYTHON_VERSION 3 CACHE INTERNAL "")
+    set(PYBIND11_PYTHON_VERSION 3 CACHE INTERNAL "" FORCE)
     # Configure pybind11
 
     # By default we will download it.
@@ -191,9 +189,29 @@ if(WITH_PYTHON)
         )
     endif()
 
-    # Set python install dir
-    set(PY_INST_DIR python)
-    set(PLUGINS_ABS_PATH ${CMAKE_INSTALL_PREFIX}/python/pteros_analysis_plugins)
+    if(NOT DEFINED PY_INST_DIR)
+        if(DEFINED ENV{VIRTUAL_ENV})
+            # This gives relative path to the python packages
+            # It provides correct path for venv, but in global
+            # context it returns global dist-packages, so shouldn't be used
+            execute_process(
+                COMMAND "${PYTHON_EXECUTABLE}" -c "if True:
+                from distutils import sysconfig as sc
+                print(sc.get_python_lib(prefix='', plat_specific=True))"
+                OUTPUT_VARIABLE PY_INST_DIR
+                OUTPUT_STRIP_TRAILING_WHITESPACE
+            )
+            # This gives a relative path, whihc will be combined with CMAKE_INSTALL_PREFIX
+        else()
+            # We are not in venv, so install to site-packages, not to dist-packages
+            execute_process(
+                COMMAND "${PYTHON_EXECUTABLE}" -m site --user-site
+                OUTPUT_VARIABLE PY_INST_DIR
+                OUTPUT_STRIP_TRAILING_WHITESPACE
+            )
+            # This gives correct absolute path directly
+        endif()
+    endif()
 endif()
 
 

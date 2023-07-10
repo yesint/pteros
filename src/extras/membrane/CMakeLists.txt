@@ -17,9 +17,7 @@ endif()
 
 target_link_libraries(pteros_membrane PRIVATE pteros voro2d voro3d)
 
-install(TARGETS pteros_membrane
-    LIBRARY DESTINATION lib/pteros
-    ARCHIVE DESTINATION lib/pteros
-)
+set_target_properties(pteros_membrane PROPERTIES TO_INSTALL ON)
+
 
 

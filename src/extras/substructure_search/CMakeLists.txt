@@ -12,9 +12,5 @@ if(TARGET openbabel_interface)
             openbabel_interface
     )
 
-    install(TARGETS pteros_substructure_search
-        LIBRARY DESTINATION lib/pteros
-        ARCHIVE DESTINATION lib/pteros
-    )
-
+    set_target_properties(pteros_substructure_search PROPERTIES TO_INSTALL ON)
 endif()

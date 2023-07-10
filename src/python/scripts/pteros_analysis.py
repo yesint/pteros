@@ -4,7 +4,7 @@ from pteros import *
 import sys, os, signal, glob
 from inspect import getmembers, isclass
 import importlib.util
-import pteros_analysis_plugins
+import pteros.plugins
 
 
 #--------------------------------------
@@ -89,7 +89,7 @@ if __name__ == '__main__':
     # If explicitly asked for help show it
     if help_topic!=None:
         # Find available plugins in standard location
-        plugin_dir = os.path.dirname(os.path.abspath(pteros_analysis_plugins.__file__))
+        plugin_dir = os.path.dirname(os.path.abspath(pteros.plugins.__file__))
         module_names = [f.split('.')[0] for f in os.listdir(plugin_dir) if os.path.isfile(os.path.join(plugin_dir, f))]
         # Try to load modules
         plugins_list = []
@@ -97,7 +97,7 @@ if __name__ == '__main__':
             if f[0]=='_':
                 continue
             try:
-                module = __import__(pteros_analysis_plugins.__name__ + "." +f, fromlist="dummy")
+                module = __import__(pteros.plugins.__name__ + "." +f, fromlist="dummy")
                 plugins_list.append(f)
             except:
                 pass
@@ -114,7 +114,7 @@ if __name__ == '__main__':
             sys.exit(0)
 
         elif help_topic in plugins_list:
-            module = __import__(pteros_analysis_plugins.__name__ + "." + help_topic, fromlist="dummy")
+            module = __import__(pteros.plugins.__name__ + "." + help_topic, fromlist="dummy")
             # Try to create class by name (for compiled plugins)
             class_name = get_class_name(module)
             class_ = getattr(module, class_name) # Get class by name
@@ -167,7 +167,7 @@ if __name__ == '__main__':
         else:
             # Seems to be plugin from standard location
             log.debug("\tLoading standard plugin '%s'" % f)            
-            module = __import__(pteros_analysis_plugins.__name__ + "." + f, fromlist="dummy")            
+            module = __import__(pteros.plugins.__name__ + "." + f, fromlist="dummy")
             # Check if this is compiled plugin
             if module.__file__.split('.')[-1] == 'py':
                 class_name = get_class_name(module)
