@@ -138,7 +138,7 @@ void JumpRemover::remove_jumps(System& system){
     } else { // For other frames, not first
 
         int ind;
-        for(int i=0;i<no_jump_ind.size();++i){
+        for(size_t i=0;i<no_jump_ind.size();++i){
             ind = no_jump_ind[i];
             // Get image closest to running reference
             system.xyz(ind,0) = system.box(0).closest_image(system.xyz(ind,0),

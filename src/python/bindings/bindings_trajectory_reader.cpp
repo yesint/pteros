@@ -134,10 +134,12 @@ void make_bindings_Trajectory_reader(py::module& m){
     ;
 
     py::class_<JumpRemover>(m,"JumpRemover")
+        .def(py::init<>())
         .def("add_atoms",&JumpRemover::add_atoms)
         .def("set_pbc",&JumpRemover::set_pbc)
         .def("set_unwrap_dist",&JumpRemover::set_unwrap_dist)
         .def("set_pbc_atom",&JumpRemover::set_pbc_atom)
+        .def("remove_jumps",&JumpRemover::remove_jumps)
     ;
 
 }
