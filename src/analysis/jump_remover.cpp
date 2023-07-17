@@ -43,7 +43,7 @@ JumpRemover::JumpRemover():
 { }
 
 void JumpRemover::add_atoms(const Selection &sel)
-{    
+{
     int ind;
     int n = sel.get_system()->num_atoms();
     for(int i=0;i<sel.size();++i){
@@ -74,18 +74,19 @@ void JumpRemover::set_pbc_atom(int ind)
     pbc_atom = ind;
 }
 
-void JumpRemover::remove_jumps(System& system){
+void JumpRemover::remove_jumps(System& system, int fr){
     // Exit immediately if no atoms or no valid dimensions
     // If not periodic also do nothing
-    if(no_jump_ind.empty() || dims.sum()==0 || !system.box(0).is_periodic()) return;
+    if(no_jump_ind.empty() || dims.sum()==0 || !system.box(fr).is_periodic()) return;
 
     if(!initialized){
         // Do initial unwrapping
         // Make temp selection from no_jump_ind
         Selection sel(system,no_jump_ind);
+        sel.set_frame(fr);
 
         // Do unwrapping if more than 1 atom and distance >=0
-        if(no_jump_ind.size()>1 && unwrap_d>=0){            
+        if(no_jump_ind.size()>1 && unwrap_d>=0){
             if(unwrap_d==0){
                 if(sel.get_system()->force_field_ready()){
                     // Use topology
@@ -122,14 +123,14 @@ void JumpRemover::remove_jumps(System& system){
                 // Unwrap with given distance
                 LOG()->info("Unwrapping for jump remover, fixed cutoff {}",unwrap_d);
                 sel.unwrap_bonds(unwrap_d,dims,pbc_atom);
-            }            
+            }
         }
 
         // Save reference coordinates
         no_jump_ref.resize(3,sel.size());
         for(int i=0;i<sel.size();++i){
-            no_jump_ref.col(i) = sel.xyz(i,0);
-        }                
+            no_jump_ref.col(i) = sel.xyz(i,fr);
+        }
 
         LOG()->info("Will remove jumps for {} atoms", sel.size());
 
@@ -141,11 +142,11 @@ void JumpRemover::remove_jumps(System& system){
         for(size_t i=0;i<no_jump_ind.size();++i){
             ind = no_jump_ind[i];
             // Get image closest to running reference
-            system.xyz(ind,0) = system.box(0).closest_image(system.xyz(ind,0),
+            system.xyz(ind,fr) = system.box(fr).closest_image(system.xyz(ind,fr),
                                                             no_jump_ref.col(i),
                                                             dims);
             // Update running reference
-            no_jump_ref.col(i) = system.xyz(ind,0);
+            no_jump_ref.col(i) = system.xyz(ind,fr);
         }
 
     }

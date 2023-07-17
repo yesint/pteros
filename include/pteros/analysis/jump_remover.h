@@ -44,7 +44,7 @@ public:
     void set_pbc_atom(int ind);
 
     // Remove jumps
-    void remove_jumps(System& system);
+    void remove_jumps(System& system, int fr=0);
 
 private:    
     // Indexes for removing jumps
