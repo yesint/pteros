@@ -38,7 +38,7 @@
 #include "trr_file.h"
 #include "xtc_file.h"
 
-#ifdef USE_TNGIO
+#ifdef USE_TNG
 #include "tng_file.h"
 #endif
 
@@ -115,7 +115,7 @@ unique_ptr<FileHandler> FileHandler::create(const string& fname, char open_mode)
     else if(ext=="gro")     return FileHandler_ptr(new GroFile(fname,open_mode));
     else if(ext=="dcd")     return FileHandler_ptr(new DcdFile(fname,open_mode));
     else if(ext=="xyz")     return FileHandler_ptr(new XyzFile(fname,open_mode));
-#ifdef USE_TNGIO
+#ifdef USE_TNG
     else if(ext=="tng")     return FileHandler_ptr(new TngFile(fname,open_mode));
 #endif
 #ifdef USE_GROMACS
