@@ -1,10 +1,10 @@
-if(WITH_PYTHON)    
-    install(DIRECTORY pteros_analysis_plugins DESTINATION ${PY_INST_DIR} USE_SOURCE_PERMISSIONS)
+if(WITH_PYTHON)
+    file(GLOB scripts_to_install "scripts/*.py")
     install(PROGRAMS
-            scripts/pteros_analysis.py            
-            DESTINATION bin)
+            ${scripts_to_install}
+            DESTINATION bin/pteros)
 
-    # Install wrapper for main extension modules
+    # Install main python module directory
     install(DIRECTORY pteros DESTINATION ${PY_INST_DIR})
 
     add_subdirectory(bindings)

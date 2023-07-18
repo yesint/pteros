@@ -20,20 +20,11 @@ add_library(pteros_analysis SHARED
     ${PROJECT_SOURCE_DIR}/include/pteros/analysis/task_plugin.h
     task_plugin.cpp
     data_container.h
-    )
-
-if(MINGW)
-    # Workaround CMake problem on mingw with incorrect implicit linking
-    target_link_libraries(pteros_analysis PRIVATE spdlog::spdlog)
-endif()
+)
 
 target_link_libraries(pteros_analysis PUBLIC pteros)
 
 #--------------
 # Installation
 #--------------
-
-install(TARGETS pteros_analysis EXPORT pterosTargets
-    LIBRARY DESTINATION lib/pteros
-    ARCHIVE DESTINATION lib/pteros
-)
+set_target_properties(pteros_analysis PROPERTIES TO_INSTALL ON)

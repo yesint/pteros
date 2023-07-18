@@ -10,9 +10,6 @@ endif()
 
 target_link_libraries(pteros_gnm PRIVATE pteros)
 
-install(TARGETS pteros_gnm
-    LIBRARY DESTINATION lib/pteros
-    ARCHIVE DESTINATION lib/pteros
-)
+list(APPEND PTEROS_TARGETS_TO_INSTALL pteros_gnm)
 
 
