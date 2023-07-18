@@ -30,10 +30,7 @@ if(WITH_OPENBABEL)
      endif()
 
     if(NOT OPENBABEL3_FOUND)
-        if(NOT DOWNLOAD_DEPENDENCIES)
-            message(FATAL_ERROR "OpenBabel is not available!")
-        endif()
-
+        message(STATUS "Will download and compile OpenBabel")
         CPMAddPackage(
             NAME            OPENBABEL
             GIT_REPOSITORY  https://github.com/openbabel/openbabel.git
@@ -43,9 +40,9 @@ if(WITH_OPENBABEL)
         # Variable OPENBABEL_SOURCE_DIR and OPENBABEL_BINARY_DIR are set by CMP at this point
 
         set(OPENBABEL_INSTALL_DIR ${CMAKE_BINARY_DIR}/openbabel-install)
+        # File to be set as a byproduct to trigger buld correctly
         set(OPENBABEL_LIB_FILE ${OPENBABEL_INSTALL_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}openbabel${CMAKE_STATIC_LIBRARY_SUFFIX})
 
-        message(STATUS "Will download and compile OpenBabel in place")
         ExternalProject_add(OpenBabel_external
             SOURCE_DIR ${OPENBABEL_SOURCE_DIR}
             BINARY_DIR ${OPENBABEL_BINARY_DIR}
@@ -57,7 +54,7 @@ if(WITH_OPENBABEL)
             BUILD_BYPRODUCTS ${OPENBABEL_LIB_FILE}
         )
 
-        # Set openbabel variables manually
+        # Set openbabel variables
         set(OPENBABEL3_FOUND TRUE)
         set(OPENBABEL3_INCLUDE_DIR
             ${OPENBABEL_INSTALL_DIR}/include/openbabel3

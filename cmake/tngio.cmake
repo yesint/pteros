@@ -25,10 +25,6 @@
 #---------------------------------------------------
 
 if(WITH_TNG)
-    if(NOT DOWNLOAD_DEPENDENCIES)
-        message(FATAL_ERROR "tng_io is not available!")
-    endif()
-
     message(STATUS "Will download and compile tng_io library in place")
 
     CPMAddPackage(
@@ -40,6 +36,7 @@ if(WITH_TNG)
     # Variable TNG_SOURCE_DIR and TNG_BINARY_DIR are set by CMP at this point
 
     set(TNG_INSTALL_DIR ${CMAKE_BINARY_DIR}/tng-install)
+    # File to be set as a byproduct to trigger buld correctly
     set(TNG_LIB_FILE ${TNG_INSTALL_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}tng_io${CMAKE_STATIC_LIBRARY_SUFFIX})
 
     ExternalProject_add(TNG_external
@@ -55,6 +52,7 @@ if(WITH_TNG)
                     -DCMAKE_INSTALL_LIBDIR=lib
         BUILD_BYPRODUCTS ${TNG_LIB_FILE}
     )
+
     set(TNG_INCLUDE_DIR ${TNG_INSTALL_DIR}/include ${TNG_SOURCE_DIR}/include)
     set(TNG_LIBRARIES   ${TNG_LIB_FILE})
 

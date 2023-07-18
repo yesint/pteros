@@ -41,17 +41,11 @@ OPTION(WITH_OPENBABEL "Use OpenBabel. Required to read pdbqt files and for subst
 OPTION(WITH_GROMACS "Use Gromacs. Required to read tpr files." ON)
 OPTION(WITH_TNG "Use TNG_IO. Required to read tng files." ON)
 
-# Options to search for pre-installed dependencies
-OPTION(TRY_SYSTEM_DEPENDENCIES "Try using system dependensies." OFF)
-OPTION(TRY_SYSTEM_EIGEN "Try using system Eigen." ON)
-OPTION(TRY_SYSTEM_FMT "Try using system fmt." ON)
-OPTION(TRY_SYSTEM_SPDLOG "Try using system spdlog." ON)
-OPTION(TRY_SYSTEM_PYBIND11 "Try using system pybind11." ON)
+# Options to search for pre-installed heavy dependencies
 OPTION(TRY_SYSTEM_GROMACS "Try using system Gromacs." ON)
 OPTION(TRY_SYSTEM_OPENBABEL "Try using system OpenBabel" ON)
 
-OPTION(DOWNLOAD_DEPENDENCIES "Download and compile dependencies if not found in the system" ON)
-
+# Optinal things
 OPTION(MAKE_TOOLS "Build pteros tools" ON)
 OPTION(MAKE_STANDALONE_PLUGINS "Compile analysis plugins as stand-alone executables" OFF)
 OPTION(MAKE_PACKAGE "Generate package" OFF)
@@ -142,6 +136,8 @@ CPMAddPackage("gh:yesint/PackageProject.cmake#master")
 set(EIGEN_VERSION 3.4)
 set(FMT_VERSION 8.1.1)
 set(SPDLOG_VERSION 1.12.0)
+set(PYBIND11_VERSION master)
+set(ARGPARSE_VERSION 2.9)
 
 # Manage dependencies
 include(${PROJECT_SOURCE_DIR}/cmake/dependencies.cmake)
