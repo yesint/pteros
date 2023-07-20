@@ -83,11 +83,6 @@ CPMAddPackage(
 )
 
 #--------------------
-# ArgParse
-#--------------------
-CPMAddPackage("gh:p-ranav/argparse@${ARGPARSE_VERSION}")
-
-#--------------------
 # Pybind11
 #--------------------
 if(WITH_PYTHON)    
