@@ -36,6 +36,7 @@ using namespace pteros;
 
 
 JumpRemover::JumpRemover():
+    sys_ptr(nullptr),
     dims(fullPBC),
     unwrap_d(0),
     pbc_atom(0),
@@ -44,24 +45,25 @@ JumpRemover::JumpRemover():
 
 void JumpRemover::add_atoms(const Selection &sel)
 {
-    int ind;
-    int n = sel.get_system()->num_atoms();
-    for(int i=0;i<sel.size();++i){
-        ind = sel.index(i);
-        if(ind<0 || ind>=n) throw PterosError("Index {} for jump removal out of range (0:{})!",ind,n-1);
-        no_jump_ind.push_back(ind);
+    if(!sys_ptr){
+        // This is the first invocation
+        sys_ptr = sel.get_system();
+    } else if(sel.get_system() != sys_ptr){
+        throw PterosError("Selections for JumpRemover have to be from the same system!");
     }
+
+    copy(sel.index_begin(),sel.index_end(),back_inserter(no_jump_ind));
 
     // Only keep unique atoms!
     sort(no_jump_ind.begin(),no_jump_ind.end());
     auto it = unique(no_jump_ind.begin(), no_jump_ind.end());
-    no_jump_ind.resize( it - no_jump_ind.begin() );
+    no_jump_ind.resize(it - no_jump_ind.begin());
 }
 
 void JumpRemover::set_pbc(Array3i_const_ref pbc)
 {
     dims = pbc;
-    if(dims.sum()==0) LOG()->warn("No periodic dimensions, skipping jump removing.");
+    if(dims.sum()==0) LOG()->warn("No periodic dimensions, jump removing disabled.");
 }
 
 void JumpRemover::set_unwrap_dist(float d)
@@ -74,15 +76,15 @@ void JumpRemover::set_pbc_atom(int ind)
     pbc_atom = ind;
 }
 
-void JumpRemover::remove_jumps(System& system, int fr){
+void JumpRemover::remove_jumps(int fr){
     // Exit immediately if no atoms or no valid dimensions
     // If not periodic also do nothing
-    if(no_jump_ind.empty() || dims.sum()==0 || !system.box(fr).is_periodic()) return;
+    if(no_jump_ind.empty() || dims.sum()==0 || !sys_ptr->box(fr).is_periodic()) return;
 
     if(!initialized){
         // Do initial unwrapping
         // Make temp selection from no_jump_ind
-        Selection sel(system,no_jump_ind);
+        Selection sel(*sys_ptr,no_jump_ind);
         sel.set_frame(fr);
 
         // Do unwrapping if more than 1 atom and distance >=0
@@ -127,10 +129,7 @@ void JumpRemover::remove_jumps(System& system, int fr){
         }
 
         // Save reference coordinates
-        no_jump_ref.resize(3,sel.size());
-        for(int i=0;i<sel.size();++i){
-            no_jump_ref.col(i) = sel.xyz(i,fr);
-        }
+        no_jump_ref = sel.get_xyz(fr);
 
         LOG()->info("Will remove jumps for {} atoms", sel.size());
 
@@ -138,15 +137,15 @@ void JumpRemover::remove_jumps(System& system, int fr){
 
     } else { // For other frames, not first
 
-        int ind;
+        auto const& box = sys_ptr->box(fr);
         for(size_t i=0;i<no_jump_ind.size();++i){
-            ind = no_jump_ind[i];
+            int ind = no_jump_ind[i];
             // Get image closest to running reference
-            system.xyz(ind,fr) = system.box(fr).closest_image(system.xyz(ind,fr),
-                                                            no_jump_ref.col(i),
-                                                            dims);
+            sys_ptr->xyz(ind,fr) = box.closest_image(sys_ptr->xyz(ind,fr),
+                                                                  no_jump_ref.col(i),
+                                                                  dims);
             // Update running reference
-            no_jump_ref.col(i) = system.xyz(ind,fr);
+            no_jump_ref.col(i) = sys_ptr->xyz(ind,fr);
         }
 
     }

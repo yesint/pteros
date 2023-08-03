@@ -9,7 +9,7 @@ pteros::TaskPlugin::TaskPlugin(const pteros::TaskPlugin &other): TaskBase(other)
 void pteros::TaskPlugin::before_spawn_handler() {
     before_spawn();
     // For parallel tasks init jump remover here
-    if(is_parallel()) jump_remover.remove_jumps(system);
+    if(is_parallel()) jump_remover.remove_jumps();
 }
 
 void pteros::TaskPlugin::pre_process_handler()
@@ -18,7 +18,7 @@ void pteros::TaskPlugin::pre_process_handler()
         pre_process();
 
         // For serial tasks init jump remover here
-        if(!is_parallel()) jump_remover.remove_jumps(system);
+        if(!is_parallel()) jump_remover.remove_jumps();
 
     } catch (const std::exception& e) {
         log->error("pre_process failed: {}", e.what());
@@ -29,7 +29,7 @@ void pteros::TaskPlugin::pre_process_handler()
 void pteros::TaskPlugin::process_frame_handler(const pteros::FrameInfo &info)
 {
     try {
-        jump_remover.remove_jumps(system);
+        jump_remover.remove_jumps();
         process_frame(info);
 
     } catch (const std::exception& e) {
