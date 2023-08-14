@@ -44,9 +44,12 @@ public:
     void set_pbc_atom(int ind);
 
     // Remove jumps
-    void remove_jumps(System& system, int fr=0);
+    void remove_jumps(int fr=0);
 
 private:    
+    // Parent system
+    System* sys_ptr;
+
     // Indexes for removing jumps
     std::vector<int> no_jump_ind;
     // Running reference coordinates for removing jumps

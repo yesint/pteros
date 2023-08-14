@@ -139,7 +139,7 @@ void make_bindings_Trajectory_reader(py::module& m){
         .def("set_pbc",&JumpRemover::set_pbc)
         .def("set_unwrap_dist",&JumpRemover::set_unwrap_dist)
         .def("set_pbc_atom",&JumpRemover::set_pbc_atom)
-        .def("remove_jumps",&JumpRemover::remove_jumps,"sys"_a,"fr"_a=0)
+        .def("remove_jumps",&JumpRemover::remove_jumps,"fr"_a=0)
     ;
 
 }
