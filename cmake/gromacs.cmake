@@ -114,16 +114,16 @@ if(WITH_GROMACS)
             ${GROMACS_SOURCE_DIR}/api/legacy/include   # Gromacs 2021.x
             ${GROMACS_SOURCE_DIR}/src/external         # Gromacs 2021.x
         )
-	set(GROMACS_LIBRARIES 
-  	   ${GROMACS_BINARY_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}gromacs${CMAKE_STATIC_LIBRARY_SUFFIX}
-	   ${GROMACS_BINARY_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}muparser${CMAKE_STATIC_LIBRARY_SUFFIX}
+        set(GROMACS_LIBRARIES 
+            ${GROMACS_BINARY_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}gromacs${CMAKE_STATIC_LIBRARY_SUFFIX}
+            ${GROMACS_BINARY_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}muparser${CMAKE_STATIC_LIBRARY_SUFFIX}
         )
     else() #2020 and below
         set(GROMACS_INCLUDE_DIRECTORIS
             ${GROMACS_SOURCE_DIR}/src                  # Gromacs up to 2020.5
         )
-	set(GROMACS_LIBRARIES 
-           ${GROMACS_BINARY_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}gromacs${CMAKE_STATIC_LIBRARY_SUFFIX}
+        set(GROMACS_LIBRARIES 
+            ${GROMACS_BINARY_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}gromacs${CMAKE_STATIC_LIBRARY_SUFFIX}
         )
     endif()
 

@@ -38,7 +38,7 @@
 #include "gromacs/topology/mtop_util.h"
 #include "gromacs/topology/idef.h"
 
-// Generated version infor file
+// Generated version info file
 #include "gromacs_version_info.h"
 
 #if (GROMACS_VERSION > 2020)
