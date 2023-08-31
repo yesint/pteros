@@ -219,7 +219,7 @@ packageProject(
 #---------------------------------------------
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    SET(_ld "${CMAKE_INSTALL_PREFIX}/lib/pteros:${CMAKE_INSTALL_PREFIX}/lib64")
+    SET(_ld "${CMAKE_INSTALL_PREFIX}/lib/pteros:${CMAKE_INSTALL_PREFIX}/lib64:${CMAKE_INSTALL_PREFIX}/lib64/pteros")
     SET(_py ${PY_INST_DIR})
     SET(_path ${CMAKE_INSTALL_PREFIX}/bin/pteros)
     SET(_cmake ${CMAKE_INSTALL_PREFIX}/lib/cmake)
