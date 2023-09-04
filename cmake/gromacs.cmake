@@ -83,6 +83,7 @@ if(WITH_GROMACS)
                         -DGMX_INSTALL_NBLIB_API=OFF
                         -DGMX_OPENMP=OFF
                         -DGMX_THREAD_MPI=OFF
+                        -DCMAKE_DISABLE_FIND_PACKAGE_MPI=on
                         -DBUILD_SHARED_LIBS=OFF
                         -DGMX_USE_TNG=${GMX_USE_TNG_FLAG}
                         -DCMAKE_POSITION_INDEPENDENT_CODE=ON
