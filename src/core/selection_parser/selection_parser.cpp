@@ -540,24 +540,24 @@ void SelectionParser::eval_node(const std::shared_ptr<MyAst> &node, std::vector<
 
         } else if(node->nodes[1]->token == "and") {
             // Optimize to put pure node first
-            bool pure1 = !node->nodes[0]->is_coord_dependent;
-            bool pure2 = !node->nodes[2]->is_coord_dependent;
+            //bool pure1 = !node->nodes[0]->is_coord_dependent;
+            //bool pure2 = !node->nodes[2]->is_coord_dependent;
 
-            if(pure2 && !pure1) std::swap(node->nodes[0],node->nodes[2]);
+            //if(pure2 && !pure1) std::swap(node->nodes[0],node->nodes[2]);
 
             vector<int> res1,res2;
             eval_node(node->nodes[0],res1);
-            current_subset = &res1; // Set subset for second
+            //current_subset = &res1; // Set subset for second
             eval_node(node->nodes[2],res2); // Is using filled current subset
 
             std::set_intersection(res1.begin(),res1.end(),res2.begin(),res2.end(),back_inserter(result));
 
             // Reset subset
-            if(starting_subset){
-                current_subset = starting_subset;
-            } else {
-                current_subset = nullptr;
-            }
+            //if(starting_subset){
+            //    current_subset = starting_subset;
+            //} else {
+            //    current_subset = nullptr;
+            //}
         }
 
         break;
