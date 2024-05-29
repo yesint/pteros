@@ -258,10 +258,10 @@ void SelectionParser::create_ast(string& sel_str, System* system){
         current_subset = nullptr;
 
     // Optimize numeric values in the tree
-    optimize_numeric(tree);
+    //optimize_numeric(tree);
 
     // proceed with optimizing pure nodes to precomputed if needed
-    if(has_coord) precompute(tree);
+    //if(has_coord) precompute(tree);
 }
 
 void SelectionParser::apply_ast(size_t fr, vector<int>& result){
