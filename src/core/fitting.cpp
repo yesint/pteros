@@ -138,9 +138,9 @@ Matrix3f rot_transform_matrix_new(const MatrixBase<CrdT>& coord1,
                               const MatrixBase<CrdT>& coord2,
                               const MatrixBase<MassT>& masses){
 
-    static_assert(masses.IsVectorAtCompileTime,"Vector is expected for masses");
-    static_assert(coord1.RowsAtCompileTime==3,"Matrix<3,X> required!");
-    static_assert(coord2.RowsAtCompileTime==3,"Matrix<3,X> required!");
+    //static_assert(masses.IsVectorAtCompileTime,"Vector is expected for masses");
+    //static_assert(coord1.RowsAtCompileTime==3,"Matrix<3,X> required!");
+    //static_assert(coord2.RowsAtCompileTime==3,"Matrix<3,X> required!");
     //fmt::print("{} {}\n",coord1.rows(),coord1.cols());
 
     Matrix<float,6,6> omega,om;

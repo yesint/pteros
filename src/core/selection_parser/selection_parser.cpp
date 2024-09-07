@@ -550,6 +550,8 @@ void SelectionParser::eval_node(const std::shared_ptr<MyAst> &node, std::vector<
             //current_subset = &res1; // Set subset for second
             eval_node(node->nodes[2],res2); // Is using filled current subset
 
+            //fmt::print("AND>>> {} {}",res1.size(), res2.size());
+
             std::set_intersection(res1.begin(),res1.end(),res2.begin(),res2.end(),back_inserter(result));
 
             // Reset subset
