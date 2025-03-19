@@ -10,3 +10,5 @@ thirdparty/tng_io/include/tng/version.h
 build
 dist
 .vscode
+build*
+.cache

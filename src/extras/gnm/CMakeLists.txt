@@ -10,6 +10,5 @@ endif()
 
 target_link_libraries(pteros_gnm PRIVATE pteros)
 
-list(APPEND PTEROS_TARGETS_TO_INSTALL pteros_gnm)
-
-
+#list(APPEND PTEROS_TARGETS_TO_INSTALL pteros_gnm)
+set_target_properties(pteros_gnm PROPERTIES TO_INSTALL ON)
