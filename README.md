@@ -1,9 +1,14 @@
+> [!CAUTION]
+> Pteros is no longer actively developed!
+
+> [!IMPORTANT]
+> Pteros is deprecated in favour of [MolAR](https://github.com/yesint/molar) written in Rust. MolAR is currently feature complete and could be used as a nearly drop-in replacement of Pteros if the Python bindings are used.
+
 # Pteros
 
 Modern and fast molecular analysis and modeling library for C++ and Python
 
 ### What is Pteros?
-
 
 Pteros is a C++ library for molecular modeling. It is designed to simplify the development of custom programs and scripts for molecular modeling, analysis of molecular dynamics trajectories and implementing new simulation and analysis algorithms. Pteros provides facilities, which are routinely used in all molecular analysis programs, namely input/output of popular file formats, powerful and flexible atom selections, geometry transformations, RMSD fitting and alignment, etc. Pteros also contains powerful facilities for parsing command-line arguments in custom programs and for running several analysis tasks in parallel, utilizing the power of modern multi-core processors.
 Pteros supports writing analysis programs in either C++ or Python programming languages.
